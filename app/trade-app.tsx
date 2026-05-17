@@ -164,6 +164,7 @@ export default function TradeApp() {
   const [positionSize, setPositionSize] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState("");
 
   async function loadTradeData() {
@@ -226,6 +227,33 @@ export default function TradeApp() {
       ),
     );
     setIsSaving(false);
+  }
+
+  async function generateMoreRecommendations() {
+    setIsGenerating(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/recommendations/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ session_type: "midday" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
+      await loadTradeData();
+    } catch {
+      setMessage(
+        "Sorry, Trade could not generate more recommendations right now. Please try again.",
+      );
+    }
+
+    setIsGenerating(false);
   }
 
   function openTradeModal(recommendation: Recommendation) {
@@ -373,11 +401,11 @@ export default function TradeApp() {
               </div>
               <button
                 type="button"
-                onClick={loadTradeData}
-                disabled={isLoading}
+                onClick={generateMoreRecommendations}
+                disabled={isLoading || isGenerating}
                 className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
               >
-                Refresh recommendations
+                {isGenerating ? "Generating..." : "Generate 3-5 More Recommendations"}
               </button>
             </div>
 
