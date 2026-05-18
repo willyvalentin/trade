@@ -13,7 +13,8 @@ type RecommendationRow = {
   company_name: string | null;
   direction: string | null;
   setup_type: string | null;
-  entry_zone: string | null;
+  entry_low: number | string | null;
+  entry_high: number | string | null;
   stop_loss: string | null;
   target_1: string | null;
   target_2: string | null;
@@ -117,6 +118,28 @@ function formatDate(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
+function formatEntryZone(
+  entryLow: number | string | null | undefined,
+  entryHigh: number | string | null | undefined,
+) {
+  const low = money(entryLow);
+  const high = money(entryHigh);
+
+  if (low === "Not set" && high === "Not set") {
+    return "Not set";
+  }
+
+  if (low === "Not set") {
+    return high;
+  }
+
+  if (high === "Not set") {
+    return low;
+  }
+
+  return `${low} - ${high}`;
+}
+
 function toRecommendation(row: RecommendationRow): Recommendation {
   return {
     id: row.id,
@@ -124,7 +147,7 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     companyName: text(row.company_name),
     direction: direction(row.direction),
     setupType: text(row.setup_type),
-    entryZone: text(row.entry_zone),
+    entryZone: formatEntryZone(row.entry_low, row.entry_high),
     stopLoss: text(row.stop_loss),
     target1: text(row.target_1),
     target2: text(row.target_2),
@@ -243,13 +266,19 @@ export default function TradeApp() {
       });
 
       if (!response.ok) {
-        throw new Error("Request failed");
+        const result = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(result?.error || "Request failed");
       }
 
       await loadTradeData();
-    } catch {
+    } catch (error) {
       setMessage(
-        "Sorry, Trade could not generate more recommendations right now. Please try again.",
+        error instanceof Error
+          ? error.message
+          : "Sorry, Trade could not generate more recommendations right now. Please try again.",
       );
     }
 
