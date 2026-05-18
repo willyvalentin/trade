@@ -6,10 +6,13 @@ import { supabase } from "@/lib/supabase";
 
 type Direction = "Long" | "Short";
 type RecommendationStatus = "new" | "watched" | "ignored" | "taken";
+type SessionType = "morning" | "midday";
+type SessionFilter = "all" | SessionType;
 type Tab = "Daily Recommendations" | "Active Positions" | "History";
 
 type RecommendationRow = {
   id: string;
+  session_type: string | null;
   ticker: string;
   company_name: string | null;
   direction: string | null;
@@ -88,6 +91,8 @@ type PositionUpdateResult = {
 
 type Recommendation = {
   id: string;
+  sessionType: SessionType;
+  sessionLabel: string;
   ticker: string;
   companyName: string;
   direction: Direction;
@@ -189,6 +194,11 @@ type LatestPositionUpdate = {
 
 const tabs: Tab[] = ["Daily Recommendations", "Active Positions", "History"];
 const historyStatuses: RecommendationStatus[] = ["ignored", "watched", "taken"];
+const sessionFilters: { label: string; value: SessionFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Morning", value: "morning" },
+  { label: "Midday", value: "midday" },
+];
 
 const text = (value: unknown, fallback = "") => {
   if (typeof value === "string") return value.trim();
@@ -300,6 +310,14 @@ function status(value: string | null | undefined): RecommendationStatus {
   return "new";
 }
 
+function sessionType(value: string | null | undefined): SessionType {
+  return value === "midday" ? "midday" : "morning";
+}
+
+function sessionLabel(value: SessionType) {
+  return value === "midday" ? "Midday" : "Morning";
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) {
     return "Just now";
@@ -398,9 +416,12 @@ function toRecommendation(row: RecommendationRow): Recommendation {
   const entryLowValue = parseNumber(row.entry_low);
   const entryHighValue = parseNumber(row.entry_high);
   const stopLossValue = parseNumber(row.stop_loss);
+  const recommendationSessionType = sessionType(row.session_type);
 
   return {
     id: row.id,
+    sessionType: recommendationSessionType,
+    sessionLabel: sessionLabel(recommendationSessionType),
     ticker: row.ticker,
     companyName: text(row.company_name),
     direction: direction(row.direction),
@@ -611,9 +632,11 @@ export default function TradeApp() {
   const [exitNotes, setExitNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingSessionType, setGeneratingSessionType] =
+    useState<SessionType | null>(null);
   const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
+  const [sessionFilter, setSessionFilter] = useState<SessionFilter>("all");
 
   async function loadTradeData() {
     await Promise.resolve();
@@ -728,8 +751,8 @@ export default function TradeApp() {
     setIsSaving(false);
   }
 
-  async function generateMoreRecommendations() {
-    setIsGenerating(true);
+  async function generateRecommendations(sessionTypeToGenerate: SessionType) {
+    setGeneratingSessionType(sessionTypeToGenerate);
     setMessage("");
 
     try {
@@ -738,7 +761,7 @@ export default function TradeApp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ session_type: "midday" }),
+        body: JSON.stringify({ session_type: sessionTypeToGenerate }),
       });
 
       if (!response.ok) {
@@ -755,13 +778,13 @@ export default function TradeApp() {
         "Sorry, Trade could not generate more recommendations right now. Please try again.";
 
       setMessage(
-        process.env.NODE_ENV === "development" && error instanceof Error
+        error instanceof Error && error.message
           ? error.message
           : fallbackMessage,
       );
     }
 
-    setIsGenerating(false);
+    setGeneratingSessionType(null);
   }
 
   async function updatePositions() {
@@ -972,6 +995,10 @@ export default function TradeApp() {
   const dailyRecommendations = recommendations.filter(
     (recommendation) => !historyStatuses.includes(recommendation.status),
   );
+  const filteredDailyRecommendations = dailyRecommendations.filter(
+    (recommendation) =>
+      sessionFilter === "all" || recommendation.sessionType === sessionFilter,
+  );
   const historyRecommendations = recommendations.filter((recommendation) =>
     historyStatuses.includes(recommendation.status),
   );
@@ -1056,14 +1083,45 @@ export default function TradeApp() {
                   Live market data is not connected yet.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={generateMoreRecommendations}
-                disabled={isLoading || isGenerating}
-                className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
-              >
-                {isGenerating ? "Generating..." : "Generate 3-5 More Recommendations"}
-              </button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => generateRecommendations("morning")}
+                  disabled={isLoading || generatingSessionType !== null}
+                  className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                >
+                  {generatingSessionType === "morning"
+                    ? "Generating..."
+                    : "Generate Morning Scan"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => generateRecommendations("midday")}
+                  disabled={isLoading || generatingSessionType !== null}
+                  className="min-h-11 rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-100 transition hover:border-emerald-200/60 hover:bg-emerald-200/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-zinc-900 disabled:text-zinc-600"
+                >
+                  {generatingSessionType === "midday"
+                    ? "Generating..."
+                    : "Generate Midday Scan"}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {sessionFilters.map((filter) => (
+                <button
+                  key={filter.value}
+                  type="button"
+                  onClick={() => setSessionFilter(filter.value)}
+                  className={`rounded-full border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                    sessionFilter === filter.value
+                      ? "border-emerald-300 bg-emerald-300 text-zinc-950"
+                      : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/25 hover:text-zinc-100"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
             </div>
 
             {isLoading ? (
@@ -1076,9 +1134,14 @@ export default function TradeApp() {
                 title="No recommendations yet"
                 message="Add rows to the recommendations table in Supabase. New rows with status new or empty will appear here."
               />
+            ) : filteredDailyRecommendations.length === 0 ? (
+              <EmptyState
+                title={`No ${sessionFilter} recommendations`}
+                message="Switch filters or generate a scan for this session."
+              />
             ) : (
               <div className="grid gap-4 xl:grid-cols-2">
-                {dailyRecommendations.map((recommendation) => (
+                {filteredDailyRecommendations.map((recommendation) => (
                   <RecommendationCard
                     key={recommendation.id}
                     recommendation={recommendation}
@@ -1545,6 +1608,9 @@ function RecommendationCard({
               {recommendation.ticker}
             </span>
             <DirectionPill direction={recommendation.direction} />
+            <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">
+              {recommendation.sessionLabel}
+            </span>
           </div>
           <p className="mt-1 break-words text-sm text-zinc-400">
             {recommendation.companyName}

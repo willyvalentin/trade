@@ -44,6 +44,38 @@ type AiResponse = {
   recommendations: AiRecommendation[];
 };
 
+type UserSettings = {
+  portfolio_size: number;
+  risk_per_trade_percent: number;
+  max_recommendations_per_session: number;
+  max_open_positions: number;
+  preferred_timeframe: string;
+  long_only: boolean;
+};
+
+type UserSettingsRow = {
+  portfolio_size: number | string | null;
+  risk_per_trade_percent: number | string | null;
+  max_recommendations_per_session: number | string | null;
+  max_open_positions: number | string | null;
+  preferred_timeframe: string | null;
+  long_only: boolean | null;
+};
+
+type PositionStatusRow = {
+  ticker: string | null;
+  status?: string | null;
+};
+
+const defaultUserSettings: UserSettings = {
+  portfolio_size: 100000,
+  risk_per_trade_percent: 0.5,
+  max_recommendations_per_session: 5,
+  max_open_positions: 5,
+  preferred_timeframe: "1–5 days",
+  long_only: true,
+};
+
 const mockCandidates: MockCandidate[] = [
   {
     ticker: "AAPL",
@@ -443,56 +475,58 @@ const mockCandidates: MockCandidate[] = [
   },
 ];
 
-const recommendationSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["recommendations"],
-  properties: {
-    recommendations: {
-      type: "array",
-      minItems: 0,
-      maxItems: 5,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "ticker",
-          "company_name",
-          "direction",
-          "setup_type",
-          "entry_low",
-          "entry_high",
-          "stop_loss",
-          "target_1",
-          "target_2",
-          "risk_reward",
-          "confidence",
-          "timeframe",
-          "thesis",
-          "invalidation",
-          "reason_to_avoid",
-        ],
-        properties: {
-          ticker: { type: "string" },
-          company_name: { type: "string" },
-          direction: { type: "string", enum: ["long"] },
-          setup_type: { type: "string" },
-          entry_low: { type: "number" },
-          entry_high: { type: "number" },
-          stop_loss: { type: "number" },
-          target_1: { type: "number" },
-          target_2: { type: "number" },
-          risk_reward: { type: "number" },
-          confidence: { type: "string", enum: ["Low", "Medium", "High"] },
-          timeframe: { type: "string" },
-          thesis: { type: "string" },
-          invalidation: { type: "string" },
-          reason_to_avoid: { type: "string" },
+function createRecommendationSchema(maxRecommendations: number) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["recommendations"],
+    properties: {
+      recommendations: {
+        type: "array",
+        minItems: 0,
+        maxItems: maxRecommendations,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "ticker",
+            "company_name",
+            "direction",
+            "setup_type",
+            "entry_low",
+            "entry_high",
+            "stop_loss",
+            "target_1",
+            "target_2",
+            "risk_reward",
+            "confidence",
+            "timeframe",
+            "thesis",
+            "invalidation",
+            "reason_to_avoid",
+          ],
+          properties: {
+            ticker: { type: "string" },
+            company_name: { type: "string" },
+            direction: { type: "string", enum: ["long"] },
+            setup_type: { type: "string" },
+            entry_low: { type: "number" },
+            entry_high: { type: "number" },
+            stop_loss: { type: "number" },
+            target_1: { type: "number" },
+            target_2: { type: "number" },
+            risk_reward: { type: "number" },
+            confidence: { type: "string", enum: ["Low", "Medium", "High"] },
+            timeframe: { type: "string" },
+            thesis: { type: "string" },
+            invalidation: { type: "string" },
+            reason_to_avoid: { type: "string" },
+          },
         },
       },
     },
-  },
-};
+  };
+}
 
 function getStartOfToday() {
   const today = new Date();
@@ -526,6 +560,57 @@ function number(value: unknown, fieldName: string) {
   return Number(value.toFixed(2));
 }
 
+function parseSettingNumber(value: unknown, fallback: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function isOpenPositionStatus(value: string | null | undefined) {
+  return value?.trim().toLowerCase() === "open";
+}
+
+function normalizeUserSettings(row?: UserSettingsRow | null): UserSettings {
+  return {
+    portfolio_size: parseSettingNumber(
+      row?.portfolio_size,
+      defaultUserSettings.portfolio_size,
+    ),
+    risk_per_trade_percent: parseSettingNumber(
+      row?.risk_per_trade_percent,
+      defaultUserSettings.risk_per_trade_percent,
+    ),
+    max_recommendations_per_session: clamp(
+      Math.round(
+        parseSettingNumber(
+          row?.max_recommendations_per_session,
+          defaultUserSettings.max_recommendations_per_session,
+        ),
+      ),
+      1,
+      10,
+    ),
+    max_open_positions: Math.max(
+      1,
+      Math.round(
+        parseSettingNumber(
+          row?.max_open_positions,
+          defaultUserSettings.max_open_positions,
+        ),
+      ),
+    ),
+    preferred_timeframe:
+      typeof row?.preferred_timeframe === "string" &&
+      row.preferred_timeframe.trim()
+        ? row.preferred_timeframe.trim()
+        : defaultUserSettings.preferred_timeframe,
+    long_only: row?.long_only ?? defaultUserSettings.long_only,
+  };
+}
+
 function parseAiResponse(outputText: string): AiResponse {
   try {
     const parsed = JSON.parse(outputText) as unknown;
@@ -553,70 +638,103 @@ function sanitizeRecommendations(
   aiRecommendations: AiRecommendation[],
   availableCandidates: MockCandidate[],
   sessionType: SessionType,
+  maxRecommendations: number,
 ): RecommendationInsert[] {
   const candidatesByTicker = new Map(
     availableCandidates.map((candidate) => [candidate.ticker, candidate]),
   );
   const seenTickers = new Set<string>();
 
-  return aiRecommendations.slice(0, 5).map((recommendation, index) => {
-    const ticker = normalizeTicker(recommendation.ticker);
-    const candidate = candidatesByTicker.get(ticker);
+  return aiRecommendations
+    .slice(0, maxRecommendations)
+    .map((recommendation, index) => {
+      const ticker = normalizeTicker(recommendation.ticker);
+      const candidate = candidatesByTicker.get(ticker);
 
-    if (!candidate) {
-      throw new Error(
-        `Recommendation ${index + 1} used ticker ${ticker || "(empty)"}, which was not an available candidate.`,
-      );
-    }
+      if (!candidate) {
+        throw new Error(
+          `Recommendation ${index + 1} used ticker ${ticker || "(empty)"}, which was not an available candidate.`,
+        );
+      }
 
-    if (seenTickers.has(ticker)) {
-      throw new Error(`OpenAI returned duplicate ticker ${ticker}.`);
-    }
+      if (seenTickers.has(ticker)) {
+        throw new Error(`OpenAI returned duplicate ticker ${ticker}.`);
+      }
 
-    seenTickers.add(ticker);
+      seenTickers.add(ticker);
 
-    if (recommendation.direction !== "long") {
-      throw new Error(`Recommendation ${ticker} direction must be long.`);
-    }
+      if (recommendation.direction !== "long") {
+        throw new Error(`Recommendation ${ticker} direction must be long.`);
+      }
 
-    const confidence = recommendation.confidence;
+      const confidence = recommendation.confidence;
 
-    if (
-      confidence !== "Low" &&
-      confidence !== "Medium" &&
-      confidence !== "High"
-    ) {
-      throw new Error(`Recommendation ${ticker} confidence is invalid.`);
-    }
+      if (
+        confidence !== "Low" &&
+        confidence !== "Medium" &&
+        confidence !== "High"
+      ) {
+        throw new Error(`Recommendation ${ticker} confidence is invalid.`);
+      }
 
-    return {
-      session_type: sessionType,
-      ticker,
-      company_name: candidate.company_name,
-      direction: "long",
-      setup_type: text(recommendation.setup_type, `${ticker}.setup_type`),
-      entry_low: number(recommendation.entry_low, `${ticker}.entry_low`),
-      entry_high: number(recommendation.entry_high, `${ticker}.entry_high`),
-      stop_loss: number(recommendation.stop_loss, `${ticker}.stop_loss`),
-      target_1: number(recommendation.target_1, `${ticker}.target_1`),
-      target_2: number(recommendation.target_2, `${ticker}.target_2`),
-      risk_reward: number(recommendation.risk_reward, `${ticker}.risk_reward`),
-      confidence,
-      timeframe: text(recommendation.timeframe, `${ticker}.timeframe`),
-      thesis: text(recommendation.thesis, `${ticker}.thesis`),
-      invalidation: text(recommendation.invalidation, `${ticker}.invalidation`),
-      reason_to_avoid: text(
-        recommendation.reason_to_avoid,
-        `${ticker}.reason_to_avoid`,
-      ),
-      status: "new",
-    };
-  });
+      return {
+        session_type: sessionType,
+        ticker,
+        company_name: candidate.company_name,
+        direction: "long",
+        setup_type: text(recommendation.setup_type, `${ticker}.setup_type`),
+        entry_low: number(recommendation.entry_low, `${ticker}.entry_low`),
+        entry_high: number(recommendation.entry_high, `${ticker}.entry_high`),
+        stop_loss: number(recommendation.stop_loss, `${ticker}.stop_loss`),
+        target_1: number(recommendation.target_1, `${ticker}.target_1`),
+        target_2: number(recommendation.target_2, `${ticker}.target_2`),
+        risk_reward: number(
+          recommendation.risk_reward,
+          `${ticker}.risk_reward`,
+        ),
+        confidence,
+        timeframe: text(recommendation.timeframe, `${ticker}.timeframe`),
+        thesis: text(recommendation.thesis, `${ticker}.thesis`),
+        invalidation: text(
+          recommendation.invalidation,
+          `${ticker}.invalidation`,
+        ),
+        reason_to_avoid: text(
+          recommendation.reason_to_avoid,
+          `${ticker}.reason_to_avoid`,
+        ),
+        status: "new",
+      };
+    });
+}
+
+function getSessionPrompt(sessionType: SessionType, preferredTimeframe: string) {
+  if (sessionType === "morning") {
+    return [
+      "This is a Morning Scan.",
+      "Look for clean daily setups before the session develops.",
+      "Prefer trend continuation, pullback continuation, breakout base, and relative strength setups.",
+      `Use the user's preferred timeframe as the main holding context: ${preferredTimeframe}.`,
+      "Be selective, but not overly strict when the setup has a coherent entry, stop, target, and thesis.",
+      "Avoid forcing trades. Return fewer recommendations or none when the candidates are weak.",
+    ].join("\n");
+  }
+
+  return [
+    "This is a Midday Scan.",
+    "Be more selective than the morning scan.",
+    "Avoid chasing stocks that are already too extended from clean structure.",
+    "Prefer setups that still have clear entry, stop, and target structure.",
+    "Prefer continuation or VWAP/strength-holding style setups.",
+    "If a candidate is too extended, reject it.",
+    "It is okay to return fewer recommendations or none.",
+  ].join("\n");
 }
 
 async function generateRecommendationsWithOpenAI(
   availableCandidates: MockCandidate[],
   sessionType: SessionType,
+  settings: UserSettings,
 ) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is missing. Add it to .env.local.");
@@ -625,6 +743,8 @@ async function generateRecommendationsWithOpenAI(
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
+  const maxRecommendations = settings.max_recommendations_per_session;
+  const allowedDirections = ["long"];
 
   const response = await openai.responses.create({
     model: "gpt-4.1-mini",
@@ -633,7 +753,15 @@ async function generateRecommendationsWithOpenAI(
       "You are not using live market data.",
       "You must not pretend the recommendations are based on real-time prices.",
       "Treat the provided candidates as mock structured inputs only.",
-      "Choose 3 to 5 long-only recommendations, or fewer if quality is weak.",
+      `Choose up to ${maxRecommendations} recommendations, or fewer if quality is weak.`,
+      `Prefer trades matching this timeframe: ${settings.preferred_timeframe}.`,
+      settings.long_only
+        ? "The user's settings are long-only. Only return direction = long."
+        : [
+            "The user's settings may allow more directions later, but shorts are not implemented yet.",
+            "For now, only return direction = long.",
+          ].join(" "),
+      getSessionPrompt(sessionType, settings.preferred_timeframe),
       "Use only tickers from the provided candidates.",
       "Make entry, stop, and target levels coherent with each candidate's mock support, mock resistance, and mock_current_price.",
       "risk_reward must be a JSON number such as 2.2, never a string such as 2.2R or 1:2.2.",
@@ -641,6 +769,9 @@ async function generateRecommendationsWithOpenAI(
     ].join("\n"),
     input: JSON.stringify({
       session_type: sessionType,
+      max_recommendations: maxRecommendations,
+      preferred_timeframe: settings.preferred_timeframe,
+      allowed_directions: allowedDirections,
       candidates: availableCandidates,
     }),
     text: {
@@ -648,11 +779,11 @@ async function generateRecommendationsWithOpenAI(
         type: "json_schema",
         name: "trade_recommendations",
         strict: true,
-        schema: recommendationSchema,
+        schema: createRecommendationSchema(maxRecommendations),
       },
     },
     temperature: 0.3,
-    max_output_tokens: 3000,
+    max_output_tokens: Math.max(3000, maxRecommendations * 650),
     store: false,
   });
 
@@ -686,13 +817,37 @@ export async function POST(request: Request) {
     const sessionType = body.session_type;
     const todayStart = getStartOfToday();
 
-    const [todaysRecommendationsResult, openPositionsResult] = await Promise.all([
-      supabase
-        .from("recommendations")
-        .select("ticker")
-        .gte("created_at", todayStart),
-      supabase.from("positions").select("ticker").eq("status", "open"),
-    ]);
+    const [settingsResult, todaysRecommendationsResult, openPositionsResult] =
+      await Promise.all([
+        supabase
+          .from("user_settings")
+          .select(
+            [
+              "portfolio_size",
+              "risk_per_trade_percent",
+              "max_recommendations_per_session",
+              "max_open_positions",
+              "preferred_timeframe",
+              "long_only",
+            ].join(","),
+          )
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("recommendations")
+          .select("ticker")
+          .gte("created_at", todayStart),
+        supabase.from("positions").select("ticker,status"),
+      ]);
+
+    if (settingsResult.error) {
+      console.error(settingsResult.error);
+      return NextResponse.json(
+        { error: settingsResult.error.message ?? "Unknown error" },
+        { status: 500 },
+      );
+    }
 
     if (todaysRecommendationsResult.error) {
       console.error(todaysRecommendationsResult.error);
@@ -710,32 +865,62 @@ export async function POST(request: Request) {
       );
     }
 
+    const settingsRow = settingsResult.data as UserSettingsRow | null;
+    const settings = normalizeUserSettings(settingsRow);
+    const openPositions = ((openPositionsResult.data ?? []) as PositionStatusRow[])
+      .filter((position) => isOpenPositionStatus(position.status));
+    const openPositionCount = openPositions.length;
+    const isGenerationBlocked = openPositionCount >= settings.max_open_positions;
+
+    console.log("[recommendations/generate] max_open_positions", settings.max_open_positions);
+    console.log("[recommendations/generate] open_positions_count", openPositionCount);
+    console.log("[recommendations/generate] generation_blocked", isGenerationBlocked);
+
+    if (isGenerationBlocked) {
+      return NextResponse.json(
+        {
+          error:
+            "Max open positions reached. Close or reduce positions before generating new recommendations.",
+          open_positions_count: openPositionCount,
+          max_open_positions: settings.max_open_positions,
+        },
+        { status: 400 },
+      );
+    }
+
     const blockedTickers = new Set<string>();
 
     for (const recommendation of todaysRecommendationsResult.data ?? []) {
       blockedTickers.add(normalizeTicker(recommendation.ticker));
     }
 
-    for (const position of openPositionsResult.data ?? []) {
+    for (const position of openPositions) {
       blockedTickers.add(normalizeTicker(position.ticker));
     }
 
     const availableCandidates = mockCandidates.filter(
       (candidate) => !blockedTickers.has(candidate.ticker),
     );
+    const candidateLimit = Math.max(
+      12,
+      settings.max_recommendations_per_session * 3,
+    );
+    const candidatesForOpenAI = availableCandidates.slice(0, candidateLimit);
 
     if (availableCandidates.length === 0) {
       return NextResponse.json({ recommendations: [] });
     }
 
     const aiResponse = await generateRecommendationsWithOpenAI(
-      availableCandidates,
+      candidatesForOpenAI,
       sessionType,
+      settings,
     );
     const recommendationsToInsert = sanitizeRecommendations(
       aiResponse.recommendations,
-      availableCandidates,
+      candidatesForOpenAI,
       sessionType,
+      settings.max_recommendations_per_session,
     );
 
     if (recommendationsToInsert.length === 0) {
