@@ -119,6 +119,22 @@ type ClosedPosition = ActivePosition & {
   rMultiple: string;
   closedAt: string;
   exitNotes: string;
+  pnlValue: number | null;
+  rMultipleValue: number | null;
+};
+
+type PerformanceSummary = {
+  totalPnl: number | null;
+  totalClosedTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number | null;
+  averageR: number | null;
+  averageWin: number | null;
+  averageLoss: number | null;
+  bestTrade: number | null;
+  worstTrade: number | null;
+  profitFactor: number | "infinite" | null;
 };
 
 type LatestPositionUpdate = {
@@ -155,6 +171,42 @@ function formatNumber(value: number | null | undefined, suffix = "") {
   }
 
   return `${value.toFixed(2)}${suffix}`;
+}
+
+function formatPnl(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return value.toFixed(2);
+}
+
+function formatPercent(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return `${value.toFixed(1)}%`;
+}
+
+function formatRMultiple(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return `${value.toFixed(1)}R`;
+}
+
+function formatProfitFactor(value: PerformanceSummary["profitFactor"]) {
+  if (value === null) {
+    return "—";
+  }
+
+  if (value === "infinite") {
+    return "∞";
+  }
+
+  return value.toFixed(2);
 }
 
 function parseNumber(value: number | string | null | undefined) {
@@ -255,14 +307,71 @@ function toActivePosition(row: PositionRow): ActivePosition {
 }
 
 function toClosedPosition(row: PositionRow): ClosedPosition {
+  const pnlValue = parseNumber(row.pnl);
+  const pnlPercentValue = parseNumber(row.pnl_percent);
+  const rMultipleValue = parseNumber(row.r_multiple);
+
   return {
     ...toActivePosition(row),
     exitPrice: money(row.exit_price),
-    pnl: formatNumber(parseNumber(row.pnl)),
-    pnlPercent: formatNumber(parseNumber(row.pnl_percent), "%"),
-    rMultiple: formatNumber(parseNumber(row.r_multiple), "R"),
+    pnl: formatPnl(pnlValue),
+    pnlPercent: formatPercent(pnlPercentValue),
+    rMultiple: formatRMultiple(rMultipleValue),
     closedAt: formatDate(row.closed_at),
     exitNotes: text(row.exit_notes),
+    pnlValue,
+    rMultipleValue,
+  };
+}
+
+function average(values: number[]) {
+  if (values.length === 0) {
+    return null;
+  }
+
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return total / values.length;
+}
+
+function calculatePerformanceSummary(
+  closedPositions: ClosedPosition[],
+): PerformanceSummary {
+  const pnlValues = closedPositions
+    .map((position) => position.pnlValue)
+    .filter((value): value is number => value !== null);
+  const rValues = closedPositions
+    .map((position) => position.rMultipleValue)
+    .filter((value): value is number => value !== null);
+  const wins = pnlValues.filter((value) => value > 0);
+  const losses = pnlValues.filter((value) => value < 0);
+  const totalPnl =
+    pnlValues.length > 0 ? pnlValues.reduce((sum, value) => sum + value, 0) : null;
+  const grossWin = wins.reduce((sum, value) => sum + value, 0);
+  const grossLoss = Math.abs(losses.reduce((sum, value) => sum + value, 0));
+
+  let profitFactor: PerformanceSummary["profitFactor"] = null;
+
+  if (grossLoss > 0) {
+    profitFactor = grossWin / grossLoss;
+  } else if (grossWin > 0) {
+    profitFactor = "infinite";
+  }
+
+  return {
+    totalPnl,
+    totalClosedTrades: closedPositions.length,
+    winningTrades: wins.length,
+    losingTrades: losses.length,
+    winRate:
+      closedPositions.length > 0
+        ? (wins.length / closedPositions.length) * 100
+        : null,
+    averageR: average(rValues),
+    averageWin: average(wins),
+    averageLoss: average(losses),
+    bestTrade: pnlValues.length > 0 ? Math.max(...pnlValues) : null,
+    worstTrade: pnlValues.length > 0 ? Math.min(...pnlValues) : null,
+    profitFactor,
   };
 }
 
@@ -663,6 +772,7 @@ export default function TradeApp() {
   const ignoredCount = recommendations.filter(
     (recommendation) => recommendation.status === "ignored",
   ).length;
+  const performanceSummary = calculatePerformanceSummary(closedPositions);
 
   return (
     <main className="min-h-screen bg-[#060707] text-zinc-100">
@@ -827,6 +937,17 @@ export default function TradeApp() {
               </p>
             </div>
 
+            <HistorySection title="Performance Summary">
+              {isLoading ? (
+                <EmptyState
+                  title="Loading performance"
+                  message="Trade is calculating performance from manually closed positions."
+                />
+              ) : (
+                <PerformanceSummaryCards summary={performanceSummary} />
+              )}
+            </HistorySection>
+
             <HistorySection title="Closed Positions">
               {isLoading ? (
                 <EmptyState
@@ -915,6 +1036,93 @@ export default function TradeApp() {
         />
       )}
     </main>
+  );
+}
+
+function PerformanceSummaryCards({ summary }: { summary: PerformanceSummary }) {
+  const hasClosedTrades = summary.totalClosedTrades > 0;
+
+  return (
+    <div className="space-y-4">
+      {!hasClosedTrades && (
+        <EmptyState
+          title="No performance data yet"
+          message="Close a position manually to start building your trading performance summary."
+        />
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          label="Total PnL"
+          value={formatPnl(summary.totalPnl)}
+          tone={summary.totalPnl}
+        />
+        <SummaryCard
+          label="Closed Trades"
+          value={String(summary.totalClosedTrades)}
+        />
+        <SummaryCard label="Winning Trades" value={String(summary.winningTrades)} />
+        <SummaryCard label="Losing Trades" value={String(summary.losingTrades)} />
+        <SummaryCard label="Win Rate" value={formatPercent(summary.winRate)} />
+        <SummaryCard label="Average R" value={formatRMultiple(summary.averageR)} />
+        <SummaryCard
+          label="Average Win"
+          value={formatPnl(summary.averageWin)}
+          tone={summary.averageWin}
+        />
+        <SummaryCard
+          label="Average Loss"
+          value={formatPnl(summary.averageLoss)}
+          tone={summary.averageLoss}
+        />
+        <SummaryCard
+          label="Best Trade"
+          value={formatPnl(summary.bestTrade)}
+          tone={summary.bestTrade}
+        />
+        <SummaryCard
+          label="Worst Trade"
+          value={formatPnl(summary.worstTrade)}
+          tone={summary.worstTrade}
+        />
+        <SummaryCard
+          label="Profit Factor"
+          value={formatProfitFactor(summary.profitFactor)}
+        />
+      </div>
+
+      <p className="text-sm leading-6 text-zinc-500">
+        Performance is based only on manually closed positions.
+      </p>
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: number | null;
+}) {
+  const valueClassName =
+    tone === undefined || tone === null || tone === 0
+      ? "text-white"
+      : tone > 0
+        ? "text-emerald-100"
+        : "text-rose-100";
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+      <div className={`font-mono text-2xl font-semibold ${valueClassName}`}>
+        {value}
+      </div>
+      <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+        {label}
+      </div>
+    </div>
   );
 }
 
