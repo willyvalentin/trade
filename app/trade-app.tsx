@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type Direction = "Long" | "Short";
@@ -894,6 +895,12 @@ export default function TradeApp() {
               {tab}
             </button>
           ))}
+          <Link
+            href="/settings"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400 transition hover:border-white/25 hover:text-zinc-100"
+          >
+            Settings
+          </Link>
         </nav>
 
         {message && (
