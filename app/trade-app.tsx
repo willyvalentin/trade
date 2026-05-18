@@ -40,6 +40,12 @@ type PositionRow = {
   target_1: string | null;
   target_2: string | null;
   status?: string | null;
+  exit_price?: number | string | null;
+  closed_at?: string | null;
+  pnl?: number | string | null;
+  pnl_percent?: number | string | null;
+  r_multiple?: number | string | null;
+  exit_notes?: string | null;
   created_at?: string | null;
 };
 
@@ -106,6 +112,15 @@ type ActivePosition = {
   openedAt: string;
 };
 
+type ClosedPosition = ActivePosition & {
+  exitPrice: string;
+  pnl: string;
+  pnlPercent: string;
+  rMultiple: string;
+  closedAt: string;
+  exitNotes: string;
+};
+
 type LatestPositionUpdate = {
   positionId: string;
   action: string;
@@ -140,6 +155,19 @@ function formatNumber(value: number | null | undefined, suffix = "") {
   }
 
   return `${value.toFixed(2)}${suffix}`;
+}
+
+function parseNumber(value: number | string | null | undefined) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 }
 
 function direction(value: string | null | undefined): Direction {
@@ -226,6 +254,18 @@ function toActivePosition(row: PositionRow): ActivePosition {
   };
 }
 
+function toClosedPosition(row: PositionRow): ClosedPosition {
+  return {
+    ...toActivePosition(row),
+    exitPrice: money(row.exit_price),
+    pnl: formatNumber(parseNumber(row.pnl)),
+    pnlPercent: formatNumber(parseNumber(row.pnl_percent), "%"),
+    rMultiple: formatNumber(parseNumber(row.r_multiple), "R"),
+    closedAt: formatDate(row.closed_at),
+    exitNotes: text(row.exit_notes),
+  };
+}
+
 function toLatestPositionUpdate(row: PositionUpdateRow): LatestPositionUpdate {
   return {
     positionId: row.position_id,
@@ -258,13 +298,19 @@ export default function TradeApp() {
   const [activeTab, setActiveTab] = useState<Tab>("Daily Recommendations");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
+  const [closedPositions, setClosedPositions] = useState<ClosedPosition[]>([]);
   const [latestPositionUpdates, setLatestPositionUpdates] = useState<
     Record<string, LatestPositionUpdate>
   >({});
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<Recommendation | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<ActivePosition | null>(
+    null,
+  );
   const [entryPrice, setEntryPrice] = useState("");
   const [positionSize, setPositionSize] = useState("");
+  const [exitPrice, setExitPrice] = useState("");
+  const [exitNotes, setExitNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -277,10 +323,20 @@ export default function TradeApp() {
     setIsLoading(true);
     setMessage("");
 
-    const [recommendationsResult, positionsResult, positionUpdatesResult] =
+    const [
+      recommendationsResult,
+      positionsResult,
+      closedPositionsResult,
+      positionUpdatesResult,
+    ] =
       await Promise.all([
         supabase.from("recommendations").select("*"),
         supabase.from("positions").select("*").eq("status", "open"),
+        supabase
+          .from("positions")
+          .select("*")
+          .eq("status", "closed")
+          .order("closed_at", { ascending: false }),
         supabase
           .from("position_updates")
           .select("*")
@@ -299,6 +355,14 @@ export default function TradeApp() {
       setMessage(positionsResult.error.message);
     } else {
       setActivePositions((positionsResult.data as PositionRow[]).map(toActivePosition));
+    }
+
+    if (closedPositionsResult.error) {
+      setMessage(closedPositionsResult.error.message);
+    } else {
+      setClosedPositions(
+        (closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
+      );
     }
 
     if (positionUpdatesResult.error) {
@@ -455,6 +519,21 @@ export default function TradeApp() {
     setSelectedRecommendation(null);
   }
 
+  function openClosePositionModal(position: ActivePosition) {
+    setSelectedPosition(position);
+    setExitPrice("");
+    setExitNotes("");
+    setMessage("");
+  }
+
+  function closeClosePositionModal() {
+    if (isSaving) {
+      return;
+    }
+
+    setSelectedPosition(null);
+  }
+
   async function submitTrade(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -505,6 +584,70 @@ export default function TradeApp() {
     setSelectedRecommendation(null);
     setActiveTab("Active Positions");
     await loadTradeData();
+    setIsSaving(false);
+  }
+
+  async function submitClosePosition(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedPosition) {
+      return;
+    }
+
+    const actualExitPrice = Number(exitPrice);
+    const entryPriceValue = parseNumber(selectedPosition.entryPrice);
+    const positionSizeValue = parseNumber(selectedPosition.positionSize);
+    const currentStopValue = parseNumber(selectedPosition.stopLoss);
+
+    if (!Number.isFinite(actualExitPrice)) {
+      setMessage("Exit price must be a number.");
+      return;
+    }
+
+    if (entryPriceValue === null || positionSizeValue === null) {
+      setMessage("Entry price and position size must be valid before closing.");
+      return;
+    }
+
+    const pnl = (actualExitPrice - entryPriceValue) * positionSizeValue;
+    const pnlPercent =
+      entryPriceValue !== 0
+        ? ((actualExitPrice - entryPriceValue) / entryPriceValue) * 100
+        : 0;
+    const riskPerShare =
+      currentStopValue === null ? null : entryPriceValue - currentStopValue;
+    const rMultiple =
+      riskPerShare !== null && riskPerShare > 0
+        ? (actualExitPrice - entryPriceValue) / riskPerShare
+        : null;
+    const notes = exitNotes.trim() || null;
+
+    setIsSaving(true);
+    setMessage("");
+
+    const { error } = await supabase
+      .from("positions")
+      .update({
+        status: "closed",
+        exit_price: actualExitPrice,
+        closed_at: new Date().toISOString(),
+        pnl,
+        pnl_percent: pnlPercent,
+        r_multiple: rMultiple,
+        exit_notes: notes,
+      })
+      .eq("id", selectedPosition.id);
+
+    if (error) {
+      setMessage(error.message);
+      setIsSaving(false);
+      return;
+    }
+
+    setSelectedPosition(null);
+    setActiveTab("History");
+    await loadTradeData();
+    setMessage(`${selectedPosition.ticker} closed manually.`);
     setIsSaving(false);
   }
 
@@ -664,6 +807,8 @@ export default function TradeApp() {
                     key={position.id}
                     position={position}
                     latestUpdate={latestPositionUpdates[position.id]}
+                    isSaving={isSaving}
+                    onClosePosition={openClosePositionModal}
                   />
                 ))}
               </div>
@@ -672,52 +817,74 @@ export default function TradeApp() {
         )}
 
         {activeTab === "History" && (
-          <section className="space-y-5">
+          <section className="space-y-8">
             <div>
               <h2 className="font-mono text-2xl font-semibold tracking-normal text-white">
                 History
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Recommendations marked ignored, watched, or taken.
+                Closed positions and recommendation decisions.
               </p>
             </div>
 
-            {isLoading ? (
-              <EmptyState
-                title="Loading history"
-                message="Trade is reading completed recommendation decisions."
-              />
-            ) : historyRecommendations.length === 0 ? (
-              <EmptyState
-                title="No history yet"
-                message="Ignored, watched, and taken recommendations will appear here."
-              />
-            ) : (
-              <div className="overflow-hidden rounded-lg border border-white/10">
-                {historyRecommendations.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid gap-3 border-b border-white/10 bg-white/[0.025] p-4 last:border-b-0 sm:grid-cols-[140px_1fr_150px]"
-                  >
-                    <div className="font-mono text-sm font-semibold text-white">
-                      {item.status}
-                    </div>
-                    <div>
-                      <div className="font-mono text-sm text-zinc-200">
-                        {item.ticker}{" "}
-                        <span className="text-zinc-500">{item.companyName}</span>
+            <HistorySection title="Closed Positions">
+              {isLoading ? (
+                <EmptyState
+                  title="Loading closed positions"
+                  message="Trade is reading completed positions."
+                />
+              ) : closedPositions.length === 0 ? (
+                <EmptyState
+                  title="No closed positions yet"
+                  message="Positions you close manually will appear here."
+                />
+              ) : (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {closedPositions.map((position) => (
+                    <ClosedPositionCard key={position.id} position={position} />
+                  ))}
+                </div>
+              )}
+            </HistorySection>
+
+            <HistorySection title="Recommendation History">
+              {isLoading ? (
+                <EmptyState
+                  title="Loading history"
+                  message="Trade is reading completed recommendation decisions."
+                />
+              ) : historyRecommendations.length === 0 ? (
+                <EmptyState
+                  title="No recommendation history yet"
+                  message="Ignored, watched, and taken recommendations will appear here."
+                />
+              ) : (
+                <div className="overflow-hidden rounded-lg border border-white/10">
+                  {historyRecommendations.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid gap-3 border-b border-white/10 bg-white/[0.025] p-4 last:border-b-0 sm:grid-cols-[140px_1fr_150px]"
+                    >
+                      <div className="font-mono text-sm font-semibold text-white">
+                        {item.status}
                       </div>
-                      <p className="mt-1 text-sm leading-6 text-zinc-400">
-                        {item.thesis}
-                      </p>
+                      <div>
+                        <div className="font-mono text-sm text-zinc-200">
+                          {item.ticker}{" "}
+                          <span className="text-zinc-500">{item.companyName}</span>
+                        </div>
+                        <p className="mt-1 text-sm leading-6 text-zinc-400">
+                          {item.thesis}
+                        </p>
+                      </div>
+                      <div className="font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 sm:text-right">
+                        {item.createdAt}
+                      </div>
                     </div>
-                    <div className="font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 sm:text-right">
-                      {item.createdAt}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </HistorySection>
           </section>
         )}
       </div>
@@ -732,6 +899,19 @@ export default function TradeApp() {
           onPositionSizeChange={setPositionSize}
           onClose={closeTradeModal}
           onSubmit={submitTrade}
+        />
+      )}
+
+      {selectedPosition && (
+        <ClosePositionModal
+          position={selectedPosition}
+          exitPrice={exitPrice}
+          exitNotes={exitNotes}
+          isSaving={isSaving}
+          onExitPriceChange={setExitPrice}
+          onExitNotesChange={setExitNotes}
+          onClose={closeClosePositionModal}
+          onSubmit={submitClosePosition}
         />
       )}
     </main>
@@ -915,9 +1095,13 @@ function TradeModal({
 function ActivePositionCard({
   position,
   latestUpdate,
+  isSaving,
+  onClosePosition,
 }: {
   position: ActivePosition;
   latestUpdate?: LatestPositionUpdate;
+  isSaving: boolean;
+  onClosePosition: (position: ActivePosition) => void;
 }) {
   return (
     <article className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.045] p-5">
@@ -976,7 +1160,163 @@ function ActivePositionCard({
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() => onClosePosition(position)}
+        disabled={isSaving}
+        className="mt-5 min-h-11 w-full rounded-md border border-rose-300/35 bg-rose-300/10 px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-rose-100 transition hover:border-rose-200/70 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-zinc-900 disabled:text-zinc-600"
+      >
+        Close Position
+      </button>
     </article>
+  );
+}
+
+function ClosePositionModal({
+  position,
+  exitPrice,
+  exitNotes,
+  isSaving,
+  onExitPriceChange,
+  onExitNotesChange,
+  onClose,
+  onSubmit,
+}: {
+  position: ActivePosition;
+  exitPrice: string;
+  exitNotes: string;
+  isSaving: boolean;
+  onExitPriceChange: (value: string) => void;
+  onExitNotesChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5">
+      <form
+        onSubmit={onSubmit}
+        className="w-full max-w-lg rounded-lg border border-white/10 bg-[#0b0c0c] p-5 shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Close position
+            </p>
+            <h2 className="mt-2 font-mono text-2xl font-semibold text-white">
+              {position.ticker}{" "}
+              <span className="text-zinc-500">{position.companyName}</span>
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-white/10 px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] text-zinc-400 hover:text-white"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <Detail label="Entry Price" value={position.entryPrice} />
+          <Detail label="Position Size" value={position.positionSize} />
+          <Detail label="Current Stop" value={position.stopLoss} />
+        </div>
+
+        <label className="mt-5 block">
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            Exit Price
+          </span>
+          <input
+            required
+            type="number"
+            step="0.01"
+            value={exitPrice}
+            onChange={(event) => onExitPriceChange(event.target.value)}
+            className="mt-2 min-h-11 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none focus:border-emerald-300"
+          />
+        </label>
+
+        <label className="mt-4 block">
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            Exit Notes
+          </span>
+          <textarea
+            rows={4}
+            value={exitNotes}
+            onChange={(event) => onExitNotesChange(event.target.value)}
+            className="mt-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 text-white outline-none focus:border-emerald-300"
+          />
+        </label>
+
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="mt-5 min-h-11 w-full rounded-md bg-rose-300 px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-rose-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+        >
+          {isSaving ? "Closing position" : "Close position"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function ClosedPositionCard({ position }: { position: ClosedPosition }) {
+  const pnlValue = parseNumber(position.pnl);
+  const pnlClassName =
+    pnlValue !== null && pnlValue < 0 ? "text-rose-100" : "text-emerald-100";
+
+  return (
+    <article className="rounded-lg border border-white/10 bg-white/[0.035] p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-3xl font-semibold tracking-normal text-white">
+              {position.ticker}
+            </span>
+            <DirectionPill direction={position.direction} />
+          </div>
+          <p className="mt-1 text-sm text-zinc-400">{position.companyName}</p>
+        </div>
+        <div className={`font-mono text-sm font-semibold ${pnlClassName}`}>
+          {position.pnl}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Detail label="Entry Price" value={position.entryPrice} />
+        <Detail label="Exit Price" value={position.exitPrice} />
+        <Detail label="PnL" value={position.pnl} />
+        <Detail label="PnL %" value={position.pnlPercent} />
+        <Detail label="R Multiple" value={position.rMultiple} />
+        <Detail label="Position Size" value={position.positionSize} />
+        <Detail label="Opened" value={position.openedAt} />
+        <Detail label="Closed" value={position.closedAt} />
+      </div>
+
+      {position.exitNotes && (
+        <div className="mt-5">
+          <TextBlock label="Exit Notes" value={position.exitNotes} />
+        </div>
+      )}
+    </article>
+  );
+}
+
+function HistorySection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4">
+      <h3 className="font-mono text-lg font-semibold tracking-normal text-white">
+        {title}
+      </h3>
+      {children}
+    </section>
   );
 }
 
