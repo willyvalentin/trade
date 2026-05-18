@@ -31,6 +31,7 @@ type RecommendationRow = {
 type PositionRow = {
   id: string;
   recommendation_id?: string | null;
+  recommendations?: { setup_type: string | null } | null;
   ticker: string;
   company_name: string | null;
   direction?: string | null;
@@ -113,6 +114,7 @@ type ActivePosition = {
 };
 
 type ClosedPosition = ActivePosition & {
+  setupType: string;
   exitPrice: string;
   pnl: string;
   pnlPercent: string;
@@ -135,6 +137,20 @@ type PerformanceSummary = {
   bestTrade: number | null;
   worstTrade: number | null;
   profitFactor: number | "infinite" | null;
+};
+
+type SetupPerformanceSummary = {
+  setupType: string;
+  closedTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number | null;
+  totalPnl: number | null;
+  totalR: number | null;
+  averageR: number | null;
+  bestTrade: number | null;
+  worstTrade: number | null;
+  profitFactor: PerformanceSummary["profitFactor"];
 };
 
 type LatestPositionUpdate = {
@@ -207,6 +223,10 @@ function formatProfitFactor(value: PerformanceSummary["profitFactor"]) {
   }
 
   return value.toFixed(2);
+}
+
+function setupTypeFromPosition(row: PositionRow) {
+  return text(row.recommendations?.setup_type, "Unknown setup") || "Unknown setup";
 }
 
 function parseNumber(value: number | string | null | undefined) {
@@ -313,6 +333,7 @@ function toClosedPosition(row: PositionRow): ClosedPosition {
 
   return {
     ...toActivePosition(row),
+    setupType: setupTypeFromPosition(row),
     exitPrice: money(row.exit_price),
     pnl: formatPnl(pnlValue),
     pnlPercent: formatPercent(pnlPercentValue),
@@ -373,6 +394,61 @@ function calculatePerformanceSummary(
     worstTrade: pnlValues.length > 0 ? Math.min(...pnlValues) : null,
     profitFactor,
   };
+}
+
+function calculateSetupPerformance(
+  closedPositions: ClosedPosition[],
+): SetupPerformanceSummary[] {
+  const positionsBySetup: Record<string, ClosedPosition[]> = {};
+
+  for (const position of closedPositions) {
+    const setupType = position.setupType || "Unknown setup";
+    positionsBySetup[setupType] = positionsBySetup[setupType] || [];
+    positionsBySetup[setupType].push(position);
+  }
+
+  return Object.entries(positionsBySetup)
+    .map(([setupType, positions]) => {
+      const pnlValues = positions
+        .map((position) => position.pnlValue)
+        .filter((value): value is number => value !== null);
+      const rValues = positions
+        .map((position) => position.rMultipleValue)
+        .filter((value): value is number => value !== null);
+      const wins = pnlValues.filter((value) => value > 0);
+      const losses = pnlValues.filter((value) => value < 0);
+      const totalPnl =
+        pnlValues.length > 0
+          ? pnlValues.reduce((sum, value) => sum + value, 0)
+          : null;
+      const totalR =
+        rValues.length > 0 ? rValues.reduce((sum, value) => sum + value, 0) : null;
+      const grossWin = wins.reduce((sum, value) => sum + value, 0);
+      const grossLoss = Math.abs(losses.reduce((sum, value) => sum + value, 0));
+
+      let profitFactor: PerformanceSummary["profitFactor"] = null;
+
+      if (grossLoss > 0) {
+        profitFactor = grossWin / grossLoss;
+      } else if (grossWin > 0) {
+        profitFactor = "infinite";
+      }
+
+      return {
+        setupType,
+        closedTrades: positions.length,
+        winningTrades: wins.length,
+        losingTrades: losses.length,
+        winRate: positions.length > 0 ? (wins.length / positions.length) * 100 : null,
+        totalPnl,
+        totalR,
+        averageR: average(rValues),
+        bestTrade: rValues.length > 0 ? Math.max(...rValues) : null,
+        worstTrade: rValues.length > 0 ? Math.min(...rValues) : null,
+        profitFactor,
+      };
+    })
+    .sort((first, second) => (second.totalR ?? -Infinity) - (first.totalR ?? -Infinity));
 }
 
 function toLatestPositionUpdate(row: PositionUpdateRow): LatestPositionUpdate {
@@ -443,7 +519,7 @@ export default function TradeApp() {
         supabase.from("positions").select("*").eq("status", "open"),
         supabase
           .from("positions")
-          .select("*")
+          .select("*, recommendations(setup_type)")
           .eq("status", "closed")
           .order("closed_at", { ascending: false }),
         supabase
@@ -773,6 +849,7 @@ export default function TradeApp() {
     (recommendation) => recommendation.status === "ignored",
   ).length;
   const performanceSummary = calculatePerformanceSummary(closedPositions);
+  const setupPerformance = calculateSetupPerformance(closedPositions);
 
   return (
     <main className="min-h-screen bg-[#060707] text-zinc-100">
@@ -945,6 +1022,17 @@ export default function TradeApp() {
                 />
               ) : (
                 <PerformanceSummaryCards summary={performanceSummary} />
+              )}
+            </HistorySection>
+
+            <HistorySection title="Setup Performance">
+              {isLoading ? (
+                <EmptyState
+                  title="Loading setup performance"
+                  message="Trade is grouping closed positions by setup type."
+                />
+              ) : (
+                <SetupPerformanceTable setupPerformance={setupPerformance} />
               )}
             </HistorySection>
 
@@ -1123,6 +1211,126 @@ function SummaryCard({
         {label}
       </div>
     </div>
+  );
+}
+
+function SetupPerformanceTable({
+  setupPerformance,
+}: {
+  setupPerformance: SetupPerformanceSummary[];
+}) {
+  if (setupPerformance.length === 0) {
+    return (
+      <EmptyState
+        title="No setup performance yet"
+        message="Close a position manually to see which setup types are working best."
+      />
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-white/10 bg-white/[0.025]">
+      <table className="min-w-[980px] w-full border-collapse text-left">
+        <thead className="border-b border-white/10 bg-black/25">
+          <tr>
+            <SetupTableHeader label="Setup" />
+            <SetupTableHeader label="Closed" align="right" />
+            <SetupTableHeader label="Wins" align="right" />
+            <SetupTableHeader label="Losses" align="right" />
+            <SetupTableHeader label="Win Rate" align="right" />
+            <SetupTableHeader label="Total PnL" align="right" />
+            <SetupTableHeader label="Total R" align="right" />
+            <SetupTableHeader label="Avg R" align="right" />
+            <SetupTableHeader label="Best" align="right" />
+            <SetupTableHeader label="Worst" align="right" />
+            <SetupTableHeader label="PF" align="right" />
+          </tr>
+        </thead>
+        <tbody>
+          {setupPerformance.map((setup) => (
+            <tr
+              key={setup.setupType}
+              className="border-b border-white/10 last:border-b-0"
+            >
+              <SetupTableCell>
+                <span className="font-mono font-semibold text-white">
+                  {setup.setupType}
+                </span>
+              </SetupTableCell>
+              <SetupTableCell align="right">{setup.closedTrades}</SetupTableCell>
+              <SetupTableCell align="right">{setup.winningTrades}</SetupTableCell>
+              <SetupTableCell align="right">{setup.losingTrades}</SetupTableCell>
+              <SetupTableCell align="right">
+                {formatPercent(setup.winRate)}
+              </SetupTableCell>
+              <SetupTableCell align="right" tone={setup.totalPnl}>
+                {formatPnl(setup.totalPnl)}
+              </SetupTableCell>
+              <SetupTableCell align="right" tone={setup.totalR}>
+                {formatRMultiple(setup.totalR)}
+              </SetupTableCell>
+              <SetupTableCell align="right">
+                {formatRMultiple(setup.averageR)}
+              </SetupTableCell>
+              <SetupTableCell align="right" tone={setup.bestTrade}>
+                {formatRMultiple(setup.bestTrade)}
+              </SetupTableCell>
+              <SetupTableCell align="right" tone={setup.worstTrade}>
+                {formatRMultiple(setup.worstTrade)}
+              </SetupTableCell>
+              <SetupTableCell align="right">
+                {formatProfitFactor(setup.profitFactor)}
+              </SetupTableCell>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SetupTableHeader({
+  label,
+  align = "left",
+}: {
+  label: string;
+  align?: "left" | "right";
+}) {
+  return (
+    <th
+      className={`px-4 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {label}
+    </th>
+  );
+}
+
+function SetupTableCell({
+  children,
+  align = "left",
+  tone,
+}: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+  tone?: number | null;
+}) {
+  const toneClassName =
+    tone === undefined || tone === null || tone === 0
+      ? "text-zinc-200"
+      : tone > 0
+        ? "text-emerald-100"
+        : "text-rose-100";
+
+  return (
+    <td
+      className={`px-4 py-4 font-mono text-sm ${toneClassName} ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </td>
   );
 }
 
