@@ -275,10 +275,13 @@ export default function TradeApp() {
 
       await loadTradeData();
     } catch (error) {
+      const fallbackMessage =
+        "Sorry, Trade could not generate more recommendations right now. Please try again.";
+
       setMessage(
-        error instanceof Error
+        process.env.NODE_ENV === "development" && error instanceof Error
           ? error.message
-          : "Sorry, Trade could not generate more recommendations right now. Please try again.",
+          : fallbackMessage,
       );
     }
 
@@ -374,7 +377,7 @@ export default function TradeApp() {
             <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
               <span>Private app</span>
               <span className="h-1 w-1 rounded-full bg-emerald-400" />
-              <span>Supabase connected</span>
+              <span>AI draft mode</span>
             </div>
             <div>
               <h1 className="font-mono text-4xl font-semibold tracking-normal text-white sm:text-5xl">
@@ -426,6 +429,10 @@ export default function TradeApp() {
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
                   {ignoredCount} ignored, {watchedCount} watched, saved in Supabase.
+                </p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
+                  AI-generated draft recommendations based on mock candidate data.
+                  Live market data is not connected yet.
                 </p>
               </div>
               <button
