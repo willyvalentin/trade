@@ -16,7 +16,7 @@ type RecommendationRow = {
   setup_type: string | null;
   entry_low: number | string | null;
   entry_high: number | string | null;
-  stop_loss: string | null;
+  stop_loss: number | string | null;
   target_1: string | null;
   target_2: string | null;
   risk_reward: string | null;
@@ -27,6 +27,11 @@ type RecommendationRow = {
   reason_to_avoid: string | null;
   status: string | null;
   created_at?: string | null;
+};
+
+type UserSettingsRow = {
+  portfolio_size: number | string | null;
+  risk_per_trade_percent: number | string | null;
 };
 
 type PositionRow = {
@@ -88,6 +93,9 @@ type Recommendation = {
   direction: Direction;
   setupType: string;
   entryZone: string;
+  entryLowValue: number | null;
+  entryHighValue: number | null;
+  stopLossValue: number | null;
   stopLoss: string;
   target1: string;
   target2: string;
@@ -99,6 +107,20 @@ type Recommendation = {
   reasonToAvoid: string;
   status: RecommendationStatus;
   createdAt: string;
+};
+
+type UserSettings = {
+  portfolioSize: number | null;
+  riskPerTradePercent: number | null;
+};
+
+type PositionSizing = {
+  isAvailable: boolean;
+  riskAmount: number | null;
+  riskPerShare: number | null;
+  suggestedShares: number | null;
+  suggestedPositionValue: number | null;
+  maxLossAtStop: number | null;
 };
 
 type ActivePosition = {
@@ -188,6 +210,29 @@ function formatNumber(value: number | null | undefined, suffix = "") {
   }
 
   return `${value.toFixed(2)}${suffix}`;
+}
+
+function formatCurrency(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "Not available";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatShares(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "Not available";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 function formatPnl(value: number | null) {
@@ -290,7 +335,70 @@ function formatEntryZone(
   return `${low} - ${high}`;
 }
 
+function toUserSettings(row: UserSettingsRow | null): UserSettings | null {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    portfolioSize: parseNumber(row.portfolio_size),
+    riskPerTradePercent: parseNumber(row.risk_per_trade_percent),
+  };
+}
+
+function calculatePositionSizing(
+  recommendation: Recommendation,
+  userSettings: UserSettings | null,
+): PositionSizing {
+  const unavailableSizing = {
+    isAvailable: false,
+    riskAmount: null,
+    riskPerShare: null,
+    suggestedShares: null,
+    suggestedPositionValue: null,
+    maxLossAtStop: null,
+  };
+
+  if (
+    !userSettings ||
+    userSettings.portfolioSize === null ||
+    userSettings.riskPerTradePercent === null ||
+    recommendation.entryLowValue === null ||
+    recommendation.entryHighValue === null ||
+    recommendation.stopLossValue === null
+  ) {
+    return unavailableSizing;
+  }
+
+  const riskAmount =
+    userSettings.portfolioSize * (userSettings.riskPerTradePercent / 100);
+  const entryMidpoint =
+    (recommendation.entryLowValue + recommendation.entryHighValue) / 2;
+  const riskPerShare = entryMidpoint - recommendation.stopLossValue;
+
+  if (riskPerShare <= 0 || !Number.isFinite(riskPerShare)) {
+    return unavailableSizing;
+  }
+
+  const suggestedShares = Math.floor(riskAmount / riskPerShare);
+  const suggestedPositionValue = suggestedShares * entryMidpoint;
+  const maxLossAtStop = suggestedShares * riskPerShare;
+
+  return {
+    isAvailable: true,
+    riskAmount,
+    riskPerShare,
+    suggestedShares,
+    suggestedPositionValue,
+    maxLossAtStop,
+  };
+}
+
 function toRecommendation(row: RecommendationRow): Recommendation {
+  const entryLowValue = parseNumber(row.entry_low);
+  const entryHighValue = parseNumber(row.entry_high);
+  const stopLossValue = parseNumber(row.stop_loss);
+
   return {
     id: row.id,
     ticker: row.ticker,
@@ -298,6 +406,9 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     direction: direction(row.direction),
     setupType: text(row.setup_type),
     entryZone: formatEntryZone(row.entry_low, row.entry_high),
+    entryLowValue,
+    entryHighValue,
+    stopLossValue,
     stopLoss: text(row.stop_loss),
     target1: text(row.target_1),
     target2: text(row.target_2),
@@ -483,6 +594,7 @@ function updateResultToLatestPositionUpdate(
 export default function TradeApp() {
   const [activeTab, setActiveTab] = useState<Tab>("Daily Recommendations");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
   const [closedPositions, setClosedPositions] = useState<ClosedPosition[]>([]);
   const [latestPositionUpdates, setLatestPositionUpdates] = useState<
@@ -511,12 +623,19 @@ export default function TradeApp() {
 
     const [
       recommendationsResult,
+      userSettingsResult,
       positionsResult,
       closedPositionsResult,
       positionUpdatesResult,
     ] =
       await Promise.all([
         supabase.from("recommendations").select("*"),
+        supabase
+          .from("user_settings")
+          .select("portfolio_size, risk_per_trade_percent")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
         supabase.from("positions").select("*").eq("status", "open"),
         supabase
           .from("positions")
@@ -535,6 +654,13 @@ export default function TradeApp() {
       setRecommendations(
         (recommendationsResult.data as RecommendationRow[]).map(toRecommendation),
       );
+    }
+
+    if (userSettingsResult.error) {
+      setMessage(userSettingsResult.error.message);
+      setUserSettings(null);
+    } else {
+      setUserSettings(toUserSettings(userSettingsResult.data as UserSettingsRow | null));
     }
 
     if (positionsResult.error) {
@@ -691,9 +817,15 @@ export default function TradeApp() {
   }
 
   function openTradeModal(recommendation: Recommendation) {
+    const positionSizing = calculatePositionSizing(recommendation, userSettings);
+
     setSelectedRecommendation(recommendation);
     setEntryPrice("");
-    setPositionSize("");
+    setPositionSize(
+      positionSizing.suggestedShares === null
+        ? ""
+        : String(positionSizing.suggestedShares),
+    );
     setMessage("");
   }
 
@@ -950,6 +1082,10 @@ export default function TradeApp() {
                   <RecommendationCard
                     key={recommendation.id}
                     recommendation={recommendation}
+                    positionSizing={calculatePositionSizing(
+                      recommendation,
+                      userSettings,
+                    )}
                     isSaving={isSaving}
                     onTakeTrade={openTradeModal}
                     onWatchOnly={(item) =>
@@ -1108,6 +1244,10 @@ export default function TradeApp() {
       {selectedRecommendation && (
         <TradeModal
           recommendation={selectedRecommendation}
+          positionSizing={calculatePositionSizing(
+            selectedRecommendation,
+            userSettings,
+          )}
           entryPrice={entryPrice}
           positionSize={positionSize}
           isSaving={isSaving}
@@ -1341,14 +1481,56 @@ function SetupTableCell({
   );
 }
 
+function PositionSizingSection({
+  positionSizing,
+}: {
+  positionSizing: PositionSizing;
+}) {
+  return (
+    <section className="mt-5 rounded-lg border border-emerald-300/15 bg-emerald-300/[0.04] p-4">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
+          Position Sizing
+        </h3>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+          Helper only
+        </p>
+      </div>
+
+      {!positionSizing.isAvailable ? (
+        <p className="mt-3 text-sm text-zinc-400">Position size unavailable</p>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Detail label="Risk Amount" value={formatCurrency(positionSizing.riskAmount)} />
+          <Detail label="Risk/share" value={formatCurrency(positionSizing.riskPerShare)} />
+          <Detail
+            label="Suggested Shares"
+            value={formatShares(positionSizing.suggestedShares)}
+          />
+          <Detail
+            label="Position Value"
+            value={formatCurrency(positionSizing.suggestedPositionValue)}
+          />
+          <Detail
+            label="Max Loss at Stop"
+            value={formatCurrency(positionSizing.maxLossAtStop)}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
 function RecommendationCard({
   recommendation,
+  positionSizing,
   isSaving,
   onTakeTrade,
   onWatchOnly,
   onIgnore,
 }: {
   recommendation: Recommendation;
+  positionSizing: PositionSizing;
   isSaving: boolean;
   onTakeTrade: (recommendation: Recommendation) => void;
   onWatchOnly: (recommendation: Recommendation) => void;
@@ -1388,6 +1570,8 @@ function RecommendationCard({
         <Detail label="Timeframe" value={recommendation.timeframe} />
       </div>
 
+      <PositionSizingSection positionSizing={positionSizing} />
+
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
         <TextBlock label="Thesis" value={recommendation.thesis} />
         <TextBlock label="Invalidation" value={recommendation.invalidation} />
@@ -1426,6 +1610,7 @@ function RecommendationCard({
 
 function TradeModal({
   recommendation,
+  positionSizing,
   entryPrice,
   positionSize,
   isSaving,
@@ -1435,6 +1620,7 @@ function TradeModal({
   onSubmit,
 }: {
   recommendation: Recommendation;
+  positionSizing: PositionSizing;
   entryPrice: string;
   positionSize: string;
   isSaving: boolean;
@@ -1489,13 +1675,15 @@ function TradeModal({
             <input
               required
               type="number"
-              step="0.01"
+              step="1"
               value={positionSize}
               onChange={(event) => onPositionSizeChange(event.target.value)}
               className="mt-2 min-h-11 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none focus:border-emerald-300"
             />
           </label>
         </div>
+
+        <PositionSizingSection positionSizing={positionSizing} />
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <Detail label="Stop Loss" value={recommendation.stopLoss} />
