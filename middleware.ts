@@ -1,49 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const REALM = "Trade";
+import { getTradeAuthToken, TRADE_AUTH_COOKIE } from "@/lib/trade-auth";
 
-function unauthorized() {
-  return new Response("Authentication required", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": `Basic realm="${REALM}", charset="UTF-8"`,
-    },
-  });
+function isPublicPath(pathname: string) {
+  return (
+    pathname === "/login" ||
+    pathname === "/api/auth/login" ||
+    pathname === "/api/auth/logout"
+  );
 }
 
-function getPasswordFromHeader(authorizationHeader: string | null) {
-  if (!authorizationHeader?.startsWith("Basic ")) {
-    return null;
+function unauthorized(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const credentials = atob(authorizationHeader.slice("Basic ".length));
-    const separatorIndex = credentials.indexOf(":");
-
-    if (separatorIndex === -1) {
-      return null;
-    }
-
-    return credentials.slice(separatorIndex + 1);
-  } catch {
-    return null;
-  }
+  return NextResponse.redirect(new URL("/login", request.url));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  if (isPublicPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   const appPassword = process.env.TRADE_APP_PASSWORD;
 
   if (!appPassword) {
-    return unauthorized();
+    return unauthorized(request);
   }
 
-  const requestPassword = getPasswordFromHeader(
-    request.headers.get("authorization"),
-  );
+  const authCookie = request.cookies.get(TRADE_AUTH_COOKIE)?.value;
+  const validAuthCookie = await getTradeAuthToken(appPassword);
 
-  if (requestPassword !== appPassword) {
-    return unauthorized();
+  if (authCookie !== validAuthCookie) {
+    return unauthorized(request);
   }
 
   return NextResponse.next();
