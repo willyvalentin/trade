@@ -89,6 +89,51 @@ type PositionUpdateResult = {
   unrealized_r_multiple: number;
 };
 
+type GenerateRecommendationsResult = {
+  recommendations?: RecommendationRow[];
+  inserted_count?: number;
+  inserted_tickers?: string[];
+  duplicate_fallback_used?: boolean;
+  market_regime?: MarketRegime;
+  message?: string;
+  error?: string;
+};
+
+type MarketRegimeType = "risk_on" | "neutral" | "risk_off";
+
+type MarketRegimeSymbol = {
+  close: number;
+  ma20: number;
+  ma50: number;
+  change_5d_percent: number;
+  above_ma20: boolean;
+  above_ma50: boolean;
+};
+
+type MarketRegime = {
+  regime: MarketRegimeType;
+  summary: string;
+  spy: MarketRegimeSymbol;
+  qqq: MarketRegimeSymbol;
+};
+
+type MarketRegimeSnapshotRow = {
+  regime: string | null;
+  summary: string | null;
+  spy_close: number | string | null;
+  spy_ma20: number | string | null;
+  spy_ma50: number | string | null;
+  spy_change_5d_percent: number | string | null;
+  spy_above_ma20: boolean | null;
+  spy_above_ma50: boolean | null;
+  qqq_close: number | string | null;
+  qqq_ma20: number | string | null;
+  qqq_ma50: number | string | null;
+  qqq_change_5d_percent: number | string | null;
+  qqq_above_ma20: boolean | null;
+  qqq_above_ma50: boolean | null;
+};
+
 type Recommendation = {
   id: string;
   sessionType: SessionType;
@@ -279,6 +324,85 @@ function formatProfitFactor(value: PerformanceSummary["profitFactor"]) {
   }
 
   return value.toFixed(2);
+}
+
+function marketRegimeLabel(value: MarketRegimeType) {
+  if (value === "risk_on") {
+    return "Risk On";
+  }
+
+  if (value === "risk_off") {
+    return "Risk Off";
+  }
+
+  return "Neutral";
+}
+
+function marketTrendStatus(symbol: string, trend: MarketRegimeSymbol) {
+  if (trend.close === 0 && trend.ma20 === 0 && trend.ma50 === 0) {
+    return `${symbol}: unavailable`;
+  }
+
+  const ma20Status = trend.above_ma20 ? "above MA20" : "below MA20";
+  const ma50Status = trend.above_ma50 ? "above MA50" : "below MA50";
+
+  return `${symbol}: ${ma20Status}, ${ma50Status}, 5D ${formatNumber(
+    trend.change_5d_percent,
+    "%",
+  )}`;
+}
+
+function marketRegimeType(value: string | null | undefined): MarketRegimeType {
+  if (value === "risk_on" || value === "risk_off") {
+    return value;
+  }
+
+  return "neutral";
+}
+
+function toMarketRegimeSymbol(
+  close: number | string | null,
+  ma20: number | string | null,
+  ma50: number | string | null,
+  change5dPercent: number | string | null,
+  aboveMa20: boolean | null,
+  aboveMa50: boolean | null,
+): MarketRegimeSymbol {
+  return {
+    close: parseNumber(close) ?? 0,
+    ma20: parseNumber(ma20) ?? 0,
+    ma50: parseNumber(ma50) ?? 0,
+    change_5d_percent: parseNumber(change5dPercent) ?? 0,
+    above_ma20: aboveMa20 ?? false,
+    above_ma50: aboveMa50 ?? false,
+  };
+}
+
+function toMarketRegime(row: MarketRegimeSnapshotRow | null): MarketRegime | null {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    regime: marketRegimeType(row.regime),
+    summary: text(row.summary),
+    spy: toMarketRegimeSymbol(
+      row.spy_close,
+      row.spy_ma20,
+      row.spy_ma50,
+      row.spy_change_5d_percent,
+      row.spy_above_ma20,
+      row.spy_above_ma50,
+    ),
+    qqq: toMarketRegimeSymbol(
+      row.qqq_close,
+      row.qqq_ma20,
+      row.qqq_ma50,
+      row.qqq_change_5d_percent,
+      row.qqq_above_ma20,
+      row.qqq_above_ma50,
+    ),
+  };
 }
 
 function setupTypeFromPosition(row: PositionRow) {
@@ -612,7 +736,7 @@ function updateResultToLatestPositionUpdate(
   };
 }
 
-export default function TradeApp() {
+export function TradeApp() {
   const [activeTab, setActiveTab] = useState<Tab>("Daily Recommendations");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
@@ -637,6 +761,7 @@ export default function TradeApp() {
   const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>("all");
+  const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
 
   async function loadTradeData() {
     await Promise.resolve();
@@ -650,6 +775,7 @@ export default function TradeApp() {
       positionsResult,
       closedPositionsResult,
       positionUpdatesResult,
+      marketRegimeResult,
     ] =
       await Promise.all([
         supabase.from("recommendations").select("*"),
@@ -669,6 +795,12 @@ export default function TradeApp() {
           .from("position_updates")
           .select("*")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("market_regime_snapshots")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
 
     if (recommendationsResult.error) {
@@ -712,6 +844,15 @@ export default function TradeApp() {
       }
 
       setLatestPositionUpdates(updatesByPosition);
+    }
+
+    if (marketRegimeResult.error) {
+      setMessage(marketRegimeResult.error.message);
+      setMarketRegime(null);
+    } else {
+      setMarketRegime(
+        toMarketRegime(marketRegimeResult.data as MarketRegimeSnapshotRow | null),
+      );
     }
 
     setIsLoading(false);
@@ -763,16 +904,34 @@ export default function TradeApp() {
         },
         body: JSON.stringify({ session_type: sessionTypeToGenerate }),
       });
+      const result = (await response.json().catch(() => null)) as
+        | GenerateRecommendationsResult
+        | null;
 
       if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-
         throw new Error(result?.error || "Request failed");
       }
 
       await loadTradeData();
+
+      if (result?.market_regime) {
+        setMarketRegime(result.market_regime);
+      }
+
+      const insertedCount =
+        typeof result?.inserted_count === "number"
+          ? result.inserted_count
+          : result?.recommendations?.length;
+
+      if (result?.message) {
+        setMessage(result.message);
+      } else if (result?.duplicate_fallback_used) {
+        setMessage(
+          "No fresh tickers were available, so Trade allowed repeat candidates for this scan.",
+        );
+      } else if (insertedCount !== undefined) {
+        setMessage(`Inserted ${insertedCount} recommendations.`);
+      }
     } catch (error) {
       const fallbackMessage =
         "Sorry, Trade could not generate more recommendations right now. Please try again.";
@@ -782,9 +941,9 @@ export default function TradeApp() {
           ? error.message
           : fallbackMessage,
       );
+    } finally {
+      setGeneratingSessionType(null);
     }
-
-    setGeneratingSessionType(null);
   }
 
   async function updatePositions() {
@@ -1083,27 +1242,30 @@ export default function TradeApp() {
                   Live market data is not connected yet.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => generateRecommendations("morning")}
-                  disabled={isLoading || generatingSessionType !== null}
-                  className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
-                >
-                  {generatingSessionType === "morning"
-                    ? "Generating..."
-                    : "Generate Morning Scan"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => generateRecommendations("midday")}
-                  disabled={isLoading || generatingSessionType !== null}
-                  className="min-h-11 rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-100 transition hover:border-emerald-200/60 hover:bg-emerald-200/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-zinc-900 disabled:text-zinc-600"
-                >
-                  {generatingSessionType === "midday"
-                    ? "Generating..."
-                    : "Generate Midday Scan"}
-                </button>
+              <div className="flex flex-col gap-3 sm:min-w-[360px]">
+                <MarketRegimeCard marketRegime={marketRegime} />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => generateRecommendations("morning")}
+                    disabled={isLoading || generatingSessionType !== null}
+                    className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                  >
+                    {generatingSessionType === "morning"
+                      ? "Generating..."
+                      : "Generate Morning Scan"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => generateRecommendations("midday")}
+                    disabled={isLoading || generatingSessionType !== null}
+                    className="min-h-11 rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-100 transition hover:border-emerald-200/60 hover:bg-emerald-200/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-zinc-900 disabled:text-zinc-600"
+                  >
+                    {generatingSessionType === "midday"
+                      ? "Generating..."
+                      : "Generate Midday Scan"}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -2004,6 +2166,36 @@ function Stat({ label, value }: { label: string; value: number }) {
       <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
         {label}
       </div>
+    </div>
+  );
+}
+
+function MarketRegimeCard({
+  marketRegime,
+}: {
+  marketRegime: MarketRegime | null;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          Market Regime
+        </div>
+        <div className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">
+          {marketRegime ? marketRegimeLabel(marketRegime.regime) : "Not scanned"}
+        </div>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-zinc-400">
+        {marketRegime
+          ? marketRegime.summary
+          : "No market regime snapshot yet. Run a Morning or Midday scan."}
+      </p>
+      {marketRegime && (
+        <div className="mt-3 space-y-1 font-mono text-[11px] leading-5 text-zinc-500">
+          <div>{marketTrendStatus("SPY", marketRegime.spy)}</div>
+          <div>{marketTrendStatus("QQQ", marketRegime.qqq)}</div>
+        </div>
+      )}
     </div>
   );
 }

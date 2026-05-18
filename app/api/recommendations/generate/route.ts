@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
+import {
+  getMarketRegime,
+  neutralMarketRegimeFallback,
+  type MarketRegime,
+} from "@/lib/market-regime";
 import { supabase } from "@/lib/supabase";
 
 type SessionType = "morning" | "midday";
@@ -44,6 +49,11 @@ type AiResponse = {
   recommendations: AiRecommendation[];
 };
 
+type SanitizedRecommendationsResult = {
+  recommendations: RecommendationInsert[];
+  skippedReasons: string[];
+};
+
 type UserSettings = {
   portfolio_size: number;
   risk_per_trade_percent: number;
@@ -65,6 +75,16 @@ type UserSettingsRow = {
 type PositionStatusRow = {
   ticker: string | null;
   status?: string | null;
+};
+
+type RecommendationTickerRow = {
+  ticker: string | null;
+  session_type?: string | null;
+};
+
+type TickerRecommendationCounts = {
+  totalToday: number;
+  sameSessionToday: number;
 };
 
 const defaultUserSettings: UserSettings = {
@@ -552,6 +572,10 @@ function text(value: unknown, fieldName: string) {
   return trimmed;
 }
 
+function fallbackText(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
 function number(value: unknown, fieldName: string) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error(`${fieldName} must be a finite number.`);
@@ -571,6 +595,33 @@ function clamp(value: number, min: number, max: number) {
 
 function isOpenPositionStatus(value: string | null | undefined) {
   return value?.trim().toLowerCase() === "open";
+}
+
+function logPipeline(label: string, value: unknown) {
+  console.log(`[recommendations/generate] ${label}`, value);
+}
+
+async function saveMarketRegimeSnapshot(marketRegime: MarketRegime) {
+  const { error } = await supabase.from("market_regime_snapshots").insert({
+    regime: marketRegime.regime,
+    summary: marketRegime.summary,
+    spy_close: marketRegime.spy.close,
+    spy_ma20: marketRegime.spy.ma20,
+    spy_ma50: marketRegime.spy.ma50,
+    spy_change_5d_percent: marketRegime.spy.change_5d_percent,
+    spy_above_ma20: marketRegime.spy.above_ma20,
+    spy_above_ma50: marketRegime.spy.above_ma50,
+    qqq_close: marketRegime.qqq.close,
+    qqq_ma20: marketRegime.qqq.ma20,
+    qqq_ma50: marketRegime.qqq.ma50,
+    qqq_change_5d_percent: marketRegime.qqq.change_5d_percent,
+    qqq_above_ma20: marketRegime.qqq.above_ma20,
+    qqq_above_ma50: marketRegime.qqq.above_ma50,
+  });
+
+  if (error) {
+    console.error("[recommendations/generate] market_regime_snapshot_insert_error", error);
+  }
 }
 
 function normalizeUserSettings(row?: UserSettingsRow | null): UserSettings {
@@ -639,15 +690,19 @@ function sanitizeRecommendations(
   availableCandidates: MockCandidate[],
   sessionType: SessionType,
   maxRecommendations: number,
-): RecommendationInsert[] {
+  preferredTimeframe: string,
+): SanitizedRecommendationsResult {
   const candidatesByTicker = new Map(
     availableCandidates.map((candidate) => [candidate.ticker, candidate]),
   );
   const seenTickers = new Set<string>();
+  const recommendations: RecommendationInsert[] = [];
+  const skippedReasons: string[] = [];
 
-  return aiRecommendations
+  for (const [index, recommendation] of aiRecommendations
     .slice(0, maxRecommendations)
-    .map((recommendation, index) => {
+    .entries()) {
+    try {
       const ticker = normalizeTicker(recommendation.ticker);
       const candidate = candidatesByTicker.get(ticker);
 
@@ -661,7 +716,8 @@ function sanitizeRecommendations(
         throw new Error(`OpenAI returned duplicate ticker ${ticker}.`);
       }
 
-      seenTickers.add(ticker);
+      const companyName = text(candidate.company_name, `${ticker}.company_name`);
+      text(recommendation.company_name, `${ticker}.company_name`);
 
       if (recommendation.direction !== "long") {
         throw new Error(`Recommendation ${ticker} direction must be long.`);
@@ -677,12 +733,17 @@ function sanitizeRecommendations(
         throw new Error(`Recommendation ${ticker} confidence is invalid.`);
       }
 
-      return {
+      seenTickers.add(ticker);
+
+      recommendations.push({
         session_type: sessionType,
         ticker,
-        company_name: candidate.company_name,
+        company_name: companyName,
         direction: "long",
-        setup_type: text(recommendation.setup_type, `${ticker}.setup_type`),
+        setup_type: fallbackText(
+          recommendation.setup_type,
+          "Scanner-based setup",
+        ),
         entry_low: number(recommendation.entry_low, `${ticker}.entry_low`),
         entry_high: number(recommendation.entry_high, `${ticker}.entry_high`),
         stop_loss: number(recommendation.stop_loss, `${ticker}.stop_loss`),
@@ -693,19 +754,34 @@ function sanitizeRecommendations(
           `${ticker}.risk_reward`,
         ),
         confidence,
-        timeframe: text(recommendation.timeframe, `${ticker}.timeframe`),
-        thesis: text(recommendation.thesis, `${ticker}.thesis`),
-        invalidation: text(
-          recommendation.invalidation,
-          `${ticker}.invalidation`,
+        timeframe: fallbackText(
+          recommendation.timeframe,
+          preferredTimeframe || defaultUserSettings.preferred_timeframe,
         ),
-        reason_to_avoid: text(
+        thesis: fallbackText(
+          recommendation.thesis,
+          "The setup passed the scanner filters and has a defined entry, stop, and target structure.",
+        ),
+        invalidation: fallbackText(
+          recommendation.invalidation,
+          "The setup is invalidated if price breaks below the stop loss or broader market conditions deteriorate.",
+        ),
+        reason_to_avoid: fallbackText(
           recommendation.reason_to_avoid,
-          `${ticker}.reason_to_avoid`,
+          "Avoid if the setup loses momentum, market conditions weaken, or price action invalidates the trade plan.",
         ),
         status: "new",
-      };
-    });
+      });
+    } catch (error) {
+      skippedReasons.push(
+        error instanceof Error && error.message
+          ? error.message
+          : `Recommendation ${index + 1} did not pass validation.`,
+      );
+    }
+  }
+
+  return { recommendations, skippedReasons };
 }
 
 function getSessionPrompt(sessionType: SessionType, preferredTimeframe: string) {
@@ -731,10 +807,39 @@ function getSessionPrompt(sessionType: SessionType, preferredTimeframe: string) 
   ].join("\n");
 }
 
+function getMarketRegimePrompt(marketRegime: MarketRegime) {
+  if (marketRegime.regime === "risk_on") {
+    return [
+      "Market regime is risk_on.",
+      "Use normal selectivity.",
+      "Trend continuation and breakout setups are acceptable.",
+    ].join("\n");
+  }
+
+  if (marketRegime.regime === "risk_off") {
+    return [
+      "Market regime is risk_off.",
+      "Be very selective.",
+      "Prefer fewer recommendations.",
+      "Require strong relative strength and clean risk/reward.",
+      "It is acceptable to return no recommendations.",
+    ].join("\n");
+  }
+
+  return [
+    "Market regime is neutral.",
+    "Be selective.",
+    "Prefer cleaner setups.",
+    "Avoid marginal trades.",
+  ].join("\n");
+}
+
 async function generateRecommendationsWithOpenAI(
   availableCandidates: MockCandidate[],
   sessionType: SessionType,
   settings: UserSettings,
+  duplicateFallbackUsed: boolean,
+  marketRegime: MarketRegime,
 ) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is missing. Add it to .env.local.");
@@ -762,7 +867,12 @@ async function generateRecommendationsWithOpenAI(
             "For now, only return direction = long.",
           ].join(" "),
       getSessionPrompt(sessionType, settings.preferred_timeframe),
+      getMarketRegimePrompt(marketRegime),
+      `Market regime summary: ${marketRegime.summary}`,
       "Use only tickers from the provided candidates.",
+      duplicateFallbackUsed
+        ? "Some candidates may have been recommended earlier today. Only repeat a ticker if the setup remains high quality."
+        : "",
       "Make entry, stop, and target levels coherent with each candidate's mock support, mock resistance, and mock_current_price.",
       "risk_reward must be a JSON number such as 2.2, never a string such as 2.2R or 1:2.2.",
       "Only output JSON. Do not include markdown. Do not include explanations outside JSON.",
@@ -772,6 +882,7 @@ async function generateRecommendationsWithOpenAI(
       max_recommendations: maxRecommendations,
       preferred_timeframe: settings.preferred_timeframe,
       allowed_directions: allowedDirections,
+      market_regime: marketRegime,
       candidates: availableCandidates,
     }),
     text: {
@@ -836,7 +947,7 @@ export async function POST(request: Request) {
           .maybeSingle(),
         supabase
           .from("recommendations")
-          .select("ticker")
+          .select("ticker,session_type")
           .gte("created_at", todayStart),
         supabase.from("positions").select("ticker,status"),
       ]);
@@ -872,9 +983,51 @@ export async function POST(request: Request) {
     const openPositionCount = openPositions.length;
     const isGenerationBlocked = openPositionCount >= settings.max_open_positions;
 
-    console.log("[recommendations/generate] max_open_positions", settings.max_open_positions);
-    console.log("[recommendations/generate] open_positions_count", openPositionCount);
-    console.log("[recommendations/generate] generation_blocked", isGenerationBlocked);
+    const tickerRecommendationCounts: Record<string, TickerRecommendationCounts> =
+      {};
+    const todaysRecommendations =
+      (todaysRecommendationsResult.data ?? []) as RecommendationTickerRow[];
+
+    for (const recommendation of todaysRecommendations) {
+      const ticker = normalizeTicker(recommendation.ticker);
+
+      if (!ticker) {
+        continue;
+      }
+
+      tickerRecommendationCounts[ticker] = tickerRecommendationCounts[ticker] || {
+        totalToday: 0,
+        sameSessionToday: 0,
+      };
+      tickerRecommendationCounts[ticker].totalToday += 1;
+
+      if (recommendation.session_type === sessionType) {
+        tickerRecommendationCounts[ticker].sameSessionToday += 1;
+      }
+    }
+
+    const alreadyRecommendedTickers = Object.entries(tickerRecommendationCounts)
+      .filter(([, counts]) => counts.sameSessionToday > 0)
+      .map(([ticker]) => ticker);
+    const openPositionTickers = openPositions
+      .map((position) => normalizeTicker(position.ticker))
+      .filter(Boolean);
+
+    logPipeline("session_type", sessionType);
+    logPipeline(
+      "max_recommendations_per_session",
+      settings.max_recommendations_per_session,
+    );
+    logPipeline("open_positions_count", openPositionCount);
+    logPipeline("max_open_positions", settings.max_open_positions);
+    logPipeline("total_scanner_candidates_before_filtering", mockCandidates.length);
+    logPipeline(
+      "tickers_already_recommended_for_same_session_today",
+      alreadyRecommendedTickers,
+    );
+    logPipeline("ticker_recommendation_counts_today", tickerRecommendationCounts);
+    logPipeline("open_position_tickers", openPositionTickers);
+    logPipeline("generation_blocked", isGenerationBlocked);
 
     if (isGenerationBlocked) {
       return NextResponse.json(
@@ -888,43 +1041,211 @@ export async function POST(request: Request) {
       );
     }
 
-    const blockedTickers = new Set<string>();
-
-    for (const recommendation of todaysRecommendationsResult.data ?? []) {
-      blockedTickers.add(normalizeTicker(recommendation.ticker));
+    if (mockCandidates.length === 0) {
+      return NextResponse.json(
+        { error: "No scanner candidates found from market data." },
+        { status: 400 },
+      );
     }
 
-    for (const position of openPositions) {
-      blockedTickers.add(normalizeTicker(position.ticker));
+    const openPositionTickerSet = new Set<string>();
+
+    for (const ticker of openPositionTickers) {
+      openPositionTickerSet.add(ticker);
     }
 
-    const availableCandidates = mockCandidates.filter(
-      (candidate) => !blockedTickers.has(candidate.ticker),
+    const scannerRankByTicker = new Map(
+      mockCandidates.map((candidate, index) => [candidate.ticker, index]),
     );
+
+    function getTickerCounts(ticker: string): TickerRecommendationCounts {
+      return (
+        tickerRecommendationCounts[ticker] || {
+          totalToday: 0,
+          sameSessionToday: 0,
+        }
+      );
+    }
+
+    function isAllowedByCooldown(
+      candidate: MockCandidate,
+      allowSameSessionRepeat: boolean,
+      removedReasons: string[],
+    ) {
+      const counts = getTickerCounts(candidate.ticker);
+
+      if (counts.totalToday >= 2) {
+        removedReasons.push(
+          `${candidate.ticker}: recommended ${counts.totalToday} times today`,
+        );
+        return false;
+      }
+
+      if (!allowSameSessionRepeat && counts.sameSessionToday >= 1) {
+        removedReasons.push(
+          `${candidate.ticker}: already recommended in ${sessionType} today`,
+        );
+        return false;
+      }
+
+      return true;
+    }
+
+    function sortCandidatesByDiversity(
+      firstCandidate: MockCandidate,
+      secondCandidate: MockCandidate,
+    ) {
+      const firstCounts = getTickerCounts(firstCandidate.ticker);
+      const secondCounts = getTickerCounts(secondCandidate.ticker);
+      const totalCountDifference =
+        firstCounts.totalToday - secondCounts.totalToday;
+
+      if (totalCountDifference !== 0) {
+        return totalCountDifference;
+      }
+
+      const sameSessionDifference =
+        firstCounts.sameSessionToday - secondCounts.sameSessionToday;
+
+      if (sameSessionDifference !== 0) {
+        return sameSessionDifference;
+      }
+
+      return (
+        (scannerRankByTicker.get(firstCandidate.ticker) ?? Number.MAX_SAFE_INTEGER) -
+        (scannerRankByTicker.get(secondCandidate.ticker) ?? Number.MAX_SAFE_INTEGER)
+      );
+    }
+
+    const freshCandidatesRemovedByCooldown: string[] = [];
+    const freshCandidates = mockCandidates
+      .filter((candidate) => !openPositionTickerSet.has(candidate.ticker))
+      .filter((candidate) =>
+        isAllowedByCooldown(candidate, false, freshCandidatesRemovedByCooldown),
+      )
+      .sort(sortCandidatesByDiversity);
+    const duplicateFallbackUsed = freshCandidates.length === 0;
+    const duplicateFallbackMessage =
+      "No fresh tickers were available, so Trade allowed repeat candidates for this scan.";
+    const fallbackCandidatesRemovedByCooldown: string[] = [];
+    const availableCandidates = duplicateFallbackUsed
+      ? mockCandidates
+          .filter((candidate) => !openPositionTickerSet.has(candidate.ticker))
+          .filter((candidate) =>
+            isAllowedByCooldown(
+              candidate,
+              true,
+              fallbackCandidatesRemovedByCooldown,
+            ),
+          )
+          .sort(sortCandidatesByDiversity)
+      : freshCandidates;
+    const candidatesRemovedByCooldown = duplicateFallbackUsed
+      ? fallbackCandidatesRemovedByCooldown
+      : freshCandidatesRemovedByCooldown;
     const candidateLimit = Math.max(
       12,
       settings.max_recommendations_per_session * 3,
     );
     const candidatesForOpenAI = availableCandidates.slice(0, candidateLimit);
+    const availableCandidateTickers = availableCandidates.map(
+      (candidate) => candidate.ticker,
+    );
+    const candidateTickersForOpenAI = candidatesForOpenAI.map(
+      (candidate) => candidate.ticker,
+    );
 
     if (availableCandidates.length === 0) {
-      return NextResponse.json({ recommendations: [] });
+      logPipeline("scanner_candidates_after_filtering", 0);
+      logPipeline("candidates_removed_by_cooldown", candidatesRemovedByCooldown);
+      logPipeline("candidate_tickers_sent_to_openai", []);
+      logPipeline("final_candidate_tickers_sent_to_openai", []);
+      logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
+
+      return NextResponse.json(
+        {
+          error:
+            "No available candidates remain after diversity and cooldown filters. Try again later or expand the scanner universe.",
+        },
+        { status: 400 },
+      );
     }
+
+    logPipeline("scanner_candidates_after_filtering", availableCandidates.length);
+    logPipeline("scanner_candidate_tickers_after_filtering", availableCandidateTickers);
+    logPipeline("candidates_removed_by_cooldown", candidatesRemovedByCooldown);
+    logPipeline("candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
+    logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
+    logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
+
+    let marketRegime = neutralMarketRegimeFallback;
+
+    try {
+      marketRegime = await getMarketRegime();
+    } catch (error) {
+      console.error("[recommendations/generate] market_regime_error", error);
+    }
+
+    logPipeline("market_regime", marketRegime);
+    await saveMarketRegimeSnapshot(marketRegime);
 
     const aiResponse = await generateRecommendationsWithOpenAI(
       candidatesForOpenAI,
       sessionType,
       settings,
+      duplicateFallbackUsed,
+      marketRegime,
     );
-    const recommendationsToInsert = sanitizeRecommendations(
+    logPipeline("raw_openai_recommendations_count", aiResponse.recommendations.length);
+
+    if (aiResponse.recommendations.length === 0) {
+      logPipeline("validated_recommendations_count", 0);
+      logPipeline("skipped_recommendations_count", 0);
+      logPipeline("skipped_recommendation_reasons", []);
+      logPipeline("inserted_recommendations_count", 0);
+      logPipeline("inserted_recommendation_tickers", []);
+
+      return NextResponse.json({
+        recommendations: [],
+        message: duplicateFallbackUsed
+          ? duplicateFallbackMessage
+          : "No high-quality recommendations found for this scan.",
+        duplicate_fallback_used: duplicateFallbackUsed,
+        market_regime: marketRegime,
+      });
+    }
+
+    const sanitizedRecommendations = sanitizeRecommendations(
       aiResponse.recommendations,
       candidatesForOpenAI,
       sessionType,
       settings.max_recommendations_per_session,
+      settings.preferred_timeframe,
+    );
+    const recommendationsToInsert = sanitizedRecommendations.recommendations;
+
+    logPipeline("validated_recommendations_count", recommendationsToInsert.length);
+    logPipeline(
+      "skipped_recommendations_count",
+      sanitizedRecommendations.skippedReasons.length,
+    );
+    logPipeline(
+      "skipped_recommendation_reasons",
+      sanitizedRecommendations.skippedReasons,
     );
 
     if (recommendationsToInsert.length === 0) {
-      return NextResponse.json({ recommendations: [] });
+      logPipeline("inserted_recommendations_count", 0);
+      logPipeline("inserted_recommendation_tickers", []);
+
+      return NextResponse.json({
+        recommendations: [],
+        message: duplicateFallbackUsed
+          ? duplicateFallbackMessage
+          : "OpenAI returned recommendations, but none passed validation.",
+        duplicate_fallback_used: duplicateFallbackUsed,
+        market_regime: marketRegime,
+      });
     }
 
     const insertResult = await supabase
@@ -940,7 +1261,31 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ recommendations: insertResult.data ?? [] });
+    const insertedRecommendations = insertResult.data ?? [];
+    const insertedRecommendationTickers = insertedRecommendations
+      .map((recommendation) => normalizeTicker(recommendation.ticker))
+      .filter(Boolean);
+
+    logPipeline("inserted_recommendations_count", insertedRecommendations.length);
+    logPipeline("inserted_recommendation_tickers", insertedRecommendationTickers);
+
+    if (insertedRecommendations.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Recommendations were generated but not inserted into Supabase.",
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      recommendations: insertedRecommendations,
+      inserted_count: insertedRecommendations.length,
+      inserted_tickers: insertedRecommendationTickers,
+      duplicate_fallback_used: duplicateFallbackUsed,
+      market_regime: marketRegime,
+      ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
