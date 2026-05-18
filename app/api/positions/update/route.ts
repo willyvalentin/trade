@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
 import { getQuote } from "@/lib/market-data";
@@ -31,6 +32,36 @@ type PositionUpdateResult = {
   unrealized_percent: number;
   risk_per_share: number;
   unrealized_r_multiple: number;
+};
+
+type AiPositionCommentary = {
+  commentary: string;
+  next_trigger: string;
+  risk_note: string;
+};
+
+type PositionCommentaryInput = {
+  ticker: string;
+  entry_price: number;
+  current_price: number;
+  current_stop: number;
+  target_1: number;
+  target_2: number;
+  unrealized_percent: number;
+  unrealized_r_multiple: number;
+  rule_based_action: PositionAction;
+  rule_based_recommendation: string;
+};
+
+const positionCommentarySchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["commentary", "next_trigger", "risk_note"],
+  properties: {
+    commentary: { type: "string" },
+    next_trigger: { type: "string" },
+    risk_note: { type: "string" },
+  },
 };
 
 function numberValue(value: number | string | null, fieldName: string) {
@@ -117,6 +148,97 @@ function getAction(
   };
 }
 
+function textValue(value: unknown, fieldName: string) {
+  if (typeof value !== "string") {
+    throw new Error(`${fieldName} must be a string.`);
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    throw new Error(`${fieldName} cannot be empty.`);
+  }
+
+  return trimmed;
+}
+
+function parsePositionCommentary(outputText: string): AiPositionCommentary {
+  try {
+    const parsed = JSON.parse(outputText) as {
+      commentary?: unknown;
+      next_trigger?: unknown;
+      risk_note?: unknown;
+    };
+
+    return {
+      commentary: textValue(parsed.commentary, "commentary"),
+      next_trigger: textValue(parsed.next_trigger, "next_trigger"),
+      risk_note: textValue(parsed.risk_note, "risk_note"),
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : "Unknown JSON parsing error.";
+
+    throw new Error(`OpenAI returned invalid commentary JSON: ${message}`);
+  }
+}
+
+function formatAiExplanation(commentary: AiPositionCommentary) {
+  return [
+    `Commentary: ${commentary.commentary}`,
+    `Next trigger: ${commentary.next_trigger}`,
+    `Risk note: ${commentary.risk_note}`,
+  ].join("\n\n");
+}
+
+async function generatePositionCommentary(
+  input: PositionCommentaryInput,
+): Promise<AiPositionCommentary> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is missing. Add it to .env.local.");
+  }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const response = await openai.responses.create({
+    model: "gpt-4.1-mini",
+    instructions: [
+      "You are a private trading co-pilot.",
+      "You do not place trades.",
+      "You are not allowed to change the rule-based action.",
+      "You must explain the action clearly.",
+      "Be concise and practical.",
+      "Do not invent prices.",
+      "Do not suggest increasing position size.",
+      "Do not recommend revenge trading.",
+      "Do not mention that you are an AI.",
+      "Return JSON only.",
+    ].join("\n"),
+    input: JSON.stringify(input),
+    text: {
+      format: {
+        type: "json_schema",
+        name: "position_update_commentary",
+        strict: true,
+        schema: positionCommentarySchema,
+      },
+    },
+    temperature: 0.2,
+    max_output_tokens: 500,
+    store: false,
+  });
+
+  if (!response.output_text) {
+    throw new Error("OpenAI returned an empty commentary response.");
+  }
+
+  return parsePositionCommentary(response.output_text);
+}
+
 async function monitorPosition(position: PositionRow): Promise<PositionUpdateResult> {
   const entryPrice = numberValue(position.entry_price, "Entry price");
   const currentStop = numberValue(position.current_stop, "Current stop");
@@ -141,11 +263,35 @@ async function monitorPosition(position: PositionRow): Promise<PositionUpdateRes
     unrealizedRMultiple,
   );
   const newStop = action === "MOVE_STOP_TO_BREAKEVEN" ? entryPrice : null;
-  const explanation = [
+  const fallbackExplanation = [
     `${position.ticker} is trading at ${currentPrice}.`,
     `Entry is ${entryPrice}, current stop is ${currentStop}, target 1 is ${target1}, and target 2 is ${target2}.`,
     `Unrealized result is ${unrealizedPercent.toFixed(2)}% and ${unrealizedRMultiple.toFixed(2)}R.`,
   ].join(" ");
+  let explanation = fallbackExplanation;
+
+  try {
+    const commentary = await generatePositionCommentary({
+      ticker: position.ticker,
+      entry_price: entryPrice,
+      current_price: currentPrice,
+      current_stop: currentStop,
+      target_1: target1,
+      target_2: target2,
+      unrealized_percent: Number(unrealizedPercent.toFixed(2)),
+      unrealized_r_multiple: Number(unrealizedRMultiple.toFixed(2)),
+      rule_based_action: action,
+      rule_based_recommendation: recommendation,
+    });
+
+    explanation = formatAiExplanation(commentary);
+  } catch (error) {
+    console.error("OpenAI position commentary failed", {
+      position_id: position.id,
+      ticker: position.ticker,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 
   const { error: insertError } = await supabase.from("position_updates").insert({
     position_id: position.id,

@@ -964,6 +964,11 @@ function ActivePositionCard({
           <p className="mt-3 text-sm leading-6 text-zinc-200">
             {latestUpdate.recommendation}
           </p>
+          {latestUpdate.explanation && (
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-zinc-400">
+              {latestUpdate.explanation}
+            </p>
+          )}
           {latestUpdate.newStop !== "Not set" && (
             <p className="mt-2 font-mono text-xs text-zinc-400">
               New stop: {latestUpdate.newStop}
