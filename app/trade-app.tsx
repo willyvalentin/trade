@@ -43,6 +43,36 @@ type PositionRow = {
   created_at?: string | null;
 };
 
+type PositionUpdateAction =
+  | "CLOSE_POSITION"
+  | "TAKE_PROFIT"
+  | "TAKE_PARTIAL_PROFIT"
+  | "MOVE_STOP_TO_BREAKEVEN"
+  | "HOLD";
+
+type PositionUpdateRow = {
+  id?: string;
+  position_id: string;
+  action: PositionUpdateAction | string | null;
+  recommendation: string | null;
+  explanation: string | null;
+  new_stop: number | string | null;
+  created_at?: string | null;
+};
+
+type PositionUpdateResult = {
+  position_id: string;
+  ticker: string;
+  action: PositionUpdateAction;
+  recommendation: string;
+  explanation: string;
+  new_stop: number | null;
+  current_price: number;
+  unrealized_percent: number;
+  risk_per_share: number;
+  unrealized_r_multiple: number;
+};
+
 type Recommendation = {
   id: string;
   ticker: string;
@@ -76,6 +106,17 @@ type ActivePosition = {
   openedAt: string;
 };
 
+type LatestPositionUpdate = {
+  positionId: string;
+  action: string;
+  recommendation: string;
+  explanation: string;
+  newStop: string;
+  currentPrice: string;
+  unrealizedR: string;
+  updatedAt: string;
+};
+
 const tabs: Tab[] = ["Daily Recommendations", "Active Positions", "History"];
 const historyStatuses: RecommendationStatus[] = ["ignored", "watched", "taken"];
 
@@ -91,6 +132,14 @@ function money(value: number | string | null | undefined) {
   }
 
   return String(value);
+}
+
+function formatNumber(value: number | null | undefined, suffix = "") {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "Not available";
+  }
+
+  return `${value.toFixed(2)}${suffix}`;
 }
 
 function direction(value: string | null | undefined): Direction {
@@ -177,10 +226,41 @@ function toActivePosition(row: PositionRow): ActivePosition {
   };
 }
 
+function toLatestPositionUpdate(row: PositionUpdateRow): LatestPositionUpdate {
+  return {
+    positionId: row.position_id,
+    action: text(row.action, "HOLD"),
+    recommendation: text(row.recommendation),
+    explanation: text(row.explanation),
+    newStop: money(row.new_stop),
+    currentPrice: "Not available",
+    unrealizedR: "Not available",
+    updatedAt: formatDate(row.created_at),
+  };
+}
+
+function updateResultToLatestPositionUpdate(
+  update: PositionUpdateResult,
+): LatestPositionUpdate {
+  return {
+    positionId: update.position_id,
+    action: update.action,
+    recommendation: update.recommendation,
+    explanation: update.explanation,
+    newStop: money(update.new_stop),
+    currentPrice: formatNumber(update.current_price),
+    unrealizedR: formatNumber(update.unrealized_r_multiple, "R"),
+    updatedAt: "Just now",
+  };
+}
+
 export default function TradeApp() {
   const [activeTab, setActiveTab] = useState<Tab>("Daily Recommendations");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
+  const [latestPositionUpdates, setLatestPositionUpdates] = useState<
+    Record<string, LatestPositionUpdate>
+  >({});
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<Recommendation | null>(null);
   const [entryPrice, setEntryPrice] = useState("");
@@ -188,6 +268,7 @@ export default function TradeApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
 
   async function loadTradeData() {
@@ -196,10 +277,15 @@ export default function TradeApp() {
     setIsLoading(true);
     setMessage("");
 
-    const [recommendationsResult, positionsResult] = await Promise.all([
-      supabase.from("recommendations").select("*"),
-      supabase.from("positions").select("*").eq("status", "open"),
-    ]);
+    const [recommendationsResult, positionsResult, positionUpdatesResult] =
+      await Promise.all([
+        supabase.from("recommendations").select("*"),
+        supabase.from("positions").select("*").eq("status", "open"),
+        supabase
+          .from("position_updates")
+          .select("*")
+          .order("created_at", { ascending: false }),
+      ]);
 
     if (recommendationsResult.error) {
       setMessage(recommendationsResult.error.message);
@@ -213,6 +299,20 @@ export default function TradeApp() {
       setMessage(positionsResult.error.message);
     } else {
       setActivePositions((positionsResult.data as PositionRow[]).map(toActivePosition));
+    }
+
+    if (positionUpdatesResult.error) {
+      setMessage(positionUpdatesResult.error.message);
+    } else {
+      const updatesByPosition: Record<string, LatestPositionUpdate> = {};
+
+      for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
+        if (!updatesByPosition[update.position_id]) {
+          updatesByPosition[update.position_id] = toLatestPositionUpdate(update);
+        }
+      }
+
+      setLatestPositionUpdates(updatesByPosition);
     }
 
     setIsLoading(false);
@@ -286,6 +386,58 @@ export default function TradeApp() {
     }
 
     setIsGenerating(false);
+  }
+
+  async function updatePositions() {
+    setIsUpdatingPositions(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/positions/update", {
+        method: "POST",
+      });
+      const result = (await response.json().catch(() => null)) as {
+        updates?: PositionUpdateResult[];
+        errors?: { ticker: string; error: string }[];
+        error?: string;
+      } | null;
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Request failed");
+      }
+
+      await loadTradeData();
+
+      const updateResults = result?.updates || [];
+
+      setLatestPositionUpdates((currentUpdates) => {
+        const nextUpdates = { ...currentUpdates };
+
+        for (const update of updateResults) {
+          nextUpdates[update.position_id] = updateResultToLatestPositionUpdate(update);
+        }
+
+        return nextUpdates;
+      });
+
+      if (result?.errors?.length) {
+        const tickers = result.errors.map((error) => error.ticker).join(", ");
+        setMessage(`Some positions could not be updated: ${tickers}.`);
+      } else {
+        setMessage(`Updated ${updateResults.length} open positions.`);
+      }
+    } catch (error) {
+      const fallbackMessage =
+        "Sorry, Trade could not update positions right now. Please try again.";
+
+      setMessage(
+        process.env.NODE_ENV === "development" && error instanceof Error
+          ? error.message
+          : fallbackMessage,
+      );
+    }
+
+    setIsUpdatingPositions(false);
   }
 
   function openTradeModal(recommendation: Recommendation) {
@@ -476,13 +628,23 @@ export default function TradeApp() {
 
         {activeTab === "Active Positions" && (
           <section className="space-y-5">
-            <div>
-              <h2 className="font-mono text-2xl font-semibold tracking-normal text-white">
-                Active Positions
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Open positions loaded from the positions table.
-              </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-mono text-2xl font-semibold tracking-normal text-white">
+                  Active Positions
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Open positions loaded from the positions table.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={updatePositions}
+                disabled={isLoading || isUpdatingPositions || activePositions.length === 0}
+                className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+              >
+                {isUpdatingPositions ? "Updating..." : "Update Positions"}
+              </button>
             </div>
 
             {isLoading ? (
@@ -498,7 +660,11 @@ export default function TradeApp() {
             ) : (
               <div className="grid gap-4 xl:grid-cols-2">
                 {activePositions.map((position) => (
-                  <ActivePositionCard key={position.id} position={position} />
+                  <ActivePositionCard
+                    key={position.id}
+                    position={position}
+                    latestUpdate={latestPositionUpdates[position.id]}
+                  />
                 ))}
               </div>
             )}
@@ -746,7 +912,13 @@ function TradeModal({
   );
 }
 
-function ActivePositionCard({ position }: { position: ActivePosition }) {
+function ActivePositionCard({
+  position,
+  latestUpdate,
+}: {
+  position: ActivePosition;
+  latestUpdate?: LatestPositionUpdate;
+}) {
   return (
     <article className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.045] p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -770,7 +942,35 @@ function ActivePositionCard({ position }: { position: ActivePosition }) {
         <Detail label="Stop Loss" value={position.stopLoss} />
         <Detail label="Target 1" value={position.target1} />
         <Detail label="Target 2" value={position.target2} />
+        {latestUpdate && (
+          <>
+            <Detail label="Current Price" value={latestUpdate.currentPrice} />
+            <Detail label="Unrealized R" value={latestUpdate.unrealizedR} />
+            <Detail label="Latest Action" value={latestUpdate.action} />
+          </>
+        )}
       </div>
+
+      {latestUpdate && (
+        <div className="mt-5 rounded-md border border-white/10 bg-black/25 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
+              {latestUpdate.action}
+            </div>
+            <div className="font-mono text-xs uppercase tracking-[0.12em] text-zinc-500">
+              {latestUpdate.updatedAt}
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-zinc-200">
+            {latestUpdate.recommendation}
+          </p>
+          {latestUpdate.newStop !== "Not set" && (
+            <p className="mt-2 font-mono text-xs text-zinc-400">
+              New stop: {latestUpdate.newStop}
+            </p>
+          )}
+        </div>
+      )}
     </article>
   );
 }
