@@ -338,6 +338,18 @@ function marketRegimeLabel(value: MarketRegimeType) {
   return "Neutral";
 }
 
+function getCurrentNewYorkSessionType(): SessionType {
+  const newYorkHour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/New_York",
+    }).format(new Date()),
+  );
+
+  return newYorkHour < 12 ? "morning" : "midday";
+}
+
 function marketTrendStatus(symbol: string, trend: MarketRegimeSymbol) {
   if (trend.close === 0 && trend.ma20 === 0 && trend.ma50 === 0) {
     return `${symbol}: unavailable`;
@@ -902,7 +914,10 @@ export function TradeApp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ session_type: sessionTypeToGenerate }),
+        body: JSON.stringify({
+          session_type: sessionTypeToGenerate,
+          target_count: 1,
+        }),
       });
       const result = (await response.json().catch(() => null)) as
         | GenerateRecommendationsResult
@@ -1167,6 +1182,7 @@ export function TradeApp() {
   const ignoredCount = recommendations.filter(
     (recommendation) => recommendation.status === "ignored",
   ).length;
+  const inferredSessionType = getCurrentNewYorkSessionType();
   const performanceSummary = calculatePerformanceSummary(closedPositions);
   const setupPerformance = calculateSetupPerformance(closedPositions);
 
@@ -1244,26 +1260,19 @@ export function TradeApp() {
               </div>
               <div className="flex flex-col gap-3 sm:min-w-[360px]">
                 <MarketRegimeCard marketRegime={marketRegime} />
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="space-y-2">
+                  <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                    Current scan mode: {sessionLabel(inferredSessionType)}
+                  </div>
                   <button
                     type="button"
-                    onClick={() => generateRecommendations("morning")}
+                    onClick={() => generateRecommendations(inferredSessionType)}
                     disabled={isLoading || generatingSessionType !== null}
-                    className="min-h-11 rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                    className="min-h-11 w-full rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                   >
-                    {generatingSessionType === "morning"
+                    {generatingSessionType !== null
                       ? "Generating..."
-                      : "Generate Morning Scan"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => generateRecommendations("midday")}
-                    disabled={isLoading || generatingSessionType !== null}
-                    className="min-h-11 rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-100 transition hover:border-emerald-200/60 hover:bg-emerald-200/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-zinc-900 disabled:text-zinc-600"
-                  >
-                    {generatingSessionType === "midday"
-                      ? "Generating..."
-                      : "Generate Midday Scan"}
+                      : "Generate 1 New Card"}
                   </button>
                 </div>
               </div>
