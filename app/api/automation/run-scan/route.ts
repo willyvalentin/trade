@@ -5,6 +5,7 @@ import {
   RecommendationGenerationError,
   type SessionType,
 } from "@/lib/recommendation-generator";
+import { getUsMarketStatus, type MarketStatus } from "@/lib/market-calendar";
 import { supabase } from "@/lib/supabase";
 
 type ScanWindow = {
@@ -51,12 +52,6 @@ function getNewYorkScanDate() {
 
 function getScanWindowDueNow(): ScanWindow | null {
   const newYorkDate = getNewYorkDateParts();
-  const weekday = newYorkDate.weekday;
-
-  if (weekday === "Sat" || weekday === "Sun") {
-    return null;
-  }
-
   const minutesAfterMidnight = newYorkDate.hour * 60 + newYorkDate.minute;
   const morningStart = 9 * 60 + 30;
   const morningEnd = 10 * 60;
@@ -76,6 +71,42 @@ function getScanWindowDueNow(): ScanWindow | null {
   }
 
   return null;
+}
+
+function timeToMinutes(time: string | null) {
+  if (!time) {
+    return null;
+  }
+
+  const [hour, minute] = time.split(":").map(Number);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return null;
+  }
+
+  return hour * 60 + minute;
+}
+
+function getNewYorkMinutesAfterMidnight() {
+  const newYorkDate = getNewYorkDateParts();
+  return newYorkDate.hour * 60 + newYorkDate.minute;
+}
+
+function isAllowedByMarketClose(
+  sessionType: SessionType,
+  marketStatus: MarketStatus,
+) {
+  if (marketStatus.dayType !== "early_close" || sessionType !== "midday") {
+    return true;
+  }
+
+  const closeMinutes = timeToMinutes(marketStatus.marketCloseTime);
+
+  if (closeMinutes === null) {
+    return true;
+  }
+
+  return getNewYorkMinutesAfterMidnight() < closeMinutes;
 }
 
 async function parseAutomationRunRequestBody(
@@ -202,6 +233,20 @@ export async function POST(request: Request) {
     ignore_existing_run,
   });
 
+  const marketStatus = await getUsMarketStatus();
+
+  if (!marketStatus.isOpenDay) {
+    return NextResponse.json({
+      ok: true,
+      message: "US stock market is closed today.",
+      market_status: marketStatus,
+      forced: force,
+      session_type: null,
+      scan_date: marketStatus.date,
+      recommendations_created: 0,
+    });
+  }
+
   let scanWindow: ScanWindow | null = null;
 
   if (force) {
@@ -231,11 +276,24 @@ export async function POST(request: Request) {
       forced: false,
       session_type: null,
       scan_date: null,
+      market_status: marketStatus,
       recommendations_created: 0,
     });
   }
 
   const { scanDate, sessionType } = scanWindow;
+
+  if (!isAllowedByMarketClose(sessionType, marketStatus)) {
+    return NextResponse.json({
+      ok: true,
+      message: "US stock market closed before the midday scan window.",
+      forced: force,
+      scan_date: scanDate,
+      session_type: sessionType,
+      market_status: marketStatus,
+      recommendations_created: 0,
+    });
+  }
 
   try {
     const alreadyRan = ignore_existing_run
@@ -249,6 +307,7 @@ export async function POST(request: Request) {
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,
+        market_status: marketStatus,
         recommendations_created: 0,
       });
     }
@@ -282,6 +341,7 @@ export async function POST(request: Request) {
       recommendations_created: recommendationsCreated,
       duplicate_fallback_used: generationResult.duplicate_fallback_used,
       market_regime: generationResult.market_regime,
+      market_status: marketStatus,
     });
   } catch (error) {
     console.error(error);
@@ -312,6 +372,7 @@ export async function POST(request: Request) {
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,
+        market_status: marketStatus,
         recommendations_created: 0,
       },
       { status },

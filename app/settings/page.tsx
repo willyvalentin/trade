@@ -25,6 +25,27 @@ type SettingsForm = {
   longOnly: boolean;
 };
 
+type ScheduledScanRun = {
+  id: string | number;
+  created_at: string | null;
+  scan_date: string | null;
+  session_type: string | null;
+  status: string | null;
+  recommendations_created: number | string | null;
+  message: string | null;
+};
+
+type MarketStatus = {
+  isOpenDay: boolean;
+  reason: string;
+  date: string;
+  dayType: "trading_day" | "weekend" | "holiday" | "early_close" | "unknown";
+  marketOpenTime: string | null;
+  marketCloseTime: string | null;
+  provider: string;
+  fromCache: boolean;
+};
+
 const emptyForm: SettingsForm = {
   portfolioSize: "",
   riskPerTradePercent: "",
@@ -121,6 +142,73 @@ async function createDefaultSettingsRow() {
     .single();
 }
 
+async function fetchRecentScheduledScanRuns() {
+  return supabase
+    .from("scheduled_scan_runs")
+    .select(
+      "id,created_at,scan_date,session_type,status,recommendations_created,message",
+    )
+    .order("created_at", { ascending: false })
+    .limit(20);
+}
+
+async function fetchMarketStatusForUi() {
+  try {
+    const response = await fetch("/api/market-calendar/status", {
+      cache: "no-store",
+    });
+    const result = (await response.json().catch(() => null)) as {
+      market_status?: MarketStatus;
+      error?: string;
+    } | null;
+
+    if (!response.ok) {
+      throw new Error(result?.error || "Could not load market calendar status.");
+    }
+
+    return {
+      marketStatus: result?.market_status ?? null,
+      error: "",
+    };
+  } catch (error) {
+    console.error("[settings] market_status_error", error);
+
+    return {
+      marketStatus: null,
+      error: "Market calendar status is unavailable right now.",
+    };
+  }
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) {
+    return "Not recorded";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function formatSessionType(value: string | null) {
+  if (value === "morning") {
+    return "Morning";
+  }
+
+  if (value === "midday") {
+    return "Midday";
+  }
+
+  return value ?? "Unknown";
+}
+
 export default function SettingsPage() {
   const [settingsId, setSettingsId] = useState<UserSettingsRow["id"] | null>(
     null,
@@ -130,6 +218,11 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [automationRuns, setAutomationRuns] = useState<ScheduledScanRun[]>([]);
+  const [isLoadingAutomationRuns, setIsLoadingAutomationRuns] = useState(true);
+  const [automationMessage, setAutomationMessage] = useState("");
+  const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
+  const [marketStatusMessage, setMarketStatusMessage] = useState("");
 
   async function loadSettings() {
     setIsLoading(true);
@@ -172,9 +265,31 @@ export default function SettingsPage() {
     setIsLoading(false);
   }
 
+  async function loadAutomationRuns() {
+    setIsLoadingAutomationRuns(true);
+    setAutomationMessage("");
+
+    const [{ data, error }, marketStatusResult] = await Promise.all([
+      fetchRecentScheduledScanRuns(),
+      fetchMarketStatusForUi(),
+    ]);
+
+    if (error) {
+      setAutomationMessage(error.message);
+      setAutomationRuns([]);
+    } else {
+      setAutomationRuns((data ?? []) as ScheduledScanRun[]);
+    }
+
+    setMarketStatus(marketStatusResult.marketStatus);
+    setMarketStatusMessage(marketStatusResult.error);
+    setIsLoadingAutomationRuns(false);
+  }
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       loadSettings();
+      loadAutomationRuns();
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -284,7 +399,7 @@ export default function SettingsPage() {
         )}
 
         {successMessage && (
-          <div className="rounded-lg border border-emerald-300/25 bg-emerald-300/10 p-4 text-sm leading-6 text-emerald-100">
+          <div className="rounded-lg border border-[#00db94]/25 bg-[#00db94]/10 p-4 text-sm leading-6 text-emerald-100">
             {successMessage}
           </div>
         )}
@@ -301,7 +416,7 @@ export default function SettingsPage() {
         ) : (
           <form
             onSubmit={saveSettings}
-            className="rounded-lg border border-white/10 bg-white/[0.035] p-5"
+            className="bg-surface-subtle rounded-lg border border-white/10 p-5"
           >
             <div className="grid gap-4 md:grid-cols-2">
               <SettingsField label="Portfolio Size">
@@ -388,7 +503,7 @@ export default function SettingsPage() {
                       {form.longOnly ? "Enabled" : "Disabled"}
                     </div>
                   </div>
-                  <label className="relative inline-flex h-7 w-12 cursor-pointer items-center rounded-full border border-white/10 bg-zinc-800 transition has-[:checked]:border-emerald-300/40 has-[:checked]:bg-emerald-300/25">
+                  <label className="relative inline-flex h-7 w-12 cursor-pointer items-center rounded-full border border-white/10 bg-zinc-800 transition has-[:checked]:border-[#00db94]/40 has-[:checked]:bg-[#00db94]/25">
                     <input
                       type="checkbox"
                       checked={form.longOnly}
@@ -417,6 +532,15 @@ export default function SettingsPage() {
             </div>
           </form>
         )}
+
+        <AutomationStatusPanel
+          automationRuns={automationRuns}
+          isLoading={isLoadingAutomationRuns}
+          message={automationMessage}
+          marketStatus={marketStatus}
+          marketStatusMessage={marketStatusMessage}
+          onRefresh={loadAutomationRuns}
+        />
       </div>
     </main>
   );
@@ -436,5 +560,266 @@ function SettingsField({
       </span>
       {children}
     </label>
+  );
+}
+
+function AutomationStatusPanel({
+  automationRuns,
+  isLoading,
+  message,
+  marketStatus,
+  marketStatusMessage,
+  onRefresh,
+}: {
+  automationRuns: ScheduledScanRun[];
+  isLoading: boolean;
+  message: string;
+  marketStatus: MarketStatus | null;
+  marketStatusMessage: string;
+  onRefresh: () => void;
+}) {
+  const lastMorningScan =
+    automationRuns.find((run) => run.session_type === "morning") ?? null;
+  const lastMiddayScan =
+    automationRuns.find((run) => run.session_type === "midday") ?? null;
+  const lastAutomationRun = automationRuns[0] ?? null;
+
+  return (
+    <section className="bg-surface-subtle rounded-lg border border-white/10 p-5">
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            Automation
+          </div>
+          <h2 className="mt-2 font-mono text-2xl font-semibold tracking-normal text-white">
+            Automation Status
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Scheduled scans are triggered by Netlify every 15 minutes on
+            weekdays. Trade checks the market calendar and only generates
+            recommendations inside the configured New York time windows.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={isLoading}
+          className="min-h-11 rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-300 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:text-zinc-600"
+        >
+          {isLoading ? "Refreshing..." : "Refresh Status"}
+        </button>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <MarketCalendarStatusCard
+          marketStatus={marketStatus}
+          isLoading={isLoading}
+          message={marketStatusMessage}
+        />
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-md border border-white/10 bg-black/25 p-4">
+            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              Morning window
+            </div>
+            <div className="mt-2 font-mono text-sm text-white">
+              09:30&ndash;10:00 New York time
+            </div>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-black/25 p-4">
+            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              Midday window
+            </div>
+            <div className="mt-2 font-mono text-sm text-white">
+              12:30&ndash;13:00 New York time
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {message && (
+        <div className="mt-5 rounded-lg border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
+          {message}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="mt-5 rounded-lg border border-dashed border-white/15 bg-white/[0.025] p-6 text-center">
+          <h3 className="font-mono text-base font-semibold text-white">
+            Loading automation status
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">
+            Trade is reading recent scheduled_scan_runs rows.
+          </p>
+        </div>
+      ) : automationRuns.length === 0 ? (
+        <div className="mt-5 rounded-lg border border-dashed border-white/15 bg-white/[0.025] p-6 text-center text-sm leading-6 text-zinc-400">
+          No automated scans have run yet.
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <AutomationRunCard title="Last Morning Scan" run={lastMorningScan} />
+          <AutomationRunCard title="Last Midday Scan" run={lastMiddayScan} />
+          <AutomationRunCard
+            title="Last Automation Run"
+            run={lastAutomationRun}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AutomationRunCard({
+  title,
+  run,
+}: {
+  title: string;
+  run: ScheduledScanRun | null;
+}) {
+  return (
+    <article className="rounded-md border border-white/10 bg-black/25 p-4">
+      <div className="flex min-h-8 items-start justify-between gap-3">
+        <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          {title}
+        </h3>
+        {run && <StatusPill status={run.status} />}
+      </div>
+
+      {run ? (
+        <dl className="mt-4 space-y-3 text-sm">
+          <AutomationDetail
+            label="Session"
+            value={formatSessionType(run.session_type)}
+          />
+          <AutomationDetail
+            label="Recommendations created"
+            value={String(run.recommendations_created ?? 0)}
+          />
+          <AutomationDetail label="Status" value={run.status ?? "Unknown"} />
+          <AutomationDetail
+            label="Message"
+            value={run.message?.trim() || "No message recorded"}
+          />
+          <AutomationDetail
+            label="Created at"
+            value={formatDateTime(run.created_at)}
+          />
+        </dl>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-zinc-500">
+          No run has been recorded for this scan type yet.
+        </p>
+      )}
+    </article>
+  );
+}
+
+function getMarketStatusLabel(marketStatus: MarketStatus | null) {
+  if (!marketStatus) {
+    return "Unknown";
+  }
+
+  if (marketStatus.dayType === "early_close") {
+    return "Early close";
+  }
+
+  if (marketStatus.dayType === "unknown") {
+    return "Unknown";
+  }
+
+  return marketStatus.isOpenDay ? "Open" : "Closed";
+}
+
+function getMarketStatusBadgeStatus(
+  marketStatus: MarketStatus | null,
+  isLoading: boolean,
+) {
+  if (isLoading) {
+    return "Loading";
+  }
+
+  if (!marketStatus) {
+    return "Unknown";
+  }
+
+  if (marketStatus.dayType === "unknown") {
+    return "Provider unavailable";
+  }
+
+  return marketStatus.isOpenDay ? "completed" : "Closed";
+}
+
+function MarketCalendarStatusCard({
+  marketStatus,
+  isLoading,
+  message,
+}: {
+  marketStatus: MarketStatus | null;
+  isLoading: boolean;
+  message: string;
+}) {
+  const statusValue = isLoading
+    ? "Loading"
+    : getMarketStatusLabel(marketStatus);
+  const providerValue = isLoading
+    ? "Loading"
+    : marketStatus?.provider ?? "Unavailable";
+  const cacheValue = isLoading
+    ? "Loading"
+    : marketStatus
+      ? marketStatus.fromCache
+        ? "Fresh cache"
+        : "Live provider or fallback"
+      : "Unavailable";
+  const reasonValue = isLoading
+    ? "Loading market calendar status..."
+    : marketStatus?.reason || message || "No market calendar result yet";
+
+  return (
+    <div className="rounded-md border border-white/10 bg-black/25 p-4">
+      <div className="flex min-h-8 items-start justify-between gap-3">
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          Market Calendar
+        </div>
+        <StatusPill status={getMarketStatusBadgeStatus(marketStatus, isLoading)} />
+      </div>
+
+      <dl className="mt-4 space-y-3 text-sm">
+        <AutomationDetail label="Status" value={statusValue} />
+        <AutomationDetail label="Provider" value={providerValue} />
+        <AutomationDetail label="Cache" value={cacheValue} />
+        <AutomationDetail label="Reason" value={reasonValue} />
+      </dl>
+    </div>
+  );
+}
+
+function AutomationDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words text-zinc-200">{value}</dd>
+    </div>
+  );
+}
+
+function StatusPill({ status }: { status: string | null }) {
+  const isCompleted = status === "completed";
+
+  return (
+    <span
+      className={`rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
+        isCompleted
+          ? "border-[#00db94]/30 bg-[#00db94]/10 text-emerald-100"
+          : "border-amber-300/30 bg-amber-300/10 text-amber-100"
+      }`}
+    >
+      {status ?? "Unknown"}
+    </span>
   );
 }

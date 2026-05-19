@@ -95,11 +95,25 @@ type GenerateRecommendationsResult = {
   inserted_tickers?: string[];
   duplicate_fallback_used?: boolean;
   market_regime?: MarketRegime;
+  market_status?: MarketStatus;
   message?: string;
   error?: string;
 };
 
+type MarketStatus = {
+  isOpenDay: boolean;
+  reason: string;
+  date: string;
+  dayType: "trading_day" | "weekend" | "holiday" | "early_close" | "unknown";
+  marketOpenTime: string | null;
+  marketCloseTime: string | null;
+  provider: string;
+  fromCache: boolean;
+};
+
 type MarketRegimeType = "risk_on" | "neutral" | "risk_off";
+
+type TopMarketStatus = "open" | "closed" | "closed_today" | "unknown";
 
 type MarketRegimeSymbol = {
   close: number;
@@ -338,6 +352,34 @@ function marketRegimeLabel(value: MarketRegimeType) {
   return "Neutral";
 }
 
+async function fetchMarketStatusForUi() {
+  try {
+    const response = await fetch("/api/market-calendar/status", {
+      cache: "no-store",
+    });
+    const result = (await response.json().catch(() => null)) as {
+      market_status?: MarketStatus;
+      error?: string;
+    } | null;
+
+    if (!response.ok) {
+      throw new Error(result?.error || "Could not load market calendar status.");
+    }
+
+    return {
+      marketStatus: result?.market_status ?? null,
+      error: "",
+    };
+  } catch (error) {
+    console.error("[trade-app] market_status_error", error);
+
+    return {
+      marketStatus: null,
+      error: "Market calendar status is unavailable right now.",
+    };
+  }
+}
+
 function getCurrentNewYorkSessionType(): SessionType {
   const newYorkHour = Number(
     new Intl.DateTimeFormat("en-US", {
@@ -348,6 +390,77 @@ function getCurrentNewYorkSessionType(): SessionType {
   );
 
   return newYorkHour < 12 ? "morning" : "midday";
+}
+
+function getNewYorkTimeInMinutes() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    timeZone: "America/New_York",
+  }).formatToParts(new Date());
+
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
+
+  return (
+    Number(valueByType.get("hour") ?? "0") * 60 +
+    Number(valueByType.get("minute") ?? "0")
+  );
+}
+
+function timeToMinutes(value: string | null) {
+  const match = value?.match(/^(\d{2}):(\d{2})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function getTopMarketStatus(marketStatus: MarketStatus | null): TopMarketStatus {
+  if (!marketStatus || marketStatus.dayType === "unknown") {
+    return "unknown";
+  }
+
+  if (!marketStatus.isOpenDay) {
+    return "closed_today";
+  }
+
+  const openMinutes = timeToMinutes(marketStatus.marketOpenTime) ?? 9 * 60 + 30;
+  const closeMinutes = timeToMinutes(marketStatus.marketCloseTime) ?? 16 * 60;
+  const nowMinutes = getNewYorkTimeInMinutes();
+
+  return nowMinutes >= openMinutes && nowMinutes < closeMinutes ? "open" : "closed";
+}
+
+function topMarketStatusLabel(status: TopMarketStatus) {
+  if (status === "open") {
+    return "Currently open";
+  }
+
+  if (status === "closed") {
+    return "Currently closed";
+  }
+
+  if (status === "closed_today") {
+    return "Closed today";
+  }
+
+  return "Status unknown";
+}
+
+function topMarketStatusDotStyle(status: TopMarketStatus) {
+  if (status === "open") {
+    return { backgroundColor: "#00db94" };
+  }
+
+  if (status === "closed" || status === "closed_today") {
+    return { backgroundColor: "color(display-p3 0.97 0.281 0.281)" };
+  }
+
+  return undefined;
 }
 
 function marketTrendStatus(symbol: string, trend: MarketRegimeSymbol) {
@@ -774,6 +887,8 @@ export function TradeApp() {
   const [message, setMessage] = useState("");
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>("all");
   const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
+  const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
+  const [marketStatusError, setMarketStatusError] = useState("");
 
   async function loadTradeData() {
     await Promise.resolve();
@@ -788,6 +903,7 @@ export function TradeApp() {
       closedPositionsResult,
       positionUpdatesResult,
       marketRegimeResult,
+      marketStatusResult,
     ] =
       await Promise.all([
         supabase.from("recommendations").select("*"),
@@ -813,6 +929,7 @@ export function TradeApp() {
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
+        fetchMarketStatusForUi(),
       ]);
 
     if (recommendationsResult.error) {
@@ -866,6 +983,9 @@ export function TradeApp() {
         toMarketRegime(marketRegimeResult.data as MarketRegimeSnapshotRow | null),
       );
     }
+
+    setMarketStatus(marketStatusResult.marketStatus);
+    setMarketStatusError(marketStatusResult.error);
 
     setIsLoading(false);
   }
@@ -924,6 +1044,10 @@ export function TradeApp() {
         | null;
 
       if (!response.ok) {
+        if (result?.market_status) {
+          setMarketStatus(result.market_status);
+        }
+
         throw new Error(result?.error || "Request failed");
       }
 
@@ -931,6 +1055,11 @@ export function TradeApp() {
 
       if (result?.market_regime) {
         setMarketRegime(result.market_regime);
+      }
+
+      if (result?.market_status) {
+        setMarketStatus(result.market_status);
+        setMarketStatusError("");
       }
 
       const insertedCount =
@@ -1185,6 +1314,11 @@ export function TradeApp() {
   const inferredSessionType = getCurrentNewYorkSessionType();
   const performanceSummary = calculatePerformanceSummary(closedPositions);
   const setupPerformance = calculateSetupPerformance(closedPositions);
+  const isGenerateDisabled =
+    isLoading ||
+    generatingSessionType !== null ||
+    marketStatus?.isOpenDay === false;
+  const topMarketStatus = getTopMarketStatus(marketStatus);
 
   return (
     <main className="min-h-screen bg-[#060707] text-zinc-100">
@@ -1192,9 +1326,12 @@ export function TradeApp() {
         <header className="flex flex-col gap-6 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              <span>Private app</span>
-              <span className="h-1 w-1 rounded-full bg-emerald-400" />
-              <span>AI draft mode</span>
+              <span>US stock market</span>
+              <span
+                className="h-1 w-1 rounded-full bg-zinc-600"
+                style={topMarketStatusDotStyle(topMarketStatus)}
+              />
+              <span>{topMarketStatusLabel(topMarketStatus)}</span>
             </div>
             <div>
               <h1 className="font-mono text-4xl font-semibold tracking-normal text-white sm:text-5xl">
@@ -1222,7 +1359,7 @@ export function TradeApp() {
               onClick={() => setActiveTab(tab)}
               className={`rounded-full border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] transition ${
                 activeTab === tab
-                  ? "border-emerald-300 bg-emerald-300 text-zinc-950"
+                  ? "border-[#00db94] bg-[#00db94] text-zinc-950"
                   : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/25 hover:text-zinc-100"
               }`}
             >
@@ -1261,13 +1398,14 @@ export function TradeApp() {
               <div className="flex flex-col gap-3 sm:min-w-[360px]">
                 <MarketRegimeCard marketRegime={marketRegime} />
                 <div className="space-y-2">
-                  <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Current scan mode: {sessionLabel(inferredSessionType)}
-                  </div>
+                  <MarketStatusNotice
+                    marketStatus={marketStatus}
+                    error={marketStatusError}
+                  />
                   <button
                     type="button"
                     onClick={() => generateRecommendations(inferredSessionType)}
-                    disabled={isLoading || generatingSessionType !== null}
+                    disabled={isGenerateDisabled}
                     className="min-h-11 w-full rounded-full bg-white px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                   >
                     {generatingSessionType !== null
@@ -1286,7 +1424,7 @@ export function TradeApp() {
                   onClick={() => setSessionFilter(filter.value)}
                   className={`rounded-full border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] transition ${
                     sessionFilter === filter.value
-                      ? "border-emerald-300 bg-emerald-300 text-zinc-950"
+                      ? "border-[#00db94] bg-[#00db94] text-zinc-950"
                       : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/25 hover:text-zinc-100"
                   }`}
                 >
@@ -1584,7 +1722,7 @@ function SummaryCard({
         : "text-rose-100";
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+    <div className="bg-surface-subtle rounded-lg border border-white/10 p-4">
       <div className={`font-mono text-2xl font-semibold ${valueClassName}`}>
         {value}
       </div>
@@ -1721,7 +1859,7 @@ function PositionSizingSection({
   positionSizing: PositionSizing;
 }) {
   return (
-    <section className="mt-5 rounded-lg border border-emerald-300/15 bg-emerald-300/[0.04] p-4">
+    <section className="mt-5 rounded-lg border border-[#00db94]/15 bg-[#00db94]/[0.04] p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
           Position Sizing
@@ -1771,7 +1909,7 @@ function RecommendationCard({
   onIgnore: (recommendation: Recommendation) => void;
 }) {
   return (
-    <article className="rounded-lg border border-white/10 bg-white/[0.035] p-5 transition hover:border-white/20">
+    <article className="bg-surface-subtle rounded-lg border border-white/10 p-5 transition hover:border-white/20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -1779,7 +1917,7 @@ function RecommendationCard({
               {recommendation.ticker}
             </span>
             <DirectionPill direction={recommendation.direction} />
-            <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">
+            <span className="rounded-full border border-[#00db94]/25 bg-[#00db94]/10 px-2.5 py-1 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">
               {recommendation.sessionLabel}
             </span>
           </div>
@@ -1820,7 +1958,7 @@ function RecommendationCard({
           type="button"
           onClick={() => onTakeTrade(recommendation)}
           disabled={isSaving}
-          className="min-h-11 flex-1 rounded-md bg-emerald-300 px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+          className="min-h-11 flex-1 rounded-md bg-[#00db94] px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-[#00db94]/85 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
         >
           Took trade
         </button>
@@ -1931,7 +2069,7 @@ function TradeModal({
         <button
           type="submit"
           disabled={isSaving}
-          className="mt-5 min-h-11 w-full rounded-md bg-emerald-300 px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+          className="mt-5 min-h-11 w-full rounded-md bg-[#00db94] px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-950 transition hover:bg-[#00db94]/85 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
         >
           {isSaving ? "Saving trade" : "Create active position"}
         </button>
@@ -1952,7 +2090,7 @@ function ActivePositionCard({
   onClosePosition: (position: ActivePosition) => void;
 }) {
   return (
-    <article className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.045] p-5">
+    <article className="rounded-lg border border-[#00db94]/20 bg-[#00db94]/[0.045] p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -2115,7 +2253,7 @@ function ClosedPositionCard({ position }: { position: ClosedPosition }) {
     pnlValue !== null && pnlValue < 0 ? "text-rose-100" : "text-emerald-100";
 
   return (
-    <article className="rounded-lg border border-white/10 bg-white/[0.035] p-5">
+    <article className="bg-surface-subtle rounded-lg border border-white/10 p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -2170,7 +2308,7 @@ function HistorySection({
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-4">
+    <div className="bg-surface-subtle rounded-lg border border-white/10 px-3 py-4">
       <div className="font-mono text-2xl font-semibold text-white">{value}</div>
       <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
         {label}
@@ -2179,13 +2317,56 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
+function MarketStatusNotice({
+  marketStatus,
+  error,
+}: {
+  marketStatus: MarketStatus | null;
+  error: string;
+}) {
+  if (error || !marketStatus) {
+    return (
+      <div className="rounded-md border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-sm leading-5 text-amber-100">
+        {error || "Market calendar status is unavailable right now."}
+      </div>
+    );
+  }
+
+  if (!marketStatus.isOpenDay) {
+    return (
+      <div className="rounded-md border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-sm leading-5 text-amber-100">
+        Stock market closed &mdash; {marketStatus.reason}
+      </div>
+    );
+  }
+
+  if (marketStatus.dayType === "early_close") {
+    return (
+      <div className="rounded-md border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-sm leading-5 text-amber-100">
+        Market early close today &mdash; closes at{" "}
+        {marketStatus.marketCloseTime ?? "the scheduled close"} New York time.
+      </div>
+    );
+  }
+
+  if (marketStatus.dayType === "unknown") {
+    return (
+      <div className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm leading-5 text-zinc-400">
+        Market calendar provider unavailable &mdash; using weekday trading
+        status.
+      </div>
+    );
+  }
+  return null;
+}
+
 function MarketRegimeCard({
   marketRegime,
 }: {
   marketRegime: MarketRegime | null;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+    <div className="bg-surface-subtle rounded-lg border border-white/10 p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
           Market Regime
@@ -2234,7 +2415,7 @@ function TextBlock({ label, value }: { label: string; value: string }) {
 function DirectionPill({ direction }: { direction: Direction }) {
   const className =
     direction === "Long"
-      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      ? "border-[#00db94]/35 bg-[#00db94]/10 text-emerald-100"
       : "border-rose-300/35 bg-rose-300/10 text-rose-100";
 
   return (

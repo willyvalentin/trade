@@ -4,6 +4,7 @@ import {
   generateRecommendations,
   RecommendationGenerationError,
 } from "@/lib/recommendation-generator";
+import { getUsMarketStatus } from "@/lib/market-calendar";
 
 type GenerateRequestBody = {
   session_type?: unknown;
@@ -50,13 +51,25 @@ export async function POST(request: Request) {
       );
     }
 
+    const marketStatus = await getUsMarketStatus();
+
+    if (!marketStatus.isOpenDay) {
+      return NextResponse.json(
+        {
+          error: "US stock market is closed today.",
+          market_status: marketStatus,
+        },
+        { status: 400 },
+      );
+    }
+
     const result = await generateRecommendations({
       sessionType: body.session_type,
       targetCount: parseTargetCount(body.target_count),
       source: "manual",
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, market_status: marketStatus });
   } catch (error) {
     console.error(error);
 

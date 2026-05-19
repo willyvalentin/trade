@@ -23,6 +23,21 @@ body {
 
 button {
   font: inherit;
+  cursor: pointer;
+}
+
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+button[aria-disabled="true"],
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.bg-surface-subtle {
+  background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
 }
 
 ::selection {
