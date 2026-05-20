@@ -11,6 +11,8 @@ export type DailyCandle = {
   volume: number;
 };
 
+export type IntradayCandle = DailyCandle;
+
 export type MarketQuote = {
   current_price: number;
   change: number;
@@ -91,6 +93,23 @@ function timestampField(value: unknown, fieldName: string) {
   }
 
   const timestamp = Math.floor(new Date(value).getTime() / 1000);
+
+  if (!Number.isFinite(timestamp)) {
+    throw new Error(`Market data returned an invalid ${fieldName} value.`);
+  }
+
+  return timestamp;
+}
+
+function newYorkTimestampField(value: unknown, fieldName: string) {
+  if (typeof value !== "string") {
+    throw new Error(`Market data returned an invalid ${fieldName} value.`);
+  }
+
+  const normalized = value.includes("T")
+    ? value
+    : value.replace(" ", "T");
+  const timestamp = Math.floor(new Date(`${normalized}-04:00`).getTime() / 1000);
 
   if (!Number.isFinite(timestamp)) {
     throw new Error(`Market data returned an invalid ${fieldName} value.`);
@@ -195,6 +214,52 @@ export async function getDailyCandles(
         volume: numberField(candle.volume, `candle ${index + 1} volume`),
       };
     })
+    .sort((left, right) => left.timestamp - right.timestamp);
+}
+
+export async function getIntradayCandles(
+  symbol: string,
+  interval: "5min" | "15min",
+  start: Date,
+  end: Date,
+): Promise<IntradayCandle[]> {
+  const data = await fetchTwelveData<TwelveDataTimeSeriesResponse>(
+    "/time_series",
+    {
+      symbol: normalizeSymbol(symbol),
+      interval,
+      outputsize: 96,
+      order: "ASC",
+    },
+  );
+
+  if (!Array.isArray(data.values)) {
+    throw new Error("Market data provider returned invalid intraday candle data.");
+  }
+
+  const startTimestamp = Math.floor(start.getTime() / 1000);
+  const endTimestamp = Math.floor(end.getTime() / 1000);
+
+  return data.values
+    .map((value, index) => {
+      const candle = value as TwelveDataTimeSeriesValue;
+
+      return {
+        timestamp: newYorkTimestampField(
+          candle.datetime,
+          `candle ${index + 1} datetime`,
+        ),
+        open: numberField(candle.open, `candle ${index + 1} open`),
+        high: numberField(candle.high, `candle ${index + 1} high`),
+        low: numberField(candle.low, `candle ${index + 1} low`),
+        close: numberField(candle.close, `candle ${index + 1} close`),
+        volume: numberField(candle.volume, `candle ${index + 1} volume`),
+      };
+    })
+    .filter(
+      (candle) =>
+        candle.timestamp >= startTimestamp && candle.timestamp <= endTimestamp,
+    )
     .sort((left, right) => left.timestamp - right.timestamp);
 }
 

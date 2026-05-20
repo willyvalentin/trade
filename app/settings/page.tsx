@@ -2,6 +2,17 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  getIntradayScanWindow,
+  getIntradayScanWindowLabel,
+  type IntradayScanWindow,
+} from "@/lib/intraday-scan-window";
+import {
+  defaultBrokerCostModel,
+  readBrokerCostModelFromStorage,
+  writeBrokerCostModelToStorage,
+  type BrokerCostModel,
+} from "@/lib/broker-costs";
 import { supabase } from "@/lib/supabase";
 
 type UserSettingsRow = {
@@ -23,6 +34,18 @@ type SettingsForm = {
   maxOpenPositions: string;
   preferredTimeframe: string;
   longOnly: boolean;
+  brokerCostsEnabled: boolean;
+  brokerCostBroker: BrokerCostModel["broker"];
+  commissionMode: BrokerCostModel["commission_mode"];
+  entryFixedCommission: string;
+  exitFixedCommission: string;
+  commissionPercent: string;
+  minimumCommission: string;
+  fxFeePercent: string;
+  estimatedUsdSekRate: string;
+  includeEntryCommission: boolean;
+  includeEstimatedExitCommission: boolean;
+  includeFxFee: boolean;
 };
 
 type ScheduledScanRun = {
@@ -53,6 +76,19 @@ const emptyForm: SettingsForm = {
   maxOpenPositions: "",
   preferredTimeframe: "",
   longOnly: true,
+  brokerCostsEnabled: defaultBrokerCostModel.enabled,
+  brokerCostBroker: defaultBrokerCostModel.broker,
+  commissionMode: defaultBrokerCostModel.commission_mode,
+  entryFixedCommission: String(defaultBrokerCostModel.entry_fixed_commission),
+  exitFixedCommission: String(defaultBrokerCostModel.exit_fixed_commission),
+  commissionPercent: String(defaultBrokerCostModel.commission_percent),
+  minimumCommission: String(defaultBrokerCostModel.minimum_commission),
+  fxFeePercent: String(defaultBrokerCostModel.fx_fee_percent),
+  estimatedUsdSekRate: String(defaultBrokerCostModel.estimated_usd_sek_rate ?? ""),
+  includeEntryCommission: defaultBrokerCostModel.include_entry_commission,
+  includeEstimatedExitCommission:
+    defaultBrokerCostModel.include_estimated_exit_commission,
+  includeFxFee: defaultBrokerCostModel.include_fx_fee,
 };
 
 const defaultSettingsRow = {
@@ -60,11 +96,13 @@ const defaultSettingsRow = {
   risk_per_trade_percent: 0.5,
   max_recommendations_per_session: 5,
   max_open_positions: 5,
-  preferred_timeframe: "1–5 days",
+  preferred_timeframe: "Intraday / day trade",
   long_only: true,
 };
 
 function toForm(row: UserSettingsRow): SettingsForm {
+  const brokerCostModel = readBrokerCostModelFromStorage();
+
   return {
     portfolioSize: String(row.portfolio_size ?? ""),
     riskPerTradePercent: String(row.risk_per_trade_percent ?? ""),
@@ -74,6 +112,19 @@ function toForm(row: UserSettingsRow): SettingsForm {
     maxOpenPositions: String(row.max_open_positions ?? ""),
     preferredTimeframe: row.preferred_timeframe ?? "",
     longOnly: row.long_only ?? true,
+    brokerCostsEnabled: brokerCostModel.enabled,
+    brokerCostBroker: brokerCostModel.broker,
+    commissionMode: brokerCostModel.commission_mode,
+    entryFixedCommission: String(brokerCostModel.entry_fixed_commission),
+    exitFixedCommission: String(brokerCostModel.exit_fixed_commission),
+    commissionPercent: String(brokerCostModel.commission_percent),
+    minimumCommission: String(brokerCostModel.minimum_commission),
+    fxFeePercent: String(brokerCostModel.fx_fee_percent),
+    estimatedUsdSekRate: String(brokerCostModel.estimated_usd_sek_rate ?? ""),
+    includeEntryCommission: brokerCostModel.include_entry_commission,
+    includeEstimatedExitCommission:
+      brokerCostModel.include_estimated_exit_commission,
+    includeFxFee: brokerCostModel.include_fx_fee,
   };
 }
 
@@ -89,6 +140,12 @@ function validateSettings(form: SettingsForm) {
     form.maxRecommendationsPerSession,
   );
   const maxOpenPositions = parseNumber(form.maxOpenPositions);
+  const entryFixedCommission = parseNumber(form.entryFixedCommission);
+  const exitFixedCommission = parseNumber(form.exitFixedCommission);
+  const commissionPercent = parseNumber(form.commissionPercent);
+  const minimumCommission = parseNumber(form.minimumCommission);
+  const fxFeePercent = parseNumber(form.fxFeePercent);
+  const estimatedUsdSekRate = parseNumber(form.estimatedUsdSekRate);
 
   if (portfolioSize === null || portfolioSize <= 0) {
     return "Portfolio size must be greater than 0.";
@@ -120,6 +177,30 @@ function validateSettings(form: SettingsForm) {
 
   if (!form.preferredTimeframe.trim()) {
     return "Preferred timeframe cannot be empty.";
+  }
+
+  if (
+    entryFixedCommission === null ||
+    exitFixedCommission === null ||
+    commissionPercent === null ||
+    minimumCommission === null ||
+    fxFeePercent === null
+  ) {
+    return "Broker cost fields must be valid numbers.";
+  }
+
+  if (
+    entryFixedCommission < 0 ||
+    exitFixedCommission < 0 ||
+    commissionPercent < 0 ||
+    minimumCommission < 0 ||
+    fxFeePercent < 0
+  ) {
+    return "Broker cost fields cannot be negative.";
+  }
+
+  if (form.brokerCostsEnabled && (estimatedUsdSekRate === null || estimatedUsdSekRate <= 0)) {
+    return "Estimated USD/SEK rate must be greater than 0 when broker cost estimates are enabled.";
   }
 
   return null;
@@ -199,14 +280,33 @@ function formatDateTime(value: string | null) {
 
 function formatSessionType(value: string | null) {
   if (value === "morning") {
-    return "Morning";
+    return "Early session";
   }
 
   if (value === "midday") {
-    return "Midday";
+    return "Later session";
   }
 
   return value ?? "Unknown";
+}
+
+function getScanWindowFromRunMessage(message: string | null) {
+  const match = message?.match(/scan_window=([a-z_]+)/);
+  const value = match?.[1] as IntradayScanWindow | undefined;
+
+  if (
+    value === "pre_market" ||
+    value === "opening" ||
+    value === "morning_momentum" ||
+    value === "midday" ||
+    value === "afternoon" ||
+    value === "power_hour" ||
+    value === "closed"
+  ) {
+    return getIntradayScanWindowLabel(value);
+  }
+
+  return "Not recorded";
 }
 
 export default function SettingsPage() {
@@ -358,6 +458,24 @@ export default function SettingsPage() {
     }
 
     const settingsRow = data as UserSettingsRow;
+    writeBrokerCostModelToStorage({
+      enabled: form.brokerCostsEnabled,
+      broker: form.brokerCostBroker,
+      market: "US",
+      account_currency: "SEK",
+      trade_currency: "USD",
+      commission_mode: form.commissionMode,
+      entry_fixed_commission: Number(form.entryFixedCommission),
+      exit_fixed_commission: Number(form.exitFixedCommission),
+      commission_percent: Number(form.commissionPercent),
+      minimum_commission: Number(form.minimumCommission),
+      fx_fee_percent: Number(form.fxFeePercent),
+      estimated_usd_sek_rate: Number(form.estimatedUsdSekRate),
+      include_entry_commission: form.includeEntryCommission,
+      include_estimated_exit_commission: form.includeEstimatedExitCommission,
+      include_fx_fee: form.includeFxFee,
+      notes: "Broker costs are estimates. Always verify actual fees in Avanza.",
+    });
     setSettingsId(settingsRow.id);
     setForm(toForm(settingsRow));
     setSuccessMessage("Settings saved.");
@@ -379,7 +497,7 @@ export default function SettingsPage() {
                 Settings
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
-                Personal trading limits for recommendation flow and risk.
+                Personal trading limits for intraday recommendation flow and risk.
               </p>
             </div>
           </div>
@@ -518,9 +636,171 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            <section className="mt-6 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-cyan-100">
+                    Broker Cost Model
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    Broker costs are estimates. Always verify actual fees in
+                    Avanza.
+                  </p>
+                </div>
+                <label className="relative inline-flex h-7 w-12 cursor-pointer items-center rounded-full border border-white/10 bg-zinc-800 transition has-[:checked]:border-[#00db94]/40 has-[:checked]:bg-[#00db94]/25">
+                  <input
+                    type="checkbox"
+                    checked={form.brokerCostsEnabled}
+                    onChange={(event) =>
+                      updateField("brokerCostsEnabled", event.target.checked)
+                    }
+                    className="peer sr-only"
+                  />
+                  <span className="ml-1 h-5 w-5 rounded-full bg-zinc-500 transition peer-checked:translate-x-5 peer-checked:bg-emerald-200" />
+                </label>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <SettingsField label="Broker">
+                  <select
+                    value={form.brokerCostBroker}
+                    onChange={(event) =>
+                      updateField(
+                        "brokerCostBroker",
+                        event.target.value as BrokerCostModel["broker"],
+                      )
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  >
+                    <option value="AVANZA">Avanza</option>
+                    <option value="CUSTOM">Custom</option>
+                  </select>
+                </SettingsField>
+
+                <SettingsField label="Commission Mode">
+                  <select
+                    value={form.commissionMode}
+                    onChange={(event) =>
+                      updateField(
+                        "commissionMode",
+                        event.target.value as BrokerCostModel["commission_mode"],
+                      )
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  >
+                    <option value="fixed">Fixed</option>
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed_plus_percentage">
+                      Fixed + percentage
+                    </option>
+                  </select>
+                </SettingsField>
+
+                <SettingsField label="Entry Fixed Commission SEK">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.entryFixedCommission}
+                    onChange={(event) =>
+                      updateField("entryFixedCommission", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+
+                <SettingsField label="Exit Fixed Commission SEK">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.exitFixedCommission}
+                    onChange={(event) =>
+                      updateField("exitFixedCommission", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+
+                <SettingsField label="Commission Percent">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={form.commissionPercent}
+                    onChange={(event) =>
+                      updateField("commissionPercent", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+
+                <SettingsField label="Minimum Commission SEK">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.minimumCommission}
+                    onChange={(event) =>
+                      updateField("minimumCommission", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+
+                <SettingsField label="FX Fee Percent">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={form.fxFeePercent}
+                    onChange={(event) =>
+                      updateField("fxFeePercent", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+
+                <SettingsField label="Estimated USD/SEK Rate">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.estimatedUsdSekRate}
+                    onChange={(event) =>
+                      updateField("estimatedUsdSekRate", event.target.value)
+                    }
+                    className="mt-2 min-h-12 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-emerald-300"
+                  />
+                </SettingsField>
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <SettingsToggle
+                  label="Include entry commission"
+                  checked={form.includeEntryCommission}
+                  onChange={(checked) =>
+                    updateField("includeEntryCommission", checked)
+                  }
+                />
+                <SettingsToggle
+                  label="Include estimated exit commission"
+                  checked={form.includeEstimatedExitCommission}
+                  onChange={(checked) =>
+                    updateField("includeEstimatedExitCommission", checked)
+                  }
+                />
+                <SettingsToggle
+                  label="Include FX fee"
+                  checked={form.includeFxFee}
+                  onChange={(checked) => updateField("includeFxFee", checked)}
+                />
+              </div>
+            </section>
+
             <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm leading-6 text-zinc-500">
-                These controls are saved for future trading logic.
+                These controls are saved for future intraday trading logic.
               </p>
               <button
                 type="submit"
@@ -563,6 +843,28 @@ function SettingsField({
   );
 }
 
+function SettingsToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-12 items-center justify-between gap-3 rounded-md border border-white/10 bg-black/25 px-4 py-3">
+      <span className="text-sm text-zinc-300">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-4 w-4 shrink-0 accent-[#00db94]"
+      />
+    </label>
+  );
+}
+
 function AutomationStatusPanel({
   automationRuns,
   isLoading,
@@ -578,11 +880,8 @@ function AutomationStatusPanel({
   marketStatusMessage: string;
   onRefresh: () => void;
 }) {
-  const lastMorningScan =
-    automationRuns.find((run) => run.session_type === "morning") ?? null;
-  const lastMiddayScan =
-    automationRuns.find((run) => run.session_type === "midday") ?? null;
   const lastAutomationRun = automationRuns[0] ?? null;
+  const currentWindow = getIntradayScanWindow(new Date());
 
   return (
     <section className="bg-surface-subtle rounded-lg border border-white/10 p-5">
@@ -596,8 +895,8 @@ function AutomationStatusPanel({
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
             Scheduled scans are triggered by Netlify every 15 minutes on
-            weekdays. Trade checks the market calendar and only generates
-            recommendations inside the configured New York time windows.
+            weekdays. Trade checks the market calendar and only generates day
+            trade recommendations inside active intraday windows.
           </p>
         </div>
 
@@ -621,19 +920,19 @@ function AutomationStatusPanel({
         <div className="grid gap-3 md:grid-cols-2">
           <div className="rounded-md border border-white/10 bg-black/25 p-4">
             <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              Morning window
+              Current intraday window
             </div>
             <div className="mt-2 font-mono text-sm text-white">
-              09:30&ndash;10:00 New York time
+              {getIntradayScanWindowLabel(currentWindow)}
             </div>
           </div>
 
           <div className="rounded-md border border-white/10 bg-black/25 p-4">
             <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              Midday window
+              Active day trading hours
             </div>
             <div className="mt-2 font-mono text-sm text-white">
-              12:30&ndash;13:00 New York time
+              09:30&ndash;16:00 New York time
             </div>
           </div>
         </div>
@@ -660,15 +959,48 @@ function AutomationStatusPanel({
         </div>
       ) : (
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          <AutomationRunCard title="Last Morning Scan" run={lastMorningScan} />
-          <AutomationRunCard title="Last Midday Scan" run={lastMiddayScan} />
+          <AutomationInfoCard
+            title="Current Window"
+            details={[
+              ["Window", getIntradayScanWindowLabel(currentWindow)],
+              ["Market", getMarketStatusLabel(marketStatus)],
+            ]}
+          />
+          <AutomationInfoCard
+            title="Last Scan"
+            details={[
+              ["Window", getScanWindowFromRunMessage(lastAutomationRun?.message ?? null)],
+              ["Legacy session", formatSessionType(lastAutomationRun?.session_type ?? null)],
+            ]}
+          />
           <AutomationRunCard
-            title="Last Automation Run"
+            title="Latest Result"
             run={lastAutomationRun}
           />
         </div>
       )}
     </section>
+  );
+}
+
+function AutomationInfoCard({
+  title,
+  details,
+}: {
+  title: string;
+  details: [string, string][];
+}) {
+  return (
+    <article className="rounded-md border border-white/10 bg-black/25 p-4">
+      <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+        {title}
+      </h3>
+      <dl className="mt-4 space-y-3 text-sm">
+        {details.map(([label, value]) => (
+          <AutomationDetail key={label} label={label} value={value} />
+        ))}
+      </dl>
+    </article>
   );
 }
 
@@ -691,8 +1023,12 @@ function AutomationRunCard({
       {run ? (
         <dl className="mt-4 space-y-3 text-sm">
           <AutomationDetail
-            label="Session"
+            label="Legacy session"
             value={formatSessionType(run.session_type)}
+          />
+          <AutomationDetail
+            label="Scan window"
+            value={getScanWindowFromRunMessage(run.message)}
           />
           <AutomationDetail
             label="Recommendations created"

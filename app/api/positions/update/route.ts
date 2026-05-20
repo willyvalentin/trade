@@ -1,12 +1,23 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
+import {
+  getOrRefreshIntradayIndicators,
+  MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
+  POSITION_UPDATE_INDICATOR_MAX_AGE_MINUTES,
+} from "@/lib/intraday-indicator-cache";
+import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getQuote } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
 
 type PositionRow = {
   id: string;
   ticker: string;
+  recommendation_id?: string | null;
+  recommendations?: {
+    setup_type?: string | null;
+    invalidation?: string | null;
+  } | null;
   direction?: string | null;
   entry_price: number | string | null;
   current_stop: number | string | null;
@@ -32,6 +43,9 @@ type PositionUpdateResult = {
   unrealized_percent: number;
   risk_per_share: number;
   unrealized_r_multiple: number;
+  reason: string;
+  warnings: string[];
+  intraday_indicators: IntradayIndicators | null;
 };
 
 type AiPositionCommentary = {
@@ -45,12 +59,13 @@ type PositionCommentaryInput = {
   entry_price: number;
   current_price: number;
   current_stop: number;
-  target_1: number;
-  target_2: number;
+  target_1: number | null;
+  target_2: number | null;
   unrealized_percent: number;
   unrealized_r_multiple: number;
   rule_based_action: PositionAction;
   rule_based_recommendation: string;
+  rule_based_warnings: string[];
 };
 
 const positionCommentarySchema = {
@@ -79,6 +94,17 @@ function numberValue(value: number | string | null, fieldName: string) {
   return parsed;
 }
 
+function optionalNumberValue(value: number | string | null) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim()
+        ? Number(value)
+        : Number.NaN;
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function isShortPosition(position: PositionRow) {
   return position.direction?.toLowerCase() === "short";
 }
@@ -103,48 +129,149 @@ function hasHitTarget(
   return currentPrice >= targetPrice;
 }
 
+function actionPriority(action: PositionAction) {
+  if (action === "CLOSE_POSITION") return 1;
+  if (action === "TAKE_PROFIT") return 2;
+  if (action === "TAKE_PARTIAL_PROFIT") return 3;
+  if (action === "MOVE_STOP_TO_BREAKEVEN") return 4;
+  return 5;
+}
+
+function getNewYorkTimeInMinutes() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    timeZone: "America/New_York",
+  }).formatToParts(new Date());
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
+
+  return (
+    Number(valueByType.get("hour") ?? "0") * 60 +
+    Number(valueByType.get("minute") ?? "0")
+  );
+}
+
+function getIntradayInvalidationLevel(position: PositionRow) {
+  const invalidation = position.recommendations?.invalidation;
+
+  if (!invalidation) {
+    return null;
+  }
+
+  const match = invalidation.match(
+    /(?:below|under|breaks below|breaches|above|over|breaks above)\s+\$?(\d+(?:\.\d+)?)/i,
+  );
+
+  return match ? Number(match[1]) : null;
+}
+
 function getAction(
   position: PositionRow,
   currentPrice: number,
   currentStop: number,
-  target1: number,
-  target2: number,
+  entryPrice: number,
+  riskPerShare: number,
+  target1: number | null,
+  target2: number | null,
   unrealizedRMultiple: number,
-): Pick<PositionUpdateResult, "action" | "recommendation"> {
-  if (hasHitStop(position, currentPrice, currentStop)) {
-    return {
-      action: "CLOSE_POSITION",
-      recommendation: "Price has hit or fallen below the current stop.",
-    };
+  intradayIndicators: IntradayIndicators | null,
+): Pick<PositionUpdateResult, "action" | "recommendation" | "reason" | "warnings"> {
+  const isShort = isShortPosition(position);
+  const stopIsBreakevenOrBetter = isShort
+    ? currentStop <= entryPrice
+    : currentStop >= entryPrice;
+  const warnings: string[] = [];
+  const candidates: Pick<
+    PositionUpdateResult,
+    "action" | "recommendation" | "reason"
+  >[] = [];
+  const targetPrice = target2 ?? target1;
+  const targetR =
+    targetPrice === null || riskPerShare <= 0
+      ? 2
+      : Math.max(1, (isShort ? entryPrice - targetPrice : targetPrice - entryPrice) / riskPerShare);
+  const nyMinutes = getNewYorkTimeInMinutes();
+
+  function add(action: PositionAction, reason: string) {
+    candidates.push({
+      action,
+      recommendation: reason,
+      reason,
+    });
   }
 
-  if (hasHitTarget(position, currentPrice, target2)) {
-    return {
-      action: "TAKE_PROFIT",
-      recommendation:
-        "Price has reached target 2. Consider closing the remaining position.",
-    };
+  if (hasHitStop(position, currentPrice, currentStop) || unrealizedRMultiple <= -1) {
+    add("CLOSE_POSITION", "Stop loss area reached or breached.");
   }
 
-  if (hasHitTarget(position, currentPrice, target1)) {
-    return {
-      action: "TAKE_PARTIAL_PROFIT",
-      recommendation: "Price has reached target 1. Consider taking partial profit.",
-    };
+  const invalidationLevel = getIntradayInvalidationLevel(position);
+
+  if (
+    invalidationLevel !== null &&
+    (isShort ? currentPrice >= invalidationLevel : currentPrice <= invalidationLevel)
+  ) {
+    add("CLOSE_POSITION", "Intraday invalidation level breached.");
   }
 
-  if (unrealizedRMultiple >= 1) {
-    return {
-      action: "MOVE_STOP_TO_BREAKEVEN",
-      recommendation:
-        "Position is up at least 1R. Consider moving stop to breakeven.",
-    };
+  if (nyMinutes >= 16 * 60) {
+    add("CLOSE_POSITION", "Market is closed. Review this day trade immediately.");
+  } else if (nyMinutes >= 15 * 60 + 45) {
+    add(
+      "CLOSE_POSITION",
+      "Final minutes of session. Day trades should usually be closed or actively managed.",
+    );
+  } else if (nyMinutes >= 15 * 60 + 30) {
+    warnings.push("Market close approaching. Prepare exit plan.");
   }
+
+  if (
+    !isShort &&
+    intradayIndicators?.isAboveVwap === false &&
+    intradayIndicators.momentumDirection === "down"
+  ) {
+    warnings.push("Price is below VWAP and momentum is weakening.");
+  }
+
+  if (
+    (targetPrice !== null && hasHitTarget(position, currentPrice, targetPrice)) ||
+    unrealizedRMultiple >= targetR
+  ) {
+    add("TAKE_PROFIT", "Target area reached.");
+  }
+
+  if (
+    (target2 !== null &&
+      target1 !== null &&
+      hasHitTarget(position, currentPrice, target1)) ||
+    unrealizedRMultiple >= 1.5
+  ) {
+    add("TAKE_PARTIAL_PROFIT", "Trade reached +1.5R. Consider taking partial profit.");
+  }
+
+  if (unrealizedRMultiple >= 1 && !stopIsBreakevenOrBetter) {
+    add(
+      "MOVE_STOP_TO_BREAKEVEN",
+      "Trade reached +1R. Consider protecting downside.",
+    );
+  }
+
+  // TODO: Add VWAP/momentum-loss rule when intraday indicator data is available.
+
+  const selected = candidates.sort(
+    (first, second) => actionPriority(first.action) - actionPriority(second.action),
+  )[0] ?? {
+    action: "HOLD" as const,
+    recommendation:
+      "No action needed. Position has not hit stop, target, or active risk trigger.",
+    reason:
+      "No action needed. Position has not hit stop, target, or active risk trigger.",
+  };
 
   return {
-    action: "HOLD",
-    recommendation:
-      "No action needed. Position has not hit stop, target, or 1R trigger.",
+    ...selected,
+    warnings,
   };
 }
 
@@ -193,6 +320,14 @@ function formatAiExplanation(commentary: AiPositionCommentary) {
   ].join("\n\n");
 }
 
+function appendWarningsToExplanation(explanation: string, warnings: string[]) {
+  if (warnings.length === 0) {
+    return explanation;
+  }
+
+  return `${explanation}\n\nWarnings: ${warnings.join(" ")}`;
+}
+
 async function generatePositionCommentary(
   input: PositionCommentaryInput,
 ): Promise<AiPositionCommentary> {
@@ -210,6 +345,7 @@ async function generatePositionCommentary(
       "You are a private trading co-pilot.",
       "You do not place trades.",
       "You are not allowed to change the rule-based action.",
+      "The rule engine action is final. Do not override it. Explain it clearly and conservatively.",
       "You must explain the action clearly.",
       "Be concise and practical.",
       "Do not invent prices.",
@@ -239,12 +375,21 @@ async function generatePositionCommentary(
   return parsePositionCommentary(response.output_text);
 }
 
-async function monitorPosition(position: PositionRow): Promise<PositionUpdateResult> {
+async function monitorPosition(
+  position: PositionRow,
+  options: { allowFreshIndicatorFetch: boolean },
+): Promise<PositionUpdateResult & { indicator_source?: string }> {
   const entryPrice = numberValue(position.entry_price, "Entry price");
   const currentStop = numberValue(position.current_stop, "Current stop");
-  const target1 = numberValue(position.target_1, "Target 1");
-  const target2 = numberValue(position.target_2, "Target 2");
+  const target1 = optionalNumberValue(position.target_1);
+  const target2 = optionalNumberValue(position.target_2);
   const quote = await getQuote(position.ticker);
+  const indicatorResult = await getOrRefreshIntradayIndicators(position.ticker, {
+    source: "position_update",
+    maxAgeMinutes: POSITION_UPDATE_INDICATOR_MAX_AGE_MINUTES,
+    allowFreshFetch: options.allowFreshIndicatorFetch,
+  });
+  const intradayIndicators = indicatorResult.indicators;
   const currentPrice = quote.current_price;
   const isShort = isShortPosition(position);
   const riskPerShare = isShort ? currentStop - entryPrice : entryPrice - currentStop;
@@ -254,18 +399,30 @@ async function monitorPosition(position: PositionRow): Promise<PositionUpdateRes
   const unrealizedPercent = (unrealizedDollars / entryPrice) * 100;
   const unrealizedRMultiple =
     riskPerShare > 0 ? unrealizedDollars / riskPerShare : 0;
-  const { action, recommendation } = getAction(
+  const { action, recommendation, reason, warnings } = getAction(
     position,
     currentPrice,
     currentStop,
+    entryPrice,
+    riskPerShare,
     target1,
     target2,
     unrealizedRMultiple,
+    intradayIndicators,
   );
+  const indicatorWarnings = [
+    ...warnings,
+    ...(indicatorResult.source === "unavailable"
+      ? ["Intraday confirmation unavailable for this position update."]
+      : []),
+    ...(indicatorResult.stale && indicatorResult.indicators
+      ? ["Intraday confirmation is using stale cached data."]
+      : []),
+  ];
   const newStop = action === "MOVE_STOP_TO_BREAKEVEN" ? entryPrice : null;
   const fallbackExplanation = [
     `${position.ticker} is trading at ${currentPrice}.`,
-    `Entry is ${entryPrice}, current stop is ${currentStop}, target 1 is ${target1}, and target 2 is ${target2}.`,
+    `Entry is ${entryPrice}, current stop is ${currentStop}, target 1 is ${target1 ?? "not set"}, and target 2 is ${target2 ?? "not set"}.`,
     `Unrealized result is ${unrealizedPercent.toFixed(2)}% and ${unrealizedRMultiple.toFixed(2)}R.`,
   ].join(" ");
   let explanation = fallbackExplanation;
@@ -282,6 +439,7 @@ async function monitorPosition(position: PositionRow): Promise<PositionUpdateRes
       unrealized_r_multiple: Number(unrealizedRMultiple.toFixed(2)),
       rule_based_action: action,
       rule_based_recommendation: recommendation,
+      rule_based_warnings: indicatorWarnings,
     });
 
     explanation = formatAiExplanation(commentary);
@@ -292,6 +450,33 @@ async function monitorPosition(position: PositionRow): Promise<PositionUpdateRes
       error: error instanceof Error ? error.message : error,
     });
   }
+
+  explanation = appendWarningsToExplanation(explanation, indicatorWarnings);
+
+  console.log("[positions/update] rule_result", {
+    position_id: position.id,
+    ticker: position.ticker,
+    action,
+    current_r: Number(unrealizedRMultiple.toFixed(2)),
+    reason,
+    warnings: indicatorWarnings,
+    current_price: currentPrice,
+    indicator_source: indicatorResult.source,
+    indicator_cached_at: indicatorResult.cached_at,
+    indicator_stale: indicatorResult.stale,
+    intraday_indicators: intradayIndicators
+      ? {
+          vwap: intradayIndicators.vwap,
+          priceVsVwapPercent: intradayIndicators.priceVsVwapPercent,
+          momentumDirection: intradayIndicators.momentumDirection,
+          momentumPercent: intradayIndicators.momentumPercent,
+          volumeTrend: intradayIndicators.volumeTrend,
+          recentHigh: intradayIndicators.recentHigh,
+          recentLow: intradayIndicators.recentLow,
+        }
+      : null,
+    timestamp: new Date().toISOString(),
+  });
 
   const { error: insertError } = await supabase.from("position_updates").insert({
     position_id: position.id,
@@ -327,6 +512,10 @@ async function monitorPosition(position: PositionRow): Promise<PositionUpdateRes
     unrealized_percent: unrealizedPercent,
     risk_per_share: riskPerShare,
     unrealized_r_multiple: unrealizedRMultiple,
+    reason,
+    warnings: indicatorWarnings,
+    intraday_indicators: intradayIndicators,
+    indicator_source: indicatorResult.source,
   };
 }
 
@@ -334,7 +523,7 @@ export async function POST() {
   try {
     const { data, error } = await supabase
       .from("positions")
-      .select("*")
+      .select("*, recommendations(setup_type,invalidation)")
       .eq("status", "open");
 
     if (error) {
@@ -344,10 +533,17 @@ export async function POST() {
     const positions = (data || []) as PositionRow[];
     const updates = [];
     const errors = [];
+    let freshIndicatorFetchesUsed = 0;
 
     for (const position of positions) {
       try {
-        const update = await monitorPosition(position);
+        const update = await monitorPosition(position, {
+          allowFreshIndicatorFetch:
+            freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
+        });
+        if (update.indicator_source === "fresh") {
+          freshIndicatorFetchesUsed += 1;
+        }
         updates.push(update);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";

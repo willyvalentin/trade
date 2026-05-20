@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  getOrRefreshIntradayIndicators,
+  MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
+  SCANNER_INDICATOR_MAX_AGE_MINUTES,
+} from "@/lib/intraday-indicator-cache";
+import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
 
@@ -13,6 +19,36 @@ export type ScannerCandidate = {
   mock_support: number;
   mock_resistance: number;
   mock_news_context: string;
+  latest_close?: number;
+  ma20?: number;
+  ma50?: number;
+  high_20d?: number;
+  volume_ratio?: number;
+  distance_to_20d_high?: number;
+  change_5d_percent?: number;
+  proposed_entry_low?: number;
+  proposed_entry_high?: number;
+  proposed_stop_loss?: number;
+  proposed_target_1?: number;
+  proposed_target_2?: number;
+  proposed_risk_reward?: number;
+  session_open?: number;
+  session_high?: number;
+  session_low?: number;
+  previous_close?: number;
+  recent_change_percent?: number;
+  recent_range_position?: number;
+  recent_higher_highs_count?: number;
+  recent_higher_lows_count?: number;
+  recent_bullish_candles?: number;
+  recent_volume_ratio?: number;
+  average_range_percent?: number;
+  latest_range_percent?: number;
+  range_expansion_ratio?: number;
+  intraday_indicators?: IntradayIndicators | null;
+  intraday_indicator_source?: "cache" | "fresh" | "unavailable";
+  intraday_indicator_cached_at?: string | null;
+  intraday_indicator_stale?: boolean;
 };
 
 type ScannerCacheRow = {
@@ -52,6 +88,20 @@ type ScannerValues = {
   proposed_risk_reward: number;
   trend_context: string;
   volume_context: string;
+  session_open: number;
+  session_high: number;
+  session_low: number;
+  previous_close: number;
+  recent_change_percent: number;
+  recent_range_position: number;
+  recent_higher_highs_count: number;
+  recent_higher_lows_count: number;
+  recent_bullish_candles: number;
+  recent_volume_ratio: number;
+  average_range_percent: number;
+  latest_range_percent: number;
+  range_expansion_ratio: number;
+  intraday_indicators: IntradayIndicators | null;
 };
 
 export type ScannerSource = "manual" | "scheduled";
@@ -67,12 +117,21 @@ const MANUAL_MAX_FRESH_PROVIDER_CALLS = 1;
 const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 6;
 const CANDLE_DAYS_NEEDED = 60;
 
+type CandidateWithIndicatorCache = {
+  candidate: ScannerCandidate;
+  indicatorSource: "cache" | "fresh" | "unavailable";
+};
+
 function logScanner(label: string, value: unknown) {
   console.log(`[scanner] ${label}`, value);
 }
 
 function round(value: number) {
   return Number(value.toFixed(2));
+}
+
+function roundInt(value: number) {
+  return Math.round(value);
 }
 
 function parseNumber(value: unknown) {
@@ -82,6 +141,55 @@ function parseNumber(value: unknown) {
 
 function average(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const raw = value as Partial<IntradayIndicators>;
+
+  return {
+    vwap: parseNumber(raw.vwap),
+    latestPrice: parseNumber(raw.latestPrice),
+    priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
+    isAboveVwap:
+      typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,
+    recentHigh: parseNumber(raw.recentHigh),
+    recentLow: parseNumber(raw.recentLow),
+    recentRangePercent: parseNumber(raw.recentRangePercent),
+    momentumPercent: parseNumber(raw.momentumPercent),
+    momentumDirection:
+      raw.momentumDirection === "up" ||
+      raw.momentumDirection === "down" ||
+      raw.momentumDirection === "flat"
+        ? raw.momentumDirection
+        : "unknown",
+    volumeTrend:
+      raw.volumeTrend === "expanding" ||
+      raw.volumeTrend === "contracting" ||
+      raw.volumeTrend === "flat"
+        ? raw.volumeTrend
+        : "unknown",
+    latestVolume: parseNumber(raw.latestVolume),
+    averageVolume: parseNumber(raw.averageVolume),
+    warnings: Array.isArray(raw.warnings)
+      ? raw.warnings.filter((item): item is string => typeof item === "string")
+      : [],
+  };
+}
+
+function rawScannerValues(row: ScannerCacheRow) {
+  if (typeof row.raw !== "object" || row.raw === null) {
+    return {};
+  }
+
+  const raw = row.raw as { scanner_values?: unknown };
+
+  return typeof raw.scanner_values === "object" && raw.scanner_values !== null
+    ? (raw.scanner_values as Record<string, unknown>)
+    : {};
 }
 
 function movingAverage(candles: DailyCandle[], length: number) {
@@ -141,6 +249,7 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
   const target1 = parseNumber(row.proposed_target_1);
   const target2 = parseNumber(row.proposed_target_2);
   const riskReward = parseNumber(row.proposed_risk_reward);
+  const rawValues = rawScannerValues(row);
 
   if (
     latestClose === null ||
@@ -176,6 +285,21 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
     proposed_risk_reward: riskReward,
     trend_context: row.trend_context || "Cached scanner trend context unavailable",
     volume_context: row.volume_context || "Cached scanner volume context unavailable",
+    session_open: parseNumber(rawValues.session_open) ?? latestClose,
+    session_high: parseNumber(rawValues.session_high) ?? latestClose,
+    session_low: parseNumber(rawValues.session_low) ?? latestClose,
+    previous_close: parseNumber(rawValues.previous_close) ?? latestClose,
+    recent_change_percent: parseNumber(rawValues.recent_change_percent) ?? 0,
+    recent_range_position: parseNumber(rawValues.recent_range_position) ?? 50,
+    recent_higher_highs_count:
+      parseNumber(rawValues.recent_higher_highs_count) ?? 0,
+    recent_higher_lows_count: parseNumber(rawValues.recent_higher_lows_count) ?? 0,
+    recent_bullish_candles: parseNumber(rawValues.recent_bullish_candles) ?? 0,
+    recent_volume_ratio: parseNumber(rawValues.recent_volume_ratio) ?? volumeRatio,
+    average_range_percent: parseNumber(rawValues.average_range_percent) ?? 2,
+    latest_range_percent: parseNumber(rawValues.latest_range_percent) ?? 2,
+    range_expansion_ratio: parseNumber(rawValues.range_expansion_ratio) ?? 1,
+    intraday_indicators: parseIntradayIndicators(rawValues.intraday_indicators),
   };
 }
 
@@ -223,10 +347,18 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   }
 
   const latestCandle = candles[candles.length - 1];
+  const previousCandle = candles[candles.length - 2];
   const fiveDaysAgoCandle = candles[candles.length - 6];
   const twentyDayCandles = candles.slice(-20);
+  const recentCandles = candles.slice(-5);
+  const priorRecentCandles = candles.slice(-10, -5);
 
-  if (!latestCandle || !fiveDaysAgoCandle || fiveDaysAgoCandle.close === 0) {
+  if (
+    !latestCandle ||
+    !previousCandle ||
+    !fiveDaysAgoCandle ||
+    fiveDaysAgoCandle.close === 0
+  ) {
     throw new Error("Scanner received incomplete candle history.");
   }
 
@@ -249,6 +381,40 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   const target1 = round(entryHigh + riskPerShare * 1.5);
   const target2 = round(entryHigh + riskPerShare * 2.25);
   const riskReward = round((target2 - entryHigh) / riskPerShare);
+  const recentLow = Math.min(...recentCandles.map((candle) => candle.low));
+  const recentHigh = Math.max(...recentCandles.map((candle) => candle.high));
+  const recentRange = recentHigh - recentLow;
+  const recentRangePosition =
+    recentRange > 0 ? round(((latestClose - recentLow) / recentRange) * 100) : 50;
+  const recentChangePercent = round(
+    ((latestClose - fiveDaysAgoCandle.close) / fiveDaysAgoCandle.close) * 100,
+  );
+  const recentHigherHighsCount = recentCandles
+    .slice(1)
+    .filter((candle, index) => candle.high > recentCandles[index].high).length;
+  const recentHigherLowsCount = recentCandles
+    .slice(1)
+    .filter((candle, index) => candle.low > recentCandles[index].low).length;
+  const recentBullishCandles = recentCandles.filter(
+    (candle) => candle.close > candle.open,
+  ).length;
+  const priorRecentVolume = average(priorRecentCandles.map((candle) => candle.volume));
+  const recentVolume = average(recentCandles.map((candle) => candle.volume));
+  const recentVolumeRatio =
+    priorRecentVolume > 0 ? round(recentVolume / priorRecentVolume) : volumeRatio;
+  const latestRangePercent =
+    latestClose > 0
+      ? round(((latestCandle.high - latestCandle.low) / latestClose) * 100)
+      : 0;
+  const averageRangePercent = round(
+    average(
+      twentyDayCandles.map((candle) =>
+        candle.close > 0 ? ((candle.high - candle.low) / candle.close) * 100 : 0,
+      ),
+    ),
+  );
+  const rangeExpansionRatio =
+    averageRangePercent > 0 ? round(latestRangePercent / averageRangePercent) : 1;
 
   return {
     latest_close: latestClose,
@@ -272,6 +438,20 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
       distanceTo20dHigh,
     }),
     volume_context: buildVolumeContext(volumeRatio),
+    session_open: round(latestCandle.open),
+    session_high: round(latestCandle.high),
+    session_low: round(latestCandle.low),
+    previous_close: round(previousCandle.close),
+    recent_change_percent: recentChangePercent,
+    recent_range_position: roundInt(recentRangePosition),
+    recent_higher_highs_count: recentHigherHighsCount,
+    recent_higher_lows_count: recentHigherLowsCount,
+    recent_bullish_candles: recentBullishCandles,
+    recent_volume_ratio: recentVolumeRatio,
+    average_range_percent: averageRangePercent,
+    latest_range_percent: latestRangePercent,
+    range_expansion_ratio: rangeExpansionRatio,
+    intraday_indicators: null,
   };
 }
 
@@ -291,6 +471,33 @@ function buildCandidate(
       `20-day high ${scannerValues.high_20d}, 5-day change ${scannerValues.change_5d_percent}%.`,
       "No live headlines used.",
     ].join(" "),
+    latest_close: scannerValues.latest_close,
+    ma20: scannerValues.ma20,
+    ma50: scannerValues.ma50,
+    high_20d: scannerValues.high_20d,
+    volume_ratio: scannerValues.volume_ratio,
+    distance_to_20d_high: scannerValues.distance_to_20d_high,
+    change_5d_percent: scannerValues.change_5d_percent,
+    proposed_entry_low: scannerValues.proposed_entry_low,
+    proposed_entry_high: scannerValues.proposed_entry_high,
+    proposed_stop_loss: scannerValues.proposed_stop_loss,
+    proposed_target_1: scannerValues.proposed_target_1,
+    proposed_target_2: scannerValues.proposed_target_2,
+    proposed_risk_reward: scannerValues.proposed_risk_reward,
+    session_open: scannerValues.session_open,
+    session_high: scannerValues.session_high,
+    session_low: scannerValues.session_low,
+    previous_close: scannerValues.previous_close,
+    recent_change_percent: scannerValues.recent_change_percent,
+    recent_range_position: scannerValues.recent_range_position,
+    recent_higher_highs_count: scannerValues.recent_higher_highs_count,
+    recent_higher_lows_count: scannerValues.recent_higher_lows_count,
+    recent_bullish_candles: scannerValues.recent_bullish_candles,
+    recent_volume_ratio: scannerValues.recent_volume_ratio,
+    average_range_percent: scannerValues.average_range_percent,
+    latest_range_percent: scannerValues.latest_range_percent,
+    range_expansion_ratio: scannerValues.range_expansion_ratio,
+    intraday_indicators: scannerValues.intraday_indicators,
   };
 }
 
@@ -348,7 +555,21 @@ async function upsertCachedValues(
     {
       ticker: baseCandidate.ticker,
       updated_at: new Date().toISOString(),
-      ...scannerValues,
+      latest_close: scannerValues.latest_close,
+      ma20: scannerValues.ma20,
+      ma50: scannerValues.ma50,
+      high_20d: scannerValues.high_20d,
+      volume_ratio: scannerValues.volume_ratio,
+      distance_to_20d_high: scannerValues.distance_to_20d_high,
+      change_5d_percent: scannerValues.change_5d_percent,
+      proposed_entry_low: scannerValues.proposed_entry_low,
+      proposed_entry_high: scannerValues.proposed_entry_high,
+      proposed_stop_loss: scannerValues.proposed_stop_loss,
+      proposed_target_1: scannerValues.proposed_target_1,
+      proposed_target_2: scannerValues.proposed_target_2,
+      proposed_risk_reward: scannerValues.proposed_risk_reward,
+      trend_context: scannerValues.trend_context,
+      volume_context: scannerValues.volume_context,
       raw: {
         ticker: baseCandidate.ticker,
         company_name: baseCandidate.company_name,
@@ -380,7 +601,40 @@ export async function scanMarket(
   const cacheMisses: string[] = [];
   const staleFallbacks: string[] = [];
   const skippedDueToFreshCallLimit: string[] = [];
+  const indicatorSources: Record<string, string> = {};
   let freshProviderCallsUsed = 0;
+  let freshIndicatorFetchesUsed = 0;
+
+  async function attachIntradayIndicators(
+    candidate: ScannerCandidate,
+  ): Promise<CandidateWithIndicatorCache> {
+    const allowFreshFetch =
+      freshProviderCallsUsed < maxFreshProviderCalls &&
+      freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN;
+    const result = await getOrRefreshIntradayIndicators(candidate.ticker, {
+      source: options.source === "scheduled" ? "scheduled" : "manual",
+      maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+      allowFreshFetch,
+    });
+
+    if (result.source === "fresh") {
+      freshProviderCallsUsed += 1;
+      freshIndicatorFetchesUsed += 1;
+    }
+
+    indicatorSources[candidate.ticker] = result.source;
+
+    return {
+      candidate: {
+        ...candidate,
+        intraday_indicators: result.indicators,
+        intraday_indicator_source: result.source,
+        intraday_indicator_cached_at: result.cached_at,
+        intraday_indicator_stale: result.stale,
+      },
+      indicatorSource: result.source,
+    };
+  }
 
   for (const baseCandidate of baseCandidates) {
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
@@ -388,7 +642,10 @@ export async function scanMarket(
 
     if (cachedRow && cachedValues && isCacheFresh(cachedRow, now)) {
       cacheHits.push(baseCandidate.ticker);
-      candidates.push(buildCandidate(baseCandidate, cachedValues));
+      const { candidate } = await attachIntradayIndicators(
+        buildCandidate(baseCandidate, cachedValues),
+      );
+      candidates.push(candidate);
       continue;
     }
 
@@ -397,7 +654,10 @@ export async function scanMarket(
     if (freshProviderCallsUsed >= maxFreshProviderCalls) {
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
-        candidates.push(buildCandidate(baseCandidate, cachedValues));
+        const { candidate } = await attachIntradayIndicators(
+          buildCandidate(baseCandidate, cachedValues),
+        );
+        candidates.push(candidate);
       } else {
         skippedDueToFreshCallLimit.push(baseCandidate.ticker);
       }
@@ -415,7 +675,10 @@ export async function scanMarket(
       const candles = await getDailyCandles(baseCandidate.ticker, CANDLE_DAYS_NEEDED);
       const scannerValues = calculateScannerValues(candles);
       await upsertCachedValues(baseCandidate, scannerValues);
-      candidates.push(buildCandidate(baseCandidate, scannerValues));
+      const { candidate } = await attachIntradayIndicators(
+        buildCandidate(baseCandidate, scannerValues),
+      );
+      candidates.push(candidate);
     } catch (error) {
       console.error("[scanner] provider_call_error", {
         ticker: baseCandidate.ticker,
@@ -424,7 +687,10 @@ export async function scanMarket(
 
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
-        candidates.push(buildCandidate(baseCandidate, cachedValues));
+        const { candidate } = await attachIntradayIndicators(
+          buildCandidate(baseCandidate, cachedValues),
+        );
+        candidates.push(candidate);
       }
     }
   }
@@ -435,6 +701,8 @@ export async function scanMarket(
   logScanner("cache_hits", cacheHits);
   logScanner("cache_misses", cacheMisses);
   logScanner("fresh_provider_calls_used", freshProviderCallsUsed);
+  logScanner("fresh_indicator_fetches_used", freshIndicatorFetchesUsed);
+  logScanner("indicator_sources", indicatorSources);
   logScanner("stale_cache_fallbacks", staleFallbacks);
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
   logScanner("candidates_returned", candidates.length);

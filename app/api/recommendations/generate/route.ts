@@ -5,11 +5,33 @@ import {
   RecommendationGenerationError,
 } from "@/lib/recommendation-generator";
 import { getUsMarketStatus } from "@/lib/market-calendar";
+import {
+  getIntradayScanPolicy,
+  getIntradayScanWindow,
+  getIntradayScanWindowLabel,
+  getLegacySessionTypeForScanWindow,
+  isMarketOpenForIntradayTrading,
+  type IntradayScanWindow,
+} from "@/lib/intraday-scan-window";
+import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
+import { createScanLog, recordScanLog, type PreMarketCandidate } from "@/lib/scan-logs";
+import { supabase } from "@/lib/supabase";
 
 type GenerateRequestBody = {
   session_type?: unknown;
+  scan_window?: unknown;
   target_count?: unknown;
 };
+
+const intradayScanWindows: IntradayScanWindow[] = [
+  "pre_market",
+  "opening",
+  "morning_momentum",
+  "midday",
+  "afternoon",
+  "power_hour",
+  "closed",
+];
 
 function parseTargetCount(value: unknown) {
   if (value === undefined) {
@@ -31,6 +53,198 @@ function parseTargetCount(value: unknown) {
   return value;
 }
 
+async function archiveExpiredRecommendations() {
+  const { data, error } = await supabase
+    .from("recommendations")
+    .update({ archived: true })
+    .or("status.eq.new,status.is.null")
+    .or("archived.eq.false,archived.is.null")
+    .lt("created_at", getDefaultRecommendationExpiryCutoff())
+    .select("id");
+
+  if (error) {
+    throw new RecommendationGenerationError(
+      error.message ?? "Could not archive expired recommendations.",
+      500,
+    );
+  }
+
+  console.log("[recommendations/generate] expired recommendations archived", {
+    count: data?.length ?? 0,
+  });
+
+  return data?.length ?? 0;
+}
+
+function marketStatusLabel(marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>) {
+  if (marketStatus.dayType === "unknown") return "unknown";
+  return isMarketOpenForIntradayTrading(marketStatus) ? "open" : "closed";
+}
+
+async function safelyRecordManualScanLog({
+  scanDate,
+  sessionType,
+  scanWindow,
+  marketStatus,
+  result,
+  message,
+  recommendationsCreated,
+  details,
+}: {
+  scanDate: string;
+  sessionType: "morning" | "midday";
+  scanWindow: IntradayScanWindow;
+  marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>;
+  result?: string;
+  message: string;
+  recommendationsCreated: number;
+  details?: Record<string, unknown> | null;
+}) {
+  await recordScanLog({
+    scanDate,
+    sessionType,
+    scanLog: createScanLog({
+      source: "manual",
+      scan_window: scanWindow,
+      market_status: marketStatusLabel(marketStatus),
+      result:
+        result === "recommendation_created" ||
+        result === "no_high_quality_setup" ||
+        result === "openai_no_trade" ||
+        result === "market_closed" ||
+        result === "pre_market" ||
+        result === "pre_market_watchlist_updated" ||
+        result === "pre_market_no_candidates" ||
+        result === "pre_market_skipped_holiday" ||
+        result === "power_hour_blocked" ||
+        result === "recommendation_limit_reached" ||
+        result === "duplicate_ticker_skipped" ||
+        result === "active_position_exists" ||
+        result === "provider_rate_limited" ||
+        result === "provider_error" ||
+        result === "openai_error" ||
+        result === "skipped"
+          ? result
+          : "unknown",
+      message,
+      recommendations_created: recommendationsCreated,
+      top_candidate_ticker:
+        typeof details?.top_candidate_ticker === "string"
+          ? details.top_candidate_ticker
+          : null,
+      top_candidate_score:
+        typeof details?.top_candidate_score === "number"
+          ? details.top_candidate_score
+          : null,
+      top_candidate_breakdown:
+        typeof details?.top_candidate_breakdown === "object" &&
+        details.top_candidate_breakdown !== null
+          ? (details.top_candidate_breakdown as Record<string, number>)
+          : null,
+      top_candidate_reasons: Array.isArray(details?.top_candidate_reasons)
+        ? details.top_candidate_reasons.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : null,
+      top_candidate_warnings: Array.isArray(details?.top_candidate_warnings)
+        ? details.top_candidate_warnings.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : null,
+      top_candidate_indicators:
+        typeof details?.top_candidate_indicators === "object" &&
+        details.top_candidate_indicators !== null
+          ? (details.top_candidate_indicators as {
+              isAboveVwap: boolean | null;
+              momentumDirection: string;
+              volumeTrend: string;
+            })
+          : null,
+      indicator_source:
+        typeof details?.indicator_source === "string"
+          ? details.indicator_source
+          : null,
+      indicator_cached_at:
+        typeof details?.indicator_cached_at === "string"
+          ? details.indicator_cached_at
+          : null,
+      indicator_stale:
+        typeof details?.indicator_stale === "boolean"
+          ? details.indicator_stale
+          : null,
+      no_trade_reason:
+        typeof details?.no_trade_reason === "string"
+          ? details.no_trade_reason
+          : null,
+      no_trade_risk_flags: Array.isArray(details?.no_trade_risk_flags)
+        ? details.no_trade_risk_flags.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : null,
+      threshold: typeof details?.threshold === "number" ? details.threshold : null,
+      candidates_scanned:
+        typeof details?.candidates_scanned === "number"
+          ? details.candidates_scanned
+          : null,
+      skipped_tickers:
+        typeof details?.skipped_tickers === "number" ? details.skipped_tickers : null,
+      pre_market_candidates: Array.isArray(details?.pre_market_candidates)
+        ? details.pre_market_candidates
+            .filter((item): item is Record<string, unknown> =>
+              Boolean(item && typeof item === "object"),
+            )
+            .map((item) => {
+              const metadata =
+                typeof item.metadata === "object" && item.metadata !== null
+                  ? (item.metadata as Record<string, unknown>)
+                  : {};
+              const detectedAt =
+                typeof item.detected_at === "string"
+                  ? item.detected_at
+                  : new Date().toISOString();
+              const ticker = typeof item.ticker === "string" ? item.ticker : "";
+              const candidate = {
+                id:
+                  typeof item.id === "string"
+                    ? item.id
+                    : `pre_market:${detectedAt.slice(0, 10)}:${ticker}`,
+                ticker,
+                score: typeof item.score === "number" ? item.score : 0,
+                reason: typeof item.reason === "string" ? item.reason : "",
+                signals: Array.isArray(item.signals)
+                  ? item.signals.filter(
+                      (signal): signal is string => typeof signal === "string",
+                    )
+                  : [],
+                warnings: Array.isArray(item.warnings)
+                  ? item.warnings.filter(
+                      (warning): warning is string => typeof warning === "string",
+                    )
+                  : [],
+                detected_at: detectedAt,
+                scan_window: "pre_market",
+                status:
+                  item.status === "confirmed_after_open" || item.status === "expired"
+                    ? item.status
+                    : "watching",
+                source: "scanner",
+                metadata: {
+                  ...metadata,
+                  company_name:
+                    typeof item.company_name === "string"
+                      ? item.company_name
+                      : metadata.company_name,
+                },
+              } satisfies PreMarketCandidate;
+
+              return candidate;
+            })
+            .filter((item) => item.ticker)
+        : null,
+    }),
+  });
+}
+
 export async function POST(request: Request) {
   try {
     let body: GenerateRequestBody;
@@ -44,32 +258,137 @@ export async function POST(request: Request) {
       );
     }
 
-    if (body.session_type !== "morning" && body.session_type !== "midday") {
+    const scanWindow = intradayScanWindows.includes(
+      body.scan_window as IntradayScanWindow,
+    )
+      ? (body.scan_window as IntradayScanWindow)
+      : getIntradayScanWindow(new Date());
+    const sessionType =
+      body.session_type === "morning" || body.session_type === "midday"
+        ? body.session_type
+        : getLegacySessionTypeForScanWindow(scanWindow);
+
+    if (body.session_type !== undefined && body.session_type !== sessionType) {
       return NextResponse.json(
         { error: "session_type must be morning or midday." },
         { status: 400 },
       );
     }
 
+    const expiredRecommendations = await archiveExpiredRecommendations();
     const marketStatus = await getUsMarketStatus();
+    const isPreMarketWatchlistScan = scanWindow === "pre_market";
+    const canRunPreMarketWatchlist =
+      isPreMarketWatchlistScan &&
+      marketStatus.isOpenDay &&
+      marketStatus.dayType !== "unknown" &&
+      marketStatus.dayType !== "weekend" &&
+      marketStatus.dayType !== "holiday";
 
-    if (!marketStatus.isOpenDay) {
+    if (!isMarketOpenForIntradayTrading(marketStatus) && !canRunPreMarketWatchlist) {
+      const message =
+        isPreMarketWatchlistScan &&
+        (marketStatus.dayType === "weekend" || marketStatus.dayType === "holiday")
+          ? "Pre-market watchlist skipped: market is closed for weekend/holiday."
+          : marketStatus.dayType === "unknown"
+          ? "US stock market status is unknown. Skipping recommendation generation."
+          : "US stock market is not currently open for active day trading.";
+      await safelyRecordManualScanLog({
+        scanDate: marketStatus.date,
+        sessionType,
+        scanWindow,
+        marketStatus,
+        result:
+          isPreMarketWatchlistScan &&
+          (marketStatus.dayType === "weekend" || marketStatus.dayType === "holiday")
+            ? "pre_market_skipped_holiday"
+            : marketStatus.dayType === "unknown"
+              ? "skipped"
+              : "market_closed",
+        message,
+        recommendationsCreated: 0,
+      });
+
       return NextResponse.json(
         {
-          error: "US stock market is closed today.",
+          error: message,
           market_status: marketStatus,
+          scan_window: scanWindow,
+          expired_recommendations: expiredRecommendations,
         },
         { status: 400 },
       );
     }
 
+    const scanPolicy = getIntradayScanPolicy(scanWindow);
+
+    if (!scanPolicy.allowGeneration && !isPreMarketWatchlistScan) {
+      await safelyRecordManualScanLog({
+        scanDate: marketStatus.date,
+        sessionType,
+        scanWindow,
+        marketStatus,
+        result:
+          scanWindow === "power_hour"
+              ? "power_hour_blocked"
+              : "skipped",
+        message: scanPolicy.message,
+        recommendationsCreated: 0,
+      });
+
+      return NextResponse.json({
+        recommendations: [],
+        inserted_count: 0,
+        message: scanPolicy.message,
+        scan_window: scanWindow,
+        scan_window_label: getIntradayScanWindowLabel(scanWindow),
+        market_status: marketStatus,
+        expired_recommendations: expiredRecommendations,
+      });
+    }
+
     const result = await generateRecommendations({
-      sessionType: body.session_type,
+      sessionType,
+      scanWindow,
       targetCount: parseTargetCount(body.target_count),
       source: "manual",
     });
+    const scanResult = result as {
+      recommendations: unknown[];
+      inserted_count?: number;
+      message?: string;
+      scan_log?: Record<string, unknown>;
+    };
+    const recommendationsCreated =
+      typeof scanResult.inserted_count === "number"
+        ? scanResult.inserted_count
+        : scanResult.recommendations.length;
+    const resultMessage =
+      scanResult.message ??
+      (recommendationsCreated > 0
+        ? `Created ${recommendationsCreated} day trade recommendation.`
+        : "No high-quality day trade setup found.");
 
-    return NextResponse.json({ ...result, market_status: marketStatus });
+    await safelyRecordManualScanLog({
+      scanDate: marketStatus.date,
+      sessionType,
+      scanWindow,
+      marketStatus,
+      result:
+        typeof scanResult.scan_log?.result === "string"
+          ? scanResult.scan_log.result
+          : undefined,
+      message: resultMessage,
+      recommendationsCreated,
+      details: scanResult.scan_log,
+    });
+
+    return NextResponse.json({
+      ...result,
+      scan_window_label: getIntradayScanWindowLabel(scanWindow),
+      market_status: marketStatus,
+      expired_recommendations: expiredRecommendations,
+    });
   } catch (error) {
     console.error(error);
 

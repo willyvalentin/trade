@@ -16,18 +16,7 @@ import {
   getIntradayScanWindowLabel,
   type IntradayScanWindow,
 } from "@/lib/intraday-scan-window";
-import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
-import type { PreMarketCandidate } from "@/lib/scan-logs";
-import {
-  SETUP_TYPE_OPTIONS,
-  SETUP_TYPES,
-  classifySetupTypeFromSignals,
-  getSetupTypeDescription,
-  getSetupTypeLabel,
-  normalizeSetupType,
-  type SetupType,
-} from "@/lib/setup-types";
 import { supabase } from "@/lib/supabase";
 
 export type SessionType = "morning" | "midday";
@@ -75,7 +64,7 @@ type RecommendationInsert = {
   ticker: string;
   company_name: string;
   direction: "long";
-  setup_type: SetupType;
+  setup_type: string;
   entry_low: number;
   entry_high: number;
   stop_loss: number;
@@ -100,48 +89,13 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   risk_flags: string[];
 };
 
-type AiNoTradeDecision = {
-  reason: string;
-  confidence_score: number | null;
-  risk_flags: string[];
-  candidate_ticker: string | null;
-};
-
 type AiResponse = {
-  result: "trade_recommendation" | "no_trade";
   recommendations: AiRecommendation[];
-  no_trade?: AiNoTradeDecision;
 };
 
 type SanitizedRecommendationsResult = {
   recommendations: RecommendationInsert[];
   skippedReasons: string[];
-};
-
-export type RecommendationScanLogDetails = {
-  result?: string;
-  top_candidate_ticker?: string | null;
-  top_candidate_score?: number | null;
-  top_candidate_setup_type?: SetupType | null;
-  top_candidate_breakdown?: CandidateScoreBreakdown | null;
-  top_candidate_reasons?: string[] | null;
-  top_candidate_warnings?: string[] | null;
-  top_candidate_indicators?: CompactIntradayIndicators | null;
-  indicator_source?: string | null;
-  indicator_cached_at?: string | null;
-  indicator_stale?: boolean | null;
-  no_trade_reason?: string | null;
-  no_trade_risk_flags?: string[] | null;
-  threshold?: number | null;
-  candidates_scanned?: number | null;
-  skipped_tickers?: number | null;
-  pre_market_candidates?: PreMarketCandidate[] | null;
-};
-
-type CompactIntradayIndicators = {
-  isAboveVwap: boolean | null;
-  momentumDirection: IntradayIndicators["momentumDirection"];
-  volumeTrend: IntradayIndicators["volumeTrend"];
 };
 
 type UserSettings = {
@@ -184,27 +138,12 @@ type CandidateScore = {
   score: number;
   reasons: string[];
   warnings: string[];
-  breakdown: CandidateScoreBreakdown;
-};
-
-export type CandidateScoreBreakdown = {
-  momentum: number;
-  volume: number;
-  volatility: number;
-  trend: number;
-  riskReward: number;
-  marketRegime: number;
-  timing: number;
 };
 
 type ScoredCandidate = MockCandidate & {
   local_score: number;
   local_score_reasons: string[];
   local_score_warnings: string[];
-  local_score_breakdown: CandidateScoreBreakdown;
-  setup_type: SetupType;
-  setup_type_label: string;
-  setup_type_description: string;
 };
 
 const dayTradeHorizon = "day_trade";
@@ -215,14 +154,6 @@ const MAX_SCHEDULED_RECOMMENDATIONS_PER_SCAN = 1;
 const MAX_CURRENT_RECOMMENDATIONS = 3;
 const ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS = false;
 const MINIMUM_OPENAI_CONFIDENCE_SCORE = 55;
-const confidenceMetadataPrefix = "\n\n[confidence_meta:";
-const SETUP_TYPE_OPTIONS_FOR_PROMPT = SETUP_TYPE_OPTIONS.map((option) => ({
-  setup_type: option.value,
-  label: option.label,
-  description: option.description,
-}));
-// Thresholds are intentionally strict for scheduled scans because the new
-// breakdown rewards stronger local confirmation before spending an OpenAI call.
 
 const scannerCacheWarmingMessage =
   "Market data cache is still warming up. Try again in a few minutes.";
@@ -258,51 +189,6 @@ function parseCandidateNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function clampScore(value: number) {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-function calculateRiskReward(candidate: MockCandidate) {
-  const entryHigh = parseCandidateNumber(candidate.proposed_entry_high);
-  const stopLoss = parseCandidateNumber(candidate.proposed_stop_loss);
-  const target2 = parseCandidateNumber(candidate.proposed_target_2);
-  const explicitRiskReward = parseCandidateNumber(candidate.proposed_risk_reward);
-
-  if (explicitRiskReward !== null) {
-    return { riskReward: explicitRiskReward, invalidRisk: false };
-  }
-
-  // TODO: improve pre-AI risk/reward estimation.
-  if (entryHigh === null || stopLoss === null || target2 === null) {
-    return { riskReward: null, invalidRisk: false };
-  }
-
-  const risk = entryHigh - stopLoss;
-
-  if (risk <= 0) {
-    return { riskReward: null, invalidRisk: true };
-  }
-
-  return {
-    riskReward: (target2 - entryHigh) / risk,
-    invalidRisk: false,
-  };
-}
-
-function compactIntradayIndicators(
-  indicators: IntradayIndicators | null | undefined,
-): CompactIntradayIndicators | null {
-  if (!indicators) {
-    return null;
-  }
-
-  return {
-    isAboveVwap: indicators.isAboveVwap,
-    momentumDirection: indicators.momentumDirection,
-    volumeTrend: indicators.volumeTrend,
-  };
-}
-
 function scoreDayTradeCandidate(
   candidate: MockCandidate,
   context: {
@@ -310,349 +196,109 @@ function scoreDayTradeCandidate(
     scanWindow: IntradayScanWindow;
   },
 ): CandidateScore {
+  let score = 0;
   const reasons: string[] = [];
   const warnings: string[] = [];
 
   const volumeRatio = parseCandidateNumber(candidate.volume_ratio);
-  const recentVolumeRatio = parseCandidateNumber(candidate.recent_volume_ratio);
   const change5dPercent = parseCandidateNumber(candidate.change_5d_percent);
-  const recentChangePercent = parseCandidateNumber(candidate.recent_change_percent);
   const latestClose = parseCandidateNumber(
     candidate.latest_close ?? candidate.mock_current_price,
   );
-  const sessionOpen = parseCandidateNumber(candidate.session_open);
   const ma20 = parseCandidateNumber(candidate.ma20);
   const ma50 = parseCandidateNumber(candidate.ma50);
   const distanceTo20dHigh = parseCandidateNumber(candidate.distance_to_20d_high);
-  const recentRangePosition = parseCandidateNumber(candidate.recent_range_position);
-  const higherHighs = parseCandidateNumber(candidate.recent_higher_highs_count);
-  const higherLows = parseCandidateNumber(candidate.recent_higher_lows_count);
-  const bullishCandles = parseCandidateNumber(candidate.recent_bullish_candles);
-  const averageRangePercent = parseCandidateNumber(candidate.average_range_percent);
-  const latestRangePercent = parseCandidateNumber(candidate.latest_range_percent);
-  const rangeExpansionRatio = parseCandidateNumber(candidate.range_expansion_ratio);
-  const intradayIndicators = candidate.intraday_indicators ?? null;
-  const setupType = classifyCandidateSetupType(candidate, context.scanWindow);
-  const { riskReward, invalidRisk } = calculateRiskReward(candidate);
+  const riskReward = parseCandidateNumber(candidate.proposed_risk_reward);
 
-  let momentum = 50;
-  let volume = 50;
-  let volatility = 50;
-  let trend = 50;
-  let riskRewardScore = 50;
-  let marketRegime = 50;
-  let timing = 50;
-
-  if (recentChangePercent === null && change5dPercent === null) {
-    warnings.push("Recent momentum confirmation unavailable.");
-    momentum -= 8;
+  if (volumeRatio === null) {
+    warnings.push("Volume ratio unavailable.");
+  } else if (volumeRatio >= 1.5) {
+    score += 20;
+    reasons.push(`Elevated volume at ${volumeRatio}x average.`);
+  } else if (volumeRatio >= 1.05) {
+    score += 15;
+    reasons.push(`Volume is above average at ${volumeRatio}x.`);
+  } else if (volumeRatio >= 0.8) {
+    score += 8;
+    reasons.push(`Volume is near average at ${volumeRatio}x.`);
   } else {
-    const momentumPercent = recentChangePercent ?? change5dPercent ?? 0;
-
-    if (momentumPercent >= 1 && momentumPercent <= 6) {
-      momentum += 22;
-      reasons.push(`Strong recent momentum at ${momentumPercent.toFixed(2)}%.`);
-    } else if (momentumPercent > 6) {
-      momentum += 8;
-      warnings.push(
-        `Recent move may be extended after ${momentumPercent.toFixed(2)}%.`,
-      );
-    } else if (momentumPercent >= 0) {
-      momentum += 10;
-      reasons.push(`Price is holding positive recent momentum at ${momentumPercent.toFixed(2)}%.`);
-    } else {
-      momentum -= 18;
-      warnings.push(`Negative momentum for a long setup at ${momentumPercent.toFixed(2)}%.`);
-    }
+    warnings.push(`Light volume at ${volumeRatio}x average.`);
   }
 
-  if (latestClose !== null && sessionOpen !== null && sessionOpen > 0) {
-    const sessionChange = ((latestClose - sessionOpen) / sessionOpen) * 100;
-
-    if (sessionChange > 0.4) {
-      momentum += 10;
-      reasons.push(`Price is above session open by ${sessionChange.toFixed(2)}%.`);
-    } else if (sessionChange < -0.4) {
-      momentum -= 12;
-      warnings.push(`Price is below session open by ${Math.abs(sessionChange).toFixed(2)}%.`);
-    }
-  }
-
-  if (recentRangePosition !== null) {
-    if (recentRangePosition >= 75) {
-      momentum += 12;
-      reasons.push("Strong recent momentum: price closed near recent high.");
-    } else if (recentRangePosition < 35) {
-      momentum -= 10;
-      warnings.push("Price is not closing near the recent high.");
-    }
-  }
-
-  if (intradayIndicators) {
-    if (intradayIndicators.isAboveVwap === true) {
-      trend += 8;
-      reasons.push("Price is above VWAP.");
-    } else if (intradayIndicators.isAboveVwap === false) {
-      trend -= 14;
-      warnings.push("Price is below VWAP for a long setup.");
-    }
-
-    if (intradayIndicators.momentumDirection === "up") {
-      momentum += 10;
-      reasons.push("Intraday momentum is up.");
-    } else if (intradayIndicators.momentumDirection === "down") {
-      momentum -= 14;
-      warnings.push("Intraday momentum is weakening.");
-    }
-
-    if (intradayIndicators.volumeTrend === "expanding") {
-      volume += 10;
-      reasons.push("Intraday volume trend is expanding.");
-    } else if (intradayIndicators.volumeTrend === "contracting") {
-      volume -= 10;
-      warnings.push("Intraday volume trend is contracting.");
-    }
-
-    if (
-      intradayIndicators.recentHigh !== null &&
-      intradayIndicators.latestPrice !== null &&
-      intradayIndicators.recentHigh > 0
-    ) {
-      const distanceToRecentHigh =
-        ((intradayIndicators.recentHigh - intradayIndicators.latestPrice) /
-          intradayIndicators.recentHigh) *
-        100;
-
-      if (distanceToRecentHigh >= 0 && distanceToRecentHigh <= 0.5) {
-        trend += 6;
-        reasons.push("Price is near recent intraday high.");
-      }
-    }
-
-    if (
-      intradayIndicators.recentRangePercent !== null &&
-      intradayIndicators.recentRangePercent < 0.4
-    ) {
-      volatility -= 8;
-      warnings.push("Recent intraday range is tight and may be choppy.");
-    }
-  }
-
-  if ((higherHighs ?? 0) >= 3 && (higherLows ?? 0) >= 3) {
-    momentum += 8;
-    reasons.push("Recent candles show higher highs and higher lows.");
-  }
-
-  if ((bullishCandles ?? 0) >= 4) {
-    momentum += 6;
-    reasons.push("Bullish candle sequence detected.");
-  }
-
-  const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
-
-  if (volumeRatio === null && recentVolumeRatio === null) {
-    warnings.push("Volume confirmation unavailable.");
-    volume -= 8;
-  } else if (bestVolumeRatio >= 1.5) {
-    volume += 28;
-    reasons.push("Volume expansion detected versus recent candles.");
-  } else if (bestVolumeRatio >= 1.1) {
-    volume += 18;
-    reasons.push(`Volume is above average at ${bestVolumeRatio.toFixed(2)}x.`);
-  } else if (bestVolumeRatio >= 0.8) {
-    volume += 6;
-    reasons.push(`Volume is near average at ${bestVolumeRatio.toFixed(2)}x.`);
-  } else if (bestVolumeRatio > 0) {
-    volume -= bestVolumeRatio < 0.5 ? 26 : 14;
-    warnings.push(`Light volume at ${bestVolumeRatio.toFixed(2)}x average.`);
-    if (bestVolumeRatio < 0.5) {
-      warnings.push("Extremely low liquidity; skip unless confirmation improves.");
-    }
-  }
-
-  if (averageRangePercent === null || latestRangePercent === null) {
-    warnings.push("Volatility/range confirmation unavailable.");
-    volatility -= 6;
-  } else if (averageRangePercent < 1) {
-    volatility -= 18;
-    warnings.push("Recent range is too tight for a clean day trade target.");
-  } else if (averageRangePercent > 7 || latestRangePercent > 9) {
-    volatility -= 14;
-    warnings.push("Range is unusually wide; intraday risk may be erratic.");
+  if (change5dPercent === null) {
+    warnings.push("5-day price change unavailable.");
+  } else if (change5dPercent >= 1 && change5dPercent <= 8) {
+    score += 20;
+    reasons.push(`Constructive 5-day momentum at ${change5dPercent}%.`);
+  } else if (change5dPercent > 8) {
+    score += 10;
+    warnings.push(`Move may be extended after ${change5dPercent}% in 5 days.`);
+  } else if (change5dPercent >= 0) {
+    score += 10;
+    reasons.push(`Price is holding positive 5-day momentum at ${change5dPercent}%.`);
   } else {
-    volatility += 16;
-    reasons.push("Recent range is sufficient for day trade target potential.");
-
-    if (rangeExpansionRatio !== null && rangeExpansionRatio >= 1.15) {
-      volatility += 8;
-      reasons.push("Current range is expanding versus recent average.");
-    }
+    warnings.push(`Negative 5-day momentum at ${change5dPercent}%.`);
   }
 
   if (latestClose === null || ma20 === null || ma50 === null) {
     warnings.push("Trend moving-average data unavailable.");
-    trend -= 8;
   } else if (latestClose > ma20 && ma20 > ma50) {
-    trend += 28;
+    score += 20;
     reasons.push("Clean uptrend above MA20 and MA50.");
-  } else if (latestClose > ma50 && (change5dPercent ?? 0) >= 0) {
-    trend += 16;
+  } else if (latestClose > ma50 && change5dPercent !== null && change5dPercent >= 0) {
+    score += 12;
     reasons.push("Constructive recovery above MA50.");
   } else if (latestClose > ma20) {
-    trend += 10;
+    score += 8;
     reasons.push("Short-term strength above MA20.");
   } else {
-    trend -= 20;
-    warnings.push("Bearish or choppy trend structure for a long day trade.");
+    warnings.push("Trend is not clean enough for an easy day trade setup.");
   }
 
-  if ((higherHighs ?? 0) >= 3 || (distanceTo20dHigh !== null && distanceTo20dHigh <= 3)) {
-    trend += 10;
-    reasons.push("Breakout structure is close to recent highs.");
-  } else if (distanceTo20dHigh !== null && distanceTo20dHigh > 10) {
-    trend -= 8;
-    warnings.push(`Far from 20-day high at ${distanceTo20dHigh}%.`);
-  }
-
-  if (invalidRisk) {
-    riskRewardScore = 0;
-    warnings.push("Invalid pre-AI trade plan: risk per share is not positive.");
-  } else if (riskReward === null) {
+  if (riskReward === null) {
     warnings.push("Estimated risk/reward unavailable.");
+  } else if (riskReward >= 2) {
+    score += 15;
+    reasons.push(`Estimated risk/reward is ${riskReward}.`);
+  } else if (riskReward >= 1.5) {
+    score += 10;
+    reasons.push(`Acceptable estimated risk/reward at ${riskReward}.`);
   } else {
-    const roundedRiskReward = riskReward.toFixed(2);
+    warnings.push(`Weak estimated risk/reward at ${riskReward}.`);
+  }
 
-    if (riskReward >= 2) {
-      riskRewardScore += 30;
-      reasons.push(`Estimated risk/reward is ${roundedRiskReward}.`);
-    } else if (riskReward >= 1.5) {
-      riskRewardScore += 18;
-      reasons.push(`Acceptable estimated risk/reward at ${roundedRiskReward}.`);
-    } else {
-      riskRewardScore -= 22;
-      warnings.push("Risk/reward below preferred threshold.");
-    }
+  if (distanceTo20dHigh === null) {
+    warnings.push("Distance to 20-day high unavailable.");
+  } else if (distanceTo20dHigh <= 3) {
+    score += 10;
+    reasons.push(`Trading close to 20-day high, ${distanceTo20dHigh}% away.`);
+  } else if (distanceTo20dHigh <= 8) {
+    score += 6;
+    reasons.push(`Within range of 20-day high, ${distanceTo20dHigh}% away.`);
+  } else {
+    warnings.push(`Far from 20-day high at ${distanceTo20dHigh}% away.`);
   }
 
   if (context.marketRegime.regime === "risk_on") {
-    marketRegime += 18;
-    reasons.push("Market regime is risk_on, supportive for long day trades.");
+    score += 5;
+    reasons.push("Market regime is risk on.");
   } else if (context.marketRegime.regime === "risk_off") {
-    marketRegime -= 22;
-    warnings.push("Market regime is risk_off; long setups require stronger confirmation.");
-  } else {
-    marketRegime += context.marketRegime.summary.includes("unavailable") ? 0 : 6;
-    if (context.marketRegime.summary.includes("unavailable")) {
-      warnings.push("Market regime unavailable; treating alignment as neutral.");
-    } else {
-      reasons.push("Market regime is neutral.");
-    }
+    score -= 8;
+    warnings.push("Market regime is risk off.");
   }
 
-  if (context.scanWindow === "opening") {
-    timing += 4;
-    warnings.push("Opening window has higher volatility; require confirmation.");
-  } else if (context.scanWindow === "morning_momentum") {
-    timing += 22;
-    reasons.push("Morning momentum window supports intraday continuation.");
-  } else if (context.scanWindow === "midday") {
-    timing -= 18;
-    warnings.push("Midday window increases chop risk.");
-  } else if (context.scanWindow === "afternoon") {
-    timing += 10;
-    reasons.push("Afternoon window can support continuation if structure is clear.");
-  } else if (context.scanWindow === "power_hour") {
-    timing -= 25;
-    warnings.push("Power hour requires very strict confirmation.");
-  } else {
-    timing = 0;
-    warnings.push("Pre-market or closed window is not eligible for trade recommendations.");
+  if (context.scanWindow === "midday") {
+    score -= 5;
+    warnings.push("Midday setups need extra selectivity.");
   }
 
-  if (setupType !== "UNKNOWN") {
-    const setupLabel = getSetupTypeLabel(setupType);
-
-    trend += 3;
-    reasons.push(`Setup classified as ${setupLabel}.`);
-
-    if (setupType === "OPENING_RANGE_BREAKOUT" && context.scanWindow === "opening") {
-      timing += 5;
-      reasons.push("Setup type aligns with the opening scan window.");
-    } else if (
-      setupType === "VWAP_HOLD_CONTINUATION" &&
-      (context.scanWindow === "morning_momentum" ||
-        context.scanWindow === "midday" ||
-        context.scanWindow === "afternoon") &&
-      intradayIndicators?.isAboveVwap === true &&
-      intradayIndicators.momentumDirection !== "down"
-    ) {
-      timing += 4;
-      reasons.push("VWAP continuation setup aligns with this intraday window.");
-    } else if (
-      (setupType === "HIGH_OF_DAY_BREAKOUT" ||
-        setupType === "BREAKOUT_CONTINUATION") &&
-      (context.scanWindow === "morning_momentum" ||
-        context.scanWindow === "afternoon") &&
-      riskReward !== null &&
-      riskReward >= 1.5
-    ) {
-      timing += 3;
-      reasons.push("Breakout setup has acceptable timing and risk/reward.");
-    } else if (context.scanWindow === "power_hour") {
-      timing -= 3;
-      warnings.push("Setup type boost withheld during restrictive power hour.");
-    }
-  }
-
-  const breakdown = {
-    momentum: clampScore(momentum),
-    volume: clampScore(volume),
-    volatility: clampScore(volatility),
-    trend: clampScore(trend),
-    riskReward: clampScore(riskRewardScore),
-    marketRegime: clampScore(marketRegime),
-    timing: clampScore(timing),
-  };
-  const weightedScore =
-    breakdown.momentum * 0.2 +
-    breakdown.volume * 0.15 +
-    breakdown.volatility * 0.12 +
-    breakdown.trend * 0.18 +
-    breakdown.riskReward * 0.15 +
-    breakdown.marketRegime * 0.1 +
-    breakdown.timing * 0.1;
-
+  // TODO: Add true intraday relative volume, VWAP/ORB structure, spread, and
+  // real-time liquidity once the scanner captures intraday fields.
   return {
-    score: clampScore(weightedScore),
+    score: Math.max(0, Math.min(100, Math.round(score))),
     reasons,
     warnings,
-    breakdown,
   };
-}
-
-function classifyCandidateSetupType(
-  candidate: MockCandidate,
-  scanWindow: IntradayScanWindow,
-) {
-  return classifySetupTypeFromSignals({
-    scanWindow,
-    intradayIndicators: candidate.intraday_indicators,
-    latestPrice: parseCandidateNumber(
-      candidate.latest_close ?? candidate.mock_current_price,
-    ),
-    recentHigh: candidate.intraday_indicators?.recentHigh ?? null,
-    recentLow: candidate.intraday_indicators?.recentLow ?? null,
-    recentRangePosition: parseCandidateNumber(candidate.recent_range_position),
-    distanceTo20dHigh: parseCandidateNumber(candidate.distance_to_20d_high),
-    volumeRatio: parseCandidateNumber(candidate.volume_ratio),
-    recentVolumeRatio: parseCandidateNumber(candidate.recent_volume_ratio),
-    momentumDirection: candidate.intraday_indicators?.momentumDirection ?? null,
-    reasonText: [
-      candidate.mock_trend,
-      candidate.mock_volume_context,
-      candidate.mock_news_context,
-    ],
-  });
 }
 
 function toScoredCandidate(
@@ -663,219 +309,12 @@ function toScoredCandidate(
   },
 ): ScoredCandidate {
   const localScore = scoreDayTradeCandidate(candidate, context);
-  const setupType = classifyCandidateSetupType(candidate, context.scanWindow);
 
   return {
     ...candidate,
     local_score: localScore.score,
     local_score_reasons: localScore.reasons,
     local_score_warnings: localScore.warnings,
-    local_score_breakdown: localScore.breakdown,
-    setup_type: setupType,
-    setup_type_label: getSetupTypeLabel(setupType),
-    setup_type_description: getSetupTypeDescription(setupType),
-  };
-}
-
-function scorePreMarketCandidate(
-  candidate: MockCandidate,
-  context: {
-    marketRegime: MarketRegime;
-  },
-) {
-  const signals: string[] = [];
-  const warnings: string[] = [];
-  let score = 45;
-
-  const recentChangePercent = parseCandidateNumber(candidate.recent_change_percent);
-  const change5dPercent = parseCandidateNumber(candidate.change_5d_percent);
-  const latestClose = parseCandidateNumber(
-    candidate.latest_close ?? candidate.mock_current_price,
-  );
-  const sessionOpen = parseCandidateNumber(candidate.session_open);
-  const ma20 = parseCandidateNumber(candidate.ma20);
-  const ma50 = parseCandidateNumber(candidate.ma50);
-  const distanceTo20dHigh = parseCandidateNumber(candidate.distance_to_20d_high);
-  const volumeRatio = parseCandidateNumber(candidate.volume_ratio);
-  const recentVolumeRatio = parseCandidateNumber(candidate.recent_volume_ratio);
-  const averageRangePercent = parseCandidateNumber(candidate.average_range_percent);
-  const recentRangePosition = parseCandidateNumber(candidate.recent_range_position);
-
-  if (latestClose !== null && sessionOpen !== null && sessionOpen > 0) {
-    const sessionChange = ((latestClose - sessionOpen) / sessionOpen) * 100;
-
-    if (Math.abs(sessionChange) >= 0.5) {
-      score += sessionChange > 0 ? 12 : 4;
-      signals.push(`Pre/open reference move ${sessionChange.toFixed(2)}%.`);
-    }
-  } else {
-    warnings.push("Limited price movement data.");
-  }
-
-  const momentumPercent = recentChangePercent ?? change5dPercent;
-
-  if (momentumPercent === null) {
-    warnings.push("Prior momentum data unavailable.");
-    score -= 4;
-  } else if (momentumPercent >= 1 && momentumPercent <= 7) {
-    score += 16;
-    signals.push(`Constructive prior momentum at ${momentumPercent.toFixed(2)}%.`);
-  } else if (momentumPercent > 7) {
-    score += 5;
-    warnings.push(`Move may be extended after ${momentumPercent.toFixed(2)}%.`);
-  } else if (momentumPercent < 0) {
-    score -= 12;
-    warnings.push(`Negative prior momentum at ${momentumPercent.toFixed(2)}%.`);
-  }
-
-  const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
-
-  if (volumeRatio === null && recentVolumeRatio === null) {
-    warnings.push("Missing pre-market volume data.");
-    score -= 6;
-  } else if (bestVolumeRatio >= 1.25) {
-    score += 14;
-    signals.push(`Volume interest at ${bestVolumeRatio.toFixed(2)}x average.`);
-  } else if (bestVolumeRatio >= 0.8) {
-    score += 5;
-    signals.push("Volume is at least near average.");
-  } else if (bestVolumeRatio > 0) {
-    score -= 12;
-    warnings.push(`Low liquidity: ${bestVolumeRatio.toFixed(2)}x average.`);
-  }
-
-  if (latestClose === null || ma20 === null || ma50 === null) {
-    warnings.push("Moving-average trend data unavailable.");
-    score -= 4;
-  } else if (latestClose > ma20 && ma20 > ma50) {
-    score += 14;
-    signals.push("Trend is constructive above MA20 and MA50.");
-  } else if (latestClose > ma50) {
-    score += 8;
-    signals.push("Price is holding above MA50.");
-  } else {
-    score -= 10;
-    warnings.push("Trend structure is not clean yet.");
-  }
-
-  if (distanceTo20dHigh !== null && distanceTo20dHigh <= 5) {
-    score += 8;
-    signals.push("Ticker is near its 20-day high.");
-  }
-
-  if (recentRangePosition !== null && recentRangePosition >= 70) {
-    score += 6;
-    signals.push("Recent closes are near the upper range.");
-  }
-
-  if (averageRangePercent === null) {
-    warnings.push("Range data unavailable.");
-  } else if (averageRangePercent < 1) {
-    score -= 8;
-    warnings.push("Recent range may be too tight for intraday opportunity.");
-  } else if (averageRangePercent <= 7) {
-    score += 6;
-    signals.push("Average range can support intraday monitoring.");
-  } else {
-    score -= 5;
-    warnings.push("Range is wide; risk may be erratic after open.");
-  }
-
-  if (context.marketRegime.regime === "risk_on") {
-    score += 8;
-    signals.push("Market regime is supportive.");
-  } else if (context.marketRegime.regime === "risk_off") {
-    score -= 10;
-    warnings.push("Market regime is risk_off; require stronger confirmation after open.");
-  } else if (context.marketRegime.summary.includes("unavailable")) {
-    warnings.push("Market regime unavailable.");
-  }
-
-  signals.push("Ticker is in the scanner universe.");
-
-  return {
-    score: clampScore(score),
-    signals,
-    warnings,
-  };
-}
-
-async function generatePreMarketWatchlist({
-  source,
-}: {
-  source: RecommendationGenerationSource;
-}) {
-  let marketRegime = neutralMarketRegimeFallback;
-
-  try {
-    marketRegime = await getMarketRegime();
-  } catch (error) {
-    console.error("[recommendations/generate] pre_market_regime_error", error);
-  }
-
-  await saveMarketRegimeSnapshot(marketRegime);
-
-  const scannerCandidates = await scanMarket(mockCandidates, {
-    source,
-    maxFreshProviderCalls: source === "scheduled" ? 2 : 1,
-  });
-  const detectedAt = new Date().toISOString();
-  const candidates = scannerCandidates
-    .map((candidate) => {
-      const preMarketScore = scorePreMarketCandidate(candidate, { marketRegime });
-      const setupType = classifyCandidateSetupType(candidate, "pre_market");
-      const primarySignal =
-        preMarketScore.signals[0] ??
-        "Potential watchlist candidate. Wait for market-open confirmation.";
-
-      return {
-        id: `${candidate.ticker}-${detectedAt}`,
-        ticker: candidate.ticker,
-        detected_at: detectedAt,
-        reason: primarySignal,
-        score: preMarketScore.score,
-        signals: preMarketScore.signals.slice(0, 5),
-        warnings: preMarketScore.warnings.slice(0, 5),
-        status: "watching",
-        scan_window: "pre_market",
-        source: "scanner",
-        metadata: {
-          company_name: candidate.company_name,
-          potential_setup_type: setupType,
-          setup_type: setupType,
-          setup_type_label: getSetupTypeLabel(setupType),
-        },
-      } satisfies PreMarketCandidate;
-    })
-    .filter((candidate) => candidate.score >= 55)
-    .sort((first, second) => second.score - first.score)
-    .slice(0, 5);
-  const result =
-    candidates.length > 0
-      ? "pre_market_watchlist_updated"
-      : "pre_market_no_candidates";
-  const message =
-    candidates.length > 0
-      ? `Pre-market watchlist updated. ${candidates.length} candidates to monitor after open.`
-      : "Pre-market scan completed. No candidates to monitor after open.";
-
-  return {
-    recommendations: [],
-    inserted_count: 0,
-    pre_market_candidates: candidates,
-    message,
-    duplicate_fallback_used: false,
-    market_regime: marketRegime,
-    scan_window: "pre_market" as const,
-    scan_log: {
-      result,
-      top_candidate_ticker: candidates[0]?.ticker ?? null,
-      top_candidate_score: candidates[0]?.score ?? null,
-      top_candidate_reasons: candidates[0]?.signals ?? null,
-      top_candidate_warnings: candidates[0]?.warnings ?? null,
-      candidates_scanned: scannerCandidates.length,
-      pre_market_candidates: candidates,
-    } satisfies RecommendationScanLogDetails,
   };
 }
 
@@ -1282,19 +721,8 @@ function createRecommendationSchema(maxRecommendations: number) {
   return {
     type: "object",
     additionalProperties: false,
-    required: [
-      "result",
-      "recommendations",
-      "reason",
-      "confidence_score",
-      "risk_flags",
-      "candidate_ticker",
-    ],
+    required: ["recommendations"],
     properties: {
-      result: {
-        type: "string",
-        enum: ["trade_recommendation", "no_trade"],
-      },
       recommendations: {
         type: "array",
         minItems: 0,
@@ -1328,7 +756,7 @@ function createRecommendationSchema(maxRecommendations: number) {
             ticker: { type: "string" },
             company_name: { type: "string" },
             direction: { type: "string", enum: ["long"] },
-            setup_type: { type: "string", enum: SETUP_TYPES },
+            setup_type: { type: "string" },
             entry_low: { type: "number" },
             entry_high: { type: "number" },
             stop_loss: { type: "number" },
@@ -1388,21 +816,6 @@ function createRecommendationSchema(maxRecommendations: number) {
             reason_to_avoid: { type: "string" },
           },
         },
-      },
-      reason: {
-        type: ["string", "null"],
-      },
-      confidence_score: {
-        type: ["number", "null"],
-        minimum: 0,
-        maximum: 100,
-      },
-      risk_flags: {
-        type: "array",
-        items: { type: "string" },
-      },
-      candidate_ticker: {
-        type: ["string", "null"],
       },
     },
   };
@@ -1490,26 +903,6 @@ function validateConfidenceBreakdown(value: unknown, ticker: string) {
   }
 }
 
-function nullableConfidenceScore(value: unknown) {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return null;
-  }
-
-  return clamp(Math.round(value), 0, 100);
-}
-
-function stringArray(value: unknown) {
-  return Array.isArray(value)
-    ? value.filter(
-        (item): item is string => typeof item === "string" && item.trim().length > 0,
-      )
-    : [];
-}
-
 function parseSettingNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -1592,50 +985,15 @@ function parseAiResponse(outputText: string): AiResponse {
   try {
     const parsed = JSON.parse(outputText) as unknown;
 
-    if (typeof parsed !== "object" || parsed === null) {
-      throw new Error("Response JSON was not an object.");
-    }
-
-    const response = parsed as {
-      result?: unknown;
-      recommendations?: unknown;
-      reason?: unknown;
-      confidence_score?: unknown;
-      risk_flags?: unknown;
-      candidate_ticker?: unknown;
-    };
-
-    if (response.result === "no_trade") {
-      return {
-        result: "no_trade",
-        recommendations: [],
-        no_trade: {
-          reason: fallbackText(
-            response.reason,
-            "OpenAI did not find an actionable day trade setup.",
-          ),
-          confidence_score: nullableConfidenceScore(response.confidence_score),
-          risk_flags: stringArray(response.risk_flags),
-          candidate_ticker: normalizeTicker(response.candidate_ticker) || null,
-        },
-      };
-    }
-
     if (
-      response.result !== undefined &&
-      response.result !== "trade_recommendation"
+      typeof parsed !== "object" ||
+      parsed === null ||
+      !Array.isArray((parsed as { recommendations?: unknown }).recommendations)
     ) {
-      throw new Error("Response JSON result was not recognized.");
-    }
-
-    if (!Array.isArray(response.recommendations)) {
       throw new Error("Response JSON did not include a recommendations array.");
     }
 
-    return {
-      result: "trade_recommendation",
-      recommendations: response.recommendations as AiRecommendation[],
-    };
+    return parsed as AiResponse;
   } catch (error) {
     const message =
       error instanceof Error && error.message
@@ -1687,7 +1045,6 @@ function sanitizeRecommendations(
         recommendation.confidence_score,
         `${ticker}.confidence_score`,
       );
-      const setupType = normalizeSetupType(recommendation.setup_type);
 
       if (finalConfidenceScore < MINIMUM_OPENAI_CONFIDENCE_SCORE) {
         throw new Error(
@@ -1708,23 +1065,16 @@ function sanitizeRecommendations(
       }
 
       seenTickers.add(ticker);
-      const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
-        confidence_score: finalConfidenceScore,
-        confidence_label: recommendation.confidence_label,
-        confidence_breakdown: recommendation.confidence_breakdown,
-        confidence_reasoning: recommendation.confidence_reasoning,
-        risk_flags: recommendation.risk_flags,
-        intraday_indicators: candidate.intraday_indicators ?? null,
-        local_setup_type: candidate.setup_type,
-        setup_type: setupType,
-      })}]`;
 
       recommendations.push({
         session_type: sessionType,
         ticker,
         company_name: companyName,
         direction: "long",
-        setup_type: setupType,
+        setup_type: fallbackText(
+          recommendation.setup_type,
+          "Scanner-based setup",
+        ),
         entry_low: number(recommendation.entry_low, `${ticker}.entry_low`),
         entry_high: number(recommendation.entry_high, `${ticker}.entry_high`),
         stop_loss: number(recommendation.stop_loss, `${ticker}.stop_loss`),
@@ -1747,10 +1097,10 @@ function sanitizeRecommendations(
           recommendation.invalidation,
           "The setup is invalidated intraday if price breaks below the stop loss or volume and momentum fail before execution.",
         ),
-        reason_to_avoid: `${fallbackText(
+        reason_to_avoid: fallbackText(
           recommendation.reason_to_avoid,
           "Avoid if the setup loses intraday momentum, market conditions weaken, or price action invalidates the same-day trade plan.",
-        )}${confidenceMetadata}`,
+        ),
         status: "new",
       });
     } catch (error) {
@@ -1875,8 +1225,6 @@ async function generateRecommendationsWithOpenAI(
       "You must not pretend the recommendations are based on real-time prices.",
       "Treat the provided candidates as mock structured inputs only.",
       "Generate only intraday day trade recommendations.",
-      "You are not required to create a trade recommendation.",
-      "Prefer result=no_trade over a weak or unclear setup.",
       "Every trade must be suitable for same-day execution.",
       "Do not recommend swing trades or multi-day holds.",
       "If the setup requires holding overnight, reject it.",
@@ -1884,30 +1232,14 @@ async function generateRecommendationsWithOpenAI(
       "Prefer no recommendation over a weak recommendation.",
       "Do not force a recommendation.",
       "Candidate passed local scan, but you must still reject it if risk/reward or intraday structure is weak.",
-      "Use candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, scan_window, and market_regime as inputs to final confidence scoring.",
-      "Each candidate includes a local setup_type guess. You may accept it, refine it to another allowed setup_type, or return UNKNOWN when unclear.",
-      `Allowed setup_type values: ${SETUP_TYPES.join(", ")}.`,
-      "setup_type must be exactly one allowed enum value, never free text.",
-      "Use VWAP, intraday momentum, and volume trend as confirmation context when intraday_indicators are present.",
-      "Do not recommend long day trades if price is clearly below VWAP and momentum is weakening unless there is a clear reclaim setup.",
-      "Prefer no_trade when intraday indicators conflict with the setup.",
-      "A trade recommendation may become invalid if VWAP, momentum, or volume confirmation weakens after generation.",
-      "If indicators are weak at generation time, prefer no_trade.",
-      "Include intraday confirmation notes in thesis, confidence_reasoning, risk_flags, or reason_to_avoid when indicator context is available.",
-      "Use local scanner score as context, not as final truth.",
-      "Reject the setup if the structure does not support an actionable same-day trade.",
-      "Return result=no_trade if entry trigger is unclear, stop loss/invalidation is unclear, same-day target is unrealistic, risk/reward is below threshold, volume or momentum confirmation is weak, setup is too late, too choppy, not actionable, market regime conflicts with the trade, or the candidate requires holding overnight.",
-      "Only return result=trade_recommendation if the setup is actionable as an intraday day trade.",
-      "For no_trade, return an empty recommendations array plus reason, confidence_score or null, risk_flags, and candidate_ticker.",
-      "For trade_recommendation, set reason and candidate_ticker to null and risk_flags to an empty array at the top level; keep per-trade risk_flags inside each recommendation.",
-      "Explain if confidence differs from local scanner score.",
+      "Use candidate_score, candidate_score_reasons, candidate_score_warnings, scan_window, and market_regime as inputs to final confidence scoring.",
       "The local candidate_score is only a pre-filter. Your confidence_score is the final trade-quality score.",
       "You may lower confidence when the full setup is weak. Do not raise a weak candidate into a strong setup without clear confidence_reasoning.",
-      `If final confidence_score is below ${MINIMUM_OPENAI_CONFIDENCE_SCORE}, return result=no_trade for that candidate.`,
+      `If final confidence_score is below ${MINIMUM_OPENAI_CONFIDENCE_SCORE}, return no recommendation for that candidate.`,
+      // TODO: Add explicit no_trade records from OpenAI for rejected candidates.
+      "If no_trade is not representable in the output schema, omit weak candidates rather than producing low-quality recommendations.",
       "confidence_score must be 0-100. Use 85-100 for HIGH CONVICTION, 70-84 for GOOD SETUP, and 55-69 for LOWER CONFIDENCE.",
       "confidence_breakdown must score setup_quality, momentum_confirmation, volume_confirmation, risk_reward_quality, market_regime_alignment, and timing_quality from 0-100.",
-      "A known setup_type may slightly support setup_quality or timing_quality only when the candidate's signals align. UNKNOWN should not receive a setup-type boost.",
-      "OPENING_RANGE_BREAKOUT fits the opening window. VWAP_HOLD_CONTINUATION fits morning_momentum, midday, or afternoon only when VWAP and momentum align. HIGH_OF_DAY_BREAKOUT and BREAKOUT_CONTINUATION require clean momentum, risk/reward, and enough time left in the session.",
       "When data is missing, assign neutral or lower confidence and mention the missing data in confidence_reasoning or risk_flags.",
       "Each recommendation must include an entry trigger, stop loss / intraday invalidation, target, risk/reward, reason for the same-day opportunity, what would invalidate the setup intraday, and a time sensitivity / freshness note.",
       `Choose up to ${maxRecommendations} recommendations, or fewer if quality is weak.`,
@@ -1939,13 +1271,11 @@ async function generateRecommendationsWithOpenAI(
       trade_horizon: dayTradeHorizon,
       local_scoring: {
         threshold_note:
-          "Candidates include candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, setup_type, setup_type_label, setup_type_description, and optional intraday_indicators from the app's scanner.",
-        setup_type_taxonomy: SETUP_TYPE_OPTIONS_FOR_PROMPT,
+          "Candidates include candidate_score, candidate_score_reasons, and candidate_score_warnings from the app's scanner.",
       },
       candidates: availableCandidates.map((candidate) => ({
         ...candidate,
         candidate_score: candidate.local_score,
-        candidate_score_breakdown: candidate.local_score_breakdown,
         candidate_score_reasons: candidate.local_score_reasons,
         candidate_score_warnings: candidate.local_score_warnings,
       })),
@@ -1983,13 +1313,6 @@ export async function generateRecommendations({
     logPipeline("scan_window", scanWindow);
     logPipeline("scan_window_policy", scanPolicy);
 
-    if (scanWindow === "pre_market") {
-      logPipeline("pre_market_mode", "watchlist_only");
-      logPipeline("inserted_recommendations_count", 0);
-
-      return generatePreMarketWatchlist({ source });
-    }
-
     if (scanWindow === "power_hour" && !ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS) {
       logPipeline("inserted_recommendations_count", 0);
 
@@ -1998,10 +1321,6 @@ export async function generateRecommendations({
         message:
           "Power hour: new recommendations disabled. Focus on managing active positions.",
         scan_window: scanWindow,
-        scan_log: {
-          result: "power_hour_blocked",
-          candidates_scanned: 0,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2012,10 +1331,6 @@ export async function generateRecommendations({
         recommendations: [],
         message: scanPolicy.message,
         scan_window: scanWindow,
-        scan_log: {
-          result: "skipped",
-          candidates_scanned: 0,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2176,10 +1491,6 @@ export async function generateRecommendations({
         recommendations: [],
         message,
         scan_window: scanWindow,
-        scan_log: {
-          result: "recommendation_limit_reached",
-          candidates_scanned: 0,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2207,10 +1518,6 @@ export async function generateRecommendations({
           recommendations: [],
           message: "Scan completed. No high-quality day trade setup found.",
           scan_window: scanWindow,
-          scan_log: {
-            result: "no_high_quality_setup",
-            candidates_scanned: 0,
-          } satisfies RecommendationScanLogDetails,
         };
       }
 
@@ -2380,19 +1687,6 @@ export async function generateRecommendations({
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
-        scan_log: {
-          result: candidatesRemovedByCooldown.some((reason) =>
-            reason.includes("Active position already exists"),
-          )
-            ? "active_position_exists"
-            : candidatesRemovedByCooldown.some((reason) =>
-                  reason.includes("Existing current setup"),
-                )
-              ? "duplicate_ticker_skipped"
-              : "no_high_quality_setup",
-          candidates_scanned: scannerCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2411,22 +1705,6 @@ export async function generateRecommendations({
     const threshold = getDayTradeScoreThreshold(scanWindow, source);
     const topCandidate = scoredCandidates[0] ?? null;
     const topCandidateScore = topCandidate?.local_score ?? 0;
-    const topCandidateSetupType = topCandidate?.setup_type ?? null;
-    const topCandidateBreakdown = topCandidate?.local_score_breakdown ?? null;
-    const topCandidateReasons = topCandidate?.local_score_reasons.slice(0, 3) ?? null;
-    const topCandidateWarnings =
-      topCandidate?.local_score_warnings.slice(0, 3) ?? null;
-    const topCandidateIndicators = compactIntradayIndicators(
-      topCandidate?.intraday_indicators,
-    );
-    const topCandidateIndicatorSource =
-      topCandidate?.intraday_indicator_source ?? null;
-    const topCandidateIndicatorCachedAt =
-      topCandidate?.intraday_indicator_cached_at ?? null;
-    const topCandidateIndicatorStale =
-      typeof topCandidate?.intraday_indicator_stale === "boolean"
-        ? topCandidate.intraday_indicator_stale
-        : null;
     const qualifiedCandidates = scoredCandidates.filter(
       (candidate) => candidate.local_score >= threshold,
     );
@@ -2444,11 +1722,8 @@ export async function generateRecommendations({
     const scoredCandidateSummary = scoredCandidates.slice(0, 8).map((candidate) => ({
       ticker: candidate.ticker,
       score: candidate.local_score,
-      setup_type: candidate.setup_type,
-      breakdown: candidate.local_score_breakdown,
       reasons: candidate.local_score_reasons,
       warnings: candidate.local_score_warnings,
-      intraday_indicators: compactIntradayIndicators(candidate.intraday_indicators),
     }));
 
     logPipeline("scanner_candidates_after_filtering", availableCandidates.length);
@@ -2457,7 +1732,6 @@ export async function generateRecommendations({
     logPipeline("day_trade_score_threshold", threshold);
     logPipeline("top_scored_candidate", topCandidate?.ticker ?? null);
     logPipeline("top_scored_candidate_score", topCandidateScore);
-    logPipeline("top_scored_candidate_setup_type", topCandidateSetupType);
     logPipeline("scored_candidates", scoredCandidateSummary);
     logPipeline("candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
@@ -2478,22 +1752,6 @@ export async function generateRecommendations({
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2509,22 +1767,6 @@ export async function generateRecommendations({
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2537,51 +1779,6 @@ export async function generateRecommendations({
       marketRegime,
     );
     logPipeline("raw_openai_recommendations_count", aiResponse.recommendations.length);
-
-    if (aiResponse.result === "no_trade") {
-      const noTrade = aiResponse.no_trade;
-      const rejectedTicker =
-        noTrade?.candidate_ticker ||
-        topCandidate?.ticker ||
-        candidateTickersForOpenAI[0] ||
-        "candidate";
-      const rejectedReason =
-        noTrade?.reason || "OpenAI did not find an actionable day trade setup.";
-      const message = `OpenAI rejected candidate ${rejectedTicker}: ${rejectedReason}`;
-
-      logPipeline("openai_no_trade_ticker", rejectedTicker);
-      logPipeline("openai_no_trade_reason", rejectedReason);
-      logPipeline("validated_recommendations_count", 0);
-      logPipeline("inserted_recommendations_count", 0);
-      logPipeline("inserted_recommendation_tickers", []);
-
-      return {
-        recommendations: [],
-        message,
-        duplicate_fallback_used: duplicateFallbackUsed,
-        market_regime: marketRegime,
-        scan_window: scanWindow,
-        no_trade: noTrade,
-        scan_log: {
-          result: "openai_no_trade",
-          top_candidate_ticker: rejectedTicker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          no_trade_reason: rejectedReason,
-          no_trade_risk_flags: noTrade?.risk_flags ?? [],
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-        } satisfies RecommendationScanLogDetails,
-      };
-    }
 
     if (aiResponse.recommendations.length === 0) {
       logPipeline("validated_recommendations_count", 0);
@@ -2598,22 +1795,6 @@ export async function generateRecommendations({
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2647,24 +1828,6 @@ export async function generateRecommendations({
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers:
-            candidatesRemovedByCooldown.length +
-            sanitizedRecommendations.skippedReasons.length,
-        } satisfies RecommendationScanLogDetails,
       };
     }
 
@@ -2703,24 +1866,6 @@ export async function generateRecommendations({
       duplicate_fallback_used: duplicateFallbackUsed,
       market_regime: marketRegime,
       scan_window: scanWindow,
-      scan_log: {
-        result: "recommendation_created",
-        top_candidate_ticker: topCandidate?.ticker ?? null,
-        top_candidate_score: topCandidateScore,
-        top_candidate_setup_type: topCandidateSetupType,
-        top_candidate_breakdown: topCandidateBreakdown,
-        top_candidate_reasons: topCandidateReasons,
-        top_candidate_warnings: topCandidateWarnings,
-        top_candidate_indicators: topCandidateIndicators,
-        indicator_source: topCandidateIndicatorSource,
-        indicator_cached_at: topCandidateIndicatorCachedAt,
-        indicator_stale: topCandidateIndicatorStale,
-        threshold,
-        candidates_scanned: scoredCandidates.length,
-        skipped_tickers:
-          candidatesRemovedByCooldown.length +
-          sanitizedRecommendations.skippedReasons.length,
-      } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),
     };
   } catch (error) {
