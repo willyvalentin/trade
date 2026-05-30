@@ -9,6 +9,7 @@ import {
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getQuote } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
 
 type PositionRow = {
   id: string;
@@ -447,7 +448,7 @@ async function monitorPosition(
     console.error("OpenAI position commentary failed", {
       position_id: position.id,
       ticker: position.ticker,
-      error: error instanceof Error ? error.message : error,
+      error: normalizeUnknownError(error),
     });
   }
 
@@ -561,6 +562,10 @@ export async function POST() {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+
+    console.error("[positions/update] request_error", {
+      error: normalizeUnknownError(error),
+    });
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,0 +1,178 @@
+.motion {
+  position: relative;
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  place-items: center;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+}
+
+.orbit,
+.sparkOne,
+.sparkTwo {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.orbit {
+  inset: 1px;
+  border: 2px solid rgb(255 255 255 / 0.28);
+  border-right-color: transparent;
+  border-bottom-color: rgb(255 255 255 / 0.9);
+  border-radius: 999px;
+  transform: scale(0.86) rotate(-28deg);
+}
+
+.sparkOne,
+.sparkTwo {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.55);
+}
+
+.sparkOne {
+  top: 0;
+  right: 2px;
+}
+
+.sparkTwo {
+  right: 0;
+  bottom: 3px;
+}
+
+.loading .icon {
+  animation: refreshIconPulse 920ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.loading .orbit {
+  animation: refreshOrbit 920ms cubic-bezier(0.42, 0, 0.2, 1) infinite;
+}
+
+.loading .sparkOne {
+  animation: refreshSparkOne 920ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.loading .sparkTwo {
+  animation: refreshSparkTwo 920ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+@keyframes refreshIconPulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  38% {
+    opacity: 0.58;
+    transform: scale(0.78);
+  }
+
+  72% {
+    opacity: 0.92;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes refreshOrbit {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) rotate(-40deg);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  64% {
+    opacity: 1;
+    transform: scale(1.08) rotate(230deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.18) rotate(320deg);
+  }
+}
+
+@keyframes refreshSparkOne {
+  0% {
+    opacity: 0;
+    transform: translate(-2px, 8px) scale(0.4);
+  }
+
+  24% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  72% {
+    opacity: 0.22;
+    transform: translate(-7px, 13px) scale(0.68);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-8px, 14px) scale(0.42);
+  }
+}
+
+@keyframes refreshSparkTwo {
+  0% {
+    opacity: 0;
+    transform: translate(-9px, -6px) scale(0.44);
+  }
+
+  34% {
+    opacity: 0.9;
+    transform: translate(0, 0) scale(1);
+  }
+
+  82% {
+    opacity: 0.18;
+    transform: translate(-13px, -9px) scale(0.66);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-14px, -10px) scale(0.42);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading .icon,
+  .loading .orbit,
+  .loading .sparkOne,
+  .loading .sparkTwo {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+  }
+
+  .loading .icon {
+    opacity: 0.72;
+    transform: none;
+  }
+
+  .loading .orbit,
+  .loading .sparkOne,
+  .loading .sparkTwo {
+    opacity: 0;
+  }
+}

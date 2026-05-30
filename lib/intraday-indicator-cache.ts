@@ -6,6 +6,7 @@ import {
 } from "@/lib/intraday-indicators";
 import { getIntradayCandles } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
 
 export type IntradayIndicatorCacheSource =
   | "cache"
@@ -294,7 +295,7 @@ export async function setCachedIntradayIndicators(
   } catch (error) {
     console.error("[intraday-indicator-cache] write_exception", {
       ticker,
-      error: error instanceof Error ? error.message : error,
+      error: normalizeUnknownError(error),
     });
   }
 }

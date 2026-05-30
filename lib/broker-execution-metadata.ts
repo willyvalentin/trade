@@ -12,6 +12,28 @@ import type {
   HandoffQualityRating,
   HandoffQualitySnapshot,
 } from "@/lib/handoff-quality";
+import type { AgentHandoffCommandMetadataSnapshot } from "@/lib/agent-handoff-command";
+import type {
+  AgentHardStopContractMetadataSnapshot,
+  AgentHardStopId,
+} from "@/lib/agent-hard-stop-contract";
+import type { AgentFormMappingPreviewMetadataSnapshot } from "@/lib/agent-form-mapping-preview";
+import {
+  parseBrokerExitConfirmation,
+  type BrokerExitConfirmation,
+} from "@/lib/broker-exit-confirmation";
+import {
+  buildPartialPositionState,
+  normalizeEntryFill,
+  normalizeExitFill,
+  type PartialPositionStatus,
+  type TradeExitFill,
+  type TradeFill,
+} from "@/lib/partial-position-accounting";
+import {
+  normalizeTradePlanningSnapshot,
+  type TradePlanningSnapshot,
+} from "@/lib/trade-planning-snapshot";
 
 export type BrokerOrderStatus =
   | "filled"
@@ -55,6 +77,19 @@ export type BrokerExecutionMetadata = {
   broker_order_preview: BrokerOrderPreviewCapture | null;
   handoff_integrity?: HandoffIntegritySnapshot | null;
   handoff_quality?: HandoffQualitySnapshot | null;
+  agent_handoff_command?: AgentHandoffCommandMetadataSnapshot | null;
+  agent_hard_stop_contract?: AgentHardStopContractMetadataSnapshot | null;
+  agent_form_mapping_preview?: AgentFormMappingPreviewMetadataSnapshot | null;
+  broker_exit_confirmation?: BrokerExitConfirmation | null;
+  entry_fills: TradeFill[];
+  exit_fills: TradeExitFill[];
+  planned_quantity: number | null;
+  actual_entry_shares: number | null;
+  remaining_shares: number | null;
+  partial_position_status: PartialPositionStatus;
+  average_exit_price: number | null;
+  realized_pnl_from_exits: number | null;
+  trade_planning_snapshot: TradePlanningSnapshot | null;
 };
 
 export type BrokerOrderPreviewCapture = {
@@ -107,6 +142,19 @@ type BrokerExecutionMetadataInput = {
   brokerOrderPreview?: unknown;
   handoffIntegrity?: unknown;
   handoffQuality?: unknown;
+  agentHandoffCommand?: unknown;
+  agentHardStopContract?: unknown;
+  agentFormMappingPreview?: unknown;
+  brokerExitConfirmation?: unknown;
+  entryFills?: unknown;
+  exitFills?: unknown;
+  plannedQuantity?: number | null;
+  actualEntryShares?: number | null;
+  remainingShares?: number | null;
+  partialPositionStatus?: string | null;
+  averageExitPrice?: number | null;
+  realizedPnlFromExits?: number | null;
+  tradePlanningSnapshot?: unknown;
 };
 
 function finiteNumber(value: unknown) {
@@ -224,6 +272,58 @@ function parseBrokerOrderPreviewCapture(
   });
 }
 
+function parseEntryFills(value: unknown): TradeFill[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const raw = item as Record<string, unknown>;
+      return normalizeEntryFill({
+        fillId: nullableString(raw.fill_id),
+        status: nullableString(raw.status),
+        price: finiteNumber(raw.price),
+        shares: finiteNumber(raw.shares),
+        filledAt: nullableString(raw.filled_at),
+        referenceNote: nullableString(raw.reference_note),
+        commission: finiteNumber(raw.commission),
+        fxFee: finiteNumber(raw.fx_fee),
+      });
+    })
+    .filter((item): item is TradeFill => item !== null);
+}
+
+function parseExitFills(value: unknown): TradeExitFill[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const raw = item as Record<string, unknown>;
+      return normalizeExitFill({
+        fillId: nullableString(raw.fill_id),
+        status: nullableString(raw.status),
+        price: finiteNumber(raw.price),
+        shares: finiteNumber(raw.shares),
+        filledAt: nullableString(raw.filled_at),
+        referenceNote: nullableString(raw.reference_note),
+        commission: finiteNumber(raw.commission),
+        fxFee: finiteNumber(raw.fx_fee),
+      });
+    })
+    .filter((item): item is TradeExitFill => item !== null);
+}
+
 function parseBrokerCostEstimate(value: unknown): BrokerCostEstimate | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -331,6 +431,169 @@ function parseHandoffQualitySnapshot(value: unknown): HandoffQualitySnapshot | n
   };
 }
 
+function parseAgentHandoffCommandSnapshot(
+  value: unknown,
+): AgentHandoffCommandMetadataSnapshot | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const commandId = nullableString(raw.command_id);
+  const commandVersion = raw.command_version === "1.0" ? raw.command_version : null;
+  const status =
+    raw.status === "ready" || raw.status === "warning" || raw.status === "blocked"
+      ? raw.status
+      : null;
+  const task = raw.task === "prepare_order_form_only" ? raw.task : null;
+  const broker = raw.broker === "AVANZA" ? raw.broker : null;
+  const brokerExecutionMode =
+    raw.broker_execution_mode === "prepare_only"
+      ? raw.broker_execution_mode
+      : null;
+  const generatedAt = nullableString(raw.generated_at);
+
+  if (
+    !commandId ||
+    !commandVersion ||
+    !status ||
+    !task ||
+    !broker ||
+    !brokerExecutionMode ||
+    !generatedAt
+  ) {
+    return null;
+  }
+
+  return {
+    command_id: commandId,
+    command_version: commandVersion,
+    status,
+    task,
+    broker,
+    broker_execution_mode: brokerExecutionMode,
+    stop_before: Array.isArray(raw.stop_before)
+      ? raw.stop_before.filter(
+          (
+            item,
+          ): item is AgentHandoffCommandMetadataSnapshot["stop_before"][number] =>
+            item === "final_broker_confirmation" ||
+            item === "buy_sell_submit_button",
+        )
+      : [],
+    hard_stop_failed_count: finiteNumber(raw.hard_stop_failed_count) ?? 0,
+    hard_stop_warning_count: finiteNumber(raw.hard_stop_warning_count) ?? 0,
+    generated_at: generatedAt,
+    expires_at: nullableString(raw.expires_at),
+  };
+}
+
+function parseAgentHardStopIdList(value: unknown): AgentHardStopId[] {
+  const allowed = new Set<AgentHardStopId>([
+    "missing_execution_payload",
+    "expired_payload",
+    "missing_payload_id",
+    "missing_payload_fingerprint",
+    "missing_handoff_session_id",
+    "stale_payload",
+    "broker_not_avanza",
+    "broker_mode_not_prepare_only",
+    "order_intent_not_prepare_only",
+    "missing_submit_guard",
+    "missing_human_confirmation_requirement",
+    "missing_ticker",
+    "missing_side",
+    "missing_quantity",
+    "missing_entry_price",
+    "missing_stop_price",
+    "missing_target_price",
+    "unknown_required_field",
+    "agent_readiness_blocked",
+    "handoff_integrity_failed",
+    "agent_dry_run_failed",
+    "credentials_required_or_detected",
+    "unknown_broker_ui_state",
+    "unsafe_to_continue",
+  ]);
+
+  return Array.isArray(value)
+    ? value.filter(
+        (item): item is AgentHardStopId =>
+          typeof item === "string" && allowed.has(item as AgentHardStopId),
+      )
+    : [];
+}
+
+function parseAgentHardStopContractSnapshot(
+  value: unknown,
+): AgentHardStopContractMetadataSnapshot | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const contractVersion = raw.contract_version === "1.0" ? raw.contract_version : null;
+  const overallStatus =
+    raw.overall_status === "ready" ||
+    raw.overall_status === "warning" ||
+    raw.overall_status === "blocked"
+      ? raw.overall_status
+      : null;
+  const evaluatedAt = nullableString(raw.evaluated_at);
+
+  if (!contractVersion || !overallStatus || !evaluatedAt) {
+    return null;
+  }
+
+  return {
+    contract_version: contractVersion,
+    overall_status: overallStatus,
+    failed_count: finiteNumber(raw.failed_count) ?? 0,
+    warning_count: finiteNumber(raw.warning_count) ?? 0,
+    unknown_count: finiteNumber(raw.unknown_count) ?? 0,
+    evaluated_at: evaluatedAt,
+    top_blocker_ids: parseAgentHardStopIdList(raw.top_blocker_ids),
+    top_warning_ids: parseAgentHardStopIdList(raw.top_warning_ids),
+  };
+}
+
+function parseAgentFormMappingPreviewSnapshot(
+  value: unknown,
+): AgentFormMappingPreviewMetadataSnapshot | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const previewId = nullableString(raw.preview_id);
+  const previewVersion = raw.preview_version === "1.0" ? raw.preview_version : null;
+  const overallStatus =
+    raw.overall_status === "ready" ||
+    raw.overall_status === "warning" ||
+    raw.overall_status === "blocked"
+      ? raw.overall_status
+      : null;
+  const generatedAt = nullableString(raw.generated_at);
+
+  if (!previewId || !previewVersion || !overallStatus || !generatedAt) {
+    return null;
+  }
+
+  return {
+    preview_id: previewId,
+    preview_version: previewVersion,
+    overall_status: overallStatus,
+    can_prepare_form: raw.can_prepare_form === true,
+    field_count: finiteNumber(raw.field_count) ?? 0,
+    ready_count: finiteNumber(raw.ready_count) ?? 0,
+    warning_count: finiteNumber(raw.warning_count) ?? 0,
+    blocked_count: finiteNumber(raw.blocked_count) ?? 0,
+    missing_count: finiteNumber(raw.missing_count) ?? 0,
+    generated_at: generatedAt,
+    expires_at: nullableString(raw.expires_at),
+  };
+}
+
 export function brokerOrderStatusLabel(value: BrokerOrderStatus) {
   if (value === "partially_filled") return "Partial Fill";
   if (value === "submitted_not_filled") return "Submitted, Not Filled";
@@ -346,6 +609,63 @@ export function buildBrokerExecutionMetadata(
   );
   const handoffIntegrity = parseHandoffIntegritySnapshot(input.handoffIntegrity);
   const handoffQuality = parseHandoffQualitySnapshot(input.handoffQuality);
+  const agentHandoffCommand = parseAgentHandoffCommandSnapshot(
+    input.agentHandoffCommand,
+  );
+  const agentHardStopContract = parseAgentHardStopContractSnapshot(
+    input.agentHardStopContract,
+  );
+  const agentFormMappingPreview = parseAgentFormMappingPreviewSnapshot(
+    input.agentFormMappingPreview,
+  );
+  const brokerExitConfirmation = parseBrokerExitConfirmation(
+    input.brokerExitConfirmation,
+  );
+  const tradePlanningSnapshot = normalizeTradePlanningSnapshot(
+    input.tradePlanningSnapshot,
+  );
+  const entryFills = parseEntryFills(input.entryFills);
+  const exitFills = parseExitFills(input.exitFills);
+  const fallbackEntryFill = normalizeEntryFill({
+    status: normalizeBrokerOrderStatus(input.brokerOrderStatus),
+    price: finiteNumber(input.actualFillPrice),
+    shares: finiteNumber(input.actualShares),
+    filledAt: input.brokerConfirmedAt,
+    referenceNote: nullableString(input.brokerReferenceNote),
+  });
+  const derivedEntryFills =
+    entryFills.length > 0 ? entryFills : fallbackEntryFill ? [fallbackEntryFill] : [];
+  const brokerExitFill =
+    brokerExitConfirmation &&
+    (brokerExitConfirmation.exit_status === "filled" ||
+      brokerExitConfirmation.exit_status === "partially_filled")
+      ? normalizeExitFill({
+          fillId: brokerExitConfirmation.sell_payload_id
+            ? `exit_${brokerExitConfirmation.sell_payload_id}`
+            : null,
+          status: brokerExitConfirmation.exit_status,
+          price: brokerExitConfirmation.actual_exit_price,
+          shares: brokerExitConfirmation.actual_sold_shares,
+          filledAt: brokerExitConfirmation.broker_confirmed_at,
+          referenceNote: brokerExitConfirmation.broker_reference_note,
+          commission: brokerExitConfirmation.exit_commission,
+          fxFee: brokerExitConfirmation.exit_fx_fee,
+        })
+      : null;
+  const derivedExitFills =
+    exitFills.length > 0
+      ? exitFills
+      : brokerExitFill
+        ? [brokerExitFill]
+        : [];
+  const partialAccounting = buildPartialPositionState({
+    entryFills: derivedEntryFills,
+    exitFills: derivedExitFills,
+    fallbackEntryPrice: finiteNumber(input.actualFillPrice),
+    fallbackEntryShares: finiteNumber(input.actualShares),
+    plannedShares: finiteNumber(input.plannedShares),
+  });
+  const partialState = partialAccounting.state;
 
   return {
     schema_version: "1.0",
@@ -389,6 +709,31 @@ export function buildBrokerExecutionMetadata(
     broker_order_preview: brokerOrderPreview,
     handoff_integrity: handoffIntegrity,
     handoff_quality: handoffQuality,
+    agent_handoff_command: agentHandoffCommand,
+    agent_hard_stop_contract: agentHardStopContract,
+    agent_form_mapping_preview: agentFormMappingPreview,
+    broker_exit_confirmation: brokerExitConfirmation,
+    entry_fills: partialState.entry_fills,
+    exit_fills: partialState.exit_fills,
+    planned_quantity:
+      finiteNumber(input.plannedQuantity) ?? finiteNumber(input.plannedShares),
+    actual_entry_shares:
+      finiteNumber(input.actualEntryShares) ?? finiteNumber(input.actualShares),
+    remaining_shares:
+      finiteNumber(input.remainingShares) ?? partialState.remaining_shares,
+    partial_position_status:
+      input.partialPositionStatus === "fully_open" ||
+      input.partialPositionStatus === "partially_closed" ||
+      input.partialPositionStatus === "fully_closed" ||
+      input.partialPositionStatus === "invalid"
+        ? input.partialPositionStatus
+        : partialState.status,
+    average_exit_price:
+      finiteNumber(input.averageExitPrice) ?? partialState.average_exit_price,
+    realized_pnl_from_exits:
+      finiteNumber(input.realizedPnlFromExits) ??
+      partialState.realized_pnl_from_exits,
+    trade_planning_snapshot: tradePlanningSnapshot,
   };
 }
 
@@ -430,6 +775,19 @@ export function parseBrokerExecutionMetadata(
     brokerOrderPreview: raw.broker_order_preview,
     handoffIntegrity: raw.handoff_integrity,
     handoffQuality: raw.handoff_quality,
+    agentHandoffCommand: raw.agent_handoff_command,
+    agentHardStopContract: raw.agent_hard_stop_contract,
+    agentFormMappingPreview: raw.agent_form_mapping_preview,
+    brokerExitConfirmation: raw.broker_exit_confirmation,
+    entryFills: raw.entry_fills,
+    exitFills: raw.exit_fills,
+    plannedQuantity: finiteNumber(raw.planned_quantity),
+    actualEntryShares: finiteNumber(raw.actual_entry_shares),
+    remainingShares: finiteNumber(raw.remaining_shares),
+    partialPositionStatus: nullableString(raw.partial_position_status),
+    averageExitPrice: finiteNumber(raw.average_exit_price),
+    realizedPnlFromExits: finiteNumber(raw.realized_pnl_from_exits),
+    tradePlanningSnapshot: raw.trade_planning_snapshot,
   });
 }
 

@@ -16,6 +16,8 @@ import {
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
 import { createScanLog, recordScanLog, type PreMarketCandidate } from "@/lib/scan-logs";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
+import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
 
 type GenerateRequestBody = {
   session_type?: unknown;
@@ -241,6 +243,11 @@ async function safelyRecordManualScanLog({
             })
             .filter((item) => item.ticker)
         : null,
+      openai_recommendation_reality_guard:
+        typeof details?.openai_recommendation_reality_guard === "object" &&
+        details.openai_recommendation_reality_guard !== null
+          ? (details.openai_recommendation_reality_guard as OpenAiRecommendationRealityGuardSummary)
+          : null,
     }),
   });
 }
@@ -390,7 +397,9 @@ export async function POST(request: Request) {
       expired_recommendations: expiredRecommendations,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[recommendations/generate] request_error", {
+      error: normalizeUnknownError(error),
+    });
 
     if (error instanceof RecommendationGenerationError) {
       return NextResponse.json(

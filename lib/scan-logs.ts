@@ -1,4 +1,9 @@
+import type { DayTradeScanOrchestrationSummary } from "@/lib/day-trade-scan-orchestration";
 import type { LegacySessionType } from "@/lib/intraday-scan-window";
+import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
+import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
+import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
+import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
 import { supabase } from "@/lib/supabase";
 
@@ -69,6 +74,11 @@ export type ScanLogEntry = {
   cache_misses?: number | null;
   skipped_tickers?: number | null;
   pre_market_candidates?: PreMarketCandidate[] | null;
+  real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
+  scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
+  openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
+  day_trade_scan_orchestration?: DayTradeScanOrchestrationSummary | null;
+  recommendation_serving_cadence?: RecommendationServingCadenceSummary | null;
 };
 
 export type ScanLogRunRow = {

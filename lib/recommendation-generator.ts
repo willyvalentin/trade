@@ -29,6 +29,23 @@ import {
   type SetupType,
 } from "@/lib/setup-types";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
+import { buildRecommendationOutputEnrichmentMetadata } from "@/lib/recommendation-output-enrichment";
+import {
+  buildRealScannerBaseCandidateSelection,
+  buildRealScannerCandidateGenerationSummary,
+  type RealScannerCandidateGenerationSummary,
+} from "@/lib/real-scanner-candidate-generation";
+import {
+  buildScannerCandidateRankingSummary,
+  type ScannerCandidateRankingSummary,
+} from "@/lib/scanner-candidate-ranking";
+import {
+  buildOpenAiRecommendationRealityGuardSummary,
+  finalizeOpenAiRecommendationRealityGuardSummary,
+  type OpenAiRecommendationRealityCandidate,
+  type OpenAiRecommendationRealityGuardSummary,
+} from "@/lib/openai-recommendation-reality-guard";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -98,6 +115,29 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   confidence_breakdown: ConfidenceBreakdown;
   confidence_reasoning: string;
   risk_flags: string[];
+  tier:
+    | "strong"
+    | "valid"
+    | "experimental"
+    | "incomplete"
+    | "rejected"
+    | "unknown";
+  source_provider: string;
+  market_data_source: string;
+  market_data_timestamp: string | null;
+  data_freshness:
+    | "fresh"
+    | "cached"
+    | "stale"
+    | "provider_unavailable"
+    | "unknown";
+  warning_summary: string[];
+  gap_summary: string[];
+  ranking_rank: number | null;
+  ranking_reason: string;
+  batch_window: string;
+  batch_type: string;
+  batch_status: string;
 };
 
 type AiNoTradeDecision = {
@@ -136,6 +176,9 @@ export type RecommendationScanLogDetails = {
   candidates_scanned?: number | null;
   skipped_tickers?: number | null;
   pre_market_candidates?: PreMarketCandidate[] | null;
+  real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
+  scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
+  openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
 };
 
 type CompactIntradayIndicators = {
@@ -810,15 +853,24 @@ async function generatePreMarketWatchlist({
   try {
     marketRegime = await getMarketRegime();
   } catch (error) {
-    console.error("[recommendations/generate] pre_market_regime_error", error);
+    console.error("[recommendations/generate] pre_market_regime_error", {
+      error: normalizeUnknownError(error),
+    });
   }
 
   await saveMarketRegimeSnapshot(marketRegime);
 
-  const scannerCandidates = await scanMarket(mockCandidates, {
-    source,
-    maxFreshProviderCalls: source === "scheduled" ? 2 : 1,
+  const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
+    scanWindow: "pre_market",
   });
+  const scannerBaseCandidates = scannerUniverseSelection.candidates;
+  const scannerCandidates = await scanMarket(
+    scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
+    {
+      source,
+      maxFreshProviderCalls: source === "scheduled" ? 2 : 1,
+    },
+  );
   const detectedAt = new Date().toISOString();
   const candidates = scannerCandidates
     .map((candidate) => {
@@ -850,6 +902,17 @@ async function generatePreMarketWatchlist({
     .filter((candidate) => candidate.score >= 55)
     .sort((first, second) => second.score - first.score)
     .slice(0, 5);
+  const realScannerCandidateGeneration =
+    buildRealScannerCandidateGenerationSummary({
+      universe: scannerBaseCandidates,
+      candidates: scannerCandidates,
+      scanWindow: "pre_market",
+      source,
+      visibleCandidateTickers: candidates.map((candidate) => candidate.ticker),
+      providerSource: "twelve_data",
+      universeSelection: scannerUniverseSelection.selection,
+      now: new Date(detectedAt),
+    });
   const result =
     candidates.length > 0
       ? "pre_market_watchlist_updated"
@@ -875,6 +938,7 @@ async function generatePreMarketWatchlist({
       top_candidate_warnings: candidates[0]?.warnings ?? null,
       candidates_scanned: scannerCandidates.length,
       pre_market_candidates: candidates,
+      real_scanner_candidate_generation: realScannerCandidateGeneration,
     } satisfies RecommendationScanLogDetails,
   };
 }
@@ -1323,6 +1387,18 @@ function createRecommendationSchema(maxRecommendations: number) {
             "thesis",
             "invalidation",
             "reason_to_avoid",
+            "tier",
+            "source_provider",
+            "market_data_source",
+            "market_data_timestamp",
+            "data_freshness",
+            "warning_summary",
+            "gap_summary",
+            "ranking_rank",
+            "ranking_reason",
+            "batch_window",
+            "batch_type",
+            "batch_status",
           ],
           properties: {
             ticker: { type: "string" },
@@ -1386,6 +1462,43 @@ function createRecommendationSchema(maxRecommendations: number) {
             thesis: { type: "string" },
             invalidation: { type: "string" },
             reason_to_avoid: { type: "string" },
+            tier: {
+              type: "string",
+              enum: [
+                "strong",
+                "valid",
+                "experimental",
+                "incomplete",
+                "rejected",
+                "unknown",
+              ],
+            },
+            source_provider: { type: "string" },
+            market_data_source: { type: "string" },
+            market_data_timestamp: { type: ["string", "null"] },
+            data_freshness: {
+              type: "string",
+              enum: [
+                "fresh",
+                "cached",
+                "stale",
+                "provider_unavailable",
+                "unknown",
+              ],
+            },
+            warning_summary: {
+              type: "array",
+              items: { type: "string" },
+            },
+            gap_summary: {
+              type: "array",
+              items: { type: "string" },
+            },
+            ranking_rank: { type: ["number", "null"] },
+            ranking_reason: { type: "string" },
+            batch_window: { type: "string" },
+            batch_type: { type: "string" },
+            batch_status: { type: "string" },
           },
         },
       },
@@ -1510,6 +1623,160 @@ function stringArray(value: unknown) {
     : [];
 }
 
+function nullableString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function nullableNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function buildOpenAiBatchContext(input: {
+  scanWindow: IntradayScanWindow;
+  source: RecommendationGenerationSource;
+  targetCount: number;
+  openPositionCount?: number;
+  maxOpenPositions?: number;
+}) {
+  return {
+    scan_window: input.scanWindow,
+    batch_window: input.scanWindow,
+    batch_type: input.source === "scheduled" ? "official_scan" : "manual_scan",
+    batch_status: "candidate_validation",
+    target_count: input.targetCount,
+    daily_trade_capacity:
+      typeof input.openPositionCount === "number" &&
+      typeof input.maxOpenPositions === "number"
+        ? {
+            open_positions: input.openPositionCount,
+            max_open_positions: input.maxOpenPositions,
+            remaining_capacity: Math.max(
+              0,
+              input.maxOpenPositions - input.openPositionCount,
+            ),
+          }
+        : null,
+    tradable_now:
+      input.scanWindow !== "closed" && input.scanWindow !== "pre_market",
+  };
+}
+
+function getDataFreshness(candidate: ScoredCandidate) {
+  if (candidate.intraday_indicator_stale === true) return "stale";
+  if (candidate.intraday_indicator_source === "fresh") return "fresh";
+  if (candidate.intraday_indicator_source === "cache") return "cached";
+  if (candidate.intraday_indicator_source === "unavailable") {
+    return "provider_unavailable";
+  }
+
+  return "unknown";
+}
+
+function buildOpenAiCandidatePayloads({
+  candidates,
+  rankingSummary,
+}: {
+  candidates: ScoredCandidate[];
+  rankingSummary: ScannerCandidateRankingSummary;
+}) {
+  const rankingByTicker = new Map(
+    rankingSummary.results.map((result) => [result.ticker, result]),
+  );
+
+  return candidates.map((candidate): OpenAiRecommendationRealityCandidate & Record<string, unknown> => {
+    const ranking = rankingByTicker.get(candidate.ticker) ?? null;
+    const marketDataSource =
+      candidate.intraday_indicator_source === "fresh" ||
+      candidate.intraday_indicator_source === "cache"
+        ? candidate.intraday_indicator_source
+        : "provider_unavailable";
+    const marketDataProvider =
+      candidate.intraday_indicator_source === "fresh" ||
+      candidate.intraday_indicator_source === "cache"
+        ? "twelve_data"
+        : "provider_unavailable";
+    const gaps = [
+      ...(ranking?.score.gaps ?? []),
+      ...(candidate.intraday_indicators ? [] : ["intraday_indicators_unavailable"]),
+      ...(candidate.intraday_indicator_cached_at
+        ? []
+        : ["market_data_timestamp_unavailable"]),
+      ...(candidate.proposed_entry_low === undefined
+        ? ["proposed_entry_low_unavailable"]
+        : []),
+      ...(candidate.proposed_entry_high === undefined
+        ? ["proposed_entry_high_unavailable"]
+        : []),
+      ...(candidate.proposed_stop_loss === undefined
+        ? ["proposed_stop_loss_unavailable"]
+        : []),
+      ...(candidate.proposed_target_1 === undefined
+        ? ["proposed_target_1_unavailable"]
+        : []),
+    ];
+
+    return {
+      ticker: candidate.ticker,
+      company_name: candidate.company_name,
+      sector: candidate.sector,
+      latest_price:
+        nullableNumber(candidate.latest_close) ??
+        nullableNumber(candidate.intraday_indicators?.latestPrice),
+      ma20: nullableNumber(candidate.ma20),
+      ma50: nullableNumber(candidate.ma50),
+      high_20d: nullableNumber(candidate.high_20d),
+      volume_ratio: nullableNumber(candidate.volume_ratio),
+      distance_to_20d_high: nullableNumber(candidate.distance_to_20d_high),
+      change_5d_percent: nullableNumber(candidate.change_5d_percent),
+      proposed_entry_low: nullableNumber(candidate.proposed_entry_low),
+      proposed_entry_high: nullableNumber(candidate.proposed_entry_high),
+      proposed_stop_loss: nullableNumber(candidate.proposed_stop_loss),
+      proposed_target_1: nullableNumber(candidate.proposed_target_1),
+      proposed_target_2: nullableNumber(candidate.proposed_target_2),
+      proposed_risk_reward: nullableNumber(candidate.proposed_risk_reward),
+      session_open: nullableNumber(candidate.session_open),
+      session_high: nullableNumber(candidate.session_high),
+      session_low: nullableNumber(candidate.session_low),
+      previous_close: nullableNumber(candidate.previous_close),
+      recent_change_percent: nullableNumber(candidate.recent_change_percent),
+      recent_range_position: nullableNumber(candidate.recent_range_position),
+      recent_higher_highs_count: nullableNumber(
+        candidate.recent_higher_highs_count,
+      ),
+      recent_higher_lows_count: nullableNumber(candidate.recent_higher_lows_count),
+      recent_bullish_candles: nullableNumber(candidate.recent_bullish_candles),
+      recent_volume_ratio: nullableNumber(candidate.recent_volume_ratio),
+      average_range_percent: nullableNumber(candidate.average_range_percent),
+      latest_range_percent: nullableNumber(candidate.latest_range_percent),
+      range_expansion_ratio: nullableNumber(candidate.range_expansion_ratio),
+      intraday_indicators: candidate.intraday_indicators ?? null,
+      candidate_score: candidate.local_score,
+      candidate_score_breakdown: candidate.local_score_breakdown,
+      candidate_score_reasons: candidate.local_score_reasons,
+      candidate_score_warnings: candidate.local_score_warnings,
+      setup_type: candidate.setup_type,
+      setup_type_label: candidate.setup_type_label,
+      setup_type_description: candidate.setup_type_description,
+      rank: ranking?.rank ?? null,
+      tier: ranking?.score.tier ?? "unknown",
+      rank_reason: ranking?.rank_reason ?? null,
+      ranking_components: ranking?.score.components ?? [],
+      ranking_warnings: ranking?.score.warnings ?? [],
+      market_data_source: marketDataSource,
+      market_data_provider: marketDataProvider,
+      market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+      market_data_stale: candidate.intraday_indicator_stale ?? null,
+      data_freshness: getDataFreshness(candidate),
+      warnings: [
+        ...candidate.local_score_warnings,
+        ...(ranking?.score.warnings.map((warning) => warning.message) ?? []),
+        ...(candidate.intraday_indicators?.warnings ?? []),
+      ],
+      gaps: Array.from(new Set(gaps)),
+    };
+  });
+}
+
 function parseSettingNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -1546,7 +1813,11 @@ async function saveMarketRegimeSnapshot(marketRegime: MarketRegime) {
   });
 
   if (error) {
-    console.error("[recommendations/generate] market_regime_snapshot_insert_error", error);
+    console.error("[recommendations/generate] market_regime_snapshot_insert_error", {
+      source: "supabase.market_regime_snapshots",
+      operation: "insert",
+      error: normalizeUnknownError(error),
+    });
   }
 }
 
@@ -1650,6 +1921,8 @@ function sanitizeRecommendations(
   aiRecommendations: AiRecommendation[],
   availableCandidates: ScoredCandidate[],
   sessionType: SessionType,
+  scanWindow: IntradayScanWindow,
+  source: RecommendationGenerationSource,
   maxRecommendations: number,
 ): SanitizedRecommendationsResult {
   const candidatesByTicker = new Map(
@@ -1707,6 +1980,36 @@ function sanitizeRecommendations(
         text(riskFlag, `${ticker}.risk_flags.${riskFlagIndex}`);
       }
 
+      const entryLow = number(recommendation.entry_low, `${ticker}.entry_low`);
+      const entryHigh = number(recommendation.entry_high, `${ticker}.entry_high`);
+      const stopLoss = number(recommendation.stop_loss, `${ticker}.stop_loss`);
+      const target1 = number(recommendation.target_1, `${ticker}.target_1`);
+      const target2 = number(recommendation.target_2, `${ticker}.target_2`);
+      const riskReward = number(recommendation.risk_reward, `${ticker}.risk_reward`);
+
+      if (entryLow > entryHigh) {
+        throw new Error(`Recommendation ${ticker} entry_low is above entry_high.`);
+      }
+
+      if (stopLoss >= entryLow) {
+        throw new Error(`Recommendation ${ticker} stop_loss must be below entry_low.`);
+      }
+
+      if (target1 <= entryHigh) {
+        throw new Error(`Recommendation ${ticker} target_1 must be above entry_high.`);
+      }
+
+      if (target2 < target1) {
+        throw new Error(`Recommendation ${ticker} target_2 must be at or above target_1.`);
+      }
+
+      if (riskReward <= 0) {
+        throw new Error(`Recommendation ${ticker} risk_reward must be positive.`);
+      }
+
+      const warningSummary = stringArray(recommendation.warning_summary);
+      const gapSummary = stringArray(recommendation.gap_summary);
+
       seenTickers.add(ticker);
       const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
         confidence_score: finalConfidenceScore,
@@ -1715,8 +2018,55 @@ function sanitizeRecommendations(
         confidence_reasoning: recommendation.confidence_reasoning,
         risk_flags: recommendation.risk_flags,
         intraday_indicators: candidate.intraday_indicators ?? null,
+        output_enrichment: buildRecommendationOutputEnrichmentMetadata({
+          recommendation_source_mode:
+            candidate.intraday_indicator_source === "fresh" ||
+            candidate.intraday_indicator_source === "cache"
+              ? "real"
+              : "mixed",
+          provider_source:
+            candidate.intraday_indicator_source === "fresh" ||
+            candidate.intraday_indicator_source === "cache"
+              ? "twelve_data"
+              : null,
+          market_data_source: candidate.intraday_indicator_source ?? null,
+          market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+          intraday_indicator_source: candidate.intraday_indicator_source ?? null,
+          intraday_indicator_stale: candidate.intraday_indicator_stale ?? null,
+          scanner_source: source,
+          scan_window: scanWindow,
+        }),
         local_setup_type: candidate.setup_type,
         setup_type: setupType,
+        openai_reality_contract: {
+          tier: fallbackText(recommendation.tier, "unknown"),
+          source_provider: fallbackText(
+            recommendation.source_provider,
+            "provider_unavailable",
+          ),
+          market_data_source: fallbackText(
+            recommendation.market_data_source,
+            "provider_unavailable",
+          ),
+          market_data_timestamp:
+            nullableString(recommendation.market_data_timestamp) ??
+            candidate.intraday_indicator_cached_at ??
+            null,
+          data_freshness: fallbackText(
+            recommendation.data_freshness,
+            getDataFreshness(candidate),
+          ),
+          warning_summary: warningSummary,
+          gap_summary: gapSummary,
+          ranking_rank: nullableNumber(recommendation.ranking_rank),
+          ranking_reason: fallbackText(
+            recommendation.ranking_reason,
+            "Scanner ranking reason unavailable.",
+          ),
+          batch_window: fallbackText(recommendation.batch_window, scanWindow),
+          batch_type: fallbackText(recommendation.batch_type, source),
+          batch_status: fallbackText(recommendation.batch_status, "validated"),
+        },
       })}]`;
 
       recommendations.push({
@@ -1725,15 +2075,12 @@ function sanitizeRecommendations(
         company_name: companyName,
         direction: "long",
         setup_type: setupType,
-        entry_low: number(recommendation.entry_low, `${ticker}.entry_low`),
-        entry_high: number(recommendation.entry_high, `${ticker}.entry_high`),
-        stop_loss: number(recommendation.stop_loss, `${ticker}.stop_loss`),
-        target_1: number(recommendation.target_1, `${ticker}.target_1`),
-        target_2: number(recommendation.target_2, `${ticker}.target_2`),
-        risk_reward: number(
-          recommendation.risk_reward,
-          `${ticker}.risk_reward`,
-        ),
+        entry_low: entryLow,
+        entry_high: entryHigh,
+        stop_loss: stopLoss,
+        target_1: target1,
+        target_2: target2,
+        risk_reward: riskReward,
         // TODO: Persist confidence_score and confidence_breakdown in recommendations table.
         confidence: confidenceFromScore(finalConfidenceScore),
         // TODO: Future migration can add trade_horizon: "day_trade" | "swing_trade".
@@ -1856,6 +2203,9 @@ async function generateRecommendationsWithOpenAI(
   settings: UserSettings,
   duplicateFallbackUsed: boolean,
   marketRegime: MarketRegime,
+  scannerCandidateRankingSummary: ScannerCandidateRankingSummary,
+  source: RecommendationGenerationSource,
+  openPositionCount: number,
 ) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is missing. Add it to .env.local.");
@@ -1866,17 +2216,30 @@ async function generateRecommendationsWithOpenAI(
   });
   const maxRecommendations = settings.max_recommendations_per_session;
   const allowedDirections = ["long"];
-
-  const response = await openai.responses.create({
-    model: "gpt-4.1-mini",
-    instructions: [
-      "You generate mock trade recommendation cards for a private trading app.",
-      "You are not using live market data.",
-      "You must not pretend the recommendations are based on real-time prices.",
-      "Treat the provided candidates as mock structured inputs only.",
+  const batchContext = buildOpenAiBatchContext({
+    scanWindow,
+    source,
+    targetCount: maxRecommendations,
+    openPositionCount,
+    maxOpenPositions: settings.max_open_positions,
+  });
+  const candidatePayloads = buildOpenAiCandidatePayloads({
+    candidates: availableCandidates,
+    rankingSummary: scannerCandidateRankingSummary,
+  });
+  const instructions = [
+      "You generate intraday day trade recommendation candidates for a private trading app from structured scanner data.",
+      "Some candidates include cached or fresh market data. Use provider, source, and timestamp fields when present.",
+      "Only use the provided candidate data. Do not add facts from memory or broad market commentary.",
+      "Do not fabricate missing values, catalysts, headlines, liquidity, spread, volume, or market facts.",
+      "If provider/source/timestamp data is unavailable, say provider_unavailable or unknown in the required output fields.",
+      "Do not pretend missing or stale data is real-time. Preserve candidate warnings and gaps.",
+      "Treat the provided scanner fields as structured inputs. Do not invent missing prices, volume, liquidity, spread, or news.",
+      "Do not alter entry, stop, or target levels unless the structured candidate fields support the change; prefer no_trade when levels are missing or invalid.",
       "Generate only intraday day trade recommendations.",
       "You are not required to create a trade recommendation.",
       "Prefer result=no_trade over a weak or unclear setup.",
+      "Return no or limited recommendations when the provided candidate data is insufficient.",
       "Every trade must be suitable for same-day execution.",
       "Do not recommend swing trades or multi-day holds.",
       "If the setup requires holding overnight, reject it.",
@@ -1895,14 +2258,19 @@ async function generateRecommendationsWithOpenAI(
       "If indicators are weak at generation time, prefer no_trade.",
       "Include intraday confirmation notes in thesis, confidence_reasoning, risk_flags, or reason_to_avoid when indicator context is available.",
       "Use local scanner score as context, not as final truth.",
+      "Respect scanner ranking order unless a visible validation issue explains demoting a higher-ranked candidate.",
+      "Every returned recommendation must include tier, source_provider, market_data_source, market_data_timestamp, data_freshness, warning_summary, gap_summary, ranking_rank, ranking_reason, batch_window, batch_type, and batch_status.",
+      "Copy tier/ranking/source/window metadata from the candidate and batch context when applicable; use unknown/provider_unavailable instead of inventing unavailable metadata.",
       "Reject the setup if the structure does not support an actionable same-day trade.",
       "Return result=no_trade if entry trigger is unclear, stop loss/invalidation is unclear, same-day target is unrealistic, risk/reward is below threshold, volume or momentum confirmation is weak, setup is too late, too choppy, not actionable, market regime conflicts with the trade, or the candidate requires holding overnight.",
       "Only return result=trade_recommendation if the setup is actionable as an intraday day trade.",
+      "If scan_window is pre_market or closed, do not return fresh active trade recommendations as tradable now.",
       "For no_trade, return an empty recommendations array plus reason, confidence_score or null, risk_flags, and candidate_ticker.",
       "For trade_recommendation, set reason and candidate_ticker to null and risk_flags to an empty array at the top level; keep per-trade risk_flags inside each recommendation.",
       "Explain if confidence differs from local scanner score.",
       "The local candidate_score is only a pre-filter. Your confidence_score is the final trade-quality score.",
       "You may lower confidence when the full setup is weak. Do not raise a weak candidate into a strong setup without clear confidence_reasoning.",
+      "Prefer lower confidence on incomplete, stale, unavailable, or warning-heavy candidate data.",
       `If final confidence_score is below ${MINIMUM_OPENAI_CONFIDENCE_SCORE}, return result=no_trade for that candidate.`,
       "confidence_score must be 0-100. Use 85-100 for HIGH CONVICTION, 70-84 for GOOD SETUP, and 55-69 for LOWER CONFIDENCE.",
       "confidence_breakdown must score setup_quality, momentum_confirmation, volume_confirmation, risk_reward_quality, market_regime_alignment, and timing_quality from 0-100.",
@@ -1910,6 +2278,7 @@ async function generateRecommendationsWithOpenAI(
       "OPENING_RANGE_BREAKOUT fits the opening window. VWAP_HOLD_CONTINUATION fits morning_momentum, midday, or afternoon only when VWAP and momentum align. HIGH_OF_DAY_BREAKOUT and BREAKOUT_CONTINUATION require clean momentum, risk/reward, and enough time left in the session.",
       "When data is missing, assign neutral or lower confidence and mention the missing data in confidence_reasoning or risk_flags.",
       "Each recommendation must include an entry trigger, stop loss / intraday invalidation, target, risk/reward, reason for the same-day opportunity, what would invalidate the setup intraday, and a time sensitivity / freshness note.",
+      "Never imply guaranteed profitability, certainty, or risk-free outcomes.",
       `Choose up to ${maxRecommendations} recommendations, or fewer if quality is weak.`,
       `Set timeframe to ${dayTradeHorizon}.`,
       settings.long_only
@@ -1925,31 +2294,42 @@ async function generateRecommendationsWithOpenAI(
       duplicateFallbackUsed
         ? "Some candidates may have been recommended earlier today. Only repeat a ticker if the setup remains high quality."
         : "",
-      "Make entry, stop, and target levels coherent with each candidate's mock support, mock resistance, and mock_current_price.",
+      "Make entry, stop, and target levels coherent with each candidate's proposed entry, stop, target, and latest price fields.",
       "risk_reward must be a JSON number such as 2.2, never a string such as 2.2R or 1:2.2.",
       "Only output JSON. Do not include markdown. Do not include explanations outside JSON.",
-    ].join("\n"),
-    input: JSON.stringify({
+    ].join("\n");
+  const inputPayload = {
       session_type: sessionType,
       scan_window: scanWindow,
+      serving_batch: batchContext,
       max_recommendations: maxRecommendations,
+      target_count_for_window: maxRecommendations,
       preferred_timeframe: settings.preferred_timeframe,
       allowed_directions: allowedDirections,
       market_regime: marketRegime,
       trade_horizon: dayTradeHorizon,
+      scanner_ranking_summary: {
+        generated_at: scannerCandidateRankingSummary.generated_at,
+        candidates_ranked: scannerCandidateRankingSummary.candidates_ranked,
+        selected_count: scannerCandidateRankingSummary.selected_count,
+        target_min: scannerCandidateRankingSummary.target_min,
+        target_max: scannerCandidateRankingSummary.target_max,
+        target_status: scannerCandidateRankingSummary.target_status,
+        top_ranking_reasons: scannerCandidateRankingSummary.top_ranking_reasons,
+        top_penalty_reasons: scannerCandidateRankingSummary.top_penalty_reasons,
+      },
       local_scoring: {
         threshold_note:
           "Candidates include candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, setup_type, setup_type_label, setup_type_description, and optional intraday_indicators from the app's scanner.",
         setup_type_taxonomy: SETUP_TYPE_OPTIONS_FOR_PROMPT,
       },
-      candidates: availableCandidates.map((candidate) => ({
-        ...candidate,
-        candidate_score: candidate.local_score,
-        candidate_score_breakdown: candidate.local_score_breakdown,
-        candidate_score_reasons: candidate.local_score_reasons,
-        candidate_score_warnings: candidate.local_score_warnings,
-      })),
-    }),
+      candidates: candidatePayloads,
+    };
+
+  const response = await openai.responses.create({
+    model: "gpt-4.1-mini",
+    instructions,
+    input: JSON.stringify(inputPayload),
     text: {
       format: {
         type: "json_schema",
@@ -1967,7 +2347,25 @@ async function generateRecommendationsWithOpenAI(
     throw new Error("OpenAI returned an empty response.");
   }
 
-  return parseAiResponse(response.output_text);
+  const parsedResponse = parseAiResponse(response.output_text);
+  const realityGuard = buildOpenAiRecommendationRealityGuardSummary({
+    instructionsText: instructions,
+    inputPayload,
+    scanWindow,
+    batchWindow: batchContext.batch_window,
+    batchType: batchContext.batch_type,
+    batchStatus: batchContext.batch_status,
+    targetCount: maxRecommendations,
+    candidates: candidatePayloads,
+    outputRecommendations: parsedResponse.recommendations,
+    outputResult: parsedResponse.result,
+    noTradeReason: parsedResponse.no_trade?.reason ?? null,
+  });
+
+  return {
+    response: parsedResponse,
+    realityGuard,
+  };
 }
 
 export async function generateRecommendations({
@@ -2054,7 +2452,11 @@ export async function generateRecommendations({
       ]);
 
     if (settingsResult.error) {
-      console.error(settingsResult.error);
+      console.error("[recommendations/generate] settings_load_error", {
+        source: "supabase.user_settings",
+        operation: "select_latest_settings",
+        error: normalizeUnknownError(settingsResult.error),
+      });
       throw new RecommendationGenerationError(
         settingsResult.error.message ?? "Unknown error",
         500,
@@ -2062,7 +2464,11 @@ export async function generateRecommendations({
     }
 
     if (todaysRecommendationsResult.error) {
-      console.error(todaysRecommendationsResult.error);
+      console.error("[recommendations/generate] todays_recommendations_load_error", {
+        source: "supabase.recommendations",
+        operation: "select_todays_recommendations",
+        error: normalizeUnknownError(todaysRecommendationsResult.error),
+      });
       throw new RecommendationGenerationError(
         todaysRecommendationsResult.error.message ?? "Unknown error",
         500,
@@ -2070,7 +2476,11 @@ export async function generateRecommendations({
     }
 
     if (currentRecommendationsResult.error) {
-      console.error(currentRecommendationsResult.error);
+      console.error("[recommendations/generate] current_recommendations_load_error", {
+        source: "supabase.recommendations",
+        operation: "select_current_recommendations",
+        error: normalizeUnknownError(currentRecommendationsResult.error),
+      });
       throw new RecommendationGenerationError(
         currentRecommendationsResult.error.message ?? "Unknown error",
         500,
@@ -2078,7 +2488,11 @@ export async function generateRecommendations({
     }
 
     if (openPositionsResult.error) {
-      console.error(openPositionsResult.error);
+      console.error("[recommendations/generate] open_positions_load_error", {
+        source: "supabase.positions",
+        operation: "select_open_positions",
+        error: normalizeUnknownError(openPositionsResult.error),
+      });
       throw new RecommendationGenerationError(
         openPositionsResult.error.message ?? "Unknown error",
         500,
@@ -2194,11 +2608,31 @@ export async function generateRecommendations({
       );
     }
 
-    const scannerCandidates = await scanMarket(mockCandidates, { source });
+    const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
+      scanWindow,
+    });
+    const scannerBaseCandidates = scannerUniverseSelection.candidates;
+    const scannerCandidates = await scanMarket(
+      scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
+      { source },
+    );
+    const initialRealScannerCandidateGeneration =
+      buildRealScannerCandidateGenerationSummary({
+        universe: scannerBaseCandidates,
+        candidates: scannerCandidates,
+        scanWindow,
+        source,
+        providerSource: "twelve_data",
+        universeSelection: scannerUniverseSelection.selection,
+      });
 
     logPipeline(
       "total_scanner_candidates_before_filtering",
       scannerCandidates.length,
+    );
+    logPipeline(
+      "real_scanner_candidate_generation",
+      initialRealScannerCandidateGeneration,
     );
 
     if (scannerCandidates.length === 0) {
@@ -2210,6 +2644,8 @@ export async function generateRecommendations({
           scan_log: {
             result: "no_high_quality_setup",
             candidates_scanned: 0,
+            real_scanner_candidate_generation:
+              initialRealScannerCandidateGeneration,
           } satisfies RecommendationScanLogDetails,
         };
       }
@@ -2231,7 +2667,9 @@ export async function generateRecommendations({
     try {
       marketRegime = await getMarketRegime();
     } catch (error) {
-      console.error("[recommendations/generate] market_regime_error", error);
+      console.error("[recommendations/generate] market_regime_error", {
+        error: normalizeUnknownError(error),
+      });
     }
 
     logPipeline("market_regime", marketRegime);
@@ -2392,11 +2830,13 @@ export async function generateRecommendations({
               : "no_high_quality_setup",
           candidates_scanned: scannerCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
+          real_scanner_candidate_generation:
+            initialRealScannerCandidateGeneration,
         } satisfies RecommendationScanLogDetails,
       };
     }
 
-    const scoredCandidates = availableCandidates
+    const initiallyScoredCandidates = availableCandidates
       .map((candidate) =>
         toScoredCandidate(candidate, {
           marketRegime,
@@ -2408,6 +2848,25 @@ export async function generateRecommendations({
           second.local_score - first.local_score ||
           sortCandidatesByDiversity(first, second),
       );
+    const scannerCandidateRankingSummary =
+      buildScannerCandidateRankingSummary({
+        candidates: initiallyScoredCandidates,
+        scanWindow,
+        universeCoverage: scannerUniverseSelection.coverage,
+      });
+    const rankingRankByTicker = new Map(
+      scannerCandidateRankingSummary.results.map((result) => [
+        result.ticker,
+        result.rank,
+      ]),
+    );
+    const scoredCandidates = [...initiallyScoredCandidates].sort(
+      (first, second) =>
+        (rankingRankByTicker.get(first.ticker) ?? Number.MAX_SAFE_INTEGER) -
+          (rankingRankByTicker.get(second.ticker) ?? Number.MAX_SAFE_INTEGER) ||
+        second.local_score - first.local_score ||
+        sortCandidatesByDiversity(first, second),
+    );
     const threshold = getDayTradeScoreThreshold(scanWindow, source);
     const topCandidate = scoredCandidates[0] ?? null;
     const topCandidateScore = topCandidate?.local_score ?? 0;
@@ -2441,6 +2900,17 @@ export async function generateRecommendations({
     const candidateTickersForOpenAI = candidatesForOpenAI.map(
       (candidate) => candidate.ticker,
     );
+    const realScannerCandidateGeneration =
+      buildRealScannerCandidateGenerationSummary({
+        universe: scannerBaseCandidates,
+        candidates: scoredCandidates,
+        scanWindow,
+        source,
+        visibleCandidateTickers: candidateTickersForOpenAI,
+        providerSource: "twelve_data",
+        universeSelection: scannerUniverseSelection.selection,
+        scannerCandidateRanking: scannerCandidateRankingSummary,
+      });
     const scoredCandidateSummary = scoredCandidates.slice(0, 8).map((candidate) => ({
       ticker: candidate.ticker,
       score: candidate.local_score,
@@ -2459,6 +2929,8 @@ export async function generateRecommendations({
     logPipeline("top_scored_candidate_score", topCandidateScore);
     logPipeline("top_scored_candidate_setup_type", topCandidateSetupType);
     logPipeline("scored_candidates", scoredCandidateSummary);
+    logPipeline("scanner_candidate_ranking", scannerCandidateRankingSummary);
+    logPipeline("real_scanner_candidate_generation", realScannerCandidateGeneration);
     logPipeline("candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
@@ -2493,6 +2965,8 @@ export async function generateRecommendations({
           threshold,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -2524,19 +2998,30 @@ export async function generateRecommendations({
           threshold,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
         } satisfies RecommendationScanLogDetails,
       };
     }
 
-    const aiResponse = await generateRecommendationsWithOpenAI(
+    const openAiResult = await generateRecommendationsWithOpenAI(
       candidatesForOpenAI,
       sessionType,
       scanWindow,
       settings,
       duplicateFallbackUsed,
       marketRegime,
+      scannerCandidateRankingSummary,
+      source,
+      openPositionCount,
     );
+    const aiResponse = openAiResult.response;
+    let openAiRealityGuardSummary = openAiResult.realityGuard;
     logPipeline("raw_openai_recommendations_count", aiResponse.recommendations.length);
+    logPipeline(
+      "openai_recommendation_reality_guard",
+      openAiRealityGuardSummary,
+    );
 
     if (aiResponse.result === "no_trade") {
       const noTrade = aiResponse.no_trade;
@@ -2579,6 +3064,9 @@ export async function generateRecommendations({
           threshold,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
+          openai_recommendation_reality_guard: openAiRealityGuardSummary,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -2613,6 +3101,9 @@ export async function generateRecommendations({
           threshold,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
+          openai_recommendation_reality_guard: openAiRealityGuardSummary,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -2621,9 +3112,20 @@ export async function generateRecommendations({
       aiResponse.recommendations,
       candidatesForOpenAI,
       sessionType,
+      scanWindow,
+      source,
       settings.max_recommendations_per_session,
     );
     const recommendationsToInsert = sanitizedRecommendations.recommendations;
+    openAiRealityGuardSummary = finalizeOpenAiRecommendationRealityGuardSummary(
+      openAiRealityGuardSummary,
+      {
+        validatedRecommendationTickers: recommendationsToInsert.map(
+          (recommendation) => recommendation.ticker,
+        ),
+        sanitizerSkippedReasons: sanitizedRecommendations.skippedReasons,
+      },
+    );
 
     logPipeline("validated_recommendations_count", recommendationsToInsert.length);
     logPipeline(
@@ -2633,6 +3135,10 @@ export async function generateRecommendations({
     logPipeline(
       "skipped_recommendation_reasons",
       sanitizedRecommendations.skippedReasons,
+    );
+    logPipeline(
+      "openai_recommendation_reality_guard_final",
+      openAiRealityGuardSummary,
     );
 
     if (recommendationsToInsert.length === 0) {
@@ -2664,6 +3170,9 @@ export async function generateRecommendations({
           skipped_tickers:
             candidatesRemovedByCooldown.length +
             sanitizedRecommendations.skippedReasons.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
+          openai_recommendation_reality_guard: openAiRealityGuardSummary,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -2674,7 +3183,12 @@ export async function generateRecommendations({
       .select("*");
 
     if (insertResult.error) {
-      console.error(insertResult.error);
+      console.error("[recommendations/generate] recommendation_insert_error", {
+        source: "supabase.recommendations",
+        operation: "insert_recommendations",
+        tickers: recommendationsToInsert.map((recommendation) => recommendation.ticker),
+        error: normalizeUnknownError(insertResult.error),
+      });
       throw new RecommendationGenerationError(
         insertResult.error.message ?? "Unknown error",
         500,
@@ -2720,11 +3234,19 @@ export async function generateRecommendations({
         skipped_tickers:
           candidatesRemovedByCooldown.length +
           sanitizedRecommendations.skippedReasons.length,
+        real_scanner_candidate_generation: realScannerCandidateGeneration,
+        scanner_candidate_ranking: scannerCandidateRankingSummary,
+        openai_recommendation_reality_guard: openAiRealityGuardSummary,
       } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),
     };
   } catch (error) {
-    console.error(error);
+    console.error("[recommendations/generate] generation_error", {
+      sessionType,
+      scanWindow,
+      source,
+      error: normalizeUnknownError(error),
+    });
     if (error instanceof RecommendationGenerationError) {
       throw error;
     }

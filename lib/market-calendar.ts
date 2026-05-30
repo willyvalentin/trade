@@ -1,6 +1,7 @@
 import "server-only";
 
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
 
 const POLYGON_BASE_URL = "https://api.polygon.io";
 const NEW_YORK_TIME_ZONE = "America/New_York";
@@ -182,7 +183,12 @@ async function getFreshCachedStatus(cacheDate: string) {
     .limit(10);
 
   if (error) {
-    console.error("[market-calendar] cache_read_error", error);
+    console.error("[market-calendar] cache_read_error", {
+      source: "supabase.market_calendar_cache",
+      operation: "select_fresh_status",
+      cacheDate,
+      error: normalizeUnknownError(error),
+    });
     return null;
   }
 
@@ -606,7 +612,13 @@ async function upsertCachedStatus(status: MarketStatus, raw: unknown) {
   );
 
   if (error) {
-    console.error("[market-calendar] cache_upsert_error", error);
+    console.error("[market-calendar] cache_upsert_error", {
+      source: "supabase.market_calendar_cache",
+      operation: "upsert_status",
+      cacheDate: status.date,
+      provider: status.provider,
+      error: normalizeUnknownError(error),
+    });
   }
 }
 

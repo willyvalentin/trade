@@ -3,13 +3,16 @@ import { NextResponse } from "next/server";
 import {
   generateRecommendations,
   RecommendationGenerationError,
+  type RecommendationScanLogDetails,
   type SessionType,
 } from "@/lib/recommendation-generator";
 import {
   buildScanLogMessage,
   createScanLog,
   getScanLogResultFromMessage,
+  parseScanLogFromMessage,
   type ScanLogEntry,
+  type ScanLogRunRow,
   type ScanLogResult,
 } from "@/lib/scan-logs";
 import {
@@ -27,7 +30,33 @@ import {
   type IntradayScanWindow,
 } from "@/lib/intraday-scan-window";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
+import {
+  buildDayTradeScanOrchestrationSummary,
+  dayTradeScanWindowToIntradayScanWindow,
+} from "@/lib/day-trade-scan-orchestration";
+import { buildMarketSessionEvaluation } from "@/lib/market-session";
+import {
+  buildRecommendationServingCadenceSummary,
+  type RecommendationServingCadenceSummary,
+} from "@/lib/recommendation-serving-cadence";
+import {
+  buildRecommendationScanRun,
+  persistRecommendationScanRun,
+  recommendationScanRunFromPersistenceRow,
+  type RecommendationScanRun,
+} from "@/lib/recommendation-scan-run";
+import {
+  buildRecommendationSnapshot,
+  persistRecommendationSnapshot,
+  type RecommendationSnapshot,
+} from "@/lib/recommendation-snapshot";
+import {
+  buildRecommendationBatch,
+  persistRecommendationBatch,
+} from "@/lib/recommendation-batch-memory";
+import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -40,6 +69,44 @@ type AutomationRunRequestBody = {
   session_type?: unknown;
   scan_window?: unknown;
   ignore_existing_run?: unknown;
+};
+
+type AutomationScanDecision =
+  | "scanned"
+  | "skipped_market_closed"
+  | "skipped_outside_window"
+  | "skipped_recent_scan"
+  | "skipped_provider_unavailable"
+  | "failed";
+
+type ScheduledScanRunSummary = {
+  row: ScanLogRunRow;
+  scanLog: ScanLogEntry;
+};
+
+type RecommendationRow = {
+  id?: string | null;
+  ticker?: string | null;
+  company_name?: string | null;
+  direction?: string | null;
+  setup_type?: string | null;
+  entry_low?: number | string | null;
+  entry_high?: number | string | null;
+  stop_loss?: number | string | null;
+  target_1?: number | string | null;
+  target_2?: number | string | null;
+  risk_reward?: number | string | null;
+  confidence?: number | string | null;
+  confidence_score?: number | string | null;
+  confidence_label?: string | null;
+  confidence_reasoning?: string | null;
+  timeframe?: string | null;
+  thesis?: string | null;
+  invalidation?: string | null;
+  reason_to_avoid?: string | null;
+  status?: string | null;
+  scan_window?: string | null;
+  created_at?: string | null;
 };
 
 const intradayScanWindows: IntradayScanWindow[] = [
@@ -91,22 +158,189 @@ async function parseAutomationRunRequestBody(
   }
 }
 
-async function hasScanAlreadyRun(scanDate: string, sessionType: SessionType) {
-  const { data, error } = await supabase
-    .from("scheduled_scan_runs")
-    .select("scan_date")
-    .eq("scan_date", scanDate)
-    .eq("session_type", sessionType)
-    .maybeSingle();
-
-  if (error) {
-    throw new RecommendationGenerationError(
-      error.message ?? "Could not check scheduled scan history.",
-      500,
-    );
+function numberOrNull(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
   }
 
-  return Boolean(data);
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function textOrNull(value: unknown) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text.length > 0 ? text : null;
+}
+
+function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
+  return (
+    scanWindow === "opening" ||
+    scanWindow === "morning_momentum" ||
+    scanWindow === "midday" ||
+    scanWindow === "afternoon" ||
+    scanWindow === "power_hour"
+  );
+}
+
+function isRateLimitLikeError(error: unknown) {
+  const normalized = normalizeUnknownError(error);
+  const status =
+    typeof normalized === "object" &&
+    normalized !== null &&
+    "status" in normalized &&
+    typeof normalized.status === "number"
+      ? normalized.status
+      : null;
+  const message = JSON.stringify(normalized).toLowerCase();
+
+  return (
+    status === 429 ||
+    message.includes("rate limit") ||
+    message.includes("too many request") ||
+    message.includes("quota")
+  );
+}
+
+function errorScanResult(error: unknown): ScanLogResult {
+  const message = JSON.stringify(normalizeUnknownError(error)).toLowerCase();
+
+  if (isRateLimitLikeError(error)) {
+    return "provider_rate_limited";
+  }
+
+  if (
+    message.includes("openai") ||
+    message.includes("api_key") ||
+    message.includes("api key")
+  ) {
+    return "openai_error";
+  }
+
+  if (
+    message.includes("twelve") ||
+    message.includes("provider") ||
+    message.includes("market data") ||
+    message.includes("calendar")
+  ) {
+    return "provider_error";
+  }
+
+  return "unknown";
+}
+
+function providerEnvironmentReady() {
+  const missing: string[] = [];
+
+  if (!process.env.OPENAI_API_KEY) {
+    missing.push("OPENAI_API_KEY");
+  }
+
+  if (!process.env.TWELVE_DATA_API_KEY) {
+    missing.push("TWELVE_DATA_API_KEY");
+  }
+
+  return {
+    ready: missing.length === 0,
+    missing,
+  };
+}
+
+async function readRecentRecommendationScanRuns() {
+  const { data, error } = await supabase
+    .from("recommendation_scan_runs")
+    .select("*")
+    .order("observed_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error("[automation/run-scan] recommendation_scan_runs_load_error", {
+      source: "supabase.recommendation_scan_runs",
+      operation: "select_recent_recommendation_scan_runs",
+      error: normalizeUnknownError(error),
+    });
+    return [];
+  }
+
+  return ((data ?? []) as Array<Record<string, unknown>>)
+    .map(recommendationScanRunFromPersistenceRow)
+    .filter((scanRun): scanRun is RecommendationScanRun => scanRun !== null);
+}
+
+async function readRecentScheduledScanRuns() {
+  const { data, error } = await supabase
+    .from("scheduled_scan_runs")
+    .select("id,created_at,scan_date,session_type,status,recommendations_created,message")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error("[automation/run-scan] scheduled_scan_runs_load_error", {
+      source: "supabase.scheduled_scan_runs",
+      operation: "select_recent_scheduled_scan_runs",
+      error: normalizeUnknownError(error),
+    });
+    return [];
+  }
+
+  return ((data ?? []) as ScanLogRunRow[]).map((row) => ({
+    row,
+    scanLog: parseScanLogFromMessage(row),
+  }));
+}
+
+function latestScheduledScanForWindow({
+  runs,
+  scanDate,
+  sessionType,
+  scanWindow,
+}: {
+  runs: ScheduledScanRunSummary[];
+  scanDate: string;
+  sessionType: SessionType;
+  scanWindow: IntradayScanWindow;
+}) {
+  return (
+    runs.find((run) => {
+      const rowScanDate = textOrNull(run.row.scan_date);
+      const rowSessionType = textOrNull(run.row.session_type);
+      return (
+        rowScanDate === scanDate &&
+        rowSessionType === sessionType &&
+        run.scanLog.scan_window === scanWindow &&
+        run.row.status === "completed"
+      );
+    }) ?? null
+  );
+}
+
+function minutesSince(value: string | null | undefined, now: Date) {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((now.getTime() - timestamp) / 60000));
+}
+
+function shouldSkipForRecentScan({
+  latestScan,
+  now,
+  cooldownMinutes,
+}: {
+  latestScan: ScheduledScanRunSummary | null;
+  now: Date;
+  cooldownMinutes: number;
+}) {
+  const ageMinutes = minutesSince(latestScan?.row.created_at, now);
+  return ageMinutes !== null && ageMinutes < cooldownMinutes;
 }
 
 async function archiveExpiredRecommendations() {
@@ -158,10 +392,11 @@ async function recordScheduledScanRun({
   });
 
   if (error) {
-    if (ignoreExistingRun && error.code === "23505") {
+    if (error.code === "23505") {
       console.log("[automation/run-scan] duplicate run record ignored", {
         scanDate,
         sessionType,
+        ignoreExistingRun,
       });
       return;
     }
@@ -170,16 +405,6 @@ async function recordScheduledScanRun({
       error.message ?? "Could not record scheduled scan run.",
       500,
     );
-  }
-}
-
-async function safelyRecordScheduledScanRun(
-  input: Parameters<typeof recordScheduledScanRun>[0],
-) {
-  try {
-    await recordScheduledScanRun(input);
-  } catch (error) {
-    console.error("[automation/run-scan] scan_log_record_error", error);
   }
 }
 
@@ -277,7 +502,409 @@ function createAutomationScanLog({
     pre_market_candidates: Array.isArray(details?.pre_market_candidates)
       ? (details.pre_market_candidates as ScanLogEntry["pre_market_candidates"])
       : null,
+    day_trade_scan_orchestration:
+      typeof details?.day_trade_scan_orchestration === "object" &&
+      details.day_trade_scan_orchestration !== null
+        ? (details.day_trade_scan_orchestration as ScanLogEntry["day_trade_scan_orchestration"])
+        : null,
+    recommendation_serving_cadence:
+      typeof details?.recommendation_serving_cadence === "object" &&
+      details.recommendation_serving_cadence !== null
+        ? (details.recommendation_serving_cadence as ScanLogEntry["recommendation_serving_cadence"])
+        : null,
   });
+}
+
+function recommendationTicker(row: RecommendationRow) {
+  return textOrNull(row.ticker)?.toUpperCase() ?? null;
+}
+
+function recommendationCreatedAt(row: RecommendationRow) {
+  return textOrNull(row.created_at) ?? new Date().toISOString();
+}
+
+function buildServingCadenceForAutomation({
+  scanDate,
+  orchestration,
+  recommendations,
+  ranking,
+  now,
+}: {
+  scanDate: string;
+  orchestration: ReturnType<typeof buildDayTradeScanOrchestrationSummary>;
+  recommendations: RecommendationRow[];
+  ranking: ScanLogEntry["scanner_candidate_ranking"];
+  now: Date;
+}) {
+  return buildRecommendationServingCadenceSummary({
+    tradingDate: scanDate,
+    orchestration,
+    ranking: ranking ?? null,
+    visibleRecommendations: recommendations.map((recommendation) => ({
+      id: textOrNull(recommendation.id),
+      ticker: recommendationTicker(recommendation),
+      created_at: recommendationCreatedAt(recommendation),
+      status: textOrNull(recommendation.status),
+    })),
+    now,
+  });
+}
+
+function buildAutomationScanObservability({
+  scanDate,
+  scanWindow,
+  now,
+  marketSession,
+  scanLog,
+  recommendations,
+}: {
+  scanDate: string;
+  scanWindow: IntradayScanWindow;
+  now: Date;
+  marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
+  scanLog: ScanLogEntry;
+  recommendations: RecommendationRow[];
+}): ScanPipelineObservabilitySummary {
+  const tickers = recommendations
+    .map(recommendationTicker)
+    .filter((ticker): ticker is string => ticker !== null);
+  const candidatesScanned = scanLog.candidates_scanned ?? null;
+  const providerStatus =
+    scanLog.result === "provider_error" || scanLog.result === "provider_rate_limited"
+      ? "unavailable"
+      : scanLog.indicator_source || scanLog.real_scanner_candidate_generation
+        ? "available"
+        : "unknown";
+  const status: ScanPipelineObservabilitySummary["status"] =
+    scanLog.result === "provider_error" ||
+    scanLog.result === "provider_rate_limited" ||
+    scanLog.result === "openai_error"
+      ? "degraded"
+      : recommendations.length > 0
+        ? "healthy"
+        : "incomplete";
+
+  return {
+    summary_id: `automation_scan:${scanDate}:${scanWindow}:${now.toISOString()}`,
+    summary_version: "1.0",
+    summary_kind: "scan_pipeline_observability",
+    generated_at: now.toISOString(),
+    status,
+    visible_recommendation_count: recommendations.length,
+    intake_counts: {
+      accepted: recommendations.length,
+      needs_review: 0,
+      rejected: 0,
+      incomplete: 0,
+    },
+    accepted_rate:
+      candidatesScanned && candidatesScanned > 0
+        ? (recommendations.length / candidatesScanned) * 100
+        : null,
+    elevated_candidate_count: recommendations.length,
+    duplicate_ticker_count: Math.max(0, tickers.length - new Set(tickers).size),
+    stale_candidate_count: scanLog.indicator_stale ? 1 : 0,
+    incomplete_data_candidate_count: 0,
+    tickers_represented: Array.from(new Set(tickers)).sort(),
+    top_reasons: scanLog.top_candidate_reasons?.slice(0, 4).map((reason, index) => ({
+      reason_id: `top_reason_${index + 1}`,
+      label: `Top reason ${index + 1}`,
+      message: reason,
+      count: 1,
+    })) ?? [],
+    metrics: [
+      {
+        metric_id: "total_scanned_tickers",
+        label: "Scanned tickers",
+        value: candidatesScanned,
+        display_value: candidatesScanned === null ? "Unknown" : String(candidatesScanned),
+        status: candidatesScanned === null ? "unknown" : "ok",
+        source: "scan_logs",
+      },
+      {
+        metric_id: "visible_recommendations",
+        label: "Visible recommendations",
+        value: recommendations.length,
+        display_value: String(recommendations.length),
+        status: "ok",
+        source: "visible_recommendations",
+      },
+    ],
+    warnings: scanLog.top_candidate_warnings?.slice(0, 4).map((message, index) => ({
+      warning_id: `top_candidate_warning_${index + 1}`,
+      label: "Top candidate warning",
+      message,
+      source: "scan_logs",
+    })) ?? [],
+    source_statuses: [
+      {
+        source_id: "market_data_provider",
+        label: "Market data provider",
+        status: providerStatus,
+        message:
+          providerStatus === "available"
+            ? "Provider-backed scanner metadata was observed for this run."
+            : providerStatus === "unavailable"
+              ? "Provider-backed scanner metadata failed or was rate limited."
+              : "Provider-backed scanner metadata was not available in this run.",
+      },
+    ],
+    run_context: {
+      latest_scan_at: now.toISOString(),
+      latest_scan_result: scanLog.result,
+      latest_scan_window: scanWindow,
+      latest_scan_source: scanLog.source,
+      latest_recommendation_at:
+        recommendations
+          .map((recommendation) => textOrNull(recommendation.created_at))
+          .filter((value): value is string => value !== null)
+          .sort()
+          .at(-1) ?? null,
+      latest_observable_update_at: now.toISOString(),
+      data_age_minutes: 0,
+      market_session_phase: marketSession.phase,
+      market_session_risk: marketSession.risk_level,
+      market_session_source: marketSession.source,
+    },
+    unknown_metrics: [],
+    summary:
+      recommendations.length > 0
+        ? `Automation scan served ${recommendations.length} recommendations.`
+        : "Automation scan completed without visible recommendations.",
+  };
+}
+
+function buildSnapshotFromRecommendation({
+  recommendation,
+  scanRunId,
+  scanWindow,
+  now,
+  marketSession,
+  scanObservability,
+  servingCadence,
+}: {
+  recommendation: RecommendationRow;
+  scanRunId: string;
+  scanWindow: IntradayScanWindow;
+  now: Date;
+  marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
+  scanObservability: ScanPipelineObservabilitySummary;
+  servingCadence: RecommendationServingCadenceSummary;
+}) {
+  const entryLow = numberOrNull(recommendation.entry_low);
+  const entryHigh = numberOrNull(recommendation.entry_high);
+  const stop = numberOrNull(recommendation.stop_loss);
+  const target = numberOrNull(recommendation.target_1);
+  const entry =
+    entryLow !== null && entryHigh !== null
+      ? (entryLow + entryHigh) / 2
+      : entryHigh ?? entryLow;
+  const side = recommendation.direction === "short" ? "short" : "long";
+  const riskPerShare =
+    entry !== null && stop !== null
+      ? side === "short"
+        ? stop - entry
+        : entry - stop
+      : null;
+  const rewardPerShare =
+    entry !== null && target !== null
+      ? side === "short"
+        ? entry - target
+        : target - entry
+      : null;
+  const rationale = [
+    recommendation.thesis,
+    recommendation.confidence_reasoning,
+    recommendation.invalidation,
+  ]
+    .filter((item): item is string => typeof item === "string" && item.length > 0)
+    .join(" ");
+
+  return buildRecommendationSnapshot({
+    recommendation_id: textOrNull(recommendation.id),
+    scan_run_id: scanRunId,
+    ticker: recommendationTicker(recommendation),
+    company_name: textOrNull(recommendation.company_name),
+    recommended_at: recommendationCreatedAt(recommendation),
+    app_timestamp: now,
+    window: scanWindow,
+    market_session_phase: marketSession.phase,
+    market_session_risk: marketSession.risk_level,
+    market_session_source: marketSession.source,
+    source_mode: "supabase",
+    data_mode: "supabase_record",
+    is_visible: true,
+    is_real: true,
+    entry,
+    entry_low: entryLow,
+    entry_high: entryHigh,
+    stop,
+    target,
+    side,
+    risk_per_share:
+      riskPerShare !== null && riskPerShare > 0 ? riskPerShare : null,
+    reward_per_share:
+      rewardPerShare !== null && rewardPerShare > 0 ? rewardPerShare : null,
+    planned_risk_reward: numberOrNull(recommendation.risk_reward),
+    confidence:
+      numberOrNull(recommendation.confidence_score) ??
+      textOrNull(String(recommendation.confidence ?? "")),
+    score: numberOrNull(recommendation.confidence_score),
+    rating: textOrNull(String(recommendation.confidence ?? "")),
+    label: textOrNull(recommendation.confidence_label),
+    type: textOrNull(recommendation.setup_type),
+    rationale,
+    reason: textOrNull(recommendation.thesis),
+    catalyst: textOrNull(recommendation.confidence_reasoning),
+    primary_risk:
+      textOrNull(recommendation.invalidation) ??
+      textOrNull(recommendation.reason_to_avoid),
+    freshness: "fresh",
+    data_age_minutes: 0,
+    quality: {
+      scan_observability_summary: scanObservability,
+    },
+    payload: {
+      recommendation,
+      market_session: marketSession,
+      recommendation_serving_cadence: servingCadence,
+    },
+  });
+}
+
+async function persistAutomationArtifacts({
+  scanDate,
+  sessionType,
+  scanWindow,
+  now,
+  marketSession,
+  marketStatus,
+  orchestration,
+  scanLog,
+  servingCadence,
+  recommendations,
+}: {
+  scanDate: string;
+  sessionType: SessionType;
+  scanWindow: IntradayScanWindow;
+  now: Date;
+  marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
+  marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>;
+  orchestration: ReturnType<typeof buildDayTradeScanOrchestrationSummary>;
+  scanLog: ScanLogEntry;
+  servingCadence: RecommendationServingCadenceSummary;
+  recommendations: RecommendationRow[];
+}) {
+  const observability = buildAutomationScanObservability({
+    scanDate,
+    scanWindow,
+    now,
+    marketSession,
+    scanLog,
+    recommendations,
+  });
+  const scanRun = buildRecommendationScanRun({
+    trading_date: scanDate,
+    observed_at: now,
+    started_at: now,
+    completed_at: now,
+    window: orchestration.active_window,
+    market_session_phase: marketSession.phase,
+    market_session_risk: marketSession.risk_level,
+    market_session_source: marketSession.source,
+    source: "supabase",
+    data_mode: "supabase_record",
+    scan_observability: observability,
+    visible_recommendations: recommendations.map((recommendation) => ({
+      id: textOrNull(recommendation.id),
+      ticker: recommendationTicker(recommendation),
+      created_at: recommendationCreatedAt(recommendation),
+    })),
+    scheduled_scan_run_id: `${scanDate}:${sessionType}:${scanWindow}`,
+    scanned_ticker_count: scanLog.candidates_scanned ?? null,
+    raw_candidate_count:
+      scanLog.real_scanner_candidate_generation?.universe.candidates_generated ??
+      scanLog.candidates_scanned ??
+      null,
+    payload: {
+      scan_window: scanWindow,
+      scan_reason: orchestration.scan_reason,
+      run_type: orchestration.run_type,
+      market_session: marketSession,
+      market_status: marketStatus,
+      day_trade_scan_orchestration: orchestration,
+      recommendation_serving_cadence: servingCadence,
+      provider_source:
+        scanLog.real_scanner_candidate_generation?.provider_source ??
+        scanLog.indicator_source ??
+        null,
+    },
+  });
+  const persistence = {
+    scan_run: await persistRecommendationScanRun(scanRun, {
+      supabaseClient: supabase,
+    }),
+    snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
+    batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
+  };
+  const snapshots: RecommendationSnapshot[] = [];
+
+  for (const recommendation of recommendations) {
+    const snapshot = buildSnapshotFromRecommendation({
+      recommendation,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+    });
+
+    snapshots.push(snapshot);
+    persistence.snapshots.push(
+      await persistRecommendationSnapshot(snapshot, { supabaseClient: supabase }),
+    );
+  }
+
+  if (
+    snapshots.length > 0 ||
+    servingCadence.no_trade_valid ||
+    servingCadence.batch_status === "no_trade_valid"
+  ) {
+    const batch = buildRecommendationBatch({
+      trading_date: scanDate,
+      observed_at: now,
+      published_at: servingCadence.latest_official_batch_published_at,
+      served_at: servingCadence.served_at,
+      window: servingCadence.serving_window,
+      batch_type: servingCadence.batch_type,
+      snapshots,
+      scan_run: scanRun,
+      scan_run_id: scanRun.id,
+      scan_run_fingerprint: scanRun.run_fingerprint,
+      serving_cadence: servingCadence,
+      ranking_summary: scanLog.scanner_candidate_ranking ?? null,
+      openai_reality_guard: scanLog.openai_recommendation_reality_guard ?? null,
+      source_mode: "supabase",
+      data_mode: "supabase_record",
+      market_session_phase: marketSession.phase,
+      payload: {
+        scan_window: scanWindow,
+        scan_reason: orchestration.scan_reason,
+        automation_source: "scheduled",
+      },
+    });
+
+    persistence.batch = await persistRecommendationBatch(batch, {
+      supabaseClient: supabase,
+    });
+  }
+
+  return {
+    scan_run: scanRun,
+    snapshots,
+    persistence,
+  };
 }
 
 async function runDiscardReviewIfDue({
@@ -322,7 +949,9 @@ async function runDiscardReviewIfDue({
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
 
-    console.error("[automation/run-scan] discard_review_error", error);
+    console.error("[automation/run-scan] discard_review_error", {
+      error: normalizeUnknownError(error),
+    });
 
     return {
       message: `Discard review error: ${message}`,
@@ -339,13 +968,6 @@ export async function POST(request: Request) {
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
   const matches = Boolean(expectedSecret && providedSecret === expectedSecret);
-
-  console.log("Automation auth debug", {
-    hasExpectedSecret: Boolean(expectedSecret),
-    expectedLength: expectedSecret?.length ?? 0,
-    providedLength: providedSecret?.length ?? 0,
-    matches,
-  });
 
   if (!matches) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
@@ -364,11 +986,14 @@ export async function POST(request: Request) {
     ignore_existing_run,
   });
 
+  const now = new Date();
   const marketStatus = await getUsMarketStatus();
+  const marketSession = buildMarketSessionEvaluation({ now, marketStatus });
+  let recentScheduledScanRuns: ScheduledScanRunSummary[] = [];
   let scanWindow = getScanWindowDueNow();
 
   if (force) {
-    const forcedScanWindow = requestedScanWindow ?? getIntradayScanWindow(new Date());
+    const forcedScanWindow = requestedScanWindow ?? getIntradayScanWindow(now);
     const forcedSessionType =
       session_type === "morning" || session_type === "midday"
         ? session_type
@@ -390,21 +1015,63 @@ export async function POST(request: Request) {
     }
 
     scanWindow = {
-      scanDate: getNewYorkDateString(new Date()),
+      scanDate: getNewYorkDateString(now),
       sessionType: forcedSessionType,
       scanWindow: forcedScanWindow,
     };
   }
 
+  let dayTradeScanOrchestration = buildDayTradeScanOrchestrationSummary({
+    now,
+    marketSession,
+    marketStatus,
+    currentDataMode: "supabase",
+    runType: force ? "diagnostic" : "scheduled",
+  });
+
+  if (!force && dayTradeScanOrchestration.active_window === "closed") {
+    scanWindow = {
+      scanDate: getNewYorkDateString(now),
+      sessionType: getLegacySessionTypeForScanWindow("closed"),
+      scanWindow: "closed",
+    };
+  } else if (
+    !force &&
+    dayTradeScanOrchestration.active_window !== "unknown" &&
+    dayTradeScanOrchestration.active_window !== "outside_window"
+  ) {
+    const orchestrationScanWindow = dayTradeScanWindowToIntradayScanWindow(
+      dayTradeScanOrchestration.active_window,
+    );
+
+    scanWindow = {
+      scanDate: getNewYorkDateString(now),
+      sessionType: getLegacySessionTypeForScanWindow(orchestrationScanWindow),
+      scanWindow: orchestrationScanWindow,
+    };
+  }
+
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
+  let initialServingCadence = buildServingCadenceForAutomation({
+    scanDate: scanWindow.scanDate || marketStatus.date,
+    orchestration: dayTradeScanOrchestration,
+    recommendations: [],
+    ranking: null,
+    now,
+  });
 
   let expiredRecommendations = 0;
 
   try {
     expiredRecommendations = await archiveExpiredRecommendations();
   } catch (error) {
-    console.error(error);
+    console.error("[automation/run-scan] archive_expired_recommendations_error", {
+      scanDate: scanWindow.scanDate,
+      sessionType: scanWindow.sessionType,
+      scanWindow: scanWindow.scanWindow,
+      error: normalizeUnknownError(error),
+    });
 
     const status =
       error instanceof RecommendationGenerationError ? error.status : 500;
@@ -420,8 +1087,20 @@ export async function POST(request: Request) {
         scan_window: scanWindow.scanWindow,
         scan_window_label: scanWindowLabel,
         scan_date: scanWindow.scanDate || marketStatus.date,
+        status: "failed",
+        decision: "failed" satisfies AutomationScanDecision,
+        market_session: marketSession,
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
         expired_recommendations: expiredRecommendations,
+        candidates_generated: 0,
+        recommendations_served: 0,
         recommendations_created: 0,
+        batch_id: null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+        warnings: dayTradeScanOrchestration.warnings.map((item) => item.message),
+        gaps: [],
       },
       { status },
     );
@@ -459,30 +1138,39 @@ export async function POST(request: Request) {
             : "market_closed",
       message,
       recommendationsCreated: 0,
-    });
-
-    await safelyRecordScheduledScanRun({
-      scanDate: scanWindow.scanDate || marketStatus.date,
-      sessionType: scanWindow.sessionType,
-      status: "completed",
-      recommendationsCreated: 0,
-      message,
-      scanLog,
-      ignoreExistingRun: true,
+      details: {
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+      },
     });
 
     return NextResponse.json({
       ok: true,
       message,
+      status: "skipped",
+      decision: "skipped_market_closed" satisfies AutomationScanDecision,
       market_status: marketStatus,
+      market_session: marketSession,
       forced: force,
       session_type: scanWindow.sessionType,
       scan_window: scanWindow.scanWindow,
       scan_window_label: scanWindowLabel,
       scan_date: scanWindow.scanDate || marketStatus.date,
       expired_recommendations: expiredRecommendations,
+      candidates_generated: 0,
+      recommendations_served: 0,
       recommendations_created: 0,
+      batch_id: null,
+      batch_fingerprint: null,
+      scan_run_fingerprint: null,
+      warnings: [
+        ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+        scanLog.message,
+      ],
+      gaps: [],
       discard_review: discardReview,
+      day_trade_scan_orchestration: dayTradeScanOrchestration,
+      recommendation_serving_cadence: initialServingCadence,
     });
   }
 
@@ -514,74 +1202,190 @@ export async function POST(request: Request) {
       result,
       message,
       recommendationsCreated: 0,
-    });
-
-    await safelyRecordScheduledScanRun({
-      scanDate: scanWindow.scanDate,
-      sessionType: scanWindow.sessionType,
-      status: "completed",
-      recommendationsCreated: 0,
-      message,
-      scanLog,
-      ignoreExistingRun: true,
+      details: {
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+      },
     });
 
     return NextResponse.json({
       ok: true,
       message,
+      status: "skipped",
+      decision: "skipped_outside_window" satisfies AutomationScanDecision,
       forced: force,
       session_type: scanWindow.sessionType,
       scan_window: scanWindow.scanWindow,
       scan_window_label: scanWindowLabel,
       scan_date: scanWindow.scanDate,
       market_status: marketStatus,
+      market_session: marketSession,
       expired_recommendations: expiredRecommendations,
+      candidates_generated: 0,
+      recommendations_served: 0,
       recommendations_created: 0,
+      batch_id: null,
+      batch_fingerprint: null,
+      scan_run_fingerprint: null,
+      warnings: [
+        ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+        scanLog.message,
+      ],
+      gaps: [],
       discard_review: discardReview,
+      day_trade_scan_orchestration: dayTradeScanOrchestration,
+      recommendation_serving_cadence: initialServingCadence,
     });
   }
 
   const { scanDate, sessionType } = scanWindow;
 
   try {
-    // TODO: Add scan_window column for intraday day trading windows.
-    // Until then, duplicate protection is still scoped to legacy session_type.
-    const alreadyRan = ignore_existing_run
-      ? false
-      : await hasScanAlreadyRun(scanDate, sessionType);
-
-    if (alreadyRan) {
-      const message = "Scan already ran.";
-      const scanLog = createAutomationScanLog({
-        source: "scheduled",
-        scanWindow: scanWindow.scanWindow,
-        marketStatus,
-        result: "skipped",
-        message,
-        recommendationsCreated: 0,
-      });
-
-      await safelyRecordScheduledScanRun({
-        scanDate,
-        sessionType,
-        status: "completed",
-        recommendationsCreated: 0,
-        message,
-        scanLog,
-        ignoreExistingRun: true,
-      });
-
+    if (!force && !isActiveAutomationWindow(scanWindow.scanWindow)) {
+      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped without recording a noisy empty run.`;
       return NextResponse.json({
         ok: true,
         message,
+        status: "skipped",
+        decision:
+          dayTradeScanOrchestration.decision === "market_closed"
+            ? ("skipped_market_closed" satisfies AutomationScanDecision)
+            : ("skipped_outside_window" satisfies AutomationScanDecision),
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,
         scan_window: scanWindow.scanWindow,
         scan_window_label: scanWindowLabel,
         market_status: marketStatus,
+        market_session: marketSession,
         expired_recommendations: expiredRecommendations,
+        candidates_generated: 0,
+        recommendations_served: 0,
         recommendations_created: 0,
+        batch_id: null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+        warnings: dayTradeScanOrchestration.warnings.map((item) => item.message),
+        gaps: [],
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+      });
+    }
+
+    const providerEnv = providerEnvironmentReady();
+
+    if (!providerEnv.ready) {
+      const message = `Scheduled scan skipped: provider environment missing ${providerEnv.missing.join(", ")}.`;
+
+      return NextResponse.json(
+        {
+          ok: true,
+          message,
+          status: "skipped",
+          decision: "skipped_provider_unavailable" satisfies AutomationScanDecision,
+          forced: force,
+          scan_date: scanDate,
+          session_type: sessionType,
+          scan_window: scanWindow.scanWindow,
+          scan_window_label: scanWindowLabel,
+          market_status: marketStatus,
+          market_session: marketSession,
+          expired_recommendations: expiredRecommendations,
+          candidates_generated: 0,
+          recommendations_served: 0,
+          recommendations_created: 0,
+          batch_id: null,
+          batch_fingerprint: null,
+          scan_run_fingerprint: null,
+          warnings: [
+            ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+            message,
+          ],
+          gaps: providerEnv.missing,
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+        },
+        { status: 200 },
+      );
+    }
+
+    const [recentRecommendationScanRuns, loadedScheduledScanRuns] =
+      await Promise.all([
+        readRecentRecommendationScanRuns(),
+        readRecentScheduledScanRuns(),
+      ]);
+    recentScheduledScanRuns = loadedScheduledScanRuns;
+    dayTradeScanOrchestration = buildDayTradeScanOrchestrationSummary({
+      now,
+      marketSession,
+      marketStatus,
+      scanRuns: recentRecommendationScanRuns,
+      currentDataMode: "supabase",
+      runType: force ? "diagnostic" : "scheduled",
+    });
+    initialServingCadence = buildServingCadenceForAutomation({
+      scanDate,
+      orchestration: dayTradeScanOrchestration,
+      recommendations: [],
+      ranking: null,
+      now,
+    });
+
+    const latestSameWindowScan = latestScheduledScanForWindow({
+      runs: recentScheduledScanRuns,
+      scanDate,
+      sessionType,
+      scanWindow: scanWindow.scanWindow,
+    });
+    const cooldownMinutes =
+      initialServingCadence.background_scan_cadence_minutes.min;
+
+    if (
+      !force &&
+      !ignore_existing_run &&
+      shouldSkipForRecentScan({
+        latestScan: latestSameWindowScan,
+        now,
+        cooldownMinutes,
+      })
+    ) {
+      const ageMinutes = minutesSince(latestSameWindowScan?.row.created_at, now);
+      const message = `Recent ${scanWindowLabel} scan already completed ${ageMinutes ?? "recently"} minutes ago.`;
+
+      return NextResponse.json({
+        ok: true,
+        message,
+        status: "skipped",
+        decision: "skipped_recent_scan" satisfies AutomationScanDecision,
+        forced: force,
+        scan_date: scanDate,
+        session_type: sessionType,
+        scan_window: scanWindow.scanWindow,
+        scan_window_label: scanWindowLabel,
+        market_status: marketStatus,
+        market_session: marketSession,
+        expired_recommendations: expiredRecommendations,
+        candidates_generated:
+          latestSameWindowScan?.scanLog.real_scanner_candidate_generation?.universe
+            .candidates_generated ??
+          latestSameWindowScan?.scanLog.candidates_scanned ??
+          0,
+        recommendations_served:
+          latestSameWindowScan?.scanLog.recommendations_created ?? 0,
+        recommendations_created:
+          latestSameWindowScan?.scanLog.recommendations_created ?? 0,
+        batch_id:
+          latestSameWindowScan?.scanLog.recommendation_serving_cadence
+            ?.latest_official_batch_id ?? null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+        warnings: dayTradeScanOrchestration.warnings.map((item) => item.message),
+        gaps: [],
+        latest_scan: latestSameWindowScan?.scanLog ?? null,
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence:
+          latestSameWindowScan?.scanLog.recommendation_serving_cadence ??
+          initialServingCadence,
       });
     }
 
@@ -590,7 +1394,18 @@ export async function POST(request: Request) {
       scanWindow: scanWindow.scanWindow,
       source: "scheduled",
     });
+    const generationScanLog =
+      (generationResult.scan_log ?? null) as RecommendationScanLogDetails | null;
     const recommendationsCreated = generationResult.recommendations.length;
+    const insertedRecommendations =
+      (generationResult.recommendations ?? []) as RecommendationRow[];
+    const servingCadence = buildServingCadenceForAutomation({
+      scanDate,
+      orchestration: dayTradeScanOrchestration,
+      recommendations: insertedRecommendations,
+      ranking: generationScanLog?.scanner_candidate_ranking ?? null,
+      now,
+    });
     const resultMessage =
       generationResult.message ?? `Scheduled ${scanWindowLabel} scan completed.`;
     const message = `${resultMessage} scan_window=${scanWindow.scanWindow}`;
@@ -598,14 +1413,45 @@ export async function POST(request: Request) {
       source: "scheduled",
       scanWindow: scanWindow.scanWindow,
       marketStatus,
-      result: generationResult.scan_log?.result,
+      result: generationScanLog?.result,
       message:
         recommendationsCreated > 0
           ? `Created ${recommendationsCreated} day trade recommendation.`
           : resultMessage,
       recommendationsCreated,
-      details: generationResult.scan_log,
+      details: {
+        ...generationScanLog,
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: servingCadence,
+      },
     });
+
+    let artifactResult: Awaited<ReturnType<typeof persistAutomationArtifacts>> | null =
+      null;
+
+    try {
+      artifactResult = await persistAutomationArtifacts({
+        scanDate,
+        sessionType,
+        scanWindow: scanWindow.scanWindow,
+        now,
+        marketSession,
+        marketStatus,
+        orchestration: dayTradeScanOrchestration,
+        scanLog,
+        servingCadence,
+        recommendations: insertedRecommendations,
+      });
+    } catch (artifactError) {
+      console.error("[automation/run-scan] artifact_persistence_error", {
+        source: "automation_run_scan",
+        operation: "persist_scan_artifacts",
+        scanDate,
+        sessionType,
+        scanWindow: scanWindow.scanWindow,
+        error: normalizeUnknownError(artifactError),
+      });
+    }
 
     await recordScheduledScanRun({
       scanDate,
@@ -620,6 +1466,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       message,
+      status: "completed",
+      decision: "scanned" satisfies AutomationScanDecision,
       forced: force,
       scan_date: scanDate,
       session_type: sessionType,
@@ -627,16 +1475,54 @@ export async function POST(request: Request) {
       scan_window_label: scanWindowLabel,
       archived_recommendations: expiredRecommendations,
       expired_recommendations: expiredRecommendations,
+      candidates_generated:
+        generationScanLog?.real_scanner_candidate_generation?.universe
+          .candidates_generated ??
+        generationScanLog?.candidates_scanned ??
+        0,
+      recommendations_served: recommendationsCreated,
       recommendations_created: recommendationsCreated,
+      batch_id: servingCadence.latest_official_batch_id,
+      batch_fingerprint:
+        artifactResult?.persistence.batch?.batch.batch_fingerprint ?? null,
+      scan_run_fingerprint: artifactResult?.scan_run.run_fingerprint ?? null,
+      warnings: [
+        ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+        ...(generationScanLog?.top_candidate_warnings ?? []),
+        ...(servingCadence.warnings.map((item) => item.message)),
+      ],
+      gaps: generationScanLog?.real_scanner_candidate_generation?.gaps ?? [],
       duplicate_fallback_used: generationResult.duplicate_fallback_used,
       market_regime: generationResult.market_regime,
       market_status: marketStatus,
+      market_session: marketSession,
+      day_trade_scan_orchestration: dayTradeScanOrchestration,
+      recommendation_serving_cadence: servingCadence,
+      persistence: artifactResult?.persistence ?? null,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[automation/run-scan] generation_error", {
+      scanDate,
+      sessionType,
+      scanWindow: scanWindow.scanWindow,
+      error: normalizeUnknownError(error),
+    });
 
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
+    const failureResult = errorScanResult(error);
+    const scanLog = createAutomationScanLog({
+      source: "scheduled",
+      scanWindow: scanWindow.scanWindow,
+      marketStatus,
+      result: failureResult,
+      message,
+      recommendationsCreated: 0,
+      details: {
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+      },
+    });
 
     try {
       await recordScheduledScanRun({
@@ -645,10 +1531,16 @@ export async function POST(request: Request) {
         status: "failed",
         recommendationsCreated: 0,
         message: `${message} scan_window=${scanWindow.scanWindow}`,
+        scanLog,
         ignoreExistingRun: ignore_existing_run,
       });
     } catch (recordError) {
-      console.error(recordError);
+      console.error("[automation/run-scan] failure_record_error", {
+        scanDate,
+        sessionType,
+        scanWindow: scanWindow.scanWindow,
+        error: normalizeUnknownError(recordError),
+      });
     }
 
     const status =
@@ -664,8 +1556,28 @@ export async function POST(request: Request) {
         scan_window: scanWindow.scanWindow,
         scan_window_label: scanWindowLabel,
         market_status: marketStatus,
+        market_session: marketSession,
+        status: "failed",
+        decision:
+          failureResult === "provider_error" ||
+          failureResult === "provider_rate_limited"
+            ? ("skipped_provider_unavailable" satisfies AutomationScanDecision)
+            : ("failed" satisfies AutomationScanDecision),
         expired_recommendations: expiredRecommendations,
+        candidates_generated: 0,
+        recommendations_served: 0,
         recommendations_created: 0,
+        batch_id: null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+        warnings: [
+          ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+          message,
+        ],
+        gaps: failureResult === "provider_rate_limited" ? ["provider_rate_limited"] : [],
+        error_details: normalizeUnknownError(error),
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
       },
       { status },
     );

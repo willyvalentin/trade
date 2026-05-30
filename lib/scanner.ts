@@ -8,6 +8,7 @@ import {
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
+import { normalizeUnknownError } from "@/lib/error-logging";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -529,7 +530,12 @@ async function getCachedRows(tickers: string[]): Promise<Map<string, ScannerCach
     .in("ticker", tickers);
 
   if (error) {
-    console.error("[scanner] cache_read_error", error);
+    console.error("[scanner] cache_read_error", {
+      source: "supabase.scanner_cache",
+      operation: "select_cached_tickers",
+      tickers,
+      error: normalizeUnknownError(error),
+    });
     return new Map<string, ScannerCacheRow>();
   }
 
@@ -682,7 +688,7 @@ export async function scanMarket(
     } catch (error) {
       console.error("[scanner] provider_call_error", {
         ticker: baseCandidate.ticker,
-        error,
+        error: normalizeUnknownError(error),
       });
 
       if (cachedValues) {
