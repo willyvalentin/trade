@@ -556,7 +556,7 @@ async function getPolygonMarketStatus(
 function getLocalFallbackStatus(
   cacheDate: string,
   date: Date,
-  reason = "Market calendar provider unavailable; defaulting to weekday trading status.",
+  reason = "Market calendar provider unavailable; using NY-time fallback for scan timing.",
 ): MarketStatus {
   if (isWeekendInNewYork(date)) {
     return {
@@ -670,7 +670,7 @@ export async function getUsMarketStatus(date = new Date()): Promise<MarketStatus
     const status = getLocalFallbackStatus(
       cacheDate,
       date,
-      "Market calendar provider unavailable; defaulting to weekday trading status.",
+      "Market calendar provider unavailable; using NY-time fallback for scan timing.",
     );
     await upsertCachedStatus(status, raw);
 

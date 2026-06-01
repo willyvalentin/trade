@@ -33,6 +33,11 @@ import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-fresh
 import {
   buildDayTradeScanOrchestrationSummary,
   dayTradeScanWindowToIntradayScanWindow,
+  HUMAN_CONFIRMED_EXECUTION_WARNING,
+  MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING,
+  MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
+  POLYGON_CALENDAR_ENV_GUIDANCE,
+  type DayTradeScanOrchestrationSummary,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import {
@@ -107,6 +112,13 @@ type RecommendationRow = {
   status?: string | null;
   scan_window?: string | null;
   created_at?: string | null;
+};
+
+type AutomationCalendarFields = {
+  calendar_confidence: DayTradeScanOrchestrationSummary["calendar_confidence"];
+  provider_calendar_available: boolean;
+  fallback_calendar_scan_allowed: boolean;
+  calendar_warnings: string[];
 };
 
 const intradayScanWindows: IntradayScanWindow[] = [
@@ -246,6 +258,25 @@ function providerEnvironmentReady() {
   return {
     ready: missing.length === 0,
     missing,
+  };
+}
+
+function calendarFields(
+  orchestration: DayTradeScanOrchestrationSummary,
+): AutomationCalendarFields {
+  return {
+    calendar_confidence: orchestration.calendar_confidence,
+    provider_calendar_available: orchestration.provider_calendar_available,
+    fallback_calendar_scan_allowed: orchestration.fallback_calendar_scan_allowed,
+    calendar_warnings: orchestration.warnings
+      .filter(
+        (item) =>
+          item.message === MARKET_CALENDAR_FALLBACK_SCAN_WARNING ||
+          item.message === MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING ||
+          item.message === HUMAN_CONFIRMED_EXECUTION_WARNING ||
+          item.message === POLYGON_CALENDAR_ENV_GUIDANCE,
+      )
+      .map((item) => item.message),
   };
 }
 
@@ -1090,6 +1121,7 @@ export async function POST(request: Request) {
         status: "failed",
         decision: "failed" satisfies AutomationScanDecision,
         market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         expired_recommendations: expiredRecommendations,
@@ -1112,8 +1144,17 @@ export async function POST(request: Request) {
     marketStatus.dayType !== "unknown" &&
     marketStatus.dayType !== "weekend" &&
     marketStatus.dayType !== "holiday";
+  const fallbackActiveScanWindow = dayTradeScanWindowToIntradayScanWindow(
+    dayTradeScanOrchestration.active_window,
+  );
+  const calendarFallbackAllowsScan =
+    dayTradeScanOrchestration.fallback_calendar_scan_allowed &&
+    dayTradeScanOrchestration.should_scan_now &&
+    fallbackActiveScanWindow === scanWindow.scanWindow;
+  const marketOpenForScan =
+    isMarketOpenForIntradayTrading(marketStatus) || calendarFallbackAllowsScan;
 
-  if (!isMarketOpenForIntradayTrading(marketStatus) && !canRunPreMarketWatchlist) {
+  if (!marketOpenForScan && !canRunPreMarketWatchlist) {
     const discardReview = await runDiscardReviewIfDue({
       marketStatus,
       scanWindow: scanWindow.scanWindow,
@@ -1151,6 +1192,7 @@ export async function POST(request: Request) {
       decision: "skipped_market_closed" satisfies AutomationScanDecision,
       market_status: marketStatus,
       market_session: marketSession,
+      ...calendarFields(dayTradeScanOrchestration),
       forced: force,
       session_type: scanWindow.sessionType,
       scan_window: scanWindow.scanWindow,
@@ -1174,7 +1216,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!scanPolicy.allowGeneration && scanWindow.scanWindow !== "pre_market") {
+  if (
+    !scanPolicy.allowGeneration &&
+    scanWindow.scanWindow !== "pre_market" &&
+    !calendarFallbackAllowsScan
+  ) {
     const discardReview =
       scanWindow.scanWindow === "closed"
         ? await runDiscardReviewIfDue({
@@ -1220,6 +1266,7 @@ export async function POST(request: Request) {
       scan_date: scanWindow.scanDate,
       market_status: marketStatus,
       market_session: marketSession,
+      ...calendarFields(dayTradeScanOrchestration),
       expired_recommendations: expiredRecommendations,
       candidates_generated: 0,
       recommendations_served: 0,
@@ -1258,6 +1305,7 @@ export async function POST(request: Request) {
         scan_window_label: scanWindowLabel,
         market_status: marketStatus,
         market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
         expired_recommendations: expiredRecommendations,
         candidates_generated: 0,
         recommendations_served: 0,
@@ -1290,6 +1338,7 @@ export async function POST(request: Request) {
           scan_window_label: scanWindowLabel,
           market_status: marketStatus,
           market_session: marketSession,
+          ...calendarFields(dayTradeScanOrchestration),
           expired_recommendations: expiredRecommendations,
           candidates_generated: 0,
           recommendations_served: 0,
@@ -1364,6 +1413,7 @@ export async function POST(request: Request) {
         scan_window_label: scanWindowLabel,
         market_status: marketStatus,
         market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
         expired_recommendations: expiredRecommendations,
         candidates_generated:
           latestSameWindowScan?.scanLog.real_scanner_candidate_generation?.universe
@@ -1393,6 +1443,7 @@ export async function POST(request: Request) {
       sessionType,
       scanWindow: scanWindow.scanWindow,
       source: "scheduled",
+      allowPowerHourRecommendationLogging: calendarFallbackAllowsScan,
     });
     const generationScanLog =
       (generationResult.scan_log ?? null) as RecommendationScanLogDetails | null;
@@ -1469,6 +1520,7 @@ export async function POST(request: Request) {
       status: "completed",
       decision: "scanned" satisfies AutomationScanDecision,
       forced: force,
+      ...calendarFields(dayTradeScanOrchestration),
       scan_date: scanDate,
       session_type: sessionType,
       scan_window: scanWindow.scanWindow,
@@ -1557,6 +1609,7 @@ export async function POST(request: Request) {
         scan_window_label: scanWindowLabel,
         market_status: marketStatus,
         market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
         status: "failed",
         decision:
           failureResult === "provider_error" ||

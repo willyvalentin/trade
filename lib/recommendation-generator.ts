@@ -69,6 +69,7 @@ export type GenerateRecommendationsInput = {
   scanWindow: IntradayScanWindow;
   targetCount?: number;
   source: RecommendationGenerationSource;
+  allowPowerHourRecommendationLogging?: boolean;
 };
 
 export class RecommendationGenerationError extends Error {
@@ -2373,6 +2374,7 @@ export async function generateRecommendations({
   scanWindow,
   targetCount,
   source,
+  allowPowerHourRecommendationLogging = false,
 }: GenerateRecommendationsInput) {
   try {
     const todayStart = getStartOfToday();
@@ -2388,7 +2390,11 @@ export async function generateRecommendations({
       return generatePreMarketWatchlist({ source });
     }
 
-    if (scanWindow === "power_hour" && !ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS) {
+    if (
+      scanWindow === "power_hour" &&
+      !ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS &&
+      !allowPowerHourRecommendationLogging
+    ) {
       logPipeline("inserted_recommendations_count", 0);
 
       return {
@@ -2403,7 +2409,7 @@ export async function generateRecommendations({
       };
     }
 
-    if (!scanPolicy.allowGeneration) {
+    if (!scanPolicy.allowGeneration && !allowPowerHourRecommendationLogging) {
       logPipeline("inserted_recommendations_count", 0);
 
       return {

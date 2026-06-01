@@ -32,6 +32,12 @@ export type DayTradeScanOrchestrationDecision =
   | "blocked_by_provider"
   | "unknown";
 
+export type MarketCalendarConfidence =
+  | "provider_confirmed"
+  | "fallback_estimated"
+  | "unknown"
+  | "blocked";
+
 export type DayTradeScanRunType =
   | "scheduled"
   | "automatic"
@@ -71,6 +77,9 @@ export type DayTradeScanOrchestrationSummary = {
   market_session_phase: string;
   market_is_open: boolean;
   is_trading_day: boolean;
+  calendar_confidence: MarketCalendarConfidence;
+  provider_calendar_available: boolean;
+  fallback_calendar_scan_allowed: boolean;
   active_window: DayTradeScanWindow;
   active_window_status: DayTradeScanWindowStatus;
   next_window: DayTradeScanWindow;
@@ -96,6 +105,8 @@ export type DayTradeScanOrchestrationSummary = {
     automatic_scans: string;
     closed_market: string;
     unknown_windows: string;
+    fallback_timing: string;
+    execution_boundary: string;
   };
 };
 
@@ -110,6 +121,15 @@ export type DayTradeScanOrchestrationInput = {
 };
 
 const timezone = "America/New_York" as const;
+export const MARKET_CALENDAR_FALLBACK_SCAN_WARNING =
+  "Market calendar provider unavailable; using NY-time fallback for scan timing.";
+export const MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING =
+  "Fallback timing is sufficient for recommendation logging, not broker execution certainty.";
+export const HUMAN_CONFIRMED_EXECUTION_WARNING =
+  "Execution remains human-confirmed.";
+export const POLYGON_CALENDAR_ENV_GUIDANCE =
+  "Add POLYGON_API_KEY for provider-confirmed market calendar.";
+
 const dayTradeScanWindows: DayTradeScanWindowDefinition[] = [
   {
     window: "morning",
@@ -203,6 +223,61 @@ function isTradingDay(input: {
   return true;
 }
 
+function hasProviderConfirmedCalendar(
+  marketStatus: MarketSessionStatus | null | undefined,
+) {
+  return Boolean(
+    marketStatus &&
+      marketStatus.provider &&
+      marketStatus.provider !== "local_fallback" &&
+      marketStatus.dayType !== "unknown",
+  );
+}
+
+function hasStandardFallbackCalendar(input: {
+  now: Date;
+  marketStatus: MarketSessionStatus | null;
+}) {
+  const nyTime = getNyMarketTime(input.now);
+
+  return Boolean(
+    input.marketStatus?.provider === "local_fallback" &&
+      input.marketStatus.dayType === "unknown" &&
+      input.marketStatus.isOpenDay &&
+      input.marketStatus.marketOpenTime === "09:30" &&
+      input.marketStatus.marketCloseTime === "16:00" &&
+      nyTime.weekday !== "Sat" &&
+      nyTime.weekday !== "Sun",
+  );
+}
+
+function activeWindowAllowsFallbackCalendarScan(window: DayTradeScanWindow) {
+  return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+function calendarConfidenceFor(input: {
+  now: Date;
+  marketStatus: MarketSessionStatus | null;
+}) {
+  if (
+    input.marketStatus?.dayType === "holiday" ||
+    input.marketStatus?.dayType === "weekend" ||
+    input.marketStatus?.isOpenDay === false
+  ) {
+    return "blocked" as const;
+  }
+
+  if (hasProviderConfirmedCalendar(input.marketStatus)) {
+    return "provider_confirmed" as const;
+  }
+
+  if (hasStandardFallbackCalendar(input)) {
+    return "fallback_estimated" as const;
+  }
+
+  return "unknown" as const;
+}
+
 export function normalizeDayTradeScanWindow(
   value: string | null | undefined,
 ): DayTradeScanWindow {
@@ -260,6 +335,13 @@ export function classifyDayTradeScanWindow(input?: {
   }
 
   if (!marketOpen) {
+    if (
+      window.open_minutes !== null &&
+      nyTime.minutes_after_midnight < window.open_minutes
+    ) {
+      return "outside_window";
+    }
+
     return "closed";
   }
 
@@ -380,17 +462,18 @@ function decisionFor(input: {
   now: Date;
   cooldownMinutes: number;
   marketStatus?: MarketSessionStatus | null;
+  fallbackCalendarScanAllowed: boolean;
 }) {
-  if (input.marketStatus?.dayType === "unknown") {
-    return "blocked_by_provider" as const;
-  }
-
   if (input.activeWindow === "closed") {
     return "market_closed" as const;
   }
 
   if (input.activeWindow === "outside_window") {
     return "outside_scan_window" as const;
+  }
+
+  if (input.marketStatus?.dayType === "unknown" && !input.fallbackCalendarScanAllowed) {
+    return "blocked_by_provider" as const;
   }
 
   if (input.activeWindow === "unknown") {
@@ -513,14 +596,45 @@ export function buildDayTradeScanOrchestrationSummary(
   });
   const activeWindowLatestScanAt =
     activeWindow === "unknown" ? null : latestByWindow[activeWindow] ?? null;
+  const calendarConfidence = calendarConfidenceFor({ now, marketStatus });
+  const providerCalendarAvailable = calendarConfidence === "provider_confirmed";
+  const fallbackCalendarScanAllowed =
+    calendarConfidence === "fallback_estimated" &&
+    activeWindowAllowsFallbackCalendarScan(activeWindow);
   const decision = decisionFor({
     activeWindow,
     activeWindowLatestScanAt,
     now,
     cooldownMinutes: input.lastScanCooldownMinutes ?? 45,
     marketStatus,
+    fallbackCalendarScanAllowed,
   });
   const warnings: DayTradeScanOrchestrationWarning[] = [];
+
+  if (fallbackCalendarScanAllowed) {
+    warnings.push(
+      warning(
+        "market_calendar_fallback_timing",
+        "warning",
+        MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
+      ),
+      warning(
+        "fallback_timing_execution_boundary",
+        "info",
+        MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING,
+      ),
+      warning(
+        "human_confirmed_execution",
+        "info",
+        HUMAN_CONFIRMED_EXECUTION_WARNING,
+      ),
+      warning(
+        "polygon_calendar_env_guidance",
+        "info",
+        POLYGON_CALENDAR_ENV_GUIDANCE,
+      ),
+    );
+  }
 
   if (decision === "blocked_by_provider") {
     warnings.push(
@@ -570,6 +684,9 @@ export function buildDayTradeScanOrchestrationSummary(
     market_session_phase: marketSession?.phase ?? "unknown",
     market_is_open: marketOpen,
     is_trading_day: tradingDay,
+    calendar_confidence: calendarConfidence,
+    provider_calendar_available: providerCalendarAvailable,
+    fallback_calendar_scan_allowed: fallbackCalendarScanAllowed,
     active_window: activeWindow,
     active_window_status: statusForDecision(decision),
     next_window: next.window,
@@ -589,7 +706,9 @@ export function buildDayTradeScanOrchestrationSummary(
     latest_scan_per_window: latestByWindow,
     missed_windows: missed,
     scan_reason:
-      decision === "should_scan_now"
+      decision === "should_scan_now" && fallbackCalendarScanAllowed
+        ? `${activeWindow} day-trade window is active using NY-time fallback.`
+        : decision === "should_scan_now"
         ? `${activeWindow} day-trade window is active.`
         : decision === "market_closed"
           ? "Market is closed; no recommendation scan is expected."
@@ -611,6 +730,8 @@ export function buildDayTradeScanOrchestrationSummary(
         "Closed-market periods are no-trade observation periods, not scanner failures.",
       unknown_windows:
         "Unknown windows are only used when the scan time cannot be classified.",
+      fallback_timing: MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING,
+      execution_boundary: HUMAN_CONFIRMED_EXECUTION_WARNING,
     },
   };
 }

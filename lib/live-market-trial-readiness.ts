@@ -87,6 +87,8 @@ export type LiveMarketTrialReadinessSummary = {
     openai_generation_observed: boolean;
     market_calendar_provider: string | null;
     market_calendar_available: boolean;
+    market_calendar_confidence: DayTradeScanOrchestrationSummary["calendar_confidence"];
+    fallback_calendar_scan_allowed: boolean;
     server_secret_status: "inferred_available" | "needs_review" | "unknown";
   };
   scanner_readiness: {
@@ -476,6 +478,8 @@ export function buildLiveMarketTrialReadinessSummary(
     null;
   const marketCalendarAvailable =
     input.market_status !== null && input.market_status.dayType !== "unknown";
+  const fallbackCalendarScanAllowed =
+    input.scan_orchestration.fallback_calendar_scan_allowed;
   const supabasePersistenceObserved =
     input.batch_memory.persistence_mode === "supabase" ||
     input.scan_run_history.source_scope === "supabase" ||
@@ -560,7 +564,9 @@ export function buildLiveMarketTrialReadinessSummary(
       source: "provider",
       message: marketCalendarAvailable
         ? `Market calendar provider is ${input.market_status?.provider ?? "available"}.`
-        : "Market calendar is missing or returned an unknown day type.",
+        : fallbackCalendarScanAllowed
+          ? "Market calendar provider unavailable; using NY-time fallback for scan timing. Add POLYGON_API_KEY for provider-confirmed market calendar."
+          : "Market calendar is missing or returned an unknown day type.",
     }),
     check({
       check_id: "market_window",
@@ -808,6 +814,8 @@ export function buildLiveMarketTrialReadinessSummary(
       openai_generation_observed: openAiGenerationObserved,
       market_calendar_provider: input.market_status?.provider ?? null,
       market_calendar_available: marketCalendarAvailable,
+      market_calendar_confidence: input.scan_orchestration.calendar_confidence,
+      fallback_calendar_scan_allowed: fallbackCalendarScanAllowed,
       server_secret_status: serverSecretStatus,
     },
     scanner_readiness: {

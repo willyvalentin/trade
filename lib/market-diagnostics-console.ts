@@ -377,7 +377,10 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
       warning(
         `orchestration:${item.warning_id}`,
         normalizeSeverity(item.severity),
-        "scan_orchestration",
+        item.warning_id.includes("market_calendar") ||
+          item.warning_id.includes("polygon_calendar")
+          ? "market_calendar"
+          : "scan_orchestration",
         item.message,
       ),
     ),
@@ -520,6 +523,14 @@ function buildSections(
           )}`,
         ),
         lineValue(
+          "Calendar confidence",
+          `${words(input.scan_orchestration.calendar_confidence)} / provider ${
+            input.scan_orchestration.provider_calendar_available
+              ? "available"
+              : "unavailable"
+          }`,
+        ),
+        lineValue(
           "Session/window",
           `${words(input.market_session.phase)} / ${words(
             input.scan_orchestration.active_window,
@@ -544,6 +555,11 @@ function buildSections(
         generated_at: input.market_session.evaluated_at,
         market_is_open: input.market_session.market_is_open,
         market_day_type: input.market_status?.dayType ?? null,
+        calendar_confidence: input.scan_orchestration.calendar_confidence,
+        provider_calendar_available:
+          input.scan_orchestration.provider_calendar_available,
+        fallback_calendar_scan_allowed:
+          input.scan_orchestration.fallback_calendar_scan_allowed,
         session_phase: input.market_session.phase,
         active_scan_window: input.scan_orchestration.active_window,
         next_scan_window: input.scan_orchestration.next_window,
@@ -622,6 +638,12 @@ function buildSections(
             : "info",
       lines: [
         lineValue("Orchestration", words(input.scan_orchestration.decision)),
+        lineValue(
+          "Calendar fallback",
+          input.scan_orchestration.fallback_calendar_scan_allowed
+            ? "scan allowed"
+            : "not active",
+        ),
         lineValue("Serving", words(input.serving_cadence.serving_decision)),
         lineValue(
           "Latest automation",
@@ -640,6 +662,11 @@ function buildSections(
       ],
       metrics: {
         orchestration_decision: input.scan_orchestration.decision,
+        calendar_confidence: input.scan_orchestration.calendar_confidence,
+        provider_calendar_available:
+          input.scan_orchestration.provider_calendar_available,
+        fallback_calendar_scan_allowed:
+          input.scan_orchestration.fallback_calendar_scan_allowed,
         serving_decision: input.serving_cadence.serving_decision,
         latest_automation_decision:
           input.live_market_trial_readiness.latest_automation_scan.decision,
