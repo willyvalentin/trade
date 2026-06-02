@@ -5,6 +5,7 @@ import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-s
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
+import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import { supabase } from "@/lib/supabase";
 
 export type ScanLogResult =
@@ -77,6 +78,16 @@ export type ScanLogEntry = {
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
+  ranked_candidates_count?: number | null;
+  recommendations_published_count?: number | null;
+  strong_count?: number | null;
+  valid_count?: number | null;
+  experimental_count?: number | null;
+  ranked_candidates_not_published_reason?: string | null;
+  strong_threshold?: number | null;
+  publishable_threshold?: number | null;
+  deterministic_fallback_used?: boolean | null;
+  active_scan_trace?: ActiveScanTrace | null;
   day_trade_scan_orchestration?: DayTradeScanOrchestrationSummary | null;
   recommendation_serving_cadence?: RecommendationServingCadenceSummary | null;
 };

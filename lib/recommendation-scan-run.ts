@@ -775,6 +775,12 @@ export async function persistRecommendationScanRun(
         runFingerprint: scanRun.run_fingerprint,
         error: normalizeUnknownError(result.error),
       });
+      return {
+        status: "failed",
+        mode: "supabase",
+        scan_run: scanRun,
+        error: result.error.message ?? "Unknown Supabase scan-run persistence error.",
+      };
     } catch (error) {
       console.error("[recommendation-scan-run] supabase_persistence_exception", {
         source: "supabase.recommendation_scan_runs",
@@ -782,7 +788,12 @@ export async function persistRecommendationScanRun(
         runFingerprint: scanRun.run_fingerprint,
         error: normalizeUnknownError(error),
       });
-      // Fall through to localStorage. Scan-run persistence must never block UI.
+      return {
+        status: "failed",
+        mode: "supabase",
+        scan_run: scanRun,
+        error: error instanceof Error ? error.message : "Unknown Supabase scan-run persistence error.",
+      };
     }
   }
 

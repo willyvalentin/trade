@@ -715,6 +715,14 @@ export async function persistRecommendationBatch(
         batchFingerprint: batch.batch_fingerprint,
         error: normalizeUnknownError(result.error),
       });
+      return {
+        status: "failed",
+        mode: "supabase",
+        batch,
+        error:
+          result.error.message ??
+          "Unknown Supabase recommendation batch persistence error.",
+      };
     } catch (error) {
       console.error("[recommendation-batch-memory] supabase_persistence_exception", {
         source: "supabase.recommendation_batches",
@@ -722,6 +730,15 @@ export async function persistRecommendationBatch(
         batchFingerprint: batch.batch_fingerprint,
         error: normalizeUnknownError(error),
       });
+      return {
+        status: "failed",
+        mode: "supabase",
+        batch,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown Supabase recommendation batch persistence error.",
+      };
     }
   }
 

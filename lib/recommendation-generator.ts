@@ -46,6 +46,10 @@ import {
   type OpenAiRecommendationRealityCandidate,
   type OpenAiRecommendationRealityGuardSummary,
 } from "@/lib/openai-recommendation-reality-guard";
+import {
+  errorType,
+  type ActiveScanTraceRecorder,
+} from "@/lib/active-scan-trace";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -70,6 +74,7 @@ export type GenerateRecommendationsInput = {
   targetCount?: number;
   source: RecommendationGenerationSource;
   allowPowerHourRecommendationLogging?: boolean;
+  activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
 export class RecommendationGenerationError extends Error {
@@ -180,6 +185,15 @@ export type RecommendationScanLogDetails = {
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
+  ranked_candidates_count?: number | null;
+  recommendations_published_count?: number | null;
+  strong_count?: number | null;
+  valid_count?: number | null;
+  experimental_count?: number | null;
+  ranked_candidates_not_published_reason?: string | null;
+  strong_threshold?: number | null;
+  publishable_threshold?: number | null;
+  deterministic_fallback_used?: boolean | null;
 };
 
 type CompactIntradayIndicators = {
@@ -255,7 +269,7 @@ const dayTradeHorizon = "day_trade";
 const dayTradeTimeframe = "Intraday / day trade";
 const DEFAULT_DAY_TRADE_SCORE_THRESHOLD = 70;
 const MANUAL_DAY_TRADE_SCORE_THRESHOLD = 62;
-const MAX_SCHEDULED_RECOMMENDATIONS_PER_SCAN = 1;
+const LEARNING_RECOMMENDATION_SCORE_THRESHOLD = 60;
 const MAX_CURRENT_RECOMMENDATIONS = 3;
 const ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS = false;
 const MINIMUM_OPENAI_CONFIDENCE_SCORE = 55;
@@ -295,6 +309,14 @@ function getDayTradeScoreThreshold(
   if (scanWindow === "power_hour") return 85;
 
   return Number.POSITIVE_INFINITY;
+}
+
+function getPublishableLearningScoreThreshold(
+  source: RecommendationGenerationSource,
+) {
+  return source === "scheduled"
+    ? LEARNING_RECOMMENDATION_SCORE_THRESHOLD
+    : MANUAL_DAY_TRADE_SCORE_THRESHOLD;
 }
 
 function parseCandidateNumber(value: unknown) {
@@ -345,6 +367,67 @@ function compactIntradayIndicators(
     momentumDirection: indicators.momentumDirection,
     volumeTrend: indicators.volumeTrend,
   };
+}
+
+function updateRawCandidateTrace(
+  activeScanTrace: ActiveScanTraceRecorder | null | undefined,
+  candidates: MockCandidate[],
+) {
+  if (!activeScanTrace) return;
+
+  let structurallyValidCount = 0;
+  let invalidPricePlanCount = 0;
+  let missingRequiredFieldsCount = 0;
+  const rejectionReasons: string[] = [];
+
+  for (const candidate of candidates) {
+    const latestPrice = parseCandidateNumber(
+      candidate.latest_close ?? candidate.mock_current_price,
+    );
+    const entryLow = parseCandidateNumber(candidate.proposed_entry_low);
+    const entryHigh = parseCandidateNumber(candidate.proposed_entry_high);
+    const stopLoss = parseCandidateNumber(candidate.proposed_stop_loss);
+    const target1 = parseCandidateNumber(candidate.proposed_target_1);
+    const target2 = parseCandidateNumber(candidate.proposed_target_2);
+    const missingRequired =
+      latestPrice === null ||
+      entryLow === null ||
+      entryHigh === null ||
+      stopLoss === null ||
+      target1 === null ||
+      target2 === null;
+
+    if (missingRequired) {
+      missingRequiredFieldsCount += 1;
+      rejectionReasons.push(`${candidate.ticker}: missing required price fields`);
+      continue;
+    }
+
+    const invalidPlan =
+      entryHigh <= 0 ||
+      stopLoss <= 0 ||
+      target1 <= 0 ||
+      target2 <= 0 ||
+      stopLoss >= entryHigh ||
+      target2 <= entryHigh;
+
+    if (invalidPlan) {
+      invalidPricePlanCount += 1;
+      rejectionReasons.push(`${candidate.ticker}: invalid price plan`);
+      continue;
+    }
+
+    structurallyValidCount += 1;
+  }
+
+  activeScanTrace.markStage("raw_candidates", "completed");
+  activeScanTrace.updateRawCandidates({
+    raw_candidate_count: candidates.length,
+    structurally_valid_count: structurallyValidCount,
+    invalid_price_plan_count: invalidPricePlanCount,
+    missing_required_fields_count: missingRequiredFieldsCount,
+    top_rejection_reasons: rejectionReasons.slice(0, 8),
+  });
 }
 
 function scoreDayTradeCandidate(
@@ -1574,6 +1657,12 @@ function confidenceFromScore(score: number): Confidence {
   return "Low";
 }
 
+function confidenceLabelFromScore(score: number): ConfidenceLabel {
+  if (score >= 85) return "HIGH CONVICTION";
+  if (score >= 70) return "GOOD SETUP";
+  return "LOWER CONFIDENCE";
+}
+
 function validateConfidenceLabel(value: unknown, ticker: string) {
   if (
     value !== "HIGH CONVICTION" &&
@@ -1774,6 +1863,113 @@ function buildOpenAiCandidatePayloads({
         ...(candidate.intraday_indicators?.warnings ?? []),
       ],
       gaps: Array.from(new Set(gaps)),
+    };
+  });
+}
+
+function buildDeterministicLearningRecommendations({
+  candidates,
+  rankingSummary,
+  scanWindow,
+  source,
+  maxRecommendations,
+}: {
+  candidates: ScoredCandidate[];
+  rankingSummary: ScannerCandidateRankingSummary;
+  scanWindow: IntradayScanWindow;
+  source: RecommendationGenerationSource;
+  maxRecommendations: number;
+}): AiRecommendation[] {
+  const rankingByTicker = new Map(
+    rankingSummary.results.map((result) => [result.ticker, result]),
+  );
+
+  return candidates.slice(0, maxRecommendations).map((candidate) => {
+    const ranking = rankingByTicker.get(candidate.ticker) ?? null;
+    const tier = ranking?.score.tier ?? "unknown";
+    const localScore = clamp(
+      candidate.local_score,
+      tier === "strong" ? 82 : tier === "valid" ? 65 : 55,
+      tier === "strong" ? 90 : tier === "valid" ? 78 : 68,
+    );
+    const warningSummary = [
+      ...(candidate.local_score_warnings ?? []),
+      ...(ranking?.score.warnings.map((warning) => warning.message) ?? []),
+    ].slice(0, 5);
+    const gapSummary = [
+      ...(ranking?.score.gaps ?? []),
+      ...(candidate.intraday_indicators ? [] : ["Intraday indicators unavailable."]),
+      ...(candidate.intraday_indicator_stale
+        ? ["Market data is stale."]
+        : []),
+    ].slice(0, 5);
+    const reasons = candidate.local_score_reasons.slice(0, 3);
+    const setupType = normalizeSetupType(candidate.setup_type);
+    const setupLabel = getSetupTypeLabel(setupType);
+    const confidenceBreakdown: ConfidenceBreakdown = {
+      setup_quality: candidate.local_score_breakdown.trend,
+      momentum_confirmation: candidate.local_score_breakdown.momentum,
+      volume_confirmation: candidate.local_score_breakdown.volume,
+      risk_reward_quality: candidate.local_score_breakdown.riskReward,
+      market_regime_alignment: candidate.local_score_breakdown.marketRegime,
+      timing_quality: candidate.local_score_breakdown.timing,
+    };
+
+    return {
+      ticker: candidate.ticker,
+      company_name: candidate.company_name,
+      direction: "long",
+      setup_type: setupType,
+      entry_low: Number(candidate.proposed_entry_low),
+      entry_high: Number(candidate.proposed_entry_high),
+      stop_loss: Number(candidate.proposed_stop_loss),
+      target_1: Number(candidate.proposed_target_1),
+      target_2: Number(candidate.proposed_target_2),
+      risk_reward: Number(candidate.proposed_risk_reward),
+      confidence: confidenceFromScore(localScore),
+      confidence_score: localScore,
+      confidence_label: confidenceLabelFromScore(localScore),
+      confidence_breakdown: confidenceBreakdown,
+      confidence_reasoning: [
+        `${tier} ranked learning candidate from scanner output.`,
+        ranking?.rank_reason ?? null,
+        warningSummary.length > 0
+          ? `Warnings: ${warningSummary.join(" ")}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      risk_flags: warningSummary,
+      timeframe: dayTradeHorizon,
+      thesis:
+        reasons.length > 0
+          ? reasons.join(" ")
+          : `${candidate.ticker} is a ${tier} ranked ${setupLabel} learning candidate with a defined intraday plan.`,
+      invalidation: `The setup is invalidated if price trades below ${Number(
+        candidate.proposed_stop_loss,
+      ).toFixed(2)} or intraday momentum and volume confirmation fail.`,
+      reason_to_avoid:
+        warningSummary.length > 0
+          ? warningSummary.join(" ")
+          : "Avoid if price action invalidates the entry trigger, volume fades, or the market backdrop weakens.",
+      tier,
+      source_provider:
+        candidate.intraday_indicator_source === "fresh" ||
+        candidate.intraday_indicator_source === "cache"
+          ? "twelve_data"
+          : "provider_unavailable",
+      market_data_source: candidate.intraday_indicator_source ?? "unknown",
+      market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+      data_freshness: getDataFreshness(candidate),
+      warning_summary: warningSummary,
+      gap_summary: gapSummary,
+      ranking_rank: ranking?.rank ?? null,
+      ranking_reason:
+        ranking?.rank_reason ??
+        "Scanner ranking selected this structurally valid learning candidate.",
+      batch_window: scanWindow,
+      batch_type: source === "scheduled" ? "official_scan" : "manual_scan",
+      batch_status: "learning_candidate",
     };
   });
 }
@@ -2239,13 +2435,17 @@ async function generateRecommendationsWithOpenAI(
       "Do not alter entry, stop, or target levels unless the structured candidate fields support the change; prefer no_trade when levels are missing or invalid.",
       "Generate only intraday day trade recommendations.",
       "You are not required to create a trade recommendation.",
-      "Prefer result=no_trade over a weak or unclear setup.",
+      source === "scheduled"
+        ? "For scheduled official scans, publish structurally valid strong, valid, or experimental learning candidates when the ranked candidate data supports a coherent same-day plan."
+        : "Prefer result=no_trade over a weak or unclear setup.",
       "Return no or limited recommendations when the provided candidate data is insufficient.",
       "Every trade must be suitable for same-day execution.",
       "Do not recommend swing trades or multi-day holds.",
       "If the setup requires holding overnight, reject it.",
       "Prioritize liquid US stocks, intraday momentum, volume confirmation, a clean entry trigger, tight invalidation, a realistic same-day target, and clear risk/reward.",
-      "Prefer no recommendation over a weak recommendation.",
+      source === "scheduled"
+        ? "Do not require every recommendation to be a high-confidence trade signal; Valid and Experimental candidates are allowed as learning recommendations when clearly labeled by tier."
+        : "Prefer no recommendation over a weak recommendation.",
       "Do not force a recommendation.",
       "Candidate passed local scan, but you must still reject it if risk/reward or intraday structure is weak.",
       "Use candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, scan_window, and market_regime as inputs to final confidence scoring.",
@@ -2263,7 +2463,10 @@ async function generateRecommendationsWithOpenAI(
       "Every returned recommendation must include tier, source_provider, market_data_source, market_data_timestamp, data_freshness, warning_summary, gap_summary, ranking_rank, ranking_reason, batch_window, batch_type, and batch_status.",
       "Copy tier/ranking/source/window metadata from the candidate and batch context when applicable; use unknown/provider_unavailable instead of inventing unavailable metadata.",
       "Reject the setup if the structure does not support an actionable same-day trade.",
-      "Return result=no_trade if entry trigger is unclear, stop loss/invalidation is unclear, same-day target is unrealistic, risk/reward is below threshold, volume or momentum confirmation is weak, setup is too late, too choppy, not actionable, market regime conflicts with the trade, or the candidate requires holding overnight.",
+      "Return result=no_trade if entry trigger is unclear, stop loss/invalidation is unclear, same-day target is unrealistic, risk/reward is below threshold, setup is too late, too choppy, not actionable, market regime conflicts with the trade, or the candidate requires holding overnight.",
+      source === "scheduled"
+        ? "For scheduled learning batches, weak volume or momentum should lower confidence and add warnings for Valid/Experimental candidates unless it makes the same-day plan structurally invalid."
+        : "For manual generation, prefer no_trade when volume or momentum confirmation is weak.",
       "Only return result=trade_recommendation if the setup is actionable as an intraday day trade.",
       "If scan_window is pre_market or closed, do not return fresh active trade recommendations as tradable now.",
       "For no_trade, return an empty recommendations array plus reason, confidence_score or null, risk_flags, and candidate_ticker.",
@@ -2321,7 +2524,7 @@ async function generateRecommendationsWithOpenAI(
       },
       local_scoring: {
         threshold_note:
-          "Candidates include candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, setup_type, setup_type_label, setup_type_description, and optional intraday_indicators from the app's scanner.",
+          "Candidates include candidate_score, candidate_score_breakdown, candidate_score_reasons, candidate_score_warnings, setup_type, setup_type_label, setup_type_description, ranking tier, and optional intraday_indicators from the app's scanner. Strong threshold is a tier label, not the only scheduled publication threshold.",
         setup_type_taxonomy: SETUP_TYPE_OPTIONS_FOR_PROMPT,
       },
       candidates: candidatePayloads,
@@ -2375,6 +2578,7 @@ export async function generateRecommendations({
   targetCount,
   source,
   allowPowerHourRecommendationLogging = false,
+  activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
     const todayStart = getStartOfToday();
@@ -2516,7 +2720,7 @@ export async function generateRecommendations({
           );
     const maxRecommendationsForRun =
       source === "scheduled"
-        ? Math.min(requestedMaxRecommendations, MAX_SCHEDULED_RECOMMENDATIONS_PER_SCAN)
+        ? scanPolicy.maxRecommendations
         : requestedMaxRecommendations;
     const settings = {
       ...baseSettings,
@@ -2618,10 +2822,28 @@ export async function generateRecommendations({
       scanWindow,
     });
     const scannerBaseCandidates = scannerUniverseSelection.candidates;
+    const universeCoverage = scannerUniverseSelection.coverage;
+
+    activeScanTrace?.markStage("universe", "completed");
+    activeScanTrace?.updateUniverse({
+      total_enabled:
+        universeCoverage?.enabled_tickers ?? scannerBaseCandidates.length,
+      selected_tickers_count:
+        universeCoverage?.selected_tickers ?? scannerBaseCandidates.length,
+      selected_tickers_sample: scannerBaseCandidates
+        .map((candidate) => candidate.ticker)
+        .slice(0, 12),
+      scan_budget:
+        typeof universeCoverage?.scan_budget?.selected_tickers === "number"
+          ? universeCoverage.scan_budget.selected_tickers
+          : null,
+    });
+
     const scannerCandidates = await scanMarket(
       scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
-      { source },
+      { source, activeScanTrace },
     );
+    updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
         universe: scannerBaseCandidates,
@@ -2860,10 +3082,25 @@ export async function generateRecommendations({
         scanWindow,
         universeCoverage: scannerUniverseSelection.coverage,
       });
+    activeScanTrace?.markStage("ranking", "completed");
+    activeScanTrace?.updateRanking({
+      ranking_attempted: true,
+      ranked_count: scannerCandidateRankingSummary.candidates_ranked,
+      selected_count: scannerCandidateRankingSummary.selected_count,
+      top_score: scannerCandidateRankingSummary.score_range.max,
+      average_score: scannerCandidateRankingSummary.average_score,
+      top_penalties: scannerCandidateRankingSummary.top_penalty_reasons.slice(0, 8),
+    });
     const rankingRankByTicker = new Map(
       scannerCandidateRankingSummary.results.map((result) => [
         result.ticker,
         result.rank,
+      ]),
+    );
+    const rankingResultByTicker = new Map(
+      scannerCandidateRankingSummary.results.map((result) => [
+        result.ticker,
+        result,
       ]),
     );
     const scoredCandidates = [...initiallyScoredCandidates].sort(
@@ -2873,7 +3110,8 @@ export async function generateRecommendations({
         second.local_score - first.local_score ||
         sortCandidatesByDiversity(first, second),
     );
-    const threshold = getDayTradeScoreThreshold(scanWindow, source);
+    const strongThreshold = getDayTradeScoreThreshold(scanWindow, source);
+    const publishableThreshold = getPublishableLearningScoreThreshold(source);
     const topCandidate = scoredCandidates[0] ?? null;
     const topCandidateScore = topCandidate?.local_score ?? 0;
     const topCandidateSetupType = topCandidate?.setup_type ?? null;
@@ -2892,12 +3130,33 @@ export async function generateRecommendations({
       typeof topCandidate?.intraday_indicator_stale === "boolean"
         ? topCandidate.intraday_indicator_stale
         : null;
-    const qualifiedCandidates = scoredCandidates.filter(
-      (candidate) => candidate.local_score >= threshold,
+    const selectedRankingTickerSet = new Set(
+      scannerCandidateRankingSummary.selection.selected_tickers,
     );
+    const qualifiedCandidates = scoredCandidates.filter((candidate) => {
+      const ranking = rankingResultByTicker.get(candidate.ticker);
+
+      return (
+        selectedRankingTickerSet.has(candidate.ticker) &&
+        candidate.local_score >= publishableThreshold &&
+        (ranking?.score.tier === "strong" ||
+          ranking?.score.tier === "valid" ||
+          ranking?.score.tier === "experimental")
+      );
+    });
+    const strongQualifiedCount = qualifiedCandidates.filter(
+      (candidate) => rankingResultByTicker.get(candidate.ticker)?.score.tier === "strong",
+    ).length;
+    const validQualifiedCount = qualifiedCandidates.filter(
+      (candidate) => rankingResultByTicker.get(candidate.ticker)?.score.tier === "valid",
+    ).length;
+    const experimentalQualifiedCount = qualifiedCandidates.filter(
+      (candidate) =>
+        rankingResultByTicker.get(candidate.ticker)?.score.tier === "experimental",
+    ).length;
     const candidateLimit =
       source === "scheduled"
-        ? Math.max(1, settings.max_recommendations_per_session * 3)
+        ? Math.max(1, settings.max_recommendations_per_session)
         : Math.max(6, settings.max_recommendations_per_session * 3);
     const candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
     const availableCandidateTickers = availableCandidates.map(
@@ -2930,7 +3189,8 @@ export async function generateRecommendations({
     logPipeline("scanner_candidates_after_filtering", availableCandidates.length);
     logPipeline("scanner_candidate_tickers_after_filtering", availableCandidateTickers);
     logPipeline("candidates_removed_by_cooldown", candidatesRemovedByCooldown);
-    logPipeline("day_trade_score_threshold", threshold);
+    logPipeline("strong_day_trade_score_threshold", strongThreshold);
+    logPipeline("publishable_learning_score_threshold", publishableThreshold);
     logPipeline("top_scored_candidate", topCandidate?.ticker ?? null);
     logPipeline("top_scored_candidate_score", topCandidateScore);
     logPipeline("top_scored_candidate_setup_type", topCandidateSetupType);
@@ -2941,44 +3201,11 @@ export async function generateRecommendations({
     logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
 
-    if (!topCandidate || topCandidateScore < threshold) {
-      const message = `Scan completed. Candidate below threshold: ${topCandidateScore}/${threshold}.`;
-
-      logPipeline("inserted_recommendations_count", 0);
-      logPipeline("skip_openai_reason", message);
-
-      return {
-        recommendations: [],
-        message:
-          topCandidateScore === 0
-            ? "Scan completed. No high-quality day trade setup found."
-            : message,
-        duplicate_fallback_used: duplicateFallbackUsed,
-        market_regime: marketRegime,
-        scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-          real_scanner_candidate_generation: realScannerCandidateGeneration,
-          scanner_candidate_ranking: scannerCandidateRankingSummary,
-        } satisfies RecommendationScanLogDetails,
-      };
-    }
-
     if (candidatesForOpenAI.length === 0) {
-      const message = "Scan completed. No high-quality day trade setup found.";
+      const message =
+        qualifiedCandidates.length === 0
+          ? "Scan completed. No structurally valid ranked learning candidates were publishable."
+          : "Scan completed. Ranked candidates were available but none fit the publication limit.";
 
       logPipeline("inserted_recommendations_count", 0);
       logPipeline("skip_openai_reason", message);
@@ -3001,7 +3228,16 @@ export async function generateRecommendations({
           indicator_source: topCandidateIndicatorSource,
           indicator_cached_at: topCandidateIndicatorCachedAt,
           indicator_stale: topCandidateIndicatorStale,
-          threshold,
+          threshold: strongThreshold,
+          strong_threshold: strongThreshold,
+          publishable_threshold: publishableThreshold,
+          ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
+          recommendations_published_count: 0,
+          strong_count: strongQualifiedCount,
+          valid_count: validQualifiedCount,
+          experimental_count: experimentalQualifiedCount,
+          ranked_candidates_not_published_reason: message,
+          deterministic_fallback_used: false,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
@@ -3010,20 +3246,71 @@ export async function generateRecommendations({
       };
     }
 
-    const openAiResult = await generateRecommendationsWithOpenAI(
-      candidatesForOpenAI,
-      sessionType,
-      scanWindow,
-      settings,
-      duplicateFallbackUsed,
-      marketRegime,
-      scannerCandidateRankingSummary,
-      source,
-      openPositionCount,
-    );
-    const aiResponse = openAiResult.response;
-    let openAiRealityGuardSummary = openAiResult.realityGuard;
-    logPipeline("raw_openai_recommendations_count", aiResponse.recommendations.length);
+    activeScanTrace?.markStage("openai", "started");
+    activeScanTrace?.updateOpenAi({
+      openai_attempted: true,
+      input_candidate_count: candidatesForOpenAI.length,
+    });
+
+    let deterministicFallbackUsed = false;
+    let deterministicFallbackReason: string | null = null;
+    let aiResponse: AiResponse;
+    let openAiOutputRecommendationCount = 0;
+    let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
+      null;
+
+    function deterministicFallback(reason: string): AiResponse {
+      deterministicFallbackUsed = true;
+      deterministicFallbackReason = reason;
+      const recommendations = buildDeterministicLearningRecommendations({
+        candidates: candidatesForOpenAI,
+        rankingSummary: scannerCandidateRankingSummary,
+        scanWindow,
+        source,
+        maxRecommendations: settings.max_recommendations_per_session,
+      });
+
+      logPipeline("deterministic_fallback_used", true);
+      logPipeline("deterministic_fallback_reason", reason);
+      logPipeline(
+        "deterministic_fallback_recommendations_count",
+        recommendations.length,
+      );
+
+      return {
+        result: "trade_recommendation",
+        recommendations,
+      };
+    }
+
+    try {
+      const openAiResult = await generateRecommendationsWithOpenAI(
+        candidatesForOpenAI,
+        sessionType,
+        scanWindow,
+        settings,
+        duplicateFallbackUsed,
+        marketRegime,
+        scannerCandidateRankingSummary,
+        source,
+        openPositionCount,
+      );
+      aiResponse = openAiResult.response;
+      openAiOutputRecommendationCount = aiResponse.recommendations.length;
+      openAiRealityGuardSummary = openAiResult.realityGuard;
+    } catch (openAiError) {
+      activeScanTrace?.markStage("openai", "failed");
+      activeScanTrace?.updateOpenAi({
+        openai_error_type: errorType(openAiError),
+      });
+      aiResponse = deterministicFallback(`OpenAI error: ${errorType(openAiError)}`);
+    }
+
+    activeScanTrace?.markStage("openai", "completed");
+    activeScanTrace?.updateOpenAi({
+      output_recommendation_count: openAiOutputRecommendationCount,
+    });
+    logPipeline("raw_openai_recommendations_count", openAiOutputRecommendationCount);
     logPipeline(
       "openai_recommendation_reality_guard",
       openAiRealityGuardSummary,
@@ -3043,78 +3330,17 @@ export async function generateRecommendations({
       logPipeline("openai_no_trade_ticker", rejectedTicker);
       logPipeline("openai_no_trade_reason", rejectedReason);
       logPipeline("validated_recommendations_count", 0);
-      logPipeline("inserted_recommendations_count", 0);
-      logPipeline("inserted_recommendation_tickers", []);
-
-      return {
-        recommendations: [],
-        message,
-        duplicate_fallback_used: duplicateFallbackUsed,
-        market_regime: marketRegime,
-        scan_window: scanWindow,
-        no_trade: noTrade,
-        scan_log: {
-          result: "openai_no_trade",
-          top_candidate_ticker: rejectedTicker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          no_trade_reason: rejectedReason,
-          no_trade_risk_flags: noTrade?.risk_flags ?? [],
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-          real_scanner_candidate_generation: realScannerCandidateGeneration,
-          scanner_candidate_ranking: scannerCandidateRankingSummary,
-          openai_recommendation_reality_guard: openAiRealityGuardSummary,
-        } satisfies RecommendationScanLogDetails,
-      };
+      aiResponse = deterministicFallback(message);
     }
 
     if (aiResponse.recommendations.length === 0) {
       logPipeline("validated_recommendations_count", 0);
       logPipeline("skipped_recommendations_count", 0);
       logPipeline("skipped_recommendation_reasons", []);
-      logPipeline("inserted_recommendations_count", 0);
-      logPipeline("inserted_recommendation_tickers", []);
-
-      return {
-        recommendations: [],
-        message: duplicateFallbackUsed
-          ? duplicateFallbackMessage
-          : "No high-quality day trade setup found for this scan window.",
-        duplicate_fallback_used: duplicateFallbackUsed,
-        market_regime: marketRegime,
-        scan_window: scanWindow,
-        scan_log: {
-          result: "no_high_quality_setup",
-          top_candidate_ticker: topCandidate?.ticker ?? null,
-          top_candidate_score: topCandidateScore,
-          top_candidate_setup_type: topCandidateSetupType,
-          top_candidate_breakdown: topCandidateBreakdown,
-          top_candidate_reasons: topCandidateReasons,
-          top_candidate_warnings: topCandidateWarnings,
-          top_candidate_indicators: topCandidateIndicators,
-          indicator_source: topCandidateIndicatorSource,
-          indicator_cached_at: topCandidateIndicatorCachedAt,
-          indicator_stale: topCandidateIndicatorStale,
-          threshold,
-          candidates_scanned: scoredCandidates.length,
-          skipped_tickers: candidatesRemovedByCooldown.length,
-          real_scanner_candidate_generation: realScannerCandidateGeneration,
-          scanner_candidate_ranking: scannerCandidateRankingSummary,
-          openai_recommendation_reality_guard: openAiRealityGuardSummary,
-        } satisfies RecommendationScanLogDetails,
-      };
+      aiResponse = deterministicFallback("OpenAI returned zero recommendations.");
     }
 
-    const sanitizedRecommendations = sanitizeRecommendations(
+    let sanitizedRecommendations = sanitizeRecommendations(
       aiResponse.recommendations,
       candidatesForOpenAI,
       sessionType,
@@ -3122,16 +3348,42 @@ export async function generateRecommendations({
       source,
       settings.max_recommendations_per_session,
     );
-    const recommendationsToInsert = sanitizedRecommendations.recommendations;
-    openAiRealityGuardSummary = finalizeOpenAiRecommendationRealityGuardSummary(
-      openAiRealityGuardSummary,
-      {
+    activeScanTrace?.updateOpenAi({
+      parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
+    });
+    let recommendationsToInsert = sanitizedRecommendations.recommendations;
+
+    if (recommendationsToInsert.length === 0 && !deterministicFallbackUsed) {
+      aiResponse = deterministicFallback(
+        `OpenAI recommendations rejected by sanitizer: ${sanitizedRecommendations.skippedReasons
+          .slice(0, 3)
+          .join(" ")}`,
+      );
+      sanitizedRecommendations = sanitizeRecommendations(
+        aiResponse.recommendations,
+        candidatesForOpenAI,
+        sessionType,
+        scanWindow,
+        source,
+        settings.max_recommendations_per_session,
+      );
+      recommendationsToInsert = sanitizedRecommendations.recommendations;
+      activeScanTrace?.updateOpenAi({
+        parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
+      });
+    }
+
+    if (openAiRealityGuardSummary) {
+      openAiRealityGuardSummary = finalizeOpenAiRecommendationRealityGuardSummary(
+        openAiRealityGuardSummary,
+        {
         validatedRecommendationTickers: recommendationsToInsert.map(
           (recommendation) => recommendation.ticker,
         ),
         sanitizerSkippedReasons: sanitizedRecommendations.skippedReasons,
       },
-    );
+      );
+    }
 
     logPipeline("validated_recommendations_count", recommendationsToInsert.length);
     logPipeline(
@@ -3155,7 +3407,7 @@ export async function generateRecommendations({
         recommendations: [],
         message: duplicateFallbackUsed
           ? duplicateFallbackMessage
-          : "No high-quality day trade setup found for this scan window.",
+          : "Ranked learning candidates were available but failed recommendation validation.",
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
@@ -3171,7 +3423,19 @@ export async function generateRecommendations({
           indicator_source: topCandidateIndicatorSource,
           indicator_cached_at: topCandidateIndicatorCachedAt,
           indicator_stale: topCandidateIndicatorStale,
-          threshold,
+          threshold: strongThreshold,
+          strong_threshold: strongThreshold,
+          publishable_threshold: publishableThreshold,
+          ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
+          recommendations_published_count: 0,
+          strong_count: strongQualifiedCount,
+          valid_count: validQualifiedCount,
+          experimental_count: experimentalQualifiedCount,
+          ranked_candidates_not_published_reason:
+            sanitizedRecommendations.skippedReasons[0] ??
+            deterministicFallbackReason ??
+            "Publishable candidates failed recommendation validation.",
+          deterministic_fallback_used: deterministicFallbackUsed,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
@@ -3235,7 +3499,16 @@ export async function generateRecommendations({
         indicator_source: topCandidateIndicatorSource,
         indicator_cached_at: topCandidateIndicatorCachedAt,
         indicator_stale: topCandidateIndicatorStale,
-        threshold,
+        threshold: strongThreshold,
+        strong_threshold: strongThreshold,
+        publishable_threshold: publishableThreshold,
+        ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
+        recommendations_published_count: insertedRecommendations.length,
+        strong_count: strongQualifiedCount,
+        valid_count: validQualifiedCount,
+        experimental_count: experimentalQualifiedCount,
+        ranked_candidates_not_published_reason: null,
+        deterministic_fallback_used: deterministicFallbackUsed,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:
           candidatesRemovedByCooldown.length +

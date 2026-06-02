@@ -62,6 +62,13 @@ import {
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import {
+  createActiveScanTrace,
+  errorType,
+  zeroCandidateReason,
+  type ActiveScanTrace,
+  type ActiveScanTraceRecorder,
+} from "@/lib/active-scan-trace";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -442,6 +449,79 @@ function providerEnvironmentReady() {
   };
 }
 
+function finishActiveScanTrace(
+  activeScanTrace: ActiveScanTraceRecorder,
+  {
+    decision,
+    status,
+    skipReason = null,
+    candidatesGenerated = 0,
+    recommendationsServed = 0,
+    recommendationsCreated = 0,
+    rankedCandidatesCount = 0,
+    recommendationsPublishedCount = recommendationsCreated,
+    strongCount = 0,
+    validCount = 0,
+    experimentalCount = 0,
+    rankedCandidatesNotPublishedReason = null,
+    strongThreshold = null,
+    publishableThreshold = null,
+    deterministicFallbackUsed = false,
+    batchFingerprint = null,
+    scanRunFingerprint = null,
+    zeroReason = null,
+  }: {
+    decision: AutomationScanDecision | string;
+    status: string;
+    skipReason?: string | null;
+    candidatesGenerated?: number;
+    recommendationsServed?: number;
+    recommendationsCreated?: number;
+    rankedCandidatesCount?: number;
+    recommendationsPublishedCount?: number;
+    strongCount?: number;
+    validCount?: number;
+    experimentalCount?: number;
+    rankedCandidatesNotPublishedReason?: string | null;
+    strongThreshold?: number | null;
+    publishableThreshold?: number | null;
+    deterministicFallbackUsed?: boolean;
+    batchFingerprint?: string | null;
+    scanRunFingerprint?: string | null;
+    zeroReason?: string | null;
+  },
+) {
+  if (skipReason) {
+    activeScanTrace.update({ skip_reason: skipReason });
+  }
+
+  activeScanTrace.updateFinal({
+    decision,
+    status,
+    candidates_generated: candidatesGenerated,
+    recommendations_served: recommendationsServed,
+    recommendations_created: recommendationsCreated,
+    ranked_candidates_count: rankedCandidatesCount,
+    recommendations_published_count: recommendationsPublishedCount,
+    strong_count: strongCount,
+    valid_count: validCount,
+    experimental_count: experimentalCount,
+    ranked_candidates_not_published_reason: rankedCandidatesNotPublishedReason,
+    strong_threshold: strongThreshold,
+    publishable_threshold: publishableThreshold,
+    deterministic_fallback_used: deterministicFallbackUsed,
+    batch_fingerprint: batchFingerprint,
+    scan_run_fingerprint: scanRunFingerprint,
+    zero_candidate_reason:
+      candidatesGenerated === 0 || recommendationsCreated === 0
+        ? zeroReason ?? zeroCandidateReason(activeScanTrace.trace)
+        : null,
+  });
+  activeScanTrace.markStage("final", "completed");
+
+  return activeScanTrace.trace;
+}
+
 function calendarFields(
   orchestration: DayTradeScanOrchestrationSummary,
 ): AutomationCalendarFields {
@@ -724,6 +804,43 @@ function createAutomationScanLog({
       details.recommendation_serving_cadence !== null
         ? (details.recommendation_serving_cadence as ScanLogEntry["recommendation_serving_cadence"])
         : null,
+    ranked_candidates_count:
+      typeof details?.ranked_candidates_count === "number"
+        ? details.ranked_candidates_count
+        : null,
+    recommendations_published_count:
+      typeof details?.recommendations_published_count === "number"
+        ? details.recommendations_published_count
+        : null,
+    strong_count:
+      typeof details?.strong_count === "number" ? details.strong_count : null,
+    valid_count:
+      typeof details?.valid_count === "number" ? details.valid_count : null,
+    experimental_count:
+      typeof details?.experimental_count === "number"
+        ? details.experimental_count
+        : null,
+    ranked_candidates_not_published_reason:
+      typeof details?.ranked_candidates_not_published_reason === "string"
+        ? details.ranked_candidates_not_published_reason
+        : null,
+    strong_threshold:
+      typeof details?.strong_threshold === "number"
+        ? details.strong_threshold
+        : null,
+    publishable_threshold:
+      typeof details?.publishable_threshold === "number"
+        ? details.publishable_threshold
+        : null,
+    deterministic_fallback_used:
+      typeof details?.deterministic_fallback_used === "boolean"
+        ? details.deterministic_fallback_used
+        : null,
+    active_scan_trace:
+      typeof details?.active_scan_trace === "object" &&
+      details.active_scan_trace !== null
+        ? (details.active_scan_trace as ActiveScanTrace)
+        : null,
   });
 }
 
@@ -995,6 +1112,7 @@ async function persistAutomationArtifacts({
   scanLog,
   servingCadence,
   recommendations,
+  activeScanTrace,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -1006,7 +1124,9 @@ async function persistAutomationArtifacts({
   scanLog: ScanLogEntry;
   servingCadence: RecommendationServingCadenceSummary;
   recommendations: RecommendationRow[];
+  activeScanTrace?: ActiveScanTraceRecorder | null;
 }) {
+  activeScanTrace?.markStage("persistence", "started");
   const observability = buildAutomationScanObservability({
     scanDate,
     scanWindow,
@@ -1046,6 +1166,7 @@ async function persistAutomationArtifacts({
       market_status: marketStatus,
       day_trade_scan_orchestration: orchestration,
       recommendation_serving_cadence: servingCadence,
+      active_scan_trace: activeScanTrace?.trace ?? null,
       provider_source:
         scanLog.real_scanner_candidate_generation?.provider_source ??
         scanLog.indicator_source ??
@@ -1104,6 +1225,7 @@ async function persistAutomationArtifacts({
         scan_window: scanWindow,
         scan_reason: orchestration.scan_reason,
         automation_source: "scheduled",
+        active_scan_trace: activeScanTrace?.trace ?? null,
       },
     });
 
@@ -1275,6 +1397,11 @@ export async function POST(request: Request) {
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
+  const activeScanTrace = createActiveScanTrace({
+    routeReceivedAt: routeReceivedAtUtc,
+    scheduledFunctionFiredAtUtc,
+    scanWindow: scanWindow.scanWindow,
+  });
   let initialServingCadence = buildServingCadenceForAutomation({
     scanDate: scanWindow.scanDate || marketStatus.date,
     orchestration: dayTradeScanOrchestration,
@@ -1302,6 +1429,16 @@ export async function POST(request: Request) {
       recentScheduledScanRuns,
       currentScanLog,
     });
+
+  activeScanTrace.updateProviderEnv();
+  activeScanTrace.update({
+    interpreted_ny_time: `${dayTradeScanOrchestration.trading_date} ${dayTradeScanOrchestration.ny_time} America/New_York`,
+    market_status: marketStatusLabel(marketStatus),
+    market_session: marketSession.phase,
+    scan_window: scanWindow.scanWindow,
+    orchestration_decision: dayTradeScanOrchestration.decision,
+    should_scan_now: dayTradeScanOrchestration.should_scan_now,
+  });
 
   let expiredRecommendations = 0;
 
@@ -1331,6 +1468,12 @@ export async function POST(request: Request) {
         scan_date: scanWindow.scanDate || marketStatus.date,
         status: "failed",
         decision: "failed" satisfies AutomationScanDecision,
+        active_scan_trace: finishActiveScanTrace(activeScanTrace, {
+          decision: "failed",
+          status: "failed",
+          skipReason: message,
+          zeroReason: "archive_expired_recommendations_failed",
+        }),
         automation_diagnostics: automationDiagnostics({
           decision: "failed",
           skippedReason: message,
@@ -1397,7 +1540,14 @@ export async function POST(request: Request) {
       details: {
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
+        active_scan_trace: activeScanTrace.trace,
       },
+    });
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: "skipped_market_closed",
+      status: "skipped",
+      skipReason: message,
+      zeroReason: "market_not_open_for_active_scan",
     });
 
     return NextResponse.json({
@@ -1405,6 +1555,7 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_market_closed" satisfies AutomationScanDecision,
+      active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_market_closed",
         skippedReason: message,
@@ -1471,7 +1622,14 @@ export async function POST(request: Request) {
       details: {
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
+        active_scan_trace: activeScanTrace.trace,
       },
+    });
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: "skipped_outside_window",
+      status: "skipped",
+      skipReason: message,
+      zeroReason: "outside_generation_window",
     });
 
     return NextResponse.json({
@@ -1479,6 +1637,7 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_outside_window" satisfies AutomationScanDecision,
+      active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_outside_window",
         skippedReason: message,
@@ -1519,11 +1678,18 @@ export async function POST(request: Request) {
         dayTradeScanOrchestration.decision === "market_closed"
           ? ("skipped_market_closed" satisfies AutomationScanDecision)
           : ("skipped_outside_window" satisfies AutomationScanDecision);
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision,
+        status: "skipped",
+        skipReason: message,
+        zeroReason: "not_active_automation_window",
+      });
       return NextResponse.json({
         ok: true,
         message,
         status: "skipped",
         decision,
+        active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision,
           skippedReason: message,
@@ -1551,9 +1717,17 @@ export async function POST(request: Request) {
     }
 
     const providerEnv = providerEnvironmentReady();
+    activeScanTrace.markStage("provider_env", providerEnv.ready ? "completed" : "failed");
+    activeScanTrace.updateProviderEnv();
 
     if (!providerEnv.ready) {
       const message = `Scheduled scan skipped: provider environment missing ${providerEnv.missing.join(", ")}.`;
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision: "skipped_provider_unavailable",
+        status: "skipped",
+        skipReason: message,
+        zeroReason: "provider_environment_missing",
+      });
 
       return NextResponse.json(
         {
@@ -1561,6 +1735,7 @@ export async function POST(request: Request) {
           message,
           status: "skipped",
           decision: "skipped_provider_unavailable" satisfies AutomationScanDecision,
+          active_scan_trace: activeScanTracePayload,
           automation_diagnostics: automationDiagnostics({
             decision: "skipped_provider_unavailable",
             skippedReason: message,
@@ -1607,6 +1782,12 @@ export async function POST(request: Request) {
       ranking: null,
       now,
     });
+    activeScanTrace.update({
+      interpreted_ny_time: `${dayTradeScanOrchestration.trading_date} ${dayTradeScanOrchestration.ny_time} America/New_York`,
+      scan_window: scanWindow.scanWindow,
+      orchestration_decision: dayTradeScanOrchestration.decision,
+      should_scan_now: dayTradeScanOrchestration.should_scan_now,
+    });
 
     const latestSameWindowScan = latestScheduledScanForWindow({
       runs: recentScheduledScanRuns,
@@ -1628,12 +1809,29 @@ export async function POST(request: Request) {
     ) {
       const ageMinutes = minutesSince(latestSameWindowScan?.row.created_at, now);
       const message = `Recent ${scanWindowLabel} scan already completed ${ageMinutes ?? "recently"} minutes ago.`;
+      const candidatesGenerated =
+        latestSameWindowScan?.scanLog.real_scanner_candidate_generation?.universe
+          .candidates_generated ??
+        latestSameWindowScan?.scanLog.candidates_scanned ??
+        0;
+      const recommendationsCreated =
+        latestSameWindowScan?.scanLog.recommendations_created ?? 0;
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision: "skipped_recent_scan",
+        status: "skipped",
+        skipReason: message,
+        candidatesGenerated,
+        recommendationsServed: recommendationsCreated,
+        recommendationsCreated,
+        zeroReason: "recent_same_window_scan_completed",
+      });
 
       return NextResponse.json({
         ok: true,
         message,
         status: "skipped",
         decision: "skipped_recent_scan" satisfies AutomationScanDecision,
+        active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision: "skipped_recent_scan",
           skippedReason: message,
@@ -1647,15 +1845,9 @@ export async function POST(request: Request) {
         market_session: marketSession,
         ...calendarFields(dayTradeScanOrchestration),
         expired_recommendations: expiredRecommendations,
-        candidates_generated:
-          latestSameWindowScan?.scanLog.real_scanner_candidate_generation?.universe
-            .candidates_generated ??
-          latestSameWindowScan?.scanLog.candidates_scanned ??
-          0,
-        recommendations_served:
-          latestSameWindowScan?.scanLog.recommendations_created ?? 0,
-        recommendations_created:
-          latestSameWindowScan?.scanLog.recommendations_created ?? 0,
+        candidates_generated: candidatesGenerated,
+        recommendations_served: recommendationsCreated,
+        recommendations_created: recommendationsCreated,
         batch_id:
           latestSameWindowScan?.scanLog.recommendation_serving_cadence
             ?.latest_official_batch_id ?? null,
@@ -1676,6 +1868,7 @@ export async function POST(request: Request) {
       scanWindow: scanWindow.scanWindow,
       source: "scheduled",
       allowPowerHourRecommendationLogging: calendarFallbackAllowsScan,
+      activeScanTrace,
     });
     const generationScanLog =
       (generationResult.scan_log ?? null) as RecommendationScanLogDetails | null;
@@ -1706,6 +1899,7 @@ export async function POST(request: Request) {
         ...generationScanLog,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: servingCadence,
+        active_scan_trace: activeScanTrace.trace,
       },
     });
 
@@ -1724,7 +1918,31 @@ export async function POST(request: Request) {
         scanLog,
         servingCadence,
         recommendations: insertedRecommendations,
+        activeScanTrace,
       });
+      activeScanTrace.updatePersistence({
+        scan_run_persisted:
+          artifactResult.persistence.scan_run.status === "saved" ||
+          artifactResult.persistence.scan_run.status === "updated" ||
+          artifactResult.persistence.scan_run.status === "duplicate",
+        batch_persisted: artifactResult.persistence.batch
+          ? artifactResult.persistence.batch.status === "saved" ||
+            artifactResult.persistence.batch.status === "updated" ||
+            artifactResult.persistence.batch.status === "duplicate"
+          : false,
+        snapshots_persisted_count: artifactResult.persistence.snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length,
+        persistence_error_type:
+          artifactResult.persistence.scan_run.error ??
+          artifactResult.persistence.batch?.error ??
+          artifactResult.persistence.snapshots.find((snapshot) => snapshot.error)
+            ?.error ??
+          null,
+      });
+      activeScanTrace.markStage("persistence", "completed");
     } catch (artifactError) {
       console.error("[automation/run-scan] artifact_persistence_error", {
         source: "automation_run_scan",
@@ -1734,7 +1952,43 @@ export async function POST(request: Request) {
         scanWindow: scanWindow.scanWindow,
         error: normalizeUnknownError(artifactError),
       });
+      activeScanTrace.markStage("persistence", "failed");
+      activeScanTrace.updatePersistence({
+        persistence_error_type: errorType(artifactError),
+      });
     }
+
+    const candidatesGenerated =
+      generationScanLog?.real_scanner_candidate_generation?.universe
+        .candidates_generated ??
+      generationScanLog?.candidates_scanned ??
+      0;
+    const batchFingerprint =
+      artifactResult?.persistence.batch?.batch.batch_fingerprint ?? null;
+    const scanRunFingerprint = artifactResult?.scan_run.run_fingerprint ?? null;
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: "scanned",
+      status: "completed",
+      candidatesGenerated,
+      recommendationsServed: recommendationsCreated,
+      recommendationsCreated,
+      rankedCandidatesCount: generationScanLog?.ranked_candidates_count ?? 0,
+      recommendationsPublishedCount:
+        generationScanLog?.recommendations_published_count ??
+        recommendationsCreated,
+      strongCount: generationScanLog?.strong_count ?? 0,
+      validCount: generationScanLog?.valid_count ?? 0,
+      experimentalCount: generationScanLog?.experimental_count ?? 0,
+      rankedCandidatesNotPublishedReason:
+        generationScanLog?.ranked_candidates_not_published_reason ?? null,
+      strongThreshold: generationScanLog?.strong_threshold ?? null,
+      publishableThreshold: generationScanLog?.publishable_threshold ?? null,
+      deterministicFallbackUsed:
+        generationScanLog?.deterministic_fallback_used === true,
+      batchFingerprint,
+      scanRunFingerprint,
+    });
+    scanLog.active_scan_trace = activeScanTracePayload;
 
     await recordScheduledScanRun({
       scanDate,
@@ -1751,6 +2005,7 @@ export async function POST(request: Request) {
       message,
       status: "completed",
       decision: "scanned" satisfies AutomationScanDecision,
+      active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "scanned",
         currentScanLog: scanLog,
@@ -1763,17 +2018,24 @@ export async function POST(request: Request) {
       scan_window_label: scanWindowLabel,
       archived_recommendations: expiredRecommendations,
       expired_recommendations: expiredRecommendations,
-      candidates_generated:
-        generationScanLog?.real_scanner_candidate_generation?.universe
-          .candidates_generated ??
-        generationScanLog?.candidates_scanned ??
-        0,
+      candidates_generated: candidatesGenerated,
       recommendations_served: recommendationsCreated,
       recommendations_created: recommendationsCreated,
+      ranked_candidates_count: generationScanLog?.ranked_candidates_count ?? null,
+      recommendations_published_count:
+        generationScanLog?.recommendations_published_count ?? recommendationsCreated,
+      strong_count: generationScanLog?.strong_count ?? null,
+      valid_count: generationScanLog?.valid_count ?? null,
+      experimental_count: generationScanLog?.experimental_count ?? null,
+      ranked_candidates_not_published_reason:
+        generationScanLog?.ranked_candidates_not_published_reason ?? null,
+      strong_threshold: generationScanLog?.strong_threshold ?? null,
+      publishable_threshold: generationScanLog?.publishable_threshold ?? null,
+      deterministic_fallback_used:
+        generationScanLog?.deterministic_fallback_used ?? false,
       batch_id: servingCadence.latest_official_batch_id,
-      batch_fingerprint:
-        artifactResult?.persistence.batch?.batch.batch_fingerprint ?? null,
-      scan_run_fingerprint: artifactResult?.scan_run.run_fingerprint ?? null,
+      batch_fingerprint: batchFingerprint,
+      scan_run_fingerprint: scanRunFingerprint,
       warnings: [
         ...dayTradeScanOrchestration.warnings.map((item) => item.message),
         ...(generationScanLog?.top_candidate_warnings ?? []),
@@ -1809,8 +2071,21 @@ export async function POST(request: Request) {
       details: {
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
+        active_scan_trace: activeScanTrace.trace,
       },
     });
+    const failureDecision =
+      failureResult === "provider_error" ||
+      failureResult === "provider_rate_limited"
+        ? ("skipped_provider_unavailable" satisfies AutomationScanDecision)
+        : ("failed" satisfies AutomationScanDecision);
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: failureDecision,
+      status: "failed",
+      skipReason: message,
+      zeroReason: `${failureResult}:${errorType(error)}`,
+    });
+    scanLog.active_scan_trace = activeScanTracePayload;
 
     try {
       await recordScheduledScanRun({
@@ -1847,17 +2122,10 @@ export async function POST(request: Request) {
         market_session: marketSession,
         ...calendarFields(dayTradeScanOrchestration),
         status: "failed",
-        decision:
-          failureResult === "provider_error" ||
-          failureResult === "provider_rate_limited"
-            ? ("skipped_provider_unavailable" satisfies AutomationScanDecision)
-            : ("failed" satisfies AutomationScanDecision),
+        decision: failureDecision,
+        active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
-          decision:
-            failureResult === "provider_error" ||
-            failureResult === "provider_rate_limited"
-              ? "skipped_provider_unavailable"
-              : "failed",
+          decision: failureDecision,
           skippedReason:
             failureResult === "provider_error" ||
             failureResult === "provider_rate_limited"

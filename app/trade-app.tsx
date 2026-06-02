@@ -331,6 +331,7 @@ import {
   type MarketDiagnosticsConsoleFormat,
   type MarketDiagnosticsConsoleSummary,
 } from "@/lib/market-diagnostics-console";
+import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import {
   buildRealRecommendationOutputReadinessSummary,
   realRecommendationOutputReadinessSummaryJson,
@@ -9571,6 +9572,14 @@ export function TradeApp() {
           openAiRecommendationRealityGuardSummary,
         )
       : "";
+  const latestActiveScanTrace =
+    dailyScanLogs.find((scanLog) => scanLog.active_scan_trace)
+      ?.active_scan_trace ??
+    ((storedRecommendationScanRuns.find(
+      (scanRun) =>
+        typeof scanRun.payload_json.active_scan_trace === "object" &&
+        scanRun.payload_json.active_scan_trace !== null,
+    )?.payload_json.active_scan_trace as ActiveScanTrace | undefined) ?? null);
   const recommendationServingCadenceSummary =
     buildRecommendationServingCadenceSummary({
       tradingDate: dailySessionDate,
@@ -10212,6 +10221,7 @@ export function TradeApp() {
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
       scanner_ranking: scannerCandidateRankingSummary,
+      active_scan_trace: latestActiveScanTrace,
       scanner_output_qa: scannerOutputQaSummary,
       real_output_readiness: realRecommendationOutputReadinessSummary,
       batch_memory: recommendationBatchMemorySummary,

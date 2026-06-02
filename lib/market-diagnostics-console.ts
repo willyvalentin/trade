@@ -16,6 +16,7 @@ import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
 import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-readiness";
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
+import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -86,6 +87,7 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_universe: ScannerUniverseCoverageSummary;
   dynamic_movers?: DynamicMarketMoversSummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
+  active_scan_trace?: ActiveScanTrace | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
   batch_memory: RecommendationBatchSummary;
@@ -678,6 +680,139 @@ function buildSections(
           : input.scanner_output_qa.overall_status,
         scanner_candidates: input.scanner_output_qa.candidate_count,
         ranking_selected_count: input.scanner_ranking?.selected_count ?? null,
+      },
+    }),
+    section({
+      section_id: "active_scan_trace",
+      title: "Active scan trace",
+      severity:
+        input.active_scan_trace?.final.zero_candidate_reason &&
+        !closedMarketWaitState
+          ? "warning"
+          : "info",
+      lines: input.active_scan_trace
+        ? [
+            lineValue(
+              "Last stage reached",
+              words(input.active_scan_trace.last_stage_reached),
+            ),
+            lineValue(
+              "Zero candidate reason",
+              compact(input.active_scan_trace.final.zero_candidate_reason, "none"),
+            ),
+            lineValue(
+              "Provider env",
+              `td=${bool(input.active_scan_trace.provider_env.twelve_data_key_present)} / openai=${bool(input.active_scan_trace.provider_env.openai_key_present)} / polygon=${bool(input.active_scan_trace.provider_env.polygon_key_present)} / service=${bool(input.active_scan_trace.provider_env.supabase_service_role_present)}`,
+            ),
+            lineValue(
+              "Quote/candle success",
+              `${input.active_scan_trace.market_data_fetch.quote_success_count}/${input.active_scan_trace.market_data_fetch.candle_success_count}`,
+            ),
+            lineValue(
+              "Quote/candle errors",
+              `${input.active_scan_trace.market_data_fetch.quote_error_count}/${input.active_scan_trace.market_data_fetch.candle_error_count}`,
+            ),
+            lineValue(
+              "Raw/ranked/output",
+              `${input.active_scan_trace.raw_candidates.raw_candidate_count}/${input.active_scan_trace.ranking.ranked_count}/${input.active_scan_trace.openai.output_recommendation_count}`,
+            ),
+            lineValue(
+              "Published",
+              `${input.active_scan_trace.final.recommendations_published_count} published / ${input.active_scan_trace.final.ranked_candidates_count} ranked selected`,
+            ),
+            lineValue(
+              "Tier mix",
+              `${input.active_scan_trace.final.strong_count} strong / ${input.active_scan_trace.final.valid_count} valid / ${input.active_scan_trace.final.experimental_count} experimental`,
+            ),
+            lineValue(
+              "Thresholds",
+              `strong ${input.active_scan_trace.final.strong_threshold ?? "unknown"} / publishable ${input.active_scan_trace.final.publishable_threshold ?? "unknown"}`,
+            ),
+            lineValue(
+              "Deterministic fallback",
+              bool(input.active_scan_trace.final.deterministic_fallback_used),
+            ),
+            lineValue(
+              "Not published reason",
+              compact(
+                input.active_scan_trace.final
+                  .ranked_candidates_not_published_reason,
+                "none",
+              ),
+            ),
+          ]
+        : [
+            lineValue("Last stage reached", "not observed"),
+            lineValue("Zero candidate reason", "not observed"),
+            lineValue("Provider env", "not observed"),
+            lineValue("Quote/candle success", "not observed"),
+            lineValue("Raw/ranked/output", "not observed"),
+            lineValue("Published", "not observed"),
+            lineValue("Tier mix", "not observed"),
+            lineValue("Thresholds", "not observed"),
+            lineValue("Deterministic fallback", "not observed"),
+          ],
+      metrics: {
+        trace_id: input.active_scan_trace?.trace_id ?? null,
+        last_stage_reached: input.active_scan_trace?.last_stage_reached ?? null,
+        zero_candidate_reason:
+          input.active_scan_trace?.final.zero_candidate_reason ?? null,
+        twelve_data_key_present:
+          input.active_scan_trace?.provider_env.twelve_data_key_present ?? null,
+        openai_key_present:
+          input.active_scan_trace?.provider_env.openai_key_present ?? null,
+        polygon_key_present:
+          input.active_scan_trace?.provider_env.polygon_key_present ?? null,
+        supabase_service_role_present:
+          input.active_scan_trace?.provider_env.supabase_service_role_present ??
+          null,
+        attempted_tickers:
+          input.active_scan_trace?.market_data_fetch.attempted_tickers ?? null,
+        quote_success_count:
+          input.active_scan_trace?.market_data_fetch.quote_success_count ?? null,
+        quote_error_count:
+          input.active_scan_trace?.market_data_fetch.quote_error_count ?? null,
+        candle_success_count:
+          input.active_scan_trace?.market_data_fetch.candle_success_count ?? null,
+        candle_error_count:
+          input.active_scan_trace?.market_data_fetch.candle_error_count ?? null,
+        stale_count: input.active_scan_trace?.market_data_fetch.stale_count ?? null,
+        raw_candidate_count:
+          input.active_scan_trace?.raw_candidates.raw_candidate_count ?? null,
+        structurally_valid_count:
+          input.active_scan_trace?.raw_candidates.structurally_valid_count ?? null,
+        ranked_count: input.active_scan_trace?.ranking.ranked_count ?? null,
+        ranking_selected_count:
+          input.active_scan_trace?.ranking.selected_count ?? null,
+        openai_input_candidate_count:
+          input.active_scan_trace?.openai.input_candidate_count ?? null,
+        openai_output_recommendation_count:
+          input.active_scan_trace?.openai.output_recommendation_count ?? null,
+        parser_rejected_count:
+          input.active_scan_trace?.openai.parser_rejected_count ?? null,
+        scan_run_persisted:
+          input.active_scan_trace?.persistence.scan_run_persisted ?? null,
+        batch_persisted:
+          input.active_scan_trace?.persistence.batch_persisted ?? null,
+        snapshots_persisted_count:
+          input.active_scan_trace?.persistence.snapshots_persisted_count ?? null,
+        ranked_candidates_count:
+          input.active_scan_trace?.final.ranked_candidates_count ?? null,
+        recommendations_published_count:
+          input.active_scan_trace?.final.recommendations_published_count ?? null,
+        strong_count: input.active_scan_trace?.final.strong_count ?? null,
+        valid_count: input.active_scan_trace?.final.valid_count ?? null,
+        experimental_count:
+          input.active_scan_trace?.final.experimental_count ?? null,
+        ranked_candidates_not_published_reason:
+          input.active_scan_trace?.final.ranked_candidates_not_published_reason ??
+          null,
+        strong_threshold:
+          input.active_scan_trace?.final.strong_threshold ?? null,
+        publishable_threshold:
+          input.active_scan_trace?.final.publishable_threshold ?? null,
+        deterministic_fallback_used:
+          input.active_scan_trace?.final.deterministic_fallback_used ?? null,
       },
     }),
     section({

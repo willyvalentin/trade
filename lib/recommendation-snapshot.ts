@@ -598,6 +598,14 @@ export async function persistRecommendationSnapshot(
         recommendationId: snapshot.recommendation_id,
         error: normalizeUnknownError(result.error),
       });
+      return {
+        status: "failed",
+        mode: "supabase",
+        snapshot,
+        error:
+          result.error.message ??
+          "Unknown Supabase recommendation snapshot persistence error.",
+      };
     } catch (error) {
       console.error("[recommendation-snapshot] supabase_persistence_exception", {
         source: "supabase.recommendation_snapshots",
@@ -606,7 +614,15 @@ export async function persistRecommendationSnapshot(
         recommendationId: snapshot.recommendation_id,
         error: normalizeUnknownError(error),
       });
-      // Fall through to localStorage. Snapshot persistence must never block the UI.
+      return {
+        status: "failed",
+        mode: "supabase",
+        snapshot,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown Supabase recommendation snapshot persistence error.",
+      };
     }
   }
 

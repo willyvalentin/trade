@@ -592,8 +592,8 @@ function tierForRankingScore(
 ): RealScannerCandidateTier {
   if (warnings.some((item) => item.severity === "blocked")) return "rejected";
   if (score >= 82) return "strong";
-  if (score >= 70) return "valid";
-  if (score >= 55) return "experimental";
+  if (score >= 72) return "valid";
+  if (score >= 60) return "experimental";
   if (score >= 40) return "incomplete";
   return "rejected";
 }

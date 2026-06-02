@@ -119,7 +119,7 @@ export function getIntradayScanPolicy(
   if (window === "opening") {
     return {
       allowGeneration: true,
-      maxRecommendations: 1,
+      maxRecommendations: 6,
       message: "Opening window: require confirmation and avoid chasing.",
     };
   }
@@ -127,7 +127,7 @@ export function getIntradayScanPolicy(
   if (window === "morning_momentum") {
     return {
       allowGeneration: true,
-      maxRecommendations: 2,
+      maxRecommendations: 10,
       message: "Morning momentum window: prioritize high-quality intraday setups.",
     };
   }
@@ -135,7 +135,7 @@ export function getIntradayScanPolicy(
   if (window === "midday") {
     return {
       allowGeneration: true,
-      maxRecommendations: 1,
+      maxRecommendations: 8,
       message: "Midday window: avoid chop and prefer no trade over weak setups.",
     };
   }
@@ -143,7 +143,7 @@ export function getIntradayScanPolicy(
   if (window === "afternoon") {
     return {
       allowGeneration: true,
-      maxRecommendations: 1,
+      maxRecommendations: 8,
       message: "Afternoon window: only clear continuation or reversal setups.",
     };
   }

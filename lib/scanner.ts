@@ -9,6 +9,7 @@ import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -110,6 +111,7 @@ export type ScannerSource = "manual" | "scheduled";
 export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
+  activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
 const CACHE_TTL_MS = 45 * 60 * 1000;
@@ -611,6 +613,11 @@ export async function scanMarket(
   let freshProviderCallsUsed = 0;
   let freshIndicatorFetchesUsed = 0;
 
+  options.activeScanTrace?.markStage("market_data_fetch", "started");
+  options.activeScanTrace?.updateMarketDataFetch({
+    attempted_tickers: tickers.length,
+  });
+
   async function attachIntradayIndicators(
     candidate: ScannerCandidate,
   ): Promise<CandidateWithIndicatorCache> {
@@ -626,6 +633,24 @@ export async function scanMarket(
     if (result.source === "fresh") {
       freshProviderCallsUsed += 1;
       freshIndicatorFetchesUsed += 1;
+      options.activeScanTrace?.incrementMarketDataFetch({
+        candle_success_count: 1,
+      });
+    } else if (result.source === "unavailable") {
+      options.activeScanTrace?.incrementMarketDataFetch({
+        candle_error_count: 1,
+        latest_provider_error_type: "intraday_indicators_unavailable",
+      });
+    }
+
+    if (result.stale) {
+      options.activeScanTrace?.incrementMarketDataFetch({ stale_count: 1 });
+    }
+
+    if (!result.indicators) {
+      options.activeScanTrace?.incrementMarketDataFetch({
+        empty_response_count: 1,
+      });
     }
 
     indicatorSources[candidate.ticker] = result.source;
@@ -648,6 +673,9 @@ export async function scanMarket(
 
     if (cachedRow && cachedValues && isCacheFresh(cachedRow, now)) {
       cacheHits.push(baseCandidate.ticker);
+      options.activeScanTrace?.incrementMarketDataFetch({
+        candle_success_count: 1,
+      });
       const { candidate } = await attachIntradayIndicators(
         buildCandidate(baseCandidate, cachedValues),
       );
@@ -660,6 +688,10 @@ export async function scanMarket(
     if (freshProviderCallsUsed >= maxFreshProviderCalls) {
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
+        options.activeScanTrace?.incrementMarketDataFetch({
+          candle_success_count: 1,
+          stale_count: 1,
+        });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
         );
@@ -679,6 +711,10 @@ export async function scanMarket(
 
     try {
       const candles = await getDailyCandles(baseCandidate.ticker, CANDLE_DAYS_NEEDED);
+      options.activeScanTrace?.incrementMarketDataFetch({
+        candle_success_count: candles.length > 0 ? 1 : 0,
+        empty_response_count: candles.length > 0 ? 0 : 1,
+      });
       const scannerValues = calculateScannerValues(candles);
       await upsertCachedValues(baseCandidate, scannerValues);
       const { candidate } = await attachIntradayIndicators(
@@ -690,9 +726,17 @@ export async function scanMarket(
         ticker: baseCandidate.ticker,
         error: normalizeUnknownError(error),
       });
+      options.activeScanTrace?.incrementMarketDataFetch({
+        candle_error_count: 1,
+        latest_provider_error_type: errorType(error),
+      });
 
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
+        options.activeScanTrace?.incrementMarketDataFetch({
+          candle_success_count: 1,
+          stale_count: 1,
+        });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
         );
@@ -712,6 +756,7 @@ export async function scanMarket(
   logScanner("stale_cache_fallbacks", staleFallbacks);
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
   logScanner("candidates_returned", candidates.length);
+  options.activeScanTrace?.markStage("market_data_fetch", "completed");
 
   return candidates;
 }
