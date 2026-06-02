@@ -65,6 +65,15 @@ export type LiveMarketTrialReadinessNextAction = {
   message: string;
 };
 
+export type LiveMarketTrialAutomationDiagnosticEntry = {
+  created_at: string | null;
+  window: string | null;
+  status: string | null;
+  result: string | null;
+  message: string | null;
+  recommendations_created: number | null;
+};
+
 export type LiveMarketTrialReadinessSummary = {
   summary_id: string;
   summary_version: "1.0";
@@ -137,6 +146,15 @@ export type LiveMarketTrialReadinessSummary = {
     message: string | null;
     last_provider_error: string | null;
   };
+  automation_diagnostics: {
+    scheduled_function_fired_at_utc: string | null;
+    interpreted_ny_time: string;
+    scan_decision: string;
+    active_window: string;
+    skipped_reason: string | null;
+    latest_active_window_scan: LiveMarketTrialAutomationDiagnosticEntry | null;
+    latest_skipped_scan: LiveMarketTrialAutomationDiagnosticEntry | null;
+  };
   can_do_now: {
     observe_only: boolean;
     log_recommendations: boolean;
@@ -189,7 +207,16 @@ export type LiveMarketTrialReadinessInput = {
     scan_window?: string | null;
     created_at?: string | null;
     message?: string | null;
+    automation_run_diagnostics?: {
+      scheduled_function_fired_at_utc?: string | null;
+      interpreted_ny_time?: string | null;
+      scan_decision?: string | null;
+      active_window?: string | null;
+      skipped_reason?: string | null;
+    } | null;
   } | null;
+  latest_active_window_scan?: LiveMarketTrialAutomationDiagnosticEntry | null;
+  latest_skipped_scan?: LiveMarketTrialAutomationDiagnosticEntry | null;
   ui_surfaces?: {
     recommendations_primary_clean?: boolean | null;
     live_day_trades_primary_clean?: boolean | null;
@@ -517,6 +544,25 @@ export function buildLiveMarketTrialReadinessSummary(
   const outcomesReady =
     outcomeEvaluation?.route_available !== false &&
     input.performance.summary.total_recommendations >= 0;
+  const latestAutomationDecision =
+    latestAutomationScan?.result === "market_closed"
+      ? "skipped_market_closed"
+      : latestAutomationScan?.result === "provider_error" ||
+          latestAutomationScan?.result === "provider_rate_limited"
+        ? "skipped_provider_unavailable"
+        : latestAutomationScan?.result === "skipped"
+          ? "skipped_outside_window"
+          : latestAutomationScan?.result === "recommendation_created"
+            ? "scanned"
+            : "unknown";
+  const skippedReason =
+    latestAutomationScan?.automation_run_diagnostics?.skipped_reason ??
+    (latestAutomationDecision.startsWith("skipped")
+      ? latestAutomationScan?.message ?? input.scan_orchestration.scan_reason
+      : input.scan_orchestration.decision === "market_closed" ||
+          input.scan_orchestration.decision === "outside_scan_window"
+        ? input.scan_orchestration.scan_reason
+        : null);
 
   const checks = [
     check({
@@ -864,17 +910,7 @@ export function buildLiveMarketTrialReadinessSummary(
     },
     latest_automation_scan: {
       status: latestAutomationScan?.result ?? "unknown",
-      decision:
-        latestAutomationScan?.result === "market_closed"
-          ? "skipped_market_closed"
-          : latestAutomationScan?.result === "provider_error" ||
-              latestAutomationScan?.result === "provider_rate_limited"
-            ? "skipped_provider_unavailable"
-            : latestAutomationScan?.result === "skipped"
-              ? "skipped_outside_window"
-              : latestAutomationScan?.result === "recommendation_created"
-                ? "scanned"
-                : "unknown",
+      decision: latestAutomationDecision,
       window: latestAutomationScan?.scan_window ?? null,
       created_at: latestAutomationScan?.created_at ?? null,
       message: latestAutomationScan?.message ?? null,
@@ -883,6 +919,23 @@ export function buildLiveMarketTrialReadinessSummary(
         latestAutomationScan?.result === "provider_rate_limited"
           ? latestAutomationScan.message ?? "Provider error observed."
           : null,
+    },
+    automation_diagnostics: {
+      scheduled_function_fired_at_utc:
+        latestAutomationScan?.automation_run_diagnostics
+          ?.scheduled_function_fired_at_utc ?? null,
+      interpreted_ny_time:
+        latestAutomationScan?.automation_run_diagnostics?.interpreted_ny_time ??
+        `${input.scan_orchestration.trading_date} ${input.scan_orchestration.ny_time} America/New_York`,
+      scan_decision:
+        latestAutomationScan?.automation_run_diagnostics?.scan_decision ??
+        latestAutomationDecision,
+      active_window:
+        latestAutomationScan?.automation_run_diagnostics?.active_window ??
+        input.scan_orchestration.active_window,
+      skipped_reason: skippedReason,
+      latest_active_window_scan: input.latest_active_window_scan ?? null,
+      latest_skipped_scan: input.latest_skipped_scan ?? null,
     },
     can_do_now: {
       observe_only: canObserve,

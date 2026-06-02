@@ -74,6 +74,8 @@ type AutomationRunRequestBody = {
   session_type?: unknown;
   scan_window?: unknown;
   ignore_existing_run?: unknown;
+  source?: unknown;
+  scheduled_function_fired_at_utc?: unknown;
 };
 
 type AutomationScanDecision =
@@ -87,6 +89,29 @@ type AutomationScanDecision =
 type ScheduledScanRunSummary = {
   row: ScanLogRunRow;
   scanLog: ScanLogEntry;
+};
+
+type AutomationScanDiagnosticEntry = {
+  created_at: string | null;
+  window: string | null;
+  status: string | null;
+  result: string | null;
+  message: string | null;
+  recommendations_created: number | null;
+  run_fingerprint?: string | null;
+};
+
+type AutomationRunDiagnostics = {
+  scheduled_function_fired_at_utc: string | null;
+  route_received_at_utc: string;
+  interpreted_ny_time: string;
+  scan_decision: AutomationScanDecision;
+  orchestration_decision: DayTradeScanOrchestrationSummary["decision"];
+  active_window: DayTradeScanOrchestrationSummary["active_window"];
+  scan_window: IntradayScanWindow;
+  skipped_reason: string | null;
+  latest_active_window_scan: AutomationScanDiagnosticEntry | null;
+  latest_skipped_scan: AutomationScanDiagnosticEntry | null;
 };
 
 type RecommendationRow = {
@@ -188,6 +213,14 @@ function textOrNull(value: unknown) {
   return text.length > 0 ? text : null;
 }
 
+function isoTextOrNull(value: unknown) {
+  const text = textOrNull(value);
+  if (!text) return null;
+
+  const date = new Date(text);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
 function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
   return (
     scanWindow === "opening" ||
@@ -196,6 +229,154 @@ function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
     scanWindow === "afternoon" ||
     scanWindow === "power_hour"
   );
+}
+
+function isActiveDayTradeWindow(window: string | null | undefined) {
+  return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+function scheduledScanDiagnosticEntry(
+  run: ScheduledScanRunSummary,
+): AutomationScanDiagnosticEntry {
+  const recommendationsCreated =
+    typeof run.scanLog.recommendations_created === "number"
+      ? run.scanLog.recommendations_created
+      : numberOrNull(run.row.recommendations_created);
+
+  return {
+    created_at: run.scanLog.created_at || run.row.created_at,
+    window: run.scanLog.scan_window,
+    status: textOrNull(run.row.status),
+    result: run.scanLog.result,
+    message: run.scanLog.message,
+    recommendations_created: recommendationsCreated,
+  };
+}
+
+function recommendationScanRunDiagnosticEntry(
+  scanRun: RecommendationScanRun,
+): AutomationScanDiagnosticEntry {
+  const scanObservability =
+    typeof scanRun.payload_json.scan_observability === "object" &&
+    scanRun.payload_json.scan_observability !== null
+      ? (scanRun.payload_json.scan_observability as ScanPipelineObservabilitySummary)
+      : null;
+
+  return {
+    created_at: scanRun.observed_at,
+    window: scanRun.window,
+    status: scanRun.status,
+    result:
+      scanObservability?.run_context.latest_scan_result ??
+      scanRun.status,
+    message:
+      typeof scanRun.payload_json?.scan_reason === "string"
+        ? scanRun.payload_json.scan_reason
+        : null,
+    recommendations_created: scanRun.counts.visible_recommendation_count,
+    run_fingerprint: scanRun.run_fingerprint,
+  };
+}
+
+function latestByCreatedAt<T>(
+  items: T[],
+  createdAt: (item: T) => string | null | undefined,
+) {
+  return (
+    items
+      .filter((item) => {
+        const created = createdAt(item);
+        return Boolean(created && Number.isFinite(new Date(created).getTime()));
+      })
+      .sort((first, second) =>
+        String(createdAt(second)).localeCompare(String(createdAt(first))),
+      )[0] ?? null
+  );
+}
+
+function isSkippedScanLog(scanLog: ScanLogEntry) {
+  return (
+    scanLog.result === "market_closed" ||
+    scanLog.result === "pre_market" ||
+    scanLog.result === "pre_market_no_candidates" ||
+    scanLog.result === "pre_market_skipped_holiday" ||
+    scanLog.result === "skipped" ||
+    scanLog.result === "power_hour_blocked"
+  );
+}
+
+function buildAutomationRunDiagnostics({
+  scheduledFunctionFiredAtUtc,
+  routeReceivedAtUtc,
+  orchestration,
+  decision,
+  scanWindow,
+  skippedReason,
+  recentRecommendationScanRuns,
+  recentScheduledScanRuns,
+  currentScanLog,
+}: {
+  scheduledFunctionFiredAtUtc: string | null;
+  routeReceivedAtUtc: string;
+  orchestration: DayTradeScanOrchestrationSummary;
+  decision: AutomationScanDecision;
+  scanWindow: IntradayScanWindow;
+  skippedReason?: string | null;
+  recentRecommendationScanRuns: RecommendationScanRun[];
+  recentScheduledScanRuns: ScheduledScanRunSummary[];
+  currentScanLog?: ScanLogEntry | null;
+}): AutomationRunDiagnostics {
+  const latestRecommendationActiveScan = latestByCreatedAt(
+    recentRecommendationScanRuns.filter(
+      (scanRun) =>
+        isActiveDayTradeWindow(scanRun.window) && scanRun.status !== "failed",
+    ),
+    (scanRun) => scanRun.observed_at,
+  );
+  const latestScheduledActiveScan = latestByCreatedAt(
+    recentScheduledScanRuns.filter(
+      (run) =>
+        isActiveDayTradeWindow(run.scanLog.day_trade_scan_orchestration?.active_window) ||
+        isActiveAutomationWindow(run.scanLog.scan_window as IntradayScanWindow),
+    ),
+    (run) => run.scanLog.created_at || run.row.created_at,
+  );
+  const latestSkippedScheduledScan = latestByCreatedAt(
+    recentScheduledScanRuns.filter((run) => isSkippedScanLog(run.scanLog)),
+    (run) => run.scanLog.created_at || run.row.created_at,
+  );
+  const latestActiveWindowScan = latestRecommendationActiveScan
+    ? recommendationScanRunDiagnosticEntry(latestRecommendationActiveScan)
+    : latestScheduledActiveScan
+      ? scheduledScanDiagnosticEntry(latestScheduledActiveScan)
+      : null;
+  const latestSkippedScan =
+    skippedReason && currentScanLog
+      ? scheduledScanDiagnosticEntry({
+          row: {
+            created_at: currentScanLog.created_at,
+            recommendations_created: currentScanLog.recommendations_created,
+            message: currentScanLog.message,
+            status: "skipped",
+          },
+          scanLog: currentScanLog,
+        })
+      : latestSkippedScheduledScan
+        ? scheduledScanDiagnosticEntry(latestSkippedScheduledScan)
+        : null;
+
+  return {
+    scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc,
+    route_received_at_utc: routeReceivedAtUtc,
+    interpreted_ny_time: `${orchestration.trading_date} ${orchestration.ny_time} America/New_York`,
+    scan_decision: decision,
+    orchestration_decision: orchestration.decision,
+    active_window: orchestration.active_window,
+    scan_window: scanWindow,
+    skipped_reason: skippedReason ?? null,
+    latest_active_window_scan: latestActiveWindowScan,
+    latest_skipped_scan: latestSkippedScan,
+  };
 }
 
 function isRateLimitLikeError(error: unknown) {
@@ -1009,18 +1190,27 @@ export async function POST(request: Request) {
   const session_type = body.session_type;
   const requestedScanWindow = parseIntradayScanWindow(body.scan_window);
   const ignore_existing_run = body.ignore_existing_run === true;
+  const scheduledFunctionFiredAtUtc = isoTextOrNull(
+    body.scheduled_function_fired_at_utc,
+  );
 
   console.log("[automation/run-scan] request body", {
     force,
     session_type,
     scan_window: requestedScanWindow,
     ignore_existing_run,
+    source: textOrNull(body.source),
+    scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc,
   });
 
   const now = new Date();
+  const routeReceivedAtUtc = now.toISOString();
   const marketStatus = await getUsMarketStatus();
   const marketSession = buildMarketSessionEvaluation({ now, marketStatus });
-  let recentScheduledScanRuns: ScheduledScanRunSummary[] = [];
+  const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
+    readRecentRecommendationScanRuns(),
+    readRecentScheduledScanRuns(),
+  ]);
   let scanWindow = getScanWindowDueNow();
 
   if (force) {
@@ -1056,6 +1246,7 @@ export async function POST(request: Request) {
     now,
     marketSession,
     marketStatus,
+    scanRuns: recentRecommendationScanRuns,
     currentDataMode: "supabase",
     runType: force ? "diagnostic" : "scheduled",
   });
@@ -1091,6 +1282,26 @@ export async function POST(request: Request) {
     ranking: null,
     now,
   });
+  const automationDiagnostics = ({
+    decision,
+    skippedReason = null,
+    currentScanLog = null,
+  }: {
+    decision: AutomationScanDecision;
+    skippedReason?: string | null;
+    currentScanLog?: ScanLogEntry | null;
+  }) =>
+    buildAutomationRunDiagnostics({
+      scheduledFunctionFiredAtUtc,
+      routeReceivedAtUtc,
+      orchestration: dayTradeScanOrchestration,
+      decision,
+      scanWindow: scanWindow.scanWindow,
+      skippedReason,
+      recentRecommendationScanRuns,
+      recentScheduledScanRuns,
+      currentScanLog,
+    });
 
   let expiredRecommendations = 0;
 
@@ -1120,6 +1331,10 @@ export async function POST(request: Request) {
         scan_date: scanWindow.scanDate || marketStatus.date,
         status: "failed",
         decision: "failed" satisfies AutomationScanDecision,
+        automation_diagnostics: automationDiagnostics({
+          decision: "failed",
+          skippedReason: message,
+        }),
         market_session: marketSession,
         ...calendarFields(dayTradeScanOrchestration),
         day_trade_scan_orchestration: dayTradeScanOrchestration,
@@ -1190,6 +1405,11 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_market_closed" satisfies AutomationScanDecision,
+      automation_diagnostics: automationDiagnostics({
+        decision: "skipped_market_closed",
+        skippedReason: message,
+        currentScanLog: scanLog,
+      }),
       market_status: marketStatus,
       market_session: marketSession,
       ...calendarFields(dayTradeScanOrchestration),
@@ -1259,6 +1479,11 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_outside_window" satisfies AutomationScanDecision,
+      automation_diagnostics: automationDiagnostics({
+        decision: "skipped_outside_window",
+        skippedReason: message,
+        currentScanLog: scanLog,
+      }),
       forced: force,
       session_type: scanWindow.sessionType,
       scan_window: scanWindow.scanWindow,
@@ -1290,14 +1515,19 @@ export async function POST(request: Request) {
   try {
     if (!force && !isActiveAutomationWindow(scanWindow.scanWindow)) {
       const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped without recording a noisy empty run.`;
+      const decision =
+        dayTradeScanOrchestration.decision === "market_closed"
+          ? ("skipped_market_closed" satisfies AutomationScanDecision)
+          : ("skipped_outside_window" satisfies AutomationScanDecision);
       return NextResponse.json({
         ok: true,
         message,
         status: "skipped",
-        decision:
-          dayTradeScanOrchestration.decision === "market_closed"
-            ? ("skipped_market_closed" satisfies AutomationScanDecision)
-            : ("skipped_outside_window" satisfies AutomationScanDecision),
+        decision,
+        automation_diagnostics: automationDiagnostics({
+          decision,
+          skippedReason: message,
+        }),
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,
@@ -1331,6 +1561,10 @@ export async function POST(request: Request) {
           message,
           status: "skipped",
           decision: "skipped_provider_unavailable" satisfies AutomationScanDecision,
+          automation_diagnostics: automationDiagnostics({
+            decision: "skipped_provider_unavailable",
+            skippedReason: message,
+          }),
           forced: force,
           scan_date: scanDate,
           session_type: sessionType,
@@ -1358,12 +1592,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const [recentRecommendationScanRuns, loadedScheduledScanRuns] =
-      await Promise.all([
-        readRecentRecommendationScanRuns(),
-        readRecentScheduledScanRuns(),
-      ]);
-    recentScheduledScanRuns = loadedScheduledScanRuns;
     dayTradeScanOrchestration = buildDayTradeScanOrchestrationSummary({
       now,
       marketSession,
@@ -1406,6 +1634,10 @@ export async function POST(request: Request) {
         message,
         status: "skipped",
         decision: "skipped_recent_scan" satisfies AutomationScanDecision,
+        automation_diagnostics: automationDiagnostics({
+          decision: "skipped_recent_scan",
+          skippedReason: message,
+        }),
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,
@@ -1519,6 +1751,10 @@ export async function POST(request: Request) {
       message,
       status: "completed",
       decision: "scanned" satisfies AutomationScanDecision,
+      automation_diagnostics: automationDiagnostics({
+        decision: "scanned",
+        currentScanLog: scanLog,
+      }),
       forced: force,
       ...calendarFields(dayTradeScanOrchestration),
       scan_date: scanDate,
@@ -1616,6 +1852,19 @@ export async function POST(request: Request) {
           failureResult === "provider_rate_limited"
             ? ("skipped_provider_unavailable" satisfies AutomationScanDecision)
             : ("failed" satisfies AutomationScanDecision),
+        automation_diagnostics: automationDiagnostics({
+          decision:
+            failureResult === "provider_error" ||
+            failureResult === "provider_rate_limited"
+              ? "skipped_provider_unavailable"
+              : "failed",
+          skippedReason:
+            failureResult === "provider_error" ||
+            failureResult === "provider_rate_limited"
+              ? message
+              : null,
+          currentScanLog: scanLog,
+        }),
         expired_recommendations: expiredRecommendations,
         candidates_generated: 0,
         recommendations_served: 0,

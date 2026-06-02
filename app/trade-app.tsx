@@ -305,6 +305,7 @@ import {
 import {
   buildLiveMarketTrialReadinessSummary,
   liveMarketTrialReadinessSummaryJson,
+  type LiveMarketTrialAutomationDiagnosticEntry,
   type LiveMarketTrialReadinessStatus,
   type LiveMarketTrialReadinessSummary,
 } from "@/lib/live-market-trial-readiness";
@@ -5335,6 +5336,37 @@ function isSkippedScanResult(result: ScanLogResult) {
   );
 }
 
+function isActiveAutomationScanLog(scanLog: ScanLogEntry) {
+  const activeWindow = scanLog.day_trade_scan_orchestration?.active_window;
+
+  return (
+    activeWindow === "morning" ||
+    activeWindow === "midday" ||
+    activeWindow === "power_hour" ||
+    scanLog.scan_window === "morning_momentum" ||
+    scanLog.scan_window === "midday" ||
+    scanLog.scan_window === "afternoon" ||
+    scanLog.scan_window === "power_hour"
+  );
+}
+
+function toAutomationDiagnosticEntry(
+  scanLog: ScanLogEntry | null,
+): LiveMarketTrialAutomationDiagnosticEntry | null {
+  if (!scanLog) {
+    return null;
+  }
+
+  return {
+    created_at: scanLog.created_at,
+    window: scanLog.scan_window,
+    status: scanLog.result,
+    result: scanLog.result,
+    message: scanLog.message,
+    recommendations_created: scanLog.recommendations_created,
+  };
+}
+
 function getPreMarketCandidatesForDate(scanLogs: ScanLogEntry[], date: string) {
   const candidatesByTicker = new Map<string, PreMarketCandidate>();
 
@@ -10076,6 +10108,9 @@ export function TradeApp() {
   });
   const providerBudgetGuardSummaryJsonText =
     providerBudgetGuardSummaryJson(providerBudgetGuardSummary);
+  const latestActiveAutomationScan = scanLogs.find(isActiveAutomationScanLog) ?? null;
+  const latestSkippedAutomationScan =
+    scanLogs.find((scanLog) => isSkippedScanResult(scanLog.result)) ?? null;
   const liveMarketTrialReadinessSummary =
     buildLiveMarketTrialReadinessSummary({
       supabase_public_env_available: Boolean(
@@ -10119,6 +10154,10 @@ export function TradeApp() {
             message: scanLogs[0].message,
           }
         : null,
+      latest_active_window_scan: toAutomationDiagnosticEntry(
+        latestActiveAutomationScan,
+      ),
+      latest_skipped_scan: toAutomationDiagnosticEntry(latestSkippedAutomationScan),
       ui_surfaces: {
         recommendations_primary_clean: true,
         live_day_trades_primary_clean: true,
@@ -31757,6 +31796,52 @@ function LiveMarketTrialReadinessPanel({
               "No scan yet"}
           </p>
         </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Automation diagnostics
+        </h4>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <Detail
+            label="Scheduled UTC"
+            value={
+              summary.automation_diagnostics.scheduled_function_fired_at_utc ??
+              "Awaiting scheduled run"
+            }
+          />
+          <Detail
+            label="NY Time"
+            value={summary.automation_diagnostics.interpreted_ny_time}
+          />
+          <Detail
+            label="Active Window"
+            value={summary.automation_diagnostics.active_window.replaceAll("_", " ")}
+          />
+          <Detail
+            label="Scan Decision"
+            value={summary.automation_diagnostics.scan_decision.replaceAll("_", " ")}
+          />
+          <Detail
+            label="Latest Active"
+            value={
+              summary.automation_diagnostics.latest_active_window_scan?.created_at ??
+              "No active-window scan yet"
+            }
+          />
+          <Detail
+            label="Latest Skipped"
+            value={
+              summary.automation_diagnostics.latest_skipped_scan?.created_at ??
+              "No skipped scan logged"
+            }
+          />
+        </div>
+        {summary.automation_diagnostics.skipped_reason && (
+          <p className="mt-3 text-xs leading-5 text-zinc-500">
+            Skip reason: {summary.automation_diagnostics.skipped_reason}
+          </p>
+        )}
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.45fr)]">

@@ -1,10 +1,13 @@
 import type { Config } from "@netlify/functions";
 
 export const config: Config = {
-  schedule: "*/15 * * * 1-5",
+  // Netlify cron is UTC. This covers 13:00-19:45 UTC weekdays,
+  // including all US daylight-saving regular-session scan windows.
+  schedule: "*/15 13-19 * * 1-5",
 };
 
 export default async function handler() {
+  const firedAtUtc = new Date().toISOString();
   const automationSecret = process.env.AUTOMATION_SECRET;
 
   if (!automationSecret) {
@@ -18,15 +21,34 @@ export default async function handler() {
     "https://trade.valentinlabs.com";
 
   const endpoint = `${siteUrl}/api/automation/run-scan`;
+  const nyTime = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(firedAtUtc));
 
-  console.log("[scheduled-scan] Calling:", endpoint);
+  console.log("[scheduled-scan] Calling:", endpoint, {
+    scheduled_function_fired_at_utc: firedAtUtc,
+    interpreted_ny_time: nyTime,
+  });
 
   try {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "x-automation-secret": automationSecret,
+        "content-type": "application/json",
       },
+      body: JSON.stringify({
+        source: "netlify_scheduled_function",
+        scheduled_function_fired_at_utc: firedAtUtc,
+      }),
     });
 
     const body = await response.text();
