@@ -5,6 +5,7 @@ import {
   normalizeDayTradeScanWindow,
 } from "@/lib/day-trade-scan-orchestration";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 
 export type RecommendationScanRunStatus =
@@ -749,6 +750,8 @@ export async function persistRecommendationScanRun(
   options: {
     supabaseClient?: RecommendationScanRunSupabaseClient | null;
     storage?: Storage;
+    server?: boolean;
+    unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationScanRunPersistenceResult> {
   if (options.supabaseClient?.from) {
@@ -779,7 +782,9 @@ export async function persistRecommendationScanRun(
         status: "failed",
         mode: "supabase",
         scan_run: scanRun,
-        error: result.error.message ?? "Unknown Supabase scan-run persistence error.",
+        error: `${classifySupabasePersistenceError(result.error)}:${
+          result.error.message ?? "Unknown Supabase scan-run persistence error."
+        }`,
       };
     } catch (error) {
       console.error("[recommendation-scan-run] supabase_persistence_exception", {
@@ -792,9 +797,24 @@ export async function persistRecommendationScanRun(
         status: "failed",
         mode: "supabase",
         scan_run: scanRun,
-        error: error instanceof Error ? error.message : "Unknown Supabase scan-run persistence error.",
+        error: `${classifySupabasePersistenceError(error)}:${
+          error instanceof Error
+            ? error.message
+            : "Unknown Supabase scan-run persistence error."
+        }`,
       };
     }
+  }
+
+  if (options.server) {
+    return {
+      status: "failed",
+      mode: "none",
+      scan_run: scanRun,
+      error: options.unavailableReason
+        ? `server_persistence_unavailable:${options.unavailableReason}`
+        : "server_persistence_unavailable",
+    };
   }
 
   return persistRecommendationScanRunToLocalStorage(scanRun, options.storage);

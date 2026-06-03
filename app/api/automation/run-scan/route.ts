@@ -69,6 +69,12 @@ import {
   type ActiveScanTrace,
   type ActiveScanTraceRecorder,
 } from "@/lib/active-scan-trace";
+import {
+  AUTOMATION_ROUTE_VERSION,
+  BUILD_MARKER,
+  RECOMMENDATION_PUBLISH_POLICY_VERSION,
+} from "@/lib/publish-path-versions";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -162,6 +168,14 @@ const intradayScanWindows: IntradayScanWindow[] = [
   "power_hour",
   "closed",
 ];
+
+function automationVersionFields() {
+  return {
+    automation_route_version: AUTOMATION_ROUTE_VERSION,
+    recommendation_publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    build_marker: BUILD_MARKER,
+  };
+}
 
 function parseIntradayScanWindow(value: unknown): IntradayScanWindow | null {
   return intradayScanWindows.includes(value as IntradayScanWindow)
@@ -464,6 +478,7 @@ function finishActiveScanTrace(
     validCount = 0,
     experimentalCount = 0,
     rankedCandidatesNotPublishedReason = null,
+    noPublishReason = null,
     strongThreshold = null,
     publishableThreshold = null,
     deterministicFallbackUsed = false,
@@ -483,6 +498,7 @@ function finishActiveScanTrace(
     validCount?: number;
     experimentalCount?: number;
     rankedCandidatesNotPublishedReason?: string | null;
+    noPublishReason?: string | null;
     strongThreshold?: number | null;
     publishableThreshold?: number | null;
     deterministicFallbackUsed?: boolean;
@@ -494,6 +510,19 @@ function finishActiveScanTrace(
   if (skipReason) {
     activeScanTrace.update({ skip_reason: skipReason });
   }
+
+  const resolvedNoPublishReason = resolveNoPublishReason({
+    activeScanTrace,
+    recommendationsCreated,
+    rankedCandidatesCount,
+    strongCount,
+    validCount,
+    experimentalCount,
+    rankedCandidatesNotPublishedReason,
+    noPublishReason,
+    deterministicFallbackUsed,
+    skipReason,
+  });
 
   activeScanTrace.updateFinal({
     decision,
@@ -507,19 +536,95 @@ function finishActiveScanTrace(
     valid_count: validCount,
     experimental_count: experimentalCount,
     ranked_candidates_not_published_reason: rankedCandidatesNotPublishedReason,
+    no_publish_reason: resolvedNoPublishReason,
     strong_threshold: strongThreshold,
     publishable_threshold: publishableThreshold,
     deterministic_fallback_used: deterministicFallbackUsed,
+    fallback_used: deterministicFallbackUsed,
+    publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
     batch_fingerprint: batchFingerprint,
     scan_run_fingerprint: scanRunFingerprint,
     zero_candidate_reason:
       candidatesGenerated === 0 || recommendationsCreated === 0
-        ? zeroReason ?? zeroCandidateReason(activeScanTrace.trace)
+        ? zeroReason ?? resolvedNoPublishReason ?? zeroCandidateReason(activeScanTrace.trace)
         : null,
   });
   activeScanTrace.markStage("final", "completed");
 
   return activeScanTrace.trace;
+}
+
+function resolveNoPublishReason({
+  activeScanTrace,
+  recommendationsCreated,
+  rankedCandidatesCount,
+  strongCount,
+  validCount,
+  experimentalCount,
+  rankedCandidatesNotPublishedReason,
+  noPublishReason,
+  deterministicFallbackUsed,
+  skipReason,
+}: {
+  activeScanTrace: ActiveScanTraceRecorder;
+  recommendationsCreated: number;
+  rankedCandidatesCount: number;
+  strongCount: number;
+  validCount: number;
+  experimentalCount: number;
+  rankedCandidatesNotPublishedReason: string | null;
+  noPublishReason: string | null;
+  deterministicFallbackUsed: boolean;
+  skipReason: string | null;
+}) {
+  if (recommendationsCreated > 0) return null;
+  if (noPublishReason) return noPublishReason;
+
+  const reasonText = `${rankedCandidatesNotPublishedReason ?? ""} ${
+    skipReason ?? ""
+  }`.toLowerCase();
+
+  if (reasonText.includes("candidate below threshold")) {
+    return "old_threshold_gate";
+  }
+
+  if (reasonText.includes("power hour")) {
+    return "power_hour_disabled";
+  }
+
+  if (activeScanTrace.trace.persistence.persistence_error_type) {
+    return "persistence_failed";
+  }
+
+  if (rankedCandidatesCount > 0 && strongCount + validCount + experimentalCount === 0) {
+    return "invalid_selected_candidates";
+  }
+
+  if (
+    activeScanTrace.trace.openai.openai_attempted &&
+    activeScanTrace.trace.openai.output_recommendation_count === 0 &&
+    !deterministicFallbackUsed
+  ) {
+    return "openai_failed_and_no_fallback";
+  }
+
+  if (
+    rankedCandidatesCount > 0 &&
+    activeScanTrace.trace.stages.openai === "not_reached"
+  ) {
+    return "publish_path_not_reached";
+  }
+
+  if (rankedCandidatesCount > 0) {
+    return "unknown";
+  }
+
+  return null;
+}
+
+function persistenceErrorType(value: string | null | undefined) {
+  if (!value) return null;
+  return value.split(":")[0]?.slice(0, 80) || "unknown";
 }
 
 function calendarFields(
@@ -726,6 +831,9 @@ function createAutomationScanLog({
     source,
     scan_window: scanWindow,
     market_status: marketStatusLabel(marketStatus),
+    automation_route_version: AUTOMATION_ROUTE_VERSION,
+    recommendation_publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    build_marker: BUILD_MARKER,
     result:
       (result as ScanLogResult | undefined) ??
       getScanLogResultFromMessage(message, recommendationsCreated),
@@ -823,6 +931,10 @@ function createAutomationScanLog({
     ranked_candidates_not_published_reason:
       typeof details?.ranked_candidates_not_published_reason === "string"
         ? details.ranked_candidates_not_published_reason
+        : null,
+    no_publish_reason:
+      typeof details?.no_publish_reason === "string"
+        ? details.no_publish_reason
         : null,
     strong_threshold:
       typeof details?.strong_threshold === "number"
@@ -1127,6 +1239,7 @@ async function persistAutomationArtifacts({
   activeScanTrace?: ActiveScanTraceRecorder | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
+  const serverSupabase = getServerSupabaseClient();
   const observability = buildAutomationScanObservability({
     scanDate,
     scanWindow,
@@ -1175,7 +1288,9 @@ async function persistAutomationArtifacts({
   });
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
-      supabaseClient: supabase,
+      supabaseClient: serverSupabase.client,
+      server: true,
+      unavailableReason: serverSupabase.unavailable_reason,
     }),
     snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
@@ -1195,7 +1310,11 @@ async function persistAutomationArtifacts({
 
     snapshots.push(snapshot);
     persistence.snapshots.push(
-      await persistRecommendationSnapshot(snapshot, { supabaseClient: supabase }),
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
     );
   }
 
@@ -1230,7 +1349,9 @@ async function persistAutomationArtifacts({
     });
 
     persistence.batch = await persistRecommendationBatch(batch, {
-      supabaseClient: supabase,
+      supabaseClient: serverSupabase.client,
+      server: true,
+      unavailableReason: serverSupabase.unavailable_reason,
     });
   }
 
@@ -1304,7 +1425,10 @@ export async function POST(request: Request) {
   const matches = Boolean(expectedSecret && providedSecret === expectedSecret);
 
   if (!matches) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Unauthorized.", ...automationVersionFields() },
+      { status: 401 },
+    );
   }
 
   const body = await parseAutomationRunRequestBody(request);
@@ -1352,6 +1476,7 @@ export async function POST(request: Request) {
           ok: false,
           error: "Forced scans require session_type to be morning or midday.",
           forced: true,
+          ...automationVersionFields(),
         },
         { status: 400 },
       );
@@ -1461,6 +1586,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: message,
+        ...automationVersionFields(),
         forced: force,
         session_type: scanWindow.sessionType,
         scan_window: scanWindow.scanWindow,
@@ -1555,6 +1681,7 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_market_closed" satisfies AutomationScanDecision,
+      ...automationVersionFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_market_closed",
@@ -1637,6 +1764,7 @@ export async function POST(request: Request) {
       message,
       status: "skipped",
       decision: "skipped_outside_window" satisfies AutomationScanDecision,
+      ...automationVersionFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_outside_window",
@@ -1689,6 +1817,7 @@ export async function POST(request: Request) {
         message,
         status: "skipped",
         decision,
+        ...automationVersionFields(),
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision,
@@ -1728,6 +1857,38 @@ export async function POST(request: Request) {
         skipReason: message,
         zeroReason: "provider_environment_missing",
       });
+      const scanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "provider_error",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+
+      try {
+        await recordScheduledScanRun({
+          scanDate,
+          sessionType,
+          status: "failed",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog,
+          ignoreExistingRun: ignore_existing_run,
+        });
+      } catch (recordError) {
+        console.error("[automation/run-scan] provider_skip_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(recordError),
+        });
+      }
 
       return NextResponse.json(
         {
@@ -1735,10 +1896,12 @@ export async function POST(request: Request) {
           message,
           status: "skipped",
           decision: "skipped_provider_unavailable" satisfies AutomationScanDecision,
+          ...automationVersionFields(),
           active_scan_trace: activeScanTracePayload,
           automation_diagnostics: automationDiagnostics({
             decision: "skipped_provider_unavailable",
             skippedReason: message,
+            currentScanLog: scanLog,
           }),
           forced: force,
           scan_date: scanDate,
@@ -1831,6 +1994,7 @@ export async function POST(request: Request) {
         message,
         status: "skipped",
         decision: "skipped_recent_scan" satisfies AutomationScanDecision,
+        ...automationVersionFields(),
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision: "skipped_recent_scan",
@@ -1936,10 +2100,12 @@ export async function POST(request: Request) {
             snapshot.status === "duplicate",
         ).length,
         persistence_error_type:
-          artifactResult.persistence.scan_run.error ??
-          artifactResult.persistence.batch?.error ??
-          artifactResult.persistence.snapshots.find((snapshot) => snapshot.error)
-            ?.error ??
+          persistenceErrorType(artifactResult.persistence.scan_run.error) ??
+          persistenceErrorType(artifactResult.persistence.batch?.error) ??
+          persistenceErrorType(
+            artifactResult.persistence.snapshots.find((snapshot) => snapshot.error)
+              ?.error,
+          ) ??
           null,
       });
       activeScanTrace.markStage("persistence", "completed");
@@ -1981,6 +2147,7 @@ export async function POST(request: Request) {
       experimentalCount: generationScanLog?.experimental_count ?? 0,
       rankedCandidatesNotPublishedReason:
         generationScanLog?.ranked_candidates_not_published_reason ?? null,
+      noPublishReason: generationScanLog?.no_publish_reason ?? null,
       strongThreshold: generationScanLog?.strong_threshold ?? null,
       publishableThreshold: generationScanLog?.publishable_threshold ?? null,
       deterministicFallbackUsed:
@@ -2005,6 +2172,7 @@ export async function POST(request: Request) {
       message,
       status: "completed",
       decision: "scanned" satisfies AutomationScanDecision,
+      ...automationVersionFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "scanned",
@@ -2029,6 +2197,8 @@ export async function POST(request: Request) {
       experimental_count: generationScanLog?.experimental_count ?? null,
       ranked_candidates_not_published_reason:
         generationScanLog?.ranked_candidates_not_published_reason ?? null,
+      no_publish_reason: activeScanTracePayload.final.no_publish_reason,
+      publish_policy_version: activeScanTracePayload.final.publish_policy_version,
       strong_threshold: generationScanLog?.strong_threshold ?? null,
       publishable_threshold: generationScanLog?.publishable_threshold ?? null,
       deterministic_fallback_used:
@@ -2113,6 +2283,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: message,
+        ...automationVersionFields(),
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,

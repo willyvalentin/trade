@@ -693,6 +693,22 @@ function buildSections(
       lines: input.active_scan_trace
         ? [
             lineValue(
+              "Route version",
+              compact(input.active_scan_trace.automation_route_version, "unknown"),
+            ),
+            lineValue(
+              "Publish policy",
+              compact(
+                input.active_scan_trace.final.publish_policy_version ||
+                  input.active_scan_trace.recommendation_publish_policy_version,
+                "unknown",
+              ),
+            ),
+            lineValue(
+              "Build marker",
+              compact(input.active_scan_trace.build_marker, "unknown"),
+            ),
+            lineValue(
               "Last stage reached",
               words(input.active_scan_trace.last_stage_reached),
             ),
@@ -733,6 +749,10 @@ function buildSections(
               bool(input.active_scan_trace.final.deterministic_fallback_used),
             ),
             lineValue(
+              "No publish reason",
+              compact(input.active_scan_trace.final.no_publish_reason, "none"),
+            ),
+            lineValue(
               "Not published reason",
               compact(
                 input.active_scan_trace.final
@@ -740,8 +760,22 @@ function buildSections(
                 "none",
               ),
             ),
+            lineValue(
+              "Persistence",
+              `run=${bool(input.active_scan_trace.persistence.scan_run_persisted)} / batch=${bool(input.active_scan_trace.persistence.batch_persisted)} / snapshots=${input.active_scan_trace.persistence.snapshots_persisted_count}`,
+            ),
+            lineValue(
+              "Persistence error",
+              compact(
+                input.active_scan_trace.persistence.persistence_error_type,
+                "none",
+              ),
+            ),
           ]
         : [
+            lineValue("Route version", "not observed"),
+            lineValue("Publish policy", "not observed"),
+            lineValue("Build marker", "not observed"),
             lineValue("Last stage reached", "not observed"),
             lineValue("Zero candidate reason", "not observed"),
             lineValue("Provider env", "not observed"),
@@ -751,12 +785,24 @@ function buildSections(
             lineValue("Tier mix", "not observed"),
             lineValue("Thresholds", "not observed"),
             lineValue("Deterministic fallback", "not observed"),
+            lineValue("No publish reason", "not observed"),
+            lineValue("Persistence", "not observed"),
+            lineValue("Persistence error", "not observed"),
           ],
       metrics: {
         trace_id: input.active_scan_trace?.trace_id ?? null,
+        automation_route_version:
+          input.active_scan_trace?.automation_route_version ?? null,
+        recommendation_publish_policy_version:
+          input.active_scan_trace?.recommendation_publish_policy_version ?? null,
+        build_marker: input.active_scan_trace?.build_marker ?? null,
+        publish_policy_version:
+          input.active_scan_trace?.final.publish_policy_version ?? null,
         last_stage_reached: input.active_scan_trace?.last_stage_reached ?? null,
         zero_candidate_reason:
           input.active_scan_trace?.final.zero_candidate_reason ?? null,
+        no_publish_reason:
+          input.active_scan_trace?.final.no_publish_reason ?? null,
         twelve_data_key_present:
           input.active_scan_trace?.provider_env.twelve_data_key_present ?? null,
         openai_key_present:
@@ -796,6 +842,8 @@ function buildSections(
           input.active_scan_trace?.persistence.batch_persisted ?? null,
         snapshots_persisted_count:
           input.active_scan_trace?.persistence.snapshots_persisted_count ?? null,
+        persistence_error_type:
+          input.active_scan_trace?.persistence.persistence_error_type ?? null,
         ranked_candidates_count:
           input.active_scan_trace?.final.ranked_candidates_count ?? null,
         recommendations_published_count:

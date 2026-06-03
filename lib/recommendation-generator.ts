@@ -50,6 +50,12 @@ import {
   errorType,
   type ActiveScanTraceRecorder,
 } from "@/lib/active-scan-trace";
+import {
+  AUTOMATION_ROUTE_VERSION,
+  BUILD_MARKER,
+  RECOMMENDATION_PUBLISH_POLICY_VERSION,
+} from "@/lib/publish-path-versions";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -194,7 +200,24 @@ export type RecommendationScanLogDetails = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  automation_route_version?: string | null;
+  recommendation_publish_policy_version?: string | null;
+  build_marker?: string | null;
+  no_publish_reason?: string | null;
 };
+
+function publishVersionDetails() {
+  return {
+    automation_route_version: AUTOMATION_ROUTE_VERSION,
+    recommendation_publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    build_marker: BUILD_MARKER,
+  } satisfies Pick<
+    RecommendationScanLogDetails,
+    | "automation_route_version"
+    | "recommendation_publish_policy_version"
+    | "build_marker"
+  >;
+}
 
 type CompactIntradayIndicators = {
   isAboveVwap: boolean | null;
@@ -1015,7 +1038,9 @@ async function generatePreMarketWatchlist({
     market_regime: marketRegime,
     scan_window: "pre_market" as const,
     scan_log: {
+      ...publishVersionDetails(),
       result,
+      no_publish_reason: "pre_market_watchlist_only",
       top_candidate_ticker: candidates[0]?.ticker ?? null,
       top_candidate_score: candidates[0]?.score ?? null,
       top_candidate_reasons: candidates[0]?.signals ?? null,
@@ -2581,6 +2606,8 @@ export async function generateRecommendations({
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
+    const serverSupabase = getServerSupabaseClient();
+    const db = serverSupabase.client ?? supabase;
     const todayStart = getStartOfToday();
     const scanPolicy = getIntradayScanPolicy(scanWindow);
 
@@ -2607,7 +2634,9 @@ export async function generateRecommendations({
           "Power hour: new recommendations disabled. Focus on managing active positions.",
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: "power_hour_blocked",
+          no_publish_reason: "power_hour_disabled",
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2621,7 +2650,9 @@ export async function generateRecommendations({
         message: scanPolicy.message,
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: "skipped",
+          no_publish_reason: "outside_generation_window",
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2633,7 +2664,7 @@ export async function generateRecommendations({
       currentRecommendationsResult,
       openPositionsResult,
     ] = await Promise.all([
-        supabase
+        db
           .from("user_settings")
           .select(
             [
@@ -2648,17 +2679,17 @@ export async function generateRecommendations({
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle(),
-        supabase
+        db
           .from("recommendations")
           .select("ticker,session_type")
           .gte("created_at", todayStart),
-        supabase
+        db
           .from("recommendations")
           .select("ticker,status,archived,created_at")
           .or("status.eq.new,status.is.null")
           .or("archived.eq.false,archived.is.null")
           .gte("created_at", getDefaultRecommendationExpiryCutoff()),
-        supabase.from("positions").select("ticker,status"),
+        db.from("positions").select("ticker,status"),
       ]);
 
     if (settingsResult.error) {
@@ -2801,7 +2832,9 @@ export async function generateRecommendations({
         message,
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: "recommendation_limit_reached",
+          no_publish_reason: "recommendation_limit_reached",
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2870,7 +2903,9 @@ export async function generateRecommendations({
           message: "Scan completed. No high-quality day trade setup found.",
           scan_window: scanWindow,
           scan_log: {
+            ...publishVersionDetails(),
             result: "no_high_quality_setup",
+            no_publish_reason: "no_raw_candidates",
             candidates_scanned: 0,
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
@@ -3047,6 +3082,7 @@ export async function generateRecommendations({
         market_regime: marketRegime,
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: candidatesRemovedByCooldown.some((reason) =>
             reason.includes("Active position already exists"),
           )
@@ -3056,6 +3092,7 @@ export async function generateRecommendations({
                 )
               ? "duplicate_ticker_skipped"
               : "no_high_quality_setup",
+          no_publish_reason: "candidate_cooldown_filtered_all",
           candidates_scanned: scannerCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation:
@@ -3217,6 +3254,7 @@ export async function generateRecommendations({
         market_regime: marketRegime,
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: "no_high_quality_setup",
           top_candidate_ticker: topCandidate?.ticker ?? null,
           top_candidate_score: topCandidateScore,
@@ -3237,6 +3275,10 @@ export async function generateRecommendations({
           valid_count: validQualifiedCount,
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason: message,
+          no_publish_reason:
+            qualifiedCandidates.length === 0
+              ? "no_publishable_ranked_candidates"
+              : "publish_limit_selected_zero_candidates",
           deterministic_fallback_used: false,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
@@ -3412,6 +3454,7 @@ export async function generateRecommendations({
         market_regime: marketRegime,
         scan_window: scanWindow,
         scan_log: {
+          ...publishVersionDetails(),
           result: "no_high_quality_setup",
           top_candidate_ticker: topCandidate?.ticker ?? null,
           top_candidate_score: topCandidateScore,
@@ -3435,6 +3478,9 @@ export async function generateRecommendations({
             sanitizedRecommendations.skippedReasons[0] ??
             deterministicFallbackReason ??
             "Publishable candidates failed recommendation validation.",
+          no_publish_reason: deterministicFallbackUsed
+            ? "deterministic_fallback_validation_failed"
+            : "recommendation_validation_failed",
           deterministic_fallback_used: deterministicFallbackUsed,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
@@ -3447,7 +3493,7 @@ export async function generateRecommendations({
       };
     }
 
-    const insertResult = await supabase
+    const insertResult = await db
       .from("recommendations")
       .insert(recommendationsToInsert)
       .select("*");
@@ -3488,6 +3534,7 @@ export async function generateRecommendations({
       market_regime: marketRegime,
       scan_window: scanWindow,
       scan_log: {
+        ...publishVersionDetails(),
         result: "recommendation_created",
         top_candidate_ticker: topCandidate?.ticker ?? null,
         top_candidate_score: topCandidateScore,
@@ -3508,6 +3555,7 @@ export async function generateRecommendations({
         valid_count: validQualifiedCount,
         experimental_count: experimentalQualifiedCount,
         ranked_candidates_not_published_reason: null,
+        no_publish_reason: null,
         deterministic_fallback_used: deterministicFallbackUsed,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:

@@ -87,6 +87,10 @@ export type ScanLogEntry = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  automation_route_version?: string | null;
+  recommendation_publish_policy_version?: string | null;
+  build_marker?: string | null;
+  no_publish_reason?: string | null;
   active_scan_trace?: ActiveScanTrace | null;
   day_trade_scan_orchestration?: DayTradeScanOrchestrationSummary | null;
   recommendation_serving_cadence?: RecommendationServingCadenceSummary | null;

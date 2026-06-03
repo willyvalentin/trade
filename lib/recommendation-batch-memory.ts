@@ -1,5 +1,6 @@
 import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -690,6 +691,8 @@ export async function persistRecommendationBatch(
   options: {
     supabaseClient?: RecommendationBatchSupabaseClient | null;
     storage?: Storage;
+    server?: boolean;
+    unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationBatchPersistenceResult> {
   if (options.supabaseClient?.from) {
@@ -720,8 +723,10 @@ export async function persistRecommendationBatch(
         mode: "supabase",
         batch,
         error:
-          result.error.message ??
-          "Unknown Supabase recommendation batch persistence error.",
+          `${classifySupabasePersistenceError(result.error)}:${
+            result.error.message ??
+            "Unknown Supabase recommendation batch persistence error."
+          }`,
       };
     } catch (error) {
       console.error("[recommendation-batch-memory] supabase_persistence_exception", {
@@ -735,11 +740,24 @@ export async function persistRecommendationBatch(
         mode: "supabase",
         batch,
         error:
-          error instanceof Error
-            ? error.message
-            : "Unknown Supabase recommendation batch persistence error.",
+          `${classifySupabasePersistenceError(error)}:${
+            error instanceof Error
+              ? error.message
+              : "Unknown Supabase recommendation batch persistence error."
+          }`,
       };
     }
+  }
+
+  if (options.server) {
+    return {
+      status: "failed",
+      mode: "none",
+      batch,
+      error: options.unavailableReason
+        ? `server_persistence_unavailable:${options.unavailableReason}`
+        : "server_persistence_unavailable",
+    };
   }
 
   return persistRecommendationBatchToLocalStorage(batch, options.storage);

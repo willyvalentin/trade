@@ -1,4 +1,5 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -571,6 +572,8 @@ export async function persistRecommendationSnapshot(
   options: {
     supabaseClient?: RecommendationSnapshotSupabaseClient | null;
     storage?: Storage;
+    server?: boolean;
+    unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationSnapshotPersistenceResult> {
   if (options.supabaseClient?.from) {
@@ -603,8 +606,10 @@ export async function persistRecommendationSnapshot(
         mode: "supabase",
         snapshot,
         error:
-          result.error.message ??
-          "Unknown Supabase recommendation snapshot persistence error.",
+          `${classifySupabasePersistenceError(result.error)}:${
+            result.error.message ??
+            "Unknown Supabase recommendation snapshot persistence error."
+          }`,
       };
     } catch (error) {
       console.error("[recommendation-snapshot] supabase_persistence_exception", {
@@ -619,11 +624,24 @@ export async function persistRecommendationSnapshot(
         mode: "supabase",
         snapshot,
         error:
-          error instanceof Error
-            ? error.message
-            : "Unknown Supabase recommendation snapshot persistence error.",
+          `${classifySupabasePersistenceError(error)}:${
+            error instanceof Error
+              ? error.message
+              : "Unknown Supabase recommendation snapshot persistence error."
+          }`,
       };
     }
+  }
+
+  if (options.server) {
+    return {
+      status: "failed",
+      mode: "none",
+      snapshot,
+      error: options.unavailableReason
+        ? `server_persistence_unavailable:${options.unavailableReason}`
+        : "server_persistence_unavailable",
+    };
   }
 
   return persistRecommendationSnapshotToLocalStorage(snapshot, options.storage);

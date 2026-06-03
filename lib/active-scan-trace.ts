@@ -1,4 +1,9 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
+import {
+  AUTOMATION_ROUTE_VERSION,
+  BUILD_MARKER,
+  RECOMMENDATION_PUBLISH_POLICY_VERSION,
+} from "@/lib/publish-path-versions";
 
 export type ActiveScanTraceStage =
   | "route_received"
@@ -20,6 +25,9 @@ export type ActiveScanTraceStageStatus =
 
 export type ActiveScanTrace = {
   trace_id: string;
+  automation_route_version: string;
+  recommendation_publish_policy_version: string;
+  build_marker: string;
   generated_at: string;
   route_received_at: string | null;
   scheduled_function_fired_at_utc: string | null;
@@ -94,9 +102,12 @@ export type ActiveScanTrace = {
     valid_count: number;
     experimental_count: number;
     ranked_candidates_not_published_reason: string | null;
+    no_publish_reason: string | null;
     strong_threshold: number | null;
     publishable_threshold: number | null;
     deterministic_fallback_used: boolean;
+    fallback_used: boolean;
+    publish_policy_version: string;
     batch_fingerprint: string | null;
     scan_run_fingerprint: string | null;
     zero_candidate_reason: string | null;
@@ -140,6 +151,9 @@ export function createActiveScanTrace({
     trace_id: `active_scan_${routeReceivedAt}_${Math.random()
       .toString(36)
       .slice(2, 10)}`,
+    automation_route_version: AUTOMATION_ROUTE_VERSION,
+    recommendation_publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    build_marker: BUILD_MARKER,
     generated_at: routeReceivedAt,
     route_received_at: routeReceivedAt,
     scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc ?? null,
@@ -219,9 +233,12 @@ export function createActiveScanTrace({
       valid_count: 0,
       experimental_count: 0,
       ranked_candidates_not_published_reason: null,
+      no_publish_reason: null,
       strong_threshold: null,
       publishable_threshold: null,
       deterministic_fallback_used: false,
+      fallback_used: false,
+      publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
       batch_fingerprint: null,
       scan_run_fingerprint: null,
       zero_candidate_reason: null,
@@ -344,6 +361,7 @@ export function errorType(value: unknown) {
 
 export function zeroCandidateReason(trace: ActiveScanTrace) {
   if (trace.skip_reason) return trace.skip_reason;
+  if (trace.final.no_publish_reason) return trace.final.no_publish_reason;
   if (!trace.provider_env.twelve_data_key_present) return "twelve_data_key_missing";
   if (!trace.provider_env.openai_key_present) return "openai_key_missing";
   if ((trace.universe.selected_tickers_count ?? 0) === 0) return "empty_universe";
