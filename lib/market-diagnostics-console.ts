@@ -744,6 +744,17 @@ function buildSections(
               `${input.active_scan_trace.raw_candidates.raw_candidate_count}/${input.active_scan_trace.ranking.ranked_count}/${input.active_scan_trace.openai.output_recommendation_count}`,
             ),
             lineValue(
+              "Build path",
+              compact(
+                input.active_scan_trace.final.recommendation_build_path,
+                "not observed",
+              ),
+            ),
+            lineValue(
+              "Built count",
+              String(input.active_scan_trace.final.recommendations_built_count),
+            ),
+            lineValue(
               "Published",
               `${input.active_scan_trace.final.recommendations_published_count} published / ${input.active_scan_trace.final.ranked_candidates_count} ranked selected`,
             ),
@@ -794,6 +805,8 @@ function buildSections(
             lineValue("Power hour block", "not observed"),
             lineValue("Quote/candle success", "not observed"),
             lineValue("Raw/ranked/output", "not observed"),
+            lineValue("Build path", "not observed"),
+            lineValue("Built count", "not observed"),
             lineValue("Published", "not observed"),
             lineValue("Tier mix", "not observed"),
             lineValue("Thresholds", "not observed"),
@@ -867,6 +880,10 @@ function buildSections(
           input.active_scan_trace?.final.ranked_candidates_count ?? null,
         recommendations_published_count:
           input.active_scan_trace?.final.recommendations_published_count ?? null,
+        recommendation_build_path:
+          input.active_scan_trace?.final.recommendation_build_path ?? null,
+        recommendations_built_count:
+          input.active_scan_trace?.final.recommendations_built_count ?? null,
         strong_count: input.active_scan_trace?.final.strong_count ?? null,
         valid_count: input.active_scan_trace?.final.valid_count ?? null,
         experimental_count:
@@ -880,6 +897,133 @@ function buildSections(
           input.active_scan_trace?.final.publishable_threshold ?? null,
         deterministic_fallback_used:
           input.active_scan_trace?.final.deterministic_fallback_used ?? null,
+      },
+    }),
+    section({
+      section_id: "latest_diagnostic_scan",
+      title: "Latest diagnostic scan",
+      severity:
+        input.active_scan_trace?.diagnostic_mode &&
+        input.active_scan_trace.final.zero_candidate_reason
+          ? "warning"
+          : "info",
+      lines: input.active_scan_trace?.diagnostic_mode
+        ? [
+            lineValue(
+              "Run time",
+              compact(input.active_scan_trace.generated_at, "unknown"),
+            ),
+            lineValue(
+              "Mode",
+              compact(input.active_scan_trace.diagnostic_run_mode, "unknown"),
+            ),
+            lineValue(
+              "Step",
+              compact(input.active_scan_trace.diagnostic_step, "unknown"),
+            ),
+            lineValue(
+              "Elapsed",
+              input.active_scan_trace.elapsed_ms === null
+                ? "unknown"
+                : `${input.active_scan_trace.elapsed_ms}ms`,
+            ),
+            lineValue(
+              "Max tickers",
+              input.active_scan_trace.max_tickers === null
+                ? "unknown"
+                : String(input.active_scan_trace.max_tickers),
+            ),
+            lineValue(
+              "Timeout",
+              bool(input.active_scan_trace.timeout_reached),
+            ),
+            lineValue(
+              "Simulated window",
+              compact(input.active_scan_trace.simulated_window, "none"),
+            ),
+            lineValue(
+              "Selected/ranked/output",
+              `${input.active_scan_trace.ranking.selected_count}/${input.active_scan_trace.ranking.ranked_count}/${input.active_scan_trace.openai.output_recommendation_count}`,
+            ),
+            lineValue(
+              "Build path",
+              compact(
+                input.active_scan_trace.final.recommendation_build_path,
+                "not observed",
+              ),
+            ),
+            lineValue(
+              "Built count",
+              String(input.active_scan_trace.final.recommendations_built_count),
+            ),
+            lineValue(
+              "No publish reason",
+              compact(input.active_scan_trace.final.no_publish_reason, "none"),
+            ),
+            lineValue(
+              "Fallback used",
+              bool(input.active_scan_trace.final.deterministic_fallback_used),
+            ),
+            lineValue(
+              "Persistence",
+              `run=${bool(input.active_scan_trace.persistence.scan_run_persisted)} / batch=${bool(input.active_scan_trace.persistence.batch_persisted)} / snapshots=${input.active_scan_trace.persistence.snapshots_persisted_count}`,
+            ),
+            lineValue(
+              "Persistence error",
+              compact(
+                input.active_scan_trace.persistence.persistence_error_type,
+                "none",
+              ),
+            ),
+          ]
+        : [
+            lineValue("Run time", "not observed"),
+            lineValue("Mode", "not observed"),
+            lineValue("Step", "not observed"),
+            lineValue("Elapsed", "not observed"),
+            lineValue("Max tickers", "not observed"),
+            lineValue("Timeout", "not observed"),
+            lineValue("Simulated window", "not observed"),
+            lineValue("Selected/ranked/output", "not observed"),
+            lineValue("Build path", "not observed"),
+            lineValue("Built count", "not observed"),
+            lineValue("No publish reason", "not observed"),
+            lineValue("Fallback used", "not observed"),
+            lineValue("Persistence", "not observed"),
+            lineValue("Persistence error", "not observed"),
+          ],
+      metrics: {
+        diagnostic_mode: input.active_scan_trace?.diagnostic_mode ?? null,
+        diagnostic_run_mode:
+          input.active_scan_trace?.diagnostic_run_mode ?? null,
+        diagnostic_step: input.active_scan_trace?.diagnostic_step ?? null,
+        elapsed_ms: input.active_scan_trace?.elapsed_ms ?? null,
+        max_tickers: input.active_scan_trace?.max_tickers ?? null,
+        skipped_openai: input.active_scan_trace?.skipped_openai ?? null,
+        partial_result: input.active_scan_trace?.partial_result ?? null,
+        timeout_reached: input.active_scan_trace?.timeout_reached ?? null,
+        simulated_window: input.active_scan_trace?.simulated_window ?? null,
+        simulated_ny_time: input.active_scan_trace?.simulated_ny_time ?? null,
+        selected_count: input.active_scan_trace?.ranking.selected_count ?? null,
+        ranked_count: input.active_scan_trace?.ranking.ranked_count ?? null,
+        output_recommendation_count:
+          input.active_scan_trace?.openai.output_recommendation_count ?? null,
+        recommendation_build_path:
+          input.active_scan_trace?.final.recommendation_build_path ?? null,
+        recommendations_built_count:
+          input.active_scan_trace?.final.recommendations_built_count ?? null,
+        no_publish_reason:
+          input.active_scan_trace?.final.no_publish_reason ?? null,
+        deterministic_fallback_used:
+          input.active_scan_trace?.final.deterministic_fallback_used ?? null,
+        scan_run_persisted:
+          input.active_scan_trace?.persistence.scan_run_persisted ?? null,
+        batch_persisted:
+          input.active_scan_trace?.persistence.batch_persisted ?? null,
+        snapshots_persisted_count:
+          input.active_scan_trace?.persistence.snapshots_persisted_count ?? null,
+        persistence_error_type:
+          input.active_scan_trace?.persistence.persistence_error_type ?? null,
       },
     }),
     section({

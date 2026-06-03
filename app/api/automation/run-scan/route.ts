@@ -581,6 +581,8 @@ function finishActiveScanTrace(
     recommendationsCreated = 0,
     rankedCandidatesCount = 0,
     recommendationsPublishedCount = recommendationsCreated,
+    recommendationBuildPath = null,
+    recommendationsBuiltCount = recommendationsCreated,
     strongCount = 0,
     validCount = 0,
     experimentalCount = 0,
@@ -601,6 +603,8 @@ function finishActiveScanTrace(
     recommendationsCreated?: number;
     rankedCandidatesCount?: number;
     recommendationsPublishedCount?: number;
+    recommendationBuildPath?: string | null;
+    recommendationsBuiltCount?: number;
     strongCount?: number;
     validCount?: number;
     experimentalCount?: number;
@@ -639,6 +643,8 @@ function finishActiveScanTrace(
     recommendations_created: recommendationsCreated,
     ranked_candidates_count: rankedCandidatesCount,
     recommendations_published_count: recommendationsPublishedCount,
+    recommendation_build_path: recommendationBuildPath,
+    recommendations_built_count: recommendationsBuiltCount,
     strong_count: strongCount,
     valid_count: validCount,
     experimental_count: experimentalCount,
@@ -1032,6 +1038,14 @@ function createAutomationScanLog({
     recommendations_published_count:
       typeof details?.recommendations_published_count === "number"
         ? details.recommendations_published_count
+        : null,
+    recommendation_build_path:
+      typeof details?.recommendation_build_path === "string"
+        ? details.recommendation_build_path
+        : null,
+    recommendations_built_count:
+      typeof details?.recommendations_built_count === "number"
+        ? details.recommendations_built_count
         : null,
     strong_count:
       typeof details?.strong_count === "number" ? details.strong_count : null,
@@ -2323,6 +2337,11 @@ export async function POST(request: Request) {
       recommendationsPublishedCount:
         generationScanLog?.recommendations_published_count ??
         recommendationsCreated,
+      recommendationBuildPath:
+        generationScanLog?.recommendation_build_path ??
+        (recommendationsCreated > 0 ? "openai" : "no_publish"),
+      recommendationsBuiltCount:
+        generationScanLog?.recommendations_built_count ?? recommendationsCreated,
       strongCount: generationScanLog?.strong_count ?? 0,
       validCount: generationScanLog?.valid_count ?? 0,
       experimentalCount: generationScanLog?.experimental_count ?? 0,
@@ -2376,6 +2395,12 @@ export async function POST(request: Request) {
       ranked_candidates_count: generationScanLog?.ranked_candidates_count ?? null,
       recommendations_published_count:
         generationScanLog?.recommendations_published_count ?? recommendationsCreated,
+      recommendation_build_path:
+        generationScanLog?.recommendation_build_path ??
+        activeScanTracePayload.final.recommendation_build_path,
+      recommendations_built_count:
+        generationScanLog?.recommendations_built_count ??
+        activeScanTracePayload.final.recommendations_built_count,
       strong_count: generationScanLog?.strong_count ?? null,
       valid_count: generationScanLog?.valid_count ?? null,
       experimental_count: generationScanLog?.experimental_count ?? null,

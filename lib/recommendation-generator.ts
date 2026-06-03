@@ -28,7 +28,6 @@ import {
   normalizeSetupType,
   type SetupType,
 } from "@/lib/setup-types";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildRecommendationOutputEnrichmentMetadata } from "@/lib/recommendation-output-enrichment";
 import {
@@ -55,7 +54,10 @@ import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
-import { getServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  getServerSupabaseClient,
+  getServerSupabaseReadClient,
+} from "@/lib/supabase-server";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -81,6 +83,10 @@ export type GenerateRecommendationsInput = {
   source: RecommendationGenerationSource;
   allowPowerHourRecommendationLogging?: boolean;
   powerHourTrialPublishing?: boolean;
+  diagnosticMode?: boolean;
+  diagnosticRunId?: string | null;
+  diagnosticMaxTickers?: number | null;
+  skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
@@ -201,6 +207,8 @@ export type RecommendationScanLogDetails = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
+  recommendations_built_count?: number | null;
   automation_route_version?: string | null;
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
@@ -380,6 +388,30 @@ function powerHourTrialTarget(value: number | null | undefined) {
     POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.min,
     POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.max,
   );
+}
+
+function buildDiagnosticRecommendationRows({
+  recommendations,
+  scanWindow,
+  diagnosticRunId,
+}: {
+  recommendations: RecommendationInsert[];
+  scanWindow: IntradayScanWindow;
+  diagnosticRunId: string | null;
+}) {
+  const createdAt = new Date().toISOString();
+  const runId = diagnosticRunId ?? `diagnostic_${createdAt.replace(/[^0-9]/g, "")}`;
+
+  return recommendations.map((recommendation, index) => ({
+    ...recommendation,
+    id: `${runId}_${index + 1}_${recommendation.ticker}`,
+    created_at: createdAt,
+    scan_window: scanWindow,
+    diagnostic_mode: true,
+    source_mode: "diagnostic",
+    not_live_trade_signal: true,
+    visible_in_primary_recommendations: false,
+  }));
 }
 
 function parseCandidateNumber(value: unknown) {
@@ -2084,7 +2116,16 @@ function logPipeline(label: string, value: unknown) {
 }
 
 async function saveMarketRegimeSnapshot(marketRegime: MarketRegime) {
-  const { error } = await supabase.from("market_regime_snapshots").insert({
+  const serverSupabase = getServerSupabaseClient();
+
+  if (!serverSupabase.client) {
+    console.warn("[recommendations/generate] market_regime_snapshot_skipped", {
+      reason: serverSupabase.unavailable_reason,
+    });
+    return;
+  }
+
+  const { error } = await serverSupabase.client.from("market_regime_snapshots").insert({
     regime: marketRegime.regime,
     summary: marketRegime.summary,
     spy_close: marketRegime.spy.close,
@@ -2709,11 +2750,29 @@ export async function generateRecommendations({
   source,
   allowPowerHourRecommendationLogging = false,
   powerHourTrialPublishing = false,
+  diagnosticMode = false,
+  diagnosticRunId = null,
+  diagnosticMaxTickers = null,
+  skipOpenAi = false,
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
-    const serverSupabase = getServerSupabaseClient();
-    const db = serverSupabase.client ?? supabase;
+    const serverSupabase = diagnosticMode
+      ? getServerSupabaseReadClient()
+      : getServerSupabaseClient();
+    const db = serverSupabase.client;
+
+    if (!db) {
+      throw new RecommendationGenerationError(
+        `Server Supabase client unavailable: ${serverSupabase.unavailable_reason ?? "unknown"}`,
+        500,
+        {
+          persistence_error_type:
+            serverSupabase.unavailable_reason ?? "server_supabase_unavailable",
+        },
+      );
+    }
+
     const todayStart = getStartOfToday();
     const scanPolicy = getIntradayScanPolicy(scanWindow);
     const powerHourTrial = isPowerHourTrialRun({
@@ -2728,6 +2787,9 @@ export async function generateRecommendations({
     logPipeline("scan_window", scanWindow);
     logPipeline("scan_window_policy", scanPolicy);
     logPipeline("power_hour_trial_publishing", powerHourTrial);
+    logPipeline("diagnostic_mode", diagnosticMode);
+    logPipeline("diagnostic_max_tickers", diagnosticMaxTickers);
+    logPipeline("skip_openai", skipOpenAi);
 
     if (scanWindow === "pre_market") {
       logPipeline("pre_market_mode", "watchlist_only");
@@ -2942,6 +3004,7 @@ export async function generateRecommendations({
 
     if (
       source === "scheduled" &&
+      !diagnosticMode &&
       currentRecommendations.length >= MAX_CURRENT_RECOMMENDATIONS
     ) {
       const message =
@@ -2979,8 +3042,12 @@ export async function generateRecommendations({
 
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
+      requestedScanBudget: diagnosticMode ? diagnosticMaxTickers : undefined,
     });
-    const scannerBaseCandidates = scannerUniverseSelection.candidates;
+    const scannerBaseCandidates =
+      diagnosticMode && typeof diagnosticMaxTickers === "number"
+        ? scannerUniverseSelection.candidates.slice(0, diagnosticMaxTickers)
+        : scannerUniverseSelection.candidates;
     const universeCoverage = scannerUniverseSelection.coverage;
 
     activeScanTrace?.markStage("universe", "completed");
@@ -3000,7 +3067,13 @@ export async function generateRecommendations({
 
     const scannerCandidates = await scanMarket(
       scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
-      { source, activeScanTrace },
+      {
+        source,
+        activeScanTrace,
+        maxFreshProviderCalls: diagnosticMode
+          ? Math.min(1, scannerBaseCandidates.length)
+          : undefined,
+      },
     );
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
@@ -3222,6 +3295,8 @@ export async function generateRecommendations({
               ? "duplicate_ticker_skipped"
               : "no_high_quality_setup",
           no_publish_reason: "candidate_cooldown_filtered_all",
+          recommendation_build_path: "no_publish",
+          recommendations_built_count: 0,
           power_hour_trial_enabled: powerHourTrialPublishing,
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
@@ -3403,6 +3478,8 @@ export async function generateRecommendations({
           publishable_threshold: publishableThreshold,
           ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
           recommendations_published_count: 0,
+          recommendation_build_path: "no_publish",
+          recommendations_built_count: 0,
           strong_count: strongQualifiedCount,
           valid_count: validQualifiedCount,
           experimental_count: experimentalQualifiedCount,
@@ -3462,21 +3539,31 @@ export async function generateRecommendations({
     }
 
     try {
-      const openAiResult = await generateRecommendationsWithOpenAI(
-        candidatesForOpenAI,
-        sessionType,
-        scanWindow,
-        settings,
-        duplicateFallbackUsed,
-        marketRegime,
-        scannerCandidateRankingSummary,
-        source,
-        openPositionCount,
-        powerHourTrial,
-      );
-      aiResponse = openAiResult.response;
-      openAiOutputRecommendationCount = aiResponse.recommendations.length;
-      openAiRealityGuardSummary = openAiResult.realityGuard;
+      if (skipOpenAi) {
+        activeScanTrace?.markStage("openai", "skipped");
+        activeScanTrace?.updateOpenAi({
+          openai_attempted: false,
+          input_candidate_count: candidatesForOpenAI.length,
+          output_recommendation_count: 0,
+        });
+        aiResponse = deterministicFallback("Diagnostic run skipped OpenAI.");
+      } else {
+        const openAiResult = await generateRecommendationsWithOpenAI(
+          candidatesForOpenAI,
+          sessionType,
+          scanWindow,
+          settings,
+          duplicateFallbackUsed,
+          marketRegime,
+          scannerCandidateRankingSummary,
+          source,
+          openPositionCount,
+          powerHourTrial,
+        );
+        aiResponse = openAiResult.response;
+        openAiOutputRecommendationCount = aiResponse.recommendations.length;
+        openAiRealityGuardSummary = openAiResult.realityGuard;
+      }
     } catch (openAiError) {
       activeScanTrace?.markStage("openai", "failed");
       activeScanTrace?.updateOpenAi({
@@ -3485,7 +3572,7 @@ export async function generateRecommendations({
       aiResponse = deterministicFallback(`OpenAI error: ${errorType(openAiError)}`);
     }
 
-    activeScanTrace?.markStage("openai", "completed");
+    activeScanTrace?.markStage("openai", skipOpenAi ? "skipped" : "completed");
     activeScanTrace?.updateOpenAi({
       output_recommendation_count: openAiOutputRecommendationCount,
     });
@@ -3567,6 +3654,14 @@ export async function generateRecommendations({
     }
 
     logPipeline("validated_recommendations_count", recommendationsToInsert.length);
+    const recommendationBuildPath =
+      recommendationsToInsert.length === 0
+        ? "no_publish"
+        : deterministicFallbackUsed
+          ? "deterministic_fallback"
+          : "openai";
+    logPipeline("recommendation_build_path", recommendationBuildPath);
+    logPipeline("recommendations_built_count", recommendationsToInsert.length);
     logPipeline(
       "skipped_recommendations_count",
       sanitizedRecommendations.skippedReasons.length,
@@ -3610,6 +3705,8 @@ export async function generateRecommendations({
           publishable_threshold: publishableThreshold,
           ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
           recommendations_published_count: 0,
+          recommendation_build_path: "no_publish",
+          recommendations_built_count: 0,
           strong_count: strongQualifiedCount,
           valid_count: validQualifiedCount,
           experimental_count: experimentalQualifiedCount,
@@ -3620,6 +3717,76 @@ export async function generateRecommendations({
           no_publish_reason: deterministicFallbackUsed
             ? "deterministic_fallback_validation_failed"
             : "recommendation_validation_failed",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
+          deterministic_fallback_used: deterministicFallbackUsed,
+          candidates_scanned: scoredCandidates.length,
+          skipped_tickers:
+            candidatesRemovedByCooldown.length +
+            sanitizedRecommendations.skippedReasons.length,
+          real_scanner_candidate_generation: realScannerCandidateGeneration,
+          scanner_candidate_ranking: scannerCandidateRankingSummary,
+          openai_recommendation_reality_guard: openAiRealityGuardSummary,
+        } satisfies RecommendationScanLogDetails,
+      };
+    }
+
+    if (diagnosticMode) {
+      const diagnosticRecommendations = buildDiagnosticRecommendationRows({
+        recommendations: recommendationsToInsert,
+        scanWindow,
+        diagnosticRunId,
+      });
+      const diagnosticRecommendationTickers = diagnosticRecommendations
+        .map((recommendation) => normalizeTicker(recommendation.ticker))
+        .filter(Boolean);
+
+      logPipeline(
+        "diagnostic_recommendations_built_count",
+        diagnosticRecommendations.length,
+      );
+      logPipeline(
+        "diagnostic_recommendation_tickers",
+        diagnosticRecommendationTickers,
+      );
+
+      return {
+        recommendations: diagnosticRecommendations,
+        inserted_count: 0,
+        diagnostic_mode: true,
+        diagnostic_built_count: diagnosticRecommendations.length,
+        inserted_tickers: [],
+        duplicate_fallback_used: duplicateFallbackUsed,
+        market_regime: marketRegime,
+        scan_window: scanWindow,
+        message:
+          "Diagnostic scan built recommendations without publishing live recommendation rows.",
+        scan_log: {
+          ...publishVersionDetails(),
+          result: "diagnostic_recommendations_built",
+          top_candidate_ticker: topCandidate?.ticker ?? null,
+          top_candidate_score: topCandidateScore,
+          top_candidate_setup_type: topCandidateSetupType,
+          top_candidate_breakdown: topCandidateBreakdown,
+          top_candidate_reasons: topCandidateReasons,
+          top_candidate_warnings: topCandidateWarnings,
+          top_candidate_indicators: topCandidateIndicators,
+          indicator_source: topCandidateIndicatorSource,
+          indicator_cached_at: topCandidateIndicatorCachedAt,
+          indicator_stale: topCandidateIndicatorStale,
+          threshold: strongThreshold,
+          strong_threshold: strongThreshold,
+          publishable_threshold: publishableThreshold,
+          ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
+          recommendations_published_count: 0,
+          recommendation_build_path: recommendationBuildPath,
+          recommendations_built_count: recommendationsToInsert.length,
+          strong_count: strongQualifiedCount,
+          valid_count: validQualifiedCount,
+          experimental_count: experimentalQualifiedCount,
+          ranked_candidates_not_published_reason: null,
+          no_publish_reason: null,
           power_hour_trial_enabled: powerHourTrialPublishing,
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
@@ -3650,6 +3817,12 @@ export async function generateRecommendations({
       throw new RecommendationGenerationError(
         insertResult.error.message ?? "Unknown error",
         500,
+        {
+          persistence_error_type:
+            insertResult.error.code ??
+            insertResult.error.name ??
+            "recommendation_insert_error",
+        },
       );
     }
 
@@ -3665,6 +3838,7 @@ export async function generateRecommendations({
       throw new RecommendationGenerationError(
         "Recommendations were generated but not inserted into Supabase.",
         500,
+        { persistence_error_type: "recommendation_insert_returned_zero_rows" },
       );
     }
 
@@ -3693,6 +3867,8 @@ export async function generateRecommendations({
         publishable_threshold: publishableThreshold,
         ranked_candidates_count: scannerCandidateRankingSummary.selected_count,
         recommendations_published_count: insertedRecommendations.length,
+        recommendation_build_path: recommendationBuildPath,
+        recommendations_built_count: recommendationsToInsert.length,
         strong_count: strongQualifiedCount,
         valid_count: validQualifiedCount,
         experimental_count: experimentalQualifiedCount,

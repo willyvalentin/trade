@@ -38,6 +38,16 @@ export type ActiveScanTrace = {
   orchestration_decision: string | null;
   should_scan_now: boolean | null;
   skip_reason: string | null;
+  diagnostic_mode: boolean;
+  diagnostic_run_mode: string | null;
+  diagnostic_step: string | null;
+  simulated_window: string | null;
+  simulated_ny_time: string | null;
+  max_tickers: number | null;
+  skipped_openai: boolean;
+  partial_result: boolean;
+  timeout_reached: boolean;
+  elapsed_ms: number | null;
   power_hour_trial_enabled: boolean;
   power_hour_publish_allowed: boolean;
   power_hour_publish_block_reason: string | null;
@@ -106,6 +116,8 @@ export type ActiveScanTrace = {
     experimental_count: number;
     ranked_candidates_not_published_reason: string | null;
     no_publish_reason: string | null;
+    recommendation_build_path: string | null;
+    recommendations_built_count: number;
     strong_threshold: number | null;
     publishable_threshold: number | null;
     deterministic_fallback_used: boolean;
@@ -167,6 +179,16 @@ export function createActiveScanTrace({
     orchestration_decision: null,
     should_scan_now: null,
     skip_reason: null,
+    diagnostic_mode: false,
+    diagnostic_run_mode: null,
+    diagnostic_step: null,
+    simulated_window: null,
+    simulated_ny_time: null,
+    max_tickers: null,
+    skipped_openai: false,
+    partial_result: false,
+    timeout_reached: false,
+    elapsed_ms: null,
     power_hour_trial_enabled: false,
     power_hour_publish_allowed: false,
     power_hour_publish_block_reason: null,
@@ -240,6 +262,8 @@ export function createActiveScanTrace({
       experimental_count: 0,
       ranked_candidates_not_published_reason: null,
       no_publish_reason: null,
+      recommendation_build_path: null,
+      recommendations_built_count: 0,
       strong_threshold: null,
       publishable_threshold: null,
       deterministic_fallback_used: false,

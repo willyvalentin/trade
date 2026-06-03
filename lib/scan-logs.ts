@@ -24,10 +24,11 @@ export type ScanLogResult =
   | "provider_rate_limited"
   | "provider_error"
   | "openai_error"
+  | "diagnostic_recommendations_built"
   | "skipped"
   | "unknown";
 
-export type ScanLogSource = "scheduled" | "manual";
+export type ScanLogSource = "scheduled" | "manual" | "diagnostic";
 
 export type PreMarketCandidate = {
   id: string;
@@ -87,10 +88,16 @@ export type ScanLogEntry = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  recommendation_build_path?: string | null;
+  recommendations_built_count?: number | null;
   automation_route_version?: string | null;
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
   no_publish_reason?: string | null;
+  diagnostic_mode?: boolean | null;
+  diagnostic_run_mode?: string | null;
+  simulated_window?: string | null;
+  simulated_ny_time?: string | null;
   power_hour_trial_enabled?: boolean | null;
   power_hour_publish_allowed?: boolean | null;
   power_hour_publish_block_reason?: string | null;
