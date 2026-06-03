@@ -91,6 +91,9 @@ export type ScanLogEntry = {
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
   no_publish_reason?: string | null;
+  power_hour_trial_enabled?: boolean | null;
+  power_hour_publish_allowed?: boolean | null;
+  power_hour_publish_block_reason?: string | null;
   active_scan_trace?: ActiveScanTrace | null;
   day_trade_scan_orchestration?: DayTradeScanOrchestrationSummary | null;
   recommendation_serving_cadence?: RecommendationServingCadenceSummary | null;

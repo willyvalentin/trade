@@ -177,6 +177,113 @@ function automationVersionFields() {
   };
 }
 
+function powerHourTrialCopyFields() {
+  return {
+    power_hour_trial_copy: [
+      POWER_HOUR_TRIAL_ALLOWED_COPY,
+      POWER_HOUR_TRIAL_RISK_COPY,
+      POWER_HOUR_TRIAL_HUMAN_COPY,
+      POWER_HOUR_TRIAL_AUTOMATION_COPY,
+    ],
+  };
+}
+
+const POWER_HOUR_TRIAL_ENABLED = true;
+const POWER_HOUR_TRIAL_ALLOWED_COPY =
+  "Power Hour trial publishing is enabled for observation and learning.";
+const POWER_HOUR_TRIAL_RISK_COPY =
+  "Late-day recommendations carry higher EOD risk.";
+const POWER_HOUR_TRIAL_HUMAN_COPY = "Execution remains human-confirmed.";
+const POWER_HOUR_TRIAL_AUTOMATION_COPY =
+  "This does not enable broker automation.";
+
+type PowerHourTrialGate = {
+  power_hour_trial_enabled: boolean;
+  power_hour_publish_allowed: boolean;
+  power_hour_publish_block_reason: string | null;
+};
+
+function buildPowerHourTrialGate({
+  scanWindow,
+  marketSessionPhase,
+  marketOpenForScan,
+  orchestration,
+}: {
+  scanWindow: IntradayScanWindow;
+  marketSessionPhase: string | null | undefined;
+  marketOpenForScan: boolean;
+  orchestration: DayTradeScanOrchestrationSummary;
+}): PowerHourTrialGate {
+  if (!POWER_HOUR_TRIAL_ENABLED) {
+    return {
+      power_hour_trial_enabled: false,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "power_hour_trial_disabled",
+    };
+  }
+
+  if (scanWindow !== "power_hour") {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "not_power_hour",
+    };
+  }
+
+  if (marketSessionPhase === "closing_soon") {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "closing_soon_cutoff",
+    };
+  }
+
+  if (marketSessionPhase !== "power_hour") {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "outside_power_hour_trial_window",
+    };
+  }
+
+  if (!marketOpenForScan) {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "market_not_open",
+    };
+  }
+
+  if (
+    orchestration.calendar_confidence !== "provider_confirmed" &&
+    !orchestration.fallback_calendar_scan_allowed
+  ) {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "calendar_not_confirmed_or_safe_fallback",
+    };
+  }
+
+  if (
+    String(AUTOMATION_ROUTE_VERSION) !== "action_148_publish_path_v1" ||
+    String(RECOMMENDATION_PUBLISH_POLICY_VERSION) !==
+      "learning_tiers_82_72_60_v1"
+  ) {
+    return {
+      power_hour_trial_enabled: true,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "action_148_publish_policy_not_active",
+    };
+  }
+
+  return {
+    power_hour_trial_enabled: true,
+    power_hour_publish_allowed: true,
+    power_hour_publish_block_reason: null,
+  };
+}
+
 function parseIntradayScanWindow(value: unknown): IntradayScanWindow | null {
   return intradayScanWindows.includes(value as IntradayScanWindow)
     ? (value as IntradayScanWindow)
@@ -827,6 +934,12 @@ function createAutomationScanLog({
   recommendationsCreated: number;
   details?: Record<string, unknown> | null;
 }) {
+  const detailsActiveTrace =
+    typeof details?.active_scan_trace === "object" &&
+    details.active_scan_trace !== null
+      ? (details.active_scan_trace as ActiveScanTrace)
+      : null;
+
   return createScanLog({
     source,
     scan_window: scanWindow,
@@ -936,6 +1049,18 @@ function createAutomationScanLog({
       typeof details?.no_publish_reason === "string"
         ? details.no_publish_reason
         : null,
+    power_hour_trial_enabled:
+      typeof details?.power_hour_trial_enabled === "boolean"
+        ? details.power_hour_trial_enabled
+        : detailsActiveTrace?.power_hour_trial_enabled ?? null,
+    power_hour_publish_allowed:
+      typeof details?.power_hour_publish_allowed === "boolean"
+        ? details.power_hour_publish_allowed
+        : detailsActiveTrace?.power_hour_publish_allowed ?? null,
+    power_hour_publish_block_reason:
+      typeof details?.power_hour_publish_block_reason === "string"
+        ? details.power_hour_publish_block_reason
+        : detailsActiveTrace?.power_hour_publish_block_reason ?? null,
     strong_threshold:
       typeof details?.strong_threshold === "number"
         ? details.strong_threshold
@@ -949,10 +1074,7 @@ function createAutomationScanLog({
         ? details.deterministic_fallback_used
         : null,
     active_scan_trace:
-      typeof details?.active_scan_trace === "object" &&
-      details.active_scan_trace !== null
-        ? (details.active_scan_trace as ActiveScanTrace)
-        : null,
+      detailsActiveTrace,
   });
 }
 
@@ -1280,6 +1402,13 @@ async function persistAutomationArtifacts({
       day_trade_scan_orchestration: orchestration,
       recommendation_serving_cadence: servingCadence,
       active_scan_trace: activeScanTrace?.trace ?? null,
+      power_hour_trial_enabled:
+        activeScanTrace?.trace.power_hour_trial_enabled ?? false,
+      power_hour_publish_allowed:
+        activeScanTrace?.trace.power_hour_publish_allowed ?? false,
+      power_hour_publish_block_reason:
+        activeScanTrace?.trace.power_hour_publish_block_reason ?? null,
+      power_hour_trial_copy: powerHourTrialCopyFields().power_hour_trial_copy,
       provider_source:
         scanLog.real_scanner_candidate_generation?.provider_source ??
         scanLog.indicator_source ??
@@ -1345,6 +1474,19 @@ async function persistAutomationArtifacts({
         scan_reason: orchestration.scan_reason,
         automation_source: "scheduled",
         active_scan_trace: activeScanTrace?.trace ?? null,
+        power_hour_trial_enabled:
+          activeScanTrace?.trace.power_hour_trial_enabled ?? false,
+        power_hour_publish_allowed:
+          activeScanTrace?.trace.power_hour_publish_allowed ?? false,
+        power_hour_publish_block_reason:
+          activeScanTrace?.trace.power_hour_publish_block_reason ?? null,
+        eod_risk:
+          activeScanTrace?.trace.power_hour_publish_allowed === true ? "high" : null,
+        recommendation_intent:
+          activeScanTrace?.trace.power_hour_publish_allowed === true
+            ? "learning_observation"
+            : "day_trade",
+        power_hour_trial_copy: powerHourTrialCopyFields().power_hour_trial_copy,
       },
     });
 
@@ -1637,6 +1779,22 @@ export async function POST(request: Request) {
     fallbackActiveScanWindow === scanWindow.scanWindow;
   const marketOpenForScan =
     isMarketOpenForIntradayTrading(marketStatus) || calendarFallbackAllowsScan;
+  const powerHourTrialGate = buildPowerHourTrialGate({
+    scanWindow: scanWindow.scanWindow,
+    marketSessionPhase: marketSession.phase,
+    marketOpenForScan,
+    orchestration: dayTradeScanOrchestration,
+  });
+  activeScanTrace.update({
+    power_hour_trial_enabled: powerHourTrialGate.power_hour_trial_enabled,
+    power_hour_publish_allowed: powerHourTrialGate.power_hour_publish_allowed,
+    power_hour_publish_block_reason:
+      powerHourTrialGate.power_hour_publish_block_reason,
+  });
+  const disabledGenerationBypassAllowed =
+    scanWindow.scanWindow === "power_hour"
+      ? powerHourTrialGate.power_hour_publish_allowed
+      : calendarFallbackAllowsScan;
 
   if (!marketOpenForScan && !canRunPreMarketWatchlist) {
     const discardReview = await runDiscardReviewIfDue({
@@ -1664,6 +1822,7 @@ export async function POST(request: Request) {
       message,
       recommendationsCreated: 0,
       details: {
+        ...powerHourTrialGate,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -1682,6 +1841,8 @@ export async function POST(request: Request) {
       status: "skipped",
       decision: "skipped_market_closed" satisfies AutomationScanDecision,
       ...automationVersionFields(),
+      ...powerHourTrialGate,
+      ...powerHourTrialCopyFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_market_closed",
@@ -1717,7 +1878,7 @@ export async function POST(request: Request) {
   if (
     !scanPolicy.allowGeneration &&
     scanWindow.scanWindow !== "pre_market" &&
-    !calendarFallbackAllowsScan
+    !disabledGenerationBypassAllowed
   ) {
     const discardReview =
       scanWindow.scanWindow === "closed"
@@ -1738,7 +1899,12 @@ export async function POST(request: Request) {
       scanWindow.scanWindow === "power_hour"
           ? "power_hour_blocked"
           : "skipped";
-    const message = `${scanPolicy.message} ${discardReview.message}`;
+    const message = `${
+      scanWindow.scanWindow === "power_hour" &&
+      powerHourTrialGate.power_hour_publish_block_reason
+        ? `${scanPolicy.message} Power Hour trial publish blocked: ${powerHourTrialGate.power_hour_publish_block_reason}.`
+        : scanPolicy.message
+    } ${discardReview.message}`;
     const scanLog = createAutomationScanLog({
       source: "scheduled",
       scanWindow: scanWindow.scanWindow,
@@ -1747,6 +1913,7 @@ export async function POST(request: Request) {
       message,
       recommendationsCreated: 0,
       details: {
+        ...powerHourTrialGate,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -1765,6 +1932,8 @@ export async function POST(request: Request) {
       status: "skipped",
       decision: "skipped_outside_window" satisfies AutomationScanDecision,
       ...automationVersionFields(),
+      ...powerHourTrialGate,
+      ...powerHourTrialCopyFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_outside_window",
@@ -1818,6 +1987,8 @@ export async function POST(request: Request) {
         status: "skipped",
         decision,
         ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision,
@@ -1865,6 +2036,7 @@ export async function POST(request: Request) {
         message,
         recommendationsCreated: 0,
         details: {
+          ...powerHourTrialGate,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -1897,6 +2069,8 @@ export async function POST(request: Request) {
           status: "skipped",
           decision: "skipped_provider_unavailable" satisfies AutomationScanDecision,
           ...automationVersionFields(),
+          ...powerHourTrialGate,
+          ...powerHourTrialCopyFields(),
           active_scan_trace: activeScanTracePayload,
           automation_diagnostics: automationDiagnostics({
             decision: "skipped_provider_unavailable",
@@ -1995,6 +2169,8 @@ export async function POST(request: Request) {
         status: "skipped",
         decision: "skipped_recent_scan" satisfies AutomationScanDecision,
         ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision: "skipped_recent_scan",
@@ -2031,7 +2207,11 @@ export async function POST(request: Request) {
       sessionType,
       scanWindow: scanWindow.scanWindow,
       source: "scheduled",
-      allowPowerHourRecommendationLogging: calendarFallbackAllowsScan,
+      allowPowerHourRecommendationLogging:
+        scanWindow.scanWindow === "power_hour"
+          ? powerHourTrialGate.power_hour_publish_allowed
+          : calendarFallbackAllowsScan,
+      powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
       activeScanTrace,
     });
     const generationScanLog =
@@ -2060,6 +2240,7 @@ export async function POST(request: Request) {
           : resultMessage,
       recommendationsCreated,
       details: {
+        ...powerHourTrialGate,
         ...generationScanLog,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: servingCadence,
@@ -2173,6 +2354,8 @@ export async function POST(request: Request) {
       status: "completed",
       decision: "scanned" satisfies AutomationScanDecision,
       ...automationVersionFields(),
+      ...powerHourTrialGate,
+      ...powerHourTrialCopyFields(),
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "scanned",
@@ -2189,6 +2372,7 @@ export async function POST(request: Request) {
       candidates_generated: candidatesGenerated,
       recommendations_served: recommendationsCreated,
       recommendations_created: recommendationsCreated,
+      selected_count: activeScanTracePayload.ranking.selected_count,
       ranked_candidates_count: generationScanLog?.ranked_candidates_count ?? null,
       recommendations_published_count:
         generationScanLog?.recommendations_published_count ?? recommendationsCreated,
@@ -2203,6 +2387,12 @@ export async function POST(request: Request) {
       publishable_threshold: generationScanLog?.publishable_threshold ?? null,
       deterministic_fallback_used:
         generationScanLog?.deterministic_fallback_used ?? false,
+      snapshots_persisted_count:
+        artifactResult?.persistence.snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
       batch_id: servingCadence.latest_official_batch_id,
       batch_fingerprint: batchFingerprint,
       scan_run_fingerprint: scanRunFingerprint,
@@ -2239,6 +2429,7 @@ export async function POST(request: Request) {
       message,
       recommendationsCreated: 0,
       details: {
+        ...powerHourTrialGate,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -2284,6 +2475,8 @@ export async function POST(request: Request) {
         ok: false,
         error: message,
         ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,

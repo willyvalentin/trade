@@ -38,6 +38,9 @@ export type ActiveScanTrace = {
   orchestration_decision: string | null;
   should_scan_now: boolean | null;
   skip_reason: string | null;
+  power_hour_trial_enabled: boolean;
+  power_hour_publish_allowed: boolean;
+  power_hour_publish_block_reason: string | null;
   last_stage_reached: ActiveScanTraceStage;
   stages: Record<ActiveScanTraceStage, ActiveScanTraceStageStatus>;
   provider_env: {
@@ -164,6 +167,9 @@ export function createActiveScanTrace({
     orchestration_decision: null,
     should_scan_now: null,
     skip_reason: null,
+    power_hour_trial_enabled: false,
+    power_hour_publish_allowed: false,
+    power_hour_publish_block_reason: null,
     last_stage_reached: "route_received",
     stages: {
       route_received: "completed",

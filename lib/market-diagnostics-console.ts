@@ -721,6 +721,17 @@ function buildSections(
               `td=${bool(input.active_scan_trace.provider_env.twelve_data_key_present)} / openai=${bool(input.active_scan_trace.provider_env.openai_key_present)} / polygon=${bool(input.active_scan_trace.provider_env.polygon_key_present)} / service=${bool(input.active_scan_trace.provider_env.supabase_service_role_present)}`,
             ),
             lineValue(
+              "Power hour trial",
+              `enabled=${bool(input.active_scan_trace.power_hour_trial_enabled)} / allowed=${bool(input.active_scan_trace.power_hour_publish_allowed)}`,
+            ),
+            lineValue(
+              "Power hour block",
+              compact(
+                input.active_scan_trace.power_hour_publish_block_reason,
+                "none",
+              ),
+            ),
+            lineValue(
               "Quote/candle success",
               `${input.active_scan_trace.market_data_fetch.quote_success_count}/${input.active_scan_trace.market_data_fetch.candle_success_count}`,
             ),
@@ -779,6 +790,8 @@ function buildSections(
             lineValue("Last stage reached", "not observed"),
             lineValue("Zero candidate reason", "not observed"),
             lineValue("Provider env", "not observed"),
+            lineValue("Power hour trial", "not observed"),
+            lineValue("Power hour block", "not observed"),
             lineValue("Quote/candle success", "not observed"),
             lineValue("Raw/ranked/output", "not observed"),
             lineValue("Published", "not observed"),
@@ -803,6 +816,12 @@ function buildSections(
           input.active_scan_trace?.final.zero_candidate_reason ?? null,
         no_publish_reason:
           input.active_scan_trace?.final.no_publish_reason ?? null,
+        power_hour_trial_enabled:
+          input.active_scan_trace?.power_hour_trial_enabled ?? null,
+        power_hour_publish_allowed:
+          input.active_scan_trace?.power_hour_publish_allowed ?? null,
+        power_hour_publish_block_reason:
+          input.active_scan_trace?.power_hour_publish_block_reason ?? null,
         twelve_data_key_present:
           input.active_scan_trace?.provider_env.twelve_data_key_present ?? null,
         openai_key_present:

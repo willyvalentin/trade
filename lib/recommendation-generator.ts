@@ -80,6 +80,7 @@ export type GenerateRecommendationsInput = {
   targetCount?: number;
   source: RecommendationGenerationSource;
   allowPowerHourRecommendationLogging?: boolean;
+  powerHourTrialPublishing?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
@@ -204,6 +205,9 @@ export type RecommendationScanLogDetails = {
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
   no_publish_reason?: string | null;
+  power_hour_trial_enabled?: boolean | null;
+  power_hour_publish_allowed?: boolean | null;
+  power_hour_publish_block_reason?: string | null;
 };
 
 function publishVersionDetails() {
@@ -295,6 +299,17 @@ const MANUAL_DAY_TRADE_SCORE_THRESHOLD = 62;
 const LEARNING_RECOMMENDATION_SCORE_THRESHOLD = 60;
 const MAX_CURRENT_RECOMMENDATIONS = 3;
 const ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS = false;
+const POWER_HOUR_TRIAL_RECOMMENDATION_TARGET = { min: 3, max: 6 };
+const POWER_HOUR_TRIAL_WARNINGS = [
+  "Power Hour increases execution and overnight risk.",
+  "Use for pipeline validation and learning data unless manually reviewed.",
+];
+const POWER_HOUR_TRIAL_COPY = [
+  "Power Hour trial publishing is enabled for observation and learning.",
+  "Late-day recommendations carry higher EOD risk.",
+  "Execution remains human-confirmed.",
+  "This does not enable broker automation.",
+];
 const MINIMUM_OPENAI_CONFIDENCE_SCORE = 55;
 const confidenceMetadataPrefix = "\n\n[confidence_meta:";
 const SETUP_TYPE_OPTIONS_FOR_PROMPT = SETUP_TYPE_OPTIONS.map((option) => ({
@@ -340,6 +355,31 @@ function getPublishableLearningScoreThreshold(
   return source === "scheduled"
     ? LEARNING_RECOMMENDATION_SCORE_THRESHOLD
     : MANUAL_DAY_TRADE_SCORE_THRESHOLD;
+}
+
+function isPowerHourTrialRun(input: {
+  scanWindow: IntradayScanWindow;
+  source: RecommendationGenerationSource;
+  powerHourTrialPublishing?: boolean;
+}) {
+  return (
+    input.scanWindow === "power_hour" &&
+    input.source === "scheduled" &&
+    input.powerHourTrialPublishing === true
+  );
+}
+
+function powerHourTrialTarget(value: number | null | undefined) {
+  const requested =
+    typeof value === "number" && Number.isFinite(value)
+      ? Math.round(value)
+      : POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.min;
+
+  return clamp(
+    requested,
+    POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.min,
+    POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.max,
+  );
 }
 
 function parseCandidateNumber(value: unknown) {
@@ -1041,6 +1081,9 @@ async function generatePreMarketWatchlist({
       ...publishVersionDetails(),
       result,
       no_publish_reason: "pre_market_watchlist_only",
+      power_hour_trial_enabled: false,
+      power_hour_publish_allowed: false,
+      power_hour_publish_block_reason: "not_power_hour",
       top_candidate_ticker: candidates[0]?.ticker ?? null,
       top_candidate_score: candidates[0]?.score ?? null,
       top_candidate_reasons: candidates[0]?.signals ?? null,
@@ -1752,12 +1795,24 @@ function buildOpenAiBatchContext(input: {
   targetCount: number;
   openPositionCount?: number;
   maxOpenPositions?: number;
+  powerHourTrial?: boolean;
 }) {
+  const powerHourTrial = input.powerHourTrial === true;
+
   return {
     scan_window: input.scanWindow,
     batch_window: input.scanWindow,
-    batch_type: input.source === "scheduled" ? "official_scan" : "manual_scan",
-    batch_status: "candidate_validation",
+    batch_type: powerHourTrial
+      ? "observation_trial"
+      : input.source === "scheduled"
+        ? "official_scan"
+        : "manual_scan",
+    batch_status: powerHourTrial
+      ? "observation_learning"
+      : "candidate_validation",
+    power_hour_trial: powerHourTrial,
+    eod_risk: powerHourTrial ? "high" : null,
+    recommendation_intent: powerHourTrial ? "learning_observation" : "day_trade",
     target_count: input.targetCount,
     daily_trade_capacity:
       typeof input.openPositionCount === "number" &&
@@ -1898,12 +1953,14 @@ function buildDeterministicLearningRecommendations({
   scanWindow,
   source,
   maxRecommendations,
+  powerHourTrial,
 }: {
   candidates: ScoredCandidate[];
   rankingSummary: ScannerCandidateRankingSummary;
   scanWindow: IntradayScanWindow;
   source: RecommendationGenerationSource;
   maxRecommendations: number;
+  powerHourTrial?: boolean;
 }): AiRecommendation[] {
   const rankingByTicker = new Map(
     rankingSummary.results.map((result) => [result.ticker, result]),
@@ -1920,6 +1977,7 @@ function buildDeterministicLearningRecommendations({
     const warningSummary = [
       ...(candidate.local_score_warnings ?? []),
       ...(ranking?.score.warnings.map((warning) => warning.message) ?? []),
+      ...(powerHourTrial ? POWER_HOUR_TRIAL_WARNINGS : []),
     ].slice(0, 5);
     const gapSummary = [
       ...(ranking?.score.gaps ?? []),
@@ -1957,6 +2015,9 @@ function buildDeterministicLearningRecommendations({
       confidence_breakdown: confidenceBreakdown,
       confidence_reasoning: [
         `${tier} ranked learning candidate from scanner output.`,
+        powerHourTrial
+          ? "Power Hour trial publishing is enabled for observation and learning."
+          : null,
         ranking?.rank_reason ?? null,
         warningSummary.length > 0
           ? `Warnings: ${warningSummary.join(" ")}`
@@ -1993,8 +2054,14 @@ function buildDeterministicLearningRecommendations({
         ranking?.rank_reason ??
         "Scanner ranking selected this structurally valid learning candidate.",
       batch_window: scanWindow,
-      batch_type: source === "scheduled" ? "official_scan" : "manual_scan",
-      batch_status: "learning_candidate",
+      batch_type: powerHourTrial
+        ? "observation_trial"
+        : source === "scheduled"
+          ? "official_scan"
+          : "manual_scan",
+      batch_status: powerHourTrial
+        ? "observation_learning"
+        : "learning_candidate",
     };
   });
 }
@@ -2146,6 +2213,7 @@ function sanitizeRecommendations(
   scanWindow: IntradayScanWindow,
   source: RecommendationGenerationSource,
   maxRecommendations: number,
+  powerHourTrial = false,
 ): SanitizedRecommendationsResult {
   const candidatesByTicker = new Map(
     availableCandidates.map((candidate) => [candidate.ticker, candidate]),
@@ -2230,7 +2298,19 @@ function sanitizeRecommendations(
       }
 
       const warningSummary = stringArray(recommendation.warning_summary);
+      const mergedWarningSummary = Array.from(
+        new Set([
+          ...warningSummary,
+          ...(powerHourTrial ? POWER_HOUR_TRIAL_WARNINGS : []),
+        ]),
+      );
       const gapSummary = stringArray(recommendation.gap_summary);
+      const riskFlags = Array.from(
+        new Set([
+          ...recommendation.risk_flags,
+          ...(powerHourTrial ? POWER_HOUR_TRIAL_WARNINGS : []),
+        ]),
+      );
 
       seenTickers.add(ticker);
       const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
@@ -2238,7 +2318,13 @@ function sanitizeRecommendations(
         confidence_label: recommendation.confidence_label,
         confidence_breakdown: recommendation.confidence_breakdown,
         confidence_reasoning: recommendation.confidence_reasoning,
-        risk_flags: recommendation.risk_flags,
+        risk_flags: riskFlags,
+        power_hour_trial: powerHourTrial,
+        eod_risk: powerHourTrial ? "high" : null,
+        recommendation_intent: powerHourTrial
+          ? "learning_observation"
+          : "day_trade",
+        trial_copy: powerHourTrial ? POWER_HOUR_TRIAL_COPY : [],
         intraday_indicators: candidate.intraday_indicators ?? null,
         output_enrichment: buildRecommendationOutputEnrichmentMetadata({
           recommendation_source_mode:
@@ -2278,7 +2364,7 @@ function sanitizeRecommendations(
             recommendation.data_freshness,
             getDataFreshness(candidate),
           ),
-          warning_summary: warningSummary,
+          warning_summary: mergedWarningSummary,
           gap_summary: gapSummary,
           ranking_rank: nullableNumber(recommendation.ranking_rank),
           ranking_reason: fallbackText(
@@ -2286,8 +2372,12 @@ function sanitizeRecommendations(
             "Scanner ranking reason unavailable.",
           ),
           batch_window: fallbackText(recommendation.batch_window, scanWindow),
-          batch_type: fallbackText(recommendation.batch_type, source),
-          batch_status: fallbackText(recommendation.batch_status, "validated"),
+          batch_type: powerHourTrial
+            ? "observation_trial"
+            : fallbackText(recommendation.batch_type, source),
+          batch_status: powerHourTrial
+            ? "observation_learning"
+            : fallbackText(recommendation.batch_status, "validated"),
         },
       })}]`;
 
@@ -2316,10 +2406,13 @@ function sanitizeRecommendations(
           recommendation.invalidation,
           "The setup is invalidated intraday if price breaks below the stop loss or volume and momentum fail before execution.",
         ),
-        reason_to_avoid: `${fallbackText(
-          recommendation.reason_to_avoid,
-          "Avoid if the setup loses intraday momentum, market conditions weaken, or price action invalidates the same-day trade plan.",
-        )}${confidenceMetadata}`,
+        reason_to_avoid: `${[
+          fallbackText(
+            recommendation.reason_to_avoid,
+            "Avoid if the setup loses intraday momentum, market conditions weaken, or price action invalidates the same-day trade plan.",
+          ),
+          ...(powerHourTrial ? POWER_HOUR_TRIAL_COPY : []),
+        ].join(" ")}${confidenceMetadata}`,
         status: "new",
       });
     } catch (error) {
@@ -2428,6 +2521,7 @@ async function generateRecommendationsWithOpenAI(
   scannerCandidateRankingSummary: ScannerCandidateRankingSummary,
   source: RecommendationGenerationSource,
   openPositionCount: number,
+  powerHourTrial: boolean,
 ) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is missing. Add it to .env.local.");
@@ -2444,6 +2538,7 @@ async function generateRecommendationsWithOpenAI(
     targetCount: maxRecommendations,
     openPositionCount,
     maxOpenPositions: settings.max_open_positions,
+    powerHourTrial,
   });
   const candidatePayloads = buildOpenAiCandidatePayloads({
     candidates: availableCandidates,
@@ -2463,6 +2558,13 @@ async function generateRecommendationsWithOpenAI(
       source === "scheduled"
         ? "For scheduled official scans, publish structurally valid strong, valid, or experimental learning candidates when the ranked candidate data supports a coherent same-day plan."
         : "Prefer result=no_trade over a weak or unclear setup.",
+      powerHourTrial ? POWER_HOUR_TRIAL_COPY.join(" ") : "",
+      powerHourTrial
+        ? "For this Power Hour trial, recommendations are observation/learning candidates, not high-confidence trade signals."
+        : "",
+      powerHourTrial
+        ? `Every Power Hour trial recommendation must include these warnings: ${POWER_HOUR_TRIAL_WARNINGS.join(" ")}`
+        : "",
       "Return no or limited recommendations when the provided candidate data is insufficient.",
       "Every trade must be suitable for same-day execution.",
       "Do not recommend swing trades or multi-day holds.",
@@ -2494,6 +2596,9 @@ async function generateRecommendationsWithOpenAI(
         : "For manual generation, prefer no_trade when volume or momentum confirmation is weak.",
       "Only return result=trade_recommendation if the setup is actionable as an intraday day trade.",
       "If scan_window is pre_market or closed, do not return fresh active trade recommendations as tradable now.",
+      powerHourTrial
+        ? "If scan_window is power_hour, keep the recommendation intent as learning/observation and flag EOD risk as high."
+        : "",
       "For no_trade, return an empty recommendations array plus reason, confidence_score or null, risk_flags, and candidate_ticker.",
       "For trade_recommendation, set reason and candidate_ticker to null and risk_flags to an empty array at the top level; keep per-trade risk_flags inside each recommendation.",
       "Explain if confidence differs from local scanner score.",
@@ -2603,6 +2708,7 @@ export async function generateRecommendations({
   targetCount,
   source,
   allowPowerHourRecommendationLogging = false,
+  powerHourTrialPublishing = false,
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
@@ -2610,9 +2716,18 @@ export async function generateRecommendations({
     const db = serverSupabase.client ?? supabase;
     const todayStart = getStartOfToday();
     const scanPolicy = getIntradayScanPolicy(scanWindow);
+    const powerHourTrial = isPowerHourTrialRun({
+      scanWindow,
+      source,
+      powerHourTrialPublishing,
+    });
+    const effectiveScanPolicyMaxRecommendations = powerHourTrial
+      ? POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.max
+      : scanPolicy.maxRecommendations;
 
     logPipeline("scan_window", scanWindow);
     logPipeline("scan_window_policy", scanPolicy);
+    logPipeline("power_hour_trial_publishing", powerHourTrial);
 
     if (scanWindow === "pre_market") {
       logPipeline("pre_market_mode", "watchlist_only");
@@ -2637,6 +2752,9 @@ export async function generateRecommendations({
           ...publishVersionDetails(),
           result: "power_hour_blocked",
           no_publish_reason: "power_hour_disabled",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: false,
+          power_hour_publish_block_reason: "power_hour_trial_not_allowed",
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2653,6 +2771,9 @@ export async function generateRecommendations({
           ...publishVersionDetails(),
           result: "skipped",
           no_publish_reason: "outside_generation_window",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2744,13 +2865,15 @@ export async function generateRecommendations({
     const baseSettings = normalizeUserSettings(settingsRow);
     const requestedMaxRecommendations =
       typeof targetCount === "number" && Number.isFinite(targetCount)
-        ? clamp(Math.round(targetCount), 1, scanPolicy.maxRecommendations)
+        ? clamp(Math.round(targetCount), 1, effectiveScanPolicyMaxRecommendations)
         : Math.min(
             baseSettings.max_recommendations_per_session,
-            scanPolicy.maxRecommendations,
+            effectiveScanPolicyMaxRecommendations,
           );
     const maxRecommendationsForRun =
-      source === "scheduled"
+      powerHourTrial
+        ? powerHourTrialTarget(targetCount)
+        : source === "scheduled"
         ? scanPolicy.maxRecommendations
         : requestedMaxRecommendations;
     const settings = {
@@ -2835,6 +2958,9 @@ export async function generateRecommendations({
           ...publishVersionDetails(),
           result: "recommendation_limit_reached",
           no_publish_reason: "recommendation_limit_reached",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
           candidates_scanned: 0,
         } satisfies RecommendationScanLogDetails,
       };
@@ -2906,6 +3032,9 @@ export async function generateRecommendations({
             ...publishVersionDetails(),
             result: "no_high_quality_setup",
             no_publish_reason: "no_raw_candidates",
+            power_hour_trial_enabled: powerHourTrialPublishing,
+            power_hour_publish_allowed: powerHourTrial,
+            power_hour_publish_block_reason: null,
             candidates_scanned: 0,
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
@@ -3093,6 +3222,9 @@ export async function generateRecommendations({
               ? "duplicate_ticker_skipped"
               : "no_high_quality_setup",
           no_publish_reason: "candidate_cooldown_filtered_all",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
           candidates_scanned: scannerCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation:
@@ -3279,6 +3411,9 @@ export async function generateRecommendations({
             qualifiedCandidates.length === 0
               ? "no_publishable_ranked_candidates"
               : "publish_limit_selected_zero_candidates",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
           deterministic_fallback_used: false,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
@@ -3310,6 +3445,7 @@ export async function generateRecommendations({
         scanWindow,
         source,
         maxRecommendations: settings.max_recommendations_per_session,
+        powerHourTrial,
       });
 
       logPipeline("deterministic_fallback_used", true);
@@ -3336,6 +3472,7 @@ export async function generateRecommendations({
         scannerCandidateRankingSummary,
         source,
         openPositionCount,
+        powerHourTrial,
       );
       aiResponse = openAiResult.response;
       openAiOutputRecommendationCount = aiResponse.recommendations.length;
@@ -3389,6 +3526,7 @@ export async function generateRecommendations({
       scanWindow,
       source,
       settings.max_recommendations_per_session,
+      powerHourTrial,
     );
     activeScanTrace?.updateOpenAi({
       parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
@@ -3408,6 +3546,7 @@ export async function generateRecommendations({
         scanWindow,
         source,
         settings.max_recommendations_per_session,
+        powerHourTrial,
       );
       recommendationsToInsert = sanitizedRecommendations.recommendations;
       activeScanTrace?.updateOpenAi({
@@ -3481,6 +3620,9 @@ export async function generateRecommendations({
           no_publish_reason: deterministicFallbackUsed
             ? "deterministic_fallback_validation_failed"
             : "recommendation_validation_failed",
+          power_hour_trial_enabled: powerHourTrialPublishing,
+          power_hour_publish_allowed: powerHourTrial,
+          power_hour_publish_block_reason: null,
           deterministic_fallback_used: deterministicFallbackUsed,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
@@ -3556,6 +3698,9 @@ export async function generateRecommendations({
         experimental_count: experimentalQualifiedCount,
         ranked_candidates_not_published_reason: null,
         no_publish_reason: null,
+        power_hour_trial_enabled: powerHourTrialPublishing,
+        power_hour_publish_allowed: powerHourTrial,
+        power_hour_publish_block_reason: null,
         deterministic_fallback_used: deterministicFallbackUsed,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:
