@@ -75,6 +75,7 @@ import {
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -1712,6 +1713,12 @@ export async function POST(request: Request) {
     });
 
   activeScanTrace.updateProviderEnv();
+  const schemaSupabase = getServerSupabaseClient();
+  const schemaCheck = await checkRecommendationLearningSchema({
+    supabaseClient: schemaSupabase.client,
+    unavailableReason: schemaSupabase.unavailable_reason,
+  });
+  activeScanTrace.updateSchemaCheck(schemaCheck);
   activeScanTrace.update({
     interpreted_ny_time: `${dayTradeScanOrchestration.trading_date} ${dayTradeScanOrchestration.ny_time} America/New_York`,
     market_status: marketStatusLabel(marketStatus),
@@ -1858,6 +1865,7 @@ export async function POST(request: Request) {
       ...powerHourTrialGate,
       ...powerHourTrialCopyFields(),
       active_scan_trace: activeScanTracePayload,
+      schema_check: schemaCheck,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_market_closed",
         skippedReason: message,

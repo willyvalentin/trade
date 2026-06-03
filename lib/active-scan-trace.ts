@@ -4,6 +4,7 @@ import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
+import type { RecommendationLearningSchemaCheck } from "@/lib/recommendation-learning-schema";
 
 export type ActiveScanTraceStage =
   | "route_received"
@@ -59,6 +60,7 @@ export type ActiveScanTrace = {
     polygon_key_present: boolean;
     supabase_service_role_present: boolean;
   };
+  schema_check: RecommendationLearningSchemaCheck | null;
   universe: {
     total_enabled: number | null;
     selected_tickers_count: number | null;
@@ -137,6 +139,7 @@ export type ActiveScanTraceRecorder = {
   ) => void;
   update: (patch: Partial<ActiveScanTrace>) => void;
   updateProviderEnv: () => void;
+  updateSchemaCheck: (schemaCheck: RecommendationLearningSchemaCheck) => void;
   updateUniverse: (patch: Partial<ActiveScanTrace["universe"]>) => void;
   updateMarketDataFetch: (
     patch: Partial<ActiveScanTrace["market_data_fetch"]>,
@@ -205,6 +208,7 @@ export function createActiveScanTrace({
       final: "not_reached",
     },
     provider_env: providerEnvSnapshot(),
+    schema_check: null,
     universe: {
       total_enabled: null,
       selected_tickers_count: null,
@@ -301,6 +305,11 @@ export function createActiveScanTrace({
     updateProviderEnv() {
       safely(() => {
         trace.provider_env = providerEnvSnapshot();
+      });
+    },
+    updateSchemaCheck(schemaCheck) {
+      safely(() => {
+        trace.schema_check = schemaCheck;
       });
     },
     updateUniverse(patch) {

@@ -59,6 +59,7 @@ import {
 } from "@/lib/publish-path-versions";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 
 type DiagnosticMode =
   | "dry_run"
@@ -373,6 +374,7 @@ function diagnosticResponse({
     elapsed_ms: elapsedMs,
     last_stage_reached: activeScanTrace.trace.last_stage_reached,
     no_publish_reason: activeScanTrace.trace.final.no_publish_reason,
+    schema_check: activeScanTrace.trace.schema_check,
     active_scan_trace: activeScanTrace.trace,
     ...extra,
   });
@@ -688,6 +690,12 @@ export async function POST(request: Request) {
     scanWindow,
   });
   activeScanTrace.updateProviderEnv();
+  const schemaSupabase = getServerSupabaseClient();
+  const schemaCheck = await checkRecommendationLearningSchema({
+    supabaseClient: schemaSupabase.client,
+    unavailableReason: schemaSupabase.unavailable_reason,
+  });
+  activeScanTrace.updateSchemaCheck(schemaCheck);
   activeScanTrace.update({
     diagnostic_mode: true,
     diagnostic_run_mode: mode,
@@ -1171,6 +1179,7 @@ export async function POST(request: Request) {
       simulated_ny_time: simulatedNyTime,
       latest_market_data: body.latest_market_data !== false,
       provider_env: providerEnvSnapshot(),
+      schema_check: schemaCheck,
       selected_tickers_count: tracePayload.universe.selected_tickers_count,
       quote_success_count: tracePayload.market_data_fetch.quote_success_count,
       quote_error_count: tracePayload.market_data_fetch.quote_error_count,
@@ -1223,6 +1232,7 @@ export async function POST(request: Request) {
         simulated_window: simulatedWindow,
         simulated_ny_time: simulatedNyTime,
         provider_env: providerEnvSnapshot(),
+        schema_check: schemaCheck,
         error:
           error instanceof Error && error.message ? error.message : "Unknown error",
         error_details: normalizeUnknownError(error),

@@ -721,6 +721,19 @@ function buildSections(
               `td=${bool(input.active_scan_trace.provider_env.twelve_data_key_present)} / openai=${bool(input.active_scan_trace.provider_env.openai_key_present)} / polygon=${bool(input.active_scan_trace.provider_env.polygon_key_present)} / service=${bool(input.active_scan_trace.provider_env.supabase_service_role_present)}`,
             ),
             lineValue(
+              "Learning schema",
+              input.active_scan_trace.schema_check
+                ? `ready=${bool(input.active_scan_trace.schema_check.schema_ready)} / missing=${input.active_scan_trace.schema_check.missing_tables.length}`
+                : "not observed",
+            ),
+            lineValue(
+              "Schema error",
+              compact(
+                input.active_scan_trace.schema_check?.last_schema_error,
+                "none",
+              ),
+            ),
+            lineValue(
               "Power hour trial",
               `enabled=${bool(input.active_scan_trace.power_hour_trial_enabled)} / allowed=${bool(input.active_scan_trace.power_hour_publish_allowed)}`,
             ),
@@ -801,6 +814,8 @@ function buildSections(
             lineValue("Last stage reached", "not observed"),
             lineValue("Zero candidate reason", "not observed"),
             lineValue("Provider env", "not observed"),
+            lineValue("Learning schema", "not observed"),
+            lineValue("Schema error", "not observed"),
             lineValue("Power hour trial", "not observed"),
             lineValue("Power hour block", "not observed"),
             lineValue("Quote/candle success", "not observed"),
@@ -844,6 +859,12 @@ function buildSections(
         supabase_service_role_present:
           input.active_scan_trace?.provider_env.supabase_service_role_present ??
           null,
+        schema_ready:
+          input.active_scan_trace?.schema_check?.schema_ready ?? null,
+        missing_tables:
+          input.active_scan_trace?.schema_check?.missing_tables.join(",") ?? null,
+        last_schema_error:
+          input.active_scan_trace?.schema_check?.last_schema_error ?? null,
         attempted_tickers:
           input.active_scan_trace?.market_data_fetch.attempted_tickers ?? null,
         quote_success_count:
@@ -946,6 +967,12 @@ function buildSections(
               `${input.active_scan_trace.ranking.selected_count}/${input.active_scan_trace.ranking.ranked_count}/${input.active_scan_trace.openai.output_recommendation_count}`,
             ),
             lineValue(
+              "Learning schema",
+              input.active_scan_trace.schema_check
+                ? `ready=${bool(input.active_scan_trace.schema_check.schema_ready)} / missing=${input.active_scan_trace.schema_check.missing_tables.length}`
+                : "not observed",
+            ),
+            lineValue(
               "Build path",
               compact(
                 input.active_scan_trace.final.recommendation_build_path,
@@ -985,6 +1012,7 @@ function buildSections(
             lineValue("Timeout", "not observed"),
             lineValue("Simulated window", "not observed"),
             lineValue("Selected/ranked/output", "not observed"),
+            lineValue("Learning schema", "not observed"),
             lineValue("Build path", "not observed"),
             lineValue("Built count", "not observed"),
             lineValue("No publish reason", "not observed"),
@@ -1008,6 +1036,12 @@ function buildSections(
         ranked_count: input.active_scan_trace?.ranking.ranked_count ?? null,
         output_recommendation_count:
           input.active_scan_trace?.openai.output_recommendation_count ?? null,
+        schema_ready:
+          input.active_scan_trace?.schema_check?.schema_ready ?? null,
+        missing_tables:
+          input.active_scan_trace?.schema_check?.missing_tables.join(",") ?? null,
+        last_schema_error:
+          input.active_scan_trace?.schema_check?.last_schema_error ?? null,
         recommendation_build_path:
           input.active_scan_trace?.final.recommendation_build_path ?? null,
         recommendations_built_count:
