@@ -89,6 +89,14 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   scan_readback?: {
+    latest_official_batch_fingerprint?: string | null;
+    latest_official_scan_run_id?: string | null;
+    latest_official_scan_run_fingerprint?: string | null;
+    batch_expected_count?: number | null;
+    recommendation_rows_found_count?: number | null;
+    missing_batch_member_ids?: string[];
+    missing_batch_member_tickers?: string[];
+    hidden_reason_by_id?: Record<string, string[]>;
     latest_successful_live_recommendation_ids?: string[];
     latest_successful_live_recommendation_tickers?: string[];
     visible_primary_recommendation_ids?: string[];
@@ -588,6 +596,7 @@ function buildSections(
   const hiddenLiveIds = input.scan_readback?.hidden_live_recommendation_ids ?? [];
   const hiddenReasonBreakdown =
     input.scan_readback?.hidden_reason_breakdown ?? {};
+  const hiddenReasonById = input.scan_readback?.hidden_reason_by_id ?? {};
 
   return [
     section({
@@ -1043,6 +1052,31 @@ function buildSections(
         lineValue("Latest successful scan", successfulScanLabel),
         lineValue("Latest attempted scan", attemptedScanLabel),
         lineValue(
+          "Latest official batch",
+          compact(
+            input.scan_readback?.latest_official_batch_fingerprint,
+            "not observed",
+          ),
+        ),
+        lineValue(
+          "Official scan run",
+          compact(input.scan_readback?.latest_official_scan_run_id, "not observed"),
+        ),
+        lineValue(
+          "Batch expected/found",
+          `${input.scan_readback?.batch_expected_count ?? 0}/${input.scan_readback?.recommendation_rows_found_count ?? 0}`,
+        ),
+        lineValue(
+          "Missing batch IDs",
+          (input.scan_readback?.missing_batch_member_ids ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
+          "Missing batch tickers",
+          (input.scan_readback?.missing_batch_member_tickers ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
           "Successful visible count",
           latestSuccessfulScan?.visible_recommendation_count ?? 0,
         ),
@@ -1062,9 +1096,29 @@ function buildSections(
                 .join(", ")
             : "none",
         ),
+        lineValue(
+          "Hidden reason by ID",
+          Object.keys(hiddenReasonById).length > 0
+            ? JSON.stringify(hiddenReasonById)
+            : "none",
+        ),
         lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
       ],
       metrics: {
+        latest_official_batch_fingerprint:
+          input.scan_readback?.latest_official_batch_fingerprint ?? null,
+        latest_official_scan_run_id:
+          input.scan_readback?.latest_official_scan_run_id ?? null,
+        latest_official_scan_run_fingerprint:
+          input.scan_readback?.latest_official_scan_run_fingerprint ?? null,
+        batch_expected_count: input.scan_readback?.batch_expected_count ?? null,
+        recommendation_rows_found_count:
+          input.scan_readback?.recommendation_rows_found_count ?? null,
+        missing_batch_member_ids:
+          (input.scan_readback?.missing_batch_member_ids ?? []).join(","),
+        missing_batch_member_tickers:
+          (input.scan_readback?.missing_batch_member_tickers ?? []).join(","),
+        hidden_reason_by_id: JSON.stringify(hiddenReasonById),
         latest_successful_live_recommendation_ids:
           (input.scan_readback?.latest_successful_live_recommendation_ids ?? [])
             .join(","),

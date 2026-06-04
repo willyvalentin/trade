@@ -5422,6 +5422,15 @@ function isSuccessfulLiveRecommendationBatch(batch: RecommendationBatch) {
   );
 }
 
+function isScheduledOfficialRecommendationBatch(batch: RecommendationBatch) {
+  return (
+    isSuccessfulLiveRecommendationBatch(batch) &&
+    (batch.payload_json.automation_source === "scheduled" ||
+      (typeof batch.payload_json.active_scan_trace === "object" &&
+        batch.payload_json.active_scan_trace !== null))
+  );
+}
+
 function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
   const trace = scanRun.payload_json.active_scan_trace;
 
@@ -5491,6 +5500,102 @@ function getVisibleRecommendationTickersFromScanRun(scanRun: RecommendationScanR
 function normalizeRecommendationTicker(value: string | null | undefined) {
   const ticker = value?.trim().toUpperCase() ?? "";
   return ticker.length > 0 ? ticker : null;
+}
+
+function recommendationFromOfficialBatchSnapshot(
+  snapshot: RecommendationSnapshot,
+): Recommendation | null {
+  const payloadRecommendation =
+    typeof snapshot.payload_json.recommendation === "object" &&
+    snapshot.payload_json.recommendation !== null
+      ? (snapshot.payload_json.recommendation as Partial<RecommendationRow>)
+      : {};
+  const recommendationId =
+    typeof payloadRecommendation.id === "string" &&
+    payloadRecommendation.id.trim().length > 0
+      ? payloadRecommendation.id
+      : snapshot.recommendation_id ?? snapshot.id;
+  const ticker =
+    normalizeRecommendationTicker(
+      typeof payloadRecommendation.ticker === "string"
+        ? payloadRecommendation.ticker
+        : snapshot.ticker,
+    ) ?? null;
+
+  if (!recommendationId || !ticker) {
+    return null;
+  }
+
+  return toRecommendation({
+    ...payloadRecommendation,
+    id: recommendationId,
+    session_type:
+      payloadRecommendation.session_type ??
+      (snapshot.window === "morning" ? "morning" : "midday"),
+    ticker,
+    company_name:
+      payloadRecommendation.company_name ?? snapshot.company_name ?? null,
+    direction:
+      payloadRecommendation.direction ??
+      (snapshot.side === "short" ? "short" : "long"),
+    setup_type: payloadRecommendation.setup_type ?? snapshot.type,
+    entry_low:
+      payloadRecommendation.entry_low ??
+      snapshot.entry_low ??
+      snapshot.entry ??
+      null,
+    entry_high:
+      payloadRecommendation.entry_high ??
+      snapshot.entry_high ??
+      snapshot.entry ??
+      null,
+    stop_loss: payloadRecommendation.stop_loss ?? snapshot.stop,
+    target_1:
+      payloadRecommendation.target_1 ??
+      (snapshot.target === null ? null : String(snapshot.target)),
+    target_2: payloadRecommendation.target_2 ?? null,
+    risk_reward:
+      payloadRecommendation.risk_reward ??
+      (snapshot.planned_risk_reward === null
+        ? null
+        : String(snapshot.planned_risk_reward)),
+    confidence:
+      payloadRecommendation.confidence ??
+      (snapshot.confidence === null ? null : String(snapshot.confidence)),
+    confidence_score:
+      payloadRecommendation.confidence_score ??
+      (typeof snapshot.score === "number" ? snapshot.score : snapshot.confidence),
+    confidence_label:
+      payloadRecommendation.confidence_label ?? snapshot.label ?? null,
+    confidence_breakdown: payloadRecommendation.confidence_breakdown ?? null,
+    confidence_reasoning:
+      payloadRecommendation.confidence_reasoning ??
+      snapshot.rationale ??
+      snapshot.reason ??
+      null,
+    risk_flags: payloadRecommendation.risk_flags ?? null,
+    timeframe: payloadRecommendation.timeframe ?? "Intraday",
+    thesis:
+      payloadRecommendation.thesis ??
+      snapshot.reason ??
+      snapshot.rationale ??
+      null,
+    invalidation:
+      payloadRecommendation.invalidation ?? snapshot.primary_risk ?? null,
+    reason_to_avoid: payloadRecommendation.reason_to_avoid ?? null,
+    status: payloadRecommendation.status ?? "new",
+    archived: false,
+    expires_at: payloadRecommendation.expires_at ?? null,
+    scan_window: payloadRecommendation.scan_window ?? snapshot.window,
+    created_at:
+      payloadRecommendation.created_at ??
+      snapshot.recommended_at ??
+      snapshot.created_at,
+    diagnostic_mode: false,
+    source_mode: "supabase",
+    not_live_trade_signal: false,
+    visible_in_primary_recommendations: true,
+  });
 }
 
 function visibilityReasonCounts(reasonsById: Record<string, string[]>) {
@@ -8902,7 +9007,7 @@ export function TradeApp() {
   );
   const liveStoredRecommendationBatches =
     storedRecommendationBatches.filter(isLiveRecommendationBatch);
-  const latestSuccessfulStoredRecommendationBatch =
+  const todaysSuccessfulLiveRecommendationBatches =
     [...liveStoredRecommendationBatches]
       .filter(
         (batch) =>
@@ -8910,7 +9015,14 @@ export function TradeApp() {
           (batch.trading_date === dailySessionDate ||
             getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
       )
-      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at));
+  const latestScheduledOfficialRecommendationBatch =
+    todaysSuccessfulLiveRecommendationBatches.find(
+      isScheduledOfficialRecommendationBatch,
+    ) ?? null;
+  const latestSuccessfulStoredRecommendationBatch =
+    latestScheduledOfficialRecommendationBatch ??
+    todaysSuccessfulLiveRecommendationBatches[0] ??
     null;
   const latestSuccessfulStoredRecommendationScanRun =
     [...liveStoredRecommendationScanRuns]
@@ -8922,13 +9034,17 @@ export function TradeApp() {
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const latestOfficialBatchSnapshotSet = new Set(
+    latestSuccessfulStoredRecommendationBatch?.recommendation_snapshot_fingerprints ??
+      [],
+  );
+  const latestOfficialBatchSnapshots = liveStoredRecommendationSnapshots.filter(
+    (snapshot) =>
+      latestOfficialBatchSnapshotSet.size > 0 &&
+      latestOfficialBatchSnapshotSet.has(snapshot.snapshot_fingerprint),
+  );
   const latestSuccessfulLiveRecommendationIds = new Set(
     [
-      ...(latestSuccessfulStoredRecommendationScanRun
-        ? getVisibleRecommendationIdsFromScanRun(
-            latestSuccessfulStoredRecommendationScanRun,
-          )
-        : []),
       ...liveStoredRecommendationSnapshots
         .filter((snapshot) => {
           if (latestSuccessfulStoredRecommendationBatch) {
@@ -8944,15 +9060,15 @@ export function TradeApp() {
         })
         .map((snapshot) => snapshot.recommendation_id)
         .filter((id): id is string => id !== null),
+      ...(latestSuccessfulStoredRecommendationScanRun
+        ? getVisibleRecommendationIdsFromScanRun(
+            latestSuccessfulStoredRecommendationScanRun,
+          )
+        : []),
     ],
   );
   const latestSuccessfulLiveRecommendationTickers = new Set(
     [
-      ...(latestSuccessfulStoredRecommendationScanRun
-        ? getVisibleRecommendationTickersFromScanRun(
-            latestSuccessfulStoredRecommendationScanRun,
-          )
-        : []),
       ...(latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? []),
       ...liveStoredRecommendationSnapshots
         .filter((snapshot) => {
@@ -8969,9 +9085,42 @@ export function TradeApp() {
         })
         .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
         .filter((ticker): ticker is string => ticker !== null),
+      ...(latestSuccessfulStoredRecommendationScanRun
+        ? getVisibleRecommendationTickersFromScanRun(
+            latestSuccessfulStoredRecommendationScanRun,
+          )
+        : []),
     ].map((ticker) => ticker.toUpperCase()),
   );
-  const dailyRecommendations = recommendations.filter(
+  const latestOfficialSnapshotRecommendations = latestOfficialBatchSnapshots
+    .map(recommendationFromOfficialBatchSnapshot)
+    .filter(
+      (recommendation): recommendation is Recommendation => recommendation !== null,
+    )
+    .filter((snapshotRecommendation) => {
+      const snapshotTicker = normalizeRecommendationTicker(
+        snapshotRecommendation.ticker,
+      );
+
+      return !recommendations.some((recommendation) => {
+        const recommendationTicker = normalizeRecommendationTicker(
+          recommendation.ticker,
+        );
+
+        return (
+          recommendation.id === snapshotRecommendation.id ||
+          (snapshotTicker !== null &&
+            recommendationTicker === snapshotTicker &&
+            getNewYorkDateFromIso(recommendation.createdAtRaw) ===
+              dailySessionDate)
+        );
+      });
+    });
+  const primaryRecommendationReadbackSource = [
+    ...recommendations,
+    ...latestOfficialSnapshotRecommendations,
+  ];
+  const dailyRecommendations = primaryRecommendationReadbackSource.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
       const isLatestSuccessfulLiveRecommendation =
@@ -8982,7 +9131,7 @@ export function TradeApp() {
 
       return (
         isPrimaryRecommendationVisible(recommendation) &&
-        !recommendation.archived &&
+        (!recommendation.archived || isLatestSuccessfulLiveRecommendation) &&
         !historyStatuses.includes(recommendation.status) &&
         (!isRecommendationExpired(toFreshnessInput(recommendation)) ||
           isLatestSuccessfulLiveRecommendation)
@@ -9003,6 +9152,21 @@ export function TradeApp() {
   const latestSuccessfulLiveRecommendationTickerList = Array.from(
     latestSuccessfulLiveRecommendationTickers,
   ).sort();
+  const latestOfficialBatchExpectedIds = Array.from(
+    new Set(
+      latestOfficialBatchSnapshots
+        .map((snapshot) => snapshot.recommendation_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ).sort();
+  const latestOfficialBatchExpectedTickers = Array.from(
+    new Set([
+      ...(latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? []),
+      ...latestOfficialBatchSnapshots
+        .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ]),
+  ).sort();
   const expectedLatestLiveRecommendationRows = recommendations.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
@@ -9014,6 +9178,32 @@ export function TradeApp() {
       );
     },
   );
+  const latestOfficialBatchRowsFound = expectedLatestLiveRecommendationRows.filter(
+    (recommendation) => {
+      const ticker = normalizeRecommendationTicker(recommendation.ticker);
+
+      return (
+        latestOfficialBatchExpectedIds.includes(recommendation.id) ||
+        (ticker !== null && latestOfficialBatchExpectedTickers.includes(ticker))
+      );
+    },
+  );
+  const latestOfficialBatchRowFoundIds = new Set(
+    latestOfficialBatchRowsFound.map((recommendation) => recommendation.id),
+  );
+  const latestOfficialBatchRowFoundTickers = new Set(
+    latestOfficialBatchRowsFound
+      .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
+      .filter((ticker): ticker is string => ticker !== null),
+  );
+  const missingLatestOfficialBatchMemberIds =
+    latestOfficialBatchExpectedIds.filter(
+      (id) => !latestOfficialBatchRowFoundIds.has(id),
+    );
+  const missingLatestOfficialBatchMemberTickers =
+    latestOfficialBatchExpectedTickers.filter(
+      (ticker) => !latestOfficialBatchRowFoundTickers.has(ticker),
+    );
   const hiddenLatestLiveRecommendationReasonsById = Object.fromEntries(
     expectedLatestLiveRecommendationRows
       .filter(
@@ -9335,13 +9525,19 @@ export function TradeApp() {
     closedPositions.map((position) => [position.id, position]),
   );
   const dailyClosedPositions = closedPositions.filter(
-    (position) => getNewYorkDateFromIso(position.closedAtRaw) === dailySessionDate,
+    (position) =>
+      !isDemoPosition(position) &&
+      getNewYorkDateFromIso(position.closedAtRaw) === dailySessionDate,
   );
   const dailyActivePositionsOpenedToday = activePositions.filter(
-    (position) => getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
+    (position) =>
+      !isDemoPosition(position) &&
+      getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
   );
   const dailyClosedPositionsOpenedToday = closedPositions.filter(
-    (position) => getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
+    (position) =>
+      !isDemoPosition(position) &&
+      getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
   );
   const dailySessionRecommendations = recommendations.filter(
     (recommendation) =>
@@ -10301,10 +10497,7 @@ export function TradeApp() {
     },
   });
   const latestRecommendationBatchForDiagnostics =
-    currentRecommendationBatch.recommendation_count > 0 ||
-    latestSuccessfulStoredRecommendationBatch === null
-      ? currentRecommendationBatch
-      : latestSuccessfulStoredRecommendationBatch;
+    latestSuccessfulStoredRecommendationBatch ?? currentRecommendationBatch;
   const recommendationBatchesForDiagnostics = Array.from(
     new Map(
       [
@@ -10684,6 +10877,18 @@ export function TradeApp() {
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
       scan_readback: {
+        latest_official_batch_fingerprint:
+          latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+        latest_official_scan_run_id:
+          latestSuccessfulStoredRecommendationBatch?.scan_run_id ?? null,
+        latest_official_scan_run_fingerprint:
+          latestSuccessfulStoredRecommendationBatch?.scan_run_fingerprint ?? null,
+        batch_expected_count:
+          latestSuccessfulStoredRecommendationBatch?.recommendation_count ?? null,
+        recommendation_rows_found_count: latestOfficialBatchRowsFound.length,
+        missing_batch_member_ids: missingLatestOfficialBatchMemberIds,
+        missing_batch_member_tickers: missingLatestOfficialBatchMemberTickers,
+        hidden_reason_by_id: hiddenLatestLiveRecommendationReasonsById,
         latest_successful_live_recommendation_ids:
           latestSuccessfulLiveRecommendationIdList,
         latest_successful_live_recommendation_tickers:
