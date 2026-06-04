@@ -727,6 +727,22 @@ function buildSections(
                 : "not observed",
             ),
             lineValue(
+              "Live trial fast mode",
+              bool(input.active_scan_trace.live_trial_fast_mode),
+            ),
+            lineValue(
+              "Scheduled limits",
+              `tickers=${input.active_scan_trace.scheduled_max_tickers ?? "default"} / skip_openai=${bool(input.active_scan_trace.scheduled_skip_openai)} / timeout=${input.active_scan_trace.scheduled_timeout_ms ?? "unknown"}ms`,
+            ),
+            lineValue(
+              "Elapsed/timeout",
+              `${input.active_scan_trace.elapsed_ms ?? "unknown"}ms / timeout=${bool(input.active_scan_trace.timeout_reached)}`,
+            ),
+            lineValue(
+              "Skipped in progress",
+              bool(input.active_scan_trace.skipped_in_progress),
+            ),
+            lineValue(
               "Schema error",
               compact(
                 input.active_scan_trace.schema_check?.last_schema_error,
@@ -815,6 +831,10 @@ function buildSections(
             lineValue("Zero candidate reason", "not observed"),
             lineValue("Provider env", "not observed"),
             lineValue("Learning schema", "not observed"),
+            lineValue("Live trial fast mode", "not observed"),
+            lineValue("Scheduled limits", "not observed"),
+            lineValue("Elapsed/timeout", "not observed"),
+            lineValue("Skipped in progress", "not observed"),
             lineValue("Schema error", "not observed"),
             lineValue("Power hour trial", "not observed"),
             lineValue("Power hour block", "not observed"),
@@ -865,6 +885,18 @@ function buildSections(
           input.active_scan_trace?.schema_check?.missing_tables.join(",") ?? null,
         last_schema_error:
           input.active_scan_trace?.schema_check?.last_schema_error ?? null,
+        live_trial_fast_mode:
+          input.active_scan_trace?.live_trial_fast_mode ?? null,
+        scheduled_max_tickers:
+          input.active_scan_trace?.scheduled_max_tickers ?? null,
+        scheduled_skip_openai:
+          input.active_scan_trace?.scheduled_skip_openai ?? null,
+        scheduled_timeout_ms:
+          input.active_scan_trace?.scheduled_timeout_ms ?? null,
+        elapsed_ms: input.active_scan_trace?.elapsed_ms ?? null,
+        timeout_reached: input.active_scan_trace?.timeout_reached ?? null,
+        skipped_in_progress:
+          input.active_scan_trace?.skipped_in_progress ?? null,
         attempted_tickers:
           input.active_scan_trace?.market_data_fetch.attempted_tickers ?? null,
         quote_success_count:

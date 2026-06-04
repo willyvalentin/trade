@@ -97,6 +97,7 @@ type AutomationScanDecision =
   | "skipped_market_closed"
   | "skipped_outside_window"
   | "skipped_recent_scan"
+  | "skipped_in_progress"
   | "skipped_provider_unavailable"
   | "failed";
 
@@ -197,6 +198,83 @@ const POWER_HOUR_TRIAL_RISK_COPY =
 const POWER_HOUR_TRIAL_HUMAN_COPY = "Execution remains human-confirmed.";
 const POWER_HOUR_TRIAL_AUTOMATION_COPY =
   "This does not enable broker automation.";
+const DEFAULT_FAST_MODE_MAX_TICKERS = 10;
+const DEFAULT_FAST_MODE_TIMEOUT_MS = 23_000;
+const MIN_SCHEDULED_TIMEOUT_MS = 5_000;
+const MAX_SCHEDULED_TIMEOUT_MS = 25_000;
+const MAX_SCHEDULED_SCAN_TICKERS = 50;
+const SCHEDULED_IN_PROGRESS_COOLDOWN_MINUTES = 4;
+
+function finiteInteger(value: unknown) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim()
+        ? Number(value)
+        : Number.NaN;
+
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function envBoolean(value: string | undefined) {
+  if (value === undefined) return null;
+  const normalized = value.trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+
+  return null;
+}
+
+function providerPlanMode() {
+  const value =
+    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
+    process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE ??
+    "";
+  const normalized = value.trim().toLowerCase();
+
+  return normalized || "unknown";
+}
+
+function scheduledScanRuntimeConfig() {
+  const explicitFastMode = envBoolean(process.env.TURE_LIVE_TRIAL_FAST_MODE);
+  const planMode = providerPlanMode();
+  const liveTrialFastMode = explicitFastMode ?? planMode === "free";
+  const maxTickersOverride = finiteInteger(
+    process.env.TURE_SCHEDULED_SCAN_MAX_TICKERS,
+  );
+  const timeoutOverride = finiteInteger(process.env.TURE_SCHEDULED_SCAN_TIMEOUT_MS);
+  const skipOpenAiOverride = envBoolean(process.env.TURE_SCHEDULED_SCAN_SKIP_OPENAI);
+  const scheduledMaxTickers =
+    maxTickersOverride !== null
+      ? Math.max(1, Math.min(MAX_SCHEDULED_SCAN_TICKERS, maxTickersOverride))
+      : liveTrialFastMode
+        ? DEFAULT_FAST_MODE_MAX_TICKERS
+        : null;
+  const scheduledTimeoutMs = Math.max(
+    MIN_SCHEDULED_TIMEOUT_MS,
+    Math.min(
+      MAX_SCHEDULED_TIMEOUT_MS,
+      timeoutOverride ?? DEFAULT_FAST_MODE_TIMEOUT_MS,
+    ),
+  );
+
+  return {
+    live_trial_fast_mode: liveTrialFastMode,
+    provider_plan_mode: planMode,
+    scheduled_max_tickers: scheduledMaxTickers,
+    scheduled_skip_openai: skipOpenAiOverride ?? liveTrialFastMode,
+    scheduled_timeout_ms: scheduledTimeoutMs,
+  };
+}
+
+function elapsedMs(startedAtMs: number) {
+  return Date.now() - startedAtMs;
+}
+
+function timeoutReached(startedAtMs: number, timeoutMs: number) {
+  return elapsedMs(startedAtMs) >= timeoutMs;
+}
 
 type PowerHourTrialGate = {
   power_hour_trial_enabled: boolean;
@@ -595,6 +673,8 @@ function finishActiveScanTrace(
     batchFingerprint = null,
     scanRunFingerprint = null,
     zeroReason = null,
+    elapsedMilliseconds = null,
+    timeoutWasReached = false,
   }: {
     decision: AutomationScanDecision | string;
     status: string;
@@ -617,11 +697,19 @@ function finishActiveScanTrace(
     batchFingerprint?: string | null;
     scanRunFingerprint?: string | null;
     zeroReason?: string | null;
+    elapsedMilliseconds?: number | null;
+    timeoutWasReached?: boolean;
   },
 ) {
   if (skipReason) {
     activeScanTrace.update({ skip_reason: skipReason });
   }
+
+  activeScanTrace.update({
+    elapsed_ms: elapsedMilliseconds,
+    timeout_reached: timeoutWasReached,
+    partial_result: timeoutWasReached,
+  });
 
   const resolvedNoPublishReason = resolveNoPublishReason({
     activeScanTrace,
@@ -828,6 +916,31 @@ function latestScheduledScanForWindow({
   );
 }
 
+function latestInProgressScheduledScanForWindow({
+  runs,
+  scanDate,
+  sessionType,
+  scanWindow,
+}: {
+  runs: ScheduledScanRunSummary[];
+  scanDate: string;
+  sessionType: SessionType;
+  scanWindow: IntradayScanWindow;
+}) {
+  return (
+    runs.find((run) => {
+      const rowScanDate = textOrNull(run.row.scan_date);
+      const rowSessionType = textOrNull(run.row.session_type);
+      return (
+        rowScanDate === scanDate &&
+        rowSessionType === sessionType &&
+        run.scanLog.scan_window === scanWindow &&
+        run.row.status === "started"
+      );
+    }) ?? null
+  );
+}
+
 function minutesSince(value: string | null | undefined, now: Date) {
   if (!value) {
     return null;
@@ -888,19 +1001,23 @@ async function recordScheduledScanRun({
 }: {
   scanDate: string;
   sessionType: SessionType;
-  status: "completed" | "failed";
+  status: "started" | "completed" | "failed" | "skipped";
   recommendationsCreated: number;
   message: string;
   ignoreExistingRun?: boolean;
   scanLog?: ScanLogEntry;
 }) {
-  const { error } = await supabase.from("scheduled_scan_runs").insert({
-    scan_date: scanDate,
-    session_type: sessionType,
-    status,
-    recommendations_created: recommendationsCreated,
-    message: scanLog ? buildScanLogMessage(message, scanLog) : message,
-  });
+  const { data, error } = await supabase
+    .from("scheduled_scan_runs")
+    .insert({
+      scan_date: scanDate,
+      session_type: sessionType,
+      status,
+      recommendations_created: recommendationsCreated,
+      message: scanLog ? buildScanLogMessage(message, scanLog) : message,
+    })
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     if (error.code === "23505") {
@@ -909,11 +1026,45 @@ async function recordScheduledScanRun({
         sessionType,
         ignoreExistingRun,
       });
-      return;
+      return null;
     }
 
     throw new RecommendationGenerationError(
       error.message ?? "Could not record scheduled scan run.",
+      500,
+    );
+  }
+
+  return data?.id ?? null;
+}
+
+async function updateScheduledScanRun({
+  runId,
+  status,
+  recommendationsCreated,
+  message,
+  scanLog,
+}: {
+  runId: string | number | null;
+  status: "completed" | "failed" | "skipped";
+  recommendationsCreated: number;
+  message: string;
+  scanLog?: ScanLogEntry;
+}) {
+  if (runId === null || runId === undefined) return;
+
+  const { error } = await supabase
+    .from("scheduled_scan_runs")
+    .update({
+      status,
+      recommendations_created: recommendationsCreated,
+      message: scanLog ? buildScanLogMessage(message, scanLog) : message,
+    })
+    .eq("id", runId);
+
+  if (error) {
+    throw new RecommendationGenerationError(
+      error.message ?? "Could not update scheduled scan run.",
       500,
     );
   }
@@ -1606,6 +1757,21 @@ export async function POST(request: Request) {
     scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc,
   });
 
+  const routeStartedAtMs = Date.now();
+  const scheduledRuntimeConfig = scheduledScanRuntimeConfig();
+  const scheduledRuntimeFields = () => ({
+    live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
+    provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
+    scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
+    scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
+    scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
+    elapsed_ms: elapsedMs(routeStartedAtMs),
+    timeout_reached: timeoutReached(
+      routeStartedAtMs,
+      scheduledRuntimeConfig.scheduled_timeout_ms,
+    ),
+  });
+
   const now = new Date();
   const routeReceivedAtUtc = now.toISOString();
   const marketStatus = await getUsMarketStatus();
@@ -1726,6 +1892,10 @@ export async function POST(request: Request) {
     scan_window: scanWindow.scanWindow,
     orchestration_decision: dayTradeScanOrchestration.decision,
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
+    live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
+    scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
+    scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
+    scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
   });
 
   let expiredRecommendations = 0;
@@ -1864,6 +2034,8 @@ export async function POST(request: Request) {
       ...automationVersionFields(),
       ...powerHourTrialGate,
       ...powerHourTrialCopyFields(),
+      ...scheduledRuntimeFields(),
+      skipped_in_progress: false,
       active_scan_trace: activeScanTracePayload,
       schema_check: schemaCheck,
       automation_diagnostics: automationDiagnostics({
@@ -1956,6 +2128,8 @@ export async function POST(request: Request) {
       ...automationVersionFields(),
       ...powerHourTrialGate,
       ...powerHourTrialCopyFields(),
+      ...scheduledRuntimeFields(),
+      skipped_in_progress: false,
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "skipped_outside_window",
@@ -1989,6 +2163,7 @@ export async function POST(request: Request) {
   }
 
   const { scanDate, sessionType } = scanWindow;
+  let startedScheduledRunId: string | number | null = null;
 
   try {
     if (!force && !isActiveAutomationWindow(scanWindow.scanWindow)) {
@@ -2011,6 +2186,8 @@ export async function POST(request: Request) {
         ...automationVersionFields(),
         ...powerHourTrialGate,
         ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: false,
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision,
@@ -2093,6 +2270,8 @@ export async function POST(request: Request) {
           ...automationVersionFields(),
           ...powerHourTrialGate,
           ...powerHourTrialCopyFields(),
+          ...scheduledRuntimeFields(),
+          skipped_in_progress: false,
           active_scan_trace: activeScanTracePayload,
           automation_diagnostics: automationDiagnostics({
             decision: "skipped_provider_unavailable",
@@ -2183,6 +2362,8 @@ export async function POST(request: Request) {
         recommendationsServed: recommendationsCreated,
         recommendationsCreated,
         zeroReason: "recent_same_window_scan_completed",
+        elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+        timeoutWasReached: false,
       });
 
       return NextResponse.json({
@@ -2193,6 +2374,8 @@ export async function POST(request: Request) {
         ...automationVersionFields(),
         ...powerHourTrialGate,
         ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: false,
         active_scan_trace: activeScanTracePayload,
         automation_diagnostics: automationDiagnostics({
           decision: "skipped_recent_scan",
@@ -2225,17 +2408,289 @@ export async function POST(request: Request) {
       });
     }
 
-    const generationResult = await generateRecommendations({
+    const latestInProgressScan = latestInProgressScheduledScanForWindow({
+      runs: recentScheduledScanRuns,
+      scanDate,
       sessionType,
       scanWindow: scanWindow.scanWindow,
+    });
+    const inProgressAgeMinutes = minutesSince(
+      latestInProgressScan?.row.created_at,
+      now,
+    );
+
+    if (
+      !force &&
+      !ignore_existing_run &&
+      inProgressAgeMinutes !== null &&
+      inProgressAgeMinutes < SCHEDULED_IN_PROGRESS_COOLDOWN_MINUTES
+    ) {
+      const message = `Recent ${scanWindowLabel} scan is already in progress from ${inProgressAgeMinutes} minutes ago.`;
+      activeScanTrace.update({ skipped_in_progress: true });
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision: "skipped_in_progress",
+        status: "skipped",
+        skipReason: message,
+        noPublishReason: "scheduled_scan_in_progress",
+        zeroReason: "scheduled_scan_in_progress",
+        elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+        timeoutWasReached: false,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        message,
+        status: "skipped",
+        decision: "skipped_in_progress" satisfies AutomationScanDecision,
+        ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: true,
+        skipped_recent_scan_reason: "scheduled_scan_in_progress",
+        active_scan_trace: activeScanTracePayload,
+        automation_diagnostics: automationDiagnostics({
+          decision: "skipped_in_progress",
+          skippedReason: message,
+        }),
+        forced: force,
+        scan_date: scanDate,
+        session_type: sessionType,
+        scan_window: scanWindow.scanWindow,
+        scan_window_label: scanWindowLabel,
+        market_status: marketStatus,
+        market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
+        expired_recommendations: expiredRecommendations,
+        candidates_generated: 0,
+        recommendations_served: 0,
+        recommendations_created: 0,
+        selected_tickers_count: activeScanTracePayload.universe.selected_tickers_count,
+        ranked_count: activeScanTracePayload.ranking.ranked_count,
+        recommendations_built_count:
+          activeScanTracePayload.final.recommendations_built_count,
+        deterministic_fallback_used:
+          activeScanTracePayload.final.deterministic_fallback_used,
+        no_publish_reason: activeScanTracePayload.final.no_publish_reason,
+        batch_id: null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+        warnings: dayTradeScanOrchestration.warnings.map((item) => item.message),
+        gaps: [],
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+      });
+    }
+
+    if (!force && !ignore_existing_run) {
+      const startMessage = `Scheduled ${scanWindowLabel} scan started. scan_window=${scanWindow.scanWindow}`;
+      const startScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message: startMessage,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "scheduled_scan_started",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTrace.trace,
+        },
+      });
+
+      try {
+        startedScheduledRunId = await recordScheduledScanRun({
+          scanDate,
+          sessionType,
+          status: "started",
+          recommendationsCreated: 0,
+          message: startMessage,
+          scanLog: startScanLog,
+          ignoreExistingRun: ignore_existing_run,
+        });
+      } catch (startRecordError) {
+        console.error("[automation/run-scan] start_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(startRecordError),
+        });
+      }
+    }
+
+    if (
+      timeoutReached(routeStartedAtMs, scheduledRuntimeConfig.scheduled_timeout_ms)
+    ) {
+      const message =
+        "Scheduled scan stopped before generation because the route timeout budget was already exhausted.";
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision: "failed",
+        status: "partial",
+        skipReason: message,
+        noPublishReason: "timeout_budget_exceeded",
+        zeroReason: "timeout_budget_exceeded",
+        elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+        timeoutWasReached: true,
+      });
+
+      try {
+        await updateScheduledScanRun({
+          runId: startedScheduledRunId,
+          status: "failed",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+        });
+      } catch (timeoutRecordError) {
+        console.error("[automation/run-scan] pre_generation_timeout_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(timeoutRecordError),
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        message,
+        status: "partial",
+        decision: "failed" satisfies AutomationScanDecision,
+        ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: false,
+        active_scan_trace: activeScanTracePayload,
+        forced: force,
+        scan_date: scanDate,
+        session_type: sessionType,
+        scan_window: scanWindow.scanWindow,
+        scan_window_label: scanWindowLabel,
+        selected_tickers_count: activeScanTracePayload.universe.selected_tickers_count,
+        ranked_count: activeScanTracePayload.ranking.ranked_count,
+        recommendations_built_count:
+          activeScanTracePayload.final.recommendations_built_count,
+        recommendations_created: 0,
+        deterministic_fallback_used:
+          activeScanTracePayload.final.deterministic_fallback_used,
+        no_publish_reason: activeScanTracePayload.final.no_publish_reason,
+      });
+    }
+
+    const generationPromise = generateRecommendations({
+      sessionType,
+      scanWindow: scanWindow.scanWindow,
+      targetCount: scheduledRuntimeConfig.live_trial_fast_mode ? 6 : undefined,
       source: "scheduled",
       allowPowerHourRecommendationLogging:
         scanWindow.scanWindow === "power_hour"
           ? powerHourTrialGate.power_hour_publish_allowed
           : calendarFallbackAllowsScan,
       powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
+      scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
+      skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
       activeScanTrace,
     });
+    const generationResult = await Promise.race([
+      generationPromise,
+      new Promise<"scheduled_timeout">((resolve) => {
+        setTimeout(
+          () => resolve("scheduled_timeout"),
+          Math.max(
+            1,
+            scheduledRuntimeConfig.scheduled_timeout_ms -
+              elapsedMs(routeStartedAtMs),
+          ),
+        );
+      }),
+    ]);
+
+    if (generationResult === "scheduled_timeout") {
+      const message =
+        "Scheduled scan stopped before Netlify timeout. Partial trace returned.";
+      const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+        decision: "failed",
+        status: "partial",
+        skipReason: message,
+        noPublishReason: "timeout_budget_exceeded",
+        zeroReason: "timeout_budget_exceeded",
+        elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+        timeoutWasReached: true,
+      });
+      const timeoutScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "timeout_budget_exceeded",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+
+      try {
+        await updateScheduledScanRun({
+          runId: startedScheduledRunId,
+          status: "failed",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog: timeoutScanLog,
+        });
+      } catch (timeoutRecordError) {
+        console.error("[automation/run-scan] timeout_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(timeoutRecordError),
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        message,
+        status: "partial",
+        decision: "failed" satisfies AutomationScanDecision,
+        ...automationVersionFields(),
+        ...powerHourTrialGate,
+        ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: false,
+        active_scan_trace: activeScanTracePayload,
+        automation_diagnostics: automationDiagnostics({
+          decision: "failed",
+          skippedReason: message,
+          currentScanLog: timeoutScanLog,
+        }),
+        forced: force,
+        scan_date: scanDate,
+        session_type: sessionType,
+        scan_window: scanWindow.scanWindow,
+        scan_window_label: scanWindowLabel,
+        market_status: marketStatus,
+        market_session: marketSession,
+        ...calendarFields(dayTradeScanOrchestration),
+        candidates_generated:
+          activeScanTracePayload.final.candidates_generated,
+        selected_tickers_count:
+          activeScanTracePayload.universe.selected_tickers_count,
+        ranked_count: activeScanTracePayload.ranking.ranked_count,
+        recommendations_built_count:
+          activeScanTracePayload.final.recommendations_built_count,
+        recommendations_created: 0,
+        deterministic_fallback_used:
+          activeScanTracePayload.final.deterministic_fallback_used,
+        no_publish_reason: activeScanTracePayload.final.no_publish_reason,
+        batch_id: null,
+        batch_fingerprint: null,
+        scan_run_fingerprint: null,
+      });
+    }
     const generationScanLog =
       (generationResult.scan_log ?? null) as RecommendationScanLogDetails | null;
     const recommendationsCreated = generationResult.recommendations.length;
@@ -2362,18 +2817,33 @@ export async function POST(request: Request) {
         generationScanLog?.deterministic_fallback_used === true,
       batchFingerprint,
       scanRunFingerprint,
+      elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+      timeoutWasReached: timeoutReached(
+        routeStartedAtMs,
+        scheduledRuntimeConfig.scheduled_timeout_ms,
+      ),
     });
     scanLog.active_scan_trace = activeScanTracePayload;
 
-    await recordScheduledScanRun({
-      scanDate,
-      sessionType,
-      status: "completed",
-      recommendationsCreated,
-      message,
-      scanLog,
-      ignoreExistingRun: ignore_existing_run,
-    });
+    if (startedScheduledRunId !== null) {
+      await updateScheduledScanRun({
+        runId: startedScheduledRunId,
+        status: "completed",
+        recommendationsCreated,
+        message,
+        scanLog,
+      });
+    } else {
+      await recordScheduledScanRun({
+        scanDate,
+        sessionType,
+        status: "completed",
+        recommendationsCreated,
+        message,
+        scanLog,
+        ignoreExistingRun: ignore_existing_run,
+      });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -2383,6 +2853,8 @@ export async function POST(request: Request) {
       ...automationVersionFields(),
       ...powerHourTrialGate,
       ...powerHourTrialCopyFields(),
+      ...scheduledRuntimeFields(),
+      skipped_in_progress: false,
       active_scan_trace: activeScanTracePayload,
       automation_diagnostics: automationDiagnostics({
         decision: "scanned",
@@ -2400,6 +2872,8 @@ export async function POST(request: Request) {
       recommendations_served: recommendationsCreated,
       recommendations_created: recommendationsCreated,
       selected_count: activeScanTracePayload.ranking.selected_count,
+      selected_tickers_count:
+        activeScanTracePayload.universe.selected_tickers_count,
       ranked_candidates_count: generationScanLog?.ranked_candidates_count ?? null,
       recommendations_published_count:
         generationScanLog?.recommendations_published_count ?? recommendationsCreated,
@@ -2478,19 +2952,34 @@ export async function POST(request: Request) {
       status: "failed",
       skipReason: message,
       zeroReason: `${failureResult}:${errorType(error)}`,
+      elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+      timeoutWasReached: timeoutReached(
+        routeStartedAtMs,
+        scheduledRuntimeConfig.scheduled_timeout_ms,
+      ),
     });
     scanLog.active_scan_trace = activeScanTracePayload;
 
     try {
-      await recordScheduledScanRun({
-        scanDate,
-        sessionType,
-        status: "failed",
-        recommendationsCreated: 0,
-        message: `${message} scan_window=${scanWindow.scanWindow}`,
-        scanLog,
-        ignoreExistingRun: ignore_existing_run,
-      });
+      if (startedScheduledRunId !== null) {
+        await updateScheduledScanRun({
+          runId: startedScheduledRunId,
+          status: "failed",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog,
+        });
+      } else {
+        await recordScheduledScanRun({
+          scanDate,
+          sessionType,
+          status: "failed",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog,
+          ignoreExistingRun: ignore_existing_run,
+        });
+      }
     } catch (recordError) {
       console.error("[automation/run-scan] failure_record_error", {
         scanDate,
@@ -2510,6 +2999,8 @@ export async function POST(request: Request) {
         ...automationVersionFields(),
         ...powerHourTrialGate,
         ...powerHourTrialCopyFields(),
+        ...scheduledRuntimeFields(),
+        skipped_in_progress: false,
         forced: force,
         scan_date: scanDate,
         session_type: sessionType,

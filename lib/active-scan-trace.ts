@@ -46,6 +46,11 @@ export type ActiveScanTrace = {
   simulated_ny_time: string | null;
   max_tickers: number | null;
   skipped_openai: boolean;
+  live_trial_fast_mode: boolean;
+  scheduled_max_tickers: number | null;
+  scheduled_skip_openai: boolean;
+  scheduled_timeout_ms: number | null;
+  skipped_in_progress: boolean;
   partial_result: boolean;
   timeout_reached: boolean;
   elapsed_ms: number | null;
@@ -189,6 +194,11 @@ export function createActiveScanTrace({
     simulated_ny_time: null,
     max_tickers: null,
     skipped_openai: false,
+    live_trial_fast_mode: false,
+    scheduled_max_tickers: null,
+    scheduled_skip_openai: false,
+    scheduled_timeout_ms: null,
+    skipped_in_progress: false,
     partial_result: false,
     timeout_reached: false,
     elapsed_ms: null,

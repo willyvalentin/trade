@@ -86,6 +86,7 @@ export type GenerateRecommendationsInput = {
   diagnosticMode?: boolean;
   diagnosticRunId?: string | null;
   diagnosticMaxTickers?: number | null;
+  scheduledMaxTickers?: number | null;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
@@ -2046,6 +2047,7 @@ function buildDeterministicLearningRecommendations({
       confidence_label: confidenceLabelFromScore(localScore),
       confidence_breakdown: confidenceBreakdown,
       confidence_reasoning: [
+        "Deterministic scanner-derived fallback recommendation; OpenAI narrative generation was not used for this row.",
         `${tier} ranked learning candidate from scanner output.`,
         powerHourTrial
           ? "Power Hour trial publishing is enabled for observation and learning."
@@ -2753,6 +2755,7 @@ export async function generateRecommendations({
   diagnosticMode = false,
   diagnosticRunId = null,
   diagnosticMaxTickers = null,
+  scheduledMaxTickers = null,
   skipOpenAi = false,
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
@@ -2789,6 +2792,7 @@ export async function generateRecommendations({
     logPipeline("power_hour_trial_publishing", powerHourTrial);
     logPipeline("diagnostic_mode", diagnosticMode);
     logPipeline("diagnostic_max_tickers", diagnosticMaxTickers);
+    logPipeline("scheduled_max_tickers", scheduledMaxTickers);
     logPipeline("skip_openai", skipOpenAi);
 
     if (scanWindow === "pre_market") {
@@ -2936,7 +2940,7 @@ export async function generateRecommendations({
       powerHourTrial
         ? powerHourTrialTarget(targetCount)
         : source === "scheduled"
-        ? scanPolicy.maxRecommendations
+        ? requestedMaxRecommendations
         : requestedMaxRecommendations;
     const settings = {
       ...baseSettings,
@@ -3042,11 +3046,15 @@ export async function generateRecommendations({
 
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
-      requestedScanBudget: diagnosticMode ? diagnosticMaxTickers : undefined,
+      requestedScanBudget: diagnosticMode
+        ? diagnosticMaxTickers
+        : scheduledMaxTickers ?? undefined,
     });
     const scannerBaseCandidates =
       diagnosticMode && typeof diagnosticMaxTickers === "number"
         ? scannerUniverseSelection.candidates.slice(0, diagnosticMaxTickers)
+        : typeof scheduledMaxTickers === "number"
+          ? scannerUniverseSelection.candidates.slice(0, scheduledMaxTickers)
         : scannerUniverseSelection.candidates;
     const universeCoverage = scannerUniverseSelection.coverage;
 
@@ -3072,6 +3080,8 @@ export async function generateRecommendations({
         activeScanTrace,
         maxFreshProviderCalls: diagnosticMode
           ? Math.min(1, scannerBaseCandidates.length)
+          : typeof scheduledMaxTickers === "number"
+            ? Math.min(1, scannerBaseCandidates.length)
           : undefined,
       },
     );
