@@ -471,6 +471,123 @@ export function readRecommendationSnapshotsFromLocalStorage(
   }
 }
 
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function normalizeStatus(value: unknown): RecommendationSnapshotStatus {
+  if (
+    value === "visible" ||
+    value === "hidden" ||
+    value === "taken" ||
+    value === "ignored" ||
+    value === "expired" ||
+    value === "invalid" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+
+  return "unknown";
+}
+
+export function recommendationSnapshotFromPersistenceRow(
+  row: Record<string, unknown>,
+): RecommendationSnapshot | null {
+  const snapshotFingerprint = textOrNull(
+    String(row.snapshot_fingerprint ?? row.id ?? ""),
+  );
+
+  if (!snapshotFingerprint) return null;
+
+  const payloadJson = objectOrNull(row.payload_json) ?? {};
+  const recommendedAt = toIso(String(row.recommended_at ?? ""));
+  const createdAt =
+    toIso(String(row.created_at ?? "")) ?? recommendedAt ?? new Date().toISOString();
+  const updatedAt = toIso(String(row.updated_at ?? "")) ?? createdAt;
+  const status = normalizeStatus(row.status);
+  const sourceMode = textOrNull(String(row.source_mode ?? "")) ?? "unknown";
+  const dataMode = textOrNull(String(row.data_mode ?? "")) ?? "unknown";
+  const entry = finiteNumber(row.entry);
+  const stop = finiteNumber(row.stop);
+  const target = finiteNumber(row.target);
+  const side = normalizeSide(String(payloadJson.side ?? payloadJson.direction ?? ""));
+  const riskPerShare =
+    finiteNumber(payloadJson.risk_per_share) ??
+    calculateRiskPerShare(entry, stop, side);
+  const rewardPerShare =
+    finiteNumber(payloadJson.reward_per_share) ??
+    calculateRewardPerShare(entry, target, side);
+  const plannedRiskReward =
+    finiteNumber(row.risk_reward) ??
+    finiteNumber(payloadJson.planned_risk_reward) ??
+    calculateRiskReward(riskPerShare, rewardPerShare);
+
+  return {
+    id: textOrNull(String(row.id ?? "")) ?? snapshotFingerprint,
+    snapshot_fingerprint: snapshotFingerprint,
+    recommendation_id: textOrNull(String(row.recommendation_id ?? "")),
+    scan_run_id: textOrNull(String(row.scan_run_id ?? "")),
+    ticker: textOrNull(String(row.ticker ?? ""))?.toUpperCase() ?? null,
+    company_name: textOrNull(String(payloadJson.company_name ?? "")),
+    recommended_at: recommendedAt,
+    app_timestamp:
+      toIso(String(payloadJson.app_timestamp ?? "")) ?? recommendedAt ?? createdAt,
+    window: normalizeWindow(String(row.window ?? payloadJson.window ?? "")),
+    status,
+    source_mode: sourceMode,
+    data_mode: dataMode,
+    market_session_phase: textOrNull(String(row.market_session_phase ?? "")),
+    market_session_risk: textOrNull(String(payloadJson.market_session_risk ?? "")),
+    market_session_source: textOrNull(
+      String(payloadJson.market_session_source ?? ""),
+    ),
+    is_visible: status === "visible" || status === "taken",
+    is_demo: payloadJson.is_demo === true,
+    is_mock: payloadJson.is_mock === true,
+    is_real: payloadJson.is_real === true || sourceMode === "supabase",
+    entry,
+    entry_low: finiteNumber(payloadJson.entry_low),
+    entry_high: finiteNumber(payloadJson.entry_high),
+    stop,
+    target,
+    side,
+    risk_per_share: riskPerShare,
+    reward_per_share: rewardPerShare,
+    planned_risk_reward: plannedRiskReward,
+    confidence:
+      finiteNumber(row.confidence) ?? textOrNull(String(payloadJson.confidence ?? "")),
+    score: finiteNumber(row.score) ?? textOrNull(String(payloadJson.score ?? "")),
+    rating: textOrNull(String(payloadJson.rating ?? "")),
+    label: textOrNull(String(payloadJson.label ?? "")),
+    type: textOrNull(String(payloadJson.type ?? "")),
+    rationale: textOrNull(String(row.rationale ?? payloadJson.rationale ?? "")),
+    reason: textOrNull(String(payloadJson.reason ?? "")),
+    catalyst: textOrNull(String(payloadJson.catalyst ?? "")),
+    primary_risk: textOrNull(String(payloadJson.primary_risk ?? "")),
+    market_data_snapshot: payloadJson.market_data_snapshot ?? null,
+    quote_price: finiteNumber(payloadJson.quote_price),
+    volume: finiteNumber(payloadJson.volume),
+    liquidity:
+      finiteNumber(payloadJson.liquidity) ??
+      textOrNull(String(payloadJson.liquidity ?? "")),
+    spread: finiteNumber(payloadJson.spread),
+    freshness: textOrNull(String(payloadJson.freshness ?? "")),
+    data_age_minutes: finiteNumber(payloadJson.data_age_minutes),
+    intake_quality_json: row.intake_quality_json ?? null,
+    scan_observability_json: row.scan_observability_json ?? null,
+    empty_state_json: payloadJson.empty_state_json ?? null,
+    quality_json: objectOrNull(payloadJson.quality_json),
+    payload_json: payloadJson,
+    was_taken: row.was_taken === true,
+    linked_position_id: textOrNull(String(row.linked_position_id ?? "")),
+    created_at: createdAt,
+    updated_at: updatedAt,
+  };
+}
+
 export function checkRecommendationSnapshotDeduplication(
   snapshot: RecommendationSnapshot,
   existingSnapshots: RecommendationSnapshot[],

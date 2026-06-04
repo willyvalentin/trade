@@ -178,6 +178,7 @@ import {
   buildRecommendationSnapshot,
   markRecommendationSnapshotTaken,
   persistRecommendationSnapshot,
+  recommendationSnapshotFromPersistenceRow,
   recommendationSnapshotsJson,
   readRecommendationSnapshotsFromLocalStorage,
   type RecommendationSnapshot,
@@ -669,6 +670,10 @@ type RecommendationRow = {
   expires_at?: string | null;
   scan_window?: string | null;
   created_at?: string | null;
+  diagnostic_mode?: boolean | null;
+  source_mode?: string | null;
+  not_live_trade_signal?: boolean | null;
+  visible_in_primary_recommendations?: boolean | null;
 };
 
 type UserSettingsRow = {
@@ -975,6 +980,10 @@ type Recommendation = {
   scanWindow: string | null;
   createdAt: string;
   createdAtRaw: string | null;
+  diagnosticMode?: boolean;
+  sourceMode?: string | null;
+  notLiveTradeSignal?: boolean;
+  visibleInPrimaryRecommendations?: boolean | null;
 };
 
 type IntradayConfirmationStatus = {
@@ -3921,6 +3930,13 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     scanWindow: row.scan_window ?? null,
     createdAt: formatDate(row.created_at),
     createdAtRaw: row.created_at ?? null,
+    diagnosticMode: row.diagnostic_mode === true,
+    sourceMode: typeof row.source_mode === "string" ? row.source_mode : null,
+    notLiveTradeSignal: row.not_live_trade_signal === true,
+    visibleInPrimaryRecommendations:
+      typeof row.visible_in_primary_recommendations === "boolean"
+        ? row.visible_in_primary_recommendations
+        : null,
   };
 }
 
@@ -5349,6 +5365,109 @@ function isActiveAutomationScanLog(scanLog: ScanLogEntry) {
     scanLog.scan_window === "afternoon" ||
     scanLog.scan_window === "power_hour"
   );
+}
+
+function hasDiagnosticPayload(payload: Record<string, unknown> | null | undefined) {
+  if (!payload) return false;
+
+  const activeTrace =
+    typeof payload.active_scan_trace === "object" &&
+    payload.active_scan_trace !== null
+      ? (payload.active_scan_trace as Partial<ActiveScanTrace>)
+      : null;
+
+  return (
+    payload.diagnostic_mode === true ||
+    payload.not_live_trade_signal === true ||
+    payload.visible_in_primary_recommendations === false ||
+    activeTrace?.diagnostic_mode === true ||
+    payload.source_mode === "diagnostic"
+  );
+}
+
+function isPrimaryRecommendationVisible(recommendation: Recommendation) {
+  return (
+    recommendation.visibleInPrimaryRecommendations !== false &&
+    recommendation.diagnosticMode !== true &&
+    recommendation.notLiveTradeSignal !== true &&
+    recommendation.sourceMode !== "diagnostic"
+  );
+}
+
+function isLiveRecommendationSnapshot(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.source_mode !== "diagnostic" &&
+    snapshot.status !== "hidden" &&
+    snapshot.payload_json.diagnostic_mode !== true &&
+    snapshot.payload_json.not_live_trade_signal !== true &&
+    snapshot.payload_json.visible_in_primary_recommendations !== false
+  );
+}
+
+function isLiveRecommendationBatch(batch: RecommendationBatch) {
+  return (
+    batch.batch_type !== "diagnostic" &&
+    batch.payload_json.diagnostic_mode !== true &&
+    batch.payload_json.not_live_trade_signal !== true &&
+    batch.payload_json.visible_in_primary_recommendations !== false
+  );
+}
+
+function isSuccessfulLiveRecommendationBatch(batch: RecommendationBatch) {
+  return (
+    isLiveRecommendationBatch(batch) &&
+    batch.batch_type === "official" &&
+    batch.recommendation_count > 0 &&
+    (batch.status === "published" || batch.status === "partial")
+  );
+}
+
+function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
+  const trace = scanRun.payload_json.active_scan_trace;
+
+  return typeof trace === "object" && trace !== null
+    ? (trace as ActiveScanTrace)
+    : null;
+}
+
+function isSuccessfulLiveRecommendationScanRun(scanRun: RecommendationScanRun) {
+  const trace = getStoredActiveScanTrace(scanRun);
+
+  return (
+    !hasDiagnosticPayload(scanRun.payload_json) &&
+    (scanRun.counts.visible_recommendation_count > 0 ||
+      (trace?.final.recommendations_created ?? 0) > 0 ||
+      (trace?.final.recommendations_published_count ?? 0) > 0) &&
+    scanRun.status !== "failed" &&
+    scanRun.status !== "empty"
+  );
+}
+
+function isSuccessfulLiveScanLog(scanLog: ScanLogEntry) {
+  return (
+    scanLog.diagnostic_mode !== true &&
+    scanLog.result === "recommendation_created" &&
+    (scanLog.recommendations_created > 0 ||
+      (scanLog.recommendations_published_count ?? 0) > 0 ||
+      (scanLog.active_scan_trace?.final.recommendations_created ?? 0) > 0 ||
+      (scanLog.active_scan_trace?.final.recommendations_published_count ?? 0) > 0)
+  );
+}
+
+function getVisibleRecommendationIdsFromScanRun(scanRun: RecommendationScanRun) {
+  const visibleRecommendations = scanRun.payload_json.visible_recommendations;
+
+  if (!Array.isArray(visibleRecommendations)) {
+    return [];
+  }
+
+  return visibleRecommendations
+    .map((item) => {
+      if (typeof item !== "object" || item === null) return null;
+      const id = (item as Record<string, unknown>).id;
+      return typeof id === "string" && id.trim().length > 0 ? id : null;
+    })
+    .filter((id): id is string => id !== null);
 }
 
 function toAutomationDiagnosticEntry(
@@ -7041,6 +7160,7 @@ export function TradeApp() {
       scanLogsResult,
       recommendationScanRunsResult,
       recommendationBatchesResult,
+      recommendationSnapshotsResult,
       marketRegimeResult,
       marketStatusResult,
     ] =
@@ -7084,6 +7204,11 @@ export function TradeApp() {
           .order("published_at", { ascending: false, nullsFirst: false })
           .limit(100),
         supabase
+          .from("recommendation_snapshots")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(300),
+        supabase
           .from("market_regime_snapshots")
           .select("*")
           .order("created_at", { ascending: false })
@@ -7096,7 +7221,8 @@ export function TradeApp() {
       setMessage(recommendationsResult.error.message);
     } else {
       const loadedRecommendations = (recommendationsResult.data as RecommendationRow[])
-        .map(toRecommendation);
+        .map(toRecommendation)
+        .filter(isPrimaryRecommendationVisible);
       const hasCurrentLoadedRecommendations = loadedRecommendations.some(
         (recommendation) =>
           !recommendation.archived &&
@@ -7225,6 +7351,33 @@ export function TradeApp() {
             [...loadedBatches, ...localBatches].map((batch) => [
               batch.batch_fingerprint,
               batch,
+            ]),
+          ).values(),
+        ),
+      );
+    }
+
+    if (recommendationSnapshotsResult.error) {
+      console.error("[trade-app] dashboard_data_load_error", {
+        source: "supabase.recommendation_snapshots",
+        operation: "select_recent_recommendation_snapshots",
+        error: normalizeUnknownError(recommendationSnapshotsResult.error),
+      });
+      setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
+    } else {
+      const loadedSnapshots = ((recommendationSnapshotsResult.data ?? []) as Array<
+        Record<string, unknown>
+      >)
+        .map(recommendationSnapshotFromPersistenceRow)
+        .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null);
+      const localSnapshots = readRecommendationSnapshotsFromLocalStorage();
+
+      setStoredRecommendationSnapshots(
+        Array.from(
+          new Map(
+            [...loadedSnapshots, ...localSnapshots].map((snapshot) => [
+              snapshot.snapshot_fingerprint,
+              snapshot,
             ]),
           ).values(),
         ),
@@ -8703,11 +8856,42 @@ export function TradeApp() {
     setIsSaving(false);
   }
 
+  const dailySessionDate =
+    // Daily primary surfaces use the US trading date so closed/open trade slices
+    // match the market-session helpers elsewhere in the app.
+    marketStatus?.date ?? getNewYorkDateString(currentTime);
+  const liveStoredRecommendationSnapshots =
+    storedRecommendationSnapshots.filter(isLiveRecommendationSnapshot);
+  const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
+    (scanRun) => !hasDiagnosticPayload(scanRun.payload_json),
+  );
+  const liveStoredRecommendationBatches =
+    storedRecommendationBatches.filter(isLiveRecommendationBatch);
+  const latestSuccessfulStoredRecommendationScanRun =
+    [...liveStoredRecommendationScanRuns]
+      .filter(
+        (scanRun) =>
+          isSuccessfulLiveRecommendationScanRun(scanRun) &&
+          (scanRun.trading_date === dailySessionDate ||
+            getNewYorkDateFromIso(scanRun.observed_at) === dailySessionDate),
+      )
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
+    null;
+  const latestSuccessfulLiveRecommendationIds = new Set(
+    latestSuccessfulStoredRecommendationScanRun
+      ? getVisibleRecommendationIdsFromScanRun(
+          latestSuccessfulStoredRecommendationScanRun,
+        )
+      : [],
+  );
   const dailyRecommendations = recommendations.filter(
     (recommendation) =>
+      isPrimaryRecommendationVisible(recommendation) &&
       !recommendation.archived &&
       !historyStatuses.includes(recommendation.status) &&
-      !isRecommendationExpired(toFreshnessInput(recommendation)),
+      (!isRecommendationExpired(toFreshnessInput(recommendation)) ||
+        (latestSuccessfulLiveRecommendationIds.has(recommendation.id) &&
+          getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate)),
   );
   const demoRecommendationCount = recommendations.filter(isDemoRecommendation).length;
   const demoActivePositionCount = activePositions.filter(isDemoPosition).length;
@@ -8968,10 +9152,6 @@ export function TradeApp() {
   const historyPositionById = new Map(
     closedPositions.map((position) => [position.id, position]),
   );
-  const dailySessionDate =
-    // Daily primary surfaces use the US trading date so closed/open trade slices
-    // match the market-session helpers elsewhere in the app.
-    marketStatus?.date ?? currentMarketSessionEvaluation.ny_date;
   const dailyClosedPositions = closedPositions.filter(
     (position) => getNewYorkDateFromIso(position.closedAtRaw) === dailySessionDate,
   );
@@ -9478,10 +9658,15 @@ export function TradeApp() {
       result,
     ]),
   );
+  const latestSuccessfulDailyScanLog =
+    dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
+  const latestScheduledScanLogForVisibleReadback =
+    latestSuccessfulDailyScanLog ?? dailyScanLogs[0] ?? null;
   const latestScheduledScanRunId =
-    dailyScanLogs[0]?.id === null || dailyScanLogs[0]?.id === undefined
+    latestScheduledScanLogForVisibleReadback?.id === null ||
+    latestScheduledScanLogForVisibleReadback?.id === undefined
       ? null
-      : String(dailyScanLogs[0].id);
+      : String(latestScheduledScanLogForVisibleReadback.id);
   const demoVisibleRecommendationCount =
     dailyRecommendations.filter(isDemoRecommendation).length;
   const devPreviewVisibleRecommendationCount = dailyRecommendations.filter(
@@ -9503,7 +9688,7 @@ export function TradeApp() {
       now: currentTime,
       marketSession: currentMarketSessionEvaluation,
       marketStatus,
-      scanRuns: storedRecommendationScanRuns,
+      scanRuns: liveStoredRecommendationScanRuns,
       currentDataMode: dataModeClaritySummary.overall_mode,
       runType:
         currentRecommendationScanRunSource === "unknown"
@@ -9518,8 +9703,8 @@ export function TradeApp() {
       windowTargetSummary: dayTradeWindowRecommendationTargetSummary,
       scanOrchestration: dayTradeScanOrchestrationSummary,
       riskControlsSettings,
-      scanRuns: storedRecommendationScanRuns,
-      snapshots: storedRecommendationSnapshots.filter(
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: liveStoredRecommendationSnapshots.filter(
         (snapshot) =>
           snapshot.created_at.slice(0, 10) === dailySessionDate ||
           getNewYorkDateFromIso(snapshot.app_timestamp) === dailySessionDate,
@@ -9534,9 +9719,9 @@ export function TradeApp() {
       dailyRecommendationTradeTargetsSummary,
     );
   const latestRealScannerCandidateGenerationSummary =
-    dailyScanLogs.find(
+    (latestSuccessfulDailyScanLog ?? dailyScanLogs.find(
       (scanLog) => scanLog.real_scanner_candidate_generation,
-    )?.real_scanner_candidate_generation ?? null;
+    ))?.real_scanner_candidate_generation ?? null;
   const scannerUniverseCoverageSummary =
     latestRealScannerCandidateGenerationSummary?.universe.coverage ??
     selectScannerUniverse({
@@ -9557,14 +9742,18 @@ export function TradeApp() {
         );
   const scannerCandidateRankingSummary =
     latestRealScannerCandidateGenerationSummary?.scanner_candidate_ranking ??
-    dailyScanLogs.find((scanLog) => scanLog.scanner_candidate_ranking)
+    (latestSuccessfulDailyScanLog ?? dailyScanLogs.find(
+      (scanLog) => scanLog.scanner_candidate_ranking,
+    ))
       ?.scanner_candidate_ranking ??
     null;
   const scannerCandidateRankingSummaryJsonText = scannerCandidateRankingSummary
     ? scannerCandidateRankingSummaryJson(scannerCandidateRankingSummary)
     : "";
   const openAiRecommendationRealityGuardSummary =
-    dailyScanLogs.find((scanLog) => scanLog.openai_recommendation_reality_guard)
+    (latestSuccessfulDailyScanLog ?? dailyScanLogs.find(
+      (scanLog) => scanLog.openai_recommendation_reality_guard,
+    ))
       ?.openai_recommendation_reality_guard ?? null;
   const openAiRecommendationRealityGuardSummaryJsonText =
     openAiRecommendationRealityGuardSummary
@@ -9572,14 +9761,89 @@ export function TradeApp() {
           openAiRecommendationRealityGuardSummary,
         )
       : "";
-  const latestActiveScanTrace =
+  const latestAttemptedScanLog = dailyScanLogs[0] ?? null;
+  const latestSuccessfulScanLog = latestSuccessfulDailyScanLog;
+  const latestAttemptedStoredRecommendationScanRun =
+    liveStoredRecommendationScanRuns.find(
+      (scanRun) =>
+        scanRun.trading_date === dailySessionDate ||
+        getNewYorkDateFromIso(scanRun.observed_at) === dailySessionDate,
+    ) ?? null;
+  const latestAttemptedActiveScanTrace =
     dailyScanLogs.find((scanLog) => scanLog.active_scan_trace)
       ?.active_scan_trace ??
-    ((storedRecommendationScanRuns.find(
-      (scanRun) =>
-        typeof scanRun.payload_json.active_scan_trace === "object" &&
-        scanRun.payload_json.active_scan_trace !== null,
-    )?.payload_json.active_scan_trace as ActiveScanTrace | undefined) ?? null);
+    (latestAttemptedStoredRecommendationScanRun
+      ? getStoredActiveScanTrace(latestAttemptedStoredRecommendationScanRun)
+      : null);
+  const latestSuccessfulActiveScanTrace =
+    latestSuccessfulScanLog?.active_scan_trace ??
+    (latestSuccessfulStoredRecommendationScanRun
+      ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
+      : null);
+  const latestActiveScanTrace =
+    latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
+  const latestSuccessfulReadbackScan = latestSuccessfulScanLog
+    ? {
+        result: latestSuccessfulScanLog.result,
+        created_at: latestSuccessfulScanLog.created_at,
+        scan_window: latestSuccessfulScanLog.scan_window,
+        visible_recommendation_count:
+          latestSuccessfulScanLog.recommendations_published_count ??
+          latestSuccessfulScanLog.recommendations_created ??
+          latestSuccessfulScanLog.active_scan_trace?.final
+            .recommendations_published_count ??
+          latestSuccessfulScanLog.active_scan_trace?.final.recommendations_created ??
+          null,
+        message: latestSuccessfulScanLog.message,
+        source: "scheduled_scan_runs",
+      }
+    : latestSuccessfulStoredRecommendationScanRun
+      ? {
+          result: "recommendation_created",
+          created_at: latestSuccessfulStoredRecommendationScanRun.observed_at,
+          scan_window: latestSuccessfulStoredRecommendationScanRun.window,
+          visible_recommendation_count:
+            latestSuccessfulStoredRecommendationScanRun.counts
+              .visible_recommendation_count,
+          message:
+            typeof latestSuccessfulStoredRecommendationScanRun.payload_json.message ===
+            "string"
+              ? latestSuccessfulStoredRecommendationScanRun.payload_json.message
+              : null,
+          source: "recommendation_scan_runs",
+        }
+      : null;
+  const latestAttemptedReadbackScan = latestAttemptedScanLog
+    ? {
+        result: latestAttemptedScanLog.result,
+        created_at: latestAttemptedScanLog.created_at,
+        scan_window: latestAttemptedScanLog.scan_window,
+        visible_recommendation_count:
+          latestAttemptedScanLog.recommendations_published_count ??
+          latestAttemptedScanLog.recommendations_created ??
+          latestAttemptedScanLog.active_scan_trace?.final
+            .recommendations_published_count ??
+          latestAttemptedScanLog.active_scan_trace?.final.recommendations_created ??
+          null,
+        message: latestAttemptedScanLog.message,
+        source: "scheduled_scan_runs",
+      }
+    : latestAttemptedStoredRecommendationScanRun
+      ? {
+          result:
+            latestAttemptedStoredRecommendationScanRun.counts
+              .visible_recommendation_count > 0
+              ? "recommendation_created"
+              : latestAttemptedStoredRecommendationScanRun.status,
+          created_at: latestAttemptedStoredRecommendationScanRun.observed_at,
+          scan_window: latestAttemptedStoredRecommendationScanRun.window,
+          visible_recommendation_count:
+            latestAttemptedStoredRecommendationScanRun.counts
+              .visible_recommendation_count,
+          message: null,
+          source: "recommendation_scan_runs",
+        }
+      : null;
   const recommendationServingCadenceSummary =
     buildRecommendationServingCadenceSummary({
       tradingDate: dailySessionDate,
@@ -9593,8 +9857,8 @@ export function TradeApp() {
         expires_at: recommendation.expiresAtRaw,
         status: recommendation.status,
       })),
-      scanRuns: storedRecommendationScanRuns,
-      snapshots: storedRecommendationSnapshots,
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: liveStoredRecommendationSnapshots,
       scanRunFingerprint: latestScheduledScanRunId,
       now: currentTime,
     });
@@ -9854,18 +10118,34 @@ export function TradeApp() {
         dayTradeWindowRecommendationTargetSummary.current_window_count.incomplete,
     },
   });
+  const latestSuccessfulStoredRecommendationBatch =
+    [...liveStoredRecommendationBatches]
+      .filter(
+        (batch) =>
+          isSuccessfulLiveRecommendationBatch(batch) &&
+          (batch.trading_date === dailySessionDate ||
+            getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
+      )
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
+    null;
+  const latestRecommendationBatchForDiagnostics =
+    currentRecommendationBatch.recommendation_count > 0 ||
+    latestSuccessfulStoredRecommendationBatch === null
+      ? currentRecommendationBatch
+      : latestSuccessfulStoredRecommendationBatch;
   const recommendationBatchesForDiagnostics = Array.from(
     new Map(
-      [currentRecommendationBatch, ...storedRecommendationBatches].map((batch) => [
-        batch.batch_fingerprint,
-        batch,
-      ]),
+      [
+        latestRecommendationBatchForDiagnostics,
+        currentRecommendationBatch,
+        ...liveStoredRecommendationBatches,
+      ].map((batch) => [batch.batch_fingerprint, batch]),
     ).values(),
   );
   const recommendationBatchMemorySummary = buildRecommendationBatchSummary({
     batches: recommendationBatchesForDiagnostics,
     tradingDate: dailySessionDate,
-    latestBatch: currentRecommendationBatch,
+    latestBatch: latestRecommendationBatchForDiagnostics,
     persistenceStatus: recommendationBatchDiagnostics.persistenceStatus,
     persistenceMode: recommendationBatchDiagnostics.persistenceMode,
     duplicateSkippedCount: recommendationBatchDiagnostics.duplicateSkippedCount,
@@ -9877,7 +10157,7 @@ export function TradeApp() {
   );
   const recommendationScanRunsForDiagnostics = Array.from(
     new Map(
-      [currentRecommendationScanRun, ...storedRecommendationScanRuns].map(
+      [currentRecommendationScanRun, ...liveStoredRecommendationScanRuns].map(
         (scanRun) => [scanRun.run_fingerprint, scanRun],
       ),
     ).values(),
@@ -9891,7 +10171,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationScanRuns.length > 0 ? "mixed" : "current_visible",
+        liveStoredRecommendationScanRuns.length > 0 ? "mixed" : "current_visible",
     });
   const recommendationScanRunHistorySummaryJsonText =
     recommendationScanRunHistorySummaryJson(recommendationScanRunHistorySummary);
@@ -9911,10 +10191,15 @@ export function TradeApp() {
   );
   const recommendationPerformanceSnapshots = Array.from(
     new Map(
-      [...storedRecommendationSnapshots, ...visibleRecommendationSnapshots].map(
+      [...liveStoredRecommendationSnapshots, ...visibleRecommendationSnapshots].map(
         (snapshot) => [snapshot.snapshot_fingerprint, snapshot],
       ),
     ).values(),
+  ).filter(isLiveRecommendationSnapshot);
+  const liveRecommendationPerformanceSnapshotFingerprints = new Set(
+    recommendationPerformanceSnapshots.map(
+      (snapshot) => snapshot.snapshot_fingerprint,
+    ),
   );
   const recommendationPerformanceOutcomes = Array.from(
     new Map(
@@ -9922,6 +10207,9 @@ export function TradeApp() {
         (outcome) => [`${outcome.snapshot_fingerprint}:${outcome.horizon}`, outcome],
       ),
     ).values(),
+  ).filter((outcome) =>
+    outcome.snapshot_fingerprint !== null &&
+    liveRecommendationPerformanceSnapshotFingerprints.has(outcome.snapshot_fingerprint),
   );
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
@@ -9930,7 +10218,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -9944,7 +10232,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -9959,8 +10247,8 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationBatches.length > 0 ||
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationBatches.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -9999,7 +10287,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -10015,7 +10303,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -10034,7 +10322,7 @@ export function TradeApp() {
       range: selectedStatisticsRange,
       now: currentTime,
       source_scope:
-        storedRecommendationSnapshots.length > 0 ||
+        liveStoredRecommendationSnapshots.length > 0 ||
         storedRecommendationOutcomes.length > 0
           ? "mixed"
           : "current_visible",
@@ -10117,7 +10405,8 @@ export function TradeApp() {
   });
   const providerBudgetGuardSummaryJsonText =
     providerBudgetGuardSummaryJson(providerBudgetGuardSummary);
-  const latestActiveAutomationScan = scanLogs.find(isActiveAutomationScanLog) ?? null;
+  const latestActiveAutomationScan =
+    latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
     scanLogs.find((scanLog) => isSkippedScanResult(scanLog.result)) ?? null;
   const liveMarketTrialReadinessSummary =
@@ -10191,9 +10480,9 @@ export function TradeApp() {
       market_status: marketStatus,
       local_state: liveMarketTrialRunbookState,
       persistence_counts: {
-        scan_runs: storedRecommendationScanRuns.length,
-        batches: storedRecommendationBatches.length,
-        snapshots: storedRecommendationSnapshots.length,
+        scan_runs: liveStoredRecommendationScanRuns.length,
+        batches: liveStoredRecommendationBatches.length,
+        snapshots: liveStoredRecommendationSnapshots.length,
         outcomes: storedRecommendationOutcomes.length,
       },
       risk_controls: {
@@ -10222,6 +10511,10 @@ export function TradeApp() {
       dynamic_movers: dynamicMarketMoversSummary,
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
+      scan_readback: {
+        latest_successful_scan: latestSuccessfulReadbackScan,
+        latest_attempted_scan: latestAttemptedReadbackScan,
+      },
       scanner_output_qa: scannerOutputQaSummary,
       real_output_readiness: realRecommendationOutputReadinessSummary,
       batch_memory: recommendationBatchMemorySummary,
@@ -10230,9 +10523,9 @@ export function TradeApp() {
       day_window_target: dayTradeWindowRecommendationTargetSummary,
       performance: recommendationPerformanceStatistics,
       persistence_counts: {
-        scan_runs: storedRecommendationScanRuns.length,
-        batches: storedRecommendationBatches.length,
-        snapshots: storedRecommendationSnapshots.length,
+        scan_runs: liveStoredRecommendationScanRuns.length,
+        batches: liveStoredRecommendationBatches.length,
+        snapshots: liveStoredRecommendationSnapshots.length,
         outcomes: storedRecommendationOutcomes.length,
       },
       now: currentTime,
@@ -10274,7 +10567,8 @@ export function TradeApp() {
     sort: recommendationHistorySort,
     now: currentTime,
     source_scope:
-      storedRecommendationSnapshots.length > 0 || storedRecommendationOutcomes.length > 0
+      liveStoredRecommendationSnapshots.length > 0 ||
+      storedRecommendationOutcomes.length > 0
         ? "mixed"
         : "current_visible",
   });
@@ -10546,7 +10840,20 @@ export function TradeApp() {
       const lastSnapshotTimestamp =
         pendingSnapshots[pendingSnapshots.length - 1]?.created_at ?? null;
 
-      setStoredRecommendationSnapshots(storedSnapshots);
+      setStoredRecommendationSnapshots((current) => {
+        if (lastResult?.mode === "localStorage") {
+          return storedSnapshots;
+        }
+
+        return Array.from(
+          new Map(
+            [...pendingSnapshots, ...current, ...storedSnapshots].map((snapshot) => [
+              snapshot.snapshot_fingerprint,
+              snapshot,
+            ]),
+          ).values(),
+        );
+      });
       setRecommendationSnapshotDiagnostics((current) => ({
         snapshotsStoredToday: Math.max(
           localSnapshotsStoredToday,

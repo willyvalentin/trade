@@ -88,6 +88,24 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers?: DynamicMarketMoversSummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
+  scan_readback?: {
+    latest_successful_scan?: {
+      result?: string | null;
+      created_at?: string | null;
+      scan_window?: string | null;
+      visible_recommendation_count?: number | null;
+      message?: string | null;
+      source?: string | null;
+    } | null;
+    latest_attempted_scan?: {
+      result?: string | null;
+      created_at?: string | null;
+      scan_window?: string | null;
+      visible_recommendation_count?: number | null;
+      message?: string | null;
+      source?: string | null;
+    } | null;
+  } | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
   batch_memory: RecommendationBatchSummary;
@@ -309,6 +327,9 @@ function suggestedNextAction(
 
 function buildWarnings(input: MarketDiagnosticsConsoleInput) {
   const closedMarketWaitState = isClosedMarketWaitState(input);
+  const hasSuccessfulLiveReadback =
+    (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+      0) > 0;
   const blockers = dedupeWarnings([
     ...input.live_market_trial_readiness.blockers
       .filter((item) =>
@@ -327,7 +348,7 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
     ...input.live_market_trial_runbook.blockers.map((item) =>
       warning(`runbook:${item.warning_id}`, "critical", "runbook", item.message),
     ),
-    ...(closedMarketWaitState
+    ...(closedMarketWaitState || hasSuccessfulLiveReadback
       ? []
       : input.real_output_readiness.blockers.map((item) =>
           warning(
@@ -338,7 +359,8 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
           ),
         )),
     ...(input.scanner_output_qa.overall_status === "blocked" &&
-    !closedMarketWaitState
+    !closedMarketWaitState &&
+    !hasSuccessfulLiveReadback
       ? [
           warning(
             "scanner_qa:blocked",
@@ -438,8 +460,10 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
           ),
         ]
       : []),
-    ...input.real_output_readiness.blockers.map((item) =>
-      closedMarketWaitState
+    ...(hasSuccessfulLiveReadback
+      ? []
+      : input.real_output_readiness.blockers.map((item) =>
+        closedMarketWaitState
         ? warning(
             `real_output:${item.blocker_id}`,
             "warning",
@@ -454,7 +478,7 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
             "real_output",
             item.message,
           ),
-    ),
+      )),
     ...input.real_output_readiness.warnings.map((item) =>
       warning(`real_output:${item.warning_id}`, "warning", "real_output", item.message),
     ),
@@ -500,16 +524,57 @@ function buildSections(
 ): MarketDiagnosticsConsoleSection[] {
   const latestBatch = input.batch_memory.latest_batch;
   const closedMarketWaitState = isClosedMarketWaitState(input);
+  const hasSuccessfulLiveReadback =
+    (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+      0) > 0;
   const scannerQaLabel =
-    closedMarketWaitState && input.scanner_output_qa.overall_status === "blocked"
-      ? "not applicable while market closed"
-      : words(input.scanner_output_qa.overall_status);
+    hasSuccessfulLiveReadback &&
+    input.scanner_output_qa.overall_status === "blocked"
+      ? "observed through successful live batch"
+      : closedMarketWaitState && input.scanner_output_qa.overall_status === "blocked"
+        ? "not applicable while market closed"
+        : words(input.scanner_output_qa.overall_status);
+  const traceRankingLabel =
+    input.active_scan_trace?.ranking.ranking_attempted &&
+    input.active_scan_trace.ranking.ranked_count > 0
+      ? `${input.active_scan_trace.ranking.ranked_count} ranked / ${input.active_scan_trace.ranking.selected_count} selected`
+      : null;
   const rankingLabel =
-    closedMarketWaitState && input.scanner_ranking === null
+    closedMarketWaitState && input.scanner_output_qa.overall_status === "blocked"
       ? "not observed (expected while market closed)"
       : input.scanner_ranking
         ? `${words(input.scanner_ranking.target_status)} / ${input.scanner_ranking.selected_count} selected`
-        : "not observed";
+        : traceRankingLabel ??
+          (hasSuccessfulLiveReadback
+            ? "observed through successful live batch"
+            : "not observed");
+  const latestSuccessfulScan = input.scan_readback?.latest_successful_scan ?? null;
+  const latestAttemptedScan = input.scan_readback?.latest_attempted_scan ?? null;
+  const successfulScanLabel = latestSuccessfulScan
+    ? `${compact(latestSuccessfulScan.result, "unknown")} @ ${compact(
+        latestSuccessfulScan.created_at,
+        "unknown",
+      )}`
+    : "not observed";
+  const attemptedScanLabel = latestAttemptedScan
+    ? `${compact(latestAttemptedScan.result, "unknown")} @ ${compact(
+        latestAttemptedScan.created_at,
+        "unknown",
+      )}`
+    : "not observed";
+  const attemptedAfterSuccessCopy =
+    latestSuccessfulScan &&
+    latestAttemptedScan &&
+    latestAttemptedScan.created_at !== latestSuccessfulScan.created_at &&
+    latestAttemptedScan.result === "recommendation_limit_reached"
+      ? "Recommendation limit reached after successful batch."
+      : latestSuccessfulScan &&
+          latestAttemptedScan &&
+          latestAttemptedScan.created_at !== latestSuccessfulScan.created_at &&
+          (latestAttemptedScan.result === "skipped" ||
+            latestAttemptedScan.result === "duplicate_ticker_skipped")
+        ? "Official batch already served for this window."
+        : null;
 
   return [
     section({
@@ -687,7 +752,8 @@ function buildSections(
       title: "Active scan trace",
       severity:
         input.active_scan_trace?.final.zero_candidate_reason &&
-        !closedMarketWaitState
+        !closedMarketWaitState &&
+        !hasSuccessfulLiveReadback
           ? "warning"
           : "info",
       lines: input.active_scan_trace
@@ -950,6 +1016,45 @@ function buildSections(
           input.active_scan_trace?.final.publishable_threshold ?? null,
         deterministic_fallback_used:
           input.active_scan_trace?.final.deterministic_fallback_used ?? null,
+      },
+    }),
+    section({
+      section_id: "live_recommendation_readback",
+      title: "Live recommendation readback",
+      severity:
+        latestSuccessfulScan?.visible_recommendation_count &&
+        latestSuccessfulScan.visible_recommendation_count > 0
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue("Latest successful scan", successfulScanLabel),
+        lineValue("Latest attempted scan", attemptedScanLabel),
+        lineValue(
+          "Successful visible count",
+          latestSuccessfulScan?.visible_recommendation_count ?? 0,
+        ),
+        lineValue(
+          "Attempted visible count",
+          latestAttemptedScan?.visible_recommendation_count ?? 0,
+        ),
+        lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
+      ],
+      metrics: {
+        latest_successful_scan_result: latestSuccessfulScan?.result ?? null,
+        latest_successful_scan_created_at:
+          latestSuccessfulScan?.created_at ?? null,
+        latest_successful_scan_window:
+          latestSuccessfulScan?.scan_window ?? null,
+        latest_successful_visible_recommendation_count:
+          latestSuccessfulScan?.visible_recommendation_count ?? null,
+        latest_successful_scan_source: latestSuccessfulScan?.source ?? null,
+        latest_attempted_scan_result: latestAttemptedScan?.result ?? null,
+        latest_attempted_scan_created_at: latestAttemptedScan?.created_at ?? null,
+        latest_attempted_scan_window: latestAttemptedScan?.scan_window ?? null,
+        latest_attempted_visible_recommendation_count:
+          latestAttemptedScan?.visible_recommendation_count ?? null,
+        latest_attempted_scan_source: latestAttemptedScan?.source ?? null,
+        follow_up_status: attemptedAfterSuccessCopy,
       },
     }),
     section({
