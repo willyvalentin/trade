@@ -1631,14 +1631,69 @@ function isMockPosition(position: ActivePosition | ClosedPosition | null | undef
   return reference.includes("mock");
 }
 
-function isStatsTodayEligiblePosition(
+function hasStatsTodayLiveExecutionMetadata(
   position: ActivePosition | ClosedPosition | null | undefined,
 ) {
+  const metadata = position?.executionMetadata;
+
+  if (!metadata) {
+    return false;
+  }
+
+  const source = metadata.trade_planning_snapshot?.demo_or_real_source ?? "unknown";
+
   return (
-    !isDemoPosition(position) &&
-    !isMockPosition(position) &&
-    position?.executionMetadata !== null &&
-    position?.executionMetadata !== undefined
+    metadata.created_from === "add_trade_modal" &&
+    metadata.manual_confirmation_required === true &&
+    metadata.broker_execution_mode === "manual_final_confirmation" &&
+    source === "real"
+  );
+}
+
+type StatsTodayPositionExclusionReason =
+  | "included"
+  | "not_today"
+  | "demo"
+  | "mock"
+  | "missing_execution_metadata"
+  | "non_live_execution_source";
+
+function getStatsTodayPositionExclusionReason(
+  position: ActivePosition | ClosedPosition | null | undefined,
+  tradingDate: string,
+  eventTimestamp: string | null | undefined,
+): StatsTodayPositionExclusionReason {
+  if (getNewYorkDateFromIso(eventTimestamp ?? null) !== tradingDate) {
+    return "not_today";
+  }
+
+  if (isDemoPosition(position)) {
+    return "demo";
+  }
+
+  if (isMockPosition(position)) {
+    return "mock";
+  }
+
+  if (!position?.executionMetadata) {
+    return "missing_execution_metadata";
+  }
+
+  if (!hasStatsTodayLiveExecutionMetadata(position)) {
+    return "non_live_execution_source";
+  }
+
+  return "included";
+}
+
+function isStatsTodayEligiblePosition(
+  position: ActivePosition | ClosedPosition | null | undefined,
+  tradingDate: string,
+  eventTimestamp: string | null | undefined,
+) {
+  return (
+    getStatsTodayPositionExclusionReason(position, tradingDate, eventTimestamp) ===
+    "included"
   );
 }
 
@@ -5564,6 +5619,64 @@ function getBatchTraceFingerprint(batch: RecommendationBatch) {
   return trace?.final?.batch_fingerprint ?? null;
 }
 
+function snapshotPayloadHasFingerprint(
+  snapshot: RecommendationSnapshot,
+  fingerprint: string | null | undefined,
+) {
+  if (!fingerprint) {
+    return false;
+  }
+
+  const payload = snapshot.payload_json;
+
+  if (
+    payload.batch_fingerprint === fingerprint ||
+    payload.recommendation_batch_fingerprint === fingerprint ||
+    payload.scan_run_fingerprint === fingerprint
+  ) {
+    return true;
+  }
+
+  try {
+    return JSON.stringify(payload).includes(fingerprint);
+  } catch {
+    return false;
+  }
+}
+
+function snapshotMatchesOfficialBatch({
+  snapshot,
+  batch,
+  batchSnapshotFingerprints,
+  traceBatchFingerprint,
+  traceScanRunFingerprint,
+}: {
+  snapshot: RecommendationSnapshot;
+  batch: RecommendationBatch | null;
+  batchSnapshotFingerprints: Set<string>;
+  traceBatchFingerprint: string | null;
+  traceScanRunFingerprint: string | null;
+}) {
+  if (
+    batchSnapshotFingerprints.size > 0 &&
+    batchSnapshotFingerprints.has(snapshot.snapshot_fingerprint)
+  ) {
+    return true;
+  }
+
+  const batchScanRunFingerprint = batch?.scan_run_fingerprint ?? null;
+  const batchFingerprint = batch?.batch_fingerprint ?? traceBatchFingerprint;
+  const scanRunFingerprint = traceScanRunFingerprint ?? batchScanRunFingerprint;
+
+  return (
+    (scanRunFingerprint !== null && snapshot.scan_run_id === scanRunFingerprint) ||
+    (batchScanRunFingerprint !== null &&
+      snapshotPayloadHasFingerprint(snapshot, batchScanRunFingerprint)) ||
+    snapshotPayloadHasFingerprint(snapshot, batchFingerprint) ||
+    snapshotPayloadHasFingerprint(snapshot, traceBatchFingerprint)
+  );
+}
+
 function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
   const trace = scanRun.payload_json.active_scan_trace;
 
@@ -9265,6 +9378,11 @@ export function TradeApp() {
     // Daily primary surfaces use the US trading date so closed/open trade slices
     // match the market-session helpers elsewhere in the app.
     marketStatus?.date ?? getNewYorkDateString(currentTime);
+  const dailyScanLogs = scanLogs.filter(
+    (scanLog) => getNewYorkDateFromIso(scanLog.created_at) === dailySessionDate,
+  );
+  const latestSuccessfulDailyScanLog =
+    dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
     storedRecommendationSnapshots.filter(isLiveRecommendationSnapshot);
   const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
@@ -9294,8 +9412,29 @@ export function TradeApp() {
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
+  const latestSuccessfulTraceForBatchResolver =
+    latestSuccessfulDailyScanLog?.active_scan_trace ??
+    latestSuccessfulScanRunTrace ??
+    null;
   const latestSuccessfulTraceBatchFingerprint =
-    latestSuccessfulScanRunTrace?.final.batch_fingerprint ?? null;
+    latestSuccessfulTraceForBatchResolver?.final.batch_fingerprint ?? null;
+  const latestSuccessfulTraceScanRunFingerprint =
+    latestSuccessfulTraceForBatchResolver?.final.scan_run_fingerprint ?? null;
+  const activeTracePublishedCount =
+    latestSuccessfulTraceForBatchResolver?.final.recommendations_published_count ??
+    0;
+  const activeTraceSnapshotCount =
+    latestSuccessfulTraceForBatchResolver?.persistence.snapshots_persisted_count ??
+    0;
+  const activeTraceCreatedCount =
+    latestSuccessfulTraceForBatchResolver?.final.recommendations_created ?? 0;
+  const activeTraceBatchOverrideAllowed =
+    latestSuccessfulTraceForBatchResolver !== null &&
+    latestSuccessfulTraceForBatchResolver.diagnostic_mode !== true &&
+    latestSuccessfulTraceBatchFingerprint !== null &&
+    activeTracePublishedCount > 0 &&
+    (activeTraceSnapshotCount > 0 || activeTraceCreatedCount > 0) &&
+    latestSuccessfulTraceForBatchResolver.final.no_publish_reason === null;
   const traceMatchedRecommendationBatch =
     latestSuccessfulTraceBatchFingerprint === null
       ? null
@@ -9308,13 +9447,106 @@ export function TradeApp() {
     todaysSuccessfulLiveRecommendationBatches.find(
       isScheduledOfficialRecommendationBatch,
     ) ?? null;
+  const traceFallbackRecommendationBatch =
+    activeTraceBatchOverrideAllowed && latestSuccessfulTraceBatchFingerprint
+      ? ({
+          id: latestSuccessfulTraceBatchFingerprint,
+          batch_fingerprint: latestSuccessfulTraceBatchFingerprint,
+          scan_run_id:
+            latestSuccessfulStoredRecommendationScanRun?.id ??
+            latestSuccessfulTraceForBatchResolver?.trace_id ??
+            latestSuccessfulTraceBatchFingerprint,
+          scan_run_fingerprint:
+            latestSuccessfulTraceScanRunFingerprint ??
+            latestSuccessfulStoredRecommendationScanRun?.run_fingerprint ??
+            null,
+          trading_date:
+            latestSuccessfulStoredRecommendationScanRun?.trading_date ??
+            dailySessionDate,
+          window: "unknown",
+          batch_type: "official",
+          status: "published",
+          serving_decision: "active_trace_override",
+          freshness_status: "fresh",
+          recommendation_count: activeTracePublishedCount,
+          recommendation_snapshot_ids: [],
+          recommendation_tickers: [],
+          recommendation_snapshot_fingerprints: [],
+          strong_count:
+            latestSuccessfulTraceForBatchResolver?.final.strong_count ?? 0,
+          valid_count:
+            latestSuccessfulTraceForBatchResolver?.final.valid_count ?? 0,
+          experimental_count:
+            latestSuccessfulTraceForBatchResolver?.final.experimental_count ?? 0,
+          rejected_count: 0,
+          incomplete_count: 0,
+          unknown_tier_count: 0,
+          target_status: "unknown",
+          gap_to_target: null,
+          overflow_above_target: null,
+          observed_at:
+            latestSuccessfulStoredRecommendationScanRun?.observed_at ??
+            latestSuccessfulTraceForBatchResolver?.generated_at ??
+            new Date().toISOString(),
+          published_at:
+            latestSuccessfulStoredRecommendationScanRun?.completed_at ??
+            latestSuccessfulTraceForBatchResolver?.generated_at ??
+            null,
+          served_at:
+            latestSuccessfulStoredRecommendationScanRun?.completed_at ??
+            latestSuccessfulTraceForBatchResolver?.generated_at ??
+            null,
+          expires_at: null,
+          market_session_phase:
+            latestSuccessfulStoredRecommendationScanRun?.market_session_phase ??
+            latestSuccessfulTraceForBatchResolver?.market_session ??
+            null,
+          source_mode: "supabase",
+          data_mode: "supabase_record",
+          warnings: [
+            {
+              warning_id: "current_batch_selected_from_active_successful_trace",
+              severity: "info",
+              message:
+                "Current batch selected from active successful scan trace.",
+            },
+          ],
+          gaps: [],
+          payload_json: {
+            automation_source: "scheduled",
+            active_scan_trace: latestSuccessfulTraceForBatchResolver,
+            current_batch_override_reason:
+              "active_successful_trace_published_batch",
+          },
+          metadata_score: 0,
+          created_at:
+            latestSuccessfulStoredRecommendationScanRun?.created_at ??
+            latestSuccessfulTraceForBatchResolver?.generated_at ??
+            new Date().toISOString(),
+          updated_at:
+            latestSuccessfulStoredRecommendationScanRun?.updated_at ??
+            latestSuccessfulTraceForBatchResolver?.generated_at ??
+            new Date().toISOString(),
+        } satisfies RecommendationBatch)
+      : null;
   const currentOfficialRecommendationBatch =
+    (activeTraceBatchOverrideAllowed
+      ? traceMatchedRecommendationBatch ?? traceFallbackRecommendationBatch
+      : null) ??
     traceMatchedRecommendationBatch ??
     latestScheduledOfficialRecommendationBatch ??
     todaysSuccessfulLiveRecommendationBatches.find(
       (batch) => batch.recommendation_count > 0,
     ) ??
     null;
+  const currentBatchOverrideReason =
+    activeTraceBatchOverrideAllowed &&
+    currentOfficialRecommendationBatch?.batch_fingerprint ===
+      latestSuccessfulTraceBatchFingerprint
+      ? traceMatchedRecommendationBatch
+        ? "active_successful_trace_matched_batch"
+        : "active_successful_trace_batch_fingerprint"
+      : null;
   const previousSuccessfulBatchFingerprint =
     latestScheduledOfficialRecommendationBatch &&
     currentOfficialRecommendationBatch &&
@@ -9330,12 +9562,14 @@ export function TradeApp() {
     getBatchTraceFingerprint(currentOfficialRecommendationBatch) !==
       latestSuccessfulTraceBatchFingerprint;
   const currentBatchSource =
-    traceMatchedRecommendationBatch !== null ||
-    currentOfficialRecommendationBatch !== null
-      ? "recommendation_batches"
-      : latestSuccessfulStoredRecommendationScanRun
-        ? "scan_run_payload"
-        : "snapshots_fallback";
+    currentBatchOverrideReason !== null
+      ? "active_scan_trace"
+      : traceMatchedRecommendationBatch !== null ||
+          currentOfficialRecommendationBatch !== null
+        ? "recommendation_batches"
+        : latestSuccessfulStoredRecommendationScanRun
+          ? "scan_run_payload"
+          : "snapshots_fallback";
   const latestSuccessfulStoredRecommendationBatch =
     currentOfficialRecommendationBatch;
   const latestOfficialBatchSnapshotSet = new Set(
@@ -9344,8 +9578,14 @@ export function TradeApp() {
   );
   const latestOfficialBatchSnapshots = liveStoredRecommendationSnapshots.filter(
     (snapshot) =>
-      latestOfficialBatchSnapshotSet.size > 0 &&
-      latestOfficialBatchSnapshotSet.has(snapshot.snapshot_fingerprint),
+      getNewYorkDateFromIso(snapshot.app_timestamp) === dailySessionDate &&
+      snapshotMatchesOfficialBatch({
+        snapshot,
+        batch: latestSuccessfulStoredRecommendationBatch,
+        batchSnapshotFingerprints: latestOfficialBatchSnapshotSet,
+        traceBatchFingerprint: latestSuccessfulTraceBatchFingerprint,
+        traceScanRunFingerprint: latestSuccessfulTraceScanRunFingerprint,
+      }),
   );
   const currentBatchSnapshotCount = latestOfficialBatchSnapshots.length;
   const currentBatchTickersFromBatch = new Set(
@@ -9462,10 +9702,19 @@ export function TradeApp() {
   ).sort();
   const currentBatchRecommendationCount = Math.max(
     latestSuccessfulStoredRecommendationBatch?.recommendation_count ?? 0,
+    activeTracePublishedCount,
+    activeTraceCreatedCount,
     latestOfficialBatchExpectedIds.length,
     latestOfficialBatchExpectedTickers.length,
     currentBatchSnapshotCount,
   );
+  const currentBatchSnapshotMembers = Array.from(
+    new Set(
+      latestOfficialBatchSnapshots
+        .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ),
+  ).sort();
   const expectedLatestLiveRecommendationRows = recommendations.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
@@ -9495,6 +9744,9 @@ export function TradeApp() {
       .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
       .filter((ticker): ticker is string => ticker !== null),
   );
+  const currentBatchRecommendationRows = Array.from(
+    latestOfficialBatchRowFoundTickers,
+  ).sort();
   const missingLatestOfficialBatchMemberIds =
     latestOfficialBatchExpectedIds.filter(
       (id) => !latestOfficialBatchRowFoundIds.has(id),
@@ -9564,6 +9816,34 @@ export function TradeApp() {
       ]),
     ),
   });
+  const currentBatchMismatchReasons = [
+    activeTraceBatchOverrideAllowed &&
+    currentOfficialRecommendationBatch?.batch_fingerprint !==
+      latestSuccessfulTraceBatchFingerprint
+      ? "active_trace_batch_not_selected"
+      : null,
+    activeTraceSnapshotCount > 0 &&
+    currentBatchSnapshotCount !== activeTraceSnapshotCount
+      ? `snapshot_count_${currentBatchSnapshotCount}_of_${activeTraceSnapshotCount}`
+      : null,
+    activeTracePublishedCount > 0 &&
+    dailyRecommendations.length !== activeTracePublishedCount
+      ? `grid_count_${dailyRecommendations.length}_of_${activeTracePublishedCount}`
+      : null,
+    currentBatchSnapshotCount > latestOfficialBatchRowsFound.length
+      ? `recommendation_rows_${latestOfficialBatchRowsFound.length}_of_${currentBatchSnapshotCount}`
+      : null,
+    missingLatestOfficialBatchMemberTickers.length > 0
+      ? `missing_row_tickers_${missingLatestOfficialBatchMemberTickers.join("_")}`
+      : null,
+    Object.keys(hiddenLatestLiveRecommendationReasonsById).length > 0
+      ? "hidden_primary_members"
+      : null,
+  ].filter((reason): reason is string => reason !== null);
+  const currentBatchMismatchReason =
+    currentBatchMismatchReasons.length > 0
+      ? currentBatchMismatchReasons.join("; ")
+      : null;
   const demoRecommendationCount = recommendations.filter(isDemoRecommendation).length;
   const demoActivePositionCount = activePositions.filter(isDemoPosition).length;
   const demoClosedPositionCount = closedPositions.filter(isDemoPosition).length;
@@ -9821,20 +10101,60 @@ export function TradeApp() {
     closedPositions.map((position) => [position.id, position]),
   );
   const dailyClosedPositions = closedPositions.filter(
-    (position) =>
-      isStatsTodayEligiblePosition(position) &&
-      getNewYorkDateFromIso(position.closedAtRaw) === dailySessionDate,
+    (position) => isStatsTodayEligiblePosition(
+      position,
+      dailySessionDate,
+      position.closedAtRaw,
+    ),
   );
   const dailyActivePositionsOpenedToday = activePositions.filter(
-    (position) =>
-      isStatsTodayEligiblePosition(position) &&
-      getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
+    (position) => isStatsTodayEligiblePosition(
+      position,
+      dailySessionDate,
+      position.openedAtRaw,
+    ),
   );
   const dailyClosedPositionsOpenedToday = closedPositions.filter(
-    (position) =>
-      isStatsTodayEligiblePosition(position) &&
-      getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
+    (position) => isStatsTodayEligiblePosition(
+      position,
+      dailySessionDate,
+      position.openedAtRaw,
+    ),
   );
+  const statsTodayClosedExclusionReasons = closedPositions.map((position) =>
+    getStatsTodayPositionExclusionReason(
+      position,
+      dailySessionDate,
+      position.closedAtRaw,
+    ),
+  );
+  const statsTodayOpenExclusionReasons = activePositions.map((position) =>
+    getStatsTodayPositionExclusionReason(
+      position,
+      dailySessionDate,
+      position.openedAtRaw,
+    ),
+  );
+  const statsTodayAllExclusionReasons = [
+    ...statsTodayClosedExclusionReasons,
+    ...statsTodayOpenExclusionReasons,
+  ];
+  const countStatsTodayExclusions = (
+    reason: Exclude<StatsTodayPositionExclusionReason, "included">,
+  ) => statsTodayAllExclusionReasons.filter((item) => item === reason).length;
+  const statsTodayDiagnostics = {
+    positions_considered: closedPositions.length + activePositions.length,
+    positions_excluded_demo: countStatsTodayExclusions("demo"),
+    positions_excluded_mock: countStatsTodayExclusions("mock"),
+    positions_excluded_not_today: countStatsTodayExclusions("not_today"),
+    positions_excluded_missing_execution: countStatsTodayExclusions(
+      "missing_execution_metadata",
+    ),
+    positions_excluded_non_live_execution: countStatsTodayExclusions(
+      "non_live_execution_source",
+    ),
+    closed_count_source: "current_day_real_add_trade_manual_confirmed",
+  };
   const dailySessionRecommendations = recommendations.filter(
     (recommendation) =>
       getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate,
@@ -9845,9 +10165,6 @@ export function TradeApp() {
       getNewYorkDateFromIso(
         recommendation.discardedAtRaw ?? recommendation.createdAtRaw,
       ) === dailySessionDate,
-  );
-  const dailyScanLogs = scanLogs.filter(
-    (scanLog) => getNewYorkDateFromIso(scanLog.created_at) === dailySessionDate,
   );
   const recommendationsLastUpdatedAt = getLatestIsoTimestamp([
     ...dailyRecommendations.map((recommendation) => recommendation.createdAtRaw),
@@ -10353,8 +10670,6 @@ export function TradeApp() {
       result,
     ]),
   );
-  const latestSuccessfulDailyScanLog =
-    dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const latestScheduledScanLogForVisibleReadback =
     latestSuccessfulDailyScanLog ?? dailyScanLogs[0] ?? null;
   const latestScheduledScanRunId =
@@ -11216,6 +11531,13 @@ export function TradeApp() {
         current_batch_snapshot_count: currentBatchSnapshotCount,
         current_batch_visible_grid_count: dailyRecommendations.length,
         current_batch_tickers: latestSuccessfulLiveRecommendationTickerList,
+        current_batch_override_reason: currentBatchOverrideReason,
+        active_trace_batch_fingerprint: latestSuccessfulTraceBatchFingerprint,
+        active_trace_published_count: activeTracePublishedCount,
+        active_trace_snapshot_count: activeTraceSnapshotCount,
+        current_batch_snapshot_members: currentBatchSnapshotMembers,
+        current_batch_recommendation_rows: currentBatchRecommendationRows,
+        current_batch_mismatch_reason: currentBatchMismatchReason,
         previous_successful_batch_fingerprint: previousSuccessfulBatchFingerprint,
         stale_trace_batch_mismatch: staleTraceBatchMismatch,
         latest_official_batch_fingerprint:
@@ -11249,6 +11571,22 @@ export function TradeApp() {
         hidden_reason_breakdown: latestLiveHiddenReasonBreakdown,
         latest_successful_scan: latestSuccessfulReadbackScan,
         latest_attempted_scan: latestAttemptedReadbackScan,
+      },
+      stats_today_readback: {
+        stats_today_positions_considered:
+          statsTodayDiagnostics.positions_considered,
+        stats_today_positions_excluded_demo:
+          statsTodayDiagnostics.positions_excluded_demo,
+        stats_today_positions_excluded_mock:
+          statsTodayDiagnostics.positions_excluded_mock,
+        stats_today_positions_excluded_not_today:
+          statsTodayDiagnostics.positions_excluded_not_today,
+        stats_today_positions_excluded_missing_execution:
+          statsTodayDiagnostics.positions_excluded_missing_execution,
+        stats_today_positions_excluded_non_live_execution:
+          statsTodayDiagnostics.positions_excluded_non_live_execution,
+        stats_today_closed_count_source:
+          statsTodayDiagnostics.closed_count_source,
       },
       scanner_output_qa: scannerOutputQaSummary,
       real_output_readiness: realRecommendationOutputReadinessSummary,

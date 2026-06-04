@@ -95,6 +95,13 @@ export type MarketDiagnosticsConsoleInput = {
     current_batch_snapshot_count?: number | null;
     current_batch_visible_grid_count?: number | null;
     current_batch_tickers?: string[];
+    current_batch_override_reason?: string | null;
+    active_trace_batch_fingerprint?: string | null;
+    active_trace_published_count?: number | null;
+    active_trace_snapshot_count?: number | null;
+    current_batch_snapshot_members?: string[];
+    current_batch_recommendation_rows?: string[];
+    current_batch_mismatch_reason?: string | null;
     previous_successful_batch_fingerprint?: string | null;
     stale_trace_batch_mismatch?: boolean | null;
     latest_official_batch_fingerprint?: string | null;
@@ -128,6 +135,15 @@ export type MarketDiagnosticsConsoleInput = {
       message?: string | null;
       source?: string | null;
     } | null;
+  } | null;
+  stats_today_readback?: {
+    stats_today_positions_considered?: number | null;
+    stats_today_positions_excluded_demo?: number | null;
+    stats_today_positions_excluded_mock?: number | null;
+    stats_today_positions_excluded_not_today?: number | null;
+    stats_today_positions_excluded_missing_execution?: number | null;
+    stats_today_positions_excluded_non_live_execution?: number | null;
+    stats_today_closed_count_source?: string | null;
   } | null;
   ui_refresh?: {
     active_tab?: string | null;
@@ -1125,6 +1141,32 @@ function buildSections(
           (input.scan_readback?.current_batch_tickers ?? []).join(", ") || "none",
         ),
         lineValue(
+          "Override reason",
+          compact(input.scan_readback?.current_batch_override_reason, "none"),
+        ),
+        lineValue(
+          "Active trace batch",
+          compact(input.scan_readback?.active_trace_batch_fingerprint, "none"),
+        ),
+        lineValue(
+          "Active trace published/snapshots",
+          `${input.scan_readback?.active_trace_published_count ?? 0}/${input.scan_readback?.active_trace_snapshot_count ?? 0}`,
+        ),
+        lineValue(
+          "Snapshot members",
+          (input.scan_readback?.current_batch_snapshot_members ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
+          "Recommendation rows",
+          (input.scan_readback?.current_batch_recommendation_rows ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
+          "Mismatch reason",
+          compact(input.scan_readback?.current_batch_mismatch_reason, "none"),
+        ),
+        lineValue(
           "Previous successful batch",
           compact(
             input.scan_readback?.previous_successful_batch_fingerprint,
@@ -1202,6 +1244,20 @@ function buildSections(
           input.scan_readback?.current_batch_visible_grid_count ?? null,
         current_batch_tickers:
           (input.scan_readback?.current_batch_tickers ?? []).join(","),
+        current_batch_override_reason:
+          input.scan_readback?.current_batch_override_reason ?? null,
+        active_trace_batch_fingerprint:
+          input.scan_readback?.active_trace_batch_fingerprint ?? null,
+        active_trace_published_count:
+          input.scan_readback?.active_trace_published_count ?? null,
+        active_trace_snapshot_count:
+          input.scan_readback?.active_trace_snapshot_count ?? null,
+        current_batch_snapshot_members:
+          (input.scan_readback?.current_batch_snapshot_members ?? []).join(","),
+        current_batch_recommendation_rows:
+          (input.scan_readback?.current_batch_recommendation_rows ?? []).join(","),
+        current_batch_mismatch_reason:
+          input.scan_readback?.current_batch_mismatch_reason ?? null,
         previous_successful_batch_fingerprint:
           input.scan_readback?.previous_successful_batch_fingerprint ?? null,
         stale_trace_batch_mismatch:
@@ -1474,6 +1530,61 @@ function buildSections(
           input.provider_budget_guard.totals.estimated_calls_per_day,
         latest_limit_signal:
           input.provider_budget_guard.latest_limit_signal.status,
+      },
+    }),
+    section({
+      section_id: "stats_today_readback",
+      title: "Stats Today readback",
+      severity: "info",
+      lines: [
+        lineValue(
+          "Positions considered",
+          input.stats_today_readback?.stats_today_positions_considered ?? 0,
+        ),
+        lineValue(
+          "Excluded demo/mock",
+          `${input.stats_today_readback?.stats_today_positions_excluded_demo ?? 0}/${input.stats_today_readback?.stats_today_positions_excluded_mock ?? 0}`,
+        ),
+        lineValue(
+          "Excluded not today",
+          input.stats_today_readback?.stats_today_positions_excluded_not_today ?? 0,
+        ),
+        lineValue(
+          "Excluded missing execution",
+          input.stats_today_readback
+            ?.stats_today_positions_excluded_missing_execution ?? 0,
+        ),
+        lineValue(
+          "Excluded non-live execution",
+          input.stats_today_readback
+            ?.stats_today_positions_excluded_non_live_execution ?? 0,
+        ),
+        lineValue(
+          "Closed count source",
+          compact(
+            input.stats_today_readback?.stats_today_closed_count_source,
+            "unknown",
+          ),
+        ),
+      ],
+      metrics: {
+        stats_today_positions_considered:
+          input.stats_today_readback?.stats_today_positions_considered ?? null,
+        stats_today_positions_excluded_demo:
+          input.stats_today_readback?.stats_today_positions_excluded_demo ?? null,
+        stats_today_positions_excluded_mock:
+          input.stats_today_readback?.stats_today_positions_excluded_mock ?? null,
+        stats_today_positions_excluded_not_today:
+          input.stats_today_readback?.stats_today_positions_excluded_not_today ??
+          null,
+        stats_today_positions_excluded_missing_execution:
+          input.stats_today_readback
+            ?.stats_today_positions_excluded_missing_execution ?? null,
+        stats_today_positions_excluded_non_live_execution:
+          input.stats_today_readback
+            ?.stats_today_positions_excluded_non_live_execution ?? null,
+        stats_today_closed_count_source:
+          input.stats_today_readback?.stats_today_closed_count_source ?? null,
       },
     }),
     section({
