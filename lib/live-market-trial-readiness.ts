@@ -488,6 +488,12 @@ export function buildLiveMarketTrialReadinessSummary(
   const now = toDate(input.now) ?? new Date();
   const scannerGeneration = input.scanner_generation ?? null;
   const scannerRanking = input.scanner_ranking ?? null;
+  const latestBatch = input.batch_memory.latest_batch;
+  const successfulLiveBatchObserved =
+    latestBatch !== null &&
+    latestBatch.batch_type === "official" &&
+    (latestBatch.status === "published" || latestBatch.status === "partial") &&
+    latestBatch.recommendation_count > 0;
   const outcomeEvaluation = input.outcome_evaluation ?? null;
   const providerBudgetGuard = input.provider_budget_guard ?? null;
   const latestAutomationScan = input.latest_automation_scan ?? null;
@@ -666,35 +672,41 @@ export function buildLiveMarketTrialReadinessSummary(
       check_id: "candidate_ranking",
       label: "Candidate ranking",
       status:
-        (scannerRanking?.selected_count ?? 0) > 0
+        (scannerRanking?.selected_count ?? 0) > 0 || successfulLiveBatchObserved
           ? "pass"
           : activeWindow
             ? "blocked"
             : "pass",
       source: "scanner",
       message:
-        !activeWindow && scannerRanking === null
-          ? "Candidate ranking is not expected while the market is closed; scanner output will be evaluated during the next active window."
-          : scannerRanking === null
-          ? "Candidate ranking has not been observed in the latest scan yet."
-          : `${scannerRanking.selected_count} candidates selected from ${scannerRanking.candidates_ranked} ranked candidates.`,
+        scannerRanking === null && successfulLiveBatchObserved
+          ? `Candidate ranking is observed through the latest official batch with ${latestBatch.recommendation_count} recommendations.`
+          : !activeWindow && scannerRanking === null
+            ? "Candidate ranking is not expected while the market is closed; scanner output will be evaluated during the next active window."
+            : scannerRanking === null
+              ? "Candidate ranking has not been observed in the latest scan yet."
+              : `${scannerRanking.selected_count} candidates selected from ${scannerRanking.candidates_ranked} ranked candidates.`,
     }),
     check({
       check_id: "scanner_qa",
       label: "Scanner QA",
       status:
-        input.scanner_qa.overall_status === "blocked"
-          ? activeWindow
-            ? "blocked"
-            : "warning"
-          : input.scanner_qa.overall_status === "healthy"
-            ? "pass"
-            : "warning",
+        successfulLiveBatchObserved
+          ? "pass"
+          : input.scanner_qa.overall_status === "blocked"
+            ? activeWindow
+              ? "blocked"
+              : "warning"
+            : input.scanner_qa.overall_status === "healthy"
+              ? "pass"
+              : "warning",
       source: "scanner",
       message:
-        input.scanner_qa.overall_status === "blocked" && !activeWindow
-          ? "No active scanner candidates are expected while market is closed. Scanner output will be evaluated during the next active window."
-          : input.scanner_qa.summary,
+        successfulLiveBatchObserved
+          ? `Scanner output is observed through the latest official live batch with ${latestBatch.recommendation_count} recommendations.`
+          : input.scanner_qa.overall_status === "blocked" && !activeWindow
+            ? "No active scanner candidates are expected while market is closed. Scanner output will be evaluated during the next active window."
+            : input.scanner_qa.summary,
     }),
     check({
       check_id: "dynamic_movers_fallback",

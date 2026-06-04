@@ -5470,6 +5470,41 @@ function getVisibleRecommendationIdsFromScanRun(scanRun: RecommendationScanRun) 
     .filter((id): id is string => id !== null);
 }
 
+function getVisibleRecommendationTickersFromScanRun(scanRun: RecommendationScanRun) {
+  const visibleRecommendations = scanRun.payload_json.visible_recommendations;
+
+  if (!Array.isArray(visibleRecommendations)) {
+    return [];
+  }
+
+  return visibleRecommendations
+    .map((item) => {
+      if (typeof item !== "object" || item === null) return null;
+      const ticker = (item as Record<string, unknown>).ticker;
+      return typeof ticker === "string" && ticker.trim().length > 0
+        ? ticker.trim().toUpperCase()
+        : null;
+    })
+    .filter((ticker): ticker is string => ticker !== null);
+}
+
+function normalizeRecommendationTicker(value: string | null | undefined) {
+  const ticker = value?.trim().toUpperCase() ?? "";
+  return ticker.length > 0 ? ticker : null;
+}
+
+function visibilityReasonCounts(reasonsById: Record<string, string[]>) {
+  const counts: Record<string, number> = {};
+
+  for (const reasons of Object.values(reasonsById)) {
+    for (const reason of reasons) {
+      counts[reason] = (counts[reason] ?? 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
 function toAutomationDiagnosticEntry(
   scanLog: ScanLogEntry | null,
 ): LiveMarketTrialAutomationDiagnosticEntry | null {
@@ -8867,6 +8902,16 @@ export function TradeApp() {
   );
   const liveStoredRecommendationBatches =
     storedRecommendationBatches.filter(isLiveRecommendationBatch);
+  const latestSuccessfulStoredRecommendationBatch =
+    [...liveStoredRecommendationBatches]
+      .filter(
+        (batch) =>
+          isSuccessfulLiveRecommendationBatch(batch) &&
+          (batch.trading_date === dailySessionDate ||
+            getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
+      )
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
+    null;
   const latestSuccessfulStoredRecommendationScanRun =
     [...liveStoredRecommendationScanRuns]
       .filter(
@@ -8878,21 +8923,158 @@ export function TradeApp() {
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
   const latestSuccessfulLiveRecommendationIds = new Set(
-    latestSuccessfulStoredRecommendationScanRun
-      ? getVisibleRecommendationIdsFromScanRun(
-          latestSuccessfulStoredRecommendationScanRun,
-        )
-      : [],
+    [
+      ...(latestSuccessfulStoredRecommendationScanRun
+        ? getVisibleRecommendationIdsFromScanRun(
+            latestSuccessfulStoredRecommendationScanRun,
+          )
+        : []),
+      ...liveStoredRecommendationSnapshots
+        .filter((snapshot) => {
+          if (latestSuccessfulStoredRecommendationBatch) {
+            return latestSuccessfulStoredRecommendationBatch.recommendation_snapshot_fingerprints.includes(
+              snapshot.snapshot_fingerprint,
+            );
+          }
+
+          return latestSuccessfulStoredRecommendationScanRun
+            ? snapshot.scan_run_id ===
+                latestSuccessfulStoredRecommendationScanRun.run_fingerprint
+            : false;
+        })
+        .map((snapshot) => snapshot.recommendation_id)
+        .filter((id): id is string => id !== null),
+    ],
+  );
+  const latestSuccessfulLiveRecommendationTickers = new Set(
+    [
+      ...(latestSuccessfulStoredRecommendationScanRun
+        ? getVisibleRecommendationTickersFromScanRun(
+            latestSuccessfulStoredRecommendationScanRun,
+          )
+        : []),
+      ...(latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? []),
+      ...liveStoredRecommendationSnapshots
+        .filter((snapshot) => {
+          if (latestSuccessfulStoredRecommendationBatch) {
+            return latestSuccessfulStoredRecommendationBatch.recommendation_snapshot_fingerprints.includes(
+              snapshot.snapshot_fingerprint,
+            );
+          }
+
+          return latestSuccessfulStoredRecommendationScanRun
+            ? snapshot.scan_run_id ===
+                latestSuccessfulStoredRecommendationScanRun.run_fingerprint
+            : false;
+        })
+        .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ].map((ticker) => ticker.toUpperCase()),
   );
   const dailyRecommendations = recommendations.filter(
-    (recommendation) =>
-      isPrimaryRecommendationVisible(recommendation) &&
-      !recommendation.archived &&
-      !historyStatuses.includes(recommendation.status) &&
-      (!isRecommendationExpired(toFreshnessInput(recommendation)) ||
-        (latestSuccessfulLiveRecommendationIds.has(recommendation.id) &&
-          getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate)),
+    (recommendation) => {
+      const ticker = normalizeRecommendationTicker(recommendation.ticker);
+      const isLatestSuccessfulLiveRecommendation =
+        getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate &&
+        (latestSuccessfulLiveRecommendationIds.has(recommendation.id) ||
+          (ticker !== null &&
+            latestSuccessfulLiveRecommendationTickers.has(ticker)));
+
+      return (
+        isPrimaryRecommendationVisible(recommendation) &&
+        !recommendation.archived &&
+        !historyStatuses.includes(recommendation.status) &&
+        (!isRecommendationExpired(toFreshnessInput(recommendation)) ||
+          isLatestSuccessfulLiveRecommendation)
+      );
+    },
   );
+  const visiblePrimaryRecommendationIds = new Set(
+    dailyRecommendations.map((recommendation) => recommendation.id),
+  );
+  const visiblePrimaryRecommendationTickers = new Set(
+    dailyRecommendations
+      .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
+      .filter((ticker): ticker is string => ticker !== null),
+  );
+  const latestSuccessfulLiveRecommendationIdList = Array.from(
+    latestSuccessfulLiveRecommendationIds,
+  ).sort();
+  const latestSuccessfulLiveRecommendationTickerList = Array.from(
+    latestSuccessfulLiveRecommendationTickers,
+  ).sort();
+  const expectedLatestLiveRecommendationRows = recommendations.filter(
+    (recommendation) => {
+      const ticker = normalizeRecommendationTicker(recommendation.ticker);
+
+      return (
+        getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate &&
+        (latestSuccessfulLiveRecommendationIds.has(recommendation.id) ||
+          (ticker !== null && latestSuccessfulLiveRecommendationTickers.has(ticker)))
+      );
+    },
+  );
+  const hiddenLatestLiveRecommendationReasonsById = Object.fromEntries(
+    expectedLatestLiveRecommendationRows
+      .filter(
+        (recommendation) => !visiblePrimaryRecommendationIds.has(recommendation.id),
+      )
+      .map((recommendation) => {
+        const reasons: string[] = [];
+
+        if (recommendation.visibleInPrimaryRecommendations === false) {
+          reasons.push("visible_in_primary_recommendations_false");
+        }
+        if (recommendation.diagnosticMode === true) {
+          reasons.push("diagnostic_mode_true");
+        }
+        if (recommendation.notLiveTradeSignal === true) {
+          reasons.push("not_live_trade_signal_true");
+        }
+        if (recommendation.sourceMode === "diagnostic") {
+          reasons.push("source_mode_diagnostic");
+        }
+        if (recommendation.archived) {
+          reasons.push("archived");
+        }
+        if (historyStatuses.includes(recommendation.status)) {
+          reasons.push(`history_status_${recommendation.status}`);
+        }
+        if (isRecommendationExpired(toFreshnessInput(recommendation))) {
+          reasons.push("expired_but_latest_successful_batch_member");
+        }
+
+        return [
+          recommendation.id,
+          reasons.length > 0 ? reasons : ["unknown_visibility_filter"],
+        ];
+      }),
+  );
+  const hiddenLatestLiveRecommendationTickers = expectedLatestLiveRecommendationRows
+    .filter(
+      (recommendation) => !visiblePrimaryRecommendationIds.has(recommendation.id),
+    )
+    .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
+    .filter((ticker): ticker is string => ticker !== null);
+  const missingLatestLiveRecommendationTickers =
+    latestSuccessfulLiveRecommendationTickerList.filter((ticker) => {
+      const hasLoadedRow = recommendations.some(
+        (recommendation) =>
+          getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate &&
+          normalizeRecommendationTicker(recommendation.ticker) === ticker,
+      );
+
+      return !hasLoadedRow;
+    });
+  const latestLiveHiddenReasonBreakdown = visibilityReasonCounts({
+    ...hiddenLatestLiveRecommendationReasonsById,
+    ...Object.fromEntries(
+      missingLatestLiveRecommendationTickers.map((ticker) => [
+        `missing:${ticker}`,
+        ["missing_recommendation_row"],
+      ]),
+    ),
+  });
   const demoRecommendationCount = recommendations.filter(isDemoRecommendation).length;
   const demoActivePositionCount = activePositions.filter(isDemoPosition).length;
   const demoClosedPositionCount = closedPositions.filter(isDemoPosition).length;
@@ -10118,16 +10300,6 @@ export function TradeApp() {
         dayTradeWindowRecommendationTargetSummary.current_window_count.incomplete,
     },
   });
-  const latestSuccessfulStoredRecommendationBatch =
-    [...liveStoredRecommendationBatches]
-      .filter(
-        (batch) =>
-          isSuccessfulLiveRecommendationBatch(batch) &&
-          (batch.trading_date === dailySessionDate ||
-            getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
-      )
-      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
-    null;
   const latestRecommendationBatchForDiagnostics =
     currentRecommendationBatch.recommendation_count > 0 ||
     latestSuccessfulStoredRecommendationBatch === null
@@ -10512,6 +10684,23 @@ export function TradeApp() {
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
       scan_readback: {
+        latest_successful_live_recommendation_ids:
+          latestSuccessfulLiveRecommendationIdList,
+        latest_successful_live_recommendation_tickers:
+          latestSuccessfulLiveRecommendationTickerList,
+        visible_primary_recommendation_ids: Array.from(
+          visiblePrimaryRecommendationIds,
+        ).sort(),
+        visible_primary_recommendation_tickers: Array.from(
+          visiblePrimaryRecommendationTickers,
+        ).sort(),
+        hidden_live_recommendation_ids: Object.keys(
+          hiddenLatestLiveRecommendationReasonsById,
+        ).sort(),
+        hidden_live_recommendation_tickers: Array.from(
+          new Set(hiddenLatestLiveRecommendationTickers),
+        ).sort(),
+        hidden_reason_breakdown: latestLiveHiddenReasonBreakdown,
         latest_successful_scan: latestSuccessfulReadbackScan,
         latest_attempted_scan: latestAttemptedReadbackScan,
       },

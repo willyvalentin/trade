@@ -89,6 +89,13 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   scan_readback?: {
+    latest_successful_live_recommendation_ids?: string[];
+    latest_successful_live_recommendation_tickers?: string[];
+    visible_primary_recommendation_ids?: string[];
+    visible_primary_recommendation_tickers?: string[];
+    hidden_live_recommendation_ids?: string[];
+    hidden_live_recommendation_tickers?: string[];
+    hidden_reason_breakdown?: Record<string, number>;
     latest_successful_scan?: {
       result?: string | null;
       created_at?: string | null;
@@ -333,9 +340,11 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
   const blockers = dedupeWarnings([
     ...input.live_market_trial_readiness.blockers
       .filter((item) =>
-        closedMarketWaitState
-          ? isCoreReadinessSource(item.source)
-          : item.source !== "market_session",
+        hasSuccessfulLiveReadback && item.source === "scanner"
+          ? false
+          : closedMarketWaitState
+            ? isCoreReadinessSource(item.source)
+            : item.source !== "market_session",
       )
       .map((item) =>
         warning(
@@ -573,8 +582,12 @@ function buildSections(
           latestAttemptedScan.created_at !== latestSuccessfulScan.created_at &&
           (latestAttemptedScan.result === "skipped" ||
             latestAttemptedScan.result === "duplicate_ticker_skipped")
-        ? "Official batch already served for this window."
+          ? "Official batch already served for this window."
         : null;
+  const visiblePrimaryIds = input.scan_readback?.visible_primary_recommendation_ids ?? [];
+  const hiddenLiveIds = input.scan_readback?.hidden_live_recommendation_ids ?? [];
+  const hiddenReasonBreakdown =
+    input.scan_readback?.hidden_reason_breakdown ?? {};
 
   return [
     section({
@@ -1037,9 +1050,37 @@ function buildSections(
           "Attempted visible count",
           latestAttemptedScan?.visible_recommendation_count ?? 0,
         ),
+        lineValue("Expected live IDs", (input.scan_readback?.latest_successful_live_recommendation_ids ?? []).join(", ") || "none"),
+        lineValue("Expected live tickers", (input.scan_readback?.latest_successful_live_recommendation_tickers ?? []).join(", ") || "none"),
+        lineValue("Visible primary IDs", visiblePrimaryIds.join(", ") || "none"),
+        lineValue("Hidden live IDs", hiddenLiveIds.join(", ") || "none"),
+        lineValue(
+          "Hidden reasons",
+          Object.keys(hiddenReasonBreakdown).length > 0
+            ? Object.entries(hiddenReasonBreakdown)
+                .map(([reason, countValue]) => `${reason}:${countValue}`)
+                .join(", ")
+            : "none",
+        ),
         lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
       ],
       metrics: {
+        latest_successful_live_recommendation_ids:
+          (input.scan_readback?.latest_successful_live_recommendation_ids ?? [])
+            .join(","),
+        latest_successful_live_recommendation_tickers:
+          (input.scan_readback?.latest_successful_live_recommendation_tickers ?? [])
+            .join(","),
+        visible_primary_recommendation_ids:
+          (input.scan_readback?.visible_primary_recommendation_ids ?? []).join(","),
+        visible_primary_recommendation_tickers:
+          (input.scan_readback?.visible_primary_recommendation_tickers ?? [])
+            .join(","),
+        hidden_live_recommendation_ids:
+          (input.scan_readback?.hidden_live_recommendation_ids ?? []).join(","),
+        hidden_live_recommendation_tickers:
+          (input.scan_readback?.hidden_live_recommendation_tickers ?? []).join(","),
+        hidden_reason_breakdown: JSON.stringify(hiddenReasonBreakdown),
         latest_successful_scan_result: latestSuccessfulScan?.result ?? null,
         latest_successful_scan_created_at:
           latestSuccessfulScan?.created_at ?? null,
