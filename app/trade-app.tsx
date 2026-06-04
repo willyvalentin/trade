@@ -4,12 +4,9 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  getIntradayScanPolicy,
   getIntradayScanWindow,
   getIntradayScanWindowLabel,
-  getLegacySessionTypeForScanWindow,
   getNewYorkDateString,
-  isMarketOpenForIntradayTrading,
   type IntradayScanWindow,
 } from "@/lib/intraday-scan-window";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
@@ -622,6 +619,30 @@ type Tab =
   | "History"
   | "Market";
 
+type RefreshIslandId =
+  | "market_status"
+  | "recommendations"
+  | "live_trades"
+  | "stats_today"
+  | "market_diagnostics"
+  | "history_statistics";
+
+type RefreshIslandState = {
+  isRefreshing: boolean;
+  lastUpdatedAt: string | null;
+  error: string | null;
+  changedItemIds: string[];
+};
+
+type IslandRefreshState = Record<RefreshIslandId, RefreshIslandState>;
+
+type LoadTradeDataOptions = {
+  mode?: "initial" | "background";
+  islands?: RefreshIslandId[];
+  clearMessage?: boolean;
+  source?: "initial" | "manual" | "auto" | "focus" | "action";
+};
+
 type ConfidenceLabel =
   | "HIGH CONVICTION"
   | "GOOD SETUP"
@@ -735,25 +756,6 @@ type PositionUpdateResult = {
   reason?: string;
   warnings?: string[];
   intraday_indicators?: IntradayIndicators | null;
-};
-
-type GenerateRecommendationsResult = {
-  recommendations?: RecommendationRow[];
-  inserted_count?: number;
-  inserted_tickers?: string[];
-  pre_market_candidates?: PreMarketCandidate[];
-  duplicate_fallback_used?: boolean;
-  market_regime?: MarketRegime;
-  market_status?: MarketStatus;
-  scan_window?: IntradayScanWindow;
-  scan_window_label?: string;
-  scan_log?: {
-    result?: string;
-    no_trade_reason?: string | null;
-    openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
-  };
-  message?: string;
-  error?: string;
 };
 
 type MarketStatus = {
@@ -1263,6 +1265,14 @@ type PositionUpdateUrgency = {
 
 const primaryTabs: Tab[] = ["Recommendations", "Live Day Trades", "Stats Today"];
 const secondaryTabs: Tab[] = ["Market", "Statistics", "History"];
+const refreshIslandIds: RefreshIslandId[] = [
+  "market_status",
+  "recommendations",
+  "live_trades",
+  "stats_today",
+  "market_diagnostics",
+  "history_statistics",
+];
 const historyStatuses: RecommendationStatus[] = [
   "ignored",
   "discarded",
@@ -1603,6 +1613,33 @@ function isDemoRecommendation(recommendation: Recommendation | null | undefined)
 
 function isDemoPosition(position: ActivePosition | ClosedPosition | null | undefined) {
   return isDemoId(position?.id) || isDemoId(position?.recommendationId);
+}
+
+function isMockPosition(position: ActivePosition | ClosedPosition | null | undefined) {
+  if (!position) return false;
+
+  const reference = [
+    position.executionMetadata?.broker_reference_note,
+    position.executionMetadata?.broker_exit_confirmation?.broker_reference_note,
+    "exitNotes" in position ? position.exitNotes : null,
+    position.executionMetadata?.trade_planning_snapshot?.demo_or_real_source,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return reference.includes("mock");
+}
+
+function isStatsTodayEligiblePosition(
+  position: ActivePosition | ClosedPosition | null | undefined,
+) {
+  return (
+    !isDemoPosition(position) &&
+    !isMockPosition(position) &&
+    position?.executionMetadata !== null &&
+    position?.executionMetadata !== undefined
+  );
 }
 
 function readDemoList<T>(key: string): T[] {
@@ -3163,6 +3200,84 @@ function getLatestIsoTimestamp(values: Array<string | null | undefined>) {
   return latestTimestamp === null ? null : new Date(latestTimestamp).toISOString();
 }
 
+function createInitialIslandRefreshState(): IslandRefreshState {
+  const state = {} as IslandRefreshState;
+
+  for (const islandId of refreshIslandIds) {
+    state[islandId] = {
+      isRefreshing: false,
+      lastUpdatedAt: null,
+      error: null,
+      changedItemIds: [],
+    };
+  }
+
+  return state;
+}
+
+function refreshIslandsForTab(tab: Tab): RefreshIslandId[] {
+  if (tab === "Recommendations") {
+    return ["market_status", "recommendations"];
+  }
+
+  if (tab === "Live Day Trades") {
+    return ["market_status", "live_trades"];
+  }
+
+  if (tab === "Stats Today") {
+    return ["stats_today"];
+  }
+
+  if (tab === "Statistics") {
+    return ["history_statistics", "stats_today"];
+  }
+
+  if (tab === "History") {
+    return ["history_statistics"];
+  }
+
+  return ["market_status", "market_diagnostics"];
+}
+
+function refreshIntervalForTab({
+  tab,
+  topMarketStatus,
+  liveTradeCount,
+}: {
+  tab: Tab;
+  topMarketStatus: TopMarketStatus;
+  liveTradeCount: number;
+}) {
+  const marketIsOpen = topMarketStatus === "open";
+
+  if (tab === "Live Day Trades") {
+    return liveTradeCount > 0 ? 25 * 1000 : 60 * 1000;
+  }
+
+  if (tab === "Recommendations") {
+    return marketIsOpen ? 45 * 1000 : 2 * 60 * 1000;
+  }
+
+  if (tab === "Stats Today") {
+    return marketIsOpen ? 90 * 1000 : 2 * 60 * 1000;
+  }
+
+  if (tab === "Market") {
+    return marketIsOpen ? 60 * 1000 : 2 * 60 * 1000;
+  }
+
+  return marketIsOpen ? 2 * 60 * 1000 : 5 * 60 * 1000;
+}
+
+function getNewIds(
+  previousIds: Set<string>,
+  nextIds: Array<string | null | undefined>,
+) {
+  return nextIds.filter(
+    (id): id is string => typeof id === "string" && !previousIds.has(id),
+  );
+}
+
 function formatStatusbarUpdatedAt(
   value: string | null | undefined,
   now: Date,
@@ -3170,7 +3285,7 @@ function formatStatusbarUpdatedAt(
   const timestamp = getValidTimestampMs(value);
 
   if (timestamp === null) {
-    return "—";
+    return "Not loaded yet";
   }
 
   const elapsedSeconds = Math.max(
@@ -3178,20 +3293,28 @@ function formatStatusbarUpdatedAt(
     Math.floor((now.getTime() - timestamp) / 1000),
   );
 
+  if (elapsedSeconds < 15) {
+    return "Updated just now";
+  }
+
   if (elapsedSeconds < 60) {
-    return "JUST NOW";
+    return `Updated ${elapsedSeconds}s ago`;
   }
 
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
 
   if (elapsedMinutes < 60) {
-    return elapsedMinutes === 1 ? "1 MINUTE AGO" : `${elapsedMinutes} MINUTES AGO`;
+    return elapsedMinutes === 1
+      ? "Updated 1 minute ago"
+      : `Updated ${elapsedMinutes} minutes ago`;
   }
 
   const elapsedHours = Math.floor(elapsedMinutes / 60);
 
   if (elapsedHours < 24) {
-    return elapsedHours === 1 ? "1 HOUR AGO" : `${elapsedHours} HOURS AGO`;
+    return elapsedHours === 1
+      ? "Updated 1 hour ago"
+      : `Updated ${elapsedHours} hours ago`;
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -5431,6 +5554,16 @@ function isScheduledOfficialRecommendationBatch(batch: RecommendationBatch) {
   );
 }
 
+function getBatchTraceFingerprint(batch: RecommendationBatch) {
+  const trace =
+    typeof batch.payload_json.active_scan_trace === "object" &&
+    batch.payload_json.active_scan_trace !== null
+      ? (batch.payload_json.active_scan_trace as Partial<ActiveScanTrace>)
+      : null;
+
+  return trace?.final?.batch_fingerprint ?? null;
+}
+
 function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
   const trace = scanRun.payload_json.active_scan_trace;
 
@@ -7159,9 +7292,10 @@ export function TradeApp() {
   const [lastAutoRefreshAt, setLastAutoRefreshAt] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [islandRefreshState, setIslandRefreshState] = useState(
+    createInitialIslandRefreshState,
+  );
   const [isSaving, setIsSaving] = useState(false);
-  const [generatingSessionType, setGeneratingSessionType] =
-    useState<SessionType | null>(null);
   const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
   const [lastDemoAction, setLastDemoAction] = useState("No demo action yet.");
@@ -7277,142 +7411,227 @@ export function TradeApp() {
     Record<string, PositionUpdateUrgency["urgency"]>
   >({});
   const isUpdatingPositionsRef = useRef(false);
+  const dataRefreshInFlightRef = useRef(false);
+  const loadTradeDataRef = useRef<
+    (options?: LoadTradeDataOptions) => Promise<void>
+  >(async () => undefined);
+  const refreshCurrentSurfaceRef = useRef<
+    (source?: LoadTradeDataOptions["source"]) => Promise<void>
+  >(async () => undefined);
   const updatePositionsRef = useRef<
     (source?: "manual" | "auto") => Promise<void>
   >(async () => undefined);
 
-  async function loadTradeData() {
+  async function loadTradeData(options: LoadTradeDataOptions = {}) {
     await Promise.resolve();
 
-    setIsLoading(true);
-    setMessage("");
+    const mode = options.mode ?? "initial";
+    const isInitialLoad = mode === "initial";
+    const refreshedIslands = options.islands ?? refreshIslandIds;
+    const refreshStartedAt = new Date().toISOString();
+    const islandErrors: Partial<Record<RefreshIslandId, string>> = {};
+    const changedItemIdsByIsland: Partial<Record<RefreshIslandId, string[]>> = {};
+    const shouldUpdateGlobalMessage =
+      options.clearMessage !== false &&
+      (isInitialLoad || options.source === "manual" || options.source === "action");
+
+    if (!isInitialLoad && dataRefreshInFlightRef.current) {
+      return;
+    }
+
+    dataRefreshInFlightRef.current = true;
+
+    if (isInitialLoad) {
+      setIsLoading(true);
+    }
+
+    if (shouldUpdateGlobalMessage) {
+      setMessage("");
+    }
+
+    setIslandRefreshState((current) => {
+      const next = { ...current };
+
+      for (const islandId of refreshedIslands) {
+        next[islandId] = {
+          ...next[islandId],
+          isRefreshing: true,
+          error: null,
+        };
+      }
+
+      return next;
+    });
+
+    const noteIslandError = (islandId: RefreshIslandId, error: unknown) => {
+      const message =
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message?: unknown }).message ?? "Refresh failed")
+          : String(error || "Refresh failed");
+      islandErrors[islandId] = message;
+
+      if (shouldUpdateGlobalMessage) {
+        setMessage(message);
+      }
+    };
+
+    const previousRecommendationIds = new Set(
+      recommendations.map((recommendation) => recommendation.id),
+    );
+    const previousLiveTradeIds = new Set(
+      activePositions.map((position) => position.id),
+    );
     const demoRecommendations = readDemoRecommendations();
     const hideDevPreviewRecommendations = readDevPreviewRecommendationsHidden();
     const demoActivePositions = readDemoActivePositions();
     const demoClosedPositions = readDemoClosedPositions();
 
-    const [
-      recommendationsResult,
-      userSettingsResult,
-      positionsResult,
-      closedPositionsResult,
-      positionUpdatesResult,
-      scanLogsResult,
-      recommendationScanRunsResult,
-      recommendationBatchesResult,
-      recommendationSnapshotsResult,
-      marketRegimeResult,
-      marketStatusResult,
-    ] =
-      await Promise.all([
-        supabase.from("recommendations").select("*"),
-        supabase
-          .from("user_settings")
-          .select("portfolio_size, risk_per_trade_percent")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from("positions")
-          .select("*, recommendations(setup_type,invalidation)")
-          .eq("status", "open"),
-        supabase
-          .from("positions")
-          .select("*, recommendations(setup_type)")
-          .eq("status", "closed")
-          .order("closed_at", { ascending: false }),
-        supabase
-          .from("position_updates")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("scheduled_scan_runs")
-          .select(
-            "id,created_at,scan_date,session_type,status,recommendations_created,message",
-          )
-          .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("recommendation_scan_runs")
-          .select("*")
-          .order("observed_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("recommendation_batches")
-          .select("*")
-          .order("published_at", { ascending: false, nullsFirst: false })
-          .limit(100),
-        supabase
-          .from("recommendation_snapshots")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(300),
-        supabase
-          .from("market_regime_snapshots")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        fetchMarketStatusForUi(),
-      ]);
+    try {
+      const [
+        recommendationsResult,
+        userSettingsResult,
+        positionsResult,
+        closedPositionsResult,
+        positionUpdatesResult,
+        scanLogsResult,
+        recommendationScanRunsResult,
+        recommendationBatchesResult,
+        recommendationSnapshotsResult,
+        marketRegimeResult,
+        marketStatusResult,
+      ] =
+        await Promise.all([
+          supabase.from("recommendations").select("*"),
+          supabase
+            .from("user_settings")
+            .select("portfolio_size, risk_per_trade_percent")
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from("positions")
+            .select("*, recommendations(setup_type,invalidation)")
+            .eq("status", "open"),
+          supabase
+            .from("positions")
+            .select("*, recommendations(setup_type)")
+            .eq("status", "closed")
+            .order("closed_at", { ascending: false }),
+          supabase
+            .from("position_updates")
+            .select("*")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("scheduled_scan_runs")
+            .select(
+              "id,created_at,scan_date,session_type,status,recommendations_created,message",
+            )
+            .gte(
+              "created_at",
+              new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            )
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("recommendation_scan_runs")
+            .select("*")
+            .order("observed_at", { ascending: false })
+            .limit(100),
+          supabase
+            .from("recommendation_batches")
+            .select("*")
+            .order("published_at", { ascending: false, nullsFirst: false })
+            .limit(100),
+          supabase
+            .from("recommendation_snapshots")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(300),
+          supabase
+            .from("market_regime_snapshots")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          fetchMarketStatusForUi(),
+        ]);
 
-    if (recommendationsResult.error) {
-      setMessage(recommendationsResult.error.message);
-    } else {
-      const loadedRecommendations = (recommendationsResult.data as RecommendationRow[])
-        .map(toRecommendation)
-        .filter(isPrimaryRecommendationVisible);
-      const hasCurrentLoadedRecommendations = loadedRecommendations.some(
-        (recommendation) =>
-          !recommendation.archived &&
-          !historyStatuses.includes(recommendation.status) &&
-          !isRecommendationExpired(toFreshnessInput(recommendation)),
-      );
+      if (recommendationsResult.error) {
+        noteIslandError("recommendations", recommendationsResult.error);
+      } else {
+        const loadedRecommendations = (
+          recommendationsResult.data as RecommendationRow[]
+        )
+          .map(toRecommendation)
+          .filter(isPrimaryRecommendationVisible);
+        const hasCurrentLoadedRecommendations = loadedRecommendations.some(
+          (recommendation) =>
+            !recommendation.archived &&
+            !historyStatuses.includes(recommendation.status) &&
+            !isRecommendationExpired(toFreshnessInput(recommendation)),
+        );
 
-      const baseRecommendations =
-        shouldUseDevPreviewData &&
-        !hideDevPreviewRecommendations &&
-        !hasCurrentLoadedRecommendations
-          ? [...buildDevPreviewRecommendations(), ...loadedRecommendations]
-          : loadedRecommendations;
+        const baseRecommendations =
+          shouldUseDevPreviewData &&
+          !hideDevPreviewRecommendations &&
+          !hasCurrentLoadedRecommendations
+            ? [...buildDevPreviewRecommendations(), ...loadedRecommendations]
+            : loadedRecommendations;
+        const nextRecommendations = [
+          ...demoRecommendations,
+          ...baseRecommendations.filter(
+            (recommendation) => !isDemoRecommendation(recommendation),
+          ),
+        ];
 
-      setRecommendations([
-        ...demoRecommendations,
-        ...baseRecommendations.filter(
-          (recommendation) => !isDemoRecommendation(recommendation),
-        ),
-      ]);
-    }
+        changedItemIdsByIsland.recommendations = getNewIds(
+          previousRecommendationIds,
+          nextRecommendations.map((recommendation) => recommendation.id),
+        );
+        setRecommendations(nextRecommendations);
+      }
 
-    if (userSettingsResult.error) {
-      setMessage(userSettingsResult.error.message);
-      setUserSettings(null);
-    } else {
-      setUserSettings(toUserSettings(userSettingsResult.data as UserSettingsRow | null));
-    }
+      if (userSettingsResult.error) {
+        noteIslandError("stats_today", userSettingsResult.error);
+        noteIslandError("history_statistics", userSettingsResult.error);
+        if (isInitialLoad) {
+          setUserSettings(null);
+        }
+      } else {
+        setUserSettings(
+          toUserSettings(userSettingsResult.data as UserSettingsRow | null),
+        );
+      }
 
-    if (positionsResult.error) {
-      setMessage(positionsResult.error.message);
-    } else {
-      setActivePositions([
-        ...demoActivePositions,
-        ...(positionsResult.data as PositionRow[]).map(toActivePosition),
-      ]);
-    }
+      if (positionsResult.error) {
+        noteIslandError("live_trades", positionsResult.error);
+        noteIslandError("stats_today", positionsResult.error);
+      } else {
+        const nextActivePositions = [
+          ...demoActivePositions,
+          ...(positionsResult.data as PositionRow[]).map(toActivePosition),
+        ];
 
-    if (closedPositionsResult.error) {
-      setMessage(closedPositionsResult.error.message);
-    } else {
-      setClosedPositions([
-        ...demoClosedPositions,
-        ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
-      ]);
-    }
+        changedItemIdsByIsland.live_trades = getNewIds(
+          previousLiveTradeIds,
+          nextActivePositions.map((position) => position.id),
+        );
+        setActivePositions(nextActivePositions);
+      }
 
-    if (positionUpdatesResult.error) {
-      setMessage(positionUpdatesResult.error.message);
-    } else {
+      if (closedPositionsResult.error) {
+        noteIslandError("stats_today", closedPositionsResult.error);
+        noteIslandError("history_statistics", closedPositionsResult.error);
+      } else {
+        setClosedPositions([
+          ...demoClosedPositions,
+          ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
+        ]);
+      }
+
+      if (positionUpdatesResult.error) {
+        noteIslandError("live_trades", positionUpdatesResult.error);
+      } else {
       const updatesByPosition: Record<string, LatestPositionUpdate> = {};
 
       for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
@@ -7425,32 +7644,38 @@ export function TradeApp() {
         updatesByPosition[position.id] = buildDemoLatestPositionUpdate(position);
       }
 
-      setLatestPositionUpdates(updatesByPosition);
-    }
+        setLatestPositionUpdates(updatesByPosition);
+      }
 
-    if (scanLogsResult.error) {
+      if (scanLogsResult.error) {
       console.error("[trade-app] dashboard_data_load_error", {
         source: "supabase.scheduled_scan_runs",
         operation: "select_recent_scan_logs",
         error: normalizeUnknownError(scanLogsResult.error),
       });
-      setScanLogs([]);
-    } else {
+        noteIslandError("market_diagnostics", scanLogsResult.error);
+        if (isInitialLoad) {
+          setScanLogs([]);
+        }
+      } else {
       setScanLogs(
         ((scanLogsResult.data ?? []) as ScheduledScanRunRow[]).map(
           parseScanLogFromMessage,
         ),
       );
-    }
+      }
 
-    if (recommendationScanRunsResult.error) {
+      if (recommendationScanRunsResult.error) {
       console.error("[trade-app] dashboard_data_load_error", {
         source: "supabase.recommendation_scan_runs",
         operation: "select_recent_recommendation_scan_runs",
         error: normalizeUnknownError(recommendationScanRunsResult.error),
       });
-      setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
-    } else {
+        noteIslandError("market_diagnostics", recommendationScanRunsResult.error);
+        if (isInitialLoad) {
+          setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
+        }
+      } else {
       const loadedScanRuns = ((recommendationScanRunsResult.data ?? []) as Array<
         Record<string, unknown>
       >)
@@ -7468,16 +7693,20 @@ export function TradeApp() {
           ).values(),
         ),
       );
-    }
+      }
 
-    if (recommendationBatchesResult.error) {
+      if (recommendationBatchesResult.error) {
       console.error("[trade-app] dashboard_data_load_error", {
         source: "supabase.recommendation_batches",
         operation: "select_recent_recommendation_batches",
         error: normalizeUnknownError(recommendationBatchesResult.error),
       });
-      setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
-    } else {
+        noteIslandError("market_diagnostics", recommendationBatchesResult.error);
+        noteIslandError("recommendations", recommendationBatchesResult.error);
+        if (isInitialLoad) {
+          setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
+        }
+      } else {
       const loadedBatches = ((recommendationBatchesResult.data ?? []) as Array<
         Record<string, unknown>
       >)
@@ -7495,16 +7724,20 @@ export function TradeApp() {
           ).values(),
         ),
       );
-    }
+      }
 
-    if (recommendationSnapshotsResult.error) {
+      if (recommendationSnapshotsResult.error) {
       console.error("[trade-app] dashboard_data_load_error", {
         source: "supabase.recommendation_snapshots",
         operation: "select_recent_recommendation_snapshots",
         error: normalizeUnknownError(recommendationSnapshotsResult.error),
       });
-      setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
-    } else {
+        noteIslandError("market_diagnostics", recommendationSnapshotsResult.error);
+        noteIslandError("recommendations", recommendationSnapshotsResult.error);
+        if (isInitialLoad) {
+          setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
+        }
+      } else {
       const loadedSnapshots = ((recommendationSnapshotsResult.data ?? []) as Array<
         Record<string, unknown>
       >)
@@ -7522,22 +7755,87 @@ export function TradeApp() {
           ).values(),
         ),
       );
-    }
+      }
 
-    if (marketRegimeResult.error) {
-      setMessage(marketRegimeResult.error.message);
-      setMarketRegime(null);
-    } else {
+      if (marketRegimeResult.error) {
+        noteIslandError("market_status", marketRegimeResult.error);
+        if (isInitialLoad) {
+          setMarketRegime(null);
+        }
+      } else {
       setMarketRegime(
         toMarketRegime(marketRegimeResult.data as MarketRegimeSnapshotRow | null),
       );
+      }
+
+      if (marketStatusResult.error) {
+        noteIslandError("market_status", marketStatusResult.error);
+        setMarketStatusError(marketStatusResult.error);
+        if (isInitialLoad || marketStatusResult.marketStatus) {
+          setMarketStatus(marketStatusResult.marketStatus);
+        }
+      } else {
+        setMarketStatus(marketStatusResult.marketStatus);
+        setMarketStatusError("");
+      }
+
+      if (!isInitialLoad) {
+        setLastAutoRefreshAt(refreshStartedAt);
+      }
+    } catch (error) {
+      console.error("[trade-app] dashboard_data_load_error", {
+        source: "dashboard_read_model",
+        operation: "load_trade_data",
+        refreshMode: mode,
+        error: normalizeUnknownError(error),
+      });
+
+      for (const islandId of refreshedIslands) {
+        noteIslandError(islandId, error);
+      }
+    } finally {
+      dataRefreshInFlightRef.current = false;
+      setIslandRefreshState((current) => {
+        const next = { ...current };
+
+        for (const islandId of refreshedIslands) {
+          const error = islandErrors[islandId] ?? null;
+          next[islandId] = {
+            ...next[islandId],
+            isRefreshing: false,
+            lastUpdatedAt: error ? next[islandId].lastUpdatedAt : refreshStartedAt,
+            error,
+            changedItemIds: changedItemIdsByIsland[islandId] ?? [],
+          };
+        }
+
+        return next;
+      });
+
+      if (isInitialLoad) {
+        setIsLoading(false);
+      }
     }
-
-    setMarketStatus(marketStatusResult.marketStatus);
-    setMarketStatusError(marketStatusResult.error);
-
-    setIsLoading(false);
   }
+
+  function refreshIslands(
+    islands: RefreshIslandId[],
+    source: LoadTradeDataOptions["source"] = "manual",
+  ) {
+    return loadTradeData({
+      mode: hasLoadedRecommendationsRef.current ? "background" : "initial",
+      islands,
+      source,
+      clearMessage: source === "manual",
+    });
+  }
+
+  function refreshCurrentSurface(source: LoadTradeDataOptions["source"] = "manual") {
+    return refreshIslands(refreshIslandsForTab(activeTab), source);
+  }
+
+  loadTradeDataRef.current = loadTradeData;
+  refreshCurrentSurfaceRef.current = refreshCurrentSurface;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -7562,7 +7860,7 @@ export function TradeApp() {
       setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
       setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
       setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
-      loadTradeData();
+      loadTradeDataRef.current({ mode: "initial", source: "initial" });
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -7854,6 +8152,47 @@ export function TradeApp() {
     marketStatus,
   ]);
 
+  useEffect(() => {
+    if (isLoading || !isDocumentVisible) {
+      return;
+    }
+
+    const topStatus = getTopMarketStatus(marketStatus, currentTime);
+    const intervalMs = refreshIntervalForTab({
+      tab: activeTab,
+      topMarketStatus: topStatus,
+      liveTradeCount: activePositions.length,
+    });
+    const interval = window.setInterval(() => {
+      void refreshCurrentSurfaceRef.current("auto");
+    }, intervalMs);
+
+    return () => window.clearInterval(interval);
+  }, [
+    activePositions.length,
+    activeTab,
+    currentTime,
+    isDocumentVisible,
+    isLoading,
+    marketStatus,
+  ]);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    function handleWindowFocus() {
+      void refreshCurrentSurfaceRef.current("focus");
+    }
+
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [activeTab, isLoading]);
+
   async function updateRecommendationStatus(
     recommendation: Recommendation,
     newStatus: RecommendationStatus,
@@ -7914,89 +8253,6 @@ export function TradeApp() {
     setIsSaving(false);
   }
 
-  async function generateRecommendations(scanWindowToGenerate: IntradayScanWindow) {
-    const sessionTypeToGenerate =
-      getLegacySessionTypeForScanWindow(scanWindowToGenerate);
-
-    setGeneratingSessionType(sessionTypeToGenerate);
-    setMessage("");
-
-    try {
-      const response = await fetch("/api/recommendations/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_type: sessionTypeToGenerate,
-          scan_window: scanWindowToGenerate,
-          target_count: 1,
-        }),
-      });
-      const result = (await response.json().catch(() => null)) as
-        | GenerateRecommendationsResult
-        | null;
-
-      if (!response.ok) {
-        if (result?.market_status) {
-          setMarketStatus(result.market_status);
-        }
-
-        throw new Error(result?.error || "Request failed");
-      }
-
-      await loadTradeData();
-
-      if (result?.market_regime) {
-        setMarketRegime(result.market_regime);
-      }
-
-      if (result?.market_status) {
-        setMarketStatus(result.market_status);
-        setMarketStatusError("");
-      }
-
-      const insertedCount =
-        typeof result?.inserted_count === "number"
-          ? result.inserted_count
-          : result?.recommendations?.length;
-
-      if (result?.scan_log?.result === "openai_no_trade") {
-        const reason =
-          result.scan_log.no_trade_reason ||
-          result.message?.replace(/^OpenAI rejected candidate[^:]*:\s*/i, "") ||
-          "OpenAI did not find an actionable day trade setup.";
-        setMessage(`No actionable day trade setup found. ${reason}`);
-      } else if (result?.message) {
-        setMessage(result.message);
-      } else if (result?.duplicate_fallback_used) {
-        setMessage(
-          "No fresh tickers were available, so Trade allowed repeat candidates for this scan.",
-        );
-      } else if (insertedCount !== undefined) {
-        setMessage(`Inserted ${insertedCount} recommendations.`);
-      }
-    } catch (error) {
-      const fallbackMessage =
-        "Sorry, Trade could not generate more recommendations right now. Please try again.";
-
-      console.error("[trade-app] recommendation_generation_error", {
-        source: "/api/recommendations/generate",
-        scanWindow: scanWindowToGenerate,
-        sessionType: sessionTypeToGenerate,
-        error: normalizeUnknownError(error),
-      });
-
-      setMessage(
-        error instanceof Error && error.message
-          ? error.message
-          : fallbackMessage,
-      );
-    } finally {
-      setGeneratingSessionType(null);
-    }
-  }
-
   async function updatePositions(source: "manual" | "auto" = "manual") {
     if (isUpdatingPositionsRef.current) {
       return;
@@ -8023,7 +8279,7 @@ export function TradeApp() {
         throw new Error(result?.error || "Request failed");
       }
 
-      await loadTradeData();
+      await refreshIslands(["market_status", "live_trades", "stats_today"], source);
 
       const updateResults = result?.updates || [];
 
@@ -8622,7 +8878,10 @@ export function TradeApp() {
     setSelectedTradeValidation(null);
     setSelectedTradeValidationMessage("");
     setActiveTab("Live Day Trades");
-    await loadTradeData();
+    await refreshIslands(
+      ["recommendations", "live_trades", "stats_today"],
+      "action",
+    );
     setIsSaving(false);
   }
 
@@ -8842,7 +9101,10 @@ export function TradeApp() {
 
       setSelectedPosition(null);
       setActiveTab("Live Day Trades");
-      await loadTradeData();
+      await refreshIslands(
+        ["live_trades", "stats_today", "history_statistics"],
+        "action",
+      );
       setMessage(
         `${selectedPosition.ticker} partial exit recorded. ${formatShares(
           partialState.remaining_shares,
@@ -8987,7 +9249,10 @@ export function TradeApp() {
 
     setSelectedPosition(null);
     setActiveTab("History");
-    await loadTradeData();
+    await refreshIslands(
+      ["live_trades", "stats_today", "history_statistics"],
+      "action",
+    );
     setMessage(
       confirmationValidation.warnings.length > 0
         ? `${selectedPosition.ticker} closed from broker exit fill. ${confirmationValidation.warnings[0]}`
@@ -9016,14 +9281,6 @@ export function TradeApp() {
             getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at));
-  const latestScheduledOfficialRecommendationBatch =
-    todaysSuccessfulLiveRecommendationBatches.find(
-      isScheduledOfficialRecommendationBatch,
-    ) ?? null;
-  const latestSuccessfulStoredRecommendationBatch =
-    latestScheduledOfficialRecommendationBatch ??
-    todaysSuccessfulLiveRecommendationBatches[0] ??
-    null;
   const latestSuccessfulStoredRecommendationScanRun =
     [...liveStoredRecommendationScanRuns]
       .filter(
@@ -9034,6 +9291,53 @@ export function TradeApp() {
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
+    ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
+    : null;
+  const latestSuccessfulTraceBatchFingerprint =
+    latestSuccessfulScanRunTrace?.final.batch_fingerprint ?? null;
+  const traceMatchedRecommendationBatch =
+    latestSuccessfulTraceBatchFingerprint === null
+      ? null
+      : todaysSuccessfulLiveRecommendationBatches.find(
+          (batch) =>
+            batch.batch_fingerprint === latestSuccessfulTraceBatchFingerprint ||
+            getBatchTraceFingerprint(batch) === latestSuccessfulTraceBatchFingerprint,
+        ) ?? null;
+  const latestScheduledOfficialRecommendationBatch =
+    todaysSuccessfulLiveRecommendationBatches.find(
+      isScheduledOfficialRecommendationBatch,
+    ) ?? null;
+  const currentOfficialRecommendationBatch =
+    traceMatchedRecommendationBatch ??
+    latestScheduledOfficialRecommendationBatch ??
+    todaysSuccessfulLiveRecommendationBatches.find(
+      (batch) => batch.recommendation_count > 0,
+    ) ??
+    null;
+  const previousSuccessfulBatchFingerprint =
+    latestScheduledOfficialRecommendationBatch &&
+    currentOfficialRecommendationBatch &&
+    latestScheduledOfficialRecommendationBatch.batch_fingerprint !==
+      currentOfficialRecommendationBatch.batch_fingerprint
+      ? latestScheduledOfficialRecommendationBatch.batch_fingerprint
+      : null;
+  const staleTraceBatchMismatch =
+    latestSuccessfulTraceBatchFingerprint !== null &&
+    currentOfficialRecommendationBatch !== null &&
+    latestSuccessfulTraceBatchFingerprint !==
+      currentOfficialRecommendationBatch.batch_fingerprint &&
+    getBatchTraceFingerprint(currentOfficialRecommendationBatch) !==
+      latestSuccessfulTraceBatchFingerprint;
+  const currentBatchSource =
+    traceMatchedRecommendationBatch !== null ||
+    currentOfficialRecommendationBatch !== null
+      ? "recommendation_batches"
+      : latestSuccessfulStoredRecommendationScanRun
+        ? "scan_run_payload"
+        : "snapshots_fallback";
+  const latestSuccessfulStoredRecommendationBatch =
+    currentOfficialRecommendationBatch;
   const latestOfficialBatchSnapshotSet = new Set(
     latestSuccessfulStoredRecommendationBatch?.recommendation_snapshot_fingerprints ??
       [],
@@ -9043,54 +9347,40 @@ export function TradeApp() {
       latestOfficialBatchSnapshotSet.size > 0 &&
       latestOfficialBatchSnapshotSet.has(snapshot.snapshot_fingerprint),
   );
+  const currentBatchSnapshotCount = latestOfficialBatchSnapshots.length;
+  const currentBatchTickersFromBatch = new Set(
+    (latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? [])
+      .map((ticker) => ticker.toUpperCase())
+      .filter((ticker) => ticker.length > 0),
+  );
+  const currentBatchSnapshotIds = latestOfficialBatchSnapshots
+    .map((snapshot) => snapshot.recommendation_id)
+    .filter((id): id is string => id !== null);
+  const currentBatchSnapshotTickers = latestOfficialBatchSnapshots
+    .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
+    .filter((ticker): ticker is string => ticker !== null);
+  const hasCurrentBatchMembership =
+    latestSuccessfulStoredRecommendationBatch !== null &&
+    (currentBatchSnapshotIds.length > 0 ||
+      currentBatchSnapshotTickers.length > 0 ||
+      currentBatchTickersFromBatch.size > 0);
   const latestSuccessfulLiveRecommendationIds = new Set(
-    [
-      ...liveStoredRecommendationSnapshots
-        .filter((snapshot) => {
-          if (latestSuccessfulStoredRecommendationBatch) {
-            return latestSuccessfulStoredRecommendationBatch.recommendation_snapshot_fingerprints.includes(
-              snapshot.snapshot_fingerprint,
-            );
-          }
-
-          return latestSuccessfulStoredRecommendationScanRun
-            ? snapshot.scan_run_id ===
-                latestSuccessfulStoredRecommendationScanRun.run_fingerprint
-            : false;
-        })
-        .map((snapshot) => snapshot.recommendation_id)
-        .filter((id): id is string => id !== null),
-      ...(latestSuccessfulStoredRecommendationScanRun
+    hasCurrentBatchMembership
+      ? currentBatchSnapshotIds
+      : latestSuccessfulStoredRecommendationScanRun
         ? getVisibleRecommendationIdsFromScanRun(
             latestSuccessfulStoredRecommendationScanRun,
           )
-        : []),
-    ],
+        : [],
   );
   const latestSuccessfulLiveRecommendationTickers = new Set(
-    [
-      ...(latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? []),
-      ...liveStoredRecommendationSnapshots
-        .filter((snapshot) => {
-          if (latestSuccessfulStoredRecommendationBatch) {
-            return latestSuccessfulStoredRecommendationBatch.recommendation_snapshot_fingerprints.includes(
-              snapshot.snapshot_fingerprint,
-            );
-          }
-
-          return latestSuccessfulStoredRecommendationScanRun
-            ? snapshot.scan_run_id ===
-                latestSuccessfulStoredRecommendationScanRun.run_fingerprint
-            : false;
-        })
-        .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
-        .filter((ticker): ticker is string => ticker !== null),
-      ...(latestSuccessfulStoredRecommendationScanRun
+    hasCurrentBatchMembership
+      ? [...Array.from(currentBatchTickersFromBatch), ...currentBatchSnapshotTickers]
+      : latestSuccessfulStoredRecommendationScanRun
         ? getVisibleRecommendationTickersFromScanRun(
             latestSuccessfulStoredRecommendationScanRun,
           )
-        : []),
-    ].map((ticker) => ticker.toUpperCase()),
+        : [],
   );
   const latestOfficialSnapshotRecommendations = latestOfficialBatchSnapshots
     .map(recommendationFromOfficialBatchSnapshot)
@@ -9128,8 +9418,11 @@ export function TradeApp() {
         (latestSuccessfulLiveRecommendationIds.has(recommendation.id) ||
           (ticker !== null &&
             latestSuccessfulLiveRecommendationTickers.has(ticker)));
+      const matchesCurrentBatch =
+        !hasCurrentBatchMembership || isLatestSuccessfulLiveRecommendation;
 
       return (
+        matchesCurrentBatch &&
         isPrimaryRecommendationVisible(recommendation) &&
         (!recommendation.archived || isLatestSuccessfulLiveRecommendation) &&
         !historyStatuses.includes(recommendation.status) &&
@@ -9167,6 +9460,12 @@ export function TradeApp() {
         .filter((ticker): ticker is string => ticker !== null),
     ]),
   ).sort();
+  const currentBatchRecommendationCount = Math.max(
+    latestSuccessfulStoredRecommendationBatch?.recommendation_count ?? 0,
+    latestOfficialBatchExpectedIds.length,
+    latestOfficialBatchExpectedTickers.length,
+    currentBatchSnapshotCount,
+  );
   const expectedLatestLiveRecommendationRows = recommendations.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
@@ -9280,9 +9579,6 @@ export function TradeApp() {
   const discardReviewSummary = calculateDiscardReviewSummary(discardedSetups);
   const currentIntradayScanWindow = getIntradayScanWindow(currentTime);
   const currentIntradayScanWindowLabel = getIntradayScanWindowLabel(
-    currentIntradayScanWindow,
-  );
-  const currentIntradayScanPolicy = getIntradayScanPolicy(
     currentIntradayScanWindow,
   );
   const performanceSummary = calculatePerformanceSummary(closedPositions);
@@ -9526,17 +9822,17 @@ export function TradeApp() {
   );
   const dailyClosedPositions = closedPositions.filter(
     (position) =>
-      !isDemoPosition(position) &&
+      isStatsTodayEligiblePosition(position) &&
       getNewYorkDateFromIso(position.closedAtRaw) === dailySessionDate,
   );
   const dailyActivePositionsOpenedToday = activePositions.filter(
     (position) =>
-      !isDemoPosition(position) &&
+      isStatsTodayEligiblePosition(position) &&
       getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
   );
   const dailyClosedPositionsOpenedToday = closedPositions.filter(
     (position) =>
-      !isDemoPosition(position) &&
+      isStatsTodayEligiblePosition(position) &&
       getNewYorkDateFromIso(position.openedAtRaw) === dailySessionDate,
   );
   const dailySessionRecommendations = recommendations.filter(
@@ -9854,6 +10150,27 @@ export function TradeApp() {
     ...Object.values(latestPositionUpdates).map((update) => update.updatedAtRaw),
     ...scanLogs.map((scanLog) => scanLog.created_at),
   ]);
+  const marketDiagnosticsLastUpdatedAt = getLatestIsoTimestamp([
+    ...scanLogs.map((scanLog) => scanLog.created_at),
+    ...storedRecommendationScanRuns.map((scanRun) => scanRun.observed_at),
+    ...storedRecommendationBatches.map(
+      (batch) => batch.published_at ?? batch.observed_at,
+    ),
+    ...storedRecommendationSnapshots.map((snapshot) => snapshot.created_at),
+    islandRefreshState.market_diagnostics.lastUpdatedAt,
+    islandRefreshState.market_status.lastUpdatedAt,
+  ]);
+  const recommendationsStatusUpdatedAt =
+    islandRefreshState.recommendations.lastUpdatedAt ?? recommendationsLastUpdatedAt;
+  const liveTradesStatusUpdatedAt =
+    islandRefreshState.live_trades.lastUpdatedAt ?? liveTradesLastUpdatedAt;
+  const statsTodayStatusUpdatedAt =
+    islandRefreshState.stats_today.lastUpdatedAt ?? statsTodayLastUpdatedAt;
+  const statisticsStatusUpdatedAt =
+    islandRefreshState.history_statistics.lastUpdatedAt ?? statisticsLastUpdatedAt;
+  const marketDiagnosticsStatusUpdatedAt =
+    islandRefreshState.market_diagnostics.lastUpdatedAt ??
+    marketDiagnosticsLastUpdatedAt;
   const preMarketCandidates = getPreMarketCandidatesForDate(
     scanLogs,
     dailySessionDate,
@@ -10876,7 +11193,31 @@ export function TradeApp() {
       dynamic_movers: dynamicMarketMoversSummary,
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
+      ui_refresh: {
+        active_tab: activeTab,
+        islands: Object.fromEntries(
+          refreshIslandIds.map((islandId) => [
+            islandId,
+            {
+              is_refreshing: islandRefreshState[islandId].isRefreshing,
+              last_updated_at: islandRefreshState[islandId].lastUpdatedAt,
+              error: islandRefreshState[islandId].error,
+              changed_item_count:
+                islandRefreshState[islandId].changedItemIds.length,
+            },
+          ]),
+        ),
+      },
       scan_readback: {
+        current_batch_fingerprint:
+          latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+        current_batch_source: currentBatchSource,
+        current_batch_recommendation_count: currentBatchRecommendationCount,
+        current_batch_snapshot_count: currentBatchSnapshotCount,
+        current_batch_visible_grid_count: dailyRecommendations.length,
+        current_batch_tickers: latestSuccessfulLiveRecommendationTickerList,
+        previous_successful_batch_fingerprint: previousSuccessfulBatchFingerprint,
+        stale_trace_batch_mismatch: staleTraceBatchMismatch,
         latest_official_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
         latest_official_scan_run_id:
@@ -10884,7 +11225,7 @@ export function TradeApp() {
         latest_official_scan_run_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.scan_run_fingerprint ?? null,
         batch_expected_count:
-          latestSuccessfulStoredRecommendationBatch?.recommendation_count ?? null,
+          currentBatchRecommendationCount,
         recommendation_rows_found_count: latestOfficialBatchRowsFound.length,
         missing_batch_member_ids: missingLatestOfficialBatchMemberIds,
         missing_batch_member_tickers: missingLatestOfficialBatchMemberTickers,
@@ -11434,12 +11775,6 @@ export function TradeApp() {
   ).filter(
     (context) => context.level === "caution" || context.level === "avoid",
   );
-  const isGenerateDisabled =
-    isLoading ||
-    generatingSessionType !== null ||
-    marketStatus?.isOpenDay === false ||
-    (marketStatus ? !isMarketOpenForIntradayTrading(marketStatus) : false) ||
-    !currentIntradayScanPolicy.allowGeneration;
   const selectedRecommendationPositionSizing = selectedRecommendation
     ? calculatePositionSizing(selectedRecommendation, userSettings)
     : null;
@@ -11559,19 +11894,21 @@ export function TradeApp() {
           <section className="trade-recommendations-section">
             <TradePrimaryStatusbar
               updateLabel="Recommendations updated"
-              updatedAt={recommendationsLastUpdatedAt}
+              updatedAt={recommendationsStatusUpdatedAt}
               currentTime={currentTime}
               scanWindowLabel={currentIntradayScanWindowLabel}
               onRefresh={() => {
-                if (isGenerateDisabled) {
-                  void loadTradeData();
-                  return;
-                }
-
-                void generateRecommendations(currentIntradayScanWindow);
+                void refreshIslands(["market_status", "recommendations"], "manual");
               }}
-              isRefreshing={generatingSessionType !== null || isLoading}
-              isDisabled={isLoading || generatingSessionType !== null}
+              isRefreshing={
+                islandRefreshState.market_status.isRefreshing ||
+                islandRefreshState.recommendations.isRefreshing
+              }
+              isDisabled={isLoading}
+              refreshError={
+                islandRefreshState.recommendations.error ??
+                islandRefreshState.market_status.error
+              }
             />
 
             <div className="trade-recommendation-grid">
@@ -11627,19 +11964,22 @@ export function TradeApp() {
           <section className="trade-live-section">
             <TradePrimaryStatusbar
               updateLabel="Trades updated"
-              updatedAt={liveTradesLastUpdatedAt}
+              updatedAt={liveTradesStatusUpdatedAt}
               currentTime={currentTime}
               scanWindowLabel={currentIntradayScanWindowLabel}
               onRefresh={() => {
-                if (activePositions.length === 0) {
-                  void loadTradeData();
-                  return;
-                }
-
-                void updatePositions("manual");
+                void refreshIslands(["market_status", "live_trades"], "manual");
               }}
-              isRefreshing={isUpdatingPositions || isLoading}
+              isRefreshing={
+                isUpdatingPositions ||
+                islandRefreshState.market_status.isRefreshing ||
+                islandRefreshState.live_trades.isRefreshing
+              }
               isDisabled={isLoading}
+              refreshError={
+                islandRefreshState.live_trades.error ??
+                islandRefreshState.market_status.error
+              }
             />
 
             {isLoading ? (
@@ -11764,13 +12104,14 @@ export function TradeApp() {
           <section className="trade-stats-today">
             <TradePrimaryStatusbar
               updateLabel="Stats updated"
-              updatedAt={statsTodayLastUpdatedAt}
+              updatedAt={statsTodayStatusUpdatedAt}
               currentTime={currentTime}
               scanWindowLabel={currentIntradayScanWindowLabel}
               onRefresh={() => {
-                void loadTradeData();
+                void refreshIslands(["stats_today"], "manual");
               }}
-              isRefreshing={isLoading}
+              isRefreshing={islandRefreshState.stats_today.isRefreshing}
+              refreshError={islandRefreshState.stats_today.error}
             />
 
             <StatsTodayPanel
@@ -11784,13 +12125,23 @@ export function TradeApp() {
           <section className="trade-statistics-section space-y-6">
             <TradePrimaryStatusbar
               updateLabel="Stats updated"
-              updatedAt={statisticsLastUpdatedAt}
+              updatedAt={statisticsStatusUpdatedAt}
               currentTime={currentTime}
               scanWindowLabel={currentIntradayScanWindowLabel}
               onRefresh={() => {
-                void loadTradeData();
+                void refreshIslands(
+                  ["history_statistics", "stats_today"],
+                  "manual",
+                );
               }}
-              isRefreshing={isLoading}
+              isRefreshing={
+                islandRefreshState.history_statistics.isRefreshing ||
+                islandRefreshState.stats_today.isRefreshing
+              }
+              refreshError={
+                islandRefreshState.history_statistics.error ??
+                islandRefreshState.stats_today.error
+              }
             />
 
             <DataModeClarityBanner
@@ -11862,6 +12213,18 @@ export function TradeApp() {
                 review when you want to inspect Ture’s learning data.
               </p>
             </div>
+
+            <TradePrimaryStatusbar
+              updateLabel="History updated"
+              updatedAt={statisticsStatusUpdatedAt}
+              currentTime={currentTime}
+              scanWindowLabel={currentIntradayScanWindowLabel}
+              onRefresh={() => {
+                void refreshIslands(["history_statistics"], "manual");
+              }}
+              isRefreshing={islandRefreshState.history_statistics.isRefreshing}
+              refreshError={islandRefreshState.history_statistics.error}
+            />
 
             <DataModeClarityBanner
               summary={dataModeClaritySummary}
@@ -12189,6 +12552,27 @@ export function TradeApp() {
                 when you need them.
               </p>
             </div>
+
+            <TradePrimaryStatusbar
+              updateLabel="Diagnostics updated"
+              updatedAt={marketDiagnosticsStatusUpdatedAt}
+              currentTime={currentTime}
+              scanWindowLabel={currentIntradayScanWindowLabel}
+              onRefresh={() => {
+                void refreshIslands(
+                  ["market_status", "market_diagnostics"],
+                  "manual",
+                );
+              }}
+              isRefreshing={
+                islandRefreshState.market_status.isRefreshing ||
+                islandRefreshState.market_diagnostics.isRefreshing
+              }
+              refreshError={
+                islandRefreshState.market_diagnostics.error ??
+                islandRefreshState.market_status.error
+              }
+            />
 
             <RecommendationEngineControlCenterPanel
               summary={recommendationEngineControlCenterSummary}
@@ -35657,6 +36041,7 @@ function TradePrimaryStatusbar({
   onRefresh,
   isRefreshing,
   isDisabled = false,
+  refreshError = null,
 }: {
   updateLabel: string;
   updatedAt: string | null | undefined;
@@ -35665,6 +36050,7 @@ function TradePrimaryStatusbar({
   onRefresh: () => void;
   isRefreshing: boolean;
   isDisabled?: boolean;
+  refreshError?: string | null;
 }) {
   return (
     <div className="trade-primary-statusbar">
@@ -35688,8 +36074,20 @@ function TradePrimaryStatusbar({
       <div className="trade-primary-statusbar__meta">
         <span>{updateLabel}</span>
         <span aria-hidden="true">·</span>
-        <span>{formatStatusbarUpdatedAt(updatedAt, currentTime)}</span>
+        <span>
+          {isRefreshing
+            ? "Refreshing..."
+            : formatStatusbarUpdatedAt(updatedAt, currentTime)}
+        </span>
       </div>
+
+      {refreshError && (
+        <div className="trade-primary-statusbar__meta" title={refreshError}>
+          <span>Refresh issue</span>
+          <span aria-hidden="true">·</span>
+          <span>Previous data kept</span>
+      </div>
+      )}
 
       <button
         type="button"

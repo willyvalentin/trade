@@ -89,6 +89,14 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   scan_readback?: {
+    current_batch_fingerprint?: string | null;
+    current_batch_source?: string | null;
+    current_batch_recommendation_count?: number | null;
+    current_batch_snapshot_count?: number | null;
+    current_batch_visible_grid_count?: number | null;
+    current_batch_tickers?: string[];
+    previous_successful_batch_fingerprint?: string | null;
+    stale_trace_batch_mismatch?: boolean | null;
     latest_official_batch_fingerprint?: string | null;
     latest_official_scan_run_id?: string | null;
     latest_official_scan_run_fingerprint?: string | null;
@@ -120,6 +128,18 @@ export type MarketDiagnosticsConsoleInput = {
       message?: string | null;
       source?: string | null;
     } | null;
+  } | null;
+  ui_refresh?: {
+    active_tab?: string | null;
+    islands?: Record<
+      string,
+      {
+        is_refreshing?: boolean | null;
+        last_updated_at?: string | null;
+        error?: string | null;
+        changed_item_count?: number | null;
+      }
+    >;
   } | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
@@ -597,6 +617,26 @@ function buildSections(
   const hiddenReasonBreakdown =
     input.scan_readback?.hidden_reason_breakdown ?? {};
   const hiddenReasonById = input.scan_readback?.hidden_reason_by_id ?? {};
+  const uiRefreshIslands = input.ui_refresh?.islands ?? {};
+  const uiRefreshLines = Object.entries(uiRefreshIslands).map(
+    ([islandId, state]) =>
+      lineValue(
+        islandId,
+        `${state.is_refreshing ? "refreshing" : "idle"} / ${
+          state.last_updated_at ?? "not loaded"
+        } / changed ${state.changed_item_count ?? 0}${
+          state.error ? ` / previous data kept: ${state.error}` : ""
+        }`,
+      ),
+  );
+  const uiRefreshMetrics = Object.fromEntries(
+    Object.entries(uiRefreshIslands).flatMap(([islandId, state]) => [
+      [`${islandId}_is_refreshing`, state.is_refreshing ?? false],
+      [`${islandId}_last_updated_at`, state.last_updated_at ?? null],
+      [`${islandId}_error`, state.error ?? null],
+      [`${islandId}_changed_item_count`, state.changed_item_count ?? 0],
+    ]),
+  );
 
   return [
     section({
@@ -653,6 +693,23 @@ function buildSections(
         active_scan_window: input.scan_orchestration.active_window,
         next_scan_window: input.scan_orchestration.next_window,
         data_mode: input.data_mode_clarity.overall_mode,
+      },
+    }),
+    section({
+      section_id: "ui_refresh",
+      title: "UI island refresh",
+      severity: Object.values(uiRefreshIslands).some((state) => state.error)
+        ? "warning"
+        : "info",
+      lines: [
+        lineValue("Active tab", compact(input.ui_refresh?.active_tab, "unknown")),
+        ...(uiRefreshLines.length > 0
+          ? uiRefreshLines
+          : [lineValue("Islands", "not observed")]),
+      ],
+      metrics: {
+        active_tab: input.ui_refresh?.active_tab ?? null,
+        ...uiRefreshMetrics,
       },
     }),
     section({
@@ -1052,6 +1109,35 @@ function buildSections(
         lineValue("Latest successful scan", successfulScanLabel),
         lineValue("Latest attempted scan", attemptedScanLabel),
         lineValue(
+          "Current batch",
+          compact(input.scan_readback?.current_batch_fingerprint, "not observed"),
+        ),
+        lineValue(
+          "Current batch source",
+          compact(input.scan_readback?.current_batch_source, "unknown"),
+        ),
+        lineValue(
+          "Current batch rec/snapshot/grid",
+          `${input.scan_readback?.current_batch_recommendation_count ?? 0}/${input.scan_readback?.current_batch_snapshot_count ?? 0}/${input.scan_readback?.current_batch_visible_grid_count ?? 0}`,
+        ),
+        lineValue(
+          "Current batch tickers",
+          (input.scan_readback?.current_batch_tickers ?? []).join(", ") || "none",
+        ),
+        lineValue(
+          "Previous successful batch",
+          compact(
+            input.scan_readback?.previous_successful_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Trace/batch mismatch",
+          input.scan_readback?.stale_trace_batch_mismatch === true
+            ? "true"
+            : "false",
+        ),
+        lineValue(
           "Latest official batch",
           compact(
             input.scan_readback?.latest_official_batch_fingerprint,
@@ -1105,6 +1191,21 @@ function buildSections(
         lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
       ],
       metrics: {
+        current_batch_fingerprint:
+          input.scan_readback?.current_batch_fingerprint ?? null,
+        current_batch_source: input.scan_readback?.current_batch_source ?? null,
+        current_batch_recommendation_count:
+          input.scan_readback?.current_batch_recommendation_count ?? null,
+        current_batch_snapshot_count:
+          input.scan_readback?.current_batch_snapshot_count ?? null,
+        current_batch_visible_grid_count:
+          input.scan_readback?.current_batch_visible_grid_count ?? null,
+        current_batch_tickers:
+          (input.scan_readback?.current_batch_tickers ?? []).join(","),
+        previous_successful_batch_fingerprint:
+          input.scan_readback?.previous_successful_batch_fingerprint ?? null,
+        stale_trace_batch_mismatch:
+          input.scan_readback?.stale_trace_batch_mismatch ?? null,
         latest_official_batch_fingerprint:
           input.scan_readback?.latest_official_batch_fingerprint ?? null,
         latest_official_scan_run_id:
