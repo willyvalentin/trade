@@ -119,6 +119,10 @@ export type MarketDiagnosticsConsoleInput = {
     hidden_live_recommendation_ids?: string[];
     hidden_live_recommendation_tickers?: string[];
     hidden_reason_breakdown?: Record<string, number>;
+    extra_visible_primary_ids?: string[];
+    extra_visible_primary_tickers?: string[];
+    primary_grid_strict_batch_filter_applied?: boolean | null;
+    primary_grid_fallback_reason?: string | null;
     latest_successful_scan?: {
       result?: string | null;
       created_at?: string | null;
@@ -1215,6 +1219,26 @@ function buildSections(
         lineValue("Expected live IDs", (input.scan_readback?.latest_successful_live_recommendation_ids ?? []).join(", ") || "none"),
         lineValue("Expected live tickers", (input.scan_readback?.latest_successful_live_recommendation_tickers ?? []).join(", ") || "none"),
         lineValue("Visible primary IDs", visiblePrimaryIds.join(", ") || "none"),
+        lineValue(
+          "Extra visible primary IDs",
+          (input.scan_readback?.extra_visible_primary_ids ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
+          "Extra visible primary tickers",
+          (input.scan_readback?.extra_visible_primary_tickers ?? []).join(", ") ||
+            "none",
+        ),
+        lineValue(
+          "Strict batch filter",
+          input.scan_readback?.primary_grid_strict_batch_filter_applied
+            ? "true"
+            : "false",
+        ),
+        lineValue(
+          "Grid fallback reason",
+          compact(input.scan_readback?.primary_grid_fallback_reason, "none"),
+        ),
         lineValue("Hidden live IDs", hiddenLiveIds.join(", ") || "none"),
         lineValue(
           "Hidden reasons",
@@ -1287,6 +1311,14 @@ function buildSections(
         visible_primary_recommendation_tickers:
           (input.scan_readback?.visible_primary_recommendation_tickers ?? [])
             .join(","),
+        extra_visible_primary_ids:
+          (input.scan_readback?.extra_visible_primary_ids ?? []).join(","),
+        extra_visible_primary_tickers:
+          (input.scan_readback?.extra_visible_primary_tickers ?? []).join(","),
+        primary_grid_strict_batch_filter_applied:
+          input.scan_readback?.primary_grid_strict_batch_filter_applied ?? null,
+        primary_grid_fallback_reason:
+          input.scan_readback?.primary_grid_fallback_reason ?? null,
         hidden_live_recommendation_ids:
           (input.scan_readback?.hidden_live_recommendation_ids ?? []).join(","),
         hidden_live_recommendation_tickers:

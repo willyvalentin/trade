@@ -9604,6 +9604,15 @@ export function TradeApp() {
     (currentBatchSnapshotIds.length > 0 ||
       currentBatchSnapshotTickers.length > 0 ||
       currentBatchTickersFromBatch.size > 0);
+  const primaryGridStrictBatchFilterApplied =
+    latestSuccessfulStoredRecommendationBatch !== null && hasCurrentBatchMembership;
+  const primaryGridFallbackReason =
+    primaryGridStrictBatchFilterApplied
+      ? null
+      : latestSuccessfulStoredRecommendationBatch === null
+        ? "no_current_official_batch"
+        : "current_batch_membership_unavailable";
+  const currentBatchHasExactMemberIds = currentBatchSnapshotIds.length > 0;
   const latestSuccessfulLiveRecommendationIds = new Set(
     hasCurrentBatchMembership
       ? currentBatchSnapshotIds
@@ -9653,13 +9662,17 @@ export function TradeApp() {
   const dailyRecommendations = primaryRecommendationReadbackSource.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
-      const isLatestSuccessfulLiveRecommendation =
-        getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate &&
-        (latestSuccessfulLiveRecommendationIds.has(recommendation.id) ||
-          (ticker !== null &&
-            latestSuccessfulLiveRecommendationTickers.has(ticker)));
+      const isCurrentBatchMember =
+        currentBatchHasExactMemberIds
+          ? latestSuccessfulLiveRecommendationIds.has(recommendation.id)
+          : getNewYorkDateFromIso(recommendation.createdAtRaw) ===
+              dailySessionDate &&
+            (latestSuccessfulLiveRecommendationIds.has(recommendation.id) ||
+              (ticker !== null &&
+                latestSuccessfulLiveRecommendationTickers.has(ticker)));
+      const isLatestSuccessfulLiveRecommendation = isCurrentBatchMember;
       const matchesCurrentBatch =
-        !hasCurrentBatchMembership || isLatestSuccessfulLiveRecommendation;
+        !primaryGridStrictBatchFilterApplied || isCurrentBatchMember;
 
       return (
         matchesCurrentBatch &&
@@ -9679,6 +9692,31 @@ export function TradeApp() {
       .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
       .filter((ticker): ticker is string => ticker !== null),
   );
+  const extraVisiblePrimaryRecommendations = dailyRecommendations.filter(
+    (recommendation) => {
+      const ticker = normalizeRecommendationTicker(recommendation.ticker);
+
+      if (currentBatchHasExactMemberIds) {
+        return !latestSuccessfulLiveRecommendationIds.has(recommendation.id);
+      }
+
+      return (
+        hasCurrentBatchMembership &&
+        !latestSuccessfulLiveRecommendationIds.has(recommendation.id) &&
+        (ticker === null || !latestSuccessfulLiveRecommendationTickers.has(ticker))
+      );
+    },
+  );
+  const extraVisiblePrimaryIds = extraVisiblePrimaryRecommendations
+    .map((recommendation) => recommendation.id)
+    .sort();
+  const extraVisiblePrimaryTickers = Array.from(
+    new Set(
+      extraVisiblePrimaryRecommendations
+        .map((recommendation) => normalizeRecommendationTicker(recommendation.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ),
+  ).sort();
   const latestSuccessfulLiveRecommendationIdList = Array.from(
     latestSuccessfulLiveRecommendationIds,
   ).sort();
@@ -11562,6 +11600,11 @@ export function TradeApp() {
         visible_primary_recommendation_tickers: Array.from(
           visiblePrimaryRecommendationTickers,
         ).sort(),
+        extra_visible_primary_ids: extraVisiblePrimaryIds,
+        extra_visible_primary_tickers: extraVisiblePrimaryTickers,
+        primary_grid_strict_batch_filter_applied:
+          primaryGridStrictBatchFilterApplied,
+        primary_grid_fallback_reason: primaryGridFallbackReason,
         hidden_live_recommendation_ids: Object.keys(
           hiddenLatestLiveRecommendationReasonsById,
         ).sort(),
