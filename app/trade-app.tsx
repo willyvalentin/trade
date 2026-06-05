@@ -5777,6 +5777,53 @@ function snapshotMatchesOfficialBatch({
   );
 }
 
+function batchForRecommendationSnapshot(
+  snapshot: RecommendationSnapshot,
+  batches: RecommendationBatch[],
+) {
+  return (
+    batches.find((batch) =>
+      snapshotMatchesOfficialBatch({
+        snapshot,
+        batch,
+        batchSnapshotFingerprints: new Set(
+          batch.recommendation_snapshot_fingerprints,
+        ),
+        traceBatchFingerprint: getBatchTraceFingerprint(batch),
+        traceScanRunFingerprint: batch.scan_run_fingerprint,
+      }),
+    ) ?? null
+  );
+}
+
+function latestIso(values: Array<string | null | undefined>) {
+  return values
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .sort()
+    .at(-1) ?? null;
+}
+
+function outcomeHasProviderLimitWarning(outcome: RecommendationOutcome) {
+  const text = [
+    ...outcome.warnings,
+    ...outcome.blockers,
+    outcome.payload_json.provider,
+    outcome.payload_json.error,
+    outcome.payload_json.provider_error,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    text.includes("twelve") ||
+    text.includes("provider") ||
+    text.includes("credit") ||
+    text.includes("rate limit") ||
+    text.includes("api limit")
+  );
+}
+
 function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
   const trace = scanRun.payload_json.active_scan_trace;
 
@@ -7768,7 +7815,7 @@ export function TradeApp() {
             .from("recommendation_snapshots")
             .select("*")
             .order("created_at", { ascending: false })
-            .limit(300),
+            .limit(1000),
           supabase
             .from("recommendation_outcomes")
             .select("*")
@@ -10028,6 +10075,132 @@ export function TradeApp() {
         .filter((ticker): ticker is string => ticker !== null),
     ),
   ).sort();
+  const snapshotByFingerprint = new Map(
+    liveStoredRecommendationSnapshots.map((snapshot) => [
+      snapshot.snapshot_fingerprint,
+      snapshot,
+    ]),
+  );
+  const snapshotByRecommendationId = new Map(
+    liveStoredRecommendationSnapshots
+      .filter((snapshot) => snapshot.recommendation_id !== null)
+      .map((snapshot) => [snapshot.recommendation_id as string, snapshot]),
+  );
+  const outcomeAssociations = storedRecommendationOutcomes.map((outcome) => {
+    const matchedSnapshot =
+      (outcome.snapshot_fingerprint !== null
+        ? snapshotByFingerprint.get(outcome.snapshot_fingerprint) ?? null
+        : null) ??
+      (outcome.recommendation_id !== null
+        ? snapshotByRecommendationId.get(outcome.recommendation_id) ?? null
+        : null);
+    const matchedBatch = matchedSnapshot
+      ? batchForRecommendationSnapshot(
+          matchedSnapshot,
+          liveStoredRecommendationBatches.filter(isSuccessfulLiveRecommendationBatch),
+        )
+      : null;
+
+    return {
+      outcome,
+      snapshot: matchedSnapshot,
+      batch: matchedBatch,
+      batch_fingerprint: matchedBatch?.batch_fingerprint ?? null,
+    };
+  });
+  const outcomeSnapshotMatchCount = outcomeAssociations.filter(
+    (item) => item.snapshot !== null,
+  ).length;
+  const outcomeUnmatchedCount = Math.max(
+    0,
+    storedRecommendationOutcomes.length - outcomeSnapshotMatchCount,
+  );
+  const outcomeBatchFingerprints = Array.from(
+    new Set(
+      outcomeAssociations
+        .map((item) => item.batch_fingerprint)
+        .filter((fingerprint): fingerprint is string => fingerprint !== null),
+    ),
+  ).sort();
+  const latestEvaluatedBatchFingerprint =
+    outcomeAssociations
+      .filter((item) => item.batch_fingerprint !== null)
+      .sort(
+        (first, second) =>
+          new Date(second.outcome.evaluated_at).getTime() -
+          new Date(first.outcome.evaluated_at).getTime(),
+      )[0]?.batch_fingerprint ?? null;
+  const latestEvaluatedBatchAssociations = outcomeAssociations.filter(
+    (item) =>
+      latestEvaluatedBatchFingerprint !== null &&
+      item.batch_fingerprint === latestEvaluatedBatchFingerprint,
+  );
+  const latestEvaluatedBatchSnapshots = Array.from(
+    new Map(
+      latestEvaluatedBatchAssociations
+        .map((item) => item.snapshot)
+        .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null)
+        .map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+    ).values(),
+  );
+  const latestEvaluatedBatchOutcomes = latestEvaluatedBatchAssociations.map(
+    (item) => item.outcome,
+  );
+  const latestEvaluatedBatchCompletedOutcomeCount =
+    latestEvaluatedBatchOutcomes.filter((outcome) =>
+      currentBatchCompletedOutcomeStatuses.has(outcome.status),
+    ).length;
+  const latestEvaluatedBatchIncompleteOutcomeCount =
+    latestEvaluatedBatchOutcomes.filter(
+      (outcome) =>
+        outcome.status === "incomplete" ||
+        outcome.status === "invalid" ||
+        outcome.status === "unknown",
+    ).length;
+  const latestEvaluatedBatchProviderErrorCount =
+    latestEvaluatedBatchOutcomes.filter(outcomeHasProviderLimitWarning).length;
+  const latestEvaluatedBatchHorizons = Array.from(
+    new Set(latestEvaluatedBatchOutcomes.map((outcome) => outcome.horizon)),
+  ).sort();
+  const latestEvaluatedBatchEvaluatedAt = latestIso(
+    latestEvaluatedBatchOutcomes.map((outcome) => outcome.evaluated_at),
+  );
+  const latestEvaluatedBatchTickerList = Array.from(
+    new Set(
+      latestEvaluatedBatchOutcomes
+        .map((outcome) => normalizeRecommendationTicker(outcome.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ),
+  ).sort();
+  const outcomeDiagnosticsBatchFingerprint =
+    latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ??
+    latestEvaluatedBatchFingerprint;
+  const outcomeDiagnosticsSnapshots =
+    currentBatchSnapshotCount > 0
+      ? latestOfficialBatchSnapshots
+      : latestEvaluatedBatchSnapshots;
+  const outcomeDiagnosticsStoredOutcomes =
+    currentBatchStoredOutcomes.length > 0
+      ? currentBatchStoredOutcomes
+      : latestEvaluatedBatchOutcomes;
+  const outcomeDiagnosticsEvaluatedCount =
+    currentBatchStoredOutcomes.length > 0
+      ? currentBatchEvaluatedOutcomeCount
+      : latestEvaluatedBatchCompletedOutcomeCount;
+  const outcomeDiagnosticsIncompleteCount =
+    currentBatchStoredOutcomes.length > 0
+      ? currentBatchIncompleteOutcomeCount
+      : latestEvaluatedBatchIncompleteOutcomeCount;
+  const outcomeDiagnosticsPendingCount =
+    currentBatchStoredOutcomes.length > 0
+      ? currentBatchPendingOutcomeCount
+      : Math.max(
+          0,
+          latestEvaluatedBatchSnapshots.length * currentBatchOutcomeHorizons.length -
+            latestEvaluatedBatchOutcomes.length,
+        );
+  const outcomeDiagnosticsProviderErrorCount =
+    latestEvaluatedBatchProviderErrorCount;
   const expectedLatestLiveRecommendationRows = recommendations.filter(
     (recommendation) => {
       const ticker = normalizeRecommendationTicker(recommendation.ticker);
@@ -11544,9 +11717,11 @@ export function TradeApp() {
   );
   const recommendationPerformanceSnapshots = Array.from(
     new Map(
-      [...liveStoredRecommendationSnapshots, ...visibleRecommendationSnapshots].map(
-        (snapshot) => [snapshot.snapshot_fingerprint, snapshot],
-      ),
+      [
+        ...liveStoredRecommendationSnapshots,
+        ...latestEvaluatedBatchSnapshots,
+        ...visibleRecommendationSnapshots,
+      ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
     ).values(),
   ).filter(isLiveRecommendationSnapshot);
   const liveRecommendationPerformanceSnapshotFingerprints = new Set(
@@ -11881,20 +12056,33 @@ export function TradeApp() {
       },
       outcome_evaluation: {
         current_batch_fingerprint:
-          latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
-        current_batch_snapshot_count: currentBatchSnapshotCount,
-        expected_outcome_count: currentBatchExpectedOutcomeCount,
-        persisted_outcome_count: currentBatchStoredOutcomes.length,
-        evaluated_outcome_count: currentBatchEvaluatedOutcomeCount,
-        incomplete_outcome_count: currentBatchIncompleteOutcomeCount,
-        pending_outcome_count: currentBatchPendingOutcomeCount,
+          outcomeDiagnosticsBatchFingerprint,
+        latest_evaluated_batch_fingerprint: latestEvaluatedBatchFingerprint,
+        current_batch_snapshot_count: outcomeDiagnosticsSnapshots.length,
+        expected_outcome_count:
+          outcomeDiagnosticsSnapshots.length * currentBatchOutcomeHorizons.length,
+        persisted_outcome_count: outcomeDiagnosticsStoredOutcomes.length,
+        evaluated_outcome_count: outcomeDiagnosticsEvaluatedCount,
+        incomplete_outcome_count: outcomeDiagnosticsIncompleteCount,
+        pending_outcome_count: outcomeDiagnosticsPendingCount,
+        latest_evaluated_at: latestEvaluatedBatchEvaluatedAt,
+        horizons_covered: latestEvaluatedBatchHorizons,
+        provider_limit_warning: outcomeDiagnosticsProviderErrorCount > 0,
+        outcome_rows_loaded_count: storedRecommendationOutcomes.length,
+        outcome_batch_fingerprints: outcomeBatchFingerprints,
+        outcome_snapshot_match_count: outcomeSnapshotMatchCount,
+        outcome_unmatched_count: outcomeUnmatchedCount,
         latest_run_status: recommendationOutcomeEvaluationDiagnostics.status,
         latest_run_at:
-          recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp,
+          recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp ??
+          latestEvaluatedBatchEvaluatedAt,
         latest_run_batch_fingerprint:
-          recommendationOutcomeEvaluationDiagnostics.batchFingerprint,
+          recommendationOutcomeEvaluationDiagnostics.batchFingerprint ??
+          latestEvaluatedBatchFingerprint,
         latest_run_horizons:
-          recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated,
+          recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated.length > 0
+            ? recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated
+            : latestEvaluatedBatchHorizons,
         outcomes_created_count:
           recommendationOutcomeEvaluationDiagnostics.outcomesCreated,
         outcomes_updated_count:
@@ -11904,7 +12092,8 @@ export function TradeApp() {
         missing_candles_count:
           recommendationOutcomeEvaluationDiagnostics.missingCandles,
         provider_error_count:
-          recommendationOutcomeEvaluationDiagnostics.providerErrors,
+          recommendationOutcomeEvaluationDiagnostics.providerErrors ||
+          outcomeDiagnosticsProviderErrorCount,
         persistence_status:
           recommendationOutcomeEvaluationDiagnostics.persistenceStatus,
         persistence_mode: recommendationOutcomeEvaluationDiagnostics.persistenceMode,
@@ -11912,7 +12101,9 @@ export function TradeApp() {
         tickers_evaluated:
           recommendationOutcomeEvaluationDiagnostics.tickersEvaluated.length > 0
             ? recommendationOutcomeEvaluationDiagnostics.tickersEvaluated
-            : currentBatchOutcomeTickers,
+            : currentBatchOutcomeTickers.length > 0
+              ? currentBatchOutcomeTickers
+              : latestEvaluatedBatchTickerList,
       },
       scan_readback: {
         current_batch_fingerprint:

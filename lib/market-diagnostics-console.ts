@@ -166,12 +166,20 @@ export type MarketDiagnosticsConsoleInput = {
   } | null;
   outcome_evaluation?: {
     current_batch_fingerprint?: string | null;
+    latest_evaluated_batch_fingerprint?: string | null;
     current_batch_snapshot_count?: number | null;
     expected_outcome_count?: number | null;
     persisted_outcome_count?: number | null;
     evaluated_outcome_count?: number | null;
     incomplete_outcome_count?: number | null;
     pending_outcome_count?: number | null;
+    latest_evaluated_at?: string | null;
+    horizons_covered?: string[];
+    provider_limit_warning?: boolean | null;
+    outcome_rows_loaded_count?: number | null;
+    outcome_batch_fingerprints?: string[];
+    outcome_snapshot_match_count?: number | null;
+    outcome_unmatched_count?: number | null;
     latest_run_status?: string | null;
     latest_run_at?: string | null;
     latest_run_batch_fingerprint?: string | null;
@@ -1707,8 +1715,19 @@ function buildSections(
           compact(input.outcome_evaluation?.current_batch_fingerprint, "none"),
         ),
         lineValue(
+          "Latest evaluated batch",
+          compact(
+            input.outcome_evaluation?.latest_evaluated_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
           "Snapshots",
           input.outcome_evaluation?.current_batch_snapshot_count ?? 0,
+        ),
+        lineValue(
+          "Rows loaded / matched / unmatched",
+          `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
         ),
         lineValue(
           "Expected/Persisted",
@@ -1723,6 +1742,16 @@ function buildSections(
           `${compact(input.outcome_evaluation?.latest_run_status, "idle")} / ${compact(input.outcome_evaluation?.latest_run_at, "never")}`,
         ),
         lineValue(
+          "Latest evaluated at",
+          compact(input.outcome_evaluation?.latest_evaluated_at, "never"),
+        ),
+        lineValue(
+          "Horizons covered",
+          (input.outcome_evaluation?.horizons_covered ?? []).length > 0
+            ? (input.outcome_evaluation?.horizons_covered ?? []).join(", ")
+            : "none",
+        ),
+        lineValue(
           "Created/Updated",
           `${input.outcome_evaluation?.outcomes_created_count ?? 0}/${input.outcome_evaluation?.outcomes_updated_count ?? 0}`,
         ),
@@ -1735,6 +1764,10 @@ function buildSections(
           `${input.outcome_evaluation?.missing_candles_count ?? 0}/${input.outcome_evaluation?.provider_error_count ?? 0}`,
         ),
         lineValue(
+          "Provider limit warning",
+          bool(input.outcome_evaluation?.provider_limit_warning === true),
+        ),
+        lineValue(
           "Persistence",
           `${compact(input.outcome_evaluation?.persistence_status, "unknown")} / ${compact(input.outcome_evaluation?.persistence_mode, "unknown")}`,
         ),
@@ -1742,8 +1775,19 @@ function buildSections(
       metrics: {
         current_batch_fingerprint:
           input.outcome_evaluation?.current_batch_fingerprint ?? null,
+        latest_evaluated_batch_fingerprint:
+          input.outcome_evaluation?.latest_evaluated_batch_fingerprint ?? null,
         current_batch_snapshot_count:
           input.outcome_evaluation?.current_batch_snapshot_count ?? null,
+        outcome_rows_loaded_count:
+          input.outcome_evaluation?.outcome_rows_loaded_count ?? null,
+        outcome_batch_fingerprints: (
+          input.outcome_evaluation?.outcome_batch_fingerprints ?? []
+        ).join(","),
+        outcome_snapshot_match_count:
+          input.outcome_evaluation?.outcome_snapshot_match_count ?? null,
+        outcome_unmatched_count:
+          input.outcome_evaluation?.outcome_unmatched_count ?? null,
         expected_outcome_count:
           input.outcome_evaluation?.expected_outcome_count ?? null,
         persisted_outcome_count:
@@ -1756,6 +1800,13 @@ function buildSections(
           input.outcome_evaluation?.pending_outcome_count ?? null,
         latest_run_status: input.outcome_evaluation?.latest_run_status ?? null,
         latest_run_at: input.outcome_evaluation?.latest_run_at ?? null,
+        latest_evaluated_at:
+          input.outcome_evaluation?.latest_evaluated_at ?? null,
+        horizons_covered: (
+          input.outcome_evaluation?.horizons_covered ?? []
+        ).join(","),
+        provider_limit_warning:
+          input.outcome_evaluation?.provider_limit_warning ?? null,
         latest_run_batch_fingerprint:
           input.outcome_evaluation?.latest_run_batch_fingerprint ?? null,
         latest_run_horizons: (

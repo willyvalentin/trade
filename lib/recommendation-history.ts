@@ -290,6 +290,25 @@ function latestOutcomeForSnapshot(
   return candidates
     .slice()
     .sort((first, second) => {
+      const firstPriority = evaluatedStatuses.has(first.status)
+        ? 3
+        : first.status === "unknown"
+          ? 2
+          : first.status === "incomplete" || first.status === "invalid"
+            ? 1
+            : 0;
+      const secondPriority = evaluatedStatuses.has(second.status)
+        ? 3
+        : second.status === "unknown"
+          ? 2
+          : second.status === "incomplete" || second.status === "invalid"
+            ? 1
+            : 0;
+
+      if (secondPriority !== firstPriority) {
+        return secondPriority - firstPriority;
+      }
+
       const firstEvaluatedAt = timestampMs(first.evaluated_at);
       const secondEvaluatedAt = timestampMs(second.evaluated_at);
 
