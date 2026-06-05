@@ -2,6 +2,10 @@ import type {
   RecommendationOutcome,
   RecommendationOutcomeStatus,
 } from "@/lib/recommendation-outcome-tracker";
+import {
+  buildEntryPlanQualityForSnapshot,
+  type EntryPlanExecutionQualityLabel,
+} from "@/lib/recommendation-outcome-learning-insights";
 import type {
   RecommendationSnapshot,
   RecommendationSnapshotStatus,
@@ -29,6 +33,9 @@ export type RecommendationHistoryOutcomeSummary = {
   time_to_entry_minutes: number | null;
   time_to_target_minutes: number | null;
   time_to_stop_minutes: number | null;
+  execution_quality_label: EntryPlanExecutionQualityLabel;
+  idea_moved_favorably: boolean | null;
+  entry_quality_reason: string;
   evaluated_at: string | null;
   warnings: string[];
 };
@@ -389,6 +396,7 @@ function itemWarnings(
 function buildItem(
   snapshot: RecommendationSnapshot,
   outcome: RecommendationOutcome | null,
+  allOutcomes: RecommendationOutcome[],
   linkedTrade: RecommendationHistoryLinkedTrade | null,
 ): RecommendationHistoryItem {
   const status = deriveHistoryStatus(snapshot);
@@ -396,6 +404,7 @@ function buildItem(
   const pending = isPending(outcome);
   const incomplete = isIncomplete(outcome);
   const warnings = itemWarnings(snapshot, outcome);
+  const entryPlanQuality = buildEntryPlanQualityForSnapshot(snapshot, allOutcomes);
 
   return {
     id: snapshot.snapshot_fingerprint,
@@ -444,6 +453,9 @@ function buildItem(
       time_to_entry_minutes: outcome?.time_to_entry_minutes ?? null,
       time_to_target_minutes: outcome?.time_to_target_minutes ?? null,
       time_to_stop_minutes: outcome?.time_to_stop_minutes ?? null,
+      execution_quality_label: entryPlanQuality.execution_quality_label,
+      idea_moved_favorably: entryPlanQuality.idea_moved_favorably,
+      entry_quality_reason: entryPlanQuality.entry_quality_reason,
       evaluated_at: outcome?.evaluated_at ?? null,
       warnings: warnings,
     },
@@ -565,15 +577,23 @@ export function buildRecommendationHistory(
     (input.linked_trades ?? []).map((trade) => [trade.id, trade]),
   );
   const items = sortItems(
-    uniqueSnapshots.map((snapshot) =>
-      buildItem(
+    uniqueSnapshots.map((snapshot) => {
+      const snapshotOutcomes = input.outcomes.filter(
+        (outcome) =>
+          outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint ||
+          (snapshot.recommendation_id !== null &&
+            outcome.recommendation_id === snapshot.recommendation_id),
+      );
+
+      return buildItem(
         snapshot,
-        latestOutcomeForSnapshot(snapshot, input.outcomes),
+        latestOutcomeForSnapshot(snapshot, snapshotOutcomes),
+        snapshotOutcomes,
         snapshot.linked_position_id
           ? linkedTradeById.get(snapshot.linked_position_id) ?? null
           : null,
-      ),
-    ),
+      );
+    }),
     sort,
   );
   const filteredItems = items.filter((item) => passesFilters(item, filters));

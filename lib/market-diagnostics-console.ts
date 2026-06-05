@@ -2055,6 +2055,28 @@ function buildSections(
           "Suggested next review",
           compact(input.outcome_learning?.suggested_next_review_item, "none"),
         ),
+        lineValue(
+          "Entry quality label",
+          compact(
+            input.outcome_learning?.entry_plan_quality.entry_quality_label,
+            "unknown",
+          ),
+        ),
+        lineValue(
+          "Missed but favorable rate",
+          input.outcome_learning?.entry_plan_quality.missed_but_favorable_rate ??
+            null,
+        ),
+        lineValue(
+          "Entry too aggressive rate",
+          input.outcome_learning?.entry_plan_quality.entry_too_aggressive_rate ??
+            null,
+        ),
+        lineValue(
+          "Target too far signal",
+          input.outcome_learning?.entry_plan_quality.target_too_far_signal ??
+            null,
+        ),
       ],
       metrics: {
         learning_insight_batch_fingerprint:
@@ -2090,6 +2112,32 @@ function buildSections(
         ),
         tier_breakdown: JSON.stringify(
           input.outcome_learning?.tier_breakdown ?? [],
+        ),
+        entry_plan_quality_batch_fingerprint:
+          input.outcome_learning?.entry_plan_quality.diagnostics
+            .entry_plan_quality_batch_fingerprint ?? null,
+        missed_but_favorable_rate:
+          input.outcome_learning?.entry_plan_quality.diagnostics
+            .missed_but_favorable_rate ?? null,
+        entry_too_aggressive_rate:
+          input.outcome_learning?.entry_plan_quality.diagnostics
+            .entry_too_aggressive_rate ?? null,
+        target_too_far_rate:
+          input.outcome_learning?.entry_plan_quality.diagnostics
+            .target_too_far_rate ?? null,
+        avg_mfe_without_entry:
+          input.outcome_learning?.entry_plan_quality.diagnostics
+            .avg_mfe_without_entry ?? null,
+        avg_mae_without_entry:
+          input.outcome_learning?.entry_plan_quality.avg_mae_without_entry ??
+          null,
+        entry_quality_label:
+          input.outcome_learning?.entry_plan_quality.entry_quality_label ?? null,
+        suggested_tuning: (
+          input.outcome_learning?.entry_plan_quality.suggested_tuning ?? []
+        ).join("; "),
+        entry_plan_quality_items: JSON.stringify(
+          input.outcome_learning?.entry_plan_quality.items ?? [],
         ),
       },
     }),

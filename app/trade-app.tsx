@@ -18120,6 +18120,29 @@ function RecommendationOutcomeLearningInsightsPanel({
           label="Data Gaps"
           value={String(summary.data_quality_gap_count)}
         />
+        <SummaryCard
+          label="Missed Favorable"
+          value={formatPercent(
+            summary.entry_plan_quality.missed_but_favorable_rate,
+          )}
+        />
+        <SummaryCard
+          label="Entry Aggressive"
+          value={formatPercent(
+            summary.entry_plan_quality.entry_too_aggressive_rate,
+          )}
+        />
+        <SummaryCard
+          label="Target Too Far"
+          value={formatPercent(summary.entry_plan_quality.target_too_far_rate)}
+        />
+        <SummaryCard
+          label="MFE No Entry"
+          value={formatRecommendationPerformanceR(
+            summary.entry_plan_quality.avg_mfe_without_entry,
+          )}
+          tone={summary.entry_plan_quality.avg_mfe_without_entry}
+        />
       </div>
 
       {primaryInsight && (
@@ -18138,6 +18161,49 @@ function RecommendationOutcomeLearningInsightsPanel({
           </p>
         </div>
       )}
+
+      <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+              Entry Plan Quality
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-100">
+              {summary.entry_plan_quality.entry_quality_label.replace(/_/g, " ")}
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
+            {summary.entry_plan_quality.evaluated_recommendation_count} evaluated
+          </span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Detail
+            label="Missed but favorable"
+            value={`${summary.entry_plan_quality.missed_but_favorable_count} / ${formatPercent(summary.entry_plan_quality.missed_but_favorable_rate)}`}
+          />
+          <Detail
+            label="Triggered no follow-through"
+            value={`${summary.entry_plan_quality.triggered_no_followthrough_count} / ${formatPercent(summary.entry_plan_quality.triggered_no_followthrough_rate)}`}
+          />
+          <Detail
+            label="Avg MFE without entry"
+            value={formatRecommendationPerformanceR(
+              summary.entry_plan_quality.avg_mfe_without_entry,
+            )}
+          />
+          <Detail
+            label="Avg MAE without entry"
+            value={formatRecommendationPerformanceR(
+              summary.entry_plan_quality.avg_mae_without_entry,
+            )}
+          />
+        </div>
+        <ul className="mt-3 space-y-1 text-xs leading-5 text-zinc-400">
+          {summary.entry_plan_quality.suggested_tuning.map((suggestion) => (
+            <li key={suggestion}>{suggestion}</li>
+          ))}
+        </ul>
+      </div>
 
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
@@ -18178,6 +18244,13 @@ function RecommendationOutcomeLearningInsightsPanel({
         data-outcome-count={summary.total_evaluated_outcomes}
         data-entry-triggered-rate={summary.entry_triggered_rate ?? ""}
         data-primary-reason={summary.primary_insight?.reason ?? ""}
+        data-entry-quality-label={summary.entry_plan_quality.entry_quality_label}
+        data-missed-but-favorable-rate={
+          summary.entry_plan_quality.missed_but_favorable_rate ?? ""
+        }
+        data-entry-too-aggressive-rate={
+          summary.entry_plan_quality.entry_too_aggressive_rate ?? ""
+        }
       >
         {summaryJson}
       </pre>
@@ -32990,6 +33063,22 @@ function RecommendationHistoryCard({ item }: { item: RecommendationHistoryItem }
               value={formatStatisticsDurationMinutes(
                 item.outcome.time_to_entry_minutes,
               )}
+            />
+            <Detail
+              label="Execution Quality"
+              value={item.outcome.execution_quality_label.replace(/_/g, " ")}
+            />
+            <Detail
+              label="Idea Favorable"
+              value={
+                item.outcome.idea_moved_favorably === null
+                  ? "—"
+                  : String(item.outcome.idea_moved_favorably)
+              }
+            />
+            <Detail
+              label="Entry Quality"
+              value={item.outcome.entry_quality_reason}
             />
           </div>
 

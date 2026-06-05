@@ -16,6 +16,69 @@ export type RecommendationOutcomeLearningInsightType =
   | "data_quality"
   | "unknown";
 
+export type EntryPlanDistanceIssue =
+  | "none"
+  | "too_aggressive"
+  | "too_easy"
+  | "too_far"
+  | "too_tight"
+  | "too_wide"
+  | "hit"
+  | "unknown";
+
+export type EntryPlanExecutionQualityLabel =
+  | "clean_trigger"
+  | "missed_but_favorable"
+  | "missed_and_unfavorable"
+  | "triggered_no_followthrough"
+  | "target_hit"
+  | "stop_hit"
+  | "data_incomplete";
+
+export type EntryPlanQualityItem = {
+  snapshot_fingerprint: string | null;
+  recommendation_id: string | null;
+  ticker: string | null;
+  idea_moved_favorably: boolean | null;
+  max_favorable_r: number | null;
+  max_adverse_r: number | null;
+  entry_triggered: boolean | null;
+  entry_distance_issue: EntryPlanDistanceIssue;
+  target_distance_issue: EntryPlanDistanceIssue;
+  stop_distance_issue: EntryPlanDistanceIssue;
+  execution_quality_label: EntryPlanExecutionQualityLabel;
+  entry_quality_reason: string;
+  evaluated_outcome_count: number;
+  horizons: string[];
+};
+
+export type EntryPlanQualitySummary = {
+  batch_fingerprint: string | null;
+  recommendation_count: number;
+  evaluated_recommendation_count: number;
+  missed_but_favorable_count: number;
+  missed_but_favorable_rate: number | null;
+  triggered_no_followthrough_count: number;
+  triggered_no_followthrough_rate: number | null;
+  target_too_far_count: number;
+  target_too_far_rate: number | null;
+  entry_too_aggressive_count: number;
+  entry_too_aggressive_rate: number | null;
+  avg_mfe_without_entry: number | null;
+  avg_mae_without_entry: number | null;
+  target_too_far_signal: boolean;
+  entry_quality_label: string;
+  suggested_tuning: string[];
+  items: EntryPlanQualityItem[];
+  diagnostics: {
+    entry_plan_quality_batch_fingerprint: string | null;
+    missed_but_favorable_rate: number | null;
+    entry_too_aggressive_rate: number | null;
+    target_too_far_rate: number | null;
+    avg_mfe_without_entry: number | null;
+  };
+};
+
 export type RecommendationOutcomeLearningMetricBreakdown = {
   key: string;
   recommendation_count: number;
@@ -70,6 +133,7 @@ export type RecommendationOutcomeLearningInsightsSummary = {
   max_drawdown_r: number | null;
   horizon_breakdown: RecommendationOutcomeLearningMetricBreakdown[];
   tier_breakdown: RecommendationOutcomeLearningMetricBreakdown[];
+  entry_plan_quality: EntryPlanQualitySummary;
   primary_insight: RecommendationOutcomeLearningInsight | null;
   suggested_next_review_item: string | null;
   diagnostics: {
@@ -232,6 +296,216 @@ function isNeitherHit(outcome: RecommendationOutcome) {
   return outcome.status === "neither_hit" || outcome.status === "expired";
 }
 
+function outcomesForSnapshot(
+  snapshot: RecommendationSnapshot,
+  outcomes: RecommendationOutcome[],
+) {
+  return outcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint ||
+      (snapshot.recommendation_id !== null &&
+        outcome.recommendation_id === snapshot.recommendation_id),
+  );
+}
+
+export function buildEntryPlanQualityForSnapshot(
+  snapshot: RecommendationSnapshot | null,
+  outcomes: RecommendationOutcome[],
+): EntryPlanQualityItem {
+  const evaluated = outcomes.filter(isEvaluatedOutcome);
+  const maxFavorableR = maximum(evaluated.map((outcome) => outcome.best_r));
+  const maxAdverseR = minimum(evaluated.map((outcome) => outcome.worst_r));
+  const entryTriggered =
+    evaluated.length === 0 ? null : evaluated.some(isEntryTriggered);
+  const targetHit = evaluated.some(isTargetHit);
+  const stopHit = evaluated.some(isStopHit);
+  const neitherHit = evaluated.some(isNeitherHit);
+  const ideaMovedFavorably =
+    maxFavorableR === null ? null : maxFavorableR > 0;
+  const missedButFavorable =
+    entryTriggered === false && ideaMovedFavorably === true;
+  const missedAndUnfavorable =
+    entryTriggered === false && ideaMovedFavorably === false;
+  const triggeredNoFollowthrough =
+    entryTriggered === true && !targetHit && !stopHit && neitherHit;
+  const targetTooFar =
+    !targetHit && (maxFavorableR ?? 0) > 0 && evaluated.length > 0;
+  const stopRiskWasHigh = (maxAdverseR ?? 0) <= -0.8;
+  const stopTooWide =
+    entryTriggered === true &&
+    !stopHit &&
+    (maxAdverseR ?? 0) > -0.15 &&
+    evaluated.length > 0;
+
+  let executionQualityLabel: EntryPlanExecutionQualityLabel = "data_incomplete";
+  if (targetHit) {
+    executionQualityLabel = "target_hit";
+  } else if (stopHit) {
+    executionQualityLabel = "stop_hit";
+  } else if (missedButFavorable) {
+    executionQualityLabel = "missed_but_favorable";
+  } else if (missedAndUnfavorable) {
+    executionQualityLabel = "missed_and_unfavorable";
+  } else if (triggeredNoFollowthrough) {
+    executionQualityLabel = "triggered_no_followthrough";
+  } else if (entryTriggered === true) {
+    executionQualityLabel = "clean_trigger";
+  }
+
+  const entryDistanceIssue: EntryPlanDistanceIssue =
+    evaluated.length === 0
+      ? "unknown"
+      : missedButFavorable
+        ? "too_aggressive"
+        : stopHit && (maxFavorableR ?? 0) <= 0.15
+          ? "too_easy"
+          : "none";
+  const targetDistanceIssue: EntryPlanDistanceIssue =
+    evaluated.length === 0 ? "unknown" : targetHit ? "hit" : targetTooFar ? "too_far" : "none";
+  const stopDistanceIssue: EntryPlanDistanceIssue =
+    evaluated.length === 0
+      ? "unknown"
+      : stopRiskWasHigh
+        ? "too_tight"
+        : stopTooWide
+          ? "too_wide"
+          : "none";
+
+  const entryQualityReason =
+    executionQualityLabel === "missed_but_favorable"
+      ? "Idea moved favorably, but entry did not trigger."
+      : executionQualityLabel === "missed_and_unfavorable"
+        ? "Entry did not trigger and price did not move favorably."
+        : executionQualityLabel === "triggered_no_followthrough"
+          ? "Entry triggered, but neither target nor stop resolved inside evaluated horizons."
+          : executionQualityLabel === "target_hit"
+            ? "Entry plan participated and target was hit."
+            : executionQualityLabel === "stop_hit"
+              ? "Entry plan participated, but stop was hit."
+              : executionQualityLabel === "clean_trigger"
+                ? "Entry triggered without a terminal target/stop warning."
+                : "Complete evaluated outcomes are not available for this recommendation.";
+
+  return {
+    snapshot_fingerprint: snapshot?.snapshot_fingerprint ?? null,
+    recommendation_id: snapshot?.recommendation_id ?? null,
+    ticker: snapshot?.ticker ?? evaluated[0]?.ticker ?? null,
+    idea_moved_favorably: ideaMovedFavorably,
+    max_favorable_r: maxFavorableR,
+    max_adverse_r: maxAdverseR,
+    entry_triggered: entryTriggered,
+    entry_distance_issue: entryDistanceIssue,
+    target_distance_issue: targetDistanceIssue,
+    stop_distance_issue: stopDistanceIssue,
+    execution_quality_label: executionQualityLabel,
+    entry_quality_reason: entryQualityReason,
+    evaluated_outcome_count: evaluated.length,
+    horizons: Array.from(new Set(evaluated.map((outcome) => outcome.horizon))).sort(),
+  };
+}
+
+function buildEntryPlanQualitySummary(input: {
+  batch_fingerprint: string | null;
+  snapshots: RecommendationSnapshot[];
+  outcomes: RecommendationOutcome[];
+}): EntryPlanQualitySummary {
+  const items = input.snapshots.map((snapshot) =>
+    buildEntryPlanQualityForSnapshot(
+      snapshot,
+      outcomesForSnapshot(snapshot, input.outcomes),
+    ),
+  );
+  const evaluatedItems = items.filter((item) => item.evaluated_outcome_count > 0);
+  const missedButFavorableItems = evaluatedItems.filter(
+    (item) => item.execution_quality_label === "missed_but_favorable",
+  );
+  const triggeredNoFollowthroughCount = evaluatedItems.filter(
+    (item) => item.execution_quality_label === "triggered_no_followthrough",
+  ).length;
+  const targetTooFarCount = evaluatedItems.filter(
+    (item) => item.target_distance_issue === "too_far",
+  ).length;
+  const entryTooAggressiveCount = evaluatedItems.filter(
+    (item) => item.entry_distance_issue === "too_aggressive",
+  ).length;
+  const missedButFavorableRate = percent(
+    missedButFavorableItems.length,
+    evaluatedItems.length,
+  );
+  const entryTooAggressiveRate = percent(
+    entryTooAggressiveCount,
+    evaluatedItems.length,
+  );
+  const targetTooFarRate = percent(targetTooFarCount, evaluatedItems.length);
+  const targetTooFarSignal =
+    targetTooFarCount > 0 && (targetTooFarRate ?? 0) >= 50;
+  const suggestedTuning: string[] = [];
+
+  if ((entryTooAggressiveRate ?? 0) >= 50) {
+    suggestedTuning.push("Review entry trigger aggressiveness.");
+    suggestedTuning.push("Consider pullback/marketable entry variant.");
+    suggestedTuning.push("Keep scanner idea, tune execution.");
+  }
+
+  if ((average(missedButFavorableItems.map((item) => item.max_adverse_r)) ?? 0) <= -0.5) {
+    suggestedTuning.push("Do not loosen entry if MAE is high.");
+  }
+
+  if (targetTooFarSignal) {
+    suggestedTuning.push("Review whether first targets are too far for the evaluated window.");
+  }
+
+  const entryQualityLabel =
+    evaluatedItems.length === 0
+      ? "data_incomplete"
+      : (entryTooAggressiveRate ?? 0) >= 50
+        ? "entry_too_aggressive"
+        : targetTooFarSignal
+          ? "target_too_far"
+          : triggeredNoFollowthroughCount > 0
+            ? "triggered_no_followthrough"
+            : "execution_plan_observed";
+
+  return {
+    batch_fingerprint: input.batch_fingerprint,
+    recommendation_count: input.snapshots.length,
+    evaluated_recommendation_count: evaluatedItems.length,
+    missed_but_favorable_count: missedButFavorableItems.length,
+    missed_but_favorable_rate: missedButFavorableRate,
+    triggered_no_followthrough_count: triggeredNoFollowthroughCount,
+    triggered_no_followthrough_rate: percent(
+      triggeredNoFollowthroughCount,
+      evaluatedItems.length,
+    ),
+    target_too_far_count: targetTooFarCount,
+    target_too_far_rate: targetTooFarRate,
+    entry_too_aggressive_count: entryTooAggressiveCount,
+    entry_too_aggressive_rate: entryTooAggressiveRate,
+    avg_mfe_without_entry: average(
+      missedButFavorableItems.map((item) => item.max_favorable_r),
+    ),
+    avg_mae_without_entry: average(
+      missedButFavorableItems.map((item) => item.max_adverse_r),
+    ),
+    target_too_far_signal: targetTooFarSignal,
+    entry_quality_label: entryQualityLabel,
+    suggested_tuning:
+      suggestedTuning.length > 0
+        ? Array.from(new Set(suggestedTuning))
+        : ["Continue collecting evaluated outcomes before tuning execution rules."],
+    items,
+    diagnostics: {
+      entry_plan_quality_batch_fingerprint: input.batch_fingerprint,
+      missed_but_favorable_rate: missedButFavorableRate,
+      entry_too_aggressive_rate: entryTooAggressiveRate,
+      target_too_far_rate: targetTooFarRate,
+      avg_mfe_without_entry: average(
+        missedButFavorableItems.map((item) => item.max_favorable_r),
+      ),
+    },
+  };
+}
+
 function buildBreakdown(
   key: string,
   outcomes: RecommendationOutcome[],
@@ -377,6 +651,11 @@ export function buildRecommendationOutcomeLearningInsightsSummary({
     selectedSnapshots.map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
   );
   const evaluatedOutcomes = outcomes.filter(isEvaluatedOutcome);
+  const entryPlanQuality = buildEntryPlanQualitySummary({
+    batch_fingerprint: batch_fingerprint ?? null,
+    snapshots: selectedSnapshots,
+    outcomes,
+  });
   const overall = buildBreakdown(
     "overall",
     outcomes,
@@ -474,6 +753,7 @@ export function buildRecommendationOutcomeLearningInsightsSummary({
     max_drawdown_r: overall.max_drawdown_r,
     horizon_breakdown: horizonBreakdown,
     tier_breakdown: tierBreakdown,
+    entry_plan_quality: entryPlanQuality,
     primary_insight: primaryInsight,
     suggested_next_review_item:
       primaryInsight?.suggested_next_review_item ?? null,
