@@ -275,6 +275,12 @@ import {
   type RecommendationLearningInsightsSummary,
 } from "@/lib/recommendation-learning-insights";
 import {
+  buildRecommendationOutcomeLearningInsightsSummary,
+  recommendationOutcomeLearningInsightsSummaryJson,
+  type RecommendationOutcomeLearningInsight,
+  type RecommendationOutcomeLearningInsightsSummary,
+} from "@/lib/recommendation-outcome-learning-insights";
+import {
   buildRecommendationSampleQualitySummary,
   recommendationSampleQualitySummaryJson,
   type RecommendationSampleQualityCoverage,
@@ -12390,6 +12396,17 @@ export function TradeApp() {
     recommendationBatchLearningInsightsSummaryJson(
       recommendationBatchLearningInsightsSummary,
     );
+  const recommendationOutcomeLearningInsightsSummary =
+    buildRecommendationOutcomeLearningInsightsSummary({
+      batch_fingerprint: latestEvaluatedBatchFingerprint,
+      snapshots: latestEvaluatedBatchSnapshots,
+      outcomes: latestEvaluatedBatchOutcomes,
+      now: currentTime,
+    });
+  const recommendationOutcomeLearningInsightsSummaryJsonText =
+    recommendationOutcomeLearningInsightsSummaryJson(
+      recommendationOutcomeLearningInsightsSummary,
+    );
   const recommendationLearningInsightsSummary =
     buildRecommendationLearningInsightsSummary({
       performance: recommendationPerformanceStatistics,
@@ -12763,6 +12780,7 @@ export function TradeApp() {
               ? currentBatchOutcomeTickers
               : latestEvaluatedBatchTickerList,
       },
+      outcome_learning: recommendationOutcomeLearningInsightsSummary,
       scan_readback: {
         current_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
@@ -13859,6 +13877,12 @@ export function TradeApp() {
               }
               recommendationBatchLearningInsightsJson={
                 recommendationBatchLearningInsightsSummaryJsonText
+              }
+              recommendationOutcomeLearningInsights={
+                recommendationOutcomeLearningInsightsSummary
+              }
+              recommendationOutcomeLearningInsightsJson={
+                recommendationOutcomeLearningInsightsSummaryJsonText
               }
               recommendationLearningInsights={
                 recommendationLearningInsightsSummary
@@ -16445,6 +16469,8 @@ function StatisticsDashboardPanel({
   recommendationBatchPerformanceJson,
   recommendationBatchLearningInsights,
   recommendationBatchLearningInsightsJson,
+  recommendationOutcomeLearningInsights,
+  recommendationOutcomeLearningInsightsJson,
   recommendationLearningInsights,
   recommendationLearningInsightsJson,
   recommendationSampleQuality,
@@ -16467,6 +16493,8 @@ function StatisticsDashboardPanel({
   recommendationBatchPerformanceJson: string;
   recommendationBatchLearningInsights: RecommendationBatchLearningInsightsSummary;
   recommendationBatchLearningInsightsJson: string;
+  recommendationOutcomeLearningInsights: RecommendationOutcomeLearningInsightsSummary;
+  recommendationOutcomeLearningInsightsJson: string;
   recommendationLearningInsights: RecommendationLearningInsightsSummary;
   recommendationLearningInsightsJson: string;
   recommendationSampleQuality: RecommendationSampleQualitySummary;
@@ -16725,6 +16753,13 @@ function StatisticsDashboardPanel({
               <RecommendationBatchLearningInsightsPanel
                 summary={recommendationBatchLearningInsights}
                 summaryJson={recommendationBatchLearningInsightsJson}
+              />
+            </div>
+
+            <div className="mt-4">
+              <RecommendationOutcomeLearningInsightsPanel
+                summary={recommendationOutcomeLearningInsights}
+                summaryJson={recommendationOutcomeLearningInsightsJson}
               />
             </div>
 
@@ -17983,6 +18018,166 @@ function RecommendationBatchLearningInsightsPanel({
         data-total-batches={summary.source_metrics.total_batches}
         data-evaluated-batches={summary.source_metrics.evaluated_batches}
         data-target-hit-rate={summary.source_metrics.target_hit_rate ?? ""}
+      >
+        {summaryJson}
+      </pre>
+    </section>
+  );
+}
+
+function recommendationOutcomeLearningInsightTone(
+  severity: RecommendationOutcomeLearningInsight["severity"],
+) {
+  if (severity === "positive") {
+    return "border-[#00db94]/25 bg-[#00db94]/10 text-emerald-100";
+  }
+
+  if (severity === "warning") {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  return "border-cyan-300/20 bg-cyan-300/10 text-cyan-100";
+}
+
+function RecommendationOutcomeLearningInsightsPanel({
+  summary,
+  summaryJson,
+}: {
+  summary: RecommendationOutcomeLearningInsightsSummary;
+  summaryJson: string;
+}) {
+  const primaryInsight = summary.primary_insight;
+
+  return (
+    <section className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+            Outcome Learning Insights
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            Latest evaluated batch{" "}
+            <span className="font-mono text-zinc-100">
+              {summary.batch_fingerprint ?? "none"}
+            </span>
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Complete evaluated outcomes are used for learning metrics.
+            Incomplete/provider-error rows remain data quality gaps.
+          </p>
+        </div>
+        {primaryInsight && (
+          <span
+            className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${recommendationOutcomeLearningInsightTone(
+              primaryInsight.severity,
+            )}`}
+          >
+            {primaryInsight.insight_type.replace(/_/g, " ")}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <SummaryCard
+          label="Recommendations"
+          value={String(summary.total_recommendations)}
+        />
+        <SummaryCard
+          label="Evaluated Outcomes"
+          value={String(summary.total_evaluated_outcomes)}
+        />
+        <SummaryCard
+          label="Entry Triggered"
+          value={formatPercent(summary.entry_triggered_rate)}
+        />
+        <SummaryCard
+          label="Entry Not Triggered"
+          value={formatPercent(summary.entry_not_triggered_rate)}
+        />
+        <SummaryCard
+          label="Avg Best R"
+          value={formatRecommendationPerformanceR(summary.avg_best_r)}
+          tone={summary.avg_best_r}
+        />
+        <SummaryCard
+          label="Avg Worst R"
+          value={formatRecommendationPerformanceR(summary.avg_worst_r)}
+          tone={summary.avg_worst_r}
+        />
+        <SummaryCard
+          label="Target Hit"
+          value={formatPercent(summary.target_hit_rate)}
+        />
+        <SummaryCard
+          label="Stop Hit"
+          value={formatPercent(summary.stop_hit_rate)}
+        />
+        <SummaryCard
+          label="Incomplete"
+          value={String(summary.incomplete_outcome_count)}
+        />
+        <SummaryCard
+          label="Data Gaps"
+          value={String(summary.data_quality_gap_count)}
+        />
+      </div>
+
+      {primaryInsight && (
+        <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Primary Insight
+          </p>
+          <h3 className="mt-1 text-sm font-semibold text-zinc-100">
+            {primaryInsight.title}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            {primaryInsight.reason}
+          </p>
+          <p className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3 text-xs leading-5 text-zinc-400">
+            {primaryInsight.suggested_next_review_item}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
+        <div className="rounded-md border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Horizon Breakdown
+          </p>
+          <div className="mt-3 grid gap-2">
+            {summary.horizon_breakdown.map((item) => (
+              <Detail
+                key={item.key}
+                label={item.key.toUpperCase()}
+                value={`${formatPercent(item.entry_triggered_rate)} triggered / ${formatRecommendationPerformanceR(item.avg_best_r)} best R`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Tier Breakdown
+          </p>
+          <div className="mt-3 grid gap-2">
+            {summary.tier_breakdown.map((item) => (
+              <Detail
+                key={item.key}
+                label={item.key.replace(/_/g, " ").toUpperCase()}
+                value={`${item.recommendation_count} recs / ${formatPercent(item.entry_not_triggered_rate)} not triggered`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <pre
+        id="trade-recommendation-outcome-learning-insights-json"
+        className="sr-only"
+        data-batch-fingerprint={summary.batch_fingerprint ?? ""}
+        data-outcome-count={summary.total_evaluated_outcomes}
+        data-entry-triggered-rate={summary.entry_triggered_rate ?? ""}
+        data-primary-reason={summary.primary_insight?.reason ?? ""}
       >
         {summaryJson}
       </pre>

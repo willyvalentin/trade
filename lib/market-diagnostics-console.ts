@@ -8,6 +8,7 @@ import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
 import type { RealRecommendationOutputReadinessSummary } from "@/lib/real-recommendation-output-readiness";
 import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memory";
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
+import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
@@ -226,6 +227,7 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
   } | null;
+  outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
   batch_memory: RecommendationBatchSummary;
@@ -2017,6 +2019,78 @@ function buildSections(
         tickers_evaluated: (
           input.outcome_evaluation?.tickers_evaluated ?? []
         ).join(","),
+      },
+    }),
+    section({
+      section_id: "outcome_learning_insights",
+      title: "Learning Insights",
+      severity:
+        input.outcome_learning?.primary_insight?.severity === "warning"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Latest evaluated batch",
+          compact(input.outcome_learning?.batch_fingerprint, "none"),
+        ),
+        lineValue(
+          "Entry triggered rate",
+          input.outcome_learning?.entry_triggered_rate ?? null,
+        ),
+        lineValue(
+          "Entry not triggered rate",
+          input.outcome_learning?.entry_not_triggered_rate ?? null,
+        ),
+        lineValue("Avg best R", input.outcome_learning?.avg_best_r ?? null),
+        lineValue("Avg worst R", input.outcome_learning?.avg_worst_r ?? null),
+        lineValue(
+          "Primary insight",
+          compact(input.outcome_learning?.primary_insight?.title, "none"),
+        ),
+        lineValue(
+          "Primary reason",
+          compact(input.outcome_learning?.primary_insight?.reason, "none"),
+        ),
+        lineValue(
+          "Suggested next review",
+          compact(input.outcome_learning?.suggested_next_review_item, "none"),
+        ),
+      ],
+      metrics: {
+        learning_insight_batch_fingerprint:
+          input.outcome_learning?.diagnostics
+            .learning_insight_batch_fingerprint ?? null,
+        learning_insight_outcome_count:
+          input.outcome_learning?.diagnostics.learning_insight_outcome_count ??
+          null,
+        learning_insight_entry_triggered_rate:
+          input.outcome_learning?.diagnostics
+            .learning_insight_entry_triggered_rate ?? null,
+        learning_insight_primary_reason:
+          input.outcome_learning?.diagnostics.learning_insight_primary_reason ??
+          null,
+        total_recommendations:
+          input.outcome_learning?.total_recommendations ?? null,
+        total_evaluated_outcomes:
+          input.outcome_learning?.total_evaluated_outcomes ?? null,
+        entry_not_triggered_rate:
+          input.outcome_learning?.entry_not_triggered_rate ?? null,
+        target_hit_rate: input.outcome_learning?.target_hit_rate ?? null,
+        stop_hit_rate: input.outcome_learning?.stop_hit_rate ?? null,
+        avg_best_r: input.outcome_learning?.avg_best_r ?? null,
+        avg_worst_r: input.outcome_learning?.avg_worst_r ?? null,
+        max_best_r: input.outcome_learning?.max_best_r ?? null,
+        max_drawdown_r: input.outcome_learning?.max_drawdown_r ?? null,
+        incomplete_outcome_count:
+          input.outcome_learning?.incomplete_outcome_count ?? null,
+        data_quality_gap_count:
+          input.outcome_learning?.data_quality_gap_count ?? null,
+        horizon_breakdown: JSON.stringify(
+          input.outcome_learning?.horizon_breakdown ?? [],
+        ),
+        tier_breakdown: JSON.stringify(
+          input.outcome_learning?.tier_breakdown ?? [],
+        ),
       },
     }),
   ];
