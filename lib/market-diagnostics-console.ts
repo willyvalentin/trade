@@ -196,6 +196,15 @@ export type MarketDiagnosticsConsoleInput = {
     skipped_not_old_enough_count?: number | null;
     missing_candles_count?: number | null;
     provider_error_count?: number | null;
+    candle_requests_planned?: number | null;
+    candle_requests_executed?: number | null;
+    candle_requests_saved_by_reuse?: number | null;
+    provider_budget_limit?: number | null;
+    skipped_due_to_budget_count?: number | null;
+    pending_provider_budget_count?: number | null;
+    retry_incomplete_count?: number | null;
+    outcome_provider_budget_status?: string | null;
+    next_retry_suggestion?: string | null;
     persistence_status?: string | null;
     persistence_mode?: string | null;
     elapsed_ms?: number | null;
@@ -1790,6 +1799,22 @@ function buildSections(
           `${input.outcome_evaluation?.missing_candles_count ?? 0}/${input.outcome_evaluation?.provider_error_count ?? 0}`,
         ),
         lineValue(
+          "Provider budget",
+          `${compact(input.outcome_evaluation?.outcome_provider_budget_status, "unknown")} / limit ${input.outcome_evaluation?.provider_budget_limit ?? "none"}`,
+        ),
+        lineValue(
+          "Candle requests planned/executed/saved",
+          `${input.outcome_evaluation?.candle_requests_planned ?? 0}/${input.outcome_evaluation?.candle_requests_executed ?? 0}/${input.outcome_evaluation?.candle_requests_saved_by_reuse ?? 0}`,
+        ),
+        lineValue(
+          "Pending provider budget / retries",
+          `${input.outcome_evaluation?.pending_provider_budget_count ?? 0}/${input.outcome_evaluation?.retry_incomplete_count ?? 0}`,
+        ),
+        lineValue(
+          "Next retry",
+          compact(input.outcome_evaluation?.next_retry_suggestion, "none"),
+        ),
+        lineValue(
           "Provider limit warning",
           bool(input.outcome_evaluation?.provider_limit_warning === true),
         ),
@@ -1863,6 +1888,24 @@ function buildSections(
           input.outcome_evaluation?.missing_candles_count ?? null,
         provider_error_count:
           input.outcome_evaluation?.provider_error_count ?? null,
+        candle_requests_planned:
+          input.outcome_evaluation?.candle_requests_planned ?? null,
+        candle_requests_executed:
+          input.outcome_evaluation?.candle_requests_executed ?? null,
+        candle_requests_saved_by_reuse:
+          input.outcome_evaluation?.candle_requests_saved_by_reuse ?? null,
+        provider_budget_limit:
+          input.outcome_evaluation?.provider_budget_limit ?? null,
+        skipped_due_to_budget_count:
+          input.outcome_evaluation?.skipped_due_to_budget_count ?? null,
+        pending_provider_budget_count:
+          input.outcome_evaluation?.pending_provider_budget_count ?? null,
+        retry_incomplete_count:
+          input.outcome_evaluation?.retry_incomplete_count ?? null,
+        outcome_provider_budget_status:
+          input.outcome_evaluation?.outcome_provider_budget_status ?? null,
+        next_retry_suggestion:
+          input.outcome_evaluation?.next_retry_suggestion ?? null,
         persistence_status:
           input.outcome_evaluation?.persistence_status ?? null,
         persistence_mode:

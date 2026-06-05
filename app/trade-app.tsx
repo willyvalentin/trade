@@ -1088,6 +1088,15 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   tickersEvaluated: string[];
   elapsedMs: number | null;
   snapshotOnly: boolean;
+  candleRequestsPlanned: number;
+  candleRequestsExecuted: number;
+  candleRequestsSavedByReuse: number;
+  providerBudgetLimit: number | null;
+  skippedDueToBudgetCount: number;
+  pendingProviderBudgetCount: number;
+  retryIncompleteCount: number;
+  outcomeProviderBudgetStatus: string | null;
+  nextRetrySuggestion: string | null;
   summary: string;
 };
 
@@ -7711,6 +7720,15 @@ export function TradeApp() {
     tickersEvaluated: [],
     elapsedMs: null,
     snapshotOnly: true,
+    candleRequestsPlanned: 0,
+    candleRequestsExecuted: 0,
+    candleRequestsSavedByReuse: 0,
+    providerBudgetLimit: null,
+    skippedDueToBudgetCount: 0,
+    pendingProviderBudgetCount: 0,
+    retryIncompleteCount: 0,
+    outcomeProviderBudgetStatus: null,
+    nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
   });
   const [isEvaluatingRecommendationOutcomes, setIsEvaluatingRecommendationOutcomes] =
@@ -12491,6 +12509,24 @@ export function TradeApp() {
         provider_error_count:
           recommendationOutcomeEvaluationDiagnostics.providerErrors ||
           outcomeDiagnosticsProviderErrorCount,
+        candle_requests_planned:
+          recommendationOutcomeEvaluationDiagnostics.candleRequestsPlanned,
+        candle_requests_executed:
+          recommendationOutcomeEvaluationDiagnostics.candleRequestsExecuted,
+        candle_requests_saved_by_reuse:
+          recommendationOutcomeEvaluationDiagnostics.candleRequestsSavedByReuse,
+        provider_budget_limit:
+          recommendationOutcomeEvaluationDiagnostics.providerBudgetLimit,
+        skipped_due_to_budget_count:
+          recommendationOutcomeEvaluationDiagnostics.skippedDueToBudgetCount,
+        pending_provider_budget_count:
+          recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount,
+        retry_incomplete_count:
+          recommendationOutcomeEvaluationDiagnostics.retryIncompleteCount,
+        outcome_provider_budget_status:
+          recommendationOutcomeEvaluationDiagnostics.outcomeProviderBudgetStatus,
+        next_retry_suggestion:
+          recommendationOutcomeEvaluationDiagnostics.nextRetrySuggestion,
         persistence_status:
           recommendationOutcomeEvaluationDiagnostics.persistenceStatus,
         persistence_mode: recommendationOutcomeEvaluationDiagnostics.persistenceMode,
@@ -13096,6 +13132,48 @@ export function TradeApp() {
             ? routeDiagnostics.elapsed_ms
             : null,
         snapshotOnly: run.evaluated_snapshot_count === 0,
+        candleRequestsPlanned: Number(
+          routeDiagnostics.candle_requests_planned ?? run.candle_requests_planned ?? 0,
+        ),
+        candleRequestsExecuted: Number(
+          routeDiagnostics.candle_requests_executed ??
+            run.candle_requests_executed ??
+            0,
+        ),
+        candleRequestsSavedByReuse: Number(
+          routeDiagnostics.candle_requests_saved_by_reuse ??
+            run.candle_requests_saved_by_reuse ??
+            0,
+        ),
+        providerBudgetLimit:
+          typeof routeDiagnostics.provider_budget_limit === "number"
+            ? routeDiagnostics.provider_budget_limit
+            : typeof run.provider_budget_limit === "number"
+              ? run.provider_budget_limit
+              : null,
+        skippedDueToBudgetCount: Number(
+          routeDiagnostics.skipped_due_to_budget_count ??
+            run.skipped_due_to_budget_count ??
+            0,
+        ),
+        pendingProviderBudgetCount: Number(
+          routeDiagnostics.pending_provider_budget_count ??
+            run.pending_provider_budget_count ??
+            0,
+        ),
+        retryIncompleteCount: Number(
+          routeDiagnostics.retry_incomplete_count ??
+            run.retry_incomplete_count ??
+            0,
+        ),
+        outcomeProviderBudgetStatus:
+          typeof routeDiagnostics.outcome_provider_budget_status === "string"
+            ? routeDiagnostics.outcome_provider_budget_status
+            : null,
+        nextRetrySuggestion:
+          typeof routeDiagnostics.next_retry_suggestion === "string"
+            ? routeDiagnostics.next_retry_suggestion
+            : null,
         summary: run.summary,
       });
     } catch (error) {

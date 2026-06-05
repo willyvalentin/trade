@@ -21,6 +21,7 @@ export type RecommendationOutcomeEvaluationRunStatus =
 
 export type RecommendationOutcomeEvaluationCandidateStatus =
   | "pending"
+  | "pending_provider_budget"
   | "evaluated"
   | "incomplete_data"
   | "missing_snapshot_fields"
@@ -96,6 +97,13 @@ export type RecommendationOutcomeEvaluationRun = {
   missing_candle_count: number;
   provider_error_count: number;
   persisted_outcome_count: number;
+  candle_requests_planned: number;
+  candle_requests_executed: number;
+  candle_requests_saved_by_reuse: number;
+  provider_budget_limit: number | null;
+  skipped_due_to_budget_count: number;
+  pending_provider_budget_count: number;
+  retry_incomplete_count: number;
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
   warnings: RecommendationOutcomeEvaluationWarning[];
@@ -110,6 +118,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
   source?: RecommendationOutcomeEvaluationRun["source"];
   provider?: string | null;
   maxSnapshots?: number;
+  maxCandleRequests?: number | null;
   fetchCandles?: (
     request: RecommendationOutcomeCandleRequest,
   ) => Promise<RecommendationOutcomeCandleResult>;
@@ -182,6 +191,32 @@ function isOutcomePending(outcome: RecommendationOutcome | undefined) {
   );
 }
 
+function isProviderLimitOutcome(outcome: RecommendationOutcome | undefined) {
+  if (!outcome) {
+    return false;
+  }
+
+  const text = [
+    ...outcome.warnings,
+    ...outcome.blockers,
+    outcome.payload_json.provider_error,
+    outcome.payload_json.error,
+    outcome.payload_json.pending_reason,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    outcome.status === "incomplete" &&
+    (text.includes("provider") ||
+      text.includes("rate limit") ||
+      text.includes("api limit") ||
+      text.includes("credit") ||
+      text.includes("budget"))
+  );
+}
+
 function createRunId(startedAt: string) {
   return `rec_out_eval_${stableHash(startedAt)}`;
 }
@@ -247,6 +282,54 @@ function buildCandleRequest({
   };
 }
 
+function buildReusableCandleRequest({
+  snapshot,
+  requests,
+}: {
+  snapshot: RecommendationSnapshot;
+  requests: RecommendationOutcomeCandleRequest[];
+}) {
+  const sortedRequests = [...requests].sort(
+    (first, second) =>
+      new Date(second.end_at).getTime() - new Date(first.end_at).getTime(),
+  );
+  const maxRequest = sortedRequests[0] ?? null;
+
+  if (!maxRequest) {
+    return null;
+  }
+
+  return {
+    ...maxRequest,
+    request_id: `candle_${stableHash(
+      `${snapshot.snapshot_fingerprint}|reused|max_horizon`,
+    )}`,
+    horizon: maxRequest.horizon,
+  };
+}
+
+function candlesForRequestWindow(
+  candles: RecommendationOutcomeCandle[],
+  request: RecommendationOutcomeCandleRequest,
+) {
+  const start = new Date(request.start_at).getTime();
+  const end = new Date(request.end_at).getTime();
+
+  return candles.filter((candle) => {
+    const timestamp =
+      typeof candle.timestamp === "number"
+        ? candle.timestamp
+        : toDate(candle.timestamp)?.getTime();
+
+    return (
+      typeof timestamp === "number" &&
+      Number.isFinite(timestamp) &&
+      timestamp >= start &&
+      timestamp <= end
+    );
+  });
+}
+
 function warning(
   snapshot: RecommendationSnapshot,
   horizon: RecommendationOutcomeHorizon,
@@ -290,6 +373,7 @@ export async function runRecommendationOutcomeEvaluation(
   const horizons = options.horizons?.length ? options.horizons : defaultHorizons;
   const existingOutcomes = options.existingOutcomes ?? [];
   const maxSnapshots = options.maxSnapshots ?? defaultMaxSnapshots;
+  const fetchCandles = options.fetchCandles;
   const sortedSnapshots = [...options.snapshots]
     .filter((snapshot) => snapshot.is_visible !== false)
     .sort((first, second) => {
@@ -318,6 +402,13 @@ export async function runRecommendationOutcomeEvaluation(
       missing_candle_count: 0,
       provider_error_count: 0,
       persisted_outcome_count: 0,
+      candle_requests_planned: 0,
+      candle_requests_executed: 0,
+      candle_requests_saved_by_reuse: 0,
+      provider_budget_limit: options.maxCandleRequests ?? null,
+      skipped_due_to_budget_count: 0,
+      pending_provider_budget_count: 0,
+      retry_incomplete_count: 0,
       candidates,
       outcomes,
       warnings,
@@ -326,13 +417,35 @@ export async function runRecommendationOutcomeEvaluation(
     return { ...blockedRun, summary: summarizeRun(blockedRun) };
   }
 
+  const providerBudgetLimit =
+    typeof options.maxCandleRequests === "number" &&
+    Number.isFinite(options.maxCandleRequests)
+      ? Math.max(0, Math.floor(options.maxCandleRequests))
+      : null;
+  let candleRequestsPlanned = 0;
+  let candleRequestsExecuted = 0;
+  let candleRequestsBeforeReuse = 0;
+  let skippedDueToBudgetCount = 0;
+  let retryIncompleteCount = 0;
+
   for (const snapshot of sortedSnapshots) {
+    const reusableHorizonWork: Array<{
+      horizon: RecommendationOutcomeHorizon;
+      existingOutcome: RecommendationOutcome | undefined;
+      request: RecommendationOutcomeCandleRequest;
+      requestWarnings: string[];
+    }> = [];
+
     for (const horizon of horizons) {
       const existingOutcome = existingOutcomes.find(
         (outcome) =>
           outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint &&
           outcome.horizon === horizon,
       );
+
+      if (isProviderLimitOutcome(existingOutcome)) {
+        retryIncompleteCount += 1;
+      }
 
       if (!isOutcomePending(existingOutcome)) {
         candidates.push({
@@ -401,8 +514,8 @@ export async function runRecommendationOutcomeEvaluation(
         now,
       });
 
-      if (!request || !options.fetchCandles) {
-        const reason = !options.fetchCandles
+      if (!request || !fetchCandles) {
+        const reason = !fetchCandles
           ? "Candle provider is unavailable."
           : requestWarnings[0] ?? "Candle request is not ready.";
         const result = computeRecommendationOutcome({
@@ -440,16 +553,85 @@ export async function runRecommendationOutcomeEvaluation(
         continue;
       }
 
-      const candleResult = await options.fetchCandles(request);
+      reusableHorizonWork.push({
+        horizon,
+        existingOutcome,
+        request,
+        requestWarnings,
+      });
+    }
 
-      if (candleResult.status !== "available" || candleResult.candles.length === 0) {
+    if (reusableHorizonWork.length === 0) {
+      continue;
+    }
+
+    candleRequestsPlanned += 1;
+    candleRequestsBeforeReuse += reusableHorizonWork.length;
+
+    if (
+      providerBudgetLimit !== null &&
+      candleRequestsExecuted >= providerBudgetLimit
+    ) {
+      skippedDueToBudgetCount += 1;
+
+      for (const work of reusableHorizonWork) {
+        const reason =
+          "Outcome evaluation is pending because the provider budget guard stopped before this candle request.";
+
+        candidates.push({
+          candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
+          snapshot_id: snapshot.id,
+          snapshot_fingerprint: snapshot.snapshot_fingerprint,
+          recommendation_id: snapshot.recommendation_id,
+          ticker: snapshot.ticker,
+          horizon: work.horizon,
+          status: "pending_provider_budget",
+          candle_request: work.request,
+          candle_count: 0,
+          outcome_id: work.existingOutcome?.id ?? null,
+          outcome_status: work.existingOutcome?.status ?? "pending",
+          persistence_mode: "unknown",
+          warnings: [reason],
+          error: null,
+        });
+        warnings.push(
+          warning(snapshot, work.horizon, "pending_provider_budget", reason),
+        );
+      }
+
+      continue;
+    }
+
+    const reusableRequest = buildReusableCandleRequest({
+      snapshot,
+      requests: reusableHorizonWork.map((work) => work.request),
+    });
+
+    if (!reusableRequest) {
+      continue;
+    }
+
+    if (!fetchCandles) {
+      continue;
+    }
+
+    candleRequestsExecuted += 1;
+    const candleResult = await fetchCandles(reusableRequest);
+
+    for (const work of reusableHorizonWork) {
+      const horizonCandles =
+        candleResult.status === "available"
+          ? candlesForRequestWindow(candleResult.candles, work.request)
+          : [];
+
+      if (candleResult.status !== "available" || horizonCandles.length === 0) {
         const reason =
           candleResult.error ??
           candleResult.warnings[0] ??
-          "No post-recommendation candles were returned.";
+          "No post-recommendation candles were returned for the requested horizon window.";
         const result = computeRecommendationOutcome({
           snapshot,
-          horizon,
+          horizon: work.horizon,
           evaluated_at: now,
           source: "intraday_candles",
           provider: candleResult.provider,
@@ -462,18 +644,18 @@ export async function runRecommendationOutcomeEvaluation(
 
         outcomes.push(result.outcome);
         candidates.push({
-          candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
+          candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
           snapshot_id: snapshot.id,
           snapshot_fingerprint: snapshot.snapshot_fingerprint,
           recommendation_id: snapshot.recommendation_id,
           ticker: snapshot.ticker,
-          horizon,
+          horizon: work.horizon,
           status:
             candleResult.status === "provider_error"
               ? "provider_error"
               : "missing_candles",
-          candle_request: request,
-          candle_count: candleResult.candles.length,
+          candle_request: work.request,
+          candle_count: horizonCandles.length,
           outcome_id: result.outcome.id,
           outcome_status: result.outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
@@ -483,7 +665,7 @@ export async function runRecommendationOutcomeEvaluation(
         warnings.push(
           warning(
             snapshot,
-            horizon,
+            work.horizon,
             candleResult.status === "provider_error"
               ? "provider_error"
               : "missing_candles",
@@ -495,12 +677,12 @@ export async function runRecommendationOutcomeEvaluation(
 
       const result = computeRecommendationOutcome({
         snapshot,
-        horizon,
+        horizon: work.horizon,
         evaluated_at: now,
         source: "intraday_candles",
         provider: candleResult.provider,
         data_completeness: "complete",
-        candles: candleResult.candles,
+        candles: horizonCandles,
         warnings: candleResult.warnings,
       });
       const persistence = options.persistOutcome
@@ -509,17 +691,17 @@ export async function runRecommendationOutcomeEvaluation(
 
       outcomes.push(result.outcome);
       candidates.push({
-        candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
+        candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
         snapshot_id: snapshot.id,
         snapshot_fingerprint: snapshot.snapshot_fingerprint,
         recommendation_id: snapshot.recommendation_id,
         ticker: snapshot.ticker,
-        horizon,
+        horizon: work.horizon,
         status: result.can_compute_terminal_events
           ? "evaluated"
           : "incomplete_data",
-        candle_request: request,
-        candle_count: candleResult.candles.length,
+        candle_request: work.request,
+        candle_count: horizonCandles.length,
         outcome_id: result.outcome.id,
         outcome_status: result.outcome.status,
         persistence_mode: persistence?.mode ?? "unknown",
@@ -542,6 +724,9 @@ export async function runRecommendationOutcomeEvaluation(
   ).length;
   const providerErrorCount = candidates.filter(
     (candidate) => candidate.status === "provider_error",
+  ).length;
+  const pendingBudgetCount = candidates.filter(
+    (candidate) => candidate.status === "pending_provider_budget",
   ).length;
   const persistedOutcomeCount = candidates.filter(
     (candidate) => candidate.persistence_mode !== "unknown",
@@ -574,6 +759,16 @@ export async function runRecommendationOutcomeEvaluation(
     missing_candle_count: missingCandleCount,
     provider_error_count: providerErrorCount,
     persisted_outcome_count: persistedOutcomeCount,
+    candle_requests_planned: candleRequestsPlanned,
+    candle_requests_executed: candleRequestsExecuted,
+    candle_requests_saved_by_reuse: Math.max(
+      0,
+      candleRequestsBeforeReuse - candleRequestsPlanned,
+    ),
+    provider_budget_limit: providerBudgetLimit,
+    skipped_due_to_budget_count: skippedDueToBudgetCount,
+    pending_provider_budget_count: pendingBudgetCount,
+    retry_incomplete_count: retryIncompleteCount,
     candidates,
     outcomes,
     warnings,

@@ -29,6 +29,7 @@ type EvaluateOutcomesRequest = {
   existing_outcomes?: unknown;
   horizons?: unknown;
   max_snapshots?: unknown;
+  max_candle_requests?: unknown;
 };
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
@@ -78,6 +79,44 @@ function authDiagnostics(request: Request, expectedSecret: string | undefined) {
 
 function parseMode(value: unknown) {
   return value === "official_live_today" ? "official_live_today" : "provided_snapshots";
+}
+
+function normalizeProviderPlanMode(value: string | undefined) {
+  const normalized = value?.trim().toLowerCase() ?? "";
+
+  return normalized === "free" ||
+    normalized === "grow" ||
+    normalized === "pro" ||
+    normalized === "custom"
+    ? normalized
+    : "unknown";
+}
+
+function getProviderPlanMode() {
+  return normalizeProviderPlanMode(
+    process.env.PROVIDER_PLAN_MODE ??
+      process.env.TWELVE_DATA_PLAN_MODE ??
+      process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
+      process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE,
+  );
+}
+
+function resolveOutcomeProviderBudgetLimit(value: unknown) {
+  const explicitLimit = finiteNumber(value);
+
+  if (explicitLimit !== null) {
+    return Math.max(0, Math.min(20, Math.round(explicitLimit)));
+  }
+
+  const envLimit = finiteNumber(process.env.TURE_OUTCOME_EVALUATION_MAX_CANDLE_REQUESTS);
+
+  if (envLimit !== null) {
+    return Math.max(0, Math.min(20, Math.round(envLimit)));
+  }
+
+  const planMode = getProviderPlanMode();
+
+  return planMode === "free" || planMode === "unknown" ? 4 : null;
 }
 
 function parseSnapshot(value: unknown): RecommendationSnapshot | null {
@@ -575,6 +614,10 @@ export async function POST(request: Request) {
   const dryRun = body?.dry_run === true;
   const batchFingerprint = stringOrNull(body?.batch_fingerprint);
   const now = new Date();
+  const providerPlanMode = getProviderPlanMode();
+  const providerBudgetLimit = resolveOutcomeProviderBudgetLimit(
+    body?.max_candle_requests,
+  );
 
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
@@ -659,6 +702,20 @@ export async function POST(request: Request) {
       invalid_due_to_missing_side_count: 0,
       upsert_constraint_ready: null,
       latest_provider_error_type: null,
+      provider_plan_mode: providerPlanMode,
+      candle_requests_planned: 0,
+      candle_requests_executed: 0,
+      candle_requests_saved_by_reuse: 0,
+      provider_budget_limit: providerBudgetLimit,
+      skipped_due_to_budget_count: 0,
+      pending_provider_budget_count: 0,
+      retry_incomplete_count: 0,
+      outcome_provider_budget_status:
+        providerBudgetLimit === 0 ? "blocked_by_budget" : "not_started",
+      next_retry_suggestion:
+        providerBudgetLimit === 0
+          ? "Increase the diagnostic candle request budget or retry after provider budget resets."
+          : null,
       elapsed_ms: Date.now() - routeStartedAt,
       persistence_status: dryRun ? "dry_run" : "not_attempted",
       persistence_error: officialSnapshotLoad?.error ?? null,
@@ -694,6 +751,7 @@ export async function POST(request: Request) {
     existingOutcomes,
     horizons: parseHorizons(body?.horizons),
     maxSnapshots: maxSnapshots === null ? 6 : Math.max(1, Math.min(10, Math.round(maxSnapshots))),
+    maxCandleRequests: providerBudgetLimit,
     now,
     source: "api",
     provider: "twelve_data",
@@ -807,6 +865,26 @@ export async function POST(request: Request) {
       persistenceEvents,
     }),
     latest_provider_error_type: latestProviderError,
+    provider_plan_mode: providerPlanMode,
+    candle_requests_planned: run.candle_requests_planned,
+    candle_requests_executed: run.candle_requests_executed,
+    candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,
+    provider_budget_limit: run.provider_budget_limit,
+    skipped_due_to_budget_count: run.skipped_due_to_budget_count,
+    pending_provider_budget_count: run.pending_provider_budget_count,
+    retry_incomplete_count: run.retry_incomplete_count,
+    outcome_provider_budget_status:
+      run.pending_provider_budget_count > 0
+        ? "deferred_by_budget"
+        : run.provider_budget_limit !== null &&
+            run.candle_requests_executed >= run.provider_budget_limit &&
+            run.candle_requests_planned > run.candle_requests_executed
+          ? "budget_exhausted"
+          : "within_budget",
+    next_retry_suggestion:
+      run.pending_provider_budget_count > 0
+        ? "Retry outcome evaluation after the provider per-minute budget resets."
+        : null,
     elapsed_ms: Date.now() - routeStartedAt,
     persistence_status: dryRun
       ? "dry_run"

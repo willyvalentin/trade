@@ -569,7 +569,7 @@ export function buildProviderBudgetGuardSummary(
   const scanCallsPerDay = scanCallsPerWindow * scheduledScansPerDay;
   const horizons = normalizeHorizons(input.outcome_evaluation?.horizons);
   const pendingSnapshots = count(input.outcome_evaluation?.pending_snapshots);
-  const outcomeCalls = pendingSnapshots * horizons.length;
+  const outcomeCalls = pendingSnapshots;
   const estimatedWindow = scanCallsPerWindow;
   const estimatedDaily = scanCallsPerDay + outcomeCalls;
   const limits = limitsFor({
@@ -689,6 +689,7 @@ export function buildProviderBudgetGuardSummary(
         [
           `${pendingSnapshots} pending snapshots.`,
           `${horizons.length} horizons per snapshot: ${horizons.join(", ")}.`,
+          "Outcome evaluation reuses one candle request per snapshot across requested horizons.",
         ],
       ),
       daily_schedule: estimate(
