@@ -22,6 +22,7 @@ export type RecommendationOutcomeEvaluationRunStatus =
 export type RecommendationOutcomeEvaluationCandidateStatus =
   | "pending"
   | "pending_provider_budget"
+  | "pending_candles"
   | "evaluated"
   | "incomplete_data"
   | "missing_snapshot_fields"
@@ -57,6 +58,7 @@ export type RecommendationOutcomeCandleResult = {
   provider: string | null;
   error: string | null;
   warnings: string[];
+  diagnostics?: Record<string, unknown> | null;
 };
 
 export type RecommendationOutcomeEvaluationCandidate = {
@@ -104,6 +106,10 @@ export type RecommendationOutcomeEvaluationRun = {
   skipped_due_to_budget_count: number;
   pending_provider_budget_count: number;
   retry_incomplete_count: number;
+  unique_candle_requests_count: number;
+  empty_candle_response_count: number;
+  provider_limit_count: number;
+  candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
   warnings: RecommendationOutcomeEvaluationWarning[];
@@ -209,12 +215,38 @@ function isProviderLimitOutcome(outcome: RecommendationOutcome | undefined) {
 
   return (
     outcome.status === "incomplete" &&
-    (text.includes("provider") ||
-      text.includes("rate limit") ||
+    (text.includes("rate limit") ||
       text.includes("api limit") ||
       text.includes("credit") ||
       text.includes("budget"))
   );
+}
+
+function hasProviderLimitText(values: Array<string | null | undefined>) {
+  const text = values
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    text.includes("rate limit") ||
+    text.includes("api limit") ||
+    text.includes("credit") ||
+    text.includes("budget")
+  );
+}
+
+function annotateOutcome(
+  outcome: RecommendationOutcome,
+  payload: Record<string, unknown>,
+) {
+  return {
+    ...outcome,
+    payload_json: {
+      ...outcome.payload_json,
+      ...payload,
+    },
+  };
 }
 
 function createRunId(startedAt: string) {
@@ -409,6 +441,10 @@ export async function runRecommendationOutcomeEvaluation(
       skipped_due_to_budget_count: 0,
       pending_provider_budget_count: 0,
       retry_incomplete_count: 0,
+      unique_candle_requests_count: 0,
+      empty_candle_response_count: 0,
+      provider_limit_count: 0,
+      candle_request_debug_sample: [],
       candidates,
       outcomes,
       warnings,
@@ -427,6 +463,7 @@ export async function runRecommendationOutcomeEvaluation(
   let candleRequestsBeforeReuse = 0;
   let skippedDueToBudgetCount = 0;
   let retryIncompleteCount = 0;
+  const candleRequestDebugSample: Record<string, unknown>[] = [];
 
   for (const snapshot of sortedSnapshots) {
     const reusableHorizonWork: Array<{
@@ -618,6 +655,10 @@ export async function runRecommendationOutcomeEvaluation(
     candleRequestsExecuted += 1;
     const candleResult = await fetchCandles(reusableRequest);
 
+    if (candleResult.diagnostics && candleRequestDebugSample.length < 8) {
+      candleRequestDebugSample.push(candleResult.diagnostics);
+    }
+
     for (const work of reusableHorizonWork) {
       const horizonCandles =
         candleResult.status === "available"
@@ -638,11 +679,21 @@ export async function runRecommendationOutcomeEvaluation(
           data_completeness: "none",
           warnings: [reason, ...candleResult.warnings],
         });
+        const outcome = annotateOutcome(result.outcome, {
+          retryable: true,
+          pending_reason:
+            candleResult.status === "provider_error"
+              ? "provider_error"
+              : "missing_candles",
+          provider_error:
+            candleResult.status === "provider_error" ? reason : null,
+          candle_request_debug: candleResult.diagnostics ?? null,
+        });
         const persistence = options.persistOutcome
-          ? await options.persistOutcome(result.outcome)
+          ? await options.persistOutcome(outcome)
           : null;
 
-        outcomes.push(result.outcome);
+        outcomes.push(outcome);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
           snapshot_id: snapshot.id,
@@ -653,13 +704,13 @@ export async function runRecommendationOutcomeEvaluation(
           status:
             candleResult.status === "provider_error"
               ? "provider_error"
-              : "missing_candles",
+              : "pending_candles",
           candle_request: work.request,
           candle_count: horizonCandles.length,
-          outcome_id: result.outcome.id,
-          outcome_status: result.outcome.status,
+          outcome_id: outcome.id,
+          outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          warnings: result.outcome.warnings,
+          warnings: outcome.warnings,
           error: reason,
         });
         warnings.push(
@@ -720,7 +771,9 @@ export async function runRecommendationOutcomeEvaluation(
       candidate.status === "missing_snapshot_fields",
   ).length;
   const missingCandleCount = candidates.filter(
-    (candidate) => candidate.status === "missing_candles",
+    (candidate) =>
+      candidate.status === "missing_candles" ||
+      candidate.status === "pending_candles",
   ).length;
   const providerErrorCount = candidates.filter(
     (candidate) => candidate.status === "provider_error",
@@ -728,6 +781,23 @@ export async function runRecommendationOutcomeEvaluation(
   const pendingBudgetCount = candidates.filter(
     (candidate) => candidate.status === "pending_provider_budget",
   ).length;
+  const emptyCandleResponseCount = candleRequestDebugSample.filter(
+    (debug) => debug.response_status === "empty",
+  ).length;
+  const providerLimitCount =
+    candidates.filter((candidate) =>
+      hasProviderLimitText([candidate.error, ...candidate.warnings]),
+    ).length +
+    candleRequestDebugSample.filter((debug) =>
+      hasProviderLimitText([
+        typeof debug.provider_message === "string"
+          ? debug.provider_message
+          : null,
+        typeof debug.response_category === "string"
+          ? debug.response_category
+          : null,
+      ]),
+    ).length;
   const persistedOutcomeCount = candidates.filter(
     (candidate) => candidate.persistence_mode !== "unknown",
   ).length;
@@ -769,6 +839,10 @@ export async function runRecommendationOutcomeEvaluation(
     skipped_due_to_budget_count: skippedDueToBudgetCount,
     pending_provider_budget_count: pendingBudgetCount,
     retry_incomplete_count: retryIncompleteCount,
+    unique_candle_requests_count: candleRequestsExecuted,
+    empty_candle_response_count: emptyCandleResponseCount,
+    provider_limit_count: providerLimitCount,
+    candle_request_debug_sample: candleRequestDebugSample,
     candidates,
     outcomes,
     warnings,

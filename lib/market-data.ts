@@ -13,6 +13,21 @@ export type DailyCandle = {
 
 export type IntradayCandle = DailyCandle;
 
+export type IntradayCandleRequestDiagnostics = {
+  provider: "twelve_data";
+  interval: "5min" | "15min";
+  start_at: string;
+  end_at: string;
+  timezone: string;
+  raw_provider_params: Record<string, string | number>;
+  response_status: "available" | "empty" | "provider_error";
+  response_category: string;
+  returned_candle_count: number;
+  first_candle_time: string | null;
+  last_candle_time: string | null;
+  provider_message: string | null;
+};
+
 export type MarketQuote = {
   current_price: number;
   change: number;
@@ -101,15 +116,78 @@ function timestampField(value: unknown, fieldName: string) {
   return timestamp;
 }
 
-function newYorkTimestampField(value: unknown, fieldName: string) {
+function partsInTimeZone(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return {
+    year: Number(value("year")),
+    month: Number(value("month")),
+    day: Number(value("day")),
+    hour: Number(value("hour")) % 24,
+    minute: Number(value("minute")),
+    second: Number(value("second")),
+  };
+}
+
+function formatInTimeZone(date: Date, timeZone: string) {
+  const parts = partsInTimeZone(date, timeZone);
+  const pad = (value: number) => String(value).padStart(2, "0");
+
+  return `${parts.year}-${pad(parts.month)}-${pad(parts.day)} ${pad(parts.hour)}:${pad(parts.minute)}:${pad(parts.second)}`;
+}
+
+function timeZoneOffsetMs(date: Date, timeZone: string) {
+  const parts = partsInTimeZone(date, timeZone);
+  const localAsUtc = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  );
+
+  return localAsUtc - date.getTime();
+}
+
+function timestampInTimeZone(value: unknown, fieldName: string, timeZone: string) {
   if (typeof value !== "string") {
     throw new Error(`Market data returned an invalid ${fieldName} value.`);
   }
 
-  const normalized = value.includes("T")
-    ? value
-    : value.replace(" ", "T");
-  const timestamp = Math.floor(new Date(`${normalized}-04:00`).getTime() / 1000);
+  const normalized = value.includes("T") ? value : value.replace(" ", "T");
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/,
+  );
+
+  if (!match) {
+    throw new Error(`Market data returned an invalid ${fieldName} value.`);
+  }
+
+  const [, year, month, day, hour, minute, second = "00"] = match;
+  const localAsUtc = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+  const firstOffset = timeZoneOffsetMs(new Date(localAsUtc), timeZone);
+  const firstUtc = localAsUtc - firstOffset;
+  const refinedOffset = timeZoneOffsetMs(new Date(firstUtc), timeZone);
+  const timestamp = Math.floor((localAsUtc - refinedOffset) / 1000);
 
   if (!Number.isFinite(timestamp)) {
     throw new Error(`Market data returned an invalid ${fieldName} value.`);
@@ -140,8 +218,23 @@ async function fetchTwelveData<T>(
   path: string,
   params: Record<string, string | number>,
 ): Promise<T> {
+  const { data } = await fetchTwelveDataDetailed<T>(path, params);
+
+  return data;
+}
+
+async function fetchTwelveDataDetailed<T>(
+  path: string,
+  params: Record<string, string | number>,
+): Promise<{
+  data: T;
+  safeParams: Record<string, string | number>;
+  httpStatus: number;
+  providerMessage: string | null;
+}> {
   const url = new URL(`${TWELVE_DATA_BASE_URL}${path}`);
   const apiKey = getTwelveDataApiKey();
+  const safeParams = { ...params };
 
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, String(value));
@@ -176,7 +269,12 @@ async function fetchTwelveData<T>(
     );
   }
 
-  return data as T;
+  return {
+    data: data as T,
+    safeParams,
+    httpStatus: response.status,
+    providerMessage: getTwelveDataError(data) || null,
+  };
 }
 
 export async function getDailyCandles(
@@ -223,14 +321,39 @@ export async function getIntradayCandles(
   start: Date,
   end: Date,
 ): Promise<IntradayCandle[]> {
-  const data = await fetchTwelveData<TwelveDataTimeSeriesResponse>(
+  const result = await getIntradayCandlesWithDiagnostics(
+    symbol,
+    interval,
+    start,
+    end,
+  );
+
+  return result.candles;
+}
+
+export async function getIntradayCandlesWithDiagnostics(
+  symbol: string,
+  interval: "5min" | "15min",
+  start: Date,
+  end: Date,
+): Promise<{
+  candles: IntradayCandle[];
+  diagnostics: IntradayCandleRequestDiagnostics;
+}> {
+  const timezone = "America/New_York";
+  const params = {
+    symbol: normalizeSymbol(symbol),
+    interval,
+    start_date: formatInTimeZone(start, timezone),
+    end_date: formatInTimeZone(end, timezone),
+    timezone,
+    outputsize: 500,
+    order: "ASC",
+  };
+  const { data, safeParams, providerMessage } =
+    await fetchTwelveDataDetailed<TwelveDataTimeSeriesResponse>(
     "/time_series",
-    {
-      symbol: normalizeSymbol(symbol),
-      interval,
-      outputsize: 96,
-      order: "ASC",
-    },
+      params,
   );
 
   if (!Array.isArray(data.values)) {
@@ -240,14 +363,15 @@ export async function getIntradayCandles(
   const startTimestamp = Math.floor(start.getTime() / 1000);
   const endTimestamp = Math.floor(end.getTime() / 1000);
 
-  return data.values
+  const candles = data.values
     .map((value, index) => {
       const candle = value as TwelveDataTimeSeriesValue;
 
       return {
-        timestamp: newYorkTimestampField(
+        timestamp: timestampInTimeZone(
           candle.datetime,
           `candle ${index + 1} datetime`,
+          timezone,
         ),
         open: numberField(candle.open, `candle ${index + 1} open`),
         high: numberField(candle.high, `candle ${index + 1} high`),
@@ -261,6 +385,36 @@ export async function getIntradayCandles(
         candle.timestamp >= startTimestamp && candle.timestamp <= endTimestamp,
     )
     .sort((left, right) => left.timestamp - right.timestamp);
+  const firstCandle = candles[0] ?? null;
+  const lastCandle = candles.at(-1) ?? null;
+
+  return {
+    candles,
+    diagnostics: {
+      provider: "twelve_data",
+      interval,
+      start_at: start.toISOString(),
+      end_at: end.toISOString(),
+      timezone,
+      raw_provider_params: safeParams,
+      response_status: candles.length > 0 ? "available" : "empty",
+      response_category: candles.length > 0 ? "available" : "empty_response",
+      returned_candle_count: candles.length,
+      first_candle_time:
+        firstCandle === null
+          ? null
+          : new Date(firstCandle.timestamp * 1000).toISOString(),
+      last_candle_time:
+        lastCandle === null
+          ? null
+          : new Date(lastCandle.timestamp * 1000).toISOString(),
+      provider_message:
+        providerMessage ??
+        (candles.length > 0
+          ? null
+          : "Provider returned no candles for the requested window."),
+    },
+  };
 }
 
 export async function getQuote(symbol: string): Promise<MarketQuote> {

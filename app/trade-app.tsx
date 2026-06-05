@@ -1095,6 +1095,10 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   skippedDueToBudgetCount: number;
   pendingProviderBudgetCount: number;
   retryIncompleteCount: number;
+  uniqueCandleRequestsCount: number;
+  emptyCandleResponseCount: number;
+  providerLimitCount: number;
+  candleRequestDebugSample: Record<string, unknown>[];
   outcomeProviderBudgetStatus: string | null;
   nextRetrySuggestion: string | null;
   summary: string;
@@ -5875,11 +5879,10 @@ function outcomeHasProviderLimitWarning(outcome: RecommendationOutcome) {
     .toLowerCase();
 
   return (
-    text.includes("twelve") ||
-    text.includes("provider") ||
     text.includes("credit") ||
     text.includes("rate limit") ||
-    text.includes("api limit")
+    text.includes("api limit") ||
+    text.includes("budget")
   );
 }
 
@@ -7727,6 +7730,10 @@ export function TradeApp() {
     skippedDueToBudgetCount: 0,
     pendingProviderBudgetCount: 0,
     retryIncompleteCount: 0,
+    uniqueCandleRequestsCount: 0,
+    emptyCandleResponseCount: 0,
+    providerLimitCount: 0,
+    candleRequestDebugSample: [],
     outcomeProviderBudgetStatus: null,
     nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
@@ -12471,7 +12478,9 @@ export function TradeApp() {
         pending_outcome_count: outcomeDiagnosticsPendingCount,
         latest_evaluated_at: latestEvaluatedBatchEvaluatedAt,
         horizons_covered: latestEvaluatedBatchHorizons,
-        provider_limit_warning: outcomeDiagnosticsProviderErrorCount > 0,
+        provider_limit_warning:
+          recommendationOutcomeEvaluationDiagnostics.providerLimitCount > 0 ||
+          recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount > 0,
         outcome_rows_loaded_count: storedRecommendationOutcomes.length,
         outcome_batch_fingerprints: outcomeBatchFingerprints,
         outcome_snapshot_match_count: outcomeSnapshotMatchCount,
@@ -12523,6 +12532,14 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount,
         retry_incomplete_count:
           recommendationOutcomeEvaluationDiagnostics.retryIncompleteCount,
+        unique_candle_requests_count:
+          recommendationOutcomeEvaluationDiagnostics.uniqueCandleRequestsCount,
+        empty_candle_response_count:
+          recommendationOutcomeEvaluationDiagnostics.emptyCandleResponseCount,
+        provider_limit_count:
+          recommendationOutcomeEvaluationDiagnostics.providerLimitCount,
+        candle_request_debug_sample:
+          recommendationOutcomeEvaluationDiagnostics.candleRequestDebugSample,
         outcome_provider_budget_status:
           recommendationOutcomeEvaluationDiagnostics.outcomeProviderBudgetStatus,
         next_retry_suggestion:
@@ -13166,6 +13183,29 @@ export function TradeApp() {
             run.retry_incomplete_count ??
             0,
         ),
+        uniqueCandleRequestsCount: Number(
+          routeDiagnostics.unique_candle_requests_count ??
+            run.unique_candle_requests_count ??
+            0,
+        ),
+        emptyCandleResponseCount: Number(
+          routeDiagnostics.empty_candle_response_count ??
+            run.empty_candle_response_count ??
+            0,
+        ),
+        providerLimitCount: Number(
+          routeDiagnostics.provider_limit_count ?? run.provider_limit_count ?? 0,
+        ),
+        candleRequestDebugSample: Array.isArray(
+          routeDiagnostics.candle_request_debug_sample,
+        )
+          ? routeDiagnostics.candle_request_debug_sample.filter(
+              (item): item is Record<string, unknown> =>
+                typeof item === "object" && item !== null && !Array.isArray(item),
+            )
+          : Array.isArray(run.candle_request_debug_sample)
+            ? run.candle_request_debug_sample
+            : [],
         outcomeProviderBudgetStatus:
           typeof routeDiagnostics.outcome_provider_budget_status === "string"
             ? routeDiagnostics.outcome_provider_budget_status

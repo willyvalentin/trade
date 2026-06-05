@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getIntradayCandles } from "@/lib/market-data";
+import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
   persistRecommendationOutcome,
@@ -565,7 +565,7 @@ async function fetchCandles(
   request: RecommendationOutcomeCandleRequest,
 ): Promise<RecommendationOutcomeCandleResult> {
   try {
-    const candles = await getIntradayCandles(
+    const { candles, diagnostics } = await getIntradayCandlesWithDiagnostics(
       request.ticker,
       request.interval,
       new Date(request.start_at),
@@ -586,12 +586,23 @@ async function fetchCandles(
       provider: "twelve_data",
       error: candles.length > 0 ? null : "Provider returned no candles for the requested window.",
       warnings: candles.length > 0 ? [] : ["No candles available for requested window."],
+      diagnostics: {
+        ticker: request.ticker,
+        ...diagnostics,
+      },
     };
   } catch (error) {
+    const normalizedError = normalizeUnknownError(error);
+    const errorText = normalizedError.message.toLowerCase();
+    const providerLimit =
+      errorText.includes("rate limit") ||
+      errorText.includes("api limit") ||
+      errorText.includes("credit");
+
     console.error("[recommendations/evaluate-outcomes] candle_provider_error", {
       source: "twelve_data",
       request,
-      error: normalizeUnknownError(error),
+      error: normalizedError,
     });
 
     return {
@@ -599,8 +610,29 @@ async function fetchCandles(
       status: "provider_error",
       candles: [],
       provider: "twelve_data",
-      error: error instanceof Error ? error.message : "Unknown candle provider error.",
+      error: normalizedError.message,
       warnings: [],
+      diagnostics: {
+        ticker: request.ticker,
+        provider: "twelve_data",
+        interval: request.interval,
+        start_at: request.start_at,
+        end_at: request.end_at,
+        timezone: "America/New_York",
+        raw_provider_params: {
+          symbol: request.ticker,
+          interval: request.interval,
+          start_at: request.start_at,
+          end_at: request.end_at,
+          timezone: "America/New_York",
+        },
+        response_status: "provider_error",
+        response_category: providerLimit ? "provider_limit" : "provider_error",
+        returned_candle_count: 0,
+        first_candle_time: null,
+        last_candle_time: null,
+        provider_message: normalizedError.message,
+      },
     };
   }
 }
@@ -710,6 +742,10 @@ export async function POST(request: Request) {
       skipped_due_to_budget_count: 0,
       pending_provider_budget_count: 0,
       retry_incomplete_count: 0,
+      unique_candle_requests_count: 0,
+      empty_candle_response_count: 0,
+      provider_limit_count: 0,
+      candle_request_debug_sample: [],
       outcome_provider_budget_status:
         providerBudgetLimit === 0 ? "blocked_by_budget" : "not_started",
       next_retry_suggestion:
@@ -873,18 +909,28 @@ export async function POST(request: Request) {
     skipped_due_to_budget_count: run.skipped_due_to_budget_count,
     pending_provider_budget_count: run.pending_provider_budget_count,
     retry_incomplete_count: run.retry_incomplete_count,
+    unique_candle_requests_count: run.unique_candle_requests_count,
+    empty_candle_response_count: run.empty_candle_response_count,
+    provider_limit_count: run.provider_limit_count,
+    candle_request_debug_sample: run.candle_request_debug_sample,
     outcome_provider_budget_status:
       run.pending_provider_budget_count > 0
         ? "deferred_by_budget"
-        : run.provider_budget_limit !== null &&
-            run.candle_requests_executed >= run.provider_budget_limit &&
-            run.candle_requests_planned > run.candle_requests_executed
-          ? "budget_exhausted"
-          : "within_budget",
+        : run.provider_limit_count > 0
+          ? "provider_limited"
+          : run.empty_candle_response_count > 0 && run.provider_error_count === 0
+            ? "pending_candles"
+            : run.provider_budget_limit !== null &&
+                run.candle_requests_executed >= run.provider_budget_limit &&
+                run.candle_requests_planned > run.candle_requests_executed
+              ? "budget_exhausted"
+              : "within_budget",
     next_retry_suggestion:
       run.pending_provider_budget_count > 0
         ? "Retry outcome evaluation after the provider per-minute budget resets."
-        : null,
+        : run.empty_candle_response_count > 0
+          ? "Retry outcome evaluation after provider intraday candles are available for the requested window."
+          : null,
     elapsed_ms: Date.now() - routeStartedAt,
     persistence_status: dryRun
       ? "dry_run"

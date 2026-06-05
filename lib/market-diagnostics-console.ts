@@ -203,6 +203,10 @@ export type MarketDiagnosticsConsoleInput = {
     skipped_due_to_budget_count?: number | null;
     pending_provider_budget_count?: number | null;
     retry_incomplete_count?: number | null;
+    unique_candle_requests_count?: number | null;
+    empty_candle_response_count?: number | null;
+    provider_limit_count?: number | null;
+    candle_request_debug_sample?: Array<Record<string, unknown>>;
     outcome_provider_budget_status?: string | null;
     next_retry_suggestion?: string | null;
     persistence_status?: string | null;
@@ -1799,6 +1803,10 @@ function buildSections(
           `${input.outcome_evaluation?.missing_candles_count ?? 0}/${input.outcome_evaluation?.provider_error_count ?? 0}`,
         ),
         lineValue(
+          "Empty candle responses / provider limits",
+          `${input.outcome_evaluation?.empty_candle_response_count ?? 0}/${input.outcome_evaluation?.provider_limit_count ?? 0}`,
+        ),
+        lineValue(
           "Provider budget",
           `${compact(input.outcome_evaluation?.outcome_provider_budget_status, "unknown")} / limit ${input.outcome_evaluation?.provider_budget_limit ?? "none"}`,
         ),
@@ -1813,6 +1821,12 @@ function buildSections(
         lineValue(
           "Next retry",
           compact(input.outcome_evaluation?.next_retry_suggestion, "none"),
+        ),
+        lineValue(
+          "Candle debug sample",
+          (input.outcome_evaluation?.candle_request_debug_sample ?? []).length > 0
+            ? "available in metrics"
+            : "none",
         ),
         lineValue(
           "Provider limit warning",
@@ -1902,6 +1916,15 @@ function buildSections(
           input.outcome_evaluation?.pending_provider_budget_count ?? null,
         retry_incomplete_count:
           input.outcome_evaluation?.retry_incomplete_count ?? null,
+        unique_candle_requests_count:
+          input.outcome_evaluation?.unique_candle_requests_count ?? null,
+        empty_candle_response_count:
+          input.outcome_evaluation?.empty_candle_response_count ?? null,
+        provider_limit_count:
+          input.outcome_evaluation?.provider_limit_count ?? null,
+        candle_request_debug_sample: JSON.stringify(
+          input.outcome_evaluation?.candle_request_debug_sample ?? [],
+        ),
         outcome_provider_budget_status:
           input.outcome_evaluation?.outcome_provider_budget_status ?? null,
         next_retry_suggestion:
