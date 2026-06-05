@@ -1067,6 +1067,12 @@ type RecommendationOutcomeBackfillDiagnostics = {
   snapshotBackfillAttempted: boolean;
   snapshotBackfillCount: number;
   batchBackfillCount: number;
+  triggerReason: string | null;
+  snapshotFingerprintsRequestedCount: number;
+  snapshotFingerprintsFoundCount: number;
+  batchFingerprintsRequestedCount: number;
+  batchFingerprintsFoundCount: number;
+  matchingRecomputedAfterBackfill: boolean;
   error: string | null;
 };
 
@@ -7813,6 +7819,12 @@ export function TradeApp() {
     snapshotBackfillAttempted: false,
     snapshotBackfillCount: 0,
     batchBackfillCount: 0,
+    triggerReason: null,
+    snapshotFingerprintsRequestedCount: 0,
+    snapshotFingerprintsFoundCount: 0,
+    batchFingerprintsRequestedCount: 0,
+    batchFingerprintsFoundCount: 0,
+    matchingRecomputedAfterBackfill: false,
     error: null,
   });
   const [
@@ -8047,6 +8059,12 @@ export function TradeApp() {
       let outcomeSnapshotBackfillAttempted = false;
       let outcomeSnapshotBackfillCount = 0;
       let outcomeBatchBackfillCount = 0;
+      let outcomeBackfillTriggerReason: string | null = null;
+      let outcomeSnapshotFingerprintsRequestedCount = 0;
+      let outcomeSnapshotFingerprintsFoundCount = 0;
+      let outcomeBatchFingerprintsRequestedCount = 0;
+      let outcomeBatchFingerprintsFoundCount = 0;
+      let outcomeMatchingRecomputedAfterBackfill = false;
       let outcomeBackfillError: string | null = null;
 
       if (recommendationsResult.error) {
@@ -8290,9 +8308,9 @@ export function TradeApp() {
 
       if (loadedRecommendationOutcomesForReadback.length > 0) {
         const existingSnapshotFingerprints = new Set(
-          loadedRecommendationSnapshotsForReadback.map(
-            (snapshot) => snapshot.snapshot_fingerprint,
-          ),
+          loadedRecommendationSnapshotsForReadback
+            .filter(isLiveRecommendationSnapshot)
+            .map((snapshot) => snapshot.snapshot_fingerprint),
         );
         const outcomeSnapshotFingerprints = Array.from(
           new Set(
@@ -8318,6 +8336,14 @@ export function TradeApp() {
         const missingSnapshotFingerprints = outcomeSnapshotFingerprints.filter(
           (fingerprint) => !existingSnapshotFingerprints.has(fingerprint),
         );
+        outcomeSnapshotFingerprintsRequestedCount =
+          missingSnapshotFingerprints.length;
+        outcomeBackfillTriggerReason =
+          outcomeSnapshotFingerprints.length === 0
+            ? "canonical_outcomes_missing_snapshot_fingerprints"
+            : missingSnapshotFingerprints.length > 0
+              ? "canonical_outcomes_missing_live_snapshots"
+              : "canonical_outcome_snapshots_already_loaded";
 
         if (missingSnapshotFingerprints.length > 0) {
           outcomeSnapshotBackfillAttempted = true;
@@ -8348,6 +8374,7 @@ export function TradeApp() {
               );
 
             outcomeSnapshotBackfillCount = backfilledSnapshots.length;
+            outcomeSnapshotFingerprintsFoundCount = backfilledSnapshots.length;
             loadedRecommendationSnapshotsForReadback = Array.from(
               new Map(
                 [
@@ -8357,6 +8384,7 @@ export function TradeApp() {
               ).values(),
             );
             setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+            outcomeMatchingRecomputedAfterBackfill = true;
           }
         }
 
@@ -8379,6 +8407,7 @@ export function TradeApp() {
         const missingBatchFingerprints = outcomeBatchFingerprintsForBackfill.filter(
           (fingerprint) => !existingBatchFingerprints.has(fingerprint),
         );
+        outcomeBatchFingerprintsRequestedCount += missingBatchFingerprints.length;
 
         if (missingBatchFingerprints.length > 0) {
           const backfilledBatchesResult = await supabase
@@ -8409,6 +8438,7 @@ export function TradeApp() {
               );
 
             outcomeBatchBackfillCount += backfilledBatches.length;
+            outcomeBatchFingerprintsFoundCount += backfilledBatches.length;
             loadedRecommendationBatchesForReadback = Array.from(
               new Map(
                 [
@@ -8418,6 +8448,7 @@ export function TradeApp() {
               ).values(),
             );
             setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
+            outcomeMatchingRecomputedAfterBackfill = true;
           }
         }
 
@@ -8450,6 +8481,7 @@ export function TradeApp() {
           outcomeScanRunFingerprintsForBackfill.filter(
             (fingerprint) => !existingScanRunFingerprints.has(fingerprint),
           );
+        outcomeBatchFingerprintsRequestedCount += missingScanRunFingerprints.length;
 
         if (missingScanRunFingerprints.length > 0) {
           const backfilledScanRunBatchesResult = await supabase
@@ -8489,6 +8521,7 @@ export function TradeApp() {
               );
 
             outcomeBatchBackfillCount += backfilledScanRunBatches.length;
+            outcomeBatchFingerprintsFoundCount += backfilledScanRunBatches.length;
             loadedRecommendationBatchesForReadback = Array.from(
               new Map(
                 [
@@ -8498,14 +8531,25 @@ export function TradeApp() {
               ).values(),
             );
             setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
+            outcomeMatchingRecomputedAfterBackfill = true;
           }
         }
+      } else {
+        outcomeBackfillTriggerReason = "no_canonical_outcomes_loaded";
       }
 
       setRecommendationOutcomeBackfillDiagnostics({
         snapshotBackfillAttempted: outcomeSnapshotBackfillAttempted,
         snapshotBackfillCount: outcomeSnapshotBackfillCount,
         batchBackfillCount: outcomeBatchBackfillCount,
+        triggerReason: outcomeBackfillTriggerReason,
+        snapshotFingerprintsRequestedCount:
+          outcomeSnapshotFingerprintsRequestedCount,
+        snapshotFingerprintsFoundCount: outcomeSnapshotFingerprintsFoundCount,
+        batchFingerprintsRequestedCount:
+          outcomeBatchFingerprintsRequestedCount,
+        batchFingerprintsFoundCount: outcomeBatchFingerprintsFoundCount,
+        matchingRecomputedAfterBackfill: outcomeMatchingRecomputedAfterBackfill,
         error: outcomeBackfillError,
       });
 
@@ -11520,6 +11564,13 @@ export function TradeApp() {
   const marketDiagnosticsStatusUpdatedAt =
     islandRefreshState.market_diagnostics.lastUpdatedAt ??
     marketDiagnosticsLastUpdatedAt;
+  const readbackHydrationComplete =
+    !isLoading &&
+    refreshIslandIds.every(
+      (islandId) =>
+        islandRefreshState[islandId].lastUpdatedAt !== null ||
+        islandRefreshState[islandId].error !== null,
+    );
   const preMarketCandidates = getPreMarketCandidatesForDate(
     scanLogs,
     dailySessionDate,
@@ -12637,7 +12688,22 @@ export function TradeApp() {
           recommendationOutcomeBackfillDiagnostics.snapshotBackfillCount,
         outcome_batch_backfill_count:
           recommendationOutcomeBackfillDiagnostics.batchBackfillCount,
+        outcome_backfill_trigger_reason:
+          recommendationOutcomeBackfillDiagnostics.triggerReason,
+        outcome_snapshot_fingerprints_requested_count:
+          recommendationOutcomeBackfillDiagnostics
+            .snapshotFingerprintsRequestedCount,
+        outcome_snapshot_fingerprints_found_count:
+          recommendationOutcomeBackfillDiagnostics.snapshotFingerprintsFoundCount,
+        outcome_batch_fingerprints_requested_count:
+          recommendationOutcomeBackfillDiagnostics.batchFingerprintsRequestedCount,
+        outcome_batch_fingerprints_found_count:
+          recommendationOutcomeBackfillDiagnostics.batchFingerprintsFoundCount,
+        outcome_matching_recomputed_after_backfill:
+          recommendationOutcomeBackfillDiagnostics
+            .matchingRecomputedAfterBackfill,
         outcome_backfill_error: recommendationOutcomeBackfillDiagnostics.error,
+        readback_hydration_complete: readbackHydrationComplete,
         latest_run_status: recommendationOutcomeEvaluationDiagnostics.status,
         latest_run_at:
           recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp ??

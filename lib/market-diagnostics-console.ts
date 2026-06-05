@@ -191,7 +191,14 @@ export type MarketDiagnosticsConsoleInput = {
     outcome_snapshot_backfill_attempted?: boolean | null;
     outcome_snapshot_backfill_count?: number | null;
     outcome_batch_backfill_count?: number | null;
+    outcome_backfill_trigger_reason?: string | null;
+    outcome_snapshot_fingerprints_requested_count?: number | null;
+    outcome_snapshot_fingerprints_found_count?: number | null;
+    outcome_batch_fingerprints_requested_count?: number | null;
+    outcome_batch_fingerprints_found_count?: number | null;
+    outcome_matching_recomputed_after_backfill?: boolean | null;
     outcome_backfill_error?: string | null;
+    readback_hydration_complete?: boolean | null;
     latest_run_status?: string | null;
     latest_run_at?: string | null;
     latest_run_batch_fingerprint?: string | null;
@@ -1752,7 +1759,9 @@ function buildSections(
         ),
         lineValue(
           "Rows loaded / matched / unmatched",
-          `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
+          input.outcome_evaluation?.readback_hydration_complete === false
+            ? "readback loading"
+            : `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
         ),
         lineValue(
           "Rows raw/deduped/replaced",
@@ -1780,6 +1789,31 @@ function buildSections(
         lineValue(
           "Snapshot/batch backfill",
           `${bool(input.outcome_evaluation?.outcome_snapshot_backfill_attempted === true)} / ${input.outcome_evaluation?.outcome_snapshot_backfill_count ?? 0}/${input.outcome_evaluation?.outcome_batch_backfill_count ?? 0}`,
+        ),
+        lineValue(
+          "Backfill trigger",
+          compact(input.outcome_evaluation?.outcome_backfill_trigger_reason, "none"),
+        ),
+        lineValue(
+          "Snapshot requested/found",
+          `${input.outcome_evaluation?.outcome_snapshot_fingerprints_requested_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_fingerprints_found_count ?? 0}`,
+        ),
+        lineValue(
+          "Batch requested/found",
+          `${input.outcome_evaluation?.outcome_batch_fingerprints_requested_count ?? 0}/${input.outcome_evaluation?.outcome_batch_fingerprints_found_count ?? 0}`,
+        ),
+        lineValue(
+          "Matching recomputed",
+          bool(
+            input.outcome_evaluation
+              ?.outcome_matching_recomputed_after_backfill === true,
+          ),
+        ),
+        lineValue(
+          "Readback hydration",
+          input.outcome_evaluation?.readback_hydration_complete === false
+            ? "loading"
+            : "complete",
         ),
         lineValue(
           "Backfill error",
@@ -1893,6 +1927,25 @@ function buildSections(
           input.outcome_evaluation?.outcome_snapshot_backfill_count ?? null,
         outcome_batch_backfill_count:
           input.outcome_evaluation?.outcome_batch_backfill_count ?? null,
+        outcome_backfill_trigger_reason:
+          input.outcome_evaluation?.outcome_backfill_trigger_reason ?? null,
+        outcome_snapshot_fingerprints_requested_count:
+          input.outcome_evaluation
+            ?.outcome_snapshot_fingerprints_requested_count ?? null,
+        outcome_snapshot_fingerprints_found_count:
+          input.outcome_evaluation?.outcome_snapshot_fingerprints_found_count ??
+          null,
+        outcome_batch_fingerprints_requested_count:
+          input.outcome_evaluation
+            ?.outcome_batch_fingerprints_requested_count ?? null,
+        outcome_batch_fingerprints_found_count:
+          input.outcome_evaluation?.outcome_batch_fingerprints_found_count ??
+          null,
+        outcome_matching_recomputed_after_backfill:
+          input.outcome_evaluation
+            ?.outcome_matching_recomputed_after_backfill ?? null,
+        readback_hydration_complete:
+          input.outcome_evaluation?.readback_hydration_complete ?? null,
         outcome_backfill_error:
           input.outcome_evaluation?.outcome_backfill_error ?? null,
         expected_outcome_count:
