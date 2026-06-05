@@ -1070,6 +1070,14 @@ type RecommendationOutcomeBackfillDiagnostics = {
   error: string | null;
 };
 
+type RecommendationOutcomeDedupeDiagnostics = {
+  rawCount: number;
+  dedupedCount: number;
+  replacedByBetterCount: number;
+  staleIncompleteIgnoredCount: number;
+  strategy: "best_status_then_latest";
+};
+
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
@@ -5886,6 +5894,115 @@ function outcomeHasProviderLimitWarning(outcome: RecommendationOutcome) {
   );
 }
 
+function outcomeDataCompletenessRank(outcome: RecommendationOutcome) {
+  if (outcome.data_completeness === "complete") return 3;
+  if (outcome.data_completeness === "partial") return 2;
+  if (outcome.data_completeness === "none") return 1;
+  return 0;
+}
+
+function outcomeStatusReadbackRank(outcome: RecommendationOutcome) {
+  if (
+    outcome.status === "target_hit" ||
+    outcome.status === "stop_hit" ||
+    outcome.status === "target_before_stop" ||
+    outcome.status === "stop_before_target" ||
+    outcome.status === "neither_hit" ||
+    outcome.status === "entry_not_triggered" ||
+    outcome.status === "entry_triggered" ||
+    outcome.status === "expired"
+  ) {
+    return 3;
+  }
+
+  if (outcome.status === "incomplete" || outcome.status === "unknown") return 1;
+  if (outcome.status === "invalid" || outcome.status === "pending") return 0;
+  return 2;
+}
+
+function outcomeLatestReadbackTime(outcome: RecommendationOutcome) {
+  return Math.max(
+    new Date(outcome.updated_at).getTime() || 0,
+    new Date(outcome.evaluated_at).getTime() || 0,
+    new Date(outcome.created_at).getTime() || 0,
+  );
+}
+
+function isIncompleteReadbackOutcome(outcome: RecommendationOutcome) {
+  return (
+    outcome.status === "incomplete" ||
+    outcome.status === "invalid" ||
+    outcome.status === "unknown" ||
+    outcome.status === "pending" ||
+    outcome.data_completeness === "none"
+  );
+}
+
+function isBetterRecommendationOutcome(
+  candidate: RecommendationOutcome,
+  current: RecommendationOutcome,
+) {
+  const candidateCompleteness = outcomeDataCompletenessRank(candidate);
+  const currentCompleteness = outcomeDataCompletenessRank(current);
+
+  if (candidateCompleteness !== currentCompleteness) {
+    return candidateCompleteness > currentCompleteness;
+  }
+
+  const candidateStatus = outcomeStatusReadbackRank(candidate);
+  const currentStatus = outcomeStatusReadbackRank(current);
+
+  if (candidateStatus !== currentStatus) {
+    return candidateStatus > currentStatus;
+  }
+
+  return outcomeLatestReadbackTime(candidate) > outcomeLatestReadbackTime(current);
+}
+
+function dedupeRecommendationOutcomesForReadback(
+  outcomes: RecommendationOutcome[],
+) {
+  let replacedByBetterCount = 0;
+  let staleIncompleteIgnoredCount = 0;
+  const byKey = new Map<string, RecommendationOutcome>();
+
+  for (const outcome of outcomes) {
+    const key = `${outcome.snapshot_fingerprint ?? "unknown"}:${outcome.horizon}`;
+    const current = byKey.get(key);
+
+    if (!current) {
+      byKey.set(key, outcome);
+      continue;
+    }
+
+    if (isBetterRecommendationOutcome(outcome, current)) {
+      replacedByBetterCount += 1;
+      if (isIncompleteReadbackOutcome(current)) {
+        staleIncompleteIgnoredCount += 1;
+      }
+      byKey.set(key, outcome);
+    } else if (isIncompleteReadbackOutcome(outcome)) {
+      staleIncompleteIgnoredCount += 1;
+    }
+  }
+
+  const deduped = Array.from(byKey.values()).sort(
+    (first, second) =>
+      outcomeLatestReadbackTime(second) - outcomeLatestReadbackTime(first),
+  );
+
+  return {
+    outcomes: deduped,
+    diagnostics: {
+      rawCount: outcomes.length,
+      dedupedCount: deduped.length,
+      replacedByBetterCount,
+      staleIncompleteIgnoredCount,
+      strategy: "best_status_then_latest" as const,
+    },
+  };
+}
+
 function getStoredActiveScanTrace(scanRun: RecommendationScanRun) {
   const trace = scanRun.payload_json.active_scan_trace;
 
@@ -7699,6 +7816,16 @@ export function TradeApp() {
     error: null,
   });
   const [
+    recommendationOutcomeDedupeDiagnostics,
+    setRecommendationOutcomeDedupeDiagnostics,
+  ] = useState<RecommendationOutcomeDedupeDiagnostics>({
+    rawCount: 0,
+    dedupedCount: 0,
+    replacedByBetterCount: 0,
+    staleIncompleteIgnoredCount: 0,
+    strategy: "best_status_then_latest",
+  });
+  const [
     recommendationOutcomeEvaluationRun,
     setRecommendationOutcomeEvaluationRun,
   ] = useState<RecommendationOutcomeEvaluationRun | null>(null);
@@ -8134,8 +8261,13 @@ export function TradeApp() {
         noteIslandError("market_diagnostics", recommendationOutcomesResult.error);
         noteIslandError("history_statistics", recommendationOutcomesResult.error);
         if (isInitialLoad) {
-          loadedRecommendationOutcomesForReadback =
-            readRecommendationOutcomesFromLocalStorage();
+          const dedupedLocalOutcomes = dedupeRecommendationOutcomesForReadback(
+            readRecommendationOutcomesFromLocalStorage(),
+          );
+          loadedRecommendationOutcomesForReadback = dedupedLocalOutcomes.outcomes;
+          setRecommendationOutcomeDedupeDiagnostics(
+            dedupedLocalOutcomes.diagnostics,
+          );
           setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
         }
       } else {
@@ -8145,13 +8277,12 @@ export function TradeApp() {
         .map(recommendationOutcomeFromPersistenceRow)
         .filter((outcome): outcome is RecommendationOutcome => outcome !== null);
       const localOutcomes = readRecommendationOutcomesFromLocalStorage();
-      loadedRecommendationOutcomesForReadback = Array.from(
-        new Map(
-          [...loadedOutcomes, ...localOutcomes].map((outcome) => [
-            `${outcome.snapshot_fingerprint}:${outcome.horizon}`,
-            outcome,
-          ]),
-        ).values(),
+      const dedupedReadbackOutcomes = dedupeRecommendationOutcomesForReadback(
+        [...loadedOutcomes, ...localOutcomes],
+      );
+      loadedRecommendationOutcomesForReadback = dedupedReadbackOutcomes.outcomes;
+      setRecommendationOutcomeDedupeDiagnostics(
+        dedupedReadbackOutcomes.diagnostics,
       );
 
       setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
@@ -8480,7 +8611,11 @@ export function TradeApp() {
       setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
       setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
       setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
-      setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
+      const dedupedLocalOutcomes = dedupeRecommendationOutcomesForReadback(
+        readRecommendationOutcomesFromLocalStorage(),
+      );
+      setStoredRecommendationOutcomes(dedupedLocalOutcomes.outcomes);
+      setRecommendationOutcomeDedupeDiagnostics(dedupedLocalOutcomes.diagnostics);
       loadTradeDataRef.current({ mode: "initial", source: "initial" });
     }, 0);
 
@@ -12140,15 +12275,14 @@ export function TradeApp() {
       (snapshot) => snapshot.snapshot_fingerprint,
     ),
   );
-  const recommendationPerformanceOutcomes = Array.from(
-    new Map(
-      [...storedRecommendationOutcomes, ...visibleRecommendationOutcomes].map(
-        (outcome) => [`${outcome.snapshot_fingerprint}:${outcome.horizon}`, outcome],
+  const recommendationPerformanceOutcomes = dedupeRecommendationOutcomesForReadback(
+    [...storedRecommendationOutcomes, ...visibleRecommendationOutcomes],
+  ).outcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint !== null &&
+      liveRecommendationPerformanceSnapshotFingerprints.has(
+        outcome.snapshot_fingerprint,
       ),
-    ).values(),
-  ).filter((outcome) =>
-    outcome.snapshot_fingerprint !== null &&
-    liveRecommendationPerformanceSnapshotFingerprints.has(outcome.snapshot_fingerprint),
   );
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
@@ -12481,6 +12615,14 @@ export function TradeApp() {
         provider_limit_warning:
           recommendationOutcomeEvaluationDiagnostics.providerLimitCount > 0 ||
           recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount > 0,
+        outcome_rows_raw_count: recommendationOutcomeDedupeDiagnostics.rawCount,
+        outcome_rows_deduped_count:
+          recommendationOutcomeDedupeDiagnostics.dedupedCount,
+        outcome_rows_replaced_by_better_count:
+          recommendationOutcomeDedupeDiagnostics.replacedByBetterCount,
+        outcome_dedupe_strategy: recommendationOutcomeDedupeDiagnostics.strategy,
+        stale_incomplete_rows_ignored_count:
+          recommendationOutcomeDedupeDiagnostics.staleIncompleteIgnoredCount,
         outcome_rows_loaded_count: storedRecommendationOutcomes.length,
         outcome_batch_fingerprints: outcomeBatchFingerprints,
         outcome_snapshot_match_count: outcomeSnapshotMatchCount,
@@ -13024,8 +13166,14 @@ export function TradeApp() {
         return;
       }
 
-      const storedOutcomes = readRecommendationOutcomesFromLocalStorage();
+      const storedOutcomesReadback = dedupeRecommendationOutcomesForReadback(
+        readRecommendationOutcomesFromLocalStorage(),
+      );
+      const storedOutcomes = storedOutcomesReadback.outcomes;
       setStoredRecommendationOutcomes(storedOutcomes);
+      setRecommendationOutcomeDedupeDiagnostics(
+        storedOutcomesReadback.diagnostics,
+      );
       const diagnosticsOutcomes =
         storedOutcomes.length > 0 ? storedOutcomes : visibleRecommendationOutcomes;
       const completedStatuses = new Set([
@@ -13109,7 +13257,13 @@ export function TradeApp() {
         await persistRecommendationOutcome(outcome);
       }
 
-      setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
+      const storedOutcomesReadback = dedupeRecommendationOutcomesForReadback(
+        readRecommendationOutcomesFromLocalStorage(),
+      );
+      setStoredRecommendationOutcomes(storedOutcomesReadback.outcomes);
+      setRecommendationOutcomeDedupeDiagnostics(
+        storedOutcomesReadback.diagnostics,
+      );
       writeRecommendationOutcomeEvaluationRunToLocalStorage(run);
       setRecommendationOutcomeEvaluationRun(run);
       const routeDiagnostics = run as RecommendationOutcomeEvaluationRun &

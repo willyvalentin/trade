@@ -176,6 +176,11 @@ export type MarketDiagnosticsConsoleInput = {
     latest_evaluated_at?: string | null;
     horizons_covered?: string[];
     provider_limit_warning?: boolean | null;
+    outcome_rows_raw_count?: number | null;
+    outcome_rows_deduped_count?: number | null;
+    outcome_rows_replaced_by_better_count?: number | null;
+    outcome_dedupe_strategy?: string | null;
+    stale_incomplete_rows_ignored_count?: number | null;
     outcome_rows_loaded_count?: number | null;
     outcome_batch_fingerprints?: string[];
     outcome_snapshot_match_count?: number | null;
@@ -1750,6 +1755,18 @@ function buildSections(
           `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
         ),
         lineValue(
+          "Rows raw/deduped/replaced",
+          `${input.outcome_evaluation?.outcome_rows_raw_count ?? 0}/${input.outcome_evaluation?.outcome_rows_deduped_count ?? 0}/${input.outcome_evaluation?.outcome_rows_replaced_by_better_count ?? 0}`,
+        ),
+        lineValue(
+          "Stale incomplete ignored",
+          input.outcome_evaluation?.stale_incomplete_rows_ignored_count ?? 0,
+        ),
+        lineValue(
+          "Dedupe strategy",
+          compact(input.outcome_evaluation?.outcome_dedupe_strategy, "unknown"),
+        ),
+        lineValue(
           "Batch groups / selected rows",
           `${input.outcome_evaluation?.outcome_batch_groups_count ?? 0}/${input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0}`,
         ),
@@ -1846,6 +1863,16 @@ function buildSections(
           input.outcome_evaluation?.current_batch_snapshot_count ?? null,
         outcome_rows_loaded_count:
           input.outcome_evaluation?.outcome_rows_loaded_count ?? null,
+        outcome_rows_raw_count:
+          input.outcome_evaluation?.outcome_rows_raw_count ?? null,
+        outcome_rows_deduped_count:
+          input.outcome_evaluation?.outcome_rows_deduped_count ?? null,
+        outcome_rows_replaced_by_better_count:
+          input.outcome_evaluation?.outcome_rows_replaced_by_better_count ?? null,
+        outcome_dedupe_strategy:
+          input.outcome_evaluation?.outcome_dedupe_strategy ?? null,
+        stale_incomplete_rows_ignored_count:
+          input.outcome_evaluation?.stale_incomplete_rows_ignored_count ?? null,
         outcome_batch_fingerprints: (
           input.outcome_evaluation?.outcome_batch_fingerprints ?? []
         ).join(","),
