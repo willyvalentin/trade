@@ -314,6 +314,18 @@ function compact(value: string | null | undefined, fallback = "unknown") {
   return text.length > 0 ? text : fallback;
 }
 
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 function bool(value: boolean) {
   return value ? "yes" : "no";
 }
@@ -322,26 +334,37 @@ function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
   const activeTrace = input.active_scan_trace;
   const outcome = input.outcome_evaluation;
   const fallback = input.provider_plan_profile;
+  const activeTraceProfile = asRecord(activeTrace);
+  const fallbackProfile = asRecord(fallback);
   const mode =
-    activeTrace?.provider_plan_profile_mode ??
-    outcome?.provider_plan_profile_mode ??
-    fallback?.effective_mode ??
-    "unknown";
+    compact(
+      activeTrace?.provider_plan_profile_mode ??
+        outcome?.provider_plan_profile_mode ??
+        fallback?.effective_mode ??
+        fallback?.mode,
+      "unknown",
+    );
   const source =
-    activeTrace?.provider_plan_profile_source ??
-    outcome?.provider_plan_profile_source ??
-    fallback?.source ??
-    "unknown";
+    compact(
+      activeTrace?.provider_plan_profile_source ??
+        outcome?.provider_plan_profile_source ??
+        fallback?.source,
+      "unknown",
+    );
   const serverPlanMode =
-    activeTrace?.server_plan_mode ??
-    outcome?.server_plan_mode ??
-    fallback?.server_plan_mode ??
-    "unknown";
+    compact(
+      activeTrace?.server_plan_mode ??
+        outcome?.server_plan_mode ??
+        fallback?.server_plan_mode,
+      "unknown",
+    );
   const publicPlanMode =
-    activeTrace?.public_plan_mode ??
-    outcome?.public_plan_mode ??
-    fallback?.public_plan_mode ??
-    "unknown";
+    compact(
+      activeTrace?.public_plan_mode ??
+        outcome?.public_plan_mode ??
+        fallback?.public_plan_mode,
+      "unknown",
+    );
   const mismatch =
     activeTrace?.plan_mode_mismatch ??
     outcome?.plan_mode_mismatch ??
@@ -376,10 +399,14 @@ function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
     null;
   const cadence =
     fallback?.profile_background_scan_cadence_minutes ?? null;
-  const notes =
-    activeTrace?.profile_notes.length
-      ? activeTrace.profile_notes
-      : fallback?.profile_notes ?? [];
+  const activeTraceNotes = asStringArray(activeTraceProfile.profile_notes);
+  const fallbackNotes = asStringArray(fallbackProfile.profile_notes);
+  const activeTraceWarnings = asStringArray(activeTraceProfile.profile_warnings);
+  const fallbackWarnings = asStringArray(fallbackProfile.profile_warnings);
+  const notes = activeTraceNotes.length > 0 ? activeTraceNotes : fallbackNotes;
+  const profileWarnings =
+    activeTraceWarnings.length > 0 ? activeTraceWarnings : fallbackWarnings;
+  const overrides = asRecord(fallbackProfile.overrides);
 
   return {
     mode,
@@ -397,6 +424,8 @@ function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
     cadence,
     envScanTickerOverride: activeTrace?.env_scan_ticker_override ?? null,
     notes,
+    profileWarnings,
+    overrides,
   };
 }
 
@@ -2550,6 +2579,12 @@ function buildSections(
             ? providerPlanProfile.notes.join(" ")
             : "No profile note available.",
         ),
+        lineValue(
+          "Profile warnings",
+          providerPlanProfile.profileWarnings.length > 0
+            ? providerPlanProfile.profileWarnings.join(" ")
+            : "none",
+        ),
       ],
       metrics: {
         provider_plan_profile_mode: providerPlanProfile.mode,
@@ -2567,6 +2602,12 @@ function buildSections(
         effective_scheduled_timeout_ms: providerPlanProfile.timeoutMs,
         background_scan_cadence_minutes: providerPlanProfile.cadence,
         env_scan_ticker_override: providerPlanProfile.envScanTickerOverride,
+        provider_plan_profile_notes: providerPlanProfile.notes.join("; "),
+        provider_plan_profile_warnings:
+          providerPlanProfile.profileWarnings.join("; "),
+        provider_plan_profile_overrides_json: JSON.stringify(
+          providerPlanProfile.overrides,
+        ),
       },
     }),
     section({
