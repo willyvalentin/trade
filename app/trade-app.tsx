@@ -1063,6 +1063,13 @@ type RecommendationOutcomeDiagnostics = {
   lastError: string | null;
 };
 
+type RecommendationOutcomeBackfillDiagnostics = {
+  snapshotBackfillAttempted: boolean;
+  snapshotBackfillCount: number;
+  batchBackfillCount: number;
+  error: string | null;
+};
+
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
@@ -5744,6 +5751,25 @@ function snapshotPayloadHasFingerprint(
   }
 }
 
+function getSnapshotExplicitBatchFingerprints(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+  const fingerprints = [
+    payload.batch_fingerprint,
+    payload.recommendation_batch_fingerprint,
+  ];
+
+  return Array.from(
+    new Set(
+      fingerprints
+        .filter(
+          (fingerprint): fingerprint is string =>
+            typeof fingerprint === "string" && fingerprint.trim().length > 0,
+        )
+        .map((fingerprint) => fingerprint.trim()),
+    ),
+  );
+}
+
 function snapshotMatchesOfficialBatch({
   snapshot,
   batch,
@@ -5781,6 +5807,30 @@ function batchForRecommendationSnapshot(
   snapshot: RecommendationSnapshot,
   batches: RecommendationBatch[],
 ) {
+  const explicitBatchFingerprint =
+    getSnapshotExplicitBatchFingerprints(snapshot)[0] ?? null;
+  const explicitBatch =
+    explicitBatchFingerprint !== null
+      ? batches.find(
+          (batch) => batch.batch_fingerprint === explicitBatchFingerprint,
+        ) ?? null
+      : null;
+
+  if (explicitBatch) {
+    return explicitBatch;
+  }
+
+  const directSnapshotBatch =
+    batches.find((batch) =>
+      batch.recommendation_snapshot_fingerprints.includes(
+        snapshot.snapshot_fingerprint,
+      ),
+    ) ?? null;
+
+  if (directSnapshotBatch) {
+    return directSnapshotBatch;
+  }
+
   return (
     batches.find((batch) =>
       snapshotMatchesOfficialBatch({
@@ -7628,6 +7678,15 @@ export function TradeApp() {
       lastError: null,
     });
   const [
+    recommendationOutcomeBackfillDiagnostics,
+    setRecommendationOutcomeBackfillDiagnostics,
+  ] = useState<RecommendationOutcomeBackfillDiagnostics>({
+    snapshotBackfillAttempted: false,
+    snapshotBackfillCount: 0,
+    batchBackfillCount: 0,
+    error: null,
+  });
+  const [
     recommendationOutcomeEvaluationRun,
     setRecommendationOutcomeEvaluationRun,
   ] = useState<RecommendationOutcomeEvaluationRun | null>(null);
@@ -7830,6 +7889,14 @@ export function TradeApp() {
           fetchMarketStatusForUi(),
         ]);
 
+      let loadedRecommendationBatchesForReadback: RecommendationBatch[] = [];
+      let loadedRecommendationSnapshotsForReadback: RecommendationSnapshot[] = [];
+      let loadedRecommendationOutcomesForReadback: RecommendationOutcome[] = [];
+      let outcomeSnapshotBackfillAttempted = false;
+      let outcomeSnapshotBackfillCount = 0;
+      let outcomeBatchBackfillCount = 0;
+      let outcomeBackfillError: string | null = null;
+
       if (recommendationsResult.error) {
         noteIslandError("recommendations", recommendationsResult.error);
       } else {
@@ -7978,7 +8045,9 @@ export function TradeApp() {
         noteIslandError("market_diagnostics", recommendationBatchesResult.error);
         noteIslandError("recommendations", recommendationBatchesResult.error);
         if (isInitialLoad) {
-          setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
+          loadedRecommendationBatchesForReadback =
+            readRecommendationBatchesFromLocalStorage();
+          setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
         }
       } else {
       const loadedBatches = ((recommendationBatchesResult.data ?? []) as Array<
@@ -7987,17 +8056,16 @@ export function TradeApp() {
         .map(recommendationBatchFromPersistenceRow)
         .filter((batch): batch is RecommendationBatch => batch !== null);
       const localBatches = readRecommendationBatchesFromLocalStorage();
-
-      setStoredRecommendationBatches(
-        Array.from(
-          new Map(
-            [...loadedBatches, ...localBatches].map((batch) => [
-              batch.batch_fingerprint,
-              batch,
-            ]),
-          ).values(),
-        ),
+      loadedRecommendationBatchesForReadback = Array.from(
+        new Map(
+          [...loadedBatches, ...localBatches].map((batch) => [
+            batch.batch_fingerprint,
+            batch,
+          ]),
+        ).values(),
       );
+
+      setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
       }
 
       if (recommendationSnapshotsResult.error) {
@@ -8009,7 +8077,9 @@ export function TradeApp() {
         noteIslandError("market_diagnostics", recommendationSnapshotsResult.error);
         noteIslandError("recommendations", recommendationSnapshotsResult.error);
         if (isInitialLoad) {
-          setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
+          loadedRecommendationSnapshotsForReadback =
+            readRecommendationSnapshotsFromLocalStorage();
+          setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
         }
       } else {
       const loadedSnapshots = ((recommendationSnapshotsResult.data ?? []) as Array<
@@ -8018,17 +8088,16 @@ export function TradeApp() {
         .map(recommendationSnapshotFromPersistenceRow)
         .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null);
       const localSnapshots = readRecommendationSnapshotsFromLocalStorage();
-
-      setStoredRecommendationSnapshots(
-        Array.from(
-          new Map(
-            [...loadedSnapshots, ...localSnapshots].map((snapshot) => [
-              snapshot.snapshot_fingerprint,
-              snapshot,
-            ]),
-          ).values(),
-        ),
+      loadedRecommendationSnapshotsForReadback = Array.from(
+        new Map(
+          [...loadedSnapshots, ...localSnapshots].map((snapshot) => [
+            snapshot.snapshot_fingerprint,
+            snapshot,
+          ]),
+        ).values(),
       );
+
+      setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
       }
 
       if (recommendationOutcomesResult.error) {
@@ -8040,7 +8109,9 @@ export function TradeApp() {
         noteIslandError("market_diagnostics", recommendationOutcomesResult.error);
         noteIslandError("history_statistics", recommendationOutcomesResult.error);
         if (isInitialLoad) {
-          setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
+          loadedRecommendationOutcomesForReadback =
+            readRecommendationOutcomesFromLocalStorage();
+          setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
         }
       } else {
       const loadedOutcomes = ((recommendationOutcomesResult.data ?? []) as Array<
@@ -8049,18 +8120,238 @@ export function TradeApp() {
         .map(recommendationOutcomeFromPersistenceRow)
         .filter((outcome): outcome is RecommendationOutcome => outcome !== null);
       const localOutcomes = readRecommendationOutcomesFromLocalStorage();
-
-      setStoredRecommendationOutcomes(
-        Array.from(
-          new Map(
-            [...loadedOutcomes, ...localOutcomes].map((outcome) => [
-              `${outcome.snapshot_fingerprint}:${outcome.horizon}`,
-              outcome,
-            ]),
-          ).values(),
-        ),
+      loadedRecommendationOutcomesForReadback = Array.from(
+        new Map(
+          [...loadedOutcomes, ...localOutcomes].map((outcome) => [
+            `${outcome.snapshot_fingerprint}:${outcome.horizon}`,
+            outcome,
+          ]),
+        ).values(),
       );
+
+      setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
       }
+
+      if (loadedRecommendationOutcomesForReadback.length > 0) {
+        const existingSnapshotFingerprints = new Set(
+          loadedRecommendationSnapshotsForReadback.map(
+            (snapshot) => snapshot.snapshot_fingerprint,
+          ),
+        );
+        const outcomeSnapshotFingerprints = Array.from(
+          new Set(
+            loadedRecommendationOutcomesForReadback
+              .map((outcome) => outcome.snapshot_fingerprint)
+              .filter(
+                (fingerprint): fingerprint is string =>
+                  typeof fingerprint === "string" &&
+                  fingerprint.trim().length > 0,
+              )
+              .map((fingerprint) => fingerprint.trim()),
+          ),
+        );
+        const outcomeRecommendationIds = new Set(
+          loadedRecommendationOutcomesForReadback
+            .map((outcome) => outcome.recommendation_id)
+            .filter(
+              (recommendationId): recommendationId is string =>
+                typeof recommendationId === "string" &&
+                recommendationId.trim().length > 0,
+            ),
+        );
+        const missingSnapshotFingerprints = outcomeSnapshotFingerprints.filter(
+          (fingerprint) => !existingSnapshotFingerprints.has(fingerprint),
+        );
+
+        if (missingSnapshotFingerprints.length > 0) {
+          outcomeSnapshotBackfillAttempted = true;
+
+          const backfilledSnapshotsResult = await supabase
+            .from("recommendation_snapshots")
+            .select("*")
+            .in("snapshot_fingerprint", missingSnapshotFingerprints);
+
+          if (backfilledSnapshotsResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledSnapshotsResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_snapshots",
+              operation: "select_outcome_snapshot_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError("market_diagnostics", backfilledSnapshotsResult.error);
+          } else {
+            const backfilledSnapshots = (
+              (backfilledSnapshotsResult.data ?? []) as Array<Record<string, unknown>>
+            )
+              .map(recommendationSnapshotFromPersistenceRow)
+              .filter(
+                (snapshot): snapshot is RecommendationSnapshot =>
+                  snapshot !== null && isLiveRecommendationSnapshot(snapshot),
+              );
+
+            outcomeSnapshotBackfillCount = backfilledSnapshots.length;
+            loadedRecommendationSnapshotsForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledSnapshots,
+                  ...loadedRecommendationSnapshotsForReadback,
+                ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+              ).values(),
+            );
+            setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+          }
+        }
+
+        const outcomeRelatedSnapshots = loadedRecommendationSnapshotsForReadback.filter(
+          (snapshot) =>
+            outcomeSnapshotFingerprints.includes(snapshot.snapshot_fingerprint) ||
+            (snapshot.recommendation_id !== null &&
+              outcomeRecommendationIds.has(snapshot.recommendation_id)),
+        );
+        const existingBatchFingerprints = new Set(
+          loadedRecommendationBatchesForReadback.map(
+            (batch) => batch.batch_fingerprint,
+          ),
+        );
+        const outcomeBatchFingerprintsForBackfill = Array.from(
+          new Set(
+            outcomeRelatedSnapshots.flatMap(getSnapshotExplicitBatchFingerprints),
+          ),
+        );
+        const missingBatchFingerprints = outcomeBatchFingerprintsForBackfill.filter(
+          (fingerprint) => !existingBatchFingerprints.has(fingerprint),
+        );
+
+        if (missingBatchFingerprints.length > 0) {
+          const backfilledBatchesResult = await supabase
+            .from("recommendation_batches")
+            .select("*")
+            .in("batch_fingerprint", missingBatchFingerprints);
+
+          if (backfilledBatchesResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledBatchesResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_batches",
+              operation: "select_outcome_batch_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError("market_diagnostics", backfilledBatchesResult.error);
+          } else {
+            const backfilledBatches = (
+              (backfilledBatchesResult.data ?? []) as Array<Record<string, unknown>>
+            )
+              .map(recommendationBatchFromPersistenceRow)
+              .filter(
+                (batch): batch is RecommendationBatch =>
+                  batch !== null &&
+                  isLiveRecommendationBatch(batch) &&
+                  batch.batch_type === "official",
+              );
+
+            outcomeBatchBackfillCount += backfilledBatches.length;
+            loadedRecommendationBatchesForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledBatches,
+                  ...loadedRecommendationBatchesForReadback,
+                ].map((batch) => [batch.batch_fingerprint, batch]),
+              ).values(),
+            );
+            setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
+          }
+        }
+
+        const existingScanRunFingerprints = new Set(
+          loadedRecommendationBatchesForReadback
+            .map((batch) => batch.scan_run_fingerprint)
+            .filter(
+              (fingerprint): fingerprint is string =>
+                typeof fingerprint === "string" && fingerprint.trim().length > 0,
+            ),
+        );
+        const outcomeScanRunFingerprintsForBackfill = Array.from(
+          new Set(
+            outcomeRelatedSnapshots
+              .flatMap((snapshot) => [
+                snapshot.scan_run_id,
+                typeof snapshot.payload_json.scan_run_fingerprint === "string"
+                  ? snapshot.payload_json.scan_run_fingerprint
+                  : null,
+              ])
+              .filter(
+                (fingerprint): fingerprint is string =>
+                  typeof fingerprint === "string" &&
+                  fingerprint.trim().length > 0,
+              )
+              .map((fingerprint) => fingerprint.trim()),
+          ),
+        );
+        const missingScanRunFingerprints =
+          outcomeScanRunFingerprintsForBackfill.filter(
+            (fingerprint) => !existingScanRunFingerprints.has(fingerprint),
+          );
+
+        if (missingScanRunFingerprints.length > 0) {
+          const backfilledScanRunBatchesResult = await supabase
+            .from("recommendation_batches")
+            .select("*")
+            .in("scan_run_fingerprint", missingScanRunFingerprints);
+
+          if (backfilledScanRunBatchesResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledScanRunBatchesResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_batches",
+              operation: "select_outcome_scan_run_batch_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError(
+              "market_diagnostics",
+              backfilledScanRunBatchesResult.error,
+            );
+          } else {
+            const backfilledScanRunBatches = (
+              (backfilledScanRunBatchesResult.data ?? []) as Array<
+                Record<string, unknown>
+              >
+            )
+              .map(recommendationBatchFromPersistenceRow)
+              .filter(
+                (batch): batch is RecommendationBatch =>
+                  batch !== null &&
+                  isLiveRecommendationBatch(batch) &&
+                  batch.batch_type === "official" &&
+                  !loadedRecommendationBatchesForReadback.some(
+                    (existingBatch) =>
+                      existingBatch.batch_fingerprint === batch.batch_fingerprint,
+                  ),
+              );
+
+            outcomeBatchBackfillCount += backfilledScanRunBatches.length;
+            loadedRecommendationBatchesForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledScanRunBatches,
+                  ...loadedRecommendationBatchesForReadback,
+                ].map((batch) => [batch.batch_fingerprint, batch]),
+              ).values(),
+            );
+            setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
+          }
+        }
+      }
+
+      setRecommendationOutcomeBackfillDiagnostics({
+        snapshotBackfillAttempted: outcomeSnapshotBackfillAttempted,
+        snapshotBackfillCount: outcomeSnapshotBackfillCount,
+        batchBackfillCount: outcomeBatchBackfillCount,
+        error: outcomeBackfillError,
+      });
 
       if (marketRegimeResult.error) {
         noteIslandError("market_status", marketRegimeResult.error);
@@ -10122,14 +10413,103 @@ export function TradeApp() {
         .filter((fingerprint): fingerprint is string => fingerprint !== null),
     ),
   ).sort();
-  const latestEvaluatedBatchFingerprint =
+  const outcomeBatchGroups = Array.from(
     outcomeAssociations
-      .filter((item) => item.batch_fingerprint !== null)
-      .sort(
-        (first, second) =>
-          new Date(second.outcome.evaluated_at).getTime() -
-          new Date(first.outcome.evaluated_at).getTime(),
-      )[0]?.batch_fingerprint ?? null;
+      .filter((item) => item.batch_fingerprint !== null && item.batch !== null)
+      .reduce<
+        Map<
+          string,
+          {
+            batch: RecommendationBatch;
+            batch_fingerprint: string;
+            associations: typeof outcomeAssociations;
+          }
+        >
+      >((groups, association) => {
+        if (
+          association.batch_fingerprint === null ||
+          association.batch === null ||
+          !isSuccessfulLiveRecommendationBatch(association.batch)
+        ) {
+          return groups;
+        }
+
+        const existing = groups.get(association.batch_fingerprint);
+
+        if (existing) {
+          existing.associations.push(association);
+          return groups;
+        }
+
+        groups.set(association.batch_fingerprint, {
+          batch: association.batch,
+          batch_fingerprint: association.batch_fingerprint,
+          associations: [association],
+        });
+
+        return groups;
+      }, new Map())
+      .values(),
+  ).map((group) => {
+    const outcomes = group.associations.map((item) => item.outcome);
+    const snapshots = Array.from(
+      new Map(
+        group.associations
+          .map((item) => item.snapshot)
+          .filter(
+            (snapshot): snapshot is RecommendationSnapshot => snapshot !== null,
+          )
+          .map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+      ).values(),
+    );
+    const latestEvaluatedAt = latestIso(
+      outcomes.map((outcome) => outcome.evaluated_at),
+    );
+
+    return {
+      batch: group.batch,
+      batch_fingerprint: group.batch_fingerprint,
+      associations: group.associations,
+      outcomes,
+      snapshots,
+      latest_evaluated_at: latestEvaluatedAt,
+      latest_evaluated_time:
+        latestEvaluatedAt === null ? 0 : new Date(latestEvaluatedAt).getTime(),
+      outcome_rows_count: outcomes.length,
+      evaluated_count: outcomes.filter((outcome) =>
+        currentBatchCompletedOutcomeStatuses.has(outcome.status),
+      ).length,
+      incomplete_count: outcomes.filter(
+        (outcome) =>
+          outcome.status === "incomplete" ||
+          outcome.status === "invalid" ||
+          outcome.status === "unknown",
+      ).length,
+      provider_error_count: outcomes.filter(outcomeHasProviderLimitWarning).length,
+      horizons_covered: Array.from(
+        new Set(outcomes.map((outcome) => outcome.horizon)),
+      ).sort(),
+      tickers: Array.from(
+        new Set(
+          outcomes
+            .map((outcome) => normalizeRecommendationTicker(outcome.ticker))
+            .filter((ticker): ticker is string => ticker !== null),
+        ),
+      ).sort(),
+    };
+  });
+  const latestEvaluatedBatchGroup =
+    [...outcomeBatchGroups]
+      .filter((group) => Number.isFinite(group.latest_evaluated_time))
+      .sort((first, second) => {
+        if (second.latest_evaluated_time !== first.latest_evaluated_time) {
+          return second.latest_evaluated_time - first.latest_evaluated_time;
+        }
+
+        return second.outcome_rows_count - first.outcome_rows_count;
+      })[0] ?? null;
+  const latestEvaluatedBatchFingerprint =
+    latestEvaluatedBatchGroup?.batch_fingerprint ?? null;
   const latestEvaluatedBatchAssociations = outcomeAssociations.filter(
     (item) =>
       latestEvaluatedBatchFingerprint !== null &&
@@ -10172,27 +10552,33 @@ export function TradeApp() {
         .filter((ticker): ticker is string => ticker !== null),
     ),
   ).sort();
+  const latestEvaluatedBatchSelectionReason =
+    latestEvaluatedBatchGroup !== null
+      ? "max_matched_outcome_evaluated_at"
+      : outcomeAssociations.length > 0
+        ? "no_official_batch_group_matched"
+        : "no_outcome_rows_loaded";
   const outcomeDiagnosticsBatchFingerprint =
     latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ??
     latestEvaluatedBatchFingerprint;
   const outcomeDiagnosticsSnapshots =
-    currentBatchSnapshotCount > 0
+    latestEvaluatedBatchSnapshots.length === 0 && currentBatchSnapshotCount > 0
       ? latestOfficialBatchSnapshots
       : latestEvaluatedBatchSnapshots;
   const outcomeDiagnosticsStoredOutcomes =
-    currentBatchStoredOutcomes.length > 0
+    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
       ? currentBatchStoredOutcomes
       : latestEvaluatedBatchOutcomes;
   const outcomeDiagnosticsEvaluatedCount =
-    currentBatchStoredOutcomes.length > 0
+    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
       ? currentBatchEvaluatedOutcomeCount
       : latestEvaluatedBatchCompletedOutcomeCount;
   const outcomeDiagnosticsIncompleteCount =
-    currentBatchStoredOutcomes.length > 0
+    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
       ? currentBatchIncompleteOutcomeCount
       : latestEvaluatedBatchIncompleteOutcomeCount;
   const outcomeDiagnosticsPendingCount =
-    currentBatchStoredOutcomes.length > 0
+    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
       ? currentBatchPendingOutcomeCount
       : Math.max(
           0,
@@ -12072,6 +12458,17 @@ export function TradeApp() {
         outcome_batch_fingerprints: outcomeBatchFingerprints,
         outcome_snapshot_match_count: outcomeSnapshotMatchCount,
         outcome_unmatched_count: outcomeUnmatchedCount,
+        outcome_batch_groups_count: outcomeBatchGroups.length,
+        latest_evaluated_batch_selection_reason:
+          latestEvaluatedBatchSelectionReason,
+        latest_evaluated_batch_rows: latestEvaluatedBatchOutcomes.length,
+        outcome_snapshot_backfill_attempted:
+          recommendationOutcomeBackfillDiagnostics.snapshotBackfillAttempted,
+        outcome_snapshot_backfill_count:
+          recommendationOutcomeBackfillDiagnostics.snapshotBackfillCount,
+        outcome_batch_backfill_count:
+          recommendationOutcomeBackfillDiagnostics.batchBackfillCount,
+        outcome_backfill_error: recommendationOutcomeBackfillDiagnostics.error,
         latest_run_status: recommendationOutcomeEvaluationDiagnostics.status,
         latest_run_at:
           recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp ??

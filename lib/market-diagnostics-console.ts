@@ -180,6 +180,13 @@ export type MarketDiagnosticsConsoleInput = {
     outcome_batch_fingerprints?: string[];
     outcome_snapshot_match_count?: number | null;
     outcome_unmatched_count?: number | null;
+    outcome_batch_groups_count?: number | null;
+    latest_evaluated_batch_selection_reason?: string | null;
+    latest_evaluated_batch_rows?: number | null;
+    outcome_snapshot_backfill_attempted?: boolean | null;
+    outcome_snapshot_backfill_count?: number | null;
+    outcome_batch_backfill_count?: number | null;
+    outcome_backfill_error?: string | null;
     latest_run_status?: string | null;
     latest_run_at?: string | null;
     latest_run_batch_fingerprint?: string | null;
@@ -1730,6 +1737,25 @@ function buildSections(
           `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
         ),
         lineValue(
+          "Batch groups / selected rows",
+          `${input.outcome_evaluation?.outcome_batch_groups_count ?? 0}/${input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0}`,
+        ),
+        lineValue(
+          "Selection reason",
+          compact(
+            input.outcome_evaluation?.latest_evaluated_batch_selection_reason,
+            "unknown",
+          ),
+        ),
+        lineValue(
+          "Snapshot/batch backfill",
+          `${bool(input.outcome_evaluation?.outcome_snapshot_backfill_attempted === true)} / ${input.outcome_evaluation?.outcome_snapshot_backfill_count ?? 0}/${input.outcome_evaluation?.outcome_batch_backfill_count ?? 0}`,
+        ),
+        lineValue(
+          "Backfill error",
+          compact(input.outcome_evaluation?.outcome_backfill_error, "none"),
+        ),
+        lineValue(
           "Expected/Persisted",
           `${input.outcome_evaluation?.expected_outcome_count ?? 0}/${input.outcome_evaluation?.persisted_outcome_count ?? 0}`,
         ),
@@ -1788,6 +1814,21 @@ function buildSections(
           input.outcome_evaluation?.outcome_snapshot_match_count ?? null,
         outcome_unmatched_count:
           input.outcome_evaluation?.outcome_unmatched_count ?? null,
+        outcome_batch_groups_count:
+          input.outcome_evaluation?.outcome_batch_groups_count ?? null,
+        latest_evaluated_batch_selection_reason:
+          input.outcome_evaluation?.latest_evaluated_batch_selection_reason ??
+          null,
+        latest_evaluated_batch_rows:
+          input.outcome_evaluation?.latest_evaluated_batch_rows ?? null,
+        outcome_snapshot_backfill_attempted:
+          input.outcome_evaluation?.outcome_snapshot_backfill_attempted ?? null,
+        outcome_snapshot_backfill_count:
+          input.outcome_evaluation?.outcome_snapshot_backfill_count ?? null,
+        outcome_batch_backfill_count:
+          input.outcome_evaluation?.outcome_batch_backfill_count ?? null,
+        outcome_backfill_error:
+          input.outcome_evaluation?.outcome_backfill_error ?? null,
         expected_outcome_count:
           input.outcome_evaluation?.expected_outcome_count ?? null,
         persisted_outcome_count:
