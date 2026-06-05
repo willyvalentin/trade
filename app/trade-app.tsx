@@ -178,6 +178,7 @@ import {
   recommendationSnapshotFromPersistenceRow,
   recommendationSnapshotsJson,
   readRecommendationSnapshotsFromLocalStorage,
+  summarizeRecommendationSnapshotShadowEntryTrialMetadata,
   type RecommendationSnapshot,
   type RecommendationSnapshotInput,
   type RecommendationSnapshotPersistenceResult,
@@ -326,6 +327,7 @@ import {
   type ProviderBudgetGuardSummary,
   type ProviderBudgetStatus,
 } from "@/lib/provider-budget-guard";
+import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import {
   buildLiveMarketTrialRunbookSummary,
   liveMarketTrialRunbookSummaryJson,
@@ -1116,6 +1118,14 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   candleRequestsPlanned: number;
   candleRequestsExecuted: number;
   candleRequestsSavedByReuse: number;
+  providerPlanProfileMode: string | null;
+  providerPlanProfileSource: string | null;
+  serverPlanMode: string | null;
+  publicPlanMode: string | null;
+  planModeMismatch: boolean;
+  profileBudgetLimit: number | null;
+  overrideBudgetLimit: number | null;
+  effectiveBudgetLimit: number | null;
   providerBudgetLimit: number | null;
   skippedDueToBudgetCount: number;
   pendingProviderBudgetCount: number;
@@ -1130,6 +1140,8 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   completedOutcomesSkippedAlreadyEnrichedCount: number;
   retainedCandlesAddedCount: number;
   counterfactualReadyCount: number;
+  shadowEligibleSnapshotCount: number;
+  shadowMissingMetadataCount: number;
   shadowEntryTrialCount: number;
   shadowEntryTriggeredCount: number;
   outcomeProviderBudgetStatus: string | null;
@@ -7893,6 +7905,14 @@ export function TradeApp() {
     candleRequestsPlanned: 0,
     candleRequestsExecuted: 0,
     candleRequestsSavedByReuse: 0,
+    providerPlanProfileMode: null,
+    providerPlanProfileSource: null,
+    serverPlanMode: null,
+    publicPlanMode: null,
+    planModeMismatch: false,
+    profileBudgetLimit: null,
+    overrideBudgetLimit: null,
+    effectiveBudgetLimit: null,
     providerBudgetLimit: null,
     skippedDueToBudgetCount: 0,
     pendingProviderBudgetCount: 0,
@@ -7907,6 +7927,8 @@ export function TradeApp() {
     completedOutcomesSkippedAlreadyEnrichedCount: 0,
     retainedCandlesAddedCount: 0,
     counterfactualReadyCount: 0,
+    shadowEligibleSnapshotCount: 0,
+    shadowMissingMetadataCount: 0,
     shadowEntryTrialCount: 0,
     shadowEntryTriggeredCount: 0,
     outcomeProviderBudgetStatus: null,
@@ -10104,6 +10126,8 @@ export function TradeApp() {
   const dailyScanLogs = scanLogs.filter(
     (scanLog) => getNewYorkDateFromIso(scanLog.created_at) === dailySessionDate,
   );
+  const marketClosedReadbackMode =
+    getTopMarketStatus(marketStatus, currentTime) !== "open";
   const latestSuccessfulDailyScanLog =
     dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
@@ -10113,11 +10137,33 @@ export function TradeApp() {
   );
   const liveStoredRecommendationBatches =
     storedRecommendationBatches.filter(isLiveRecommendationBatch);
-  const todaysSuccessfulLiveRecommendationBatches =
+  const successfulLiveRecommendationBatches =
     [...liveStoredRecommendationBatches]
+      .filter(isSuccessfulLiveRecommendationBatch)
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at));
+  const latestReviewOfficialRecommendationBatch =
+    successfulLiveRecommendationBatches.find(
+      isScheduledOfficialRecommendationBatch,
+    ) ??
+    successfulLiveRecommendationBatches.find(
+      (batch) => batch.recommendation_count > 0,
+    ) ??
+    null;
+  const latestTradingDayWithOfficialBatch =
+    latestReviewOfficialRecommendationBatch?.trading_date ??
+    (latestReviewOfficialRecommendationBatch
+      ? getNewYorkDateFromIso(latestReviewOfficialRecommendationBatch.observed_at)
+      : null);
+  const latestReviewBatchSource =
+    latestReviewOfficialRecommendationBatch === null
+      ? null
+      : latestReviewOfficialRecommendationBatch.trading_date === dailySessionDate
+        ? "current_trading_day"
+        : "latest_trading_day_with_data";
+  const todaysSuccessfulLiveRecommendationBatches =
+    [...successfulLiveRecommendationBatches]
       .filter(
         (batch) =>
-          isSuccessfulLiveRecommendationBatch(batch) &&
           (batch.trading_date === dailySessionDate ||
             getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
       )
@@ -10132,9 +10178,18 @@ export function TradeApp() {
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const latestReviewSuccessfulRecommendationScanRun =
+    [...liveStoredRecommendationScanRuns]
+      .filter(isSuccessfulLiveRecommendationScanRun)
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
+    null;
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
+  const latestReviewSuccessfulScanRunTrace =
+    latestReviewSuccessfulRecommendationScanRun
+      ? getStoredActiveScanTrace(latestReviewSuccessfulRecommendationScanRun)
+      : null;
   const latestSuccessfulTraceForBatchResolver =
     latestSuccessfulDailyScanLog?.active_scan_trace ??
     latestSuccessfulScanRunTrace ??
@@ -10310,6 +10365,27 @@ export function TradeApp() {
         traceScanRunFingerprint: latestSuccessfulTraceScanRunFingerprint,
       }),
   );
+  const latestReviewBatchSnapshotSet = new Set(
+    latestReviewOfficialRecommendationBatch?.recommendation_snapshot_fingerprints ??
+      [],
+  );
+  const latestReviewBatchTraceFingerprint =
+    latestReviewOfficialRecommendationBatch
+      ? getBatchTraceFingerprint(latestReviewOfficialRecommendationBatch)
+      : null;
+  const latestReviewBatchSnapshots =
+    latestReviewOfficialRecommendationBatch === null
+      ? []
+      : liveStoredRecommendationSnapshots.filter((snapshot) =>
+          snapshotMatchesOfficialBatch({
+            snapshot,
+            batch: latestReviewOfficialRecommendationBatch,
+            batchSnapshotFingerprints: latestReviewBatchSnapshotSet,
+            traceBatchFingerprint: latestReviewBatchTraceFingerprint,
+            traceScanRunFingerprint:
+              latestReviewOfficialRecommendationBatch.scan_run_fingerprint,
+          }),
+        );
   const currentBatchSnapshotCount = latestOfficialBatchSnapshots.length;
   const currentBatchTickersFromBatch = new Set(
     (latestSuccessfulStoredRecommendationBatch?.recommendation_tickers ?? [])
@@ -10563,6 +10639,10 @@ export function TradeApp() {
         .filter((ticker): ticker is string => ticker !== null),
     ),
   ).sort();
+  const currentBatchShadowSnapshotSummary =
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata(
+      latestOfficialBatchSnapshots,
+    );
   const currentBatchOutcomeHorizons = ["15m", "30m", "60m"];
   const currentBatchSnapshotFingerprints = new Set(
     latestOfficialBatchSnapshots.map(
@@ -10574,6 +10654,14 @@ export function TradeApp() {
       outcome.snapshot_fingerprint !== null &&
       currentBatchSnapshotFingerprints.has(outcome.snapshot_fingerprint),
   );
+  const latestReviewBatchSnapshotFingerprints = new Set(
+    latestReviewBatchSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  );
+  const latestReviewBatchStoredOutcomes = storedRecommendationOutcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint !== null &&
+      latestReviewBatchSnapshotFingerprints.has(outcome.snapshot_fingerprint),
+  );
   const currentBatchCompletedOutcomeStatuses = new Set([
     "entry_not_triggered",
     "entry_triggered",
@@ -10584,15 +10672,6 @@ export function TradeApp() {
     "neither_hit",
     "expired",
   ]);
-  const currentBatchEvaluatedOutcomeCount = currentBatchStoredOutcomes.filter(
-    (outcome) => currentBatchCompletedOutcomeStatuses.has(outcome.status),
-  ).length;
-  const currentBatchIncompleteOutcomeCount = currentBatchStoredOutcomes.filter(
-    (outcome) =>
-      outcome.status === "incomplete" ||
-      outcome.status === "invalid" ||
-      outcome.status === "unknown",
-  ).length;
   const currentBatchExpectedOutcomeCount =
     currentBatchSnapshotCount * currentBatchOutcomeHorizons.length;
   const currentBatchPendingOutcomeCount = Math.max(
@@ -10602,6 +10681,13 @@ export function TradeApp() {
   const currentBatchOutcomeTickers = Array.from(
     new Set(
       currentBatchStoredOutcomes
+        .map((outcome) => normalizeRecommendationTicker(outcome.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ),
+  ).sort();
+  const latestReviewBatchOutcomeTickers = Array.from(
+    new Set(
+      latestReviewBatchStoredOutcomes
         .map((outcome) => normalizeRecommendationTicker(outcome.ticker))
         .filter((ticker): ticker is string => ticker !== null),
     ),
@@ -10870,32 +10956,54 @@ export function TradeApp() {
       : outcomeAssociations.length > 0
         ? "no_official_batch_group_matched"
         : "no_outcome_rows_loaded";
+  const useClosedMarketReviewReadback =
+    marketClosedReadbackMode &&
+    latestSuccessfulStoredRecommendationBatch === null &&
+    latestReviewOfficialRecommendationBatch !== null;
   const outcomeDiagnosticsBatchFingerprint =
     latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ??
+    (useClosedMarketReviewReadback
+      ? latestReviewOfficialRecommendationBatch?.batch_fingerprint
+      : null) ??
     latestEvaluatedBatchFingerprint;
   const outcomeDiagnosticsSnapshots =
-    latestEvaluatedBatchSnapshots.length === 0 && currentBatchSnapshotCount > 0
-      ? latestOfficialBatchSnapshots
-      : latestEvaluatedBatchSnapshots;
+    latestEvaluatedBatchSnapshots.length > 0
+      ? latestEvaluatedBatchSnapshots
+      : currentBatchSnapshotCount > 0
+        ? latestOfficialBatchSnapshots
+        : useClosedMarketReviewReadback
+          ? latestReviewBatchSnapshots
+          : [];
   const outcomeDiagnosticsStoredOutcomes =
-    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
-      ? currentBatchStoredOutcomes
-      : latestEvaluatedBatchOutcomes;
+    latestEvaluatedBatchOutcomes.length > 0
+      ? latestEvaluatedBatchOutcomes
+      : currentBatchStoredOutcomes.length > 0
+        ? currentBatchStoredOutcomes
+        : useClosedMarketReviewReadback
+          ? latestReviewBatchStoredOutcomes
+          : [];
   const outcomeDiagnosticsEvaluatedCount =
-    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
-      ? currentBatchEvaluatedOutcomeCount
-      : latestEvaluatedBatchCompletedOutcomeCount;
+    latestEvaluatedBatchOutcomes.length > 0
+      ? latestEvaluatedBatchCompletedOutcomeCount
+      : outcomeDiagnosticsStoredOutcomes.filter((outcome) =>
+          currentBatchCompletedOutcomeStatuses.has(outcome.status),
+        ).length;
   const outcomeDiagnosticsIncompleteCount =
-    latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
-      ? currentBatchIncompleteOutcomeCount
-      : latestEvaluatedBatchIncompleteOutcomeCount;
+    latestEvaluatedBatchOutcomes.length > 0
+      ? latestEvaluatedBatchIncompleteOutcomeCount
+      : outcomeDiagnosticsStoredOutcomes.filter(
+          (outcome) =>
+            outcome.status === "incomplete" ||
+            outcome.status === "invalid" ||
+            outcome.status === "unknown",
+        ).length;
   const outcomeDiagnosticsPendingCount =
     latestEvaluatedBatchOutcomes.length === 0 && currentBatchStoredOutcomes.length > 0
       ? currentBatchPendingOutcomeCount
       : Math.max(
           0,
-          latestEvaluatedBatchSnapshots.length * currentBatchOutcomeHorizons.length -
-            latestEvaluatedBatchOutcomes.length,
+          outcomeDiagnosticsSnapshots.length * currentBatchOutcomeHorizons.length -
+            outcomeDiagnosticsStoredOutcomes.length,
         );
   const outcomeDiagnosticsProviderErrorCount =
     latestEvaluatedBatchProviderErrorCount;
@@ -11980,6 +12088,9 @@ export function TradeApp() {
     latestSuccessfulScanLog?.active_scan_trace ??
     (latestSuccessfulStoredRecommendationScanRun
       ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
+      : null) ??
+    (marketClosedReadbackMode && latestReviewSuccessfulScanRunTrace
+      ? latestReviewSuccessfulScanRunTrace
       : null);
   const latestActiveScanTrace =
     latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
@@ -12013,6 +12124,21 @@ export function TradeApp() {
               : null,
           source: "recommendation_scan_runs",
         }
+      : marketClosedReadbackMode && latestReviewSuccessfulRecommendationScanRun
+        ? {
+            result: "recommendation_created",
+            created_at: latestReviewSuccessfulRecommendationScanRun.observed_at,
+            scan_window: latestReviewSuccessfulRecommendationScanRun.window,
+            visible_recommendation_count:
+              latestReviewSuccessfulRecommendationScanRun.counts
+                .visible_recommendation_count,
+            message:
+              typeof latestReviewSuccessfulRecommendationScanRun.payload_json
+                .message === "string"
+                ? latestReviewSuccessfulRecommendationScanRun.payload_json.message
+                : "Market closed — latest official batch retained for review.",
+            source: "recommendation_scan_runs:closed_market_review",
+          }
       : null;
   const latestAttemptedReadbackScan = latestAttemptedScanLog
     ? {
@@ -12611,9 +12737,15 @@ export function TradeApp() {
       recommendationEngineControlCenterSummary,
     );
   const configuredProviderPlanMode =
-    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
     process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE ??
+    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
     providerPlanModeHint;
+  const providerPlanProfileSummary = buildProviderPlanProfile({
+    NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE:
+      process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE,
+    NEXT_PUBLIC_PROVIDER_PLAN_MODE:
+      process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE,
+  });
   const providerBudgetGuardSummary = buildProviderBudgetGuardSummary({
     plan_mode: configuredProviderPlanMode,
     scanner_universe: scannerUniverseCoverageSummary,
@@ -12759,6 +12891,7 @@ export function TradeApp() {
       scan_orchestration: dayTradeScanOrchestrationSummary,
       serving_cadence: recommendationServingCadenceSummary,
       provider_budget_guard: providerBudgetGuardSummary,
+      provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
       scanner_ranking: scannerCandidateRankingSummary,
@@ -12779,12 +12912,27 @@ export function TradeApp() {
         ),
       },
       outcome_evaluation: {
+        market_closed_readback_mode: marketClosedReadbackMode,
+        latest_trading_day_with_official_batch: latestTradingDayWithOfficialBatch,
+        latest_review_batch_fingerprint:
+          latestReviewOfficialRecommendationBatch?.batch_fingerprint ?? null,
+        latest_review_batch_source: latestReviewBatchSource,
         current_batch_fingerprint:
           outcomeDiagnosticsBatchFingerprint,
         current_official_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
         current_batch_expected_outcomes: currentBatchExpectedOutcomeCount,
         current_batch_persisted_outcomes: currentBatchStoredOutcomes.length,
+        shadow_snapshot_metadata_present_count:
+          currentBatchShadowSnapshotSummary
+            .shadow_snapshot_metadata_present_count,
+        shadow_snapshot_metadata_missing_count:
+          currentBatchShadowSnapshotSummary
+            .shadow_snapshot_metadata_missing_count,
+        shadow_snapshot_variant_counts:
+          currentBatchShadowSnapshotSummary.shadow_snapshot_variant_counts,
+        shadow_snapshot_source_counts:
+          currentBatchShadowSnapshotSummary.shadow_snapshot_source_counts,
         learning_insights_source_batch_fingerprint:
           learningInsightsSourceBatchFingerprint,
         learning_insights_source_reason: learningInsightsSourceReason,
@@ -12871,6 +13019,22 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.candleRequestsSavedByReuse,
         provider_budget_limit:
           recommendationOutcomeEvaluationDiagnostics.providerBudgetLimit,
+        provider_plan_profile_mode:
+          recommendationOutcomeEvaluationDiagnostics.providerPlanProfileMode,
+        provider_plan_profile_source:
+          recommendationOutcomeEvaluationDiagnostics.providerPlanProfileSource,
+        server_plan_mode:
+          recommendationOutcomeEvaluationDiagnostics.serverPlanMode,
+        public_plan_mode:
+          recommendationOutcomeEvaluationDiagnostics.publicPlanMode,
+        plan_mode_mismatch:
+          recommendationOutcomeEvaluationDiagnostics.planModeMismatch,
+        profile_budget_limit:
+          recommendationOutcomeEvaluationDiagnostics.profileBudgetLimit,
+        override_budget_limit:
+          recommendationOutcomeEvaluationDiagnostics.overrideBudgetLimit,
+        effective_budget_limit:
+          recommendationOutcomeEvaluationDiagnostics.effectiveBudgetLimit,
         skipped_due_to_budget_count:
           recommendationOutcomeEvaluationDiagnostics.skippedDueToBudgetCount,
         pending_provider_budget_count:
@@ -12898,6 +13062,10 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.retainedCandlesAddedCount,
         counterfactual_ready_count:
           recommendationOutcomeEvaluationDiagnostics.counterfactualReadyCount,
+        shadow_eligible_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.shadowEligibleSnapshotCount,
+        shadow_missing_metadata_count:
+          recommendationOutcomeEvaluationDiagnostics.shadowMissingMetadataCount,
         shadow_entry_trial_count:
           recommendationOutcomeEvaluationDiagnostics.shadowEntryTrialCount,
         shadow_entry_triggered_count:
@@ -12918,11 +13086,21 @@ export function TradeApp() {
             ? recommendationOutcomeEvaluationDiagnostics.tickersEvaluated
             : currentBatchOutcomeTickers.length > 0
               ? currentBatchOutcomeTickers
-              : latestEvaluatedBatchTickerList,
+              : latestReviewBatchOutcomeTickers.length > 0
+                ? latestReviewBatchOutcomeTickers
+                : latestEvaluatedBatchTickerList,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,
       scan_readback: {
+        market_closed_readback_mode: marketClosedReadbackMode,
+        latest_trading_day_with_official_batch: latestTradingDayWithOfficialBatch,
+        latest_review_batch_fingerprint:
+          latestReviewOfficialRecommendationBatch?.batch_fingerprint ?? null,
+        latest_review_batch_source: latestReviewBatchSource,
+        closed_market_scanner_idle_reason: marketClosedReadbackMode
+          ? "Scanner will resume at next market window."
+          : null,
         current_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
         current_batch_source: currentBatchSource,
@@ -13541,6 +13719,35 @@ export function TradeApp() {
             run.candle_requests_saved_by_reuse ??
             0,
         ),
+        providerPlanProfileMode:
+          typeof routeDiagnostics.provider_plan_profile_mode === "string"
+            ? routeDiagnostics.provider_plan_profile_mode
+            : null,
+        providerPlanProfileSource:
+          typeof routeDiagnostics.provider_plan_profile_source === "string"
+            ? routeDiagnostics.provider_plan_profile_source
+            : null,
+        serverPlanMode:
+          typeof routeDiagnostics.server_plan_mode === "string"
+            ? routeDiagnostics.server_plan_mode
+            : null,
+        publicPlanMode:
+          typeof routeDiagnostics.public_plan_mode === "string"
+            ? routeDiagnostics.public_plan_mode
+            : null,
+        planModeMismatch: routeDiagnostics.plan_mode_mismatch === true,
+        profileBudgetLimit:
+          typeof routeDiagnostics.profile_budget_limit === "number"
+            ? routeDiagnostics.profile_budget_limit
+            : null,
+        overrideBudgetLimit:
+          typeof routeDiagnostics.override_budget_limit === "number"
+            ? routeDiagnostics.override_budget_limit
+            : null,
+        effectiveBudgetLimit:
+          typeof routeDiagnostics.effective_budget_limit === "number"
+            ? routeDiagnostics.effective_budget_limit
+            : null,
         providerBudgetLimit:
           typeof routeDiagnostics.provider_budget_limit === "number"
             ? routeDiagnostics.provider_budget_limit
@@ -13612,6 +13819,12 @@ export function TradeApp() {
           routeDiagnostics.counterfactual_ready_count ??
             run.counterfactual_ready_count ??
             0,
+        ),
+        shadowEligibleSnapshotCount: Number(
+          routeDiagnostics.shadow_eligible_snapshot_count ?? 0,
+        ),
+        shadowMissingMetadataCount: Number(
+          routeDiagnostics.shadow_missing_metadata_count ?? 0,
         ),
         shadowEntryTrialCount: Number(
           routeDiagnostics.shadow_entry_trial_count ??

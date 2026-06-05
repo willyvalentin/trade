@@ -53,6 +53,7 @@ import {
 import {
   buildRecommendationSnapshot,
   persistRecommendationSnapshot,
+  summarizeRecommendationSnapshotShadowEntryTrialMetadata,
   type RecommendationSnapshot,
 } from "@/lib/recommendation-snapshot";
 import {
@@ -76,6 +77,7 @@ import {
 } from "@/lib/publish-path-versions";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
+import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -90,6 +92,9 @@ type AutomationRunRequestBody = {
   ignore_existing_run?: unknown;
   source?: unknown;
   scheduled_function_fired_at_utc?: unknown;
+  max_tickers?: unknown;
+  skip_openai?: unknown;
+  timeout_ms?: unknown;
 };
 
 type AutomationScanDecision =
@@ -226,45 +231,70 @@ function envBoolean(value: string | undefined) {
   return null;
 }
 
-function providerPlanMode() {
-  const value =
-    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
-    process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE ??
-    "";
-  const normalized = value.trim().toLowerCase();
-
-  return normalized || "unknown";
-}
-
-function scheduledScanRuntimeConfig() {
+function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
+  const providerPlanProfile = buildProviderPlanProfile();
   const explicitFastMode = envBoolean(process.env.TURE_LIVE_TRIAL_FAST_MODE);
-  const planMode = providerPlanMode();
-  const liveTrialFastMode = explicitFastMode ?? planMode === "free";
-  const maxTickersOverride = finiteInteger(
+  const liveTrialFastMode =
+    explicitFastMode ?? providerPlanProfile.effective_mode === "free";
+  const routeMaxTickersOverride = finiteInteger(body.max_tickers);
+  const envMaxTickersOverride = finiteInteger(
     process.env.TURE_SCHEDULED_SCAN_MAX_TICKERS,
   );
-  const timeoutOverride = finiteInteger(process.env.TURE_SCHEDULED_SCAN_TIMEOUT_MS);
-  const skipOpenAiOverride = envBoolean(process.env.TURE_SCHEDULED_SCAN_SKIP_OPENAI);
+  const routeTimeoutOverride = finiteInteger(body.timeout_ms);
+  const envTimeoutOverride = finiteInteger(process.env.TURE_SCHEDULED_SCAN_TIMEOUT_MS);
+  const routeSkipOpenAiOverride =
+    typeof body.skip_openai === "boolean" ? body.skip_openai : null;
+  const envSkipOpenAiOverride = envBoolean(process.env.TURE_SCHEDULED_SCAN_SKIP_OPENAI);
   const scheduledMaxTickers =
-    maxTickersOverride !== null
-      ? Math.max(1, Math.min(MAX_SCHEDULED_SCAN_TICKERS, maxTickersOverride))
-      : liveTrialFastMode
-        ? DEFAULT_FAST_MODE_MAX_TICKERS
-        : null;
+    routeMaxTickersOverride !== null
+      ? routeMaxTickersOverride
+      : envMaxTickersOverride !== null
+        ? envMaxTickersOverride
+        : providerPlanProfile.profile_scan_ticker_cap ?? DEFAULT_FAST_MODE_MAX_TICKERS;
   const scheduledTimeoutMs = Math.max(
     MIN_SCHEDULED_TIMEOUT_MS,
     Math.min(
       MAX_SCHEDULED_TIMEOUT_MS,
-      timeoutOverride ?? DEFAULT_FAST_MODE_TIMEOUT_MS,
+      routeTimeoutOverride ??
+        envTimeoutOverride ??
+        providerPlanProfile.profile_scheduled_timeout_ms ??
+        DEFAULT_FAST_MODE_TIMEOUT_MS,
     ),
   );
+  const scheduledSkipOpenAi =
+    routeSkipOpenAiOverride ??
+    envSkipOpenAiOverride ??
+    providerPlanProfile.profile_scheduled_skip_openai;
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
-    provider_plan_mode: planMode,
-    scheduled_max_tickers: scheduledMaxTickers,
-    scheduled_skip_openai: skipOpenAiOverride ?? liveTrialFastMode,
+    provider_plan_mode: providerPlanProfile.mode,
+    provider_plan_profile_mode: providerPlanProfile.effective_mode,
+    provider_plan_profile_source: providerPlanProfile.source,
+    server_plan_mode: providerPlanProfile.server_plan_mode,
+    public_plan_mode: providerPlanProfile.public_plan_mode,
+    plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
+    scheduled_max_tickers: Math.max(
+      1,
+      Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
+    ),
+    scheduled_skip_openai: scheduledSkipOpenAi,
     scheduled_timeout_ms: scheduledTimeoutMs,
+    effective_scan_ticker_cap: Math.max(
+      1,
+      Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
+    ),
+    effective_scheduled_skip_openai: scheduledSkipOpenAi,
+    effective_scheduled_timeout_ms: scheduledTimeoutMs,
+    profile_scan_ticker_cap: providerPlanProfile.profile_scan_ticker_cap,
+    profile_outcome_candle_requests_per_run:
+      providerPlanProfile.profile_outcome_candle_requests_per_run,
+    profile_background_scan_cadence_minutes:
+      providerPlanProfile.profile_background_scan_cadence_minutes,
+    env_scan_ticker_override: envMaxTickersOverride,
+    route_scan_ticker_override: routeMaxTickersOverride,
+    profile_notes: providerPlanProfile.profile_notes,
+    profile_warnings: providerPlanProfile.profile_warnings,
   };
 }
 
@@ -1626,6 +1656,21 @@ async function persistAutomationArtifacts({
     );
   }
 
+  const shadowSnapshotSummary =
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata(snapshots);
+  activeScanTrace?.updatePersistence({
+    shadow_entry_trial_attached_count:
+      shadowSnapshotSummary.shadow_snapshot_metadata_present_count,
+    shadow_entry_trial_variant:
+      shadowSnapshotSummary.shadow_snapshot_metadata_present_count > 0
+        ? Object.entries(
+            shadowSnapshotSummary.shadow_snapshot_variant_counts,
+          ).sort((first, second) => second[1] - first[1])[0]?.[0] ?? null
+        : null,
+    shadow_entry_trial_not_live_signal_count:
+      shadowSnapshotSummary.shadow_snapshot_not_live_signal_count,
+  });
+
   if (
     snapshots.length > 0 ||
     servingCadence.no_trade_valid ||
@@ -1679,6 +1724,7 @@ async function persistAutomationArtifacts({
   return {
     scan_run: scanRun,
     snapshots,
+    shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
 }
@@ -1771,13 +1817,37 @@ export async function POST(request: Request) {
   });
 
   const routeStartedAtMs = Date.now();
-  const scheduledRuntimeConfig = scheduledScanRuntimeConfig();
+  const scheduledRuntimeConfig = scheduledScanRuntimeConfig(body);
   const scheduledRuntimeFields = () => ({
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
+    provider_plan_profile_mode:
+      scheduledRuntimeConfig.provider_plan_profile_mode,
+    provider_plan_profile_source:
+      scheduledRuntimeConfig.provider_plan_profile_source,
+    server_plan_mode: scheduledRuntimeConfig.server_plan_mode,
+    public_plan_mode: scheduledRuntimeConfig.public_plan_mode,
+    plan_mode_mismatch: scheduledRuntimeConfig.plan_mode_mismatch,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
     scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
+    effective_scan_ticker_cap:
+      scheduledRuntimeConfig.effective_scan_ticker_cap,
+    effective_scheduled_skip_openai:
+      scheduledRuntimeConfig.effective_scheduled_skip_openai,
+    effective_scheduled_timeout_ms:
+      scheduledRuntimeConfig.effective_scheduled_timeout_ms,
+    profile_scan_ticker_cap: scheduledRuntimeConfig.profile_scan_ticker_cap,
+    profile_outcome_candle_requests_per_run:
+      scheduledRuntimeConfig.profile_outcome_candle_requests_per_run,
+    profile_background_scan_cadence_minutes:
+      scheduledRuntimeConfig.profile_background_scan_cadence_minutes,
+    env_scan_ticker_override:
+      scheduledRuntimeConfig.env_scan_ticker_override,
+    route_scan_ticker_override:
+      scheduledRuntimeConfig.route_scan_ticker_override,
+    profile_notes: scheduledRuntimeConfig.profile_notes,
+    profile_warnings: scheduledRuntimeConfig.profile_warnings,
     elapsed_ms: elapsedMs(routeStartedAtMs),
     timeout_reached: timeoutReached(
       routeStartedAtMs,
@@ -1909,6 +1979,23 @@ export async function POST(request: Request) {
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
     scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
+    provider_plan_profile_mode:
+      scheduledRuntimeConfig.provider_plan_profile_mode,
+    provider_plan_profile_source:
+      scheduledRuntimeConfig.provider_plan_profile_source,
+    server_plan_mode: scheduledRuntimeConfig.server_plan_mode,
+    public_plan_mode: scheduledRuntimeConfig.public_plan_mode,
+    plan_mode_mismatch: scheduledRuntimeConfig.plan_mode_mismatch,
+    effective_scan_ticker_cap:
+      scheduledRuntimeConfig.effective_scan_ticker_cap,
+    effective_scheduled_skip_openai:
+      scheduledRuntimeConfig.effective_scheduled_skip_openai,
+    effective_scheduled_timeout_ms:
+      scheduledRuntimeConfig.effective_scheduled_timeout_ms,
+    profile_scan_ticker_cap: scheduledRuntimeConfig.profile_scan_ticker_cap,
+    env_scan_ticker_override:
+      scheduledRuntimeConfig.env_scan_ticker_override,
+    profile_notes: scheduledRuntimeConfig.profile_notes,
   });
 
   let expiredRecommendations = 0;
@@ -2913,6 +3000,14 @@ export async function POST(request: Request) {
             snapshot.status === "saved" ||
             snapshot.status === "duplicate",
         ).length ?? 0,
+      shadow_entry_trial_attached_count:
+        artifactResult?.shadow_snapshot_summary
+          .shadow_snapshot_metadata_present_count ?? 0,
+      shadow_entry_trial_variant:
+        activeScanTracePayload.persistence.shadow_entry_trial_variant,
+      shadow_entry_trial_not_live_signal_count:
+        artifactResult?.shadow_snapshot_summary
+          .shadow_snapshot_not_live_signal_count ?? 0,
       batch_id: servingCadence.latest_official_batch_id,
       batch_fingerprint: batchFingerprint,
       scan_run_fingerprint: scanRunFingerprint,

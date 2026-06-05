@@ -16,10 +16,14 @@ import {
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { recommendationSnapshotFromPersistenceRow } from "@/lib/recommendation-snapshot";
+import {
+  recommendationSnapshotFromPersistenceRow,
+  summarizeRecommendationSnapshotShadowEntryTrialMetadata,
+} from "@/lib/recommendation-snapshot";
 import { supabase } from "@/lib/supabase";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -84,42 +88,40 @@ function parseMode(value: unknown) {
     : "provided_snapshots";
 }
 
-function normalizeProviderPlanMode(value: string | undefined) {
-  const normalized = value?.trim().toLowerCase() ?? "";
-
-  return normalized === "free" ||
-    normalized === "grow" ||
-    normalized === "pro" ||
-    normalized === "custom"
-    ? normalized
-    : "unknown";
-}
-
-function getProviderPlanMode() {
-  return normalizeProviderPlanMode(
-    process.env.PROVIDER_PLAN_MODE ??
-      process.env.TWELVE_DATA_PLAN_MODE ??
-      process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
-      process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE,
-  );
-}
-
 function resolveOutcomeProviderBudgetLimit(value: unknown) {
+  const providerPlanProfile = buildProviderPlanProfile();
   const explicitLimit = finiteNumber(value);
 
   if (explicitLimit !== null) {
-    return Math.max(0, Math.min(20, Math.round(explicitLimit)));
+    const effectiveLimit = Math.max(0, Math.min(50, Math.round(explicitLimit)));
+
+    return {
+      providerPlanProfile,
+      overrideBudgetLimit: effectiveLimit,
+      effectiveBudgetLimit: effectiveLimit,
+    };
   }
 
-  const envLimit = finiteNumber(process.env.TURE_OUTCOME_EVALUATION_MAX_CANDLE_REQUESTS);
+  const envLimit =
+    finiteNumber(process.env.TURE_PROVIDER_OUTCOME_CANDLE_REQUESTS_PER_RUN) ??
+    finiteNumber(process.env.TURE_OUTCOME_EVALUATION_MAX_CANDLE_REQUESTS);
 
   if (envLimit !== null) {
-    return Math.max(0, Math.min(20, Math.round(envLimit)));
+    const effectiveLimit = Math.max(0, Math.min(50, Math.round(envLimit)));
+
+    return {
+      providerPlanProfile,
+      overrideBudgetLimit: effectiveLimit,
+      effectiveBudgetLimit: effectiveLimit,
+    };
   }
 
-  const planMode = getProviderPlanMode();
-
-  return planMode === "free" || planMode === "unknown" ? 4 : null;
+  return {
+    providerPlanProfile,
+    overrideBudgetLimit: null,
+    effectiveBudgetLimit:
+      providerPlanProfile.profile_outcome_candle_requests_per_run,
+  };
 }
 
 function parseSnapshot(value: unknown): RecommendationSnapshot | null {
@@ -668,10 +670,11 @@ export async function POST(request: Request) {
     mode === "enrich_completed_outcomes";
   const batchFingerprint = stringOrNull(body?.batch_fingerprint);
   const now = new Date();
-  const providerPlanMode = getProviderPlanMode();
-  const providerBudgetLimit = resolveOutcomeProviderBudgetLimit(
+  const providerBudgetResolution = resolveOutcomeProviderBudgetLimit(
     body?.max_candle_requests,
   );
+  const providerPlanProfile = providerBudgetResolution.providerPlanProfile;
+  const providerBudgetLimit = providerBudgetResolution.effectiveBudgetLimit;
 
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
@@ -706,6 +709,8 @@ export async function POST(request: Request) {
       : bodySnapshots.length > 0
         ? bodySnapshots
         : await loadRecentSupabaseSnapshots();
+  const shadowSnapshotSummary =
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata(snapshots);
   const supabaseOutcomes =
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadSupabaseOutcomes(
@@ -761,7 +766,16 @@ export async function POST(request: Request) {
       invalid_due_to_missing_side_count: 0,
       upsert_constraint_ready: null,
       latest_provider_error_type: null,
-      provider_plan_mode: providerPlanMode,
+      provider_plan_mode: providerPlanProfile.mode,
+      provider_plan_profile_mode: providerPlanProfile.effective_mode,
+      provider_plan_profile_source: providerPlanProfile.source,
+      server_plan_mode: providerPlanProfile.server_plan_mode,
+      public_plan_mode: providerPlanProfile.public_plan_mode,
+      plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
+      profile_budget_limit:
+        providerPlanProfile.profile_outcome_candle_requests_per_run,
+      override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
+      effective_budget_limit: providerBudgetLimit,
       candle_requests_planned: 0,
       candle_requests_executed: 0,
       candle_requests_saved_by_reuse: 0,
@@ -790,6 +804,10 @@ export async function POST(request: Request) {
       completed_outcomes_skipped_already_enriched_count: 0,
       retained_candles_added_count: 0,
       counterfactual_ready_count: 0,
+      shadow_eligible_snapshot_count:
+        shadowSnapshotSummary.shadow_snapshot_metadata_present_count,
+      shadow_missing_metadata_count:
+        shadowSnapshotSummary.shadow_snapshot_metadata_missing_count,
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
     };
@@ -937,7 +955,16 @@ export async function POST(request: Request) {
       persistenceEvents,
     }),
     latest_provider_error_type: latestProviderError,
-    provider_plan_mode: providerPlanMode,
+    provider_plan_mode: providerPlanProfile.mode,
+    provider_plan_profile_mode: providerPlanProfile.effective_mode,
+    provider_plan_profile_source: providerPlanProfile.source,
+    server_plan_mode: providerPlanProfile.server_plan_mode,
+    public_plan_mode: providerPlanProfile.public_plan_mode,
+    plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
+    profile_budget_limit:
+      providerPlanProfile.profile_outcome_candle_requests_per_run,
+    override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
+    effective_budget_limit: providerBudgetLimit,
     candle_requests_planned: run.candle_requests_planned,
     candle_requests_executed: run.candle_requests_executed,
     candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,
@@ -994,6 +1021,10 @@ export async function POST(request: Request) {
       run.completed_outcomes_skipped_already_enriched_count,
     retained_candles_added_count: run.retained_candles_added_count,
     counterfactual_ready_count: run.counterfactual_ready_count,
+    shadow_eligible_snapshot_count:
+      shadowSnapshotSummary.shadow_snapshot_metadata_present_count,
+    shadow_missing_metadata_count:
+      shadowSnapshotSummary.shadow_snapshot_metadata_missing_count,
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
   };

@@ -157,6 +157,14 @@ export type RecommendationSnapshotDeduplicationResult = {
   existing_snapshot_id: string | null;
 };
 
+export type RecommendationSnapshotShadowEntryTrialSummary = {
+  shadow_snapshot_metadata_present_count: number;
+  shadow_snapshot_metadata_missing_count: number;
+  shadow_snapshot_variant_counts: Record<string, number>;
+  shadow_snapshot_source_counts: Record<string, number>;
+  shadow_snapshot_not_live_signal_count: number;
+};
+
 type SupabaseMutationResult = {
   error?: { message?: string } | null;
 };
@@ -391,6 +399,66 @@ function shadowEntryTrialPayload(input: RecommendationSnapshotInput) {
       not_live_signal: true,
     },
   };
+}
+
+export function recommendationSnapshotHasShadowEntryTrialMetadata(
+  snapshot: Pick<RecommendationSnapshot, "payload_json">,
+) {
+  const payload = snapshot.payload_json ?? {};
+
+  return (
+    payload.shadow_entry_trial === true &&
+    payload.shadow_entry_variant === "first_candle_close_entry" &&
+    payload.shadow_entry_source === "entry_tuning_proposal" &&
+    payload.shadow_entry_not_live_signal === true
+  );
+}
+
+export function summarizeRecommendationSnapshotShadowEntryTrialMetadata(
+  snapshots: Array<Pick<RecommendationSnapshot, "payload_json">>,
+): RecommendationSnapshotShadowEntryTrialSummary {
+  const summary: RecommendationSnapshotShadowEntryTrialSummary = {
+    shadow_snapshot_metadata_present_count: 0,
+    shadow_snapshot_metadata_missing_count: 0,
+    shadow_snapshot_variant_counts: {},
+    shadow_snapshot_source_counts: {},
+    shadow_snapshot_not_live_signal_count: 0,
+  };
+
+  for (const snapshot of snapshots) {
+    const payload = snapshot.payload_json ?? {};
+    const hasMetadata = recommendationSnapshotHasShadowEntryTrialMetadata(snapshot);
+
+    if (hasMetadata) {
+      summary.shadow_snapshot_metadata_present_count += 1;
+    } else {
+      summary.shadow_snapshot_metadata_missing_count += 1;
+    }
+
+    if (payload.shadow_entry_not_live_signal === true) {
+      summary.shadow_snapshot_not_live_signal_count += 1;
+    }
+
+    const variant =
+      typeof payload.shadow_entry_variant === "string"
+        ? payload.shadow_entry_variant
+        : hasMetadata
+          ? "first_candle_close_entry"
+          : "missing";
+    const source =
+      typeof payload.shadow_entry_source === "string"
+        ? payload.shadow_entry_source
+        : hasMetadata
+          ? "entry_tuning_proposal"
+          : "missing";
+
+    summary.shadow_snapshot_variant_counts[variant] =
+      (summary.shadow_snapshot_variant_counts[variant] ?? 0) + 1;
+    summary.shadow_snapshot_source_counts[source] =
+      (summary.shadow_snapshot_source_counts[source] ?? 0) + 1;
+  }
+
+  return summary;
 }
 
 export function buildRecommendationSnapshotFingerprint(

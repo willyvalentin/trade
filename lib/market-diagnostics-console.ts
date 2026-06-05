@@ -5,6 +5,7 @@ import type { DayTradeWindowRecommendationTargetSummary } from "@/lib/day-trade-
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
+import type { ProviderPlanProfile } from "@/lib/provider-plan-profile";
 import type { RealRecommendationOutputReadinessSummary } from "@/lib/real-recommendation-output-readiness";
 import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memory";
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
@@ -86,11 +87,17 @@ export type MarketDiagnosticsConsoleInput = {
   scan_orchestration: DayTradeScanOrchestrationSummary;
   serving_cadence: RecommendationServingCadenceSummary;
   provider_budget_guard: ProviderBudgetGuardSummary;
+  provider_plan_profile?: ProviderPlanProfile | null;
   scanner_universe: ScannerUniverseCoverageSummary;
   dynamic_movers?: DynamicMarketMoversSummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   scan_readback?: {
+    market_closed_readback_mode?: boolean | null;
+    latest_trading_day_with_official_batch?: string | null;
+    latest_review_batch_fingerprint?: string | null;
+    latest_review_batch_source?: string | null;
+    closed_market_scanner_idle_reason?: string | null;
     current_batch_fingerprint?: string | null;
     current_batch_source?: string | null;
     current_batch_recommendation_count?: number | null;
@@ -167,10 +174,18 @@ export type MarketDiagnosticsConsoleInput = {
     >;
   } | null;
   outcome_evaluation?: {
+    market_closed_readback_mode?: boolean | null;
+    latest_trading_day_with_official_batch?: string | null;
+    latest_review_batch_fingerprint?: string | null;
+    latest_review_batch_source?: string | null;
     current_batch_fingerprint?: string | null;
     current_official_batch_fingerprint?: string | null;
     current_batch_expected_outcomes?: number | null;
     current_batch_persisted_outcomes?: number | null;
+    shadow_snapshot_metadata_present_count?: number | null;
+    shadow_snapshot_metadata_missing_count?: number | null;
+    shadow_snapshot_variant_counts?: Record<string, number>;
+    shadow_snapshot_source_counts?: Record<string, number>;
     learning_insights_source_batch_fingerprint?: string | null;
     learning_insights_source_reason?: string | null;
     latest_counterfactual_ready_batch_fingerprint?: string | null;
@@ -219,6 +234,14 @@ export type MarketDiagnosticsConsoleInput = {
     candle_requests_planned?: number | null;
     candle_requests_executed?: number | null;
     candle_requests_saved_by_reuse?: number | null;
+    provider_plan_profile_mode?: string | null;
+    provider_plan_profile_source?: string | null;
+    server_plan_mode?: string | null;
+    public_plan_mode?: string | null;
+    plan_mode_mismatch?: boolean | null;
+    profile_budget_limit?: number | null;
+    override_budget_limit?: number | null;
+    effective_budget_limit?: number | null;
     provider_budget_limit?: number | null;
     skipped_due_to_budget_count?: number | null;
     pending_provider_budget_count?: number | null;
@@ -234,6 +257,8 @@ export type MarketDiagnosticsConsoleInput = {
     retained_candles_added_count?: number | null;
     retained_candles_available_count?: number | null;
     counterfactual_ready_count?: number | null;
+    shadow_eligible_snapshot_count?: number | null;
+    shadow_missing_metadata_count?: number | null;
     shadow_entry_trial_count?: number | null;
     shadow_entry_triggered_count?: number | null;
     outcome_provider_budget_status?: string | null;
@@ -291,6 +316,86 @@ function compact(value: string | null | undefined, fallback = "unknown") {
 
 function bool(value: boolean) {
   return value ? "yes" : "no";
+}
+
+function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
+  const activeTrace = input.active_scan_trace;
+  const outcome = input.outcome_evaluation;
+  const fallback = input.provider_plan_profile;
+  const mode =
+    activeTrace?.provider_plan_profile_mode ??
+    outcome?.provider_plan_profile_mode ??
+    fallback?.effective_mode ??
+    "unknown";
+  const source =
+    activeTrace?.provider_plan_profile_source ??
+    outcome?.provider_plan_profile_source ??
+    fallback?.source ??
+    "unknown";
+  const serverPlanMode =
+    activeTrace?.server_plan_mode ??
+    outcome?.server_plan_mode ??
+    fallback?.server_plan_mode ??
+    "unknown";
+  const publicPlanMode =
+    activeTrace?.public_plan_mode ??
+    outcome?.public_plan_mode ??
+    fallback?.public_plan_mode ??
+    "unknown";
+  const mismatch =
+    activeTrace?.plan_mode_mismatch ??
+    outcome?.plan_mode_mismatch ??
+    fallback?.plan_mode_mismatch ??
+    false;
+  const scanTickerCap =
+    activeTrace?.effective_scan_ticker_cap ??
+    fallback?.profile_scan_ticker_cap ??
+    null;
+  const profileScanTickerCap =
+    activeTrace?.profile_scan_ticker_cap ??
+    fallback?.profile_scan_ticker_cap ??
+    null;
+  const outcomeBudgetLimit =
+    outcome?.effective_budget_limit ??
+    outcome?.provider_budget_limit ??
+    fallback?.profile_outcome_candle_requests_per_run ??
+    null;
+  const profileBudgetLimit =
+    outcome?.profile_budget_limit ??
+    fallback?.profile_outcome_candle_requests_per_run ??
+    null;
+  const skipOpenAi =
+    activeTrace?.effective_scheduled_skip_openai ??
+    fallback?.profile_scheduled_skip_openai ??
+    null;
+  const timeoutMs =
+    activeTrace?.effective_scheduled_timeout_ms ??
+    fallback?.profile_scheduled_timeout_ms ??
+    null;
+  const cadence =
+    fallback?.profile_background_scan_cadence_minutes ?? null;
+  const notes =
+    activeTrace?.profile_notes.length
+      ? activeTrace.profile_notes
+      : fallback?.profile_notes ?? [];
+
+  return {
+    mode,
+    source,
+    serverPlanMode,
+    publicPlanMode,
+    mismatch,
+    scanTickerCap,
+    profileScanTickerCap,
+    outcomeBudgetLimit,
+    profileBudgetLimit,
+    overrideBudgetLimit: outcome?.override_budget_limit ?? null,
+    skipOpenAi,
+    timeoutMs,
+    cadence,
+    envScanTickerOverride: activeTrace?.env_scan_ticker_override ?? null,
+    notes,
+  };
 }
 
 function normalizeSeverity(
@@ -664,6 +769,7 @@ function buildSections(
   },
 ): MarketDiagnosticsConsoleSection[] {
   const latestBatch = input.batch_memory.latest_batch;
+  const providerPlanProfile = providerPlanProfileMetrics(input);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -721,6 +827,13 @@ function buildSections(
   const hiddenReasonBreakdown =
     input.scan_readback?.hidden_reason_breakdown ?? {};
   const hiddenReasonById = input.scan_readback?.hidden_reason_by_id ?? {};
+  const closedMarketBlockersSuppressedCount = closedMarketWaitState
+    ? input.live_market_trial_readiness.blockers.filter(
+        (item) => !isCoreReadinessSource(item.source),
+      ).length +
+      (input.scanner_output_qa.overall_status === "blocked" ? 1 : 0) +
+      input.real_output_readiness.blockers.length
+    : 0;
   const uiRefreshIslands = input.ui_refresh?.islands ?? {};
   const uiRefreshLines = Object.entries(uiRefreshIslands).map(
     ([islandId, state]) =>
@@ -741,6 +854,25 @@ function buildSections(
       [`${islandId}_changed_item_count`, state.changed_item_count ?? 0],
     ]),
   );
+  const shadowProposalExists =
+    input.entry_tuning_proposal?.recommended_action === "paper_test_variant" &&
+    input.entry_tuning_proposal.proposed_entry_variant !== null;
+  const shadowMetadataPresent =
+    input.outcome_evaluation?.shadow_snapshot_metadata_present_count ?? 0;
+  const shadowMetadataMissing =
+    input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? 0;
+  const shadowTrialSampleSize =
+    input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ?? 0;
+  const shadowTrialState = !shadowProposalExists
+    ? "no proposal"
+    : shadowMetadataPresent === 0 && shadowMetadataMissing > 0
+      ? "proposal exists but current snapshots have no metadata"
+      : (input.outcome_evaluation?.current_batch_expected_outcomes ?? 0) > 0 &&
+          (input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0) === 0
+        ? "current batch pending evaluation"
+        : shadowTrialSampleSize > 0
+          ? "collecting data"
+          : "proposal active; waiting for shadow eligible outcomes";
 
   return [
     section({
@@ -888,6 +1020,21 @@ function buildSections(
             : "info",
       lines: [
         lineValue("Orchestration", words(input.scan_orchestration.decision)),
+        ...(closedMarketWaitState
+          ? [
+              lineValue(
+                "Closed-market readback",
+                "Market closed — latest official batch retained for review",
+              ),
+              lineValue(
+                "Scanner idle",
+                compact(
+                  input.scan_readback?.closed_market_scanner_idle_reason,
+                  "Scanner will resume at next market window.",
+                ),
+              ),
+            ]
+          : []),
         lineValue(
           "Calendar fallback",
           input.scan_orchestration.fallback_calendar_scan_allowed
@@ -928,6 +1075,12 @@ function buildSections(
           : input.scanner_output_qa.overall_status,
         scanner_candidates: input.scanner_output_qa.candidate_count,
         ranking_selected_count: input.scanner_ranking?.selected_count ?? null,
+        market_closed_readback_mode:
+          input.scan_readback?.market_closed_readback_mode ?? closedMarketWaitState,
+        closed_market_blockers_suppressed_count:
+          closedMarketBlockersSuppressedCount,
+        closed_market_scanner_idle_reason:
+          input.scan_readback?.closed_market_scanner_idle_reason ?? null,
       },
     }),
     section({
@@ -978,6 +1131,14 @@ function buildSections(
             lineValue(
               "Live trial fast mode",
               bool(input.active_scan_trace.live_trial_fast_mode),
+            ),
+            lineValue(
+              "Provider plan profile",
+              `${compact(input.active_scan_trace.provider_plan_profile_mode, "unknown")} / ${compact(input.active_scan_trace.provider_plan_profile_source, "unknown")}`,
+            ),
+            lineValue(
+              "Effective scheduled limits",
+              `tickers=${input.active_scan_trace.effective_scan_ticker_cap ?? "default"} / skip_openai=${bool(input.active_scan_trace.effective_scheduled_skip_openai)} / timeout=${input.active_scan_trace.effective_scheduled_timeout_ms ?? "unknown"}ms`,
             ),
             lineValue(
               "Scheduled limits",
@@ -1065,6 +1226,10 @@ function buildSections(
               `run=${bool(input.active_scan_trace.persistence.scan_run_persisted)} / batch=${bool(input.active_scan_trace.persistence.batch_persisted)} / snapshots=${input.active_scan_trace.persistence.snapshots_persisted_count}`,
             ),
             lineValue(
+              "Shadow trial attached",
+              `${input.active_scan_trace.persistence.shadow_entry_trial_attached_count} / variant=${compact(input.active_scan_trace.persistence.shadow_entry_trial_variant, "none")} / not_live=${input.active_scan_trace.persistence.shadow_entry_trial_not_live_signal_count}`,
+            ),
+            lineValue(
               "Persistence error",
               compact(
                 input.active_scan_trace.persistence.persistence_error_type,
@@ -1081,6 +1246,8 @@ function buildSections(
             lineValue("Provider env", "not observed"),
             lineValue("Learning schema", "not observed"),
             lineValue("Live trial fast mode", "not observed"),
+            lineValue("Provider plan profile", "not observed"),
+            lineValue("Effective scheduled limits", "not observed"),
             lineValue("Scheduled limits", "not observed"),
             lineValue("Elapsed/timeout", "not observed"),
             lineValue("Skipped in progress", "not observed"),
@@ -1136,6 +1303,24 @@ function buildSections(
           input.active_scan_trace?.schema_check?.last_schema_error ?? null,
         live_trial_fast_mode:
           input.active_scan_trace?.live_trial_fast_mode ?? null,
+        provider_plan_profile_mode:
+          input.active_scan_trace?.provider_plan_profile_mode ?? null,
+        provider_plan_profile_source:
+          input.active_scan_trace?.provider_plan_profile_source ?? null,
+        server_plan_mode: input.active_scan_trace?.server_plan_mode ?? null,
+        public_plan_mode: input.active_scan_trace?.public_plan_mode ?? null,
+        plan_mode_mismatch:
+          input.active_scan_trace?.plan_mode_mismatch ?? null,
+        effective_scan_ticker_cap:
+          input.active_scan_trace?.effective_scan_ticker_cap ?? null,
+        effective_scheduled_skip_openai:
+          input.active_scan_trace?.effective_scheduled_skip_openai ?? null,
+        effective_scheduled_timeout_ms:
+          input.active_scan_trace?.effective_scheduled_timeout_ms ?? null,
+        profile_scan_ticker_cap:
+          input.active_scan_trace?.profile_scan_ticker_cap ?? null,
+        env_scan_ticker_override:
+          input.active_scan_trace?.env_scan_ticker_override ?? null,
         scheduled_max_tickers:
           input.active_scan_trace?.scheduled_max_tickers ?? null,
         scheduled_skip_openai:
@@ -1178,6 +1363,14 @@ function buildSections(
           input.active_scan_trace?.persistence.snapshots_persisted_count ?? null,
         persistence_error_type:
           input.active_scan_trace?.persistence.persistence_error_type ?? null,
+        shadow_entry_trial_attached_count:
+          input.active_scan_trace?.persistence
+            .shadow_entry_trial_attached_count ?? null,
+        shadow_entry_trial_variant:
+          input.active_scan_trace?.persistence.shadow_entry_trial_variant ?? null,
+        shadow_entry_trial_not_live_signal_count:
+          input.active_scan_trace?.persistence
+            .shadow_entry_trial_not_live_signal_count ?? null,
         ranked_candidates_count:
           input.active_scan_trace?.final.ranked_candidates_count ?? null,
         recommendations_published_count:
@@ -1212,6 +1405,25 @@ function buildSections(
       lines: [
         lineValue("Latest successful scan", successfulScanLabel),
         lineValue("Latest attempted scan", attemptedScanLabel),
+        ...(input.scan_readback?.market_closed_readback_mode === true
+          ? [
+              lineValue(
+                "Closed-market mode",
+                "Market closed — latest official batch retained for review",
+              ),
+              lineValue(
+                "Latest review batch",
+                compact(
+                  input.scan_readback?.latest_review_batch_fingerprint,
+                  "none",
+                ),
+              ),
+              lineValue(
+                "Latest review source",
+                compact(input.scan_readback?.latest_review_batch_source, "none"),
+              ),
+            ]
+          : []),
         lineValue(
           "Current batch",
           compact(input.scan_readback?.current_batch_fingerprint, "not observed"),
@@ -1341,6 +1553,18 @@ function buildSections(
         lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
       ],
       metrics: {
+        market_closed_readback_mode:
+          input.scan_readback?.market_closed_readback_mode ?? null,
+        latest_trading_day_with_official_batch:
+          input.scan_readback?.latest_trading_day_with_official_batch ?? null,
+        latest_review_batch_fingerprint:
+          input.scan_readback?.latest_review_batch_fingerprint ?? null,
+        latest_review_batch_source:
+          input.scan_readback?.latest_review_batch_source ?? null,
+        closed_market_blockers_suppressed_count:
+          closedMarketBlockersSuppressedCount,
+        closed_market_scanner_idle_reason:
+          input.scan_readback?.closed_market_scanner_idle_reason ?? null,
         current_batch_fingerprint:
           input.scan_readback?.current_batch_fingerprint ?? null,
         current_batch_source: input.scan_readback?.current_batch_source ?? null,
@@ -1501,6 +1725,10 @@ function buildSections(
               `run=${bool(input.active_scan_trace.persistence.scan_run_persisted)} / batch=${bool(input.active_scan_trace.persistence.batch_persisted)} / snapshots=${input.active_scan_trace.persistence.snapshots_persisted_count}`,
             ),
             lineValue(
+              "Shadow trial attached",
+              `${input.active_scan_trace.persistence.shadow_entry_trial_attached_count} / variant=${compact(input.active_scan_trace.persistence.shadow_entry_trial_variant, "none")} / not_live=${input.active_scan_trace.persistence.shadow_entry_trial_not_live_signal_count}`,
+            ),
+            lineValue(
               "Persistence error",
               compact(
                 input.active_scan_trace.persistence.persistence_error_type,
@@ -1563,6 +1791,14 @@ function buildSections(
           input.active_scan_trace?.persistence.snapshots_persisted_count ?? null,
         persistence_error_type:
           input.active_scan_trace?.persistence.persistence_error_type ?? null,
+        shadow_entry_trial_attached_count:
+          input.active_scan_trace?.persistence
+            .shadow_entry_trial_attached_count ?? null,
+        shadow_entry_trial_variant:
+          input.active_scan_trace?.persistence.shadow_entry_trial_variant ?? null,
+        shadow_entry_trial_not_live_signal_count:
+          input.active_scan_trace?.persistence
+            .shadow_entry_trial_not_live_signal_count ?? null,
       },
     }),
     section({
@@ -1669,6 +1905,75 @@ function buildSections(
       },
     }),
     section({
+      section_id: "provider_plan_profile",
+      title: "Provider plan profile",
+      severity: providerPlanProfile.mismatch ? "warning" : "info",
+      lines: [
+        lineValue("Resolved plan", words(providerPlanProfile.mode)),
+        lineValue("Source", words(providerPlanProfile.source)),
+        lineValue(
+          "Server/Public plan",
+          `${words(providerPlanProfile.serverPlanMode)} / ${words(providerPlanProfile.publicPlanMode)}`,
+        ),
+        lineValue("Plan mismatch", bool(providerPlanProfile.mismatch)),
+        lineValue(
+          "Scan ticker cap",
+          `${providerPlanProfile.scanTickerCap ?? "unknown"} (profile ${providerPlanProfile.profileScanTickerCap ?? "unknown"})`,
+        ),
+        lineValue(
+          "Outcome candle budget",
+          `${providerPlanProfile.outcomeBudgetLimit ?? "unknown"} (profile ${providerPlanProfile.profileBudgetLimit ?? "unknown"} / override ${providerPlanProfile.overrideBudgetLimit ?? "none"})`,
+        ),
+        lineValue(
+          "Scheduled OpenAI/timeout",
+          `skip_openai=${
+            providerPlanProfile.skipOpenAi === null
+              ? "unknown"
+              : bool(providerPlanProfile.skipOpenAi)
+          } / timeout=${providerPlanProfile.timeoutMs ?? "unknown"}ms`,
+        ),
+        lineValue(
+          "Background cadence",
+          providerPlanProfile.cadence === null
+            ? "unknown"
+            : `${providerPlanProfile.cadence}m`,
+        ),
+        lineValue(
+          "Env scan override",
+          providerPlanProfile.envScanTickerOverride ?? "none",
+        ),
+        lineValue(
+          "Checklist",
+          providerPlanProfile.mode === "custom"
+            ? "Confirm custom caps are set before widening scans."
+            : "Provider upgrade changes scan/outcome budgets only; generation rules stay unchanged.",
+        ),
+        lineValue(
+          "Notes",
+          providerPlanProfile.notes.length > 0
+            ? providerPlanProfile.notes.join(" ")
+            : "No profile note available.",
+        ),
+      ],
+      metrics: {
+        provider_plan_profile_mode: providerPlanProfile.mode,
+        provider_plan_profile_source: providerPlanProfile.source,
+        server_plan_mode: providerPlanProfile.serverPlanMode,
+        public_plan_mode: providerPlanProfile.publicPlanMode,
+        plan_mode_mismatch: providerPlanProfile.mismatch,
+        effective_scan_ticker_cap: providerPlanProfile.scanTickerCap,
+        profile_scan_ticker_cap: providerPlanProfile.profileScanTickerCap,
+        effective_outcome_budget_limit:
+          providerPlanProfile.outcomeBudgetLimit,
+        profile_budget_limit: providerPlanProfile.profileBudgetLimit,
+        override_budget_limit: providerPlanProfile.overrideBudgetLimit,
+        effective_scheduled_skip_openai: providerPlanProfile.skipOpenAi,
+        effective_scheduled_timeout_ms: providerPlanProfile.timeoutMs,
+        background_scan_cadence_minutes: providerPlanProfile.cadence,
+        env_scan_ticker_override: providerPlanProfile.envScanTickerOverride,
+      },
+    }),
+    section({
       section_id: "stats_today_readback",
       title: "Stats Today readback",
       severity: "info",
@@ -1765,9 +2070,36 @@ function buildSections(
           "Current batch",
           compact(input.outcome_evaluation?.current_batch_fingerprint, "none"),
         ),
+        ...(input.outcome_evaluation?.market_closed_readback_mode === true
+          ? [
+              lineValue(
+                "Latest review batch",
+                compact(
+                  input.outcome_evaluation?.latest_review_batch_fingerprint,
+                  "none",
+                ),
+              ),
+              lineValue(
+                "Latest trading day with official batch",
+                compact(
+                  input.outcome_evaluation
+                    ?.latest_trading_day_with_official_batch,
+                  "none",
+                ),
+              ),
+            ]
+          : []),
         lineValue(
           "Current batch expected/persisted",
           `${input.outcome_evaluation?.current_batch_expected_outcomes ?? 0}/${input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0}`,
+        ),
+        lineValue(
+          "Shadow snapshot metadata present/missing",
+          `${input.outcome_evaluation?.shadow_snapshot_metadata_present_count ?? 0}/${input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? 0}`,
+        ),
+        lineValue(
+          "Shadow snapshot variants",
+          JSON.stringify(input.outcome_evaluation?.shadow_snapshot_variant_counts ?? {}),
         ),
         lineValue(
           "Learning source batch",
@@ -1907,6 +2239,14 @@ function buildSections(
           `${compact(input.outcome_evaluation?.outcome_provider_budget_status, "unknown")} / limit ${input.outcome_evaluation?.provider_budget_limit ?? "none"}`,
         ),
         lineValue(
+          "Provider plan profile",
+          `${compact(input.outcome_evaluation?.provider_plan_profile_mode, "unknown")} / ${compact(input.outcome_evaluation?.provider_plan_profile_source, "unknown")}`,
+        ),
+        lineValue(
+          "Profile/override/effective budget",
+          `${input.outcome_evaluation?.profile_budget_limit ?? "unknown"}/${input.outcome_evaluation?.override_budget_limit ?? "none"}/${input.outcome_evaluation?.effective_budget_limit ?? input.outcome_evaluation?.provider_budget_limit ?? "unknown"}`,
+        ),
+        lineValue(
           "Candle requests planned/executed/saved",
           `${input.outcome_evaluation?.candle_requests_planned ?? 0}/${input.outcome_evaluation?.candle_requests_executed ?? 0}/${input.outcome_evaluation?.candle_requests_saved_by_reuse ?? 0}`,
         ),
@@ -1958,6 +2298,25 @@ function buildSections(
           input.outcome_evaluation?.current_batch_expected_outcomes ?? null,
         current_batch_persisted_outcomes:
           input.outcome_evaluation?.current_batch_persisted_outcomes ?? null,
+        market_closed_readback_mode:
+          input.outcome_evaluation?.market_closed_readback_mode ?? null,
+        latest_trading_day_with_official_batch:
+          input.outcome_evaluation?.latest_trading_day_with_official_batch ??
+          null,
+        latest_review_batch_fingerprint:
+          input.outcome_evaluation?.latest_review_batch_fingerprint ?? null,
+        latest_review_batch_source:
+          input.outcome_evaluation?.latest_review_batch_source ?? null,
+        shadow_snapshot_metadata_present_count:
+          input.outcome_evaluation?.shadow_snapshot_metadata_present_count ?? null,
+        shadow_snapshot_metadata_missing_count:
+          input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? null,
+        shadow_snapshot_variant_counts: JSON.stringify(
+          input.outcome_evaluation?.shadow_snapshot_variant_counts ?? {},
+        ),
+        shadow_snapshot_source_counts: JSON.stringify(
+          input.outcome_evaluation?.shadow_snapshot_source_counts ?? {},
+        ),
         learning_insights_source_batch_fingerprint:
           input.outcome_evaluation
             ?.learning_insights_source_batch_fingerprint ?? null,
@@ -2065,6 +2424,22 @@ function buildSections(
           input.outcome_evaluation?.candle_requests_saved_by_reuse ?? null,
         provider_budget_limit:
           input.outcome_evaluation?.provider_budget_limit ?? null,
+        provider_plan_profile_mode:
+          input.outcome_evaluation?.provider_plan_profile_mode ?? null,
+        provider_plan_profile_source:
+          input.outcome_evaluation?.provider_plan_profile_source ?? null,
+        server_plan_mode:
+          input.outcome_evaluation?.server_plan_mode ?? null,
+        public_plan_mode:
+          input.outcome_evaluation?.public_plan_mode ?? null,
+        plan_mode_mismatch:
+          input.outcome_evaluation?.plan_mode_mismatch ?? null,
+        profile_budget_limit:
+          input.outcome_evaluation?.profile_budget_limit ?? null,
+        override_budget_limit:
+          input.outcome_evaluation?.override_budget_limit ?? null,
+        effective_budget_limit:
+          input.outcome_evaluation?.effective_budget_limit ?? null,
         skipped_due_to_budget_count:
           input.outcome_evaluation?.skipped_due_to_budget_count ?? null,
         pending_provider_budget_count:
@@ -2094,6 +2469,14 @@ function buildSections(
           input.outcome_evaluation?.retained_candles_available_count ?? null,
         counterfactual_ready_count:
           input.outcome_evaluation?.counterfactual_ready_count ?? null,
+        shadow_eligible_snapshot_count:
+          input.outcome_evaluation?.shadow_eligible_snapshot_count ?? null,
+        shadow_missing_metadata_count:
+          input.outcome_evaluation?.shadow_missing_metadata_count ?? null,
+        shadow_entry_trial_count:
+          input.outcome_evaluation?.shadow_entry_trial_count ?? null,
+        shadow_entry_triggered_count:
+          input.outcome_evaluation?.shadow_entry_triggered_count ?? null,
         outcome_provider_budget_status:
           input.outcome_evaluation?.outcome_provider_budget_status ?? null,
         next_retry_suggestion:
@@ -2342,10 +2725,15 @@ function buildSections(
         ),
         lineValue(
           "Status",
-          compact(
-            input.outcome_learning?.shadow_entry_trial.status,
-            "not_started",
-          ),
+          shadowTrialState,
+        ),
+        lineValue(
+          "Snapshot metadata present/missing",
+          `${shadowMetadataPresent}/${shadowMetadataMissing}`,
+        ),
+        lineValue(
+          "Outcome route eligible/missing metadata",
+          `${input.outcome_evaluation?.shadow_eligible_snapshot_count ?? 0}/${input.outcome_evaluation?.shadow_missing_metadata_count ?? 0}`,
         ),
         lineValue(
           "Official vs shadow trigger",
@@ -2366,7 +2754,19 @@ function buildSections(
         shadow_entry_variant:
           input.outcome_learning?.shadow_entry_trial.variant ?? null,
         shadow_trial_status:
-          input.outcome_learning?.shadow_entry_trial.status ?? null,
+          shadowTrialState,
+        shadow_snapshot_metadata_present_count: shadowMetadataPresent,
+        shadow_snapshot_metadata_missing_count: shadowMetadataMissing,
+        shadow_snapshot_variant_counts: JSON.stringify(
+          input.outcome_evaluation?.shadow_snapshot_variant_counts ?? {},
+        ),
+        shadow_snapshot_source_counts: JSON.stringify(
+          input.outcome_evaluation?.shadow_snapshot_source_counts ?? {},
+        ),
+        shadow_eligible_snapshot_count:
+          input.outcome_evaluation?.shadow_eligible_snapshot_count ?? null,
+        shadow_missing_metadata_count:
+          input.outcome_evaluation?.shadow_missing_metadata_count ?? null,
         official_entry_trigger_rate:
           input.outcome_learning?.shadow_entry_trial
             .official_entry_trigger_rate ?? null,

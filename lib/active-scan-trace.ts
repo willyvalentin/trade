@@ -47,6 +47,17 @@ export type ActiveScanTrace = {
   max_tickers: number | null;
   skipped_openai: boolean;
   live_trial_fast_mode: boolean;
+  provider_plan_profile_mode: string | null;
+  provider_plan_profile_source: string | null;
+  server_plan_mode: string | null;
+  public_plan_mode: string | null;
+  plan_mode_mismatch: boolean;
+  effective_scan_ticker_cap: number | null;
+  effective_scheduled_skip_openai: boolean;
+  effective_scheduled_timeout_ms: number | null;
+  profile_scan_ticker_cap: number | null;
+  env_scan_ticker_override: number | null;
+  profile_notes: string[];
   scheduled_max_tickers: number | null;
   scheduled_skip_openai: boolean;
   scheduled_timeout_ms: number | null;
@@ -109,6 +120,9 @@ export type ActiveScanTrace = {
     batch_persisted: boolean;
     snapshots_persisted_count: number;
     persistence_error_type: string | null;
+    shadow_entry_trial_attached_count: number;
+    shadow_entry_trial_variant: string | null;
+    shadow_entry_trial_not_live_signal_count: number;
   };
   final: {
     decision: string | null;
@@ -195,6 +209,17 @@ export function createActiveScanTrace({
     max_tickers: null,
     skipped_openai: false,
     live_trial_fast_mode: false,
+    provider_plan_profile_mode: null,
+    provider_plan_profile_source: null,
+    server_plan_mode: null,
+    public_plan_mode: null,
+    plan_mode_mismatch: false,
+    effective_scan_ticker_cap: null,
+    effective_scheduled_skip_openai: false,
+    effective_scheduled_timeout_ms: null,
+    profile_scan_ticker_cap: null,
+    env_scan_ticker_override: null,
+    profile_notes: [],
     scheduled_max_tickers: null,
     scheduled_skip_openai: false,
     scheduled_timeout_ms: null,
@@ -262,6 +287,9 @@ export function createActiveScanTrace({
       batch_persisted: false,
       snapshots_persisted_count: 0,
       persistence_error_type: null,
+      shadow_entry_trial_attached_count: 0,
+      shadow_entry_trial_variant: null,
+      shadow_entry_trial_not_live_signal_count: 0,
     },
     final: {
       decision: null,
