@@ -18143,6 +18143,36 @@ function RecommendationOutcomeLearningInsightsPanel({
           )}
           tone={summary.entry_plan_quality.avg_mfe_without_entry}
         />
+        <SummaryCard
+          label="Best Variant"
+          value={
+            summary.entry_plan_quality.counterfactual_entry_simulation.best_entry_variant?.replace(
+              /_/g,
+              " ",
+            ) ?? "—"
+          }
+        />
+        <SummaryCard
+          label="Original Trigger"
+          value={formatPercent(
+            summary.entry_plan_quality.counterfactual_entry_simulation
+              .original_entry_trigger_rate,
+          )}
+        />
+        <SummaryCard
+          label="Variant Trigger"
+          value={formatPercent(
+            summary.entry_plan_quality.counterfactual_entry_simulation
+              .best_variant_trigger_rate,
+          )}
+        />
+        <SummaryCard
+          label="Variant Risk Warnings"
+          value={String(
+            summary.entry_plan_quality.counterfactual_entry_simulation
+              .variant_risk_warning_count,
+          )}
+        />
       </div>
 
       {primaryInsight && (
@@ -18205,6 +18235,47 @@ function RecommendationOutcomeLearningInsightsPanel({
         </ul>
       </div>
 
+      <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Counterfactual Entry Simulation
+        </p>
+        <p className="mt-2 text-sm leading-6 text-zinc-400">
+          {
+            summary.entry_plan_quality.counterfactual_entry_simulation
+              .counterfactual_primary_reason
+          }
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Detail
+            label="Original vs best trigger"
+            value={`${formatPercent(summary.entry_plan_quality.counterfactual_entry_simulation.original_entry_trigger_rate)} / ${formatPercent(summary.entry_plan_quality.counterfactual_entry_simulation.best_variant_trigger_rate)}`}
+          />
+          <Detail
+            label="Best variant"
+            value={
+              summary.entry_plan_quality.counterfactual_entry_simulation.best_entry_variant?.replace(
+                /_/g,
+                " ",
+              ) ?? "—"
+            }
+          />
+          <Detail
+            label="Best variant best R"
+            value={formatRecommendationPerformanceR(
+              summary.entry_plan_quality.counterfactual_entry_simulation
+                .best_variant_avg_best_r,
+            )}
+          />
+          <Detail
+            label="Best variant worst R"
+            value={formatRecommendationPerformanceR(
+              summary.entry_plan_quality.counterfactual_entry_simulation
+                .best_variant_avg_worst_r,
+            )}
+          />
+        </div>
+      </div>
+
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
@@ -18250,6 +18321,14 @@ function RecommendationOutcomeLearningInsightsPanel({
         }
         data-entry-too-aggressive-rate={
           summary.entry_plan_quality.entry_too_aggressive_rate ?? ""
+        }
+        data-best-counterfactual-entry-variant={
+          summary.entry_plan_quality.counterfactual_entry_simulation
+            .best_entry_variant ?? ""
+        }
+        data-best-counterfactual-trigger-rate={
+          summary.entry_plan_quality.counterfactual_entry_simulation
+            .best_variant_trigger_rate ?? ""
         }
       >
         {summaryJson}
@@ -33079,6 +33158,27 @@ function RecommendationHistoryCard({ item }: { item: RecommendationHistoryItem }
             <Detail
               label="Entry Quality"
               value={item.outcome.entry_quality_reason}
+            />
+            <Detail
+              label="Best Entry Variant"
+              value={
+                item.outcome.best_counterfactual_entry_variant?.replace(
+                  /_/g,
+                  " ",
+                ) ?? "—"
+              }
+            />
+            <Detail
+              label="Variant Triggered"
+              value={
+                item.outcome.would_have_triggered_with_variant === null
+                  ? "—"
+                  : String(item.outcome.would_have_triggered_with_variant)
+              }
+            />
+            <Detail
+              label="Variant Best/Worst R"
+              value={`${formatRecommendationPerformanceR(item.outcome.counterfactual_best_r)} / ${formatRecommendationPerformanceR(item.outcome.counterfactual_worst_r)}`}
             />
           </div>
 

@@ -257,6 +257,26 @@ function annotateOutcome(
   };
 }
 
+function compactOutcomeCandles(candles: RecommendationOutcomeCandle[]) {
+  return candles.slice(0, 96).map((candle) => ({
+    timestamp:
+      candle.timestamp instanceof Date
+        ? candle.timestamp.toISOString()
+        : typeof candle.timestamp === "number"
+          ? new Date(
+              candle.timestamp > 10_000_000_000
+                ? candle.timestamp
+                : candle.timestamp * 1000,
+            ).toISOString()
+          : candle.timestamp,
+    open: candle.open ?? null,
+    high: candle.high ?? null,
+    low: candle.low ?? null,
+    close: candle.close ?? null,
+    volume: candle.volume ?? null,
+  }));
+}
+
 function createRunId(startedAt: string) {
   return `rec_out_eval_${stableHash(startedAt)}`;
 }
@@ -792,6 +812,8 @@ export async function runRecommendationOutcomeEvaluation(
       });
       const outcome = annotateOutcome(result.outcome, {
         ...horizonFilterDiagnostics,
+        counterfactual_candles: compactOutcomeCandles(horizonCandles),
+        counterfactual_candle_source: "horizon_filtered_intraday_candles",
       });
       const persistence = options.persistOutcome
         ? await options.persistOutcome(outcome)

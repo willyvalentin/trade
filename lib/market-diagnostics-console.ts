@@ -2077,6 +2077,26 @@ function buildSections(
           input.outcome_learning?.entry_plan_quality.target_too_far_signal ??
             null,
         ),
+        lineValue(
+          "Best entry variant",
+          compact(
+            input.outcome_learning?.entry_plan_quality
+              .counterfactual_entry_simulation.best_entry_variant,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Original / best trigger",
+          `${input.outcome_learning?.entry_plan_quality.counterfactual_entry_simulation.original_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.entry_plan_quality.counterfactual_entry_simulation.best_variant_trigger_rate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Counterfactual reason",
+          compact(
+            input.outcome_learning?.entry_plan_quality
+              .counterfactual_entry_simulation.counterfactual_primary_reason,
+            "none",
+          ),
+        ),
       ],
       metrics: {
         learning_insight_batch_fingerprint:
@@ -2138,6 +2158,39 @@ function buildSections(
         ).join("; "),
         entry_plan_quality_items: JSON.stringify(
           input.outcome_learning?.entry_plan_quality.items ?? [],
+        ),
+        counterfactual_variants_tested:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.counterfactual_variants_tested ??
+          null,
+        best_entry_variant:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.best_entry_variant ?? null,
+        best_entry_variant_trigger_rate:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.best_variant_trigger_rate ?? null,
+        original_entry_trigger_rate:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.original_entry_trigger_rate ?? null,
+        best_variant_avg_best_r:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.best_variant_avg_best_r ?? null,
+        best_variant_avg_worst_r:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.best_variant_avg_worst_r ?? null,
+        counterfactual_primary_reason:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.counterfactual_primary_reason ??
+          null,
+        variant_with_best_balance:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.variant_with_best_balance ?? null,
+        variant_risk_warning_count:
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.variant_risk_warning_count ?? null,
+        counterfactual_recommendation_summaries: JSON.stringify(
+          input.outcome_learning?.entry_plan_quality
+            .counterfactual_entry_simulation.recommendation_summaries ?? [],
         ),
       },
     }),

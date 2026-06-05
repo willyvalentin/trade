@@ -4,6 +4,7 @@ import type {
 } from "@/lib/recommendation-outcome-tracker";
 import {
   buildEntryPlanQualityForSnapshot,
+  type CounterfactualEntryVariantLabel,
   type EntryPlanExecutionQualityLabel,
 } from "@/lib/recommendation-outcome-learning-insights";
 import type {
@@ -36,6 +37,10 @@ export type RecommendationHistoryOutcomeSummary = {
   execution_quality_label: EntryPlanExecutionQualityLabel;
   idea_moved_favorably: boolean | null;
   entry_quality_reason: string;
+  best_counterfactual_entry_variant: CounterfactualEntryVariantLabel | null;
+  would_have_triggered_with_variant: boolean | null;
+  counterfactual_best_r: number | null;
+  counterfactual_worst_r: number | null;
   evaluated_at: string | null;
   warnings: string[];
 };
@@ -456,6 +461,12 @@ function buildItem(
       execution_quality_label: entryPlanQuality.execution_quality_label,
       idea_moved_favorably: entryPlanQuality.idea_moved_favorably,
       entry_quality_reason: entryPlanQuality.entry_quality_reason,
+      best_counterfactual_entry_variant:
+        entryPlanQuality.best_counterfactual_entry_variant,
+      would_have_triggered_with_variant:
+        entryPlanQuality.would_have_triggered_with_variant,
+      counterfactual_best_r: entryPlanQuality.counterfactual_best_r,
+      counterfactual_worst_r: entryPlanQuality.counterfactual_worst_r,
       evaluated_at: outcome?.evaluated_at ?? null,
       warnings: warnings,
     },

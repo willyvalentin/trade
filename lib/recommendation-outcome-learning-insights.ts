@@ -1,4 +1,8 @@
-import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import {
+  computeRecommendationOutcome,
+  type RecommendationOutcome,
+  type RecommendationOutcomeCandle,
+} from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 
 export type RecommendationOutcomeLearningTier =
@@ -35,6 +39,79 @@ export type EntryPlanExecutionQualityLabel =
   | "stop_hit"
   | "data_incomplete";
 
+export type CounterfactualEntryVariantLabel =
+  | "original_entry"
+  | "softer_entry_25pct_to_current"
+  | "softer_entry_50pct_to_current"
+  | "first_candle_break"
+  | "first_candle_close_entry"
+  | "pullback_entry_near_vwap"
+  | "marketable_entry_at_first_available_candle";
+
+export type CounterfactualEntryVariantResult = {
+  variant: CounterfactualEntryVariantLabel;
+  entry: number | null;
+  valid: boolean;
+  invalid_reason: string | null;
+  risk_per_share: number | null;
+  risk_width_ratio_vs_original: number | null;
+  risk_warning: string | null;
+  entry_triggered: boolean | null;
+  entry_triggered_at: string | null;
+  target_hit: boolean | null;
+  stop_hit: boolean | null;
+  neither_hit: boolean | null;
+  best_r: number | null;
+  worst_r: number | null;
+  max_favorable_excursion: number | null;
+  max_adverse_excursion: number | null;
+  time_to_entry_minutes: number | null;
+};
+
+export type CounterfactualEntryRecommendationSummary = {
+  snapshot_fingerprint: string | null;
+  recommendation_id: string | null;
+  ticker: string | null;
+  source_horizon: string | null;
+  candle_count: number;
+  variants: CounterfactualEntryVariantResult[];
+  best_counterfactual_entry_variant: CounterfactualEntryVariantLabel | null;
+  would_have_triggered_with_variant: boolean | null;
+  counterfactual_best_r: number | null;
+  counterfactual_worst_r: number | null;
+};
+
+export type CounterfactualEntryVariantAggregate = {
+  variant: CounterfactualEntryVariantLabel;
+  simulated_count: number;
+  valid_count: number;
+  trigger_count: number;
+  trigger_rate: number | null;
+  avg_best_r: number | null;
+  avg_worst_r: number | null;
+  risk_warning_count: number;
+};
+
+export type CounterfactualEntrySimulationSummary = {
+  batch_fingerprint: string | null;
+  recommendation_count: number;
+  simulated_recommendation_count: number;
+  skipped_missing_candles_count: number;
+  counterfactual_variants_tested: number;
+  original_entry_trigger_rate: number | null;
+  best_variant_trigger_rate: number | null;
+  original_avg_best_r: number | null;
+  best_variant_avg_best_r: number | null;
+  original_avg_worst_r: number | null;
+  best_variant_avg_worst_r: number | null;
+  best_entry_variant: CounterfactualEntryVariantLabel | null;
+  variant_with_best_balance: CounterfactualEntryVariantLabel | null;
+  variant_risk_warning_count: number;
+  counterfactual_primary_reason: string | null;
+  variant_summaries: CounterfactualEntryVariantAggregate[];
+  recommendation_summaries: CounterfactualEntryRecommendationSummary[];
+};
+
 export type EntryPlanQualityItem = {
   snapshot_fingerprint: string | null;
   recommendation_id: string | null;
@@ -50,6 +127,10 @@ export type EntryPlanQualityItem = {
   entry_quality_reason: string;
   evaluated_outcome_count: number;
   horizons: string[];
+  best_counterfactual_entry_variant: CounterfactualEntryVariantLabel | null;
+  would_have_triggered_with_variant: boolean | null;
+  counterfactual_best_r: number | null;
+  counterfactual_worst_r: number | null;
 };
 
 export type EntryPlanQualitySummary = {
@@ -69,6 +150,7 @@ export type EntryPlanQualitySummary = {
   target_too_far_signal: boolean;
   entry_quality_label: string;
   suggested_tuning: string[];
+  counterfactual_entry_simulation: CounterfactualEntrySimulationSummary;
   items: EntryPlanQualityItem[];
   diagnostics: {
     entry_plan_quality_batch_fingerprint: string | null;
@@ -296,6 +378,424 @@ function isNeitherHit(outcome: RecommendationOutcome) {
   return outcome.status === "neither_hit" || outcome.status === "expired";
 }
 
+function riskPerShare(entry: number | null, stop: number | null, side: string) {
+  if (entry === null || stop === null) return null;
+  const risk = side === "short" ? stop - entry : entry - stop;
+  return risk > 0 ? risk : null;
+}
+
+function candleNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function candleTimestamp(value: unknown) {
+  if (typeof value === "string" && value.trim().length > 0) {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : value;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const date = new Date(value > 10_000_000_000 ? value : value * 1000);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+  }
+
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value.toISOString();
+  }
+
+  return null;
+}
+
+function candlesFromOutcomePayload(
+  outcome: RecommendationOutcome,
+): RecommendationOutcomeCandle[] {
+  const raw =
+    Array.isArray(outcome.payload_json.counterfactual_candles)
+      ? outcome.payload_json.counterfactual_candles
+      : Array.isArray(outcome.payload_json.evaluation_candles)
+        ? outcome.payload_json.evaluation_candles
+        : [];
+
+  return raw
+    .map((item): RecommendationOutcomeCandle | null => {
+      const record = objectValue(item);
+      if (!record) return null;
+      const timestamp = candleTimestamp(record.timestamp);
+      const high = candleNumber(record.high);
+      const low = candleNumber(record.low);
+      const close = candleNumber(record.close);
+
+      if (!timestamp || high === null || low === null || close === null) {
+        return null;
+      }
+
+      return {
+        timestamp,
+        open: candleNumber(record.open),
+        high,
+        low,
+        close,
+        volume: candleNumber(record.volume),
+      };
+    })
+    .filter((candle): candle is RecommendationOutcomeCandle => candle !== null);
+}
+
+function outcomeWithMostCounterfactualCandles(outcomes: RecommendationOutcome[]) {
+  return outcomes
+    .filter(isEvaluatedOutcome)
+    .map((outcome) => ({
+      outcome,
+      candles: candlesFromOutcomePayload(outcome),
+    }))
+    .sort((first, second) => {
+      if (second.candles.length !== first.candles.length) {
+        return second.candles.length - first.candles.length;
+      }
+      return horizonOrder.indexOf(second.outcome.horizon) -
+        horizonOrder.indexOf(first.outcome.horizon);
+    })[0] ?? null;
+}
+
+function weightedAverage(
+  candles: RecommendationOutcomeCandle[],
+  selector: (candle: RecommendationOutcomeCandle) => number | null | undefined,
+) {
+  let volumeTotal = 0;
+  let weightedTotal = 0;
+
+  for (const candle of candles) {
+    const value = selector(candle);
+    const volume = candle.volume;
+
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value) &&
+      typeof volume === "number" &&
+      Number.isFinite(volume) &&
+      volume > 0
+    ) {
+      weightedTotal += value * volume;
+      volumeTotal += volume;
+    }
+  }
+
+  return volumeTotal > 0 ? weightedTotal / volumeTotal : null;
+}
+
+function variantEntries(input: {
+  snapshot: RecommendationSnapshot;
+  candles: RecommendationOutcomeCandle[];
+}) {
+  const first = input.candles[0] ?? null;
+  const side = input.snapshot.side;
+  const originalEntry = finiteNumber(input.snapshot.entry);
+  const firstOpen = candleNumber(first?.open ?? first?.close);
+  const firstClose = candleNumber(first?.close);
+  const firstBreak =
+    side === "short"
+      ? candleNumber(first?.low)
+      : candleNumber(first?.high);
+  const vwap = weightedAverage(input.candles, (candle) => {
+    const high = candleNumber(candle.high);
+    const low = candleNumber(candle.low);
+    const close = candleNumber(candle.close);
+    return high === null || low === null || close === null
+      ? null
+      : (high + low + close) / 3;
+  });
+
+  return new Map<CounterfactualEntryVariantLabel, number | null>([
+    ["original_entry", originalEntry],
+    [
+      "softer_entry_25pct_to_current",
+      originalEntry !== null && firstOpen !== null
+        ? originalEntry + (firstOpen - originalEntry) * 0.25
+        : null,
+    ],
+    [
+      "softer_entry_50pct_to_current",
+      originalEntry !== null && firstOpen !== null
+        ? originalEntry + (firstOpen - originalEntry) * 0.5
+        : null,
+    ],
+    ["first_candle_break", firstBreak],
+    ["first_candle_close_entry", firstClose],
+    ["pullback_entry_near_vwap", vwap],
+    ["marketable_entry_at_first_available_candle", firstOpen],
+  ]);
+}
+
+function simulateCounterfactualVariant(input: {
+  snapshot: RecommendationSnapshot;
+  sourceOutcome: RecommendationOutcome;
+  candles: RecommendationOutcomeCandle[];
+  variant: CounterfactualEntryVariantLabel;
+  entry: number | null;
+}): CounterfactualEntryVariantResult {
+  const side = input.snapshot.side;
+  const originalRisk = riskPerShare(
+    finiteNumber(input.snapshot.entry),
+    finiteNumber(input.snapshot.stop),
+    side,
+  );
+  const variantRisk = riskPerShare(
+    input.entry,
+    finiteNumber(input.snapshot.stop),
+    side,
+  );
+  const riskWidthRatio =
+    originalRisk !== null && variantRisk !== null && originalRisk > 0
+      ? variantRisk / originalRisk
+      : null;
+  const riskWarning =
+    riskWidthRatio === null
+      ? null
+      : riskWidthRatio > 1.5
+        ? "risk_too_wide_vs_original"
+        : riskWidthRatio < 0.5
+          ? "risk_too_tight_vs_original"
+          : null;
+
+  if (input.entry === null || variantRisk === null) {
+    return {
+      variant: input.variant,
+      entry: input.entry,
+      valid: false,
+      invalid_reason: "risk_per_share_invalid",
+      risk_per_share: variantRisk,
+      risk_width_ratio_vs_original: riskWidthRatio,
+      risk_warning: riskWarning,
+      entry_triggered: null,
+      entry_triggered_at: null,
+      target_hit: null,
+      stop_hit: null,
+      neither_hit: null,
+      best_r: null,
+      worst_r: null,
+      max_favorable_excursion: null,
+      max_adverse_excursion: null,
+      time_to_entry_minutes: null,
+    };
+  }
+
+  const result = computeRecommendationOutcome({
+    snapshot: input.snapshot,
+    horizon: input.sourceOutcome.horizon,
+    entry: input.entry,
+    stop: input.snapshot.stop,
+    target: input.snapshot.target,
+    evaluated_at: input.sourceOutcome.evaluated_at,
+    source: "intraday_candles",
+    provider: input.sourceOutcome.provider,
+    data_completeness: "complete",
+    candles: input.candles,
+  }).outcome;
+
+  return {
+    variant: input.variant,
+    entry: input.entry,
+    valid: true,
+    invalid_reason: null,
+    risk_per_share: variantRisk,
+    risk_width_ratio_vs_original: riskWidthRatio,
+    risk_warning: riskWarning,
+    entry_triggered: result.entry_triggered,
+    entry_triggered_at: result.entry_triggered_at,
+    target_hit: result.target_hit,
+    stop_hit: result.stop_hit,
+    neither_hit: result.status === "neither_hit" || result.status === "expired",
+    best_r: result.best_r,
+    worst_r: result.worst_r,
+    max_favorable_excursion: result.max_favorable_excursion,
+    max_adverse_excursion: result.max_adverse_excursion,
+    time_to_entry_minutes: result.time_to_entry_minutes,
+  };
+}
+
+function chooseBestCounterfactualVariant(
+  variants: CounterfactualEntryVariantResult[],
+) {
+  return variants
+    .filter((variant) => variant.valid && variant.variant !== "original_entry")
+    .sort((first, second) => {
+      const firstTriggered = first.entry_triggered === true ? 1 : 0;
+      const secondTriggered = second.entry_triggered === true ? 1 : 0;
+      if (secondTriggered !== firstTriggered) return secondTriggered - firstTriggered;
+
+      const firstScore =
+        (first.best_r ?? Number.NEGATIVE_INFINITY) +
+        (first.worst_r ?? 0) * 0.25 -
+        (first.risk_warning ? 0.25 : 0);
+      const secondScore =
+        (second.best_r ?? Number.NEGATIVE_INFINITY) +
+        (second.worst_r ?? 0) * 0.25 -
+        (second.risk_warning ? 0.25 : 0);
+
+      return secondScore - firstScore;
+    })[0] ?? null;
+}
+
+function buildCounterfactualRecommendationSummary(input: {
+  snapshot: RecommendationSnapshot;
+  outcomes: RecommendationOutcome[];
+}): CounterfactualEntryRecommendationSummary {
+  const source = outcomeWithMostCounterfactualCandles(input.outcomes);
+
+  if (!source || source.candles.length === 0) {
+    return {
+      snapshot_fingerprint: input.snapshot.snapshot_fingerprint,
+      recommendation_id: input.snapshot.recommendation_id,
+      ticker: input.snapshot.ticker,
+      source_horizon: null,
+      candle_count: 0,
+      variants: [],
+      best_counterfactual_entry_variant: null,
+      would_have_triggered_with_variant: null,
+      counterfactual_best_r: null,
+      counterfactual_worst_r: null,
+    };
+  }
+
+  const variants = Array.from(
+    variantEntries({ snapshot: input.snapshot, candles: source.candles }),
+  ).map(([variant, entry]) =>
+    simulateCounterfactualVariant({
+      snapshot: input.snapshot,
+      sourceOutcome: source.outcome,
+      candles: source.candles,
+      variant,
+      entry,
+    }),
+  );
+  const bestVariant = chooseBestCounterfactualVariant(variants);
+
+  return {
+    snapshot_fingerprint: input.snapshot.snapshot_fingerprint,
+    recommendation_id: input.snapshot.recommendation_id,
+    ticker: input.snapshot.ticker,
+    source_horizon: source.outcome.horizon,
+    candle_count: source.candles.length,
+    variants,
+    best_counterfactual_entry_variant: bestVariant?.variant ?? null,
+    would_have_triggered_with_variant: bestVariant?.entry_triggered ?? null,
+    counterfactual_best_r: bestVariant?.best_r ?? null,
+    counterfactual_worst_r: bestVariant?.worst_r ?? null,
+  };
+}
+
+function buildCounterfactualEntrySimulationSummary(input: {
+  batch_fingerprint: string | null;
+  snapshots: RecommendationSnapshot[];
+  outcomes: RecommendationOutcome[];
+}): CounterfactualEntrySimulationSummary {
+  const recommendationSummaries = input.snapshots.map((snapshot) =>
+    buildCounterfactualRecommendationSummary({
+      snapshot,
+      outcomes: outcomesForSnapshot(snapshot, input.outcomes),
+    }),
+  );
+  const simulatedSummaries = recommendationSummaries.filter(
+    (summary) => summary.variants.length > 0,
+  );
+  const variantLabels: CounterfactualEntryVariantLabel[] = [
+    "original_entry",
+    "softer_entry_25pct_to_current",
+    "softer_entry_50pct_to_current",
+    "first_candle_break",
+    "first_candle_close_entry",
+    "pullback_entry_near_vwap",
+    "marketable_entry_at_first_available_candle",
+  ];
+  const variantSummaries = variantLabels.map((variant) => {
+    const results = recommendationSummaries
+      .flatMap((summary) => summary.variants)
+      .filter((result) => result.variant === variant);
+    const validResults = results.filter((result) => result.valid);
+    const triggerCount = validResults.filter(
+      (result) => result.entry_triggered === true,
+    ).length;
+
+    return {
+      variant,
+      simulated_count: results.length,
+      valid_count: validResults.length,
+      trigger_count: triggerCount,
+      trigger_rate: percent(triggerCount, validResults.length),
+      avg_best_r: average(validResults.map((result) => result.best_r)),
+      avg_worst_r: average(validResults.map((result) => result.worst_r)),
+      risk_warning_count: validResults.filter((result) => result.risk_warning)
+        .length,
+    };
+  });
+  const original = variantSummaries.find(
+    (summary) => summary.variant === "original_entry",
+  );
+  const bestVariant =
+    variantSummaries
+      .filter(
+        (summary) =>
+          summary.variant !== "original_entry" && summary.valid_count > 0,
+      )
+      .sort((first, second) => {
+        const firstBalance =
+          (first.trigger_rate ?? Number.NEGATIVE_INFINITY) +
+          (first.avg_best_r ?? 0) * 10 +
+          (first.avg_worst_r ?? 0) * 5 -
+          first.risk_warning_count * 3;
+        const secondBalance =
+          (second.trigger_rate ?? Number.NEGATIVE_INFINITY) +
+          (second.avg_best_r ?? 0) * 10 +
+          (second.avg_worst_r ?? 0) * 5 -
+          second.risk_warning_count * 3;
+
+        return secondBalance - firstBalance;
+      })[0] ?? null;
+  const originalTriggerRate = original?.trigger_rate ?? null;
+  const bestTriggerRate = bestVariant?.trigger_rate ?? null;
+  const triggerImproved =
+    originalTriggerRate !== null &&
+    bestTriggerRate !== null &&
+    bestTriggerRate > originalTriggerRate;
+  const bestWorstRAcceptable = (bestVariant?.avg_worst_r ?? -1) > -0.5;
+  const counterfactualPrimaryReason =
+    simulatedSummaries.length === 0
+      ? "Counterfactual entry simulation is unavailable because evaluated candle data was not retained on outcome rows."
+      : triggerImproved && bestWorstRAcceptable
+        ? `A softer entry variant improved trigger rate from ${Math.round(originalTriggerRate ?? 0)}% to ${Math.round(bestTriggerRate ?? 0)}% while keeping average worst R acceptable.`
+        : triggerImproved
+          ? "A counterfactual entry variant improved trigger rate, but adverse movement increased enough to require risk review."
+          : "Do not loosen entry yet: counterfactual variants did not clearly improve trigger participation with acceptable risk.";
+
+  return {
+    batch_fingerprint: input.batch_fingerprint,
+    recommendation_count: input.snapshots.length,
+    simulated_recommendation_count: simulatedSummaries.length,
+    skipped_missing_candles_count:
+      input.snapshots.length - simulatedSummaries.length,
+    counterfactual_variants_tested: variantSummaries.filter(
+      (summary) => summary.valid_count > 0,
+    ).length,
+    original_entry_trigger_rate: originalTriggerRate,
+    best_variant_trigger_rate: bestTriggerRate,
+    original_avg_best_r: original?.avg_best_r ?? null,
+    best_variant_avg_best_r: bestVariant?.avg_best_r ?? null,
+    original_avg_worst_r: original?.avg_worst_r ?? null,
+    best_variant_avg_worst_r: bestVariant?.avg_worst_r ?? null,
+    best_entry_variant: bestVariant?.variant ?? null,
+    variant_with_best_balance: bestVariant?.variant ?? null,
+    variant_risk_warning_count: bestVariant?.risk_warning_count ?? 0,
+    counterfactual_primary_reason: counterfactualPrimaryReason,
+    variant_summaries: variantSummaries,
+    recommendation_summaries: recommendationSummaries,
+  };
+}
+
 function outcomesForSnapshot(
   snapshot: RecommendationSnapshot,
   outcomes: RecommendationOutcome[],
@@ -385,6 +885,10 @@ export function buildEntryPlanQualityForSnapshot(
               : executionQualityLabel === "clean_trigger"
                 ? "Entry triggered without a terminal target/stop warning."
                 : "Complete evaluated outcomes are not available for this recommendation.";
+  const counterfactual =
+    snapshot === null
+      ? null
+      : buildCounterfactualRecommendationSummary({ snapshot, outcomes });
 
   return {
     snapshot_fingerprint: snapshot?.snapshot_fingerprint ?? null,
@@ -401,6 +905,12 @@ export function buildEntryPlanQualityForSnapshot(
     entry_quality_reason: entryQualityReason,
     evaluated_outcome_count: evaluated.length,
     horizons: Array.from(new Set(evaluated.map((outcome) => outcome.horizon))).sort(),
+    best_counterfactual_entry_variant:
+      counterfactual?.best_counterfactual_entry_variant ?? null,
+    would_have_triggered_with_variant:
+      counterfactual?.would_have_triggered_with_variant ?? null,
+    counterfactual_best_r: counterfactual?.counterfactual_best_r ?? null,
+    counterfactual_worst_r: counterfactual?.counterfactual_worst_r ?? null,
   };
 }
 
@@ -409,12 +919,34 @@ function buildEntryPlanQualitySummary(input: {
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
 }): EntryPlanQualitySummary {
-  const items = input.snapshots.map((snapshot) =>
-    buildEntryPlanQualityForSnapshot(
+  const counterfactualEntrySimulation = buildCounterfactualEntrySimulationSummary(
+    input,
+  );
+  const counterfactualBySnapshot = new Map(
+    counterfactualEntrySimulation.recommendation_summaries.map((summary) => [
+      summary.snapshot_fingerprint,
+      summary,
+    ]),
+  );
+  const items = input.snapshots.map((snapshot) => {
+    const item = buildEntryPlanQualityForSnapshot(
       snapshot,
       outcomesForSnapshot(snapshot, input.outcomes),
-    ),
-  );
+    );
+    const counterfactual = counterfactualBySnapshot.get(
+      snapshot.snapshot_fingerprint,
+    );
+
+    return {
+      ...item,
+      best_counterfactual_entry_variant:
+        counterfactual?.best_counterfactual_entry_variant ?? null,
+      would_have_triggered_with_variant:
+        counterfactual?.would_have_triggered_with_variant ?? null,
+      counterfactual_best_r: counterfactual?.counterfactual_best_r ?? null,
+      counterfactual_worst_r: counterfactual?.counterfactual_worst_r ?? null,
+    };
+  });
   const evaluatedItems = items.filter((item) => item.evaluated_outcome_count > 0);
   const missedButFavorableItems = evaluatedItems.filter(
     (item) => item.execution_quality_label === "missed_but_favorable",
@@ -493,6 +1025,7 @@ function buildEntryPlanQualitySummary(input: {
       suggestedTuning.length > 0
         ? Array.from(new Set(suggestedTuning))
         : ["Continue collecting evaluated outcomes before tuning execution rules."],
+    counterfactual_entry_simulation: counterfactualEntrySimulation,
     items,
     diagnostics: {
       entry_plan_quality_batch_fingerprint: input.batch_fingerprint,
