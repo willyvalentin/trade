@@ -512,22 +512,80 @@ function warning(
   };
 }
 
+function canonicalWarningMessage(message: string) {
+  return message
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[0-9]+(?:\.[0-9]+)?/g, "#")
+    .trim();
+}
+
+function isExpectedStateMessage(message: string) {
+  const normalized = message.toLowerCase();
+
+  return [
+    "market closed",
+    "outside scan window",
+    "waiting for next window",
+    "next active window",
+    "no active scanner candidates expected",
+    "scanner output will be evaluated",
+    "pending outcome evaluation",
+    "retained for review",
+    "expired",
+    "stale",
+  ].some((phrase) => normalized.includes(phrase));
+}
+
+function normalizeWarningForDisplay(
+  warningItem: MarketDiagnosticsConsoleWarning,
+): MarketDiagnosticsConsoleWarning {
+  if (!isExpectedStateMessage(warningItem.message)) {
+    return warningItem;
+  }
+
+  return {
+    ...warningItem,
+    severity: "info",
+    source: warningItem.source.includes("expected_state")
+      ? warningItem.source
+      : `${warningItem.source}+expected_state`,
+  };
+}
+
 function dedupeWarnings(
   warnings: MarketDiagnosticsConsoleWarning[],
 ): MarketDiagnosticsConsoleWarning[] {
-  const seen = new Set<string>();
-  const result: MarketDiagnosticsConsoleWarning[] = [];
+  const grouped = new Map<
+    string,
+    MarketDiagnosticsConsoleWarning & { source_set: Set<string> }
+  >();
 
   for (const item of warnings) {
-    const key = `${item.source}:${item.message}`.toLowerCase();
-    if (seen.has(key)) {
+    const normalizedItem = normalizeWarningForDisplay(item);
+    const key = canonicalWarningMessage(normalizedItem.message);
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, {
+        ...normalizedItem,
+        source_set: new Set(normalizedItem.source.split("+")),
+      });
       continue;
     }
-    seen.add(key);
-    result.push(item);
+
+    existing.source_set.add(normalizedItem.source);
+    existing.source = Array.from(existing.source_set).sort().join("+");
+    existing.severity = highestSeverity([existing, normalizedItem]);
+    existing.warning_id = `${existing.warning_id}+${normalizedItem.warning_id}`;
   }
 
-  return result;
+  return Array.from(grouped.values()).map((item) => ({
+    warning_id: item.warning_id,
+    severity: item.severity,
+    source: item.source,
+    message: item.message,
+  }));
 }
 
 function highestSeverity(
@@ -544,6 +602,25 @@ function highestSeverity(
   return "info";
 }
 
+function warningBuckets(warnings: MarketDiagnosticsConsoleWarning[]) {
+  const actionNeeded = warnings.filter(
+    (item) => item.severity === "critical" || item.severity === "warning",
+  );
+  const expectedState = warnings.filter((item) =>
+    item.source.includes("expected_state"),
+  );
+  const informational = warnings.filter(
+    (item) =>
+      item.severity === "info" && !item.source.includes("expected_state"),
+  );
+
+  return {
+    actionNeeded,
+    informational,
+    expectedState,
+  };
+}
+
 function isClosedMarketWaitState(input: MarketDiagnosticsConsoleInput) {
   return (
     input.scan_orchestration.active_window === "closed" ||
@@ -555,6 +632,102 @@ function isClosedMarketWaitState(input: MarketDiagnosticsConsoleInput) {
     input.market_session.phase === "closed" ||
     input.market_session.phase === "holiday"
   );
+}
+
+function displayEngineStatus(input: MarketDiagnosticsConsoleInput) {
+  if (
+    isClosedMarketWaitState(input) ||
+    (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+      0) > 0 ||
+    (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0
+  ) {
+    return "learning / review";
+  }
+
+  return words(input.engine_control_center.overall_status);
+}
+
+function displayRunbookStatus(input: MarketDiagnosticsConsoleInput) {
+  if (
+    input.live_market_trial_runbook.status === "unknown" &&
+    input.live_market_trial_readiness.blockers.length === 0
+  ) {
+    return "ready / waiting";
+  }
+
+  if (isClosedMarketWaitState(input)) {
+    return "ready / waiting";
+  }
+
+  return words(input.live_market_trial_runbook.status);
+}
+
+function statusMark(value: boolean) {
+  return value ? "yes" : "pending";
+}
+
+function diagnosticsHeadline(input: MarketDiagnosticsConsoleInput) {
+  const closedMarketWaitState = isClosedMarketWaitState(input);
+  const activeWindow = input.scan_orchestration.active_window;
+  const latestSuccessfulVisible =
+    input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+    0;
+  const scanOk =
+    latestSuccessfulVisible > 0 ||
+    (input.active_scan_trace?.ranking.ranked_count ?? 0) > 0;
+  const publishOk =
+    latestSuccessfulVisible > 0 ||
+    (input.scan_readback?.current_batch_visible_grid_count ?? 0) > 0;
+  const outcomesOk =
+    (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
+    (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0;
+  const learningOk =
+    (input.outcome_learning?.total_evaluated_outcomes ?? 0) > 0 ||
+    Boolean(input.outcome_learning?.batch_fingerprint);
+  const shadowStatus =
+    (input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ?? 0) > 0
+      ? "collecting"
+      : (input.outcome_evaluation?.shadow_snapshot_metadata_present_count ?? 0) > 0
+        ? "pending outcomes"
+        : "pending";
+
+  if (closedMarketWaitState) {
+    return {
+      headline: "Market closed — latest learning retained for review.",
+      scanOk,
+      publishOk,
+      outcomesOk,
+      learningOk,
+      shadowStatus,
+    };
+  }
+
+  if (
+    activeWindow === "outside_window" ||
+    input.market_session.phase === "pre_market"
+  ) {
+    return {
+      headline: "Pre-market — waiting for first scan window.",
+      scanOk,
+      publishOk,
+      outcomesOk,
+      learningOk,
+      shadowStatus,
+    };
+  }
+
+  return {
+    headline: `Today's core loop: scan ${statusMark(scanOk)} / publish ${statusMark(
+      publishOk,
+    )} / outcomes ${statusMark(outcomesOk)} / learning ${statusMark(
+      learningOk,
+    )} / shadow ${shadowStatus}`,
+    scanOk,
+    publishOk,
+    outcomesOk,
+    learningOk,
+    shadowStatus,
+  };
 }
 
 function isCoreReadinessSource(source: string) {
@@ -696,7 +869,9 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
           ),
         ]
       : []),
-  ]).slice(0, 8);
+  ])
+    .filter((item) => item.severity === "critical")
+    .slice(0, 8);
 
   const warnings = dedupeWarnings([
     ...(closedMarketWaitState
@@ -851,6 +1026,8 @@ function buildSections(
   const latestBatch = input.batch_memory.latest_batch;
   const providerPlanProfile = providerPlanProfileMetrics(input);
   const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
+  const headline = diagnosticsHeadline(input);
+  const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -903,8 +1080,6 @@ function buildSections(
             latestAttemptedScan.result === "duplicate_ticker_skipped")
           ? "Official batch already served for this window."
         : null;
-  const visiblePrimaryIds = input.scan_readback?.visible_primary_recommendation_ids ?? [];
-  const hiddenLiveIds = input.scan_readback?.hidden_live_recommendation_ids ?? [];
   const hiddenReasonBreakdown =
     input.scan_readback?.hidden_reason_breakdown ?? {};
   const hiddenReasonById = input.scan_readback?.hidden_reason_by_id ?? {};
@@ -956,6 +1131,88 @@ function buildSections(
           : "proposal active; waiting for shadow eligible outcomes";
 
   return [
+    section({
+      section_id: "diagnostics_headline",
+      title: "Diagnostics summary",
+      severity: warnings.blockers.length > 0 ? "critical" : "info",
+      lines: [
+        lineValue("Headline", headline.headline),
+        lineValue(
+          "Core loop",
+          `scan=${statusMark(headline.scanOk)} / publish=${statusMark(
+            headline.publishOk,
+          )} / outcomes=${statusMark(headline.outcomesOk)} / learning=${statusMark(
+            headline.learningOk,
+          )} / shadow=${headline.shadowStatus}`,
+        ),
+        ...(input.outcome_evaluation?.current_batch_fingerprint &&
+        input.outcome_evaluation.current_batch_fingerprint !==
+          input.outcome_evaluation.learning_insights_source_batch_fingerprint
+          ? [
+              lineValue("Current batch", "pending outcome evaluation"),
+              lineValue(
+                "Learning insights",
+                `latest evaluated batch: ${compact(
+                  input.outcome_evaluation.learning_insights_source_batch_fingerprint,
+                  "none",
+                )}`,
+              ),
+            ]
+          : []),
+      ],
+      metrics: {
+        headline: headline.headline,
+        scan_ok: headline.scanOk,
+        publish_ok: headline.publishOk,
+        outcomes_ok: headline.outcomesOk,
+        learning_ok: headline.learningOk,
+        shadow_status: headline.shadowStatus,
+        current_batch_fingerprint:
+          input.outcome_evaluation?.current_batch_fingerprint ?? null,
+        learning_source_batch_fingerprint:
+          input.outcome_evaluation?.learning_insights_source_batch_fingerprint ??
+          null,
+      },
+    }),
+    section({
+      section_id: "warning_overview",
+      title: "Warning overview",
+      severity: warnings.blockers.length > 0 ? "critical" : highestSeverity(warnings.warnings),
+      lines: [
+        lineValue("Action needed", warningGroups.actionNeeded.length),
+        lineValue("Informational", warningGroups.informational.length),
+        lineValue("Expected state", warningGroups.expectedState.length),
+        lineValue(
+          "Action needed items",
+          warningGroups.actionNeeded.length > 0
+            ? warningGroups.actionNeeded
+                .slice(0, 3)
+                .map((item) => `[${item.source}] ${item.message}`)
+                .join(" | ")
+            : "none",
+        ),
+        lineValue(
+          "Expected state items",
+          warningGroups.expectedState.length > 0
+            ? warningGroups.expectedState
+                .slice(0, 3)
+                .map((item) => item.message)
+                .join(" | ")
+            : "none",
+        ),
+      ],
+      metrics: {
+        action_needed_count: warningGroups.actionNeeded.length,
+        informational_count: warningGroups.informational.length,
+        expected_state_count: warningGroups.expectedState.length,
+        action_needed_sources: warningGroups.actionNeeded
+          .map((item) => item.source)
+          .join(","),
+        expected_state_sources: warningGroups.expectedState
+          .map((item) => item.source)
+          .join(","),
+      },
+    }),
     section({
       section_id: "context",
       title: "Timestamp/context",
@@ -1034,12 +1291,12 @@ function buildSections(
       title: "Overall status",
       severity: warnings.blockers.length > 0 ? "critical" : highestSeverity(warnings.warnings),
       lines: [
-        lineValue("Engine", words(input.engine_control_center.overall_status)),
+        lineValue("Engine", displayEngineStatus(input)),
         lineValue(
           "Live trial",
           words(input.live_market_trial_readiness.overall_status),
         ),
-        lineValue("Runbook", words(input.live_market_trial_runbook.status)),
+        lineValue("Runbook", displayRunbookStatus(input)),
         lineValue("Next action", input.live_market_trial_runbook.next_action.label),
       ],
       metrics: {
@@ -1514,10 +1771,6 @@ function buildSections(
           compact(input.scan_readback?.current_batch_fingerprint, "not observed"),
         ),
         lineValue(
-          "Current batch source",
-          compact(input.scan_readback?.current_batch_source, "unknown"),
-        ),
-        lineValue(
           "Current batch rec/snapshot/grid",
           `${input.scan_readback?.current_batch_recommendation_count ?? 0}/${input.scan_readback?.current_batch_snapshot_count ?? 0}/${input.scan_readback?.current_batch_visible_grid_count ?? 0}`,
         ),
@@ -1526,90 +1779,16 @@ function buildSections(
           (input.scan_readback?.current_batch_tickers ?? []).join(", ") || "none",
         ),
         lineValue(
-          "Override reason",
-          compact(input.scan_readback?.current_batch_override_reason, "none"),
-        ),
-        lineValue(
-          "Active trace batch",
-          compact(input.scan_readback?.active_trace_batch_fingerprint, "none"),
-        ),
-        lineValue(
-          "Active trace published/snapshots",
-          `${input.scan_readback?.active_trace_published_count ?? 0}/${input.scan_readback?.active_trace_snapshot_count ?? 0}`,
-        ),
-        lineValue(
-          "Snapshot members",
-          (input.scan_readback?.current_batch_snapshot_members ?? []).join(", ") ||
-            "none",
-        ),
-        lineValue(
-          "Recommendation rows",
-          (input.scan_readback?.current_batch_recommendation_rows ?? []).join(", ") ||
-            "none",
-        ),
-        lineValue(
-          "Mismatch reason",
-          compact(input.scan_readback?.current_batch_mismatch_reason, "none"),
-        ),
-        lineValue(
-          "Previous successful batch",
-          compact(
-            input.scan_readback?.previous_successful_batch_fingerprint,
-            "none",
-          ),
-        ),
-        lineValue(
-          "Trace/batch mismatch",
-          input.scan_readback?.stale_trace_batch_mismatch === true
-            ? "true"
-            : "false",
-        ),
-        lineValue(
-          "Latest official batch",
-          compact(
-            input.scan_readback?.latest_official_batch_fingerprint,
-            "not observed",
-          ),
-        ),
-        lineValue(
-          "Official scan run",
-          compact(input.scan_readback?.latest_official_scan_run_id, "not observed"),
-        ),
-        lineValue(
-          "Batch expected/found",
-          `${input.scan_readback?.batch_expected_count ?? 0}/${input.scan_readback?.recommendation_rows_found_count ?? 0}`,
-        ),
-        lineValue(
-          "Missing batch IDs",
-          (input.scan_readback?.missing_batch_member_ids ?? []).join(", ") ||
-            "none",
-        ),
-        lineValue(
-          "Missing batch tickers",
-          (input.scan_readback?.missing_batch_member_tickers ?? []).join(", ") ||
-            "none",
+          "Batch health",
+          input.scan_readback?.current_batch_mismatch_reason
+            ? compact(input.scan_readback.current_batch_mismatch_reason, "mismatch")
+            : "membership aligned",
         ),
         lineValue(
           "Successful visible count",
           latestSuccessfulScan?.visible_recommendation_count ?? 0,
         ),
-        lineValue(
-          "Attempted visible count",
-          latestAttemptedScan?.visible_recommendation_count ?? 0,
-        ),
-        lineValue("Expected live IDs", (input.scan_readback?.latest_successful_live_recommendation_ids ?? []).join(", ") || "none"),
         lineValue("Expected live tickers", (input.scan_readback?.latest_successful_live_recommendation_tickers ?? []).join(", ") || "none"),
-        lineValue("Visible primary IDs", visiblePrimaryIds.join(", ") || "none"),
-        lineValue(
-          "Extra visible primary IDs",
-          (input.scan_readback?.extra_visible_primary_ids ?? []).join(", ") ||
-            "none",
-        ),
-        lineValue(
-          "Extra visible primary tickers",
-          (input.scan_readback?.extra_visible_primary_tickers ?? []).join(", ") ||
-            "none",
-        ),
         lineValue(
           "Strict batch filter",
           input.scan_readback?.primary_grid_strict_batch_filter_applied
@@ -1617,22 +1796,11 @@ function buildSections(
             : "false",
         ),
         lineValue(
-          "Grid fallback reason",
-          compact(input.scan_readback?.primary_grid_fallback_reason, "none"),
-        ),
-        lineValue("Hidden live IDs", hiddenLiveIds.join(", ") || "none"),
-        lineValue(
           "Hidden reasons",
           Object.keys(hiddenReasonBreakdown).length > 0
             ? Object.entries(hiddenReasonBreakdown)
                 .map(([reason, countValue]) => `${reason}:${countValue}`)
                 .join(", ")
-            : "none",
-        ),
-        lineValue(
-          "Hidden reason by ID",
-          Object.keys(hiddenReasonById).length > 0
-            ? JSON.stringify(hiddenReasonById)
             : "none",
         ),
         lineValue("Follow-up status", attemptedAfterSuccessCopy ?? "none"),
@@ -1994,23 +2162,17 @@ function buildSections(
       title: "Provider plan profile",
       severity: providerPlanProfile.mismatch ? "warning" : "info",
       lines: [
-        lineValue("Resolved plan", words(providerPlanProfile.mode)),
-        lineValue("Source", words(providerPlanProfile.source)),
         lineValue(
-          "Server/Public plan",
-          `${words(providerPlanProfile.serverPlanMode)} / ${words(providerPlanProfile.publicPlanMode)}`,
+          "Profile",
+          `${words(providerPlanProfile.mode)} via ${words(providerPlanProfile.source)}`,
         ),
         lineValue("Plan mismatch", bool(providerPlanProfile.mismatch)),
         lineValue(
-          "Scan ticker cap",
-          `${providerPlanProfile.scanTickerCap ?? "unknown"} (profile ${providerPlanProfile.profileScanTickerCap ?? "unknown"})`,
+          "Caps",
+          `scan ${providerPlanProfile.scanTickerCap ?? "unknown"} / outcomes ${providerPlanProfile.outcomeBudgetLimit ?? "unknown"}`,
         ),
         lineValue(
-          "Outcome candle budget",
-          `${providerPlanProfile.outcomeBudgetLimit ?? "unknown"} (profile ${providerPlanProfile.profileBudgetLimit ?? "unknown"} / override ${providerPlanProfile.overrideBudgetLimit ?? "none"})`,
-        ),
-        lineValue(
-          "Scheduled OpenAI/timeout",
+          "OpenAI/timeout",
           `skip_openai=${
             providerPlanProfile.skipOpenAi === null
               ? "unknown"
@@ -2018,20 +2180,10 @@ function buildSections(
           } / timeout=${providerPlanProfile.timeoutMs ?? "unknown"}ms`,
         ),
         lineValue(
-          "Background cadence",
+          "Cadence",
           providerPlanProfile.cadence === null
             ? "unknown"
             : `${providerPlanProfile.cadence}m`,
-        ),
-        lineValue(
-          "Env scan override",
-          providerPlanProfile.envScanTickerOverride ?? "none",
-        ),
-        lineValue(
-          "Checklist",
-          providerPlanProfile.mode === "custom"
-            ? "Confirm custom caps are set before widening scans."
-            : "Provider upgrade changes scan/outcome budgets only; generation rules stay unchanged.",
         ),
         lineValue(
           "Notes",
@@ -2067,40 +2219,15 @@ function buildSections(
           ? "warning"
           : "info",
       lines: [
-        lineValue("Upgrade readiness", words(providerUpgrade.status)),
+        lineValue("Status", words(providerUpgrade.status)),
         lineValue("Message", providerUpgrade.message),
-        lineValue("Current resolved plan", words(providerPlanProfile.mode)),
-        lineValue("Server env plan", words(providerPlanProfile.serverPlanMode)),
-        lineValue("Public env plan", words(providerPlanProfile.publicPlanMode)),
-        lineValue("Env consistent", bool(providerUpgrade.envConsistent)),
         lineValue(
-          "Active scan ticker cap",
-          providerPlanProfile.scanTickerCap ?? "unknown",
+          "Plan/env",
+          `${words(providerPlanProfile.mode)} / server=${words(providerPlanProfile.serverPlanMode)} / public=${words(providerPlanProfile.publicPlanMode)} / consistent=${bool(providerUpgrade.envConsistent)}`,
         ),
         lineValue(
-          "Active outcome candle cap",
-          providerPlanProfile.outcomeBudgetLimit ?? "unknown",
-        ),
-        lineValue(
-          "OpenAI skip default",
-          providerPlanProfile.skipOpenAi === null
-            ? "unknown"
-            : bool(providerPlanProfile.skipOpenAi),
-        ),
-        lineValue(
-          "Timeout",
-          providerPlanProfile.timeoutMs === null
-            ? "unknown"
-            : `${providerPlanProfile.timeoutMs}ms`,
-        ),
-        lineValue("Upgrade target", providerUpgrade.upgradeTarget),
-        lineValue(
-          "Before upgrade env",
-          providerUpgrade.beforeUpgradeEnvValues.join(" / "),
-        ),
-        lineValue(
-          "After Grow env",
-          providerUpgrade.growEnvValues.join(" / "),
+          "Active caps",
+          `scan ${providerPlanProfile.scanTickerCap ?? "unknown"} / outcomes ${providerPlanProfile.outcomeBudgetLimit ?? "unknown"} / timeout ${providerPlanProfile.timeoutMs ?? "unknown"}ms`,
         ),
         lineValue(
           "Next env values",
@@ -2248,16 +2375,8 @@ function buildSections(
             ]
           : []),
         lineValue(
-          "Current batch expected/persisted",
+          "Current expected/persisted",
           `${input.outcome_evaluation?.current_batch_expected_outcomes ?? 0}/${input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0}`,
-        ),
-        lineValue(
-          "Shadow snapshot metadata present/missing",
-          `${input.outcome_evaluation?.shadow_snapshot_metadata_present_count ?? 0}/${input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? 0}`,
-        ),
-        lineValue(
-          "Shadow snapshot variants",
-          JSON.stringify(input.outcome_evaluation?.shadow_snapshot_variant_counts ?? {}),
         ),
         lineValue(
           "Learning source batch",
@@ -2267,92 +2386,17 @@ function buildSections(
           ),
         ),
         lineValue(
-          "Learning source reason",
-          compact(
-            input.outcome_evaluation?.learning_insights_source_reason,
-            "unknown",
-          ),
-        ),
-        lineValue(
-          "Latest counterfactual-ready batch",
-          compact(
-            input.outcome_evaluation
-              ?.latest_counterfactual_ready_batch_fingerprint,
-            "none",
-          ),
-        ),
-        lineValue(
-          "Latest evaluated batch",
+          "Latest evaluated",
           compact(
             input.outcome_evaluation?.latest_evaluated_batch_fingerprint,
             "none",
           ),
         ),
         lineValue(
-          "Snapshots",
-          input.outcome_evaluation?.current_batch_snapshot_count ?? 0,
-        ),
-        lineValue(
-          "Rows loaded / matched / unmatched",
-          input.outcome_evaluation?.readback_hydration_complete === false
-            ? "readback loading"
-            : `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0}/${input.outcome_evaluation?.outcome_unmatched_count ?? 0}`,
-        ),
-        lineValue(
-          "Rows raw/deduped/replaced",
-          `${input.outcome_evaluation?.outcome_rows_raw_count ?? 0}/${input.outcome_evaluation?.outcome_rows_deduped_count ?? 0}/${input.outcome_evaluation?.outcome_rows_replaced_by_better_count ?? 0}`,
-        ),
-        lineValue(
-          "Stale incomplete ignored",
-          input.outcome_evaluation?.stale_incomplete_rows_ignored_count ?? 0,
-        ),
-        lineValue(
-          "Dedupe strategy",
-          compact(input.outcome_evaluation?.outcome_dedupe_strategy, "unknown"),
-        ),
-        lineValue(
-          "Batch groups / selected rows",
-          `${input.outcome_evaluation?.outcome_batch_groups_count ?? 0}/${input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0}`,
-        ),
-        lineValue(
-          "Selection reason",
-          compact(
-            input.outcome_evaluation?.latest_evaluated_batch_selection_reason,
-            "unknown",
-          ),
-        ),
-        lineValue(
-          "Snapshot/batch backfill",
-          `${bool(input.outcome_evaluation?.outcome_snapshot_backfill_attempted === true)} / ${input.outcome_evaluation?.outcome_snapshot_backfill_count ?? 0}/${input.outcome_evaluation?.outcome_batch_backfill_count ?? 0}`,
-        ),
-        lineValue(
-          "Backfill trigger",
-          compact(input.outcome_evaluation?.outcome_backfill_trigger_reason, "none"),
-        ),
-        lineValue(
-          "Snapshot requested/found",
-          `${input.outcome_evaluation?.outcome_snapshot_fingerprints_requested_count ?? 0}/${input.outcome_evaluation?.outcome_snapshot_fingerprints_found_count ?? 0}`,
-        ),
-        lineValue(
-          "Batch requested/found",
-          `${input.outcome_evaluation?.outcome_batch_fingerprints_requested_count ?? 0}/${input.outcome_evaluation?.outcome_batch_fingerprints_found_count ?? 0}`,
-        ),
-        lineValue(
-          "Matching recomputed",
-          bool(
-            input.outcome_evaluation
-              ?.outcome_matching_recomputed_after_backfill === true,
-          ),
-        ),
-        lineValue(
-          "Readback hydration",
+          "Readback",
           input.outcome_evaluation?.readback_hydration_complete === false
             ? "loading"
-            : "complete",
-        ),
-        lineValue(
-          "Backfill error",
-          compact(input.outcome_evaluation?.outcome_backfill_error, "none"),
+            : `${input.outcome_evaluation?.outcome_rows_loaded_count ?? 0} rows / ${input.outcome_evaluation?.outcome_snapshot_match_count ?? 0} matched`,
         ),
         lineValue(
           "Expected/Persisted",
@@ -2377,70 +2421,24 @@ function buildSections(
             : "none",
         ),
         lineValue(
-          "Created/Updated",
-          `${input.outcome_evaluation?.outcomes_created_count ?? 0}/${input.outcome_evaluation?.outcomes_updated_count ?? 0}`,
-        ),
-        lineValue(
-          "Not old enough",
-          input.outcome_evaluation?.skipped_not_old_enough_count ?? 0,
-        ),
-        lineValue(
           "Missing candles / provider errors",
           `${input.outcome_evaluation?.missing_candles_count ?? 0}/${input.outcome_evaluation?.provider_error_count ?? 0}`,
-        ),
-        lineValue(
-          "Empty candle responses / provider limits",
-          `${input.outcome_evaluation?.empty_candle_response_count ?? 0}/${input.outcome_evaluation?.provider_limit_count ?? 0}`,
         ),
         lineValue(
           "Provider budget",
           `${compact(input.outcome_evaluation?.outcome_provider_budget_status, "unknown")} / limit ${input.outcome_evaluation?.provider_budget_limit ?? "none"}`,
         ),
         lineValue(
-          "Provider plan profile",
-          `${compact(input.outcome_evaluation?.provider_plan_profile_mode, "unknown")} / ${compact(input.outcome_evaluation?.provider_plan_profile_source, "unknown")}`,
-        ),
-        lineValue(
-          "Profile/override/effective budget",
-          `${input.outcome_evaluation?.profile_budget_limit ?? "unknown"}/${input.outcome_evaluation?.override_budget_limit ?? "none"}/${input.outcome_evaluation?.effective_budget_limit ?? input.outcome_evaluation?.provider_budget_limit ?? "unknown"}`,
-        ),
-        lineValue(
           "Candle requests planned/executed/saved",
           `${input.outcome_evaluation?.candle_requests_planned ?? 0}/${input.outcome_evaluation?.candle_requests_executed ?? 0}/${input.outcome_evaluation?.candle_requests_saved_by_reuse ?? 0}`,
         ),
         lineValue(
-          "Pending provider budget / retries",
+          "Budget pending / retries",
           `${input.outcome_evaluation?.pending_provider_budget_count ?? 0}/${input.outcome_evaluation?.retry_incomplete_count ?? 0}`,
-        ),
-        lineValue(
-          "Next retry",
-          compact(input.outcome_evaluation?.next_retry_suggestion, "none"),
-        ),
-        lineValue(
-          "Candle debug sample",
-          (input.outcome_evaluation?.candle_request_debug_sample ?? []).length > 0
-            ? "available in metrics"
-            : "none",
-        ),
-        lineValue(
-          "Enrichment mode",
-          bool(input.outcome_evaluation?.enrichment_mode === true),
-        ),
-        lineValue(
-          "Completed seen/enriched/skipped",
-          `${input.outcome_evaluation?.completed_outcomes_seen_count ?? 0}/${input.outcome_evaluation?.completed_outcomes_enriched_count ?? 0}/${input.outcome_evaluation?.completed_outcomes_skipped_already_enriched_count ?? 0}`,
         ),
         lineValue(
           "Retained candles / counterfactual ready",
           `${input.outcome_evaluation?.retained_candles_added_count ?? 0}/${input.outcome_evaluation?.counterfactual_ready_count ?? 0}`,
-        ),
-        lineValue(
-          "Retained candles available",
-          input.outcome_evaluation?.retained_candles_available_count ?? 0,
-        ),
-        lineValue(
-          "Provider limit warning",
-          bool(input.outcome_evaluation?.provider_limit_warning === true),
         ),
         lineValue(
           "Persistence",
@@ -2658,29 +2656,27 @@ function buildSections(
           : "info",
       lines: [
         lineValue(
-          "Latest evaluated batch",
-          compact(input.outcome_learning?.batch_fingerprint, "none"),
-        ),
-        lineValue(
-          "Entry triggered rate",
-          input.outcome_learning?.entry_triggered_rate ?? null,
-        ),
-        lineValue(
-          "Entry not triggered rate",
-          input.outcome_learning?.entry_not_triggered_rate ?? null,
-        ),
-        lineValue("Avg best R", input.outcome_learning?.avg_best_r ?? null),
-        lineValue("Avg worst R", input.outcome_learning?.avg_worst_r ?? null),
-        lineValue(
           "Primary insight",
           compact(input.outcome_learning?.primary_insight?.title, "none"),
         ),
         lineValue(
-          "Primary reason",
+          "Latest evaluated batch",
+          compact(input.outcome_learning?.batch_fingerprint, "none"),
+        ),
+        lineValue(
+          "Entry triggered / missed",
+          `${input.outcome_learning?.entry_triggered_rate ?? "unknown"} / ${input.outcome_learning?.entry_not_triggered_rate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Avg best/worst R",
+          `${input.outcome_learning?.avg_best_r ?? "unknown"} / ${input.outcome_learning?.avg_worst_r ?? "unknown"}`,
+        ),
+        lineValue(
+          "Reason",
           compact(input.outcome_learning?.primary_insight?.reason, "none"),
         ),
         lineValue(
-          "Suggested next review",
+          "Suggested review",
           compact(input.outcome_learning?.suggested_next_review_item, "none"),
         ),
         lineValue(
@@ -2691,18 +2687,8 @@ function buildSections(
           ),
         ),
         lineValue(
-          "Missed but favorable rate",
-          input.outcome_learning?.entry_plan_quality.missed_but_favorable_rate ??
-            null,
-        ),
-        lineValue(
           "Entry too aggressive rate",
           input.outcome_learning?.entry_plan_quality.entry_too_aggressive_rate ??
-            null,
-        ),
-        lineValue(
-          "Target too far signal",
-          input.outcome_learning?.entry_plan_quality.target_too_far_signal ??
             null,
         ),
         lineValue(
@@ -2714,36 +2700,12 @@ function buildSections(
           ),
         ),
         lineValue(
-          "Original / best trigger",
+          "Original/best trigger",
           `${input.outcome_learning?.entry_plan_quality.counterfactual_entry_simulation.original_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.entry_plan_quality.counterfactual_entry_simulation.best_variant_trigger_rate ?? "unknown"}`,
-        ),
-        lineValue(
-          "Counterfactual reason",
-          compact(
-            input.outcome_learning?.entry_plan_quality
-              .counterfactual_entry_simulation.counterfactual_primary_reason,
-            "none",
-          ),
         ),
         lineValue(
           "Shadow trial",
           `${compact(input.outcome_learning?.shadow_entry_trial.variant, "none")} / ${compact(input.outcome_learning?.shadow_entry_trial.status, "not_started")}`,
-        ),
-        lineValue(
-          "Official / shadow trigger",
-          `${input.outcome_learning?.shadow_entry_trial.official_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_entry_trigger_rate ?? "unknown"}`,
-        ),
-        lineValue(
-          "Official / shadow avg best R",
-          `${input.outcome_learning?.shadow_entry_trial.official_avg_best_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? "unknown"}`,
-        ),
-        lineValue(
-          "Official / shadow avg worst R",
-          `${input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ?? "unknown"}`,
-        ),
-        lineValue(
-          "Shadow warning",
-          compact(input.outcome_learning?.shadow_entry_trial.warning, "not live signal"),
         ),
       ],
       metrics: {
@@ -2957,10 +2919,6 @@ function buildSections(
           : "info",
       lines: [
         lineValue(
-          "Proposal",
-          compact(input.entry_tuning_proposal?.proposal_id, "none"),
-        ),
-        lineValue(
           "Proposed variant",
           compact(
             input.entry_tuning_proposal?.proposed_entry_variant,
@@ -2981,12 +2939,6 @@ function buildSections(
         lineValue(
           "Evidence",
           compact(input.entry_tuning_proposal?.evidence_summary, "none"),
-        ),
-        lineValue(
-          "Risk notes",
-          (input.entry_tuning_proposal?.risk_notes ?? []).length > 0
-            ? (input.entry_tuning_proposal?.risk_notes ?? []).join(" | ")
-            : "none",
         ),
         lineValue(
           "Sample size",
@@ -3072,10 +3024,17 @@ function buildTextPayload(input: {
     input.blockers.length === 0
       ? "- None"
       : input.blockers.map((item) => `- [${item.source}] ${item.message}`).join("\n");
-  const warningText =
-    input.warnings.length === 0
-      ? "- None"
-      : input.warnings.map((item) => `- [${item.source}] ${item.message}`).join("\n");
+  const groupedWarnings = warningBuckets(input.warnings);
+  const warningGroupText = (
+    label: string,
+    items: MarketDiagnosticsConsoleWarning[],
+  ) =>
+    [
+      `${label}:`,
+      ...(items.length === 0
+        ? ["- None"]
+        : items.map((item) => `- [${item.source}] ${item.message}`)),
+    ].join("\n");
 
   return [
     "TURE MARKET DIAGNOSTICS",
@@ -3088,8 +3047,12 @@ function buildTextPayload(input: {
     "Top blockers:",
     blockerText,
     "",
-    "Top warnings:",
-    warningText,
+    "Warnings:",
+    warningGroupText("Action needed", groupedWarnings.actionNeeded),
+    "",
+    warningGroupText("Informational", groupedWarnings.informational),
+    "",
+    warningGroupText("Expected state", groupedWarnings.expectedState),
   ].join("\n");
 }
 
@@ -3101,6 +3064,18 @@ function buildMarkdownPayload(input: {
   blockers: MarketDiagnosticsConsoleWarning[];
   warnings: MarketDiagnosticsConsoleWarning[];
 }) {
+  const groupedWarnings = warningBuckets(input.warnings);
+  const warningGroupMarkdown = (
+    label: string,
+    items: MarketDiagnosticsConsoleWarning[],
+  ) => [
+    `## ${label}`,
+    ...(items.length === 0
+      ? ["- None"]
+      : items.map((item) => `- [${item.source}] ${item.message}`)),
+    "",
+  ];
+
   return [
     "# Ture Market Diagnostics",
     "",
@@ -3118,10 +3093,9 @@ function buildMarkdownPayload(input: {
       ? ["- None"]
       : input.blockers.map((item) => `- [${item.source}] ${item.message}`)),
     "",
-    "## Top warnings",
-    ...(input.warnings.length === 0
-      ? ["- None"]
-      : input.warnings.map((item) => `- [${item.source}] ${item.message}`)),
+    ...warningGroupMarkdown("Action needed", groupedWarnings.actionNeeded),
+    ...warningGroupMarkdown("Informational", groupedWarnings.informational),
+    ...warningGroupMarkdown("Expected state", groupedWarnings.expectedState),
   ].join("\n");
 }
 
