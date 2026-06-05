@@ -281,6 +281,11 @@ import {
   type RecommendationOutcomeLearningInsightsSummary,
 } from "@/lib/recommendation-outcome-learning-insights";
 import {
+  buildEntryTuningProposal,
+  entryTuningProposalJson,
+  type EntryTuningProposal,
+} from "@/lib/entry-tuning-proposal";
+import {
   buildRecommendationSampleQualitySummary,
   recommendationSampleQualitySummaryJson,
   type RecommendationSampleQualityCoverage,
@@ -12419,6 +12424,15 @@ export function TradeApp() {
     recommendationOutcomeLearningInsightsSummaryJson(
       recommendationOutcomeLearningInsightsSummary,
     );
+  const entryTuningProposal = buildEntryTuningProposal({
+    learning_insights: recommendationOutcomeLearningInsightsSummary,
+    evaluated_batch_count: outcomeBatchGroups.filter(
+      (group) => group.evaluated_count > 0,
+    ).length,
+    now: currentTime,
+  });
+  const entryTuningProposalJsonText =
+    entryTuningProposalJson(entryTuningProposal);
   const recommendationLearningInsightsSummary =
     buildRecommendationLearningInsightsSummary({
       performance: recommendationPerformanceStatistics,
@@ -12809,6 +12823,7 @@ export function TradeApp() {
               : latestEvaluatedBatchTickerList,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
+      entry_tuning_proposal: entryTuningProposal,
       scan_readback: {
         current_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
@@ -13940,6 +13955,8 @@ export function TradeApp() {
               recommendationOutcomeLearningInsightsJson={
                 recommendationOutcomeLearningInsightsSummaryJsonText
               }
+              entryTuningProposal={entryTuningProposal}
+              entryTuningProposalJson={entryTuningProposalJsonText}
               recommendationLearningInsights={
                 recommendationLearningInsightsSummary
               }
@@ -16527,6 +16544,8 @@ function StatisticsDashboardPanel({
   recommendationBatchLearningInsightsJson,
   recommendationOutcomeLearningInsights,
   recommendationOutcomeLearningInsightsJson,
+  entryTuningProposal,
+  entryTuningProposalJson,
   recommendationLearningInsights,
   recommendationLearningInsightsJson,
   recommendationSampleQuality,
@@ -16551,6 +16570,8 @@ function StatisticsDashboardPanel({
   recommendationBatchLearningInsightsJson: string;
   recommendationOutcomeLearningInsights: RecommendationOutcomeLearningInsightsSummary;
   recommendationOutcomeLearningInsightsJson: string;
+  entryTuningProposal: EntryTuningProposal;
+  entryTuningProposalJson: string;
   recommendationLearningInsights: RecommendationLearningInsightsSummary;
   recommendationLearningInsightsJson: string;
   recommendationSampleQuality: RecommendationSampleQualitySummary;
@@ -16816,6 +16837,8 @@ function StatisticsDashboardPanel({
               <RecommendationOutcomeLearningInsightsPanel
                 summary={recommendationOutcomeLearningInsights}
                 summaryJson={recommendationOutcomeLearningInsightsJson}
+                entryTuningProposal={entryTuningProposal}
+                entryTuningProposalJson={entryTuningProposalJson}
               />
             </div>
 
@@ -18098,9 +18121,13 @@ function recommendationOutcomeLearningInsightTone(
 function RecommendationOutcomeLearningInsightsPanel({
   summary,
   summaryJson,
+  entryTuningProposal,
+  entryTuningProposalJson,
 }: {
   summary: RecommendationOutcomeLearningInsightsSummary;
   summaryJson: string;
+  entryTuningProposal: EntryTuningProposal;
+  entryTuningProposalJson: string;
 }) {
   const primaryInsight = summary.primary_insight;
 
@@ -18332,6 +18359,56 @@ function RecommendationOutcomeLearningInsightsPanel({
         </div>
       </div>
 
+      <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+              Entry Tuning Proposal
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-100">
+              {entryTuningProposal.proposed_entry_variant?.replace(/_/g, " ") ??
+                "No variant proposed"}
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
+            {entryTuningProposal.confidence} /{" "}
+            {entryTuningProposal.recommended_action.replace(/_/g, " ")}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-zinc-400">
+          {entryTuningProposal.evidence_summary}
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Detail
+            label="Trigger change"
+            value={formatPercent(
+              entryTuningProposal.expected_trigger_rate_change,
+            )}
+          />
+          <Detail
+            label="Best R change"
+            value={formatRecommendationPerformanceR(
+              entryTuningProposal.expected_avg_best_r_change,
+            )}
+          />
+          <Detail
+            label="Worst R change"
+            value={formatRecommendationPerformanceR(
+              entryTuningProposal.expected_avg_worst_r_change,
+            )}
+          />
+          <Detail
+            label="Sample size"
+            value={`${entryTuningProposal.sample_size.evaluated_outcomes} outcomes / ${entryTuningProposal.sample_size.evaluated_batches} batches`}
+          />
+        </div>
+        <ul className="mt-3 space-y-1 text-xs leading-5 text-zinc-400">
+          {entryTuningProposal.risk_notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      </div>
+
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
@@ -18388,6 +18465,20 @@ function RecommendationOutcomeLearningInsightsPanel({
         }
       >
         {summaryJson}
+      </pre>
+      <pre
+        id="entry_tuning_proposal_json"
+        className="sr-only"
+        data-proposal-id={entryTuningProposal.proposal_id}
+        data-proposed-entry-variant={
+          entryTuningProposal.proposed_entry_variant ?? ""
+        }
+        data-proposal-confidence={entryTuningProposal.confidence}
+        data-proposal-recommended-action={
+          entryTuningProposal.recommended_action
+        }
+      >
+        {entryTuningProposalJson}
       </pre>
     </section>
   );

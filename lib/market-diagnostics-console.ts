@@ -8,6 +8,7 @@ import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
 import type { RealRecommendationOutputReadinessSummary } from "@/lib/real-recommendation-output-readiness";
 import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memory";
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
+import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
 import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
@@ -235,6 +236,7 @@ export type MarketDiagnosticsConsoleInput = {
     tickers_evaluated?: string[];
   } | null;
   outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
+  entry_tuning_proposal?: EntryTuningProposal | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
   batch_memory: RecommendationBatchSummary;
@@ -2229,6 +2231,83 @@ function buildSections(
           input.outcome_learning?.entry_plan_quality
             .counterfactual_entry_simulation.recommendation_summaries ?? [],
         ),
+      },
+    }),
+    section({
+      section_id: "entry_tuning_proposal",
+      title: "Entry Tuning Proposal",
+      severity:
+        input.entry_tuning_proposal?.confidence === "high"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Proposal",
+          compact(input.entry_tuning_proposal?.proposal_id, "none"),
+        ),
+        lineValue(
+          "Proposed variant",
+          compact(
+            input.entry_tuning_proposal?.proposed_entry_variant,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Confidence",
+          compact(input.entry_tuning_proposal?.confidence, "unknown"),
+        ),
+        lineValue(
+          "Recommended action",
+          compact(
+            input.entry_tuning_proposal?.recommended_action,
+            "unknown",
+          ),
+        ),
+        lineValue(
+          "Evidence",
+          compact(input.entry_tuning_proposal?.evidence_summary, "none"),
+        ),
+        lineValue(
+          "Risk notes",
+          (input.entry_tuning_proposal?.risk_notes ?? []).length > 0
+            ? (input.entry_tuning_proposal?.risk_notes ?? []).join(" | ")
+            : "none",
+        ),
+        lineValue(
+          "Sample size",
+          `${input.entry_tuning_proposal?.sample_size.evaluated_outcomes ?? 0} outcomes / ${input.entry_tuning_proposal?.sample_size.evaluated_batches ?? 0} batches`,
+        ),
+      ],
+      metrics: {
+        proposal_id:
+          input.entry_tuning_proposal?.diagnostics.proposal_id ?? null,
+        proposed_entry_variant:
+          input.entry_tuning_proposal?.diagnostics.proposed_entry_variant ??
+          null,
+        proposal_confidence:
+          input.entry_tuning_proposal?.diagnostics.proposal_confidence ?? null,
+        proposal_recommended_action:
+          input.entry_tuning_proposal?.diagnostics
+            .proposal_recommended_action ?? null,
+        expected_trigger_rate_change:
+          input.entry_tuning_proposal?.expected_trigger_rate_change ?? null,
+        expected_avg_best_r_change:
+          input.entry_tuning_proposal?.expected_avg_best_r_change ?? null,
+        expected_avg_worst_r_change:
+          input.entry_tuning_proposal?.expected_avg_worst_r_change ?? null,
+        risk_notes: (
+          input.entry_tuning_proposal?.risk_notes ?? []
+        ).join("; "),
+        sample_evaluated_outcomes:
+          input.entry_tuning_proposal?.sample_size.evaluated_outcomes ?? null,
+        sample_evaluated_recommendations:
+          input.entry_tuning_proposal?.sample_size.evaluated_recommendations ??
+          null,
+        sample_simulated_recommendations:
+          input.entry_tuning_proposal?.sample_size.simulated_recommendations ??
+          null,
+        sample_evaluated_batches:
+          input.entry_tuning_proposal?.sample_size.evaluated_batches ?? null,
       },
     }),
   ];
