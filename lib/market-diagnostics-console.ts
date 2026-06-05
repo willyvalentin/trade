@@ -220,6 +220,13 @@ export type MarketDiagnosticsConsoleInput = {
     empty_candle_response_count?: number | null;
     provider_limit_count?: number | null;
     candle_request_debug_sample?: Array<Record<string, unknown>>;
+    enrichment_mode?: boolean | null;
+    completed_outcomes_seen_count?: number | null;
+    completed_outcomes_enriched_count?: number | null;
+    completed_outcomes_skipped_already_enriched_count?: number | null;
+    retained_candles_added_count?: number | null;
+    retained_candles_available_count?: number | null;
+    counterfactual_ready_count?: number | null;
     outcome_provider_budget_status?: string | null;
     next_retry_suggestion?: string | null;
     persistence_status?: string | null;
@@ -1882,6 +1889,22 @@ function buildSections(
             : "none",
         ),
         lineValue(
+          "Enrichment mode",
+          bool(input.outcome_evaluation?.enrichment_mode === true),
+        ),
+        lineValue(
+          "Completed seen/enriched/skipped",
+          `${input.outcome_evaluation?.completed_outcomes_seen_count ?? 0}/${input.outcome_evaluation?.completed_outcomes_enriched_count ?? 0}/${input.outcome_evaluation?.completed_outcomes_skipped_already_enriched_count ?? 0}`,
+        ),
+        lineValue(
+          "Retained candles / counterfactual ready",
+          `${input.outcome_evaluation?.retained_candles_added_count ?? 0}/${input.outcome_evaluation?.counterfactual_ready_count ?? 0}`,
+        ),
+        lineValue(
+          "Retained candles available",
+          input.outcome_evaluation?.retained_candles_available_count ?? 0,
+        ),
+        lineValue(
           "Provider limit warning",
           bool(input.outcome_evaluation?.provider_limit_warning === true),
         ),
@@ -2007,6 +2030,20 @@ function buildSections(
         candle_request_debug_sample: JSON.stringify(
           input.outcome_evaluation?.candle_request_debug_sample ?? [],
         ),
+        enrichment_mode: input.outcome_evaluation?.enrichment_mode ?? null,
+        completed_outcomes_seen_count:
+          input.outcome_evaluation?.completed_outcomes_seen_count ?? null,
+        completed_outcomes_enriched_count:
+          input.outcome_evaluation?.completed_outcomes_enriched_count ?? null,
+        completed_outcomes_skipped_already_enriched_count:
+          input.outcome_evaluation
+            ?.completed_outcomes_skipped_already_enriched_count ?? null,
+        retained_candles_added_count:
+          input.outcome_evaluation?.retained_candles_added_count ?? null,
+        retained_candles_available_count:
+          input.outcome_evaluation?.retained_candles_available_count ?? null,
+        counterfactual_ready_count:
+          input.outcome_evaluation?.counterfactual_ready_count ?? null,
         outcome_provider_budget_status:
           input.outcome_evaluation?.outcome_provider_budget_status ?? null,
         next_retry_suggestion:

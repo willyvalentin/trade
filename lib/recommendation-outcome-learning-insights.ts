@@ -425,7 +425,7 @@ function candlesFromOutcomePayload(
     .map((item): RecommendationOutcomeCandle | null => {
       const record = objectValue(item);
       if (!record) return null;
-      const timestamp = candleTimestamp(record.timestamp);
+      const timestamp = candleTimestamp(record.timestamp ?? record.time);
       const high = candleNumber(record.high);
       const low = candleNumber(record.low);
       const close = candleNumber(record.close);

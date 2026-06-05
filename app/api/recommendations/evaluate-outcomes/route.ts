@@ -30,6 +30,7 @@ type EvaluateOutcomesRequest = {
   horizons?: unknown;
   max_snapshots?: unknown;
   max_candle_requests?: unknown;
+  enrich_completed_outcomes?: unknown;
 };
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
@@ -78,7 +79,9 @@ function authDiagnostics(request: Request, expectedSecret: string | undefined) {
 }
 
 function parseMode(value: unknown) {
-  return value === "official_live_today" ? "official_live_today" : "provided_snapshots";
+  return value === "official_live_today" || value === "enrich_completed_outcomes"
+    ? value
+    : "provided_snapshots";
 }
 
 function normalizeProviderPlanMode(value: string | undefined) {
@@ -505,6 +508,15 @@ function candleCount(outcome: RecommendationOutcome) {
   return count === null ? 0 : count;
 }
 
+function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome) {
+  return (
+    outcome.payload_json.retained_candles_available === true ||
+    outcome.payload_json.counterfactual_ready === true ||
+    (Array.isArray(outcome.payload_json.counterfactual_candles) &&
+      outcome.payload_json.counterfactual_candles.length > 0)
+  );
+}
+
 function hasBetterCoverage(
   nextOutcome: RecommendationOutcome,
   existingOutcome: RecommendationOutcome | undefined,
@@ -520,7 +532,14 @@ function hasBetterCoverage(
     statusRank(existingOutcome) * 10 +
     candleCount(existingOutcome);
 
-  return nextScore > existingScore;
+  if (nextScore > existingScore) return true;
+
+  return (
+    nextScore === existingScore &&
+    nextOutcome.status === existingOutcome.status &&
+    !hasRetainedCounterfactualCandles(existingOutcome) &&
+    hasRetainedCounterfactualCandles(nextOutcome)
+  );
 }
 
 function sideReadSource(outcome: RecommendationOutcome) {
@@ -644,6 +663,9 @@ export async function POST(request: Request) {
     | null;
   const mode = parseMode(body?.mode);
   const dryRun = body?.dry_run === true;
+  const enrichmentMode =
+    body?.enrich_completed_outcomes === true ||
+    mode === "enrich_completed_outcomes";
   const batchFingerprint = stringOrNull(body?.batch_fingerprint);
   const now = new Date();
   const providerPlanMode = getProviderPlanMode();
@@ -675,7 +697,7 @@ export async function POST(request: Request) {
         .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null)
     : [];
   const officialSnapshotLoad =
-    mode === "official_live_today"
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadOfficialLiveSnapshots({ batchFingerprint, now })
       : null;
   const snapshots =
@@ -685,7 +707,7 @@ export async function POST(request: Request) {
         ? bodySnapshots
         : await loadRecentSupabaseSnapshots();
   const supabaseOutcomes =
-    mode === "official_live_today"
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadSupabaseOutcomes(
           snapshots.map((snapshot) => snapshot.snapshot_fingerprint),
         )
@@ -700,7 +722,9 @@ export async function POST(request: Request) {
         : readRecommendationOutcomesFromLocalStorage(undefined);
   const maxSnapshots = finiteNumber(body?.max_snapshots);
   const serverSupabase =
-    mode === "official_live_today" ? getServerSupabaseClient() : null;
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
+      ? getServerSupabaseClient()
+      : null;
   const existingByKey = new Map(
     existingOutcomes.map((outcome) => [outcomeKey(outcome), outcome]),
   );
@@ -710,7 +734,10 @@ export async function POST(request: Request) {
     error: string | null;
   }> = [];
 
-  if (mode === "official_live_today" && officialSnapshotLoad?.status !== "ready") {
+  if (
+    (mode === "official_live_today" || mode === "enrich_completed_outcomes") &&
+    officialSnapshotLoad?.status !== "ready"
+  ) {
     const diagnostics = {
       route_version: outcomeEvaluationRouteVersion,
       mode,
@@ -757,6 +784,12 @@ export async function POST(request: Request) {
       persistence_error: officialSnapshotLoad?.error ?? null,
       missing_snapshot_fingerprints:
         officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
+      enrichment_mode: enrichmentMode,
+      completed_outcomes_seen_count: 0,
+      completed_outcomes_enriched_count: 0,
+      completed_outcomes_skipped_already_enriched_count: 0,
+      retained_candles_added_count: 0,
+      counterfactual_ready_count: 0,
     };
 
     return NextResponse.json({
@@ -791,10 +824,11 @@ export async function POST(request: Request) {
     now,
     source: "api",
     provider: "twelve_data",
+    enrichCompletedOutcomes: enrichmentMode,
     fetchCandles,
     persistOutcome: dryRun
       ? undefined
-      : mode === "official_live_today"
+      : mode === "official_live_today" || mode === "enrich_completed_outcomes"
         ? async (outcome): Promise<RecommendationOutcomePersistenceResult> => {
             const key = outcomeKey(outcome);
             const existingOutcome = existingByKey.get(key);
@@ -948,6 +982,16 @@ export async function POST(request: Request) {
     ).length,
     missing_snapshot_fingerprints:
       officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
+    enrichment_mode: run.enrichment_mode,
+    completed_outcomes_seen_count: run.completed_outcomes_seen_count,
+    completed_outcomes_enriched_count:
+      enrichmentMode && !dryRun
+        ? persistenceEvents.filter((event) => event.action === "updated").length
+        : run.completed_outcomes_enriched_count,
+    completed_outcomes_skipped_already_enriched_count:
+      run.completed_outcomes_skipped_already_enriched_count,
+    retained_candles_added_count: run.retained_candles_added_count,
+    counterfactual_ready_count: run.counterfactual_ready_count,
   };
 
   return NextResponse.json({

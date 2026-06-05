@@ -117,6 +117,12 @@ export type RecommendationOutcomeEvaluationRun = {
   unique_candle_requests_count: number;
   empty_candle_response_count: number;
   provider_limit_count: number;
+  enrichment_mode: boolean;
+  completed_outcomes_seen_count: number;
+  completed_outcomes_enriched_count: number;
+  completed_outcomes_skipped_already_enriched_count: number;
+  retained_candles_added_count: number;
+  counterfactual_ready_count: number;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
@@ -133,6 +139,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
   provider?: string | null;
   maxSnapshots?: number;
   maxCandleRequests?: number | null;
+  enrichCompletedOutcomes?: boolean;
   fetchCandles?: (
     request: RecommendationOutcomeCandleRequest,
   ) => Promise<RecommendationOutcomeCandleResult>;
@@ -258,8 +265,8 @@ function annotateOutcome(
 }
 
 function compactOutcomeCandles(candles: RecommendationOutcomeCandle[]) {
-  return candles.slice(0, 96).map((candle) => ({
-    timestamp:
+  return candles.slice(0, 96).map((candle) => {
+    const time =
       candle.timestamp instanceof Date
         ? candle.timestamp.toISOString()
         : typeof candle.timestamp === "number"
@@ -268,13 +275,43 @@ function compactOutcomeCandles(candles: RecommendationOutcomeCandle[]) {
                 ? candle.timestamp
                 : candle.timestamp * 1000,
             ).toISOString()
-          : candle.timestamp,
-    open: candle.open ?? null,
-    high: candle.high ?? null,
-    low: candle.low ?? null,
-    close: candle.close ?? null,
-    volume: candle.volume ?? null,
-  }));
+          : candle.timestamp;
+
+    return {
+      time,
+      timestamp: time,
+      open: candle.open ?? null,
+      high: candle.high ?? null,
+      low: candle.low ?? null,
+      close: candle.close ?? null,
+      volume: candle.volume ?? null,
+    };
+  });
+}
+
+function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome | undefined) {
+  if (!outcome) {
+    return false;
+  }
+
+  return (
+    outcome.payload_json.retained_candles_available === true ||
+    outcome.payload_json.counterfactual_ready === true ||
+    (Array.isArray(outcome.payload_json.counterfactual_candles) &&
+      outcome.payload_json.counterfactual_candles.length > 0)
+  );
+}
+
+function retainedCandlePayload(candles: RecommendationOutcomeCandle[]) {
+  const retainedCandles = compactOutcomeCandles(candles);
+
+  return {
+    counterfactual_candles: retainedCandles,
+    counterfactual_candle_source: "horizon_filtered_intraday_candles",
+    retained_candles_available: retainedCandles.length > 0,
+    retained_candle_count: retainedCandles.length,
+    counterfactual_ready: retainedCandles.length > 0,
+  };
 }
 
 function createRunId(startedAt: string) {
@@ -461,6 +498,7 @@ export async function runRecommendationOutcomeEvaluation(
   const existingOutcomes = options.existingOutcomes ?? [];
   const maxSnapshots = options.maxSnapshots ?? defaultMaxSnapshots;
   const fetchCandles = options.fetchCandles;
+  const enrichmentMode = options.enrichCompletedOutcomes === true;
   const sortedSnapshots = [...options.snapshots]
     .filter((snapshot) => snapshot.is_visible !== false)
     .sort((first, second) => {
@@ -499,6 +537,12 @@ export async function runRecommendationOutcomeEvaluation(
       unique_candle_requests_count: 0,
       empty_candle_response_count: 0,
       provider_limit_count: 0,
+      enrichment_mode: enrichmentMode,
+      completed_outcomes_seen_count: 0,
+      completed_outcomes_enriched_count: 0,
+      completed_outcomes_skipped_already_enriched_count: 0,
+      retained_candles_added_count: 0,
+      counterfactual_ready_count: 0,
       candle_request_debug_sample: [],
       candidates,
       outcomes,
@@ -518,6 +562,11 @@ export async function runRecommendationOutcomeEvaluation(
   let candleRequestsBeforeReuse = 0;
   let skippedDueToBudgetCount = 0;
   let retryIncompleteCount = 0;
+  let completedOutcomesSeenCount = 0;
+  let completedOutcomesEnrichedCount = 0;
+  let completedOutcomesSkippedAlreadyEnrichedCount = 0;
+  let retainedCandlesAddedCount = 0;
+  let counterfactualReadyCount = 0;
   const candleRequestDebugSample: Record<string, unknown>[] = [];
 
   for (const snapshot of sortedSnapshots) {
@@ -539,7 +588,26 @@ export async function runRecommendationOutcomeEvaluation(
         retryIncompleteCount += 1;
       }
 
-      if (!isOutcomePending(existingOutcome)) {
+      const existingOutcomeCompleted = !isOutcomePending(existingOutcome);
+      const existingOutcomeNeedsEnrichment =
+        existingOutcomeCompleted && !hasRetainedCounterfactualCandles(existingOutcome);
+
+      if (existingOutcomeCompleted) {
+        completedOutcomesSeenCount += 1;
+      }
+
+      if (
+        existingOutcomeCompleted &&
+        enrichmentMode &&
+        !existingOutcomeNeedsEnrichment
+      ) {
+        completedOutcomesSkippedAlreadyEnrichedCount += 1;
+      }
+
+      if (
+        existingOutcomeCompleted &&
+        (!enrichmentMode || !existingOutcomeNeedsEnrichment)
+      ) {
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -553,7 +621,11 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: existingOutcome?.id ?? null,
           outcome_status: existingOutcome?.status ?? null,
           persistence_mode: "unknown",
-          warnings: ["Outcome already has a terminal or completed status."],
+          warnings: [
+            enrichmentMode && !existingOutcomeNeedsEnrichment
+              ? "Outcome already has retained candles for counterfactual simulation."
+              : "Outcome already has a terminal or completed status.",
+          ],
           error: null,
         });
         continue;
@@ -762,11 +834,18 @@ export async function runRecommendationOutcomeEvaluation(
           candle_request_debug: candleResult.diagnostics ?? null,
           ...horizonFilterDiagnostics,
         });
-        const persistence = options.persistOutcome
-          ? await options.persistOutcome(outcome)
-          : null;
+        const shouldRetainExistingCompleted =
+          enrichmentMode &&
+          work.existingOutcome !== undefined &&
+          !isOutcomePending(work.existingOutcome);
+        const persistence =
+          shouldRetainExistingCompleted || !options.persistOutcome
+            ? null
+            : await options.persistOutcome(outcome);
 
-        outcomes.push(outcome);
+        if (!shouldRetainExistingCompleted) {
+          outcomes.push(outcome);
+        }
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
           snapshot_id: snapshot.id,
@@ -774,18 +853,28 @@ export async function runRecommendationOutcomeEvaluation(
           recommendation_id: snapshot.recommendation_id,
           ticker: snapshot.ticker,
           horizon: work.horizon,
-          status:
-            candleResult.status === "provider_error"
+          status: shouldRetainExistingCompleted
+            ? "skipped"
+            : candleResult.status === "provider_error"
               ? "provider_error"
               : "pending_candles",
           candle_request: work.request,
           candle_count: horizonCandles.length,
           ...horizonFilterDiagnostics,
-          outcome_id: outcome.id,
-          outcome_status: outcome.status,
+          outcome_id: shouldRetainExistingCompleted
+            ? work.existingOutcome?.id ?? outcome.id
+            : outcome.id,
+          outcome_status: shouldRetainExistingCompleted
+            ? work.existingOutcome?.status ?? outcome.status
+            : outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          warnings: outcome.warnings,
-          error: reason,
+          warnings: shouldRetainExistingCompleted
+            ? [
+                "Completed outcome retained unchanged; enrichment candles were unavailable.",
+                ...outcome.warnings,
+              ]
+            : outcome.warnings,
+          error: shouldRetainExistingCompleted ? null : reason,
         });
         warnings.push(
           warning(
@@ -812,14 +901,24 @@ export async function runRecommendationOutcomeEvaluation(
       });
       const outcome = annotateOutcome(result.outcome, {
         ...horizonFilterDiagnostics,
-        counterfactual_candles: compactOutcomeCandles(horizonCandles),
-        counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        ...retainedCandlePayload(horizonCandles),
       });
       const persistence = options.persistOutcome
         ? await options.persistOutcome(outcome)
         : null;
 
       outcomes.push(outcome);
+      if (
+        enrichmentMode &&
+        work.existingOutcome !== undefined &&
+        !isOutcomePending(work.existingOutcome)
+      ) {
+        completedOutcomesEnrichedCount += 1;
+      }
+      if (horizonCandles.length > 0) {
+        retainedCandlesAddedCount += 1;
+        counterfactualReadyCount += 1;
+      }
       candidates.push({
         candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
         snapshot_id: snapshot.id,
@@ -922,6 +1021,13 @@ export async function runRecommendationOutcomeEvaluation(
     unique_candle_requests_count: candleRequestsExecuted,
     empty_candle_response_count: emptyCandleResponseCount,
     provider_limit_count: providerLimitCount,
+    enrichment_mode: enrichmentMode,
+    completed_outcomes_seen_count: completedOutcomesSeenCount,
+    completed_outcomes_enriched_count: completedOutcomesEnrichedCount,
+    completed_outcomes_skipped_already_enriched_count:
+      completedOutcomesSkippedAlreadyEnrichedCount,
+    retained_candles_added_count: retainedCandlesAddedCount,
+    counterfactual_ready_count: counterfactualReadyCount,
     candle_request_debug_sample: candleRequestDebugSample,
     candidates,
     outcomes,

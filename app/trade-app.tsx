@@ -1119,6 +1119,12 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   emptyCandleResponseCount: number;
   providerLimitCount: number;
   candleRequestDebugSample: Record<string, unknown>[];
+  enrichmentMode: boolean;
+  completedOutcomesSeenCount: number;
+  completedOutcomesEnrichedCount: number;
+  completedOutcomesSkippedAlreadyEnrichedCount: number;
+  retainedCandlesAddedCount: number;
+  counterfactualReadyCount: number;
   outcomeProviderBudgetStatus: string | null;
   nextRetrySuggestion: string | null;
   summary: string;
@@ -7879,6 +7885,12 @@ export function TradeApp() {
     emptyCandleResponseCount: 0,
     providerLimitCount: 0,
     candleRequestDebugSample: [],
+    enrichmentMode: false,
+    completedOutcomesSeenCount: 0,
+    completedOutcomesEnrichedCount: 0,
+    completedOutcomesSkippedAlreadyEnrichedCount: 0,
+    retainedCandlesAddedCount: 0,
+    counterfactualReadyCount: 0,
     outcomeProviderBudgetStatus: null,
     nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
@@ -12765,6 +12777,22 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.providerLimitCount,
         candle_request_debug_sample:
           recommendationOutcomeEvaluationDiagnostics.candleRequestDebugSample,
+        enrichment_mode: recommendationOutcomeEvaluationDiagnostics.enrichmentMode,
+        completed_outcomes_seen_count:
+          recommendationOutcomeEvaluationDiagnostics.completedOutcomesSeenCount,
+        completed_outcomes_enriched_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .completedOutcomesEnrichedCount,
+        completed_outcomes_skipped_already_enriched_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .completedOutcomesSkippedAlreadyEnrichedCount,
+        retained_candles_added_count:
+          recommendationOutcomeEvaluationDiagnostics.retainedCandlesAddedCount,
+        counterfactual_ready_count:
+          recommendationOutcomeEvaluationDiagnostics.counterfactualReadyCount,
+        retained_candles_available_count:
+          recommendationOutcomeLearningInsightsSummary.entry_plan_quality
+            .counterfactual_entry_simulation.simulated_recommendation_count,
         outcome_provider_budget_status:
           recommendationOutcomeEvaluationDiagnostics.outcomeProviderBudgetStatus,
         next_retry_suggestion:
@@ -13444,6 +13472,34 @@ export function TradeApp() {
           : Array.isArray(run.candle_request_debug_sample)
             ? run.candle_request_debug_sample
             : [],
+        enrichmentMode:
+          routeDiagnostics.enrichment_mode === true ||
+          run.enrichment_mode === true,
+        completedOutcomesSeenCount: Number(
+          routeDiagnostics.completed_outcomes_seen_count ??
+            run.completed_outcomes_seen_count ??
+            0,
+        ),
+        completedOutcomesEnrichedCount: Number(
+          routeDiagnostics.completed_outcomes_enriched_count ??
+            run.completed_outcomes_enriched_count ??
+            0,
+        ),
+        completedOutcomesSkippedAlreadyEnrichedCount: Number(
+          routeDiagnostics.completed_outcomes_skipped_already_enriched_count ??
+            run.completed_outcomes_skipped_already_enriched_count ??
+            0,
+        ),
+        retainedCandlesAddedCount: Number(
+          routeDiagnostics.retained_candles_added_count ??
+            run.retained_candles_added_count ??
+            0,
+        ),
+        counterfactualReadyCount: Number(
+          routeDiagnostics.counterfactual_ready_count ??
+            run.counterfactual_ready_count ??
+            0,
+        ),
         outcomeProviderBudgetStatus:
           typeof routeDiagnostics.outcome_provider_budget_status === "string"
             ? routeDiagnostics.outcome_provider_budget_status
