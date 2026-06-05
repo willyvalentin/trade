@@ -168,6 +168,12 @@ export type MarketDiagnosticsConsoleInput = {
   } | null;
   outcome_evaluation?: {
     current_batch_fingerprint?: string | null;
+    current_official_batch_fingerprint?: string | null;
+    current_batch_expected_outcomes?: number | null;
+    current_batch_persisted_outcomes?: number | null;
+    learning_insights_source_batch_fingerprint?: string | null;
+    learning_insights_source_reason?: string | null;
+    latest_counterfactual_ready_batch_fingerprint?: string | null;
     latest_evaluated_batch_fingerprint?: string | null;
     current_batch_snapshot_count?: number | null;
     expected_outcome_count?: number | null;
@@ -1758,6 +1764,32 @@ function buildSections(
           compact(input.outcome_evaluation?.current_batch_fingerprint, "none"),
         ),
         lineValue(
+          "Current batch expected/persisted",
+          `${input.outcome_evaluation?.current_batch_expected_outcomes ?? 0}/${input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0}`,
+        ),
+        lineValue(
+          "Learning source batch",
+          compact(
+            input.outcome_evaluation?.learning_insights_source_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Learning source reason",
+          compact(
+            input.outcome_evaluation?.learning_insights_source_reason,
+            "unknown",
+          ),
+        ),
+        lineValue(
+          "Latest counterfactual-ready batch",
+          compact(
+            input.outcome_evaluation
+              ?.latest_counterfactual_ready_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
           "Latest evaluated batch",
           compact(
             input.outcome_evaluation?.latest_evaluated_batch_fingerprint,
@@ -1918,6 +1950,20 @@ function buildSections(
       metrics: {
         current_batch_fingerprint:
           input.outcome_evaluation?.current_batch_fingerprint ?? null,
+        current_official_batch_fingerprint:
+          input.outcome_evaluation?.current_official_batch_fingerprint ?? null,
+        current_batch_expected_outcomes:
+          input.outcome_evaluation?.current_batch_expected_outcomes ?? null,
+        current_batch_persisted_outcomes:
+          input.outcome_evaluation?.current_batch_persisted_outcomes ?? null,
+        learning_insights_source_batch_fingerprint:
+          input.outcome_evaluation
+            ?.learning_insights_source_batch_fingerprint ?? null,
+        learning_insights_source_reason:
+          input.outcome_evaluation?.learning_insights_source_reason ?? null,
+        latest_counterfactual_ready_batch_fingerprint:
+          input.outcome_evaluation
+            ?.latest_counterfactual_ready_batch_fingerprint ?? null,
         latest_evaluated_batch_fingerprint:
           input.outcome_evaluation?.latest_evaluated_batch_fingerprint ?? null,
         current_batch_snapshot_count:

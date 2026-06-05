@@ -5917,6 +5917,15 @@ function outcomeHasProviderLimitWarning(outcome: RecommendationOutcome) {
   );
 }
 
+function outcomeHasRetainedCounterfactualCandles(outcome: RecommendationOutcome) {
+  return (
+    outcome.payload_json.counterfactual_ready === true ||
+    outcome.payload_json.retained_candles_available === true ||
+    (Array.isArray(outcome.payload_json.counterfactual_candles) &&
+      outcome.payload_json.counterfactual_candles.length > 0)
+  );
+}
+
 function outcomeDataCompletenessRank(outcome: RecommendationOutcome) {
   if (outcome.data_completeness === "complete") return 3;
   if (outcome.data_completeness === "partial") return 2;
@@ -10692,6 +10701,14 @@ export function TradeApp() {
     const latestEvaluatedAt = latestIso(
       outcomes.map((outcome) => outcome.evaluated_at),
     );
+    const completeEvaluatedOutcomes = outcomes.filter(
+      (outcome) =>
+        currentBatchCompletedOutcomeStatuses.has(outcome.status) &&
+        outcome.data_completeness === "complete",
+    );
+    const counterfactualReadyOutcomes = completeEvaluatedOutcomes.filter(
+      outcomeHasRetainedCounterfactualCandles,
+    );
 
     return {
       batch: group.batch,
@@ -10703,6 +10720,8 @@ export function TradeApp() {
       latest_evaluated_time:
         latestEvaluatedAt === null ? 0 : new Date(latestEvaluatedAt).getTime(),
       outcome_rows_count: outcomes.length,
+      complete_evaluated_count: completeEvaluatedOutcomes.length,
+      counterfactual_ready_count: counterfactualReadyOutcomes.length,
       evaluated_count: outcomes.filter((outcome) =>
         currentBatchCompletedOutcomeStatuses.has(outcome.status),
       ).length,
@@ -10735,8 +10754,70 @@ export function TradeApp() {
 
         return second.outcome_rows_count - first.outcome_rows_count;
       })[0] ?? null;
+  const latestCounterfactualReadyBatchGroup =
+    [...outcomeBatchGroups]
+      .filter(
+        (group) =>
+          group.counterfactual_ready_count > 0 &&
+          Number.isFinite(group.latest_evaluated_time),
+      )
+      .sort((first, second) => {
+        if (second.latest_evaluated_time !== first.latest_evaluated_time) {
+          return second.latest_evaluated_time - first.latest_evaluated_time;
+        }
+
+        return second.counterfactual_ready_count - first.counterfactual_ready_count;
+      })[0] ?? null;
+  const latestCompleteEvaluatedBatchGroup =
+    [...outcomeBatchGroups]
+      .filter(
+        (group) =>
+          group.complete_evaluated_count > 0 &&
+          Number.isFinite(group.latest_evaluated_time),
+      )
+      .sort((first, second) => {
+        const counterfactualDelta =
+          second.counterfactual_ready_count - first.counterfactual_ready_count;
+
+        if (counterfactualDelta !== 0) return counterfactualDelta;
+
+        if (second.latest_evaluated_time !== first.latest_evaluated_time) {
+          return second.latest_evaluated_time - first.latest_evaluated_time;
+        }
+
+        return second.complete_evaluated_count - first.complete_evaluated_count;
+      })[0] ?? null;
+  const learningInsightsSourceBatchGroup =
+    latestCounterfactualReadyBatchGroup ?? latestCompleteEvaluatedBatchGroup ?? null;
+  const learningInsightsSourceBatchFingerprint =
+    learningInsightsSourceBatchGroup?.batch_fingerprint ?? null;
+  const learningInsightsSourceReason =
+    latestCounterfactualReadyBatchGroup !== null
+      ? "latest_counterfactual_ready_batch"
+      : latestCompleteEvaluatedBatchGroup !== null
+        ? "latest_complete_evaluated_batch"
+        : currentBatchStoredOutcomes.length === 0 && currentBatchExpectedOutcomeCount > 0
+          ? "current_batch_pending_outcome_evaluation"
+          : outcomeAssociations.length > 0
+            ? "no_complete_evaluated_batch"
+            : "no_outcome_rows_loaded";
+  const latestCounterfactualReadyBatchFingerprint =
+    latestCounterfactualReadyBatchGroup?.batch_fingerprint ?? null;
   const latestEvaluatedBatchFingerprint =
     latestEvaluatedBatchGroup?.batch_fingerprint ?? null;
+  const learningInsightsSourceAssociations =
+    learningInsightsSourceBatchGroup?.associations ?? [];
+  const learningInsightsSourceSnapshots = Array.from(
+    new Map(
+      learningInsightsSourceAssociations
+        .map((item) => item.snapshot)
+        .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null)
+        .map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+    ).values(),
+  );
+  const learningInsightsSourceOutcomes = learningInsightsSourceAssociations.map(
+    (item) => item.outcome,
+  );
   const latestEvaluatedBatchAssociations = outcomeAssociations.filter(
     (item) =>
       latestEvaluatedBatchFingerprint !== null &&
@@ -12415,9 +12496,9 @@ export function TradeApp() {
     );
   const recommendationOutcomeLearningInsightsSummary =
     buildRecommendationOutcomeLearningInsightsSummary({
-      batch_fingerprint: latestEvaluatedBatchFingerprint,
-      snapshots: latestEvaluatedBatchSnapshots,
-      outcomes: latestEvaluatedBatchOutcomes,
+      batch_fingerprint: learningInsightsSourceBatchFingerprint,
+      snapshots: learningInsightsSourceSnapshots,
+      outcomes: learningInsightsSourceOutcomes,
       now: currentTime,
     });
   const recommendationOutcomeLearningInsightsSummaryJsonText =
@@ -12696,6 +12777,15 @@ export function TradeApp() {
       outcome_evaluation: {
         current_batch_fingerprint:
           outcomeDiagnosticsBatchFingerprint,
+        current_official_batch_fingerprint:
+          latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+        current_batch_expected_outcomes: currentBatchExpectedOutcomeCount,
+        current_batch_persisted_outcomes: currentBatchStoredOutcomes.length,
+        learning_insights_source_batch_fingerprint:
+          learningInsightsSourceBatchFingerprint,
+        learning_insights_source_reason: learningInsightsSourceReason,
+        latest_counterfactual_ready_batch_fingerprint:
+          latestCounterfactualReadyBatchFingerprint,
         latest_evaluated_batch_fingerprint: latestEvaluatedBatchFingerprint,
         current_batch_snapshot_count: outcomeDiagnosticsSnapshots.length,
         expected_outcome_count:
