@@ -207,7 +207,7 @@ export function buildRecommendationServingCadenceSummary(
     summary_kind: "recommendation_serving_cadence",
     generated_at: now.toISOString(),
     trading_date: input.tradingDate,
-    status: determineStatus(servingDecision, batchStatus),
+    status: determineStatus(servingDecision, batchStatus, visibleCount),
     serving_window: servingWindow,
     batch_type: batchType,
     batch_status: batchStatus,
@@ -235,7 +235,9 @@ export function buildRecommendationServingCadenceSummary(
       no_trade_valid:
         "A no-trade batch can be valid when quality is insufficient.",
       expiry:
-        "Recommendations can expire when market context changes.",
+        visibleCount > 0 && freshnessStatus === "expired"
+          ? "Latest official batch is expired for new entries, kept visible for review/outcome tracking."
+          : "Recommendations can expire when market context changes.",
     },
   };
 }
@@ -354,6 +356,7 @@ function determineServingDecision(input: {
 function determineStatus(
   decision: RecommendationServingDecision,
   batchStatus: RecommendationBatchStatus,
+  visibleCount: number,
 ): RecommendationServingCadenceStatus {
   if (decision === "market_closed") return "market_closed";
   if (decision === "publish_official_batch") return "ready";
@@ -364,7 +367,9 @@ function determineStatus(
   }
   if (decision === "keep_existing_batch") return "published";
   if (decision === "wait_for_next_window") return "waiting";
-  if (decision === "expire_stale_recommendations") return "blocked";
+  if (decision === "expire_stale_recommendations") {
+    return visibleCount > 0 ? "published" : "blocked";
+  }
   return "unknown";
 }
 
@@ -443,8 +448,10 @@ function buildWarnings(input: {
     warnings.push(
       warning(
         "batch_freshness_expiring",
-        "warning",
-        "Visible recommendations are stale or expired for the current cadence.",
+        input.freshnessStatus === "expired" ? "info" : "warning",
+        input.freshnessStatus === "expired"
+          ? "Latest official batch is expired for new entries, kept visible for review/outcome tracking."
+          : "Visible recommendations are stale for the current cadence.",
       ),
     );
   }

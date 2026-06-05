@@ -123,6 +123,9 @@ export type MarketDiagnosticsConsoleInput = {
     extra_visible_primary_tickers?: string[];
     primary_grid_strict_batch_filter_applied?: boolean | null;
     primary_grid_fallback_reason?: string | null;
+    visible_tier_source?: string | null;
+    visible_unknown_tier_count?: number | null;
+    missing_tier_by_id?: Record<string, string>;
     latest_successful_scan?: {
       result?: string | null;
       created_at?: string | null;
@@ -160,6 +163,28 @@ export type MarketDiagnosticsConsoleInput = {
         changed_item_count?: number | null;
       }
     >;
+  } | null;
+  outcome_evaluation?: {
+    current_batch_fingerprint?: string | null;
+    current_batch_snapshot_count?: number | null;
+    expected_outcome_count?: number | null;
+    persisted_outcome_count?: number | null;
+    evaluated_outcome_count?: number | null;
+    incomplete_outcome_count?: number | null;
+    pending_outcome_count?: number | null;
+    latest_run_status?: string | null;
+    latest_run_at?: string | null;
+    latest_run_batch_fingerprint?: string | null;
+    latest_run_horizons?: string[];
+    outcomes_created_count?: number | null;
+    outcomes_updated_count?: number | null;
+    skipped_not_old_enough_count?: number | null;
+    missing_candles_count?: number | null;
+    provider_error_count?: number | null;
+    persistence_status?: string | null;
+    persistence_mode?: string | null;
+    elapsed_ms?: number | null;
+    tickers_evaluated?: string[];
   } | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
@@ -1507,6 +1532,20 @@ function buildSections(
           "Tier mix",
           `${input.real_output_readiness.coverage.strong_count} strong / ${input.real_output_readiness.coverage.valid_count} valid / ${input.real_output_readiness.coverage.experimental_count} experimental`,
         ),
+        lineValue(
+          "Visible tier source",
+          compact(input.scan_readback?.visible_tier_source, "unknown"),
+        ),
+        lineValue(
+          "Visible unknown tiers",
+          input.scan_readback?.visible_unknown_tier_count ?? 0,
+        ),
+        lineValue(
+          "Missing tier by ID",
+          Object.keys(input.scan_readback?.missing_tier_by_id ?? {}).length > 0
+            ? JSON.stringify(input.scan_readback?.missing_tier_by_id)
+            : "none",
+        ),
         lineValue("No-trade valid", bool(input.serving_cadence.no_trade_valid)),
       ],
       metrics: {
@@ -1522,6 +1561,12 @@ function buildSections(
         strong_count: input.real_output_readiness.coverage.strong_count,
         valid_count: input.real_output_readiness.coverage.valid_count,
         experimental_count: input.real_output_readiness.coverage.experimental_count,
+        visible_tier_source: input.scan_readback?.visible_tier_source ?? null,
+        visible_unknown_tier_count:
+          input.scan_readback?.visible_unknown_tier_count ?? null,
+        missing_tier_by_id: JSON.stringify(
+          input.scan_readback?.missing_tier_by_id ?? {},
+        ),
         no_trade_valid: input.serving_cadence.no_trade_valid,
       },
     }),
@@ -1646,6 +1691,94 @@ function buildSections(
         outcomes_evaluated: input.performance.summary.evaluated_recommendations,
         batch_memory_status: input.batch_memory.persistence_status,
         batch_memory_mode: input.batch_memory.persistence_mode,
+      },
+    }),
+    section({
+      section_id: "outcome_evaluation",
+      title: "Outcome evaluation",
+      severity:
+        input.outcome_evaluation?.provider_error_count &&
+        input.outcome_evaluation.provider_error_count > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Current batch",
+          compact(input.outcome_evaluation?.current_batch_fingerprint, "none"),
+        ),
+        lineValue(
+          "Snapshots",
+          input.outcome_evaluation?.current_batch_snapshot_count ?? 0,
+        ),
+        lineValue(
+          "Expected/Persisted",
+          `${input.outcome_evaluation?.expected_outcome_count ?? 0}/${input.outcome_evaluation?.persisted_outcome_count ?? 0}`,
+        ),
+        lineValue(
+          "Evaluated/Incomplete/Pending",
+          `${input.outcome_evaluation?.evaluated_outcome_count ?? 0}/${input.outcome_evaluation?.incomplete_outcome_count ?? 0}/${input.outcome_evaluation?.pending_outcome_count ?? 0}`,
+        ),
+        lineValue(
+          "Latest route run",
+          `${compact(input.outcome_evaluation?.latest_run_status, "idle")} / ${compact(input.outcome_evaluation?.latest_run_at, "never")}`,
+        ),
+        lineValue(
+          "Created/Updated",
+          `${input.outcome_evaluation?.outcomes_created_count ?? 0}/${input.outcome_evaluation?.outcomes_updated_count ?? 0}`,
+        ),
+        lineValue(
+          "Not old enough",
+          input.outcome_evaluation?.skipped_not_old_enough_count ?? 0,
+        ),
+        lineValue(
+          "Missing candles / provider errors",
+          `${input.outcome_evaluation?.missing_candles_count ?? 0}/${input.outcome_evaluation?.provider_error_count ?? 0}`,
+        ),
+        lineValue(
+          "Persistence",
+          `${compact(input.outcome_evaluation?.persistence_status, "unknown")} / ${compact(input.outcome_evaluation?.persistence_mode, "unknown")}`,
+        ),
+      ],
+      metrics: {
+        current_batch_fingerprint:
+          input.outcome_evaluation?.current_batch_fingerprint ?? null,
+        current_batch_snapshot_count:
+          input.outcome_evaluation?.current_batch_snapshot_count ?? null,
+        expected_outcome_count:
+          input.outcome_evaluation?.expected_outcome_count ?? null,
+        persisted_outcome_count:
+          input.outcome_evaluation?.persisted_outcome_count ?? null,
+        evaluated_outcome_count:
+          input.outcome_evaluation?.evaluated_outcome_count ?? null,
+        incomplete_outcome_count:
+          input.outcome_evaluation?.incomplete_outcome_count ?? null,
+        pending_outcome_count:
+          input.outcome_evaluation?.pending_outcome_count ?? null,
+        latest_run_status: input.outcome_evaluation?.latest_run_status ?? null,
+        latest_run_at: input.outcome_evaluation?.latest_run_at ?? null,
+        latest_run_batch_fingerprint:
+          input.outcome_evaluation?.latest_run_batch_fingerprint ?? null,
+        latest_run_horizons: (
+          input.outcome_evaluation?.latest_run_horizons ?? []
+        ).join(","),
+        outcomes_created_count:
+          input.outcome_evaluation?.outcomes_created_count ?? null,
+        outcomes_updated_count:
+          input.outcome_evaluation?.outcomes_updated_count ?? null,
+        skipped_not_old_enough_count:
+          input.outcome_evaluation?.skipped_not_old_enough_count ?? null,
+        missing_candles_count:
+          input.outcome_evaluation?.missing_candles_count ?? null,
+        provider_error_count:
+          input.outcome_evaluation?.provider_error_count ?? null,
+        persistence_status:
+          input.outcome_evaluation?.persistence_status ?? null,
+        persistence_mode:
+          input.outcome_evaluation?.persistence_mode ?? null,
+        elapsed_ms: input.outcome_evaluation?.elapsed_ms ?? null,
+        tickers_evaluated: (
+          input.outcome_evaluation?.tickers_evaluated ?? []
+        ).join(","),
       },
     }),
   ];

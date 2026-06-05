@@ -229,6 +229,7 @@ import {
 import {
   computeRecommendationOutcome,
   persistRecommendationOutcome,
+  recommendationOutcomeFromPersistenceRow,
   recommendationOutcomesJson,
   readRecommendationOutcomesFromLocalStorage,
   type RecommendationOutcome,
@@ -657,6 +658,13 @@ type ConfidenceBreakdown = {
   timing_quality: number;
 };
 
+type VisibleRecommendationTier = "strong" | "valid" | "experimental" | "unknown";
+type VisibleRecommendationTierSource =
+  | "recommendation_row_metadata"
+  | "snapshot_payload_metadata"
+  | "active_trace_final_counts"
+  | "missing";
+
 type RecommendationRow = {
   id: string;
   session_type: string | null;
@@ -675,6 +683,7 @@ type RecommendationRow = {
   confidence_label?: string | null;
   confidence_breakdown?: ConfidenceBreakdown | string | null;
   confidence_reasoning?: string | null;
+  tier?: string | null;
   risk_flags?: string[] | string | null;
   discarded_at?: string | null;
   discard_review_status?: DiscardReviewStatus | string | null;
@@ -958,6 +967,7 @@ type Recommendation = {
   confidence: string;
   confidenceScore: number | null;
   confidenceLabel: ConfidenceLabel | "Confidence unavailable";
+  recommendationTier?: VisibleRecommendationTier | null;
   confidenceBreakdown: ConfidenceBreakdown | null;
   confidenceReasoning: string;
   riskFlags: string[];
@@ -1059,9 +1069,17 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   evaluatedSnapshots: number;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
+  outcomesCreated: number;
+  outcomesUpdated: number;
+  skippedNotOldEnough: number;
+  missingCandles: number;
   lastRunTimestamp: string | null;
   horizonsEvaluated: string[];
   persistenceMode: RecommendationOutcomePersistenceResult["mode"] | "unknown";
+  persistenceStatus: string;
+  batchFingerprint: string | null;
+  tickersEvaluated: string[];
+  elapsedMs: number | null;
   snapshotOnly: boolean;
   summary: string;
 };
@@ -2779,6 +2797,67 @@ function parseInlineMetadata(value: string, prefix: string) {
   }
 }
 
+function normalizeVisibleRecommendationTier(
+  value: unknown,
+): VisibleRecommendationTier | null {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+
+  if (tier === "strong" || tier === "valid" || tier === "experimental") {
+    return tier;
+  }
+
+  return null;
+}
+
+function tierFromConfidenceMetadata(parsed: Record<string, unknown> | null) {
+  const directTier = normalizeVisibleRecommendationTier(parsed?.tier);
+
+  if (directTier) {
+    return directTier;
+  }
+
+  const contract =
+    typeof parsed?.openai_reality_contract === "object" &&
+    parsed.openai_reality_contract !== null
+      ? (parsed.openai_reality_contract as Record<string, unknown>)
+      : null;
+
+  return normalizeVisibleRecommendationTier(
+    contract?.tier ?? contract?.recommendation_tier,
+  );
+}
+
+function tierFromSnapshotPayload(
+  snapshot: RecommendationSnapshot | null | undefined,
+) {
+  if (!snapshot) {
+    return null;
+  }
+
+  const payload = snapshot.payload_json;
+  const target =
+    typeof payload.day_trade_window_recommendation_target === "object" &&
+    payload.day_trade_window_recommendation_target !== null
+      ? (payload.day_trade_window_recommendation_target as Record<string, unknown>)
+      : null;
+  const recommendation =
+    typeof payload.recommendation === "object" && payload.recommendation !== null
+      ? (payload.recommendation as Record<string, unknown>)
+      : null;
+  const contract =
+    typeof payload.openai_reality_contract === "object" &&
+    payload.openai_reality_contract !== null
+      ? (payload.openai_reality_contract as Record<string, unknown>)
+      : null;
+
+  return normalizeVisibleRecommendationTier(
+    target?.tier ??
+      target?.recommendation_tier ??
+      recommendation?.tier ??
+      contract?.tier,
+  );
+}
+
 function stripInlineMetadata(value: string) {
   const metadataStarts = [
     value.indexOf(confidenceMetadataPrefix),
@@ -2816,6 +2895,7 @@ function parseConfidenceMetadata(reasonToAvoid: string) {
     ),
     outputEnrichment: parseOutputEnrichmentMetadata(parsed?.output_enrichment),
     setupType: normalizeSetupType(parsed?.setup_type),
+    tier: tierFromConfidenceMetadata(parsed),
   };
 }
 
@@ -2953,6 +3033,7 @@ function buildConfidenceMetadata(recommendation: Recommendation) {
         : recommendation.confidenceLabel,
     confidence_breakdown: recommendation.confidenceBreakdown,
     confidence_reasoning: recommendation.confidenceReasoning,
+    tier: recommendation.recommendationTier ?? null,
     risk_flags: recommendation.riskFlags,
     intraday_indicators: recommendation.intradayIndicators,
     output_enrichment: recommendation.outputEnrichment,
@@ -4073,6 +4154,8 @@ function toRecommendation(row: RecommendationRow): Recommendation {
       row.confidence_label ?? confidenceMetadata.confidenceLabel,
       confidenceScore,
     ),
+    recommendationTier:
+      normalizeVisibleRecommendationTier(row.tier) ?? confidenceMetadata.tier,
     confidenceBreakdown,
     confidenceReasoning:
       text(row.confidence_reasoning) || confidenceMetadata.confidenceReasoning,
@@ -7493,9 +7576,17 @@ export function TradeApp() {
     evaluatedSnapshots: 0,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
+    outcomesCreated: 0,
+    outcomesUpdated: 0,
+    skippedNotOldEnough: 0,
+    missingCandles: 0,
     lastRunTimestamp: null,
     horizonsEvaluated: [],
     persistenceMode: "unknown",
+    persistenceStatus: "idle",
+    batchFingerprint: null,
+    tickersEvaluated: [],
+    elapsedMs: null,
     snapshotOnly: true,
     summary: "Outcome evaluation has not run yet.",
   });
@@ -7610,6 +7701,7 @@ export function TradeApp() {
         recommendationScanRunsResult,
         recommendationBatchesResult,
         recommendationSnapshotsResult,
+        recommendationOutcomesResult,
         marketRegimeResult,
         marketStatusResult,
       ] =
@@ -7660,6 +7752,11 @@ export function TradeApp() {
             .select("*")
             .order("created_at", { ascending: false })
             .limit(300),
+          supabase
+            .from("recommendation_outcomes")
+            .select("*")
+            .order("evaluated_at", { ascending: false })
+            .limit(750),
           supabase
             .from("market_regime_snapshots")
             .select("*")
@@ -7864,6 +7961,37 @@ export function TradeApp() {
             [...loadedSnapshots, ...localSnapshots].map((snapshot) => [
               snapshot.snapshot_fingerprint,
               snapshot,
+            ]),
+          ).values(),
+        ),
+      );
+      }
+
+      if (recommendationOutcomesResult.error) {
+      console.error("[trade-app] dashboard_data_load_error", {
+        source: "supabase.recommendation_outcomes",
+        operation: "select_recent_recommendation_outcomes",
+        error: normalizeUnknownError(recommendationOutcomesResult.error),
+      });
+        noteIslandError("market_diagnostics", recommendationOutcomesResult.error);
+        noteIslandError("history_statistics", recommendationOutcomesResult.error);
+        if (isInitialLoad) {
+          setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
+        }
+      } else {
+      const loadedOutcomes = ((recommendationOutcomesResult.data ?? []) as Array<
+        Record<string, unknown>
+      >)
+        .map(recommendationOutcomeFromPersistenceRow)
+        .filter((outcome): outcome is RecommendationOutcome => outcome !== null);
+      const localOutcomes = readRecommendationOutcomesFromLocalStorage();
+
+      setStoredRecommendationOutcomes(
+        Array.from(
+          new Map(
+            [...loadedOutcomes, ...localOutcomes].map((outcome) => [
+              `${outcome.snapshot_fingerprint}:${outcome.horizon}`,
+              outcome,
             ]),
           ).values(),
         ),
@@ -9717,6 +9845,93 @@ export function TradeApp() {
         .filter((ticker): ticker is string => ticker !== null),
     ),
   ).sort();
+  const latestOfficialBatchSnapshotByRecommendationId = new Map(
+    latestOfficialBatchSnapshots
+      .filter((snapshot) => snapshot.recommendation_id !== null)
+      .map((snapshot) => [snapshot.recommendation_id as string, snapshot]),
+  );
+  const visibleTierReadbackById = new Map<
+    string,
+    {
+      tier: VisibleRecommendationTier;
+      source: VisibleRecommendationTierSource;
+    }
+  >();
+  const missingTierById: Record<string, string> = {};
+
+  for (const recommendation of dailyRecommendations) {
+    const rowTier = recommendation.recommendationTier ?? null;
+    const snapshotTier = tierFromSnapshotPayload(
+      latestOfficialBatchSnapshotByRecommendationId.get(recommendation.id),
+    );
+
+    if (rowTier) {
+      visibleTierReadbackById.set(recommendation.id, {
+        tier: rowTier,
+        source: "recommendation_row_metadata",
+      });
+    } else if (snapshotTier) {
+      visibleTierReadbackById.set(recommendation.id, {
+        tier: snapshotTier,
+        source: "snapshot_payload_metadata",
+      });
+    } else {
+      visibleTierReadbackById.set(recommendation.id, {
+        tier: "unknown",
+        source: "missing",
+      });
+      missingTierById[recommendation.id] =
+        "missing recommendation row and snapshot tier metadata";
+    }
+  }
+
+  const visibleTierMetadataCounts = {
+    strong: Array.from(visibleTierReadbackById.values()).filter(
+      (item) => item.tier === "strong",
+    ).length,
+    valid: Array.from(visibleTierReadbackById.values()).filter(
+      (item) => item.tier === "valid",
+    ).length,
+    experimental: Array.from(visibleTierReadbackById.values()).filter(
+      (item) => item.tier === "experimental",
+    ).length,
+  };
+  const visibleTraceTierCounts = {
+    strong: latestSuccessfulTraceForBatchResolver?.final.strong_count ?? 0,
+    valid: latestSuccessfulTraceForBatchResolver?.final.valid_count ?? 0,
+    experimental:
+      latestSuccessfulTraceForBatchResolver?.final.experimental_count ?? 0,
+  };
+  const visibleTraceTierTotal =
+    visibleTraceTierCounts.strong +
+    visibleTraceTierCounts.valid +
+    visibleTraceTierCounts.experimental;
+  const visibleKnownTierCount =
+    visibleTierMetadataCounts.strong +
+    visibleTierMetadataCounts.valid +
+    visibleTierMetadataCounts.experimental;
+  const useActiveTraceTierCounts =
+    Object.keys(missingTierById).length > 0 &&
+    visibleTraceTierTotal === dailyRecommendations.length &&
+    visibleTraceTierTotal > 0;
+  const visibleTierCounts = useActiveTraceTierCounts
+    ? visibleTraceTierCounts
+    : visibleTierMetadataCounts;
+  const visibleUnknownTierCount = useActiveTraceTierCounts
+    ? 0
+    : Math.max(0, dailyRecommendations.length - visibleKnownTierCount);
+  const visibleTierSources = Array.from(
+    new Set(
+      Array.from(visibleTierReadbackById.values())
+        .map((item) => item.source)
+        .filter((source) => source !== "missing"),
+    ),
+  );
+  const visibleTierSource = useActiveTraceTierCounts
+    ? "active_trace_final_counts"
+    : visibleTierSources.length > 0
+      ? visibleTierSources.join(",")
+      : "missing";
   const latestSuccessfulLiveRecommendationIdList = Array.from(
     latestSuccessfulLiveRecommendationIds,
   ).sort();
@@ -9750,6 +9965,49 @@ export function TradeApp() {
     new Set(
       latestOfficialBatchSnapshots
         .map((snapshot) => normalizeRecommendationTicker(snapshot.ticker))
+        .filter((ticker): ticker is string => ticker !== null),
+    ),
+  ).sort();
+  const currentBatchOutcomeHorizons = ["15m", "30m", "60m"];
+  const currentBatchSnapshotFingerprints = new Set(
+    latestOfficialBatchSnapshots.map(
+      (snapshot) => snapshot.snapshot_fingerprint,
+    ),
+  );
+  const currentBatchStoredOutcomes = storedRecommendationOutcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint !== null &&
+      currentBatchSnapshotFingerprints.has(outcome.snapshot_fingerprint),
+  );
+  const currentBatchCompletedOutcomeStatuses = new Set([
+    "entry_not_triggered",
+    "entry_triggered",
+    "target_hit",
+    "stop_hit",
+    "target_before_stop",
+    "stop_before_target",
+    "neither_hit",
+    "expired",
+  ]);
+  const currentBatchEvaluatedOutcomeCount = currentBatchStoredOutcomes.filter(
+    (outcome) => currentBatchCompletedOutcomeStatuses.has(outcome.status),
+  ).length;
+  const currentBatchIncompleteOutcomeCount = currentBatchStoredOutcomes.filter(
+    (outcome) =>
+      outcome.status === "incomplete" ||
+      outcome.status === "invalid" ||
+      outcome.status === "unknown",
+  ).length;
+  const currentBatchExpectedOutcomeCount =
+    currentBatchSnapshotCount * currentBatchOutcomeHorizons.length;
+  const currentBatchPendingOutcomeCount = Math.max(
+    0,
+    currentBatchExpectedOutcomeCount - currentBatchStoredOutcomes.length,
+  );
+  const currentBatchOutcomeTickers = Array.from(
+    new Set(
+      currentBatchStoredOutcomes
+        .map((outcome) => normalizeRecommendationTicker(outcome.ticker))
         .filter((ticker): ticker is string => ticker !== null),
     ),
   ).sort();
@@ -11023,7 +11281,7 @@ export function TradeApp() {
   const recommendationOutputEnrichmentJsonText = recommendationOutputEnrichmentJson(
     recommendationOutputEnrichmentSummary,
   );
-  const realRecommendationOutputReadinessSummary =
+  const rawRealRecommendationOutputReadinessSummary =
     buildRealRecommendationOutputReadinessSummary({
       recommendations: recommendationOutputEnrichmentSummary.items.map((item) => ({
         id: item.id,
@@ -11073,6 +11331,49 @@ export function TradeApp() {
       market_status: marketStatus,
       now: currentTime,
     });
+  const expiredOfficialBatchVisibleForReview =
+    latestSuccessfulStoredRecommendationBatch !== null &&
+    dailyRecommendations.length > 0 &&
+    recommendationServingCadenceSummary.freshness_status === "expired";
+  const realRecommendationOutputReadinessBlockers =
+    expiredOfficialBatchVisibleForReview
+      ? rawRealRecommendationOutputReadinessSummary.blockers.filter(
+          (blocker) => blocker.blocker_id !== "stale_scan_data",
+        )
+      : rawRealRecommendationOutputReadinessSummary.blockers;
+  const realRecommendationOutputReadinessSummary = {
+    ...rawRealRecommendationOutputReadinessSummary,
+    overall_status:
+      expiredOfficialBatchVisibleForReview &&
+      rawRealRecommendationOutputReadinessSummary.overall_status ===
+        "blocked_by_stale_data"
+        ? "ready_with_warnings"
+        : rawRealRecommendationOutputReadinessSummary.overall_status,
+    summary:
+      expiredOfficialBatchVisibleForReview &&
+      rawRealRecommendationOutputReadinessSummary.overall_status ===
+        "blocked_by_stale_data"
+        ? "Latest official batch is expired for new entries, kept visible for review/outcome tracking."
+        : rawRealRecommendationOutputReadinessSummary.summary,
+    blockers: realRecommendationOutputReadinessBlockers,
+    warnings: expiredOfficialBatchVisibleForReview
+      ? [
+          ...rawRealRecommendationOutputReadinessSummary.warnings,
+          {
+            warning_id: "expired_official_batch_visible_for_review",
+            message:
+              "Latest official batch is expired for new entries, kept visible for review/outcome tracking.",
+            source: "window_target" as const,
+          },
+        ]
+      : rawRealRecommendationOutputReadinessSummary.warnings,
+    coverage: {
+      ...rawRealRecommendationOutputReadinessSummary.coverage,
+      strong_count: visibleTierCounts.strong,
+      valid_count: visibleTierCounts.valid,
+      experimental_count: visibleTierCounts.experimental,
+    },
+  };
   const realRecommendationOutputReadinessSummaryJsonText =
     realRecommendationOutputReadinessSummaryJson(
       realRecommendationOutputReadinessSummary,
@@ -11561,6 +11862,41 @@ export function TradeApp() {
           ]),
         ),
       },
+      outcome_evaluation: {
+        current_batch_fingerprint:
+          latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+        current_batch_snapshot_count: currentBatchSnapshotCount,
+        expected_outcome_count: currentBatchExpectedOutcomeCount,
+        persisted_outcome_count: currentBatchStoredOutcomes.length,
+        evaluated_outcome_count: currentBatchEvaluatedOutcomeCount,
+        incomplete_outcome_count: currentBatchIncompleteOutcomeCount,
+        pending_outcome_count: currentBatchPendingOutcomeCount,
+        latest_run_status: recommendationOutcomeEvaluationDiagnostics.status,
+        latest_run_at:
+          recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp,
+        latest_run_batch_fingerprint:
+          recommendationOutcomeEvaluationDiagnostics.batchFingerprint,
+        latest_run_horizons:
+          recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated,
+        outcomes_created_count:
+          recommendationOutcomeEvaluationDiagnostics.outcomesCreated,
+        outcomes_updated_count:
+          recommendationOutcomeEvaluationDiagnostics.outcomesUpdated,
+        skipped_not_old_enough_count:
+          recommendationOutcomeEvaluationDiagnostics.skippedNotOldEnough,
+        missing_candles_count:
+          recommendationOutcomeEvaluationDiagnostics.missingCandles,
+        provider_error_count:
+          recommendationOutcomeEvaluationDiagnostics.providerErrors,
+        persistence_status:
+          recommendationOutcomeEvaluationDiagnostics.persistenceStatus,
+        persistence_mode: recommendationOutcomeEvaluationDiagnostics.persistenceMode,
+        elapsed_ms: recommendationOutcomeEvaluationDiagnostics.elapsedMs,
+        tickers_evaluated:
+          recommendationOutcomeEvaluationDiagnostics.tickersEvaluated.length > 0
+            ? recommendationOutcomeEvaluationDiagnostics.tickersEvaluated
+            : currentBatchOutcomeTickers,
+      },
       scan_readback: {
         current_batch_fingerprint:
           latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
@@ -11605,6 +11941,9 @@ export function TradeApp() {
         primary_grid_strict_batch_filter_applied:
           primaryGridStrictBatchFilterApplied,
         primary_grid_fallback_reason: primaryGridFallbackReason,
+        visible_tier_source: visibleTierSource,
+        visible_unknown_tier_count: visibleUnknownTierCount,
+        missing_tier_by_id: missingTierById,
         hidden_live_recommendation_ids: Object.keys(
           hiddenLatestLiveRecommendationReasonsById,
         ).sort(),
@@ -12115,17 +12454,42 @@ export function TradeApp() {
       setStoredRecommendationOutcomes(readRecommendationOutcomesFromLocalStorage());
       writeRecommendationOutcomeEvaluationRunToLocalStorage(run);
       setRecommendationOutcomeEvaluationRun(run);
+      const routeDiagnostics = run as RecommendationOutcomeEvaluationRun &
+        Record<string, unknown>;
       setRecommendationOutcomeEvaluationDiagnostics({
         status: run.status,
         eligibleSnapshots: run.eligible_snapshot_count,
         evaluatedSnapshots: run.evaluated_snapshot_count,
         incompleteDueToMissingCandles: run.missing_candle_count,
         providerErrors: run.provider_error_count,
+        outcomesCreated: Number(routeDiagnostics.outcomes_created_count ?? 0),
+        outcomesUpdated: Number(routeDiagnostics.outcomes_updated_count ?? 0),
+        skippedNotOldEnough: Number(
+          routeDiagnostics.skipped_not_old_enough_count ?? 0,
+        ),
+        missingCandles: Number(routeDiagnostics.missing_candles_count ?? 0),
         lastRunTimestamp: run.completed_at ?? run.started_at,
         horizonsEvaluated: run.horizons,
         persistenceMode:
           run.candidates.find((candidate) => candidate.persistence_mode !== "unknown")
             ?.persistence_mode ?? "localStorage",
+        persistenceStatus:
+          typeof routeDiagnostics.persistence_status === "string"
+            ? routeDiagnostics.persistence_status
+            : "local",
+        batchFingerprint:
+          typeof routeDiagnostics.batch_fingerprint === "string"
+            ? routeDiagnostics.batch_fingerprint
+            : null,
+        tickersEvaluated: Array.isArray(routeDiagnostics.tickers_evaluated)
+          ? routeDiagnostics.tickers_evaluated.filter(
+              (ticker): ticker is string => typeof ticker === "string",
+            )
+          : [],
+        elapsedMs:
+          typeof routeDiagnostics.elapsed_ms === "number"
+            ? routeDiagnostics.elapsed_ms
+            : null,
         snapshotOnly: run.evaluated_snapshot_count === 0,
         summary: run.summary,
       });

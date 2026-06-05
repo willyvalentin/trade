@@ -660,10 +660,137 @@ function toSupabaseRow(outcome: RecommendationOutcome) {
     worst_r: outcome.worst_r,
     eod_price: outcome.eod_price,
     eod_r: outcome.eod_r,
-    payload_json: outcome.payload_json,
+    payload_json: {
+      ...outcome.payload_json,
+      side: outcome.side,
+      entry: outcome.entry,
+      stop: outcome.stop,
+      target: outcome.target,
+      entry_triggered_at: outcome.entry_triggered_at,
+      target_hit_at: outcome.target_hit_at,
+      stop_hit_at: outcome.stop_hit_at,
+      current_price: outcome.current_price,
+      current_r: outcome.current_r,
+      max_favorable_excursion: outcome.max_favorable_excursion,
+      max_adverse_excursion: outcome.max_adverse_excursion,
+      time_to_entry_minutes: outcome.time_to_entry_minutes,
+      time_to_target_minutes: outcome.time_to_target_minutes,
+      time_to_stop_minutes: outcome.time_to_stop_minutes,
+      data_completeness: outcome.data_completeness,
+      blockers: outcome.blockers,
+    },
     warnings_json: outcome.warnings,
     created_at: outcome.created_at,
     updated_at: outcome.updated_at,
+  };
+}
+
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function normalizeStatus(value: unknown): RecommendationOutcomeStatus {
+  if (
+    value === "pending" ||
+    value === "entry_not_triggered" ||
+    value === "entry_triggered" ||
+    value === "target_hit" ||
+    value === "stop_hit" ||
+    value === "target_before_stop" ||
+    value === "stop_before_target" ||
+    value === "neither_hit" ||
+    value === "expired" ||
+    value === "invalid" ||
+    value === "incomplete" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+
+  return "unknown";
+}
+
+function normalizeEvent(value: unknown): RecommendationOutcomeEvent {
+  if (
+    value === "entry_triggered" ||
+    value === "target_hit" ||
+    value === "stop_hit" ||
+    value === "expired" ||
+    value === "neither" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+
+  return "unknown";
+}
+
+export function recommendationOutcomeFromPersistenceRow(
+  row: Record<string, unknown>,
+): RecommendationOutcome | null {
+  const id = textOrNull(String(row.id ?? ""));
+  const snapshotFingerprint = textOrNull(String(row.snapshot_fingerprint ?? ""));
+  const horizon = normalizeHorizon(String(row.horizon ?? ""));
+
+  if (!id || !snapshotFingerprint || horizon === "unknown") {
+    return null;
+  }
+
+  const payloadJson = objectOrNull(row.payload_json) ?? {};
+  const warningsJson = Array.isArray(row.warnings_json)
+    ? row.warnings_json.filter((warning): warning is string => typeof warning === "string")
+    : [];
+  const evaluatedAt = toIso(String(row.evaluated_at ?? "")) ?? new Date().toISOString();
+  const createdAt = toIso(String(row.created_at ?? "")) ?? evaluatedAt;
+  const updatedAt = toIso(String(row.updated_at ?? "")) ?? evaluatedAt;
+
+  return {
+    id,
+    snapshot_id: textOrNull(String(row.snapshot_id ?? "")),
+    snapshot_fingerprint: snapshotFingerprint,
+    recommendation_id: textOrNull(String(row.recommendation_id ?? "")),
+    ticker: textOrNull(String(row.ticker ?? ""))?.toUpperCase() ?? null,
+    side: normalizeSide(String(payloadJson.side ?? payloadJson.direction ?? "")),
+    recommended_at: toIso(String(row.recommended_at ?? "")),
+    evaluated_at: evaluatedAt,
+    horizon,
+    status: normalizeStatus(row.status),
+    entry: finiteNumber(payloadJson.entry),
+    stop: finiteNumber(payloadJson.stop),
+    target: finiteNumber(payloadJson.target),
+    entry_triggered: typeof row.entry_triggered === "boolean" ? row.entry_triggered : null,
+    entry_triggered_at: textOrNull(String(payloadJson.entry_triggered_at ?? "")),
+    target_hit: typeof row.target_hit === "boolean" ? row.target_hit : null,
+    target_hit_at: textOrNull(String(payloadJson.target_hit_at ?? "")),
+    stop_hit: typeof row.stop_hit === "boolean" ? row.stop_hit : null,
+    stop_hit_at: textOrNull(String(payloadJson.stop_hit_at ?? "")),
+    first_terminal_event: normalizeEvent(row.first_terminal_event),
+    best_price_after_recommendation: finiteNumber(row.best_price),
+    worst_price_after_recommendation: finiteNumber(row.worst_price),
+    best_r: finiteNumber(row.best_r),
+    worst_r: finiteNumber(row.worst_r),
+    eod_price: finiteNumber(row.eod_price),
+    eod_r: finiteNumber(row.eod_r),
+    current_price: finiteNumber(payloadJson.current_price),
+    current_r: finiteNumber(payloadJson.current_r),
+    max_favorable_excursion: finiteNumber(payloadJson.max_favorable_excursion),
+    max_adverse_excursion: finiteNumber(payloadJson.max_adverse_excursion),
+    time_to_entry_minutes: finiteNumber(payloadJson.time_to_entry_minutes),
+    time_to_target_minutes: finiteNumber(payloadJson.time_to_target_minutes),
+    time_to_stop_minutes: finiteNumber(payloadJson.time_to_stop_minutes),
+    source: textOrNull(String(payloadJson.source ?? "")) ?? "supabase",
+    provider: textOrNull(String(payloadJson.provider ?? "")),
+    data_completeness:
+      textOrNull(String(payloadJson.data_completeness ?? "")) ?? "unknown",
+    warnings: warningsJson,
+    blockers: Array.isArray(payloadJson.blockers)
+      ? payloadJson.blockers.filter((blocker): blocker is string => typeof blocker === "string")
+      : [],
+    payload_json: payloadJson,
+    created_at: createdAt,
+    updated_at: updatedAt,
   };
 }
 
@@ -672,8 +799,12 @@ export async function persistRecommendationOutcome(
   options: {
     supabaseClient?: RecommendationOutcomeSupabaseClient | null;
     storage?: Storage;
+    server?: boolean;
+    unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationOutcomePersistenceResult> {
+  let supabaseError: string | null = null;
+
   if (options.supabaseClient?.from) {
     try {
       const result = await options.supabaseClient
@@ -698,6 +829,9 @@ export async function persistRecommendationOutcome(
         horizon: outcome.horizon,
         error: normalizeUnknownError(result.error),
       });
+      supabaseError =
+        result.error?.message ??
+        "Unknown Supabase recommendation outcome persistence error.";
     } catch (error) {
       console.error("[recommendation-outcome] supabase_persistence_exception", {
         source: "supabase.recommendation_outcomes",
@@ -706,8 +840,25 @@ export async function persistRecommendationOutcome(
         horizon: outcome.horizon,
         error: normalizeUnknownError(error),
       });
+      supabaseError =
+        error instanceof Error
+          ? error.message
+          : "Unknown Supabase recommendation outcome persistence error.";
       // Fall through to localStorage. Outcome persistence must never block the UI.
     }
+  }
+
+  if (options.server) {
+    return {
+      status: "failed",
+      mode: options.supabaseClient?.from ? "supabase" : "none",
+      outcome,
+      error: supabaseError
+        ? `supabase_outcome_upsert_failed:${supabaseError}`
+        : options.unavailableReason
+          ? `server_persistence_unavailable:${options.unavailableReason}`
+          : "server_persistence_unavailable",
+    };
   }
 
   return persistRecommendationOutcomeToLocalStorage(outcome, options.storage);
