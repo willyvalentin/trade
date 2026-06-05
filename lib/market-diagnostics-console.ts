@@ -730,6 +730,318 @@ function diagnosticsHeadline(input: MarketDiagnosticsConsoleInput) {
   };
 }
 
+type MondayLiveTrialChecklistItemStatus =
+  | "ready"
+  | "warning"
+  | "action_needed"
+  | "pending_next_market_window";
+
+type MondayLiveTrialChecklistItem = {
+  item_id: string;
+  label: string;
+  status: MondayLiveTrialChecklistItemStatus;
+  message: string;
+  next_action: string | null;
+};
+
+function mondayChecklistItem({
+  item_id,
+  label,
+  status,
+  message,
+  next_action = null,
+}: MondayLiveTrialChecklistItem): MondayLiveTrialChecklistItem {
+  return { item_id, label, status, message, next_action };
+}
+
+function checklistStatusFromReadiness(
+  status: string | null | undefined,
+  expectedState = false,
+): MondayLiveTrialChecklistItemStatus {
+  if (status === "pass") return "ready";
+  if (status === "blocked") return expectedState ? "pending_next_market_window" : "action_needed";
+  if (status === "warning") return expectedState ? "pending_next_market_window" : "warning";
+  return expectedState ? "pending_next_market_window" : "warning";
+}
+
+function mondayLiveTrialChecklist({
+  input,
+  providerPlanProfile,
+  providerUpgrade,
+  closedMarketWaitState,
+  shadowTrialState,
+}: {
+  input: MarketDiagnosticsConsoleInput;
+  providerPlanProfile: ReturnType<typeof providerPlanProfileMetrics>;
+  providerUpgrade: ReturnType<typeof providerUpgradeChecklist>;
+  closedMarketWaitState: boolean;
+  shadowTrialState: string;
+}) {
+  const check = (checkId: string) =>
+    input.live_market_trial_readiness.checks.find(
+      (item) => item.check_id === checkId,
+    );
+  const providerEnv = input.active_scan_trace?.provider_env ?? null;
+  const schemaCheck = input.active_scan_trace?.schema_check ?? null;
+  const openAiOptional = providerPlanProfile.skipOpenAi !== false;
+  const envMissing: string[] = [];
+
+  if (providerEnv) {
+    if (!providerEnv.twelve_data_key_present) envMissing.push("Twelve Data");
+    if (!providerEnv.supabase_service_role_present) envMissing.push("Supabase service role");
+    if (!openAiOptional && !providerEnv.openai_key_present) envMissing.push("OpenAI");
+  }
+
+  const environmentReady = providerEnv
+    ? envMissing.length === 0
+    : input.live_market_trial_readiness.provider_env_readiness
+        .server_secret_status === "inferred_available" &&
+      input.live_market_trial_readiness.provider_env_readiness
+        .supabase_public_env_available;
+  const schemaStatus: MondayLiveTrialChecklistItemStatus = schemaCheck
+    ? schemaCheck.schema_ready
+      ? "ready"
+      : "action_needed"
+    : input.live_market_trial_readiness.persistence_readiness
+          .scan_runs_available ||
+        input.live_market_trial_readiness.persistence_readiness.batches_available
+      ? "warning"
+      : "warning";
+  const providerProfileStatus: MondayLiveTrialChecklistItemStatus =
+    providerPlanProfile.mismatch
+      ? "action_needed"
+      : providerPlanProfile.mode === "unknown"
+        ? "warning"
+        : "ready";
+  const providerUpgradeStatus: MondayLiveTrialChecklistItemStatus =
+    providerUpgrade.status === "env_mismatch_needs_fix"
+      ? "action_needed"
+      : providerUpgrade.status === "custom_active_needs_review" ||
+          providerUpgrade.status === "grow_ready_pending_env_change" ||
+          providerUpgrade.status === "unknown_plan_free_safe"
+        ? "warning"
+        : "ready";
+  const scannerUniverseCheck = check("scanner_universe");
+  const scannerUniverseStatus =
+    input.live_market_trial_readiness.scanner_readiness.selected_ticker_count > 0
+      ? "ready"
+      : closedMarketWaitState
+        ? "pending_next_market_window"
+        : checklistStatusFromReadiness(scannerUniverseCheck?.status);
+  const officialPersistenceReady =
+    input.live_market_trial_readiness.persistence_readiness.batches_available ||
+    input.live_market_trial_readiness.persistence_readiness.snapshots_available ||
+    schemaCheck?.schema_ready === true;
+  const outcomeRouteReady =
+    input.live_market_trial_readiness.outcome_readiness.route_available !== false;
+  const learningOutcomeCount =
+    input.outcome_learning?.total_evaluated_outcomes ??
+    input.live_market_trial_readiness.outcome_readiness.evaluated_recommendations;
+  const shadowReadyStatus: MondayLiveTrialChecklistItemStatus =
+    shadowTrialState === "collecting data"
+      ? "ready"
+      : shadowTrialState === "no proposal"
+        ? "warning"
+        : "pending_next_market_window";
+  const executionReality = input.data_mode_clarity.execution_reality;
+  const humanBoundaryReady =
+    executionReality === "human_confirmed_required" ||
+    input.live_market_trial_readiness.can_do_now.paper_or_manual_tracking_ready;
+  const brokerBoundaryReady =
+    input.live_market_trial_readiness.not_enabled.broker_automation &&
+    input.live_market_trial_readiness.not_enabled.order_submission &&
+    input.live_market_trial_readiness.not_enabled.automatic_avanza_execution &&
+    input.live_market_trial_readiness.not_enabled.automatic_trading_execution;
+  const items: MondayLiveTrialChecklistItem[] = [
+    mondayChecklistItem({
+      item_id: "environment_keys",
+      label: "Environment keys present",
+      status: environmentReady ? "ready" : "action_needed",
+      message: environmentReady
+        ? providerEnv
+          ? "Required server/client environment signals are present."
+          : "Recent provider-backed data implies server env is available."
+        : `Missing or unconfirmed env: ${envMissing.join(", ") || "server provider keys"}.`,
+      next_action: environmentReady
+        ? null
+        : "Run diagnostics env_check and confirm Twelve Data/Supabase server env.",
+    }),
+    mondayChecklistItem({
+      item_id: "supabase_schema",
+      label: "Supabase schema ready",
+      status: schemaStatus,
+      message: schemaCheck
+        ? schemaCheck.schema_ready
+          ? "Recommendation learning schema is ready."
+          : `Missing tables: ${schemaCheck.missing_tables.join(", ") || "unknown"}.`
+        : "Schema check has not been observed in the latest active trace.",
+      next_action:
+        schemaStatus === "action_needed"
+          ? "Apply the recommendation learning Supabase migrations."
+          : schemaCheck
+            ? null
+            : "Run diagnostics env_check before Monday.",
+    }),
+    mondayChecklistItem({
+      item_id: "provider_profile",
+      label: "Provider profile resolved",
+      status: providerProfileStatus,
+      message: `${words(providerPlanProfile.mode)} profile via ${words(providerPlanProfile.source)}.`,
+      next_action:
+        providerProfileStatus === "action_needed"
+          ? "Make TWELVE_DATA_PLAN_MODE and NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE consistent."
+          : providerProfileStatus === "warning"
+            ? "Set explicit Twelve Data plan env values."
+            : null,
+    }),
+    mondayChecklistItem({
+      item_id: "provider_upgrade_env",
+      label: "Provider upgrade env values ready",
+      status: providerUpgradeStatus,
+      message: providerUpgrade.message,
+      next_action:
+        providerUpgradeStatus === "ready"
+          ? null
+          : `Use ${providerUpgrade.nextEnvValues.join(" and ")} after the Grow upgrade.`,
+    }),
+    mondayChecklistItem({
+      item_id: "scheduled_scan_route",
+      label: "Scheduled scan route reachable",
+      status: checklistStatusFromReadiness(check("automation_scan_route")?.status),
+      message:
+        check("automation_scan_route")?.message ??
+        "Automation scan route readiness has not been observed.",
+      next_action:
+        check("automation_scan_route")?.status === "blocked"
+          ? "Verify /api/automation/run-scan deployment and scheduler config."
+          : null,
+    }),
+    mondayChecklistItem({
+      item_id: "scanner_universe",
+      label: "Scanner universe available",
+      status: scannerUniverseStatus,
+      message:
+        scannerUniverseStatus === "pending_next_market_window"
+          ? "Scanner universe will be verified during the next active market window."
+          : scannerUniverseCheck?.message ?? "Scanner universe readiness is available.",
+      next_action:
+        scannerUniverseStatus === "action_needed"
+          ? "Review scanner universe configuration."
+          : null,
+    }),
+    mondayChecklistItem({
+      item_id: "official_batch_persistence",
+      label: "Official batch persistence ready",
+      status: officialPersistenceReady ? "ready" : "warning",
+      message: officialPersistenceReady
+        ? "Batch/snapshot persistence has been observed or schema is ready."
+        : "Official batch persistence is pending the next successful scan.",
+      next_action: officialPersistenceReady
+        ? null
+        : "Watch the next scheduled scan for batch and snapshot persistence.",
+    }),
+    mondayChecklistItem({
+      item_id: "outcome_evaluation_route",
+      label: "Outcome evaluation route ready",
+      status: outcomeRouteReady ? "ready" : "action_needed",
+      message: outcomeRouteReady
+        ? "Outcome evaluation route is available."
+        : "Outcome evaluation route is unavailable.",
+      next_action: outcomeRouteReady
+        ? null
+        : "Verify /api/recommendations/evaluate-outcomes auth and route deployment.",
+    }),
+    mondayChecklistItem({
+      item_id: "shadow_trial",
+      label: "Shadow trial metadata coverage",
+      status: shadowReadyStatus,
+      message:
+        shadowReadyStatus === "ready"
+          ? "Shadow entry trial is collecting data."
+          : shadowReadyStatus === "pending_next_market_window"
+            ? "Shadow entry trial will collect data from future batches only."
+            : "No active entry tuning proposal is ready for shadow tracking.",
+      next_action:
+        shadowReadyStatus === "ready"
+          ? null
+          : "Wait for the next official batch with shadow metadata.",
+    }),
+    mondayChecklistItem({
+      item_id: "learning_insights",
+      label: "Learning insights available",
+      status: learningOutcomeCount > 0 ? "ready" : "warning",
+      message:
+        learningOutcomeCount > 0
+          ? `Learning insights have ${learningOutcomeCount} evaluated outcomes.`
+          : "Learning insights will update after outcome evaluation.",
+      next_action:
+        learningOutcomeCount > 0
+          ? null
+          : "Evaluate outcomes after the next official batch ages enough.",
+    }),
+    mondayChecklistItem({
+      item_id: "human_confirmed_boundary",
+      label: "Human-confirmed execution boundary active",
+      status: humanBoundaryReady ? "ready" : "warning",
+      message: humanBoundaryReady
+        ? "Recommendations remain observe-only / human-confirmed."
+        : "Execution boundary should be reviewed before Monday.",
+      next_action: humanBoundaryReady
+        ? null
+        : "Confirm data mode shows human-confirmed execution.",
+    }),
+    mondayChecklistItem({
+      item_id: "broker_automation_disabled",
+      label: "Broker automation disabled / not live",
+      status: brokerBoundaryReady ? "ready" : "action_needed",
+      message: brokerBoundaryReady
+        ? "No broker automation is enabled. Execution remains human-confirmed."
+        : "A broker/order automation boundary is not reporting disabled.",
+      next_action: brokerBoundaryReady
+        ? null
+        : "Disable broker/order automation before live trial.",
+    }),
+  ];
+  const blockerCount = items.filter(
+    (item) => item.status === "action_needed",
+  ).length;
+  const warningCount = items.filter(
+    (item) =>
+      item.status === "warning" ||
+      item.status === "pending_next_market_window",
+  ).length;
+  const readyCount = items.filter((item) => item.status === "ready").length;
+  const status =
+    blockerCount > 0
+      ? "monday_live_trial_blocked"
+      : warningCount > 0
+        ? "monday_live_trial_ready_with_warnings"
+        : "monday_live_trial_ready";
+  const nextAction =
+    items.find((item) => item.status === "action_needed")?.next_action ??
+    items.find((item) => item.status === "warning")?.next_action ??
+    items.find((item) => item.status === "pending_next_market_window")
+      ?.next_action ??
+    "Ready for Monday live-trial review.";
+  const message =
+    status === "monday_live_trial_blocked"
+      ? "Monday live-trial is blocked until action-needed items are resolved."
+      : status === "monday_live_trial_ready_with_warnings"
+        ? "Ready for Monday live-trial with warnings: review pending provider/window items."
+        : "Ready for Monday live-trial. No broker automation is enabled.";
+
+  return {
+    status,
+    message,
+    nextAction,
+    blockerCount,
+    warningCount,
+    readyCount,
+    totalCount: items.length,
+    items,
+  };
+}
+
 function isCoreReadinessSource(source: string) {
   return source === "environment" || source === "provider" || source === "scheduler";
 }
@@ -1129,6 +1441,13 @@ function buildSections(
         : shadowTrialSampleSize > 0
           ? "collecting data"
           : "proposal active; waiting for shadow eligible outcomes";
+  const mondayChecklist = mondayLiveTrialChecklist({
+    input,
+    providerPlanProfile,
+    providerUpgrade,
+    closedMarketWaitState,
+    shadowTrialState,
+  });
 
   return [
     section({
@@ -1172,6 +1491,46 @@ function buildSections(
         learning_source_batch_fingerprint:
           input.outcome_evaluation?.learning_insights_source_batch_fingerprint ??
           null,
+      },
+    }),
+    section({
+      section_id: "monday_live_trial_checklist",
+      title: "Monday Live Trial Checklist",
+      severity:
+        mondayChecklist.status === "monday_live_trial_blocked"
+          ? "critical"
+          : mondayChecklist.status === "monday_live_trial_ready_with_warnings"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Status", words(mondayChecklist.status)),
+        lineValue("Summary", mondayChecklist.message),
+        lineValue("Next action", mondayChecklist.nextAction),
+        lineValue(
+          "Ready/items",
+          `${mondayChecklist.readyCount}/${mondayChecklist.totalCount}`,
+        ),
+        lineValue(
+          "Blockers/warnings",
+          `${mondayChecklist.blockerCount}/${mondayChecklist.warningCount}`,
+        ),
+        ...mondayChecklist.items.map((item) =>
+          lineValue(
+            item.label,
+            `${words(item.status)} — ${item.message}${
+              item.next_action ? ` Next: ${item.next_action}` : ""
+            }`,
+          ),
+        ),
+      ],
+      metrics: {
+        monday_live_trial_status: mondayChecklist.status,
+        monday_live_trial_blocker_count: mondayChecklist.blockerCount,
+        monday_live_trial_warning_count: mondayChecklist.warningCount,
+        monday_live_trial_next_action: mondayChecklist.nextAction,
+        monday_live_trial_items_ready_count: mondayChecklist.readyCount,
+        monday_live_trial_items_total_count: mondayChecklist.totalCount,
+        monday_live_trial_items_json: JSON.stringify(mondayChecklist.items),
       },
     }),
     section({
