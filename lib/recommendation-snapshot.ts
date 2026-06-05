@@ -58,6 +58,9 @@ export type RecommendationSnapshotInput = {
   stop?: number | null;
   target?: number | null;
   side?: string | null;
+  direction?: string | null;
+  trade_direction?: string | null;
+  recommendation_side?: string | null;
   risk_per_share?: number | null;
   reward_per_share?: number | null;
   planned_risk_reward?: number | null;
@@ -229,15 +232,40 @@ function normalizeWindow(
 function normalizeSide(value: string | null | undefined) {
   const side = value?.trim().toLowerCase();
 
-  if (side === "short") {
+  if (side === "short" || side === "sell") {
     return "short";
   }
 
-  if (side === "long") {
+  if (side === "long" || side === "buy") {
     return "long";
   }
 
   return "unknown";
+}
+
+function sideFromPayload(payload: Record<string, unknown>) {
+  const tradePlan =
+    typeof payload.trade_plan === "object" && payload.trade_plan !== null
+      ? (payload.trade_plan as Record<string, unknown>)
+      : null;
+  const recommendation =
+    typeof payload.recommendation === "object" && payload.recommendation !== null
+      ? (payload.recommendation as Record<string, unknown>)
+      : null;
+
+  return normalizeSide(
+    String(
+      payload.side ??
+        payload.direction ??
+        payload.trade_direction ??
+        payload.recommendation_side ??
+        tradePlan?.side ??
+        tradePlan?.direction ??
+        recommendation?.side ??
+        recommendation?.direction ??
+        "",
+    ),
+  );
 }
 
 function stableHash(value: string) {
@@ -337,7 +365,13 @@ export function buildRecommendationSnapshotFingerprint(
   const rationaleAnchor = textOrNull(input.rationale ?? input.reason);
   const rationaleHash = rationaleAnchor ? stableHash(rationaleAnchor) : "no-rationale";
   const window = normalizeWindow(input.window);
-  const side = normalizeSide(input.side);
+  const side =
+    normalizeSide(
+      input.side ??
+        input.direction ??
+        input.trade_direction ??
+        input.recommendation_side,
+    ) || "unknown";
   const entry = getEntry(input);
   const stop = finiteNumber(input.stop);
   const target = finiteNumber(input.target);
@@ -426,7 +460,23 @@ export function buildRecommendationSnapshot(
     scan_observability_json: quality?.scan_observability_summary ?? null,
     empty_state_json: quality?.empty_state_summary ?? null,
     quality_json: quality,
-    payload_json: input.payload ?? {},
+    payload_json: {
+      ...(input.payload ?? {}),
+      side,
+      direction: side,
+      trade_direction: side,
+      recommendation_side: side,
+      trade_plan: {
+        ...((input.payload?.trade_plan &&
+        typeof input.payload.trade_plan === "object" &&
+        !Array.isArray(input.payload.trade_plan)
+          ? input.payload.trade_plan
+          : {}) as Record<string, unknown>),
+        side,
+        direction: side,
+        action: side === "short" ? "sell" : side === "long" ? "buy" : null,
+      },
+    },
     was_taken: input.was_taken === true,
     linked_position_id: textOrNull(input.linked_position_id),
     created_at: createdAt,
@@ -513,7 +563,7 @@ export function recommendationSnapshotFromPersistenceRow(
   const entry = finiteNumber(row.entry);
   const stop = finiteNumber(row.stop);
   const target = finiteNumber(row.target);
-  const side = normalizeSide(String(payloadJson.side ?? payloadJson.direction ?? ""));
+  const side = sideFromPayload(payloadJson);
   const riskPerShare =
     finiteNumber(payloadJson.risk_per_share) ??
     calculateRiskPerShare(entry, stop, side);

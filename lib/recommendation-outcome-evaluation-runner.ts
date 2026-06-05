@@ -1,6 +1,7 @@
 import {
   computeRecommendationOutcome,
   recommendationOutcomesJson,
+  resolveRecommendationOutcomeSide,
   type RecommendationOutcome,
   type RecommendationOutcomeCandle,
   type RecommendationOutcomeHorizon,
@@ -155,6 +156,8 @@ function horizonMs(horizon: RecommendationOutcomeHorizon) {
 }
 
 function hasRequiredSnapshotFields(snapshot: RecommendationSnapshot) {
+  const side = resolveRecommendationOutcomeSide({ snapshot }).side;
+
   return Boolean(
     snapshot.snapshot_fingerprint &&
       snapshot.ticker &&
@@ -162,7 +165,7 @@ function hasRequiredSnapshotFields(snapshot: RecommendationSnapshot) {
       snapshot.entry !== null &&
       snapshot.stop !== null &&
       snapshot.target !== null &&
-      (snapshot.side === "long" || snapshot.side === "short"),
+      (side === "long" || side === "short"),
   );
 }
 

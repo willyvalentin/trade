@@ -484,6 +484,44 @@ function hasBetterCoverage(
   return nextScore > existingScore;
 }
 
+function sideReadSource(outcome: RecommendationOutcome) {
+  return stringOrNull(outcome.payload_json.side_read_source) ?? "missing";
+}
+
+function sideReadSourceBreakdown(outcomes: RecommendationOutcome[]) {
+  return outcomes.reduce<Record<string, number>>((breakdown, outcome) => {
+    const source = sideReadSource(outcome);
+    breakdown[source] = (breakdown[source] ?? 0) + 1;
+    return breakdown;
+  }, {});
+}
+
+function isMissingSideOutcome(outcome: RecommendationOutcome) {
+  return (
+    sideReadSource(outcome) === "missing" ||
+    outcome.blockers.some((blocker) =>
+      blocker.toLowerCase().includes("side is unavailable"),
+    )
+  );
+}
+
+function upsertConstraintReady({
+  dryRun,
+  persistenceEvents,
+}: {
+  dryRun: boolean;
+  persistenceEvents: Array<{ action: string; error: string | null }>;
+}) {
+  const constraintError = persistenceEvents.some((event) =>
+    (event.error ?? "").toLowerCase().includes("no unique or exclusion constraint"),
+  );
+
+  if (constraintError) return false;
+  if (dryRun) return null;
+
+  return persistenceEvents.length > 0 ? true : null;
+}
+
 async function fetchCandles(
   request: RecommendationOutcomeCandleRequest,
 ): Promise<RecommendationOutcomeCandleResult> {
@@ -615,6 +653,11 @@ export async function POST(request: Request) {
       provider_error_count: 0,
       horizons_evaluated: parseHorizons(body?.horizons),
       tickers_evaluated: [],
+      side_read_source: {},
+      side_missing_count: 0,
+      side_inferred_count: 0,
+      invalid_due_to_missing_side_count: 0,
+      upsert_constraint_ready: null,
       latest_provider_error_type: null,
       elapsed_ms: Date.now() - routeStartedAt,
       persistence_status: dryRun ? "dry_run" : "not_attempted",
@@ -717,6 +760,17 @@ export async function POST(request: Request) {
   const latestProviderError =
     run.candidates.find((candidate) => candidate.status === "provider_error")
       ?.error ?? null;
+  const sideMissingCount = run.outcomes.filter(isMissingSideOutcome).length;
+  const sideInferredCount = run.outcomes.filter(
+    (outcome) => outcome.payload_json.side_inferred === true,
+  ).length;
+  const invalidDueToMissingSideCount = run.outcomes.filter(
+    (outcome) =>
+      outcome.status === "invalid" &&
+      outcome.blockers.some((blocker) =>
+        blocker.toLowerCase().includes("side is unavailable"),
+      ),
+  ).length;
   const diagnostics = {
     route_version: outcomeEvaluationRouteVersion,
     mode,
@@ -744,6 +798,14 @@ export async function POST(request: Request) {
           .filter((ticker): ticker is string => ticker !== null),
       ),
     ).sort(),
+    side_read_source: sideReadSourceBreakdown(run.outcomes),
+    side_missing_count: sideMissingCount,
+    side_inferred_count: sideInferredCount,
+    invalid_due_to_missing_side_count: invalidDueToMissingSideCount,
+    upsert_constraint_ready: upsertConstraintReady({
+      dryRun,
+      persistenceEvents,
+    }),
     latest_provider_error_type: latestProviderError,
     elapsed_ms: Date.now() - routeStartedAt,
     persistence_status: dryRun

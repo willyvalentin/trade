@@ -586,6 +586,9 @@ function buildDiagnosticSnapshot({
     entryLow !== null && entryHigh !== null
       ? (entryLow + entryHigh) / 2
       : entryHigh ?? entryLow;
+  const side = textOrNull(recommendation.direction) ?? "long";
+  const stop = numberOrNull(recommendation.stop_loss);
+  const target = numberOrNull(recommendation.target_1);
 
   return buildRecommendationSnapshot({
     recommendation_id: textOrNull(recommendation.id),
@@ -607,9 +610,9 @@ function buildDiagnosticSnapshot({
     entry,
     entry_low: entryLow,
     entry_high: entryHigh,
-    stop: numberOrNull(recommendation.stop_loss),
-    target: numberOrNull(recommendation.target_1),
-    side: textOrNull(recommendation.direction) ?? "long",
+    stop,
+    target,
+    side,
     planned_risk_reward: numberOrNull(recommendation.risk_reward),
     confidence: recommendation.confidence ?? null,
     label: "Diagnostic",
@@ -623,6 +626,19 @@ function buildDiagnosticSnapshot({
       not_live_trade_signal: true,
       visible_in_primary_recommendations: false,
       source_mode: "diagnostic",
+      side,
+      direction: side,
+      trade_direction: side,
+      recommendation_side: side,
+      action: side === "short" ? "sell" : "buy",
+      trade_plan: {
+        side,
+        direction: side,
+        action: side === "short" ? "sell" : "buy",
+        entry,
+        stop,
+        target,
+      },
       active_scan_trace: activeScanTrace,
     },
   });

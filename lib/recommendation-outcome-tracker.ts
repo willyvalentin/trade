@@ -73,6 +73,33 @@ export type RecommendationOutcomeInput = {
   updated_at?: string | Date | null;
 };
 
+export type RecommendationOutcomeSideReadSource =
+  | "input.side"
+  | "snapshot.side"
+  | "snapshot.direction"
+  | "snapshot.trade_direction"
+  | "snapshot.recommendation_side"
+  | "snapshot.payload_json.side"
+  | "snapshot.payload_json.direction"
+  | "snapshot.payload_json.trade_direction"
+  | "snapshot.payload_json.recommendation_side"
+  | "snapshot.payload_json.trade_plan.side"
+  | "snapshot.payload_json.trade_plan.direction"
+  | "snapshot.payload_json.trade_plan.action"
+  | "snapshot.payload_json.recommendation.side"
+  | "snapshot.payload_json.recommendation.direction"
+  | "snapshot.payload_json.action"
+  | "snapshot.payload_json.recommendation.action"
+  | "inferred_from_price_plan_action"
+  | "missing";
+
+export type RecommendationOutcomeSideResolution = {
+  side: "long" | "short" | "unknown";
+  source: RecommendationOutcomeSideReadSource;
+  inferred: boolean;
+  warning: string | null;
+};
+
 export type RecommendationOutcome = {
   id: string;
   snapshot_id: string | null;
@@ -211,15 +238,139 @@ function normalizeHorizon(
 function normalizeSide(value: string | null | undefined) {
   const side = value?.trim().toLowerCase();
 
-  if (side === "short") {
+  if (side === "short" || side === "sell") {
     return "short";
   }
 
-  if (side === "long") {
+  if (side === "long" || side === "buy") {
     return "long";
   }
 
   return "unknown";
+}
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function textValue(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function sideFromValue(
+  value: unknown,
+  source: RecommendationOutcomeSideReadSource,
+): RecommendationOutcomeSideResolution | null {
+  const side = normalizeSide(textValue(value));
+
+  return side === "long" || side === "short"
+    ? { side, source, inferred: false, warning: null }
+    : null;
+}
+
+function actionSuggestsLong(value: unknown) {
+  const text = textValue(value)?.toLowerCase() ?? "";
+
+  return (
+    text === "buy" ||
+    text === "long" ||
+    text === "buy_to_open" ||
+    text === "open_long" ||
+    text.includes("buy") ||
+    text.includes("long")
+  );
+}
+
+export function resolveRecommendationOutcomeSide(
+  input: Pick<
+    RecommendationOutcomeInput,
+    "side" | "entry" | "stop" | "target" | "snapshot"
+  >,
+): RecommendationOutcomeSideResolution {
+  const snapshot = input.snapshot ?? null;
+  const snapshotRecord = objectValue(snapshot);
+  const payload = objectValue(snapshot?.payload_json);
+  const tradePlan = objectValue(payload?.trade_plan);
+  const recommendation = objectValue(payload?.recommendation);
+  const explicitSources: Array<{
+    value: unknown;
+    source: RecommendationOutcomeSideReadSource;
+  }> = [
+    { value: input.side, source: "input.side" },
+    { value: snapshot?.side, source: "snapshot.side" },
+    { value: snapshotRecord?.direction, source: "snapshot.direction" },
+    { value: snapshotRecord?.trade_direction, source: "snapshot.trade_direction" },
+    {
+      value: snapshotRecord?.recommendation_side,
+      source: "snapshot.recommendation_side",
+    },
+    { value: payload?.side, source: "snapshot.payload_json.side" },
+    { value: payload?.direction, source: "snapshot.payload_json.direction" },
+    {
+      value: payload?.trade_direction,
+      source: "snapshot.payload_json.trade_direction",
+    },
+    {
+      value: payload?.recommendation_side,
+      source: "snapshot.payload_json.recommendation_side",
+    },
+    { value: tradePlan?.side, source: "snapshot.payload_json.trade_plan.side" },
+    {
+      value: tradePlan?.direction,
+      source: "snapshot.payload_json.trade_plan.direction",
+    },
+    {
+      value: recommendation?.side,
+      source: "snapshot.payload_json.recommendation.side",
+    },
+    {
+      value: recommendation?.direction,
+      source: "snapshot.payload_json.recommendation.direction",
+    },
+  ];
+
+  for (const candidate of explicitSources) {
+    const resolved = sideFromValue(candidate.value, candidate.source);
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  const actionLongSource = [
+    { value: payload?.action, source: "snapshot.payload_json.action" as const },
+    {
+      value: recommendation?.action,
+      source: "snapshot.payload_json.recommendation.action" as const,
+    },
+    {
+      value: tradePlan?.action,
+      source: "snapshot.payload_json.trade_plan.action" as const,
+    },
+  ].find((candidate) => actionSuggestsLong(candidate.value));
+  const entry = finiteNumber(input.entry) ?? snapshot?.entry ?? null;
+  const stop = finiteNumber(input.stop) ?? snapshot?.stop ?? null;
+  const target = finiteNumber(input.target) ?? snapshot?.target ?? null;
+  const pricePlanLooksLong =
+    entry !== null &&
+    stop !== null &&
+    target !== null &&
+    entry > stop &&
+    target > entry;
+
+  if (actionLongSource && pricePlanLooksLong) {
+    return {
+      side: "long",
+      source: "inferred_from_price_plan_action",
+      inferred: true,
+      warning: "Side inferred from price plan/action.",
+    };
+  }
+
+  return { side: "unknown", source: "missing", inferred: false, warning: null };
 }
 
 function stableHash(value: string) {
@@ -350,7 +501,8 @@ export function computeRecommendationOutcome(
   const recommendationId =
     textOrNull(input.recommendation_id) ?? snapshot?.recommendation_id ?? null;
   const ticker = textOrNull(input.ticker) ?? snapshot?.ticker ?? null;
-  const side = normalizeSide(input.side ?? snapshot?.side ?? null);
+  const sideResolution = resolveRecommendationOutcomeSide(input);
+  const side = sideResolution.side;
   const recommendedAt =
     toIso(input.recommended_at) ?? snapshot?.recommended_at ?? null;
   const evaluatedAt = toIso(input.evaluated_at) ?? new Date().toISOString();
@@ -366,6 +518,10 @@ export function computeRecommendationOutcome(
   const candles = normalizeCandles(input.candles, recommendedAt);
   const hasCandles = candles.length > 0;
   const source = textOrNull(String(input.source ?? "")) ?? "unknown";
+
+  if (sideResolution.warning) {
+    warnings.push(sideResolution.warning);
+  }
 
   if (!snapshotFingerprint) {
     blockers.push("Snapshot fingerprint is unavailable.");
@@ -542,6 +698,8 @@ export function computeRecommendationOutcome(
       risk_per_share: risk,
       source,
       provider: textOrNull(input.provider),
+      side_read_source: sideResolution.source,
+      side_inferred: sideResolution.inferred,
     },
     created_at: toIso(input.created_at) ?? evaluatedAt,
     updated_at: toIso(input.updated_at) ?? evaluatedAt,
