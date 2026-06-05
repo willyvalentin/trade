@@ -354,6 +354,45 @@ function calculateRiskReward(
   return rewardPerShare / riskPerShare;
 }
 
+function shouldAttachShadowEntryTrial(input: RecommendationSnapshotInput) {
+  const payload = input.payload ?? {};
+
+  return (
+    input.is_visible !== false &&
+    input.is_demo !== true &&
+    input.is_mock !== true &&
+    input.source_mode === "supabase" &&
+    payload.diagnostic_mode !== true &&
+    payload.not_live_trade_signal !== true &&
+    payload.visible_in_primary_recommendations !== false &&
+    payload.batch_type !== "diagnostic" &&
+    payload.source_mode !== "diagnostic"
+  );
+}
+
+function shadowEntryTrialPayload(input: RecommendationSnapshotInput) {
+  if (!shouldAttachShadowEntryTrial(input)) {
+    return {};
+  }
+
+  return {
+    shadow_entry_variant: "first_candle_close_entry",
+    shadow_entry_source: "entry_tuning_proposal",
+    shadow_entry_trial: true,
+    shadow_entry_confidence: "low",
+    shadow_entry_recommended_action: "paper_test_variant",
+    shadow_entry_not_live_signal: true,
+    shadow_entry_plan: {
+      variant: "first_candle_close_entry",
+      source: "entry_tuning_proposal",
+      trial: true,
+      confidence: "low",
+      recommended_action: "paper_test_variant",
+      not_live_signal: true,
+    },
+  };
+}
+
 export function buildRecommendationSnapshotFingerprint(
   input: RecommendationSnapshotInput,
 ) {
@@ -462,6 +501,7 @@ export function buildRecommendationSnapshot(
     quality_json: quality,
     payload_json: {
       ...(input.payload ?? {}),
+      ...shadowEntryTrialPayload(input),
       side,
       direction: side,
       trade_direction: side,

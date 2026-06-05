@@ -790,6 +790,8 @@ export async function POST(request: Request) {
       completed_outcomes_skipped_already_enriched_count: 0,
       retained_candles_added_count: 0,
       counterfactual_ready_count: 0,
+      shadow_entry_trial_count: 0,
+      shadow_entry_triggered_count: 0,
     };
 
     return NextResponse.json({
@@ -992,6 +994,8 @@ export async function POST(request: Request) {
       run.completed_outcomes_skipped_already_enriched_count,
     retained_candles_added_count: run.retained_candles_added_count,
     counterfactual_ready_count: run.counterfactual_ready_count,
+    shadow_entry_trial_count: run.shadow_entry_trial_count,
+    shadow_entry_triggered_count: run.shadow_entry_triggered_count,
   };
 
   return NextResponse.json({

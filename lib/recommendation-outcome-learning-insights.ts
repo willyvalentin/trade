@@ -112,6 +112,19 @@ export type CounterfactualEntrySimulationSummary = {
   recommendation_summaries: CounterfactualEntryRecommendationSummary[];
 };
 
+export type ShadowEntryTrialSummary = {
+  variant: CounterfactualEntryVariantLabel | null;
+  status: "collecting_data" | "not_started";
+  warning: string;
+  official_entry_trigger_rate: number | null;
+  shadow_entry_trigger_rate: number | null;
+  official_avg_best_r: number | null;
+  shadow_avg_best_r: number | null;
+  official_avg_worst_r: number | null;
+  shadow_avg_worst_r: number | null;
+  shadow_trial_sample_size: number;
+};
+
 export type EntryPlanQualityItem = {
   snapshot_fingerprint: string | null;
   recommendation_id: string | null;
@@ -216,6 +229,7 @@ export type RecommendationOutcomeLearningInsightsSummary = {
   horizon_breakdown: RecommendationOutcomeLearningMetricBreakdown[];
   tier_breakdown: RecommendationOutcomeLearningMetricBreakdown[];
   entry_plan_quality: EntryPlanQualitySummary;
+  shadow_entry_trial: ShadowEntryTrialSummary;
   primary_insight: RecommendationOutcomeLearningInsight | null;
   suggested_next_review_item: string | null;
   diagnostics: {
@@ -531,7 +545,7 @@ function variantEntries(input: {
   ]);
 }
 
-function simulateCounterfactualVariant(input: {
+export function simulateCounterfactualVariant(input: {
   snapshot: RecommendationSnapshot;
   sourceOutcome: RecommendationOutcome;
   candles: RecommendationOutcomeCandle[];
@@ -793,6 +807,58 @@ function buildCounterfactualEntrySimulationSummary(input: {
     counterfactual_primary_reason: counterfactualPrimaryReason,
     variant_summaries: variantSummaries,
     recommendation_summaries: recommendationSummaries,
+  };
+}
+
+function shadowEntryTrialRecord(outcome: RecommendationOutcome) {
+  const record = objectValue(outcome.payload_json.shadow_entry_trial);
+
+  if (!record) {
+    return null;
+  }
+
+  const variant = record.variant;
+
+  return {
+    variant:
+      typeof variant === "string"
+        ? (variant as CounterfactualEntryVariantLabel)
+        : null,
+    triggered: record.triggered === true,
+    best_r: finiteNumber(record.best_r),
+    worst_r: finiteNumber(record.worst_r),
+  };
+}
+
+function buildShadowEntryTrialSummary(
+  outcomes: RecommendationOutcome[],
+): ShadowEntryTrialSummary {
+  const evaluated = outcomes.filter(isEvaluatedOutcome);
+  const shadowResults = evaluated
+    .map(shadowEntryTrialRecord)
+    .filter((item): item is NonNullable<ReturnType<typeof shadowEntryTrialRecord>> =>
+      item !== null,
+    );
+  const variant =
+    shadowResults.find((item) => item.variant !== null)?.variant ?? null;
+
+  return {
+    variant,
+    status: shadowResults.length > 0 ? "collecting_data" : "not_started",
+    warning: "Shadow entry trial is learning-only and not a live trade signal.",
+    official_entry_trigger_rate: percent(
+      evaluated.filter(isEntryTriggered).length,
+      evaluated.length,
+    ),
+    shadow_entry_trigger_rate: percent(
+      shadowResults.filter((item) => item.triggered).length,
+      shadowResults.length,
+    ),
+    official_avg_best_r: average(evaluated.map((outcome) => outcome.best_r)),
+    shadow_avg_best_r: average(shadowResults.map((item) => item.best_r)),
+    official_avg_worst_r: average(evaluated.map((outcome) => outcome.worst_r)),
+    shadow_avg_worst_r: average(shadowResults.map((item) => item.worst_r)),
+    shadow_trial_sample_size: shadowResults.length,
   };
 }
 
@@ -1189,6 +1255,7 @@ export function buildRecommendationOutcomeLearningInsightsSummary({
     snapshots: selectedSnapshots,
     outcomes,
   });
+  const shadowEntryTrial = buildShadowEntryTrialSummary(outcomes);
   const overall = buildBreakdown(
     "overall",
     outcomes,
@@ -1287,6 +1354,7 @@ export function buildRecommendationOutcomeLearningInsightsSummary({
     horizon_breakdown: horizonBreakdown,
     tier_breakdown: tierBreakdown,
     entry_plan_quality: entryPlanQuality,
+    shadow_entry_trial: shadowEntryTrial,
     primary_insight: primaryInsight,
     suggested_next_review_item:
       primaryInsight?.suggested_next_review_item ?? null,

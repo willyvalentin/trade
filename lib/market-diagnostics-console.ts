@@ -234,6 +234,8 @@ export type MarketDiagnosticsConsoleInput = {
     retained_candles_added_count?: number | null;
     retained_candles_available_count?: number | null;
     counterfactual_ready_count?: number | null;
+    shadow_entry_trial_count?: number | null;
+    shadow_entry_triggered_count?: number | null;
     outcome_provider_budget_status?: string | null;
     next_retry_suggestion?: string | null;
     persistence_status?: string | null;
@@ -2182,6 +2184,26 @@ function buildSections(
             "none",
           ),
         ),
+        lineValue(
+          "Shadow trial",
+          `${compact(input.outcome_learning?.shadow_entry_trial.variant, "none")} / ${compact(input.outcome_learning?.shadow_entry_trial.status, "not_started")}`,
+        ),
+        lineValue(
+          "Official / shadow trigger",
+          `${input.outcome_learning?.shadow_entry_trial.official_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_entry_trigger_rate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Official / shadow avg best R",
+          `${input.outcome_learning?.shadow_entry_trial.official_avg_best_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? "unknown"}`,
+        ),
+        lineValue(
+          "Official / shadow avg worst R",
+          `${input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ?? "unknown"}`,
+        ),
+        lineValue(
+          "Shadow warning",
+          compact(input.outcome_learning?.shadow_entry_trial.warning, "not live signal"),
+        ),
       ],
       metrics: {
         learning_insight_batch_fingerprint:
@@ -2277,6 +2299,95 @@ function buildSections(
           input.outcome_learning?.entry_plan_quality
             .counterfactual_entry_simulation.recommendation_summaries ?? [],
         ),
+        shadow_entry_variant:
+          input.outcome_learning?.shadow_entry_trial.variant ?? null,
+        shadow_trial_status:
+          input.outcome_learning?.shadow_entry_trial.status ?? null,
+        official_entry_trigger_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .official_entry_trigger_rate ?? null,
+        shadow_entry_trigger_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_entry_trigger_rate ?? null,
+        official_avg_best_r:
+          input.outcome_learning?.shadow_entry_trial.official_avg_best_r ??
+          null,
+        shadow_avg_best_r:
+          input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? null,
+        official_avg_worst_r:
+          input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ??
+          null,
+        shadow_avg_worst_r:
+          input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ??
+          null,
+        shadow_trial_sample_size:
+          input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ??
+          null,
+        shadow_trial_warning:
+          input.outcome_learning?.shadow_entry_trial.warning ?? null,
+        outcome_route_shadow_entry_trial_count:
+          input.outcome_evaluation?.shadow_entry_trial_count ?? null,
+        outcome_route_shadow_entry_triggered_count:
+          input.outcome_evaluation?.shadow_entry_triggered_count ?? null,
+      },
+    }),
+    section({
+      section_id: "shadow_entry_trial",
+      title: "Shadow Entry Trial",
+      severity: "info",
+      lines: [
+        lineValue(
+          "Variant",
+          compact(input.outcome_learning?.shadow_entry_trial.variant, "none"),
+        ),
+        lineValue(
+          "Status",
+          compact(
+            input.outcome_learning?.shadow_entry_trial.status,
+            "not_started",
+          ),
+        ),
+        lineValue(
+          "Official vs shadow trigger",
+          `${input.outcome_learning?.shadow_entry_trial.official_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_entry_trigger_rate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Official vs shadow avg best/worst R",
+          `${input.outcome_learning?.shadow_entry_trial.official_avg_best_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? "unknown"} best, ${input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ?? "unknown"} worst`,
+        ),
+        lineValue(
+          "Sample size",
+          input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ??
+            null,
+        ),
+        lineValue("Warning", "learning-only; not a live signal"),
+      ],
+      metrics: {
+        shadow_entry_variant:
+          input.outcome_learning?.shadow_entry_trial.variant ?? null,
+        shadow_trial_status:
+          input.outcome_learning?.shadow_entry_trial.status ?? null,
+        official_entry_trigger_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .official_entry_trigger_rate ?? null,
+        shadow_entry_trigger_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_entry_trigger_rate ?? null,
+        official_avg_best_r:
+          input.outcome_learning?.shadow_entry_trial.official_avg_best_r ??
+          null,
+        shadow_avg_best_r:
+          input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? null,
+        official_avg_worst_r:
+          input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ??
+          null,
+        shadow_avg_worst_r:
+          input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ??
+          null,
+        shadow_trial_sample_size:
+          input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ??
+          null,
+        shadow_entry_not_live_signal: true,
       },
     }),
     section({

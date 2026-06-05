@@ -1130,6 +1130,8 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   completedOutcomesSkippedAlreadyEnrichedCount: number;
   retainedCandlesAddedCount: number;
   counterfactualReadyCount: number;
+  shadowEntryTrialCount: number;
+  shadowEntryTriggeredCount: number;
   outcomeProviderBudgetStatus: string | null;
   nextRetrySuggestion: string | null;
   summary: string;
@@ -7905,6 +7907,8 @@ export function TradeApp() {
     completedOutcomesSkippedAlreadyEnrichedCount: 0,
     retainedCandlesAddedCount: 0,
     counterfactualReadyCount: 0,
+    shadowEntryTrialCount: 0,
+    shadowEntryTriggeredCount: 0,
     outcomeProviderBudgetStatus: null,
     nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
@@ -12894,6 +12898,10 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.retainedCandlesAddedCount,
         counterfactual_ready_count:
           recommendationOutcomeEvaluationDiagnostics.counterfactualReadyCount,
+        shadow_entry_trial_count:
+          recommendationOutcomeEvaluationDiagnostics.shadowEntryTrialCount,
+        shadow_entry_triggered_count:
+          recommendationOutcomeEvaluationDiagnostics.shadowEntryTriggeredCount,
         retained_candles_available_count:
           recommendationOutcomeLearningInsightsSummary.entry_plan_quality
             .counterfactual_entry_simulation.simulated_recommendation_count,
@@ -13603,6 +13611,16 @@ export function TradeApp() {
         counterfactualReadyCount: Number(
           routeDiagnostics.counterfactual_ready_count ??
             run.counterfactual_ready_count ??
+            0,
+        ),
+        shadowEntryTrialCount: Number(
+          routeDiagnostics.shadow_entry_trial_count ??
+            run.shadow_entry_trial_count ??
+            0,
+        ),
+        shadowEntryTriggeredCount: Number(
+          routeDiagnostics.shadow_entry_triggered_count ??
+            run.shadow_entry_triggered_count ??
             0,
         ),
         outcomeProviderBudgetStatus:
@@ -18346,6 +18364,18 @@ function RecommendationOutcomeLearningInsightsPanel({
               .variant_risk_warning_count,
           )}
         />
+        <SummaryCard
+          label="Shadow Trial"
+          value={summary.shadow_entry_trial.status.replace(/_/g, " ")}
+        />
+        <SummaryCard
+          label="Shadow Trigger"
+          value={formatPercent(summary.shadow_entry_trial.shadow_entry_trigger_rate)}
+        />
+        <SummaryCard
+          label="Shadow Sample"
+          value={String(summary.shadow_entry_trial.shadow_trial_sample_size)}
+        />
       </div>
 
       {primaryInsight && (
@@ -18445,6 +18475,43 @@ function RecommendationOutcomeLearningInsightsPanel({
               summary.entry_plan_quality.counterfactual_entry_simulation
                 .best_variant_avg_worst_r,
             )}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Shadow Entry Trial
+        </p>
+        <p className="mt-2 text-sm leading-6 text-zinc-400">
+          {summary.shadow_entry_trial.warning}
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Detail
+            label="Variant"
+            value={
+              summary.shadow_entry_trial.variant?.replace(/_/g, " ") ?? "—"
+            }
+          />
+          <Detail
+            label="Status"
+            value={summary.shadow_entry_trial.status.replace(/_/g, " ")}
+          />
+          <Detail
+            label="Official vs shadow trigger"
+            value={`${formatPercent(summary.shadow_entry_trial.official_entry_trigger_rate)} / ${formatPercent(summary.shadow_entry_trial.shadow_entry_trigger_rate)}`}
+          />
+          <Detail
+            label="Official vs shadow best R"
+            value={`${formatRecommendationPerformanceR(summary.shadow_entry_trial.official_avg_best_r)} / ${formatRecommendationPerformanceR(summary.shadow_entry_trial.shadow_avg_best_r)}`}
+          />
+          <Detail
+            label="Official vs shadow worst R"
+            value={`${formatRecommendationPerformanceR(summary.shadow_entry_trial.official_avg_worst_r)} / ${formatRecommendationPerformanceR(summary.shadow_entry_trial.shadow_avg_worst_r)}`}
+          />
+          <Detail
+            label="Sample size"
+            value={String(summary.shadow_entry_trial.shadow_trial_sample_size)}
           />
         </div>
       </div>
@@ -18552,6 +18619,13 @@ function RecommendationOutcomeLearningInsightsPanel({
         data-best-counterfactual-trigger-rate={
           summary.entry_plan_quality.counterfactual_entry_simulation
             .best_variant_trigger_rate ?? ""
+        }
+        data-shadow-entry-variant={summary.shadow_entry_trial.variant ?? ""}
+        data-shadow-entry-trigger-rate={
+          summary.shadow_entry_trial.shadow_entry_trigger_rate ?? ""
+        }
+        data-shadow-trial-sample-size={
+          summary.shadow_entry_trial.shadow_trial_sample_size
         }
       >
         {summaryJson}

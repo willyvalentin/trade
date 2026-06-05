@@ -7,6 +7,10 @@ import {
   type RecommendationOutcomeHorizon,
   type RecommendationOutcomePersistenceResult,
 } from "@/lib/recommendation-outcome-tracker";
+import {
+  simulateCounterfactualVariant,
+  type CounterfactualEntryVariantLabel,
+} from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 
 export type RecommendationOutcomeEvaluationRunStatus =
@@ -123,6 +127,8 @@ export type RecommendationOutcomeEvaluationRun = {
   completed_outcomes_skipped_already_enriched_count: number;
   retained_candles_added_count: number;
   counterfactual_ready_count: number;
+  shadow_entry_trial_count: number;
+  shadow_entry_triggered_count: number;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
@@ -311,6 +317,86 @@ function retainedCandlePayload(candles: RecommendationOutcomeCandle[]) {
     retained_candles_available: retainedCandles.length > 0,
     retained_candle_count: retainedCandles.length,
     counterfactual_ready: retainedCandles.length > 0,
+  };
+}
+
+function shadowEntryVariant(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+  const variant =
+    typeof payload.shadow_entry_variant === "string"
+      ? payload.shadow_entry_variant
+      : null;
+
+  if (
+    payload.shadow_entry_trial !== true ||
+    payload.shadow_entry_not_live_signal !== true ||
+    variant !== "first_candle_close_entry"
+  ) {
+    return null;
+  }
+
+  return variant as CounterfactualEntryVariantLabel;
+}
+
+function shadowExecutionQualityLabel(result: {
+  entry_triggered: boolean | null;
+  target_hit: boolean | null;
+  stop_hit: boolean | null;
+  best_r: number | null;
+}) {
+  if (result.target_hit === true) return "target_hit";
+  if (result.stop_hit === true) return "stop_hit";
+  if (result.entry_triggered === false) {
+    return (result.best_r ?? 0) > 0
+      ? "missed_but_favorable"
+      : "missed_and_unfavorable";
+  }
+  if (result.entry_triggered === true) return "triggered_no_followthrough";
+  return "data_incomplete";
+}
+
+function shadowEntryTrialPayload(input: {
+  snapshot: RecommendationSnapshot;
+  sourceOutcome: RecommendationOutcome;
+  candles: RecommendationOutcomeCandle[];
+}) {
+  const variant = shadowEntryVariant(input.snapshot);
+  const firstCandle = input.candles[0] ?? null;
+  const firstClose =
+    typeof firstCandle?.close === "number" && Number.isFinite(firstCandle.close)
+      ? firstCandle.close
+      : null;
+
+  if (!variant || firstClose === null) {
+    return {};
+  }
+
+  const result = simulateCounterfactualVariant({
+    snapshot: input.snapshot,
+    sourceOutcome: input.sourceOutcome,
+    candles: input.candles,
+    variant,
+    entry: firstClose,
+  });
+
+  return {
+    shadow_entry_trial: {
+      variant,
+      entry: result.entry,
+      triggered: result.entry_triggered,
+      target_hit: result.target_hit,
+      stop_hit: result.stop_hit,
+      best_r: result.best_r,
+      worst_r: result.worst_r,
+      time_to_entry_minutes: result.time_to_entry_minutes,
+      execution_quality_label: shadowExecutionQualityLabel(result),
+      risk_per_share: result.risk_per_share,
+      risk_width_ratio_vs_original: result.risk_width_ratio_vs_original,
+      risk_warning: result.risk_warning,
+      not_live_signal: true,
+      source: "entry_tuning_proposal",
+      status: "collecting_data",
+    },
   };
 }
 
@@ -543,6 +629,8 @@ export async function runRecommendationOutcomeEvaluation(
       completed_outcomes_skipped_already_enriched_count: 0,
       retained_candles_added_count: 0,
       counterfactual_ready_count: 0,
+      shadow_entry_trial_count: 0,
+      shadow_entry_triggered_count: 0,
       candle_request_debug_sample: [],
       candidates,
       outcomes,
@@ -567,6 +655,8 @@ export async function runRecommendationOutcomeEvaluation(
   let completedOutcomesSkippedAlreadyEnrichedCount = 0;
   let retainedCandlesAddedCount = 0;
   let counterfactualReadyCount = 0;
+  let shadowEntryTrialCount = 0;
+  let shadowEntryTriggeredCount = 0;
   const candleRequestDebugSample: Record<string, unknown>[] = [];
 
   for (const snapshot of sortedSnapshots) {
@@ -902,7 +992,24 @@ export async function runRecommendationOutcomeEvaluation(
       const outcome = annotateOutcome(result.outcome, {
         ...horizonFilterDiagnostics,
         ...retainedCandlePayload(horizonCandles),
+        ...shadowEntryTrialPayload({
+          snapshot,
+          sourceOutcome: result.outcome,
+          candles: horizonCandles,
+        }),
       });
+      if (outcome.payload_json.shadow_entry_trial) {
+        shadowEntryTrialCount += 1;
+        const shadowTrial =
+          typeof outcome.payload_json.shadow_entry_trial === "object" &&
+          outcome.payload_json.shadow_entry_trial !== null
+            ? (outcome.payload_json.shadow_entry_trial as Record<string, unknown>)
+            : null;
+
+        if (shadowTrial?.triggered === true) {
+          shadowEntryTriggeredCount += 1;
+        }
+      }
       const persistence = options.persistOutcome
         ? await options.persistOutcome(outcome)
         : null;
@@ -1028,6 +1135,8 @@ export async function runRecommendationOutcomeEvaluation(
       completedOutcomesSkippedAlreadyEnrichedCount,
     retained_candles_added_count: retainedCandlesAddedCount,
     counterfactual_ready_count: counterfactualReadyCount,
+    shadow_entry_trial_count: shadowEntryTrialCount,
+    shadow_entry_triggered_count: shadowEntryTriggeredCount,
     candle_request_debug_sample: candleRequestDebugSample,
     candidates,
     outcomes,
