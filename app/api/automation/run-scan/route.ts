@@ -1833,6 +1833,8 @@ export async function POST(request: Request) {
     scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
     effective_scan_ticker_cap:
       scheduledRuntimeConfig.effective_scan_ticker_cap,
+    effective_outcome_candle_request_cap:
+      scheduledRuntimeConfig.profile_outcome_candle_requests_per_run,
     effective_scheduled_skip_openai:
       scheduledRuntimeConfig.effective_scheduled_skip_openai,
     effective_scheduled_timeout_ms:
@@ -1993,6 +1995,8 @@ export async function POST(request: Request) {
     effective_scheduled_timeout_ms:
       scheduledRuntimeConfig.effective_scheduled_timeout_ms,
     profile_scan_ticker_cap: scheduledRuntimeConfig.profile_scan_ticker_cap,
+    profile_outcome_candle_request_cap:
+      scheduledRuntimeConfig.profile_outcome_candle_requests_per_run,
     env_scan_ticker_override:
       scheduledRuntimeConfig.env_scan_ticker_override,
     profile_notes: scheduledRuntimeConfig.profile_notes,

@@ -60,8 +60,10 @@ import {
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
+import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 
 type DiagnosticMode =
+  | "env_check"
   | "dry_run"
   | "diagnostic_persist"
   | "live_window_simulation"
@@ -191,6 +193,7 @@ async function parseBody(request: Request): Promise<DiagnosticRunRequestBody> {
 
 function parseMode(value: unknown): DiagnosticMode {
   if (
+    value === "env_check" ||
     value === "dry_run" ||
     value === "diagnostic_persist" ||
     value === "live_window_simulation" ||
@@ -236,6 +239,71 @@ function parseTimeoutMs(value: unknown) {
   );
 }
 
+function providerUpgradeChecklistStatus({
+  mode,
+  source,
+  serverPlanMode,
+  publicPlanMode,
+  planModeMismatch,
+}: {
+  mode: string;
+  source: string;
+  serverPlanMode: string;
+  publicPlanMode: string;
+  planModeMismatch: boolean;
+}) {
+  if (planModeMismatch) return "env_mismatch_needs_fix";
+  if (mode === "grow") return "grow_active";
+  if (mode === "pro") return "pro_active";
+  if (mode === "custom") return "custom_active_needs_review";
+  if (source === "fallback_free_safe") return "unknown_plan_free_safe";
+  if (mode === "free" && serverPlanMode === "free" && publicPlanMode === "free") {
+    return "grow_ready_pending_env_change";
+  }
+
+  return "free_safe_ready";
+}
+
+function providerPlanDiagnostics() {
+  const profile = buildProviderPlanProfile();
+  const scheduledScanTickerOverride = finiteInteger(
+    process.env.TURE_SCHEDULED_SCAN_MAX_TICKERS,
+  );
+  const effectiveScanTickerCap = Math.max(
+    1,
+    Math.min(50, scheduledScanTickerOverride ?? profile.profile_scan_ticker_cap),
+  );
+  const upgradeStatus = providerUpgradeChecklistStatus({
+    mode: profile.effective_mode,
+    source: profile.source,
+    serverPlanMode: profile.server_plan_mode,
+    publicPlanMode: profile.public_plan_mode,
+    planModeMismatch: profile.plan_mode_mismatch,
+  });
+
+  return {
+    provider_plan_profile_mode: profile.effective_mode,
+    provider_plan_profile_source: profile.source,
+    server_plan_mode: profile.server_plan_mode,
+    public_plan_mode: profile.public_plan_mode,
+    plan_mode_mismatch: profile.plan_mode_mismatch,
+    effective_scan_ticker_cap: effectiveScanTickerCap,
+    effective_outcome_candle_request_cap:
+      profile.profile_outcome_candle_requests_per_run,
+    effective_scheduled_skip_openai: profile.profile_scheduled_skip_openai,
+    effective_scheduled_timeout_ms: profile.profile_scheduled_timeout_ms,
+    profile_scan_ticker_cap: profile.profile_scan_ticker_cap,
+    profile_outcome_candle_request_cap:
+      profile.profile_outcome_candle_requests_per_run,
+    env_scan_ticker_override: scheduledScanTickerOverride,
+    provider_profile_scan_ticker_override: profile.overrides.scan_ticker_cap,
+    profile_notes: profile.profile_notes,
+    profile_warnings: profile.profile_warnings,
+    provider_upgrade_checklist_status: upgradeStatus,
+    provider_plan_profile: profile,
+  };
+}
+
 function resolveDiagnosticStep({
   body,
   mode,
@@ -243,6 +311,7 @@ function resolveDiagnosticStep({
   body: DiagnosticRunRequestBody;
   mode: DiagnosticMode;
 }): DiagnosticStep {
+  if (mode === "env_check") return "env_check";
   if (body.env_check_only === true) return "env_check";
   if (body.universe_only === true) return "universe_only";
   if (body.market_data_only === true) return "market_data_only";
@@ -700,6 +769,7 @@ export async function POST(request: Request) {
   const sessionType: SessionType = getLegacySessionTypeForScanWindow(scanWindow);
   const scanDate = getNewYorkDateString(now);
   const diagnosticRunId = `diagnostic_scan_${routeReceivedAt.replace(/[^0-9]/g, "")}`;
+  const providerProfileDiagnostics = providerPlanDiagnostics();
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt,
     scheduledFunctionFiredAtUtc: null,
@@ -726,6 +796,28 @@ export async function POST(request: Request) {
     scan_window: scanWindow,
     orchestration_decision: "diagnostic_should_scan_now",
     should_scan_now: true,
+    provider_plan_profile_mode:
+      providerProfileDiagnostics.provider_plan_profile_mode,
+    provider_plan_profile_source:
+      providerProfileDiagnostics.provider_plan_profile_source,
+    server_plan_mode: providerProfileDiagnostics.server_plan_mode,
+    public_plan_mode: providerProfileDiagnostics.public_plan_mode,
+    plan_mode_mismatch: providerProfileDiagnostics.plan_mode_mismatch,
+    effective_scan_ticker_cap:
+      providerProfileDiagnostics.effective_scan_ticker_cap,
+    effective_outcome_candle_request_cap:
+      providerProfileDiagnostics.effective_outcome_candle_request_cap,
+    effective_scheduled_skip_openai:
+      providerProfileDiagnostics.effective_scheduled_skip_openai,
+    effective_scheduled_timeout_ms:
+      providerProfileDiagnostics.effective_scheduled_timeout_ms,
+    profile_scan_ticker_cap:
+      providerProfileDiagnostics.profile_scan_ticker_cap,
+    profile_outcome_candle_request_cap:
+      providerProfileDiagnostics.profile_outcome_candle_request_cap,
+    env_scan_ticker_override:
+      providerProfileDiagnostics.env_scan_ticker_override,
+    profile_notes: providerProfileDiagnostics.profile_notes,
   });
 
   if (diagnosticStep === "env_check") {
@@ -746,6 +838,8 @@ export async function POST(request: Request) {
       activeScanTrace,
       extra: {
         provider_env: providerEnvSnapshot(),
+        schema_check: schemaCheck,
+        ...providerProfileDiagnostics,
       },
     });
   }

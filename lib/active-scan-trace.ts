@@ -53,9 +53,11 @@ export type ActiveScanTrace = {
   public_plan_mode: string | null;
   plan_mode_mismatch: boolean;
   effective_scan_ticker_cap: number | null;
+  effective_outcome_candle_request_cap: number | null;
   effective_scheduled_skip_openai: boolean;
   effective_scheduled_timeout_ms: number | null;
   profile_scan_ticker_cap: number | null;
+  profile_outcome_candle_request_cap: number | null;
   env_scan_ticker_override: number | null;
   profile_notes: string[];
   scheduled_max_tickers: number | null;
@@ -215,9 +217,11 @@ export function createActiveScanTrace({
     public_plan_mode: null,
     plan_mode_mismatch: false,
     effective_scan_ticker_cap: null,
+    effective_outcome_candle_request_cap: null,
     effective_scheduled_skip_openai: false,
     effective_scheduled_timeout_ms: null,
     profile_scan_ticker_cap: null,
+    profile_outcome_candle_request_cap: null,
     env_scan_ticker_override: null,
     profile_notes: [],
     scheduled_max_tickers: null,

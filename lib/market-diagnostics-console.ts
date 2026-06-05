@@ -356,11 +356,13 @@ function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
     fallback?.profile_scan_ticker_cap ??
     null;
   const outcomeBudgetLimit =
+    activeTrace?.effective_outcome_candle_request_cap ??
     outcome?.effective_budget_limit ??
     outcome?.provider_budget_limit ??
     fallback?.profile_outcome_candle_requests_per_run ??
     null;
   const profileBudgetLimit =
+    activeTrace?.profile_outcome_candle_request_cap ??
     outcome?.profile_budget_limit ??
     fallback?.profile_outcome_candle_requests_per_run ??
     null;
@@ -1392,12 +1394,16 @@ function buildSections(
           input.active_scan_trace?.plan_mode_mismatch ?? null,
         effective_scan_ticker_cap:
           input.active_scan_trace?.effective_scan_ticker_cap ?? null,
+        effective_outcome_candle_request_cap:
+          input.active_scan_trace?.effective_outcome_candle_request_cap ?? null,
         effective_scheduled_skip_openai:
           input.active_scan_trace?.effective_scheduled_skip_openai ?? null,
         effective_scheduled_timeout_ms:
           input.active_scan_trace?.effective_scheduled_timeout_ms ?? null,
         profile_scan_ticker_cap:
           input.active_scan_trace?.profile_scan_ticker_cap ?? null,
+        profile_outcome_candle_request_cap:
+          input.active_scan_trace?.profile_outcome_candle_request_cap ?? null,
         env_scan_ticker_override:
           input.active_scan_trace?.env_scan_ticker_override ?? null,
         scheduled_max_tickers:
