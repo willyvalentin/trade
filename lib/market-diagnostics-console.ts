@@ -398,6 +398,84 @@ function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
   };
 }
 
+type ProviderUpgradeChecklistStatus =
+  | "free_safe_ready"
+  | "grow_ready_pending_env_change"
+  | "grow_active"
+  | "pro_active"
+  | "custom_active_needs_review"
+  | "env_mismatch_needs_fix"
+  | "unknown_plan_free_safe";
+
+function providerUpgradeChecklist(
+  profile: ReturnType<typeof providerPlanProfileMetrics>,
+) {
+  const envConsistent = !profile.mismatch;
+  const upgradeTarget = "grow";
+  const beforeUpgradeEnvValues = [
+    "TWELVE_DATA_PLAN_MODE=free",
+    "NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE=free",
+  ];
+  const growEnvValues = [
+    "TWELVE_DATA_PLAN_MODE=grow",
+    "NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE=grow",
+  ];
+  const mode = profile.mode;
+  const isFallbackUnknown = profile.source === "fallback_free_safe";
+  const status: ProviderUpgradeChecklistStatus = profile.mismatch
+    ? "env_mismatch_needs_fix"
+    : mode === "grow"
+      ? "grow_active"
+      : mode === "pro"
+        ? "pro_active"
+        : mode === "custom"
+          ? "custom_active_needs_review"
+          : isFallbackUnknown
+            ? "unknown_plan_free_safe"
+            : mode === "free" &&
+                profile.serverPlanMode === "free" &&
+                profile.publicPlanMode === "free"
+              ? "grow_ready_pending_env_change"
+              : "free_safe_ready";
+  const messageByStatus: Record<ProviderUpgradeChecklistStatus, string> = {
+    free_safe_ready:
+      "Free-safe mode is active. Upgrade-ready profile is available.",
+    grow_ready_pending_env_change:
+      "Grow profile is ready. Set TWELVE_DATA_PLAN_MODE=grow and NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE=grow after upgrading.",
+    grow_active:
+      "Grow profile active. Monitor provider calls and outcome completion today.",
+    pro_active:
+      "Pro profile active. Monitor broad scan coverage and outcome completion today.",
+    custom_active_needs_review:
+      "Custom profile active. Verify explicit caps.",
+    env_mismatch_needs_fix:
+      "Server/public plan mismatch. Fix Netlify env before relying on displayed profile.",
+    unknown_plan_free_safe:
+      "Unknown plan env is using Free-safe fallback. Set explicit plan env before upgrading.",
+  };
+  const safeToUpgrade =
+    envConsistent &&
+    (status === "free_safe_ready" ||
+      status === "grow_ready_pending_env_change" ||
+      status === "unknown_plan_free_safe");
+
+  return {
+    status,
+    message: messageByStatus[status],
+    envConsistent,
+    upgradeTarget,
+    beforeUpgradeEnvValues,
+    growEnvValues,
+    nextEnvValues:
+      status === "grow_active" || status === "pro_active"
+        ? []
+        : status === "env_mismatch_needs_fix"
+          ? growEnvValues
+          : growEnvValues,
+    safeToUpgrade,
+  };
+}
+
 function normalizeSeverity(
   value: string | null | undefined,
 ): MarketDiagnosticsConsoleSeverity {
@@ -770,6 +848,7 @@ function buildSections(
 ): MarketDiagnosticsConsoleSection[] {
   const latestBatch = input.batch_memory.latest_batch;
   const providerPlanProfile = providerPlanProfileMetrics(input);
+  const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -1971,6 +2050,79 @@ function buildSections(
         effective_scheduled_timeout_ms: providerPlanProfile.timeoutMs,
         background_scan_cadence_minutes: providerPlanProfile.cadence,
         env_scan_ticker_override: providerPlanProfile.envScanTickerOverride,
+      },
+    }),
+    section({
+      section_id: "provider_upgrade_checklist",
+      title: "Provider upgrade checklist",
+      severity:
+        providerUpgrade.status === "env_mismatch_needs_fix" ||
+        providerUpgrade.status === "custom_active_needs_review"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Upgrade readiness", words(providerUpgrade.status)),
+        lineValue("Message", providerUpgrade.message),
+        lineValue("Current resolved plan", words(providerPlanProfile.mode)),
+        lineValue("Server env plan", words(providerPlanProfile.serverPlanMode)),
+        lineValue("Public env plan", words(providerPlanProfile.publicPlanMode)),
+        lineValue("Env consistent", bool(providerUpgrade.envConsistent)),
+        lineValue(
+          "Active scan ticker cap",
+          providerPlanProfile.scanTickerCap ?? "unknown",
+        ),
+        lineValue(
+          "Active outcome candle cap",
+          providerPlanProfile.outcomeBudgetLimit ?? "unknown",
+        ),
+        lineValue(
+          "OpenAI skip default",
+          providerPlanProfile.skipOpenAi === null
+            ? "unknown"
+            : bool(providerPlanProfile.skipOpenAi),
+        ),
+        lineValue(
+          "Timeout",
+          providerPlanProfile.timeoutMs === null
+            ? "unknown"
+            : `${providerPlanProfile.timeoutMs}ms`,
+        ),
+        lineValue("Upgrade target", providerUpgrade.upgradeTarget),
+        lineValue(
+          "Before upgrade env",
+          providerUpgrade.beforeUpgradeEnvValues.join(" / "),
+        ),
+        lineValue(
+          "After Grow env",
+          providerUpgrade.growEnvValues.join(" / "),
+        ),
+        lineValue(
+          "Next env values",
+          providerUpgrade.nextEnvValues.length > 0
+            ? providerUpgrade.nextEnvValues.join(" / ")
+            : "none",
+        ),
+        lineValue("Safe to upgrade", bool(providerUpgrade.safeToUpgrade)),
+      ],
+      metrics: {
+        provider_upgrade_checklist_status: providerUpgrade.status,
+        provider_upgrade_checklist_message: providerUpgrade.message,
+        provider_plan_env_consistent: providerUpgrade.envConsistent,
+        provider_plan_upgrade_target: providerUpgrade.upgradeTarget,
+        provider_plan_next_env_values:
+          providerUpgrade.nextEnvValues.join("; "),
+        provider_profile_safe_to_upgrade: providerUpgrade.safeToUpgrade,
+        current_resolved_plan: providerPlanProfile.mode,
+        server_env_plan: providerPlanProfile.serverPlanMode,
+        public_env_plan: providerPlanProfile.publicPlanMode,
+        active_scan_ticker_cap: providerPlanProfile.scanTickerCap,
+        active_outcome_candle_request_cap:
+          providerPlanProfile.outcomeBudgetLimit,
+        openai_skip_default: providerPlanProfile.skipOpenAi,
+        timeout_ms: providerPlanProfile.timeoutMs,
+        before_upgrade_env_values:
+          providerUpgrade.beforeUpgradeEnvValues.join("; "),
+        after_grow_upgrade_env_values: providerUpgrade.growEnvValues.join("; "),
       },
     }),
     section({
