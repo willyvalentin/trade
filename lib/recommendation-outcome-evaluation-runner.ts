@@ -71,6 +71,14 @@ export type RecommendationOutcomeEvaluationCandidate = {
   status: RecommendationOutcomeEvaluationCandidateStatus;
   candle_request: RecommendationOutcomeCandleRequest | null;
   candle_count: number;
+  reused_candle_count?: number | null;
+  horizon_filtered_candle_count?: number | null;
+  first_reused_candle_time?: string | null;
+  last_reused_candle_time?: string | null;
+  first_horizon_candle_time?: string | null;
+  last_horizon_candle_time?: string | null;
+  horizon_filter_start_at?: string | null;
+  horizon_filter_end_at?: string | null;
   outcome_id: string | null;
   outcome_status: RecommendationOutcome["status"] | null;
   persistence_mode: RecommendationOutcomePersistenceResult["mode"] | "unknown";
@@ -346,20 +354,47 @@ function candlesForRequestWindow(
 ) {
   const start = new Date(request.start_at).getTime();
   const end = new Date(request.end_at).getTime();
+  const intervalMs = request.interval === "15min" ? 15 * 60 * 1000 : 5 * 60 * 1000;
 
   return candles.filter((candle) => {
-    const timestamp =
+    const rawTimestamp =
       typeof candle.timestamp === "number"
         ? candle.timestamp
         : toDate(candle.timestamp)?.getTime();
+    const timestamp =
+      typeof rawTimestamp === "number" && rawTimestamp < 1_000_000_000_000
+        ? rawTimestamp * 1000
+        : rawTimestamp;
+    const candleEnd = typeof timestamp === "number" ? timestamp + intervalMs : null;
 
     return (
       typeof timestamp === "number" &&
+      typeof candleEnd === "number" &&
       Number.isFinite(timestamp) &&
-      timestamp >= start &&
-      timestamp <= end
+      Number.isFinite(candleEnd) &&
+      timestamp <= end &&
+      candleEnd > start
     );
   });
+}
+
+function candleTime(candle: RecommendationOutcomeCandle | null | undefined) {
+  if (!candle) {
+    return null;
+  }
+
+  const rawTimestamp =
+    typeof candle.timestamp === "number"
+      ? candle.timestamp
+      : toDate(candle.timestamp)?.getTime();
+  const timestamp =
+    typeof rawTimestamp === "number" && rawTimestamp < 1_000_000_000_000
+      ? rawTimestamp * 1000
+      : rawTimestamp;
+
+  return typeof timestamp === "number" && Number.isFinite(timestamp)
+    ? new Date(timestamp).toISOString()
+    : null;
 }
 
 function warning(
@@ -660,16 +695,33 @@ export async function runRecommendationOutcomeEvaluation(
     }
 
     for (const work of reusableHorizonWork) {
+      const reusedCandles = candleResult.candles;
       const horizonCandles =
         candleResult.status === "available"
-          ? candlesForRequestWindow(candleResult.candles, work.request)
+          ? candlesForRequestWindow(reusedCandles, work.request)
           : [];
+      const firstReusedCandleTime = candleTime(reusedCandles[0]);
+      const lastReusedCandleTime = candleTime(reusedCandles.at(-1));
+      const firstHorizonCandleTime = candleTime(horizonCandles[0]);
+      const lastHorizonCandleTime = candleTime(horizonCandles.at(-1));
+      const horizonFilterDiagnostics = {
+        reused_candle_count: reusedCandles.length,
+        horizon_filtered_candle_count: horizonCandles.length,
+        first_reused_candle_time: firstReusedCandleTime,
+        last_reused_candle_time: lastReusedCandleTime,
+        first_horizon_candle_time: firstHorizonCandleTime,
+        last_horizon_candle_time: lastHorizonCandleTime,
+        horizon_filter_start_at: work.request.start_at,
+        horizon_filter_end_at: work.request.end_at,
+      };
 
       if (candleResult.status !== "available" || horizonCandles.length === 0) {
         const reason =
-          candleResult.error ??
-          candleResult.warnings[0] ??
-          "No post-recommendation candles were returned for the requested horizon window.";
+          candleResult.status === "available" && reusedCandles.length > 0
+            ? `horizon_filter_removed_all_candles: no reused candles overlapped ${work.request.start_at} to ${work.request.end_at}.`
+            : candleResult.error ??
+              candleResult.warnings[0] ??
+              "No post-recommendation candles were returned for the requested horizon window.";
         const result = computeRecommendationOutcome({
           snapshot,
           horizon: work.horizon,
@@ -688,6 +740,7 @@ export async function runRecommendationOutcomeEvaluation(
           provider_error:
             candleResult.status === "provider_error" ? reason : null,
           candle_request_debug: candleResult.diagnostics ?? null,
+          ...horizonFilterDiagnostics,
         });
         const persistence = options.persistOutcome
           ? await options.persistOutcome(outcome)
@@ -707,6 +760,7 @@ export async function runRecommendationOutcomeEvaluation(
               : "pending_candles",
           candle_request: work.request,
           candle_count: horizonCandles.length,
+          ...horizonFilterDiagnostics,
           outcome_id: outcome.id,
           outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
@@ -736,11 +790,14 @@ export async function runRecommendationOutcomeEvaluation(
         candles: horizonCandles,
         warnings: candleResult.warnings,
       });
+      const outcome = annotateOutcome(result.outcome, {
+        ...horizonFilterDiagnostics,
+      });
       const persistence = options.persistOutcome
-        ? await options.persistOutcome(result.outcome)
+        ? await options.persistOutcome(outcome)
         : null;
 
-      outcomes.push(result.outcome);
+      outcomes.push(outcome);
       candidates.push({
         candidate_id: `${snapshot.snapshot_fingerprint}:${work.horizon}`,
         snapshot_id: snapshot.id,
@@ -753,10 +810,11 @@ export async function runRecommendationOutcomeEvaluation(
           : "incomplete_data",
         candle_request: work.request,
         candle_count: horizonCandles.length,
-        outcome_id: result.outcome.id,
-        outcome_status: result.outcome.status,
+        ...horizonFilterDiagnostics,
+        outcome_id: outcome.id,
+        outcome_status: outcome.status,
         persistence_mode: persistence?.mode ?? "unknown",
-        warnings: result.outcome.warnings,
+        warnings: outcome.warnings,
         error: persistence?.error ?? null,
       });
     }

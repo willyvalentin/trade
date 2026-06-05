@@ -453,7 +453,9 @@ function normalizeCandles(
         candle.high !== null &&
         candle.low !== null &&
         candle.close !== null &&
-        (recommendedTime === null || candle.time >= recommendedTime),
+        (recommendedTime === null ||
+          candle.time >= recommendedTime ||
+          candle.time + 5 * 60 * 1000 > recommendedTime),
     )
     .sort((first, second) => (first.time ?? 0) - (second.time ?? 0));
 }
