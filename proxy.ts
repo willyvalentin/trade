@@ -17,7 +17,8 @@ function isPublicPath(pathname: string) {
     pathname === "/api/auth/login" ||
     pathname === "/api/auth/logout" ||
     pathname === "/api/automation/run-scan" ||
-    pathname === "/api/diagnostics/run-scan"
+    pathname === "/api/diagnostics/run-scan" ||
+    pathname === "/api/recommendations/evaluate-outcomes"
   );
 }
 

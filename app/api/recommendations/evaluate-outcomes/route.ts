@@ -68,6 +68,8 @@ function authDiagnostics(request: Request, expectedSecret: string | undefined) {
   return {
     expectedSecretConfigured: Boolean(expectedSecret),
     providedSecretConfigured: Boolean(request.headers.get("x-automation-secret")),
+    expectedSecretLength: expectedSecret ? expectedSecret.length : null,
+    providedSecretLength: request.headers.get("x-automation-secret")?.length ?? null,
     headerNamesReceived: Array.from(request.headers.keys()).sort(),
     nodeEnv: process.env.NODE_ENV ?? null,
     route_version: outcomeEvaluationRouteVersion,
@@ -536,24 +538,22 @@ export async function POST(request: Request) {
   const batchFingerprint = stringOrNull(body?.batch_fingerprint);
   const now = new Date();
 
-  if (mode === "official_live_today") {
-    const expectedSecret = process.env.AUTOMATION_SECRET;
-    const providedSecret = request.headers.get("x-automation-secret");
+  const expectedSecret = process.env.AUTOMATION_SECRET;
+  const providedSecret = request.headers.get("x-automation-secret");
 
-    if (!expectedSecret || providedSecret !== expectedSecret) {
-      const diagnostics = authDiagnostics(request, expectedSecret);
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    const diagnostics = authDiagnostics(request, expectedSecret);
 
-      console.warn("[recommendations/evaluate-outcomes] unauthorized", diagnostics);
+    console.warn("[recommendations/evaluate-outcomes] unauthorized", diagnostics);
 
-      return NextResponse.json(
-        {
-          error: "Unauthorized.",
-          mode,
-          ...diagnostics,
-        },
-        { status: 401 },
-      );
-    }
+    return NextResponse.json(
+      {
+        error: "Unauthorized.",
+        mode,
+        ...diagnostics,
+      },
+      { status: 401 },
+    );
   }
 
   const bodySnapshots = Array.isArray(body?.snapshots)
