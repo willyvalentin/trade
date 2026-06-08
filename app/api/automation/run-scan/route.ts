@@ -79,6 +79,7 @@ import {
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -131,6 +132,13 @@ type AutomationRunDiagnostics = {
   active_window: DayTradeScanOrchestrationSummary["active_window"];
   scan_window: IntradayScanWindow;
   grow_max_learning_mode?: boolean;
+  grow_max_learning_mode_env_raw_present?: boolean;
+  grow_max_learning_mode_env_raw_value_normalized?: boolean;
+  grow_max_learning_mode_public_env_raw_present?: boolean;
+  grow_max_learning_mode_public_env_raw_value_normalized?: boolean;
+  grow_max_learning_mode_requested?: boolean;
+  grow_max_learning_mode_blocked_reason?: string | null;
+  grow_max_learning_mode_enabled_source?: string;
   target_ideas_per_window?: number | null;
   same_window_limit_reached?: boolean;
   daily_learning_limit_reached?: boolean;
@@ -252,16 +260,9 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const routeSkipOpenAiOverride =
     typeof body.skip_openai === "boolean" ? body.skip_openai : null;
   const envSkipOpenAiOverride = envBoolean(process.env.TURE_SCHEDULED_SCAN_SKIP_OPENAI);
-  const growMaxLearningModeRequested =
-    envBoolean(process.env.TURE_GROW_MAX_LEARNING_MODE) === true;
-  const growMaxLearningAllowedModes = ["grow", "pro", "custom"];
-  const growMaxLearningMode =
-    growMaxLearningModeRequested &&
-    growMaxLearningAllowedModes.includes(providerPlanProfile.effective_mode);
-  const growMaxLearningModeBlockedReason =
-    growMaxLearningModeRequested && !growMaxLearningMode
-      ? "provider_plan_profile_mode_not_eligible"
-      : null;
+  const growMaxLearningMode = evaluateGrowMaxLearningMode({
+    providerPlanProfileMode: providerPlanProfile.effective_mode,
+  });
   const scheduledMaxTickers =
     routeMaxTickersOverride !== null
       ? routeMaxTickersOverride
@@ -279,7 +280,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     ),
   );
   const scheduledSkipOpenAi =
-    growMaxLearningMode
+    growMaxLearningMode.grow_max_learning_mode
       ? true
       : routeSkipOpenAiOverride ??
         envSkipOpenAiOverride ??
@@ -291,10 +292,10 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
-    grow_max_learning_mode: growMaxLearningMode,
-    grow_max_learning_mode_requested: growMaxLearningModeRequested,
-    grow_max_learning_mode_blocked_reason: growMaxLearningModeBlockedReason,
-    target_ideas_per_window: growMaxLearningMode ? effectiveScanTickerCap : null,
+    ...growMaxLearningMode,
+    target_ideas_per_window: growMaxLearningMode.grow_max_learning_mode
+      ? effectiveScanTickerCap
+      : null,
     provider_plan_mode: providerPlanProfile.mode,
     provider_plan_profile_mode: providerPlanProfile.effective_mode,
     provider_plan_profile_source: providerPlanProfile.source,
@@ -635,6 +636,24 @@ function buildAutomationRunDiagnostics({
     scan_window: scanWindow,
     grow_max_learning_mode:
       scheduledRuntimeConfig?.grow_max_learning_mode ?? false,
+    grow_max_learning_mode_env_raw_present:
+      scheduledRuntimeConfig?.grow_max_learning_mode_env_raw_present ?? false,
+    grow_max_learning_mode_env_raw_value_normalized:
+      scheduledRuntimeConfig
+        ?.grow_max_learning_mode_env_raw_value_normalized ?? false,
+    grow_max_learning_mode_public_env_raw_present:
+      scheduledRuntimeConfig?.grow_max_learning_mode_public_env_raw_present ??
+      false,
+    grow_max_learning_mode_public_env_raw_value_normalized:
+      scheduledRuntimeConfig
+        ?.grow_max_learning_mode_public_env_raw_value_normalized ?? false,
+    grow_max_learning_mode_requested:
+      scheduledRuntimeConfig?.grow_max_learning_mode_requested ?? false,
+    grow_max_learning_mode_blocked_reason:
+      scheduledRuntimeConfig?.grow_max_learning_mode_blocked_reason ??
+      "env_flag_not_enabled",
+    grow_max_learning_mode_enabled_source:
+      scheduledRuntimeConfig?.grow_max_learning_mode_enabled_source ?? "none",
     target_ideas_per_window:
       scheduledRuntimeConfig?.target_ideas_per_window ?? null,
     same_window_limit_reached: decision === "skipped_recent_scan",
@@ -1942,10 +1961,21 @@ export async function POST(request: Request) {
   const scheduledRuntimeFields = () => ({
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
+    grow_max_learning_mode_env_raw_present:
+      scheduledRuntimeConfig.grow_max_learning_mode_env_raw_present,
+    grow_max_learning_mode_env_raw_value_normalized:
+      scheduledRuntimeConfig.grow_max_learning_mode_env_raw_value_normalized,
+    grow_max_learning_mode_public_env_raw_present:
+      scheduledRuntimeConfig.grow_max_learning_mode_public_env_raw_present,
+    grow_max_learning_mode_public_env_raw_value_normalized:
+      scheduledRuntimeConfig
+        .grow_max_learning_mode_public_env_raw_value_normalized,
     grow_max_learning_mode_requested:
       scheduledRuntimeConfig.grow_max_learning_mode_requested,
     grow_max_learning_mode_blocked_reason:
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
+    grow_max_learning_mode_enabled_source:
+      scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
     provider_plan_profile_mode:
@@ -2107,10 +2137,21 @@ export async function POST(request: Request) {
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
+    grow_max_learning_mode_env_raw_present:
+      scheduledRuntimeConfig.grow_max_learning_mode_env_raw_present,
+    grow_max_learning_mode_env_raw_value_normalized:
+      scheduledRuntimeConfig.grow_max_learning_mode_env_raw_value_normalized,
+    grow_max_learning_mode_public_env_raw_present:
+      scheduledRuntimeConfig.grow_max_learning_mode_public_env_raw_present,
+    grow_max_learning_mode_public_env_raw_value_normalized:
+      scheduledRuntimeConfig
+        .grow_max_learning_mode_public_env_raw_value_normalized,
     grow_max_learning_mode_requested:
       scheduledRuntimeConfig.grow_max_learning_mode_requested,
     grow_max_learning_mode_blocked_reason:
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
+    grow_max_learning_mode_enabled_source:
+      scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,

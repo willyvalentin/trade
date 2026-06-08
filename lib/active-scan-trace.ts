@@ -48,8 +48,13 @@ export type ActiveScanTrace = {
   skipped_openai: boolean;
   live_trial_fast_mode: boolean;
   grow_max_learning_mode: boolean;
+  grow_max_learning_mode_env_raw_present: boolean;
+  grow_max_learning_mode_env_raw_value_normalized: boolean;
+  grow_max_learning_mode_public_env_raw_present: boolean;
+  grow_max_learning_mode_public_env_raw_value_normalized: boolean;
   grow_max_learning_mode_requested: boolean;
   grow_max_learning_mode_blocked_reason: string | null;
+  grow_max_learning_mode_enabled_source: string;
   target_ideas_per_window: number | null;
   provider_plan_profile_mode: string | null;
   provider_plan_profile_source: string | null;
@@ -216,8 +221,13 @@ export function createActiveScanTrace({
     skipped_openai: false,
     live_trial_fast_mode: false,
     grow_max_learning_mode: false,
+    grow_max_learning_mode_env_raw_present: false,
+    grow_max_learning_mode_env_raw_value_normalized: false,
+    grow_max_learning_mode_public_env_raw_present: false,
+    grow_max_learning_mode_public_env_raw_value_normalized: false,
     grow_max_learning_mode_requested: false,
-    grow_max_learning_mode_blocked_reason: null,
+    grow_max_learning_mode_blocked_reason: "env_flag_not_enabled",
+    grow_max_learning_mode_enabled_source: "none",
     target_ideas_per_window: null,
     provider_plan_profile_mode: null,
     provider_plan_profile_source: null,

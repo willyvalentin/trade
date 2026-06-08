@@ -1995,6 +1995,21 @@ function buildSections(
               bool(input.active_scan_trace.live_trial_fast_mode),
             ),
             lineValue(
+              "Grow Max Learning",
+              `${bool(input.active_scan_trace.grow_max_learning_mode)} / requested=${bool(input.active_scan_trace.grow_max_learning_mode_requested)} / source=${compact(input.active_scan_trace.grow_max_learning_mode_enabled_source, "none")}`,
+            ),
+            lineValue(
+              "Grow Max env",
+              `server_present=${bool(input.active_scan_trace.grow_max_learning_mode_env_raw_present)} / server=${bool(input.active_scan_trace.grow_max_learning_mode_env_raw_value_normalized)} / public_present=${bool(input.active_scan_trace.grow_max_learning_mode_public_env_raw_present)} / public=${bool(input.active_scan_trace.grow_max_learning_mode_public_env_raw_value_normalized)}`,
+            ),
+            lineValue(
+              "Grow Max blocked reason",
+              compact(
+                input.active_scan_trace.grow_max_learning_mode_blocked_reason,
+                "none",
+              ),
+            ),
+            lineValue(
               "Provider plan profile",
               `${compact(input.active_scan_trace.provider_plan_profile_mode, "unknown")} / ${compact(input.active_scan_trace.provider_plan_profile_source, "unknown")}`,
             ),
@@ -2165,6 +2180,30 @@ function buildSections(
           input.active_scan_trace?.schema_check?.last_schema_error ?? null,
         live_trial_fast_mode:
           input.active_scan_trace?.live_trial_fast_mode ?? null,
+        grow_max_learning_mode:
+          input.active_scan_trace?.grow_max_learning_mode ?? null,
+        grow_max_learning_mode_env_raw_present:
+          input.active_scan_trace?.grow_max_learning_mode_env_raw_present ??
+          null,
+        grow_max_learning_mode_env_raw_value_normalized:
+          input.active_scan_trace
+            ?.grow_max_learning_mode_env_raw_value_normalized ?? null,
+        grow_max_learning_mode_public_env_raw_present:
+          input.active_scan_trace
+            ?.grow_max_learning_mode_public_env_raw_present ?? null,
+        grow_max_learning_mode_public_env_raw_value_normalized:
+          input.active_scan_trace
+            ?.grow_max_learning_mode_public_env_raw_value_normalized ?? null,
+        grow_max_learning_mode_requested:
+          input.active_scan_trace?.grow_max_learning_mode_requested ?? null,
+        grow_max_learning_mode_blocked_reason:
+          input.active_scan_trace?.grow_max_learning_mode_blocked_reason ??
+          null,
+        grow_max_learning_mode_enabled_source:
+          input.active_scan_trace?.grow_max_learning_mode_enabled_source ??
+          null,
+        target_ideas_per_window:
+          input.active_scan_trace?.target_ideas_per_window ?? null,
         provider_plan_profile_mode:
           input.active_scan_trace?.provider_plan_profile_mode ?? null,
         provider_plan_profile_source:

@@ -61,6 +61,7 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 
 type DiagnosticMode =
   | "env_check"
@@ -266,6 +267,9 @@ function providerUpgradeChecklistStatus({
 
 function providerPlanDiagnostics() {
   const profile = buildProviderPlanProfile();
+  const growMaxLearningMode = evaluateGrowMaxLearningMode({
+    providerPlanProfileMode: profile.effective_mode,
+  });
   const scheduledScanTickerOverride = finiteInteger(
     process.env.TURE_SCHEDULED_SCAN_MAX_TICKERS,
   );
@@ -297,6 +301,10 @@ function providerPlanDiagnostics() {
       profile.profile_outcome_candle_requests_per_run,
     env_scan_ticker_override: scheduledScanTickerOverride,
     provider_profile_scan_ticker_override: profile.overrides.scan_ticker_cap,
+    ...growMaxLearningMode,
+    target_ideas_per_window: growMaxLearningMode.grow_max_learning_mode
+      ? effectiveScanTickerCap
+      : null,
     profile_notes: profile.profile_notes,
     profile_warnings: profile.profile_warnings,
     provider_upgrade_checklist_status: upgradeStatus,
@@ -796,6 +804,27 @@ export async function POST(request: Request) {
     scan_window: scanWindow,
     orchestration_decision: "diagnostic_should_scan_now",
     should_scan_now: true,
+    grow_max_learning_mode:
+      providerProfileDiagnostics.grow_max_learning_mode,
+    grow_max_learning_mode_env_raw_present:
+      providerProfileDiagnostics.grow_max_learning_mode_env_raw_present,
+    grow_max_learning_mode_env_raw_value_normalized:
+      providerProfileDiagnostics
+        .grow_max_learning_mode_env_raw_value_normalized,
+    grow_max_learning_mode_public_env_raw_present:
+      providerProfileDiagnostics
+        .grow_max_learning_mode_public_env_raw_present,
+    grow_max_learning_mode_public_env_raw_value_normalized:
+      providerProfileDiagnostics
+        .grow_max_learning_mode_public_env_raw_value_normalized,
+    grow_max_learning_mode_requested:
+      providerProfileDiagnostics.grow_max_learning_mode_requested,
+    grow_max_learning_mode_blocked_reason:
+      providerProfileDiagnostics.grow_max_learning_mode_blocked_reason,
+    grow_max_learning_mode_enabled_source:
+      providerProfileDiagnostics.grow_max_learning_mode_enabled_source,
+    target_ideas_per_window:
+      providerProfileDiagnostics.target_ideas_per_window,
     provider_plan_profile_mode:
       providerProfileDiagnostics.provider_plan_profile_mode,
     provider_plan_profile_source:
