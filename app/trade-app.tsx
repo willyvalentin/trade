@@ -18578,16 +18578,34 @@ function RecommendationOutcomeLearningInsightsPanel({
           )}
         />
         <SummaryCard
-          label="Shadow Trial"
+          label="Shadow Quality"
           value={summary.shadow_entry_trial.status.replace(/_/g, " ")}
         />
         <SummaryCard
+          label="Shadow Risk Warnings"
+          value={formatPercent(summary.shadow_entry_trial.risk_warning_rate)}
+        />
+        <SummaryCard
+          label="Shadow Trigger Delta"
+          value={formatSignedPercent(summary.shadow_entry_trial.trigger_rate_delta)}
+        />
+        <SummaryCard
+          label="Shadow Best R Delta"
+          value={formatSignedR(summary.shadow_entry_trial.avg_best_r_delta)}
+          tone={summary.shadow_entry_trial.avg_best_r_delta}
+        />
+        <SummaryCard
+          label="Shadow Worst R Delta"
+          value={formatSignedR(summary.shadow_entry_trial.avg_worst_r_delta)}
+          tone={summary.shadow_entry_trial.avg_worst_r_delta}
+        />
+        <SummaryCard
           label="Shadow Trigger"
-          value={formatPercent(summary.shadow_entry_trial.shadow_entry_trigger_rate)}
+          value={formatPercent(summary.shadow_entry_trial.shadow_trigger_rate)}
         />
         <SummaryCard
           label="Shadow Sample"
-          value={String(summary.shadow_entry_trial.shadow_trial_sample_size)}
+          value={String(summary.shadow_entry_trial.shadow_sample_size)}
         />
       </div>
 
@@ -18711,20 +18729,70 @@ function RecommendationOutcomeLearningInsightsPanel({
             value={summary.shadow_entry_trial.status.replace(/_/g, " ")}
           />
           <Detail
+            label="Recommendation"
+            value={summary.shadow_entry_trial.recommendation.replace(/_/g, " ")}
+          />
+          <Detail
             label="Official vs shadow trigger"
-            value={`${formatPercent(summary.shadow_entry_trial.official_entry_trigger_rate)} / ${formatPercent(summary.shadow_entry_trial.shadow_entry_trigger_rate)}`}
+            value={`${formatPercent(summary.shadow_entry_trial.official_entry_trigger_rate)} / ${formatPercent(summary.shadow_entry_trial.shadow_trigger_rate)}`}
+          />
+          <Detail
+            label="Trigger delta"
+            value={formatSignedPercent(summary.shadow_entry_trial.trigger_rate_delta)}
           />
           <Detail
             label="Official vs shadow best R"
             value={`${formatRecommendationPerformanceR(summary.shadow_entry_trial.official_avg_best_r)} / ${formatRecommendationPerformanceR(summary.shadow_entry_trial.shadow_avg_best_r)}`}
           />
           <Detail
+            label="Avg best R delta"
+            value={formatSignedR(summary.shadow_entry_trial.avg_best_r_delta)}
+          />
+          <Detail
             label="Official vs shadow worst R"
             value={`${formatRecommendationPerformanceR(summary.shadow_entry_trial.official_avg_worst_r)} / ${formatRecommendationPerformanceR(summary.shadow_entry_trial.shadow_avg_worst_r)}`}
           />
           <Detail
+            label="Avg worst R delta"
+            value={formatSignedR(summary.shadow_entry_trial.avg_worst_r_delta)}
+          />
+          <Detail
+            label="Target / stop / neither"
+            value={`${formatPercent(summary.shadow_entry_trial.shadow_target_hit_rate)} / ${formatPercent(summary.shadow_entry_trial.shadow_stop_hit_rate)} / ${formatPercent(summary.shadow_entry_trial.shadow_neither_hit_rate)}`}
+          />
+          <Detail
+            label="Stop hit delta"
+            value={formatSignedPercent(summary.shadow_entry_trial.stop_hit_rate_delta)}
+          />
+          <Detail
+            label="Risk warnings"
+            value={`${summary.shadow_entry_trial.shadow_risk_warning_count} / ${formatPercent(summary.shadow_entry_trial.risk_warning_rate)}`}
+          />
+          <Detail
+            label="Tight / wide risk"
+            value={`${summary.shadow_entry_trial.shadow_risk_too_tight_count} / ${summary.shadow_entry_trial.shadow_risk_too_wide_count}`}
+          />
+          <Detail
+            label="Triggered no follow-through"
+            value={`${summary.shadow_entry_trial.shadow_triggered_no_followthrough_count} / ${formatPercent(summary.shadow_entry_trial.shadow_triggered_no_followthrough_rate)}`}
+          />
+          <Detail
+            label="Avg time to entry"
+            value={formatStatisticsDurationMinutes(
+              summary.shadow_entry_trial.shadow_avg_time_to_entry_minutes,
+            )}
+          />
+          <Detail
+            label="Quality-adjusted score"
+            value={
+              summary.shadow_entry_trial.quality_adjusted_shadow_score === null
+                ? "—"
+                : summary.shadow_entry_trial.quality_adjusted_shadow_score.toFixed(2)
+            }
+          />
+          <Detail
             label="Sample size"
-            value={String(summary.shadow_entry_trial.shadow_trial_sample_size)}
+            value={String(summary.shadow_entry_trial.shadow_sample_size)}
           />
         </div>
       </div>
@@ -18835,10 +18903,23 @@ function RecommendationOutcomeLearningInsightsPanel({
         }
         data-shadow-entry-variant={summary.shadow_entry_trial.variant ?? ""}
         data-shadow-entry-trigger-rate={
-          summary.shadow_entry_trial.shadow_entry_trigger_rate ?? ""
+          summary.shadow_entry_trial.shadow_trigger_rate ?? ""
+        }
+        data-shadow-quality-classification={summary.shadow_entry_trial.status}
+        data-shadow-risk-warning-rate={
+          summary.shadow_entry_trial.risk_warning_rate ?? ""
+        }
+        data-shadow-trigger-rate-delta={
+          summary.shadow_entry_trial.trigger_rate_delta ?? ""
+        }
+        data-shadow-avg-best-r-delta={
+          summary.shadow_entry_trial.avg_best_r_delta ?? ""
+        }
+        data-shadow-avg-worst-r-delta={
+          summary.shadow_entry_trial.avg_worst_r_delta ?? ""
         }
         data-shadow-trial-sample-size={
-          summary.shadow_entry_trial.shadow_trial_sample_size
+          summary.shadow_entry_trial.shadow_sample_size
         }
       >
         {summaryJson}

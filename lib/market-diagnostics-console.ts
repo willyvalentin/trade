@@ -1460,6 +1460,19 @@ function buildSections(
     input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? 0;
   const shadowTrialSampleSize =
     input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ?? 0;
+  const shadowQualityClassification =
+    input.outcome_learning?.shadow_entry_trial.status ?? "not_enough_data";
+  const shadowRiskWarningRate =
+    input.outcome_learning?.shadow_entry_trial.risk_warning_rate ?? null;
+  const shadowTriggerDelta =
+    input.outcome_learning?.shadow_entry_trial.trigger_rate_delta ?? null;
+  const shadowAvgBestRDelta =
+    input.outcome_learning?.shadow_entry_trial.avg_best_r_delta ?? null;
+  const shadowAvgWorstRDelta =
+    input.outcome_learning?.shadow_entry_trial.avg_worst_r_delta ?? null;
+  const shadowRecommendation =
+    input.outcome_learning?.shadow_entry_trial.recommendation ??
+    "keep_collecting_data";
   const shadowTrialState = !shadowProposalExists
     ? "no proposal"
     : shadowMetadataPresent === 0 && shadowMetadataMissing > 0
@@ -3107,6 +3120,22 @@ function buildSections(
           "Shadow trial",
           `${compact(input.outcome_learning?.shadow_entry_trial.variant, "none")} / ${compact(input.outcome_learning?.shadow_entry_trial.status, "not_started")}`,
         ),
+        lineValue(
+          "Shadow quality classification",
+          compact(shadowQualityClassification, "not_enough_data"),
+        ),
+        lineValue(
+          "Shadow risk warning rate",
+          shadowRiskWarningRate,
+        ),
+        lineValue(
+          "Shadow trigger delta",
+          shadowTriggerDelta,
+        ),
+        lineValue(
+          "Shadow avg R deltas",
+          `${shadowAvgBestRDelta ?? "unknown"} best / ${shadowAvgWorstRDelta ?? "unknown"} worst`,
+        ),
       ],
       metrics: {
         learning_insight_batch_fingerprint:
@@ -3206,12 +3235,23 @@ function buildSections(
           input.outcome_learning?.shadow_entry_trial.variant ?? null,
         shadow_trial_status:
           input.outcome_learning?.shadow_entry_trial.status ?? null,
+        shadow_quality_classification: shadowQualityClassification,
+        shadow_quality_recommendation: shadowRecommendation,
         official_entry_trigger_rate:
           input.outcome_learning?.shadow_entry_trial
             .official_entry_trigger_rate ?? null,
         shadow_entry_trigger_rate:
           input.outcome_learning?.shadow_entry_trial
             .shadow_entry_trigger_rate ?? null,
+        shadow_target_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_target_hit_rate ??
+          null,
+        shadow_stop_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_stop_hit_rate ??
+          null,
+        shadow_neither_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_neither_hit_rate ??
+          null,
         official_avg_best_r:
           input.outcome_learning?.shadow_entry_trial.official_avg_best_r ??
           null,
@@ -3226,6 +3266,36 @@ function buildSections(
         shadow_trial_sample_size:
           input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ??
           null,
+        shadow_sample_size:
+          input.outcome_learning?.shadow_entry_trial.shadow_sample_size ?? null,
+        shadow_trigger_rate_delta: shadowTriggerDelta,
+        shadow_avg_best_r_delta: shadowAvgBestRDelta,
+        shadow_avg_worst_r_delta: shadowAvgWorstRDelta,
+        shadow_stop_hit_rate_delta:
+          input.outcome_learning?.shadow_entry_trial.stop_hit_rate_delta ??
+          null,
+        shadow_risk_warning_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_warning_count ?? null,
+        shadow_risk_warning_rate: shadowRiskWarningRate,
+        shadow_risk_too_tight_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_too_tight_count ?? null,
+        shadow_risk_too_wide_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_too_wide_count ?? null,
+        shadow_triggered_no_followthrough_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_triggered_no_followthrough_count ?? null,
+        shadow_triggered_no_followthrough_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_triggered_no_followthrough_rate ?? null,
+        shadow_avg_time_to_entry_minutes:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_avg_time_to_entry_minutes ?? null,
+        quality_adjusted_shadow_score:
+          input.outcome_learning?.shadow_entry_trial
+            .quality_adjusted_shadow_score ?? null,
         shadow_trial_warning:
           input.outcome_learning?.shadow_entry_trial.warning ?? null,
         outcome_route_shadow_entry_trial_count:
@@ -3237,15 +3307,27 @@ function buildSections(
     section({
       section_id: "shadow_entry_trial",
       title: "Shadow Entry Trial",
-      severity: "info",
+      severity:
+        shadowQualityClassification === "promising" ||
+        shadowQualityClassification === "not_enough_data"
+          ? "info"
+          : "warning",
       lines: [
         lineValue(
           "Variant",
           compact(input.outcome_learning?.shadow_entry_trial.variant, "none"),
         ),
         lineValue(
-          "Status",
+          "Quality classification",
+          compact(shadowQualityClassification, "not_enough_data"),
+        ),
+        lineValue(
+          "Operational state",
           shadowTrialState,
+        ),
+        lineValue(
+          "Recommendation",
+          compact(shadowRecommendation, "keep_collecting_data"),
         ),
         lineValue(
           "Snapshot metadata present/missing",
@@ -3260,8 +3342,28 @@ function buildSections(
           `${input.outcome_learning?.shadow_entry_trial.official_entry_trigger_rate ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_entry_trigger_rate ?? "unknown"}`,
         ),
         lineValue(
+          "Trigger delta",
+          shadowTriggerDelta,
+        ),
+        lineValue(
           "Official vs shadow avg best/worst R",
           `${input.outcome_learning?.shadow_entry_trial.official_avg_best_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_best_r ?? "unknown"} best, ${input.outcome_learning?.shadow_entry_trial.official_avg_worst_r ?? "unknown"} / ${input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ?? "unknown"} worst`,
+        ),
+        lineValue(
+          "Avg best/worst R deltas",
+          `${shadowAvgBestRDelta ?? "unknown"} / ${shadowAvgWorstRDelta ?? "unknown"}`,
+        ),
+        lineValue(
+          "Risk warning count/rate",
+          `${input.outcome_learning?.shadow_entry_trial.shadow_risk_warning_count ?? 0} / ${shadowRiskWarningRate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Tight/wide risk warnings",
+          `${input.outcome_learning?.shadow_entry_trial.shadow_risk_too_tight_count ?? 0} / ${input.outcome_learning?.shadow_entry_trial.shadow_risk_too_wide_count ?? 0}`,
+        ),
+        lineValue(
+          "Triggered no follow-through",
+          `${input.outcome_learning?.shadow_entry_trial.shadow_triggered_no_followthrough_count ?? 0} / ${input.outcome_learning?.shadow_entry_trial.shadow_triggered_no_followthrough_rate ?? "unknown"}`,
         ),
         lineValue(
           "Sample size",
@@ -3275,6 +3377,8 @@ function buildSections(
           input.outcome_learning?.shadow_entry_trial.variant ?? null,
         shadow_trial_status:
           shadowTrialState,
+        shadow_quality_classification: shadowQualityClassification,
+        shadow_quality_recommendation: shadowRecommendation,
         shadow_snapshot_metadata_present_count: shadowMetadataPresent,
         shadow_snapshot_metadata_missing_count: shadowMetadataMissing,
         shadow_snapshot_variant_counts: JSON.stringify(
@@ -3293,6 +3397,16 @@ function buildSections(
         shadow_entry_trigger_rate:
           input.outcome_learning?.shadow_entry_trial
             .shadow_entry_trigger_rate ?? null,
+        shadow_trigger_rate_delta: shadowTriggerDelta,
+        shadow_target_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_target_hit_rate ??
+          null,
+        shadow_stop_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_stop_hit_rate ??
+          null,
+        shadow_neither_hit_rate:
+          input.outcome_learning?.shadow_entry_trial.shadow_neither_hit_rate ??
+          null,
         official_avg_best_r:
           input.outcome_learning?.shadow_entry_trial.official_avg_best_r ??
           null,
@@ -3304,9 +3418,38 @@ function buildSections(
         shadow_avg_worst_r:
           input.outcome_learning?.shadow_entry_trial.shadow_avg_worst_r ??
           null,
+        shadow_avg_best_r_delta: shadowAvgBestRDelta,
+        shadow_avg_worst_r_delta: shadowAvgWorstRDelta,
+        shadow_stop_hit_rate_delta:
+          input.outcome_learning?.shadow_entry_trial.stop_hit_rate_delta ??
+          null,
+        shadow_risk_warning_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_warning_count ?? null,
+        shadow_risk_warning_rate: shadowRiskWarningRate,
+        shadow_risk_too_tight_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_too_tight_count ?? null,
+        shadow_risk_too_wide_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_too_wide_count ?? null,
+        shadow_triggered_no_followthrough_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_triggered_no_followthrough_count ?? null,
+        shadow_triggered_no_followthrough_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_triggered_no_followthrough_rate ?? null,
+        shadow_avg_time_to_entry_minutes:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_avg_time_to_entry_minutes ?? null,
+        quality_adjusted_shadow_score:
+          input.outcome_learning?.shadow_entry_trial
+            .quality_adjusted_shadow_score ?? null,
         shadow_trial_sample_size:
           input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ??
           null,
+        shadow_sample_size:
+          input.outcome_learning?.shadow_entry_trial.shadow_sample_size ?? null,
         shadow_entry_not_live_signal: true,
       },
     }),

@@ -386,6 +386,7 @@ function shadowEntryTrialPayload(input: {
       triggered: result.entry_triggered,
       target_hit: result.target_hit,
       stop_hit: result.stop_hit,
+      neither_hit: result.neither_hit,
       best_r: result.best_r,
       worst_r: result.worst_r,
       time_to_entry_minutes: result.time_to_entry_minutes,

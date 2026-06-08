@@ -114,14 +114,38 @@ export type CounterfactualEntrySimulationSummary = {
 
 export type ShadowEntryTrialSummary = {
   variant: CounterfactualEntryVariantLabel | null;
-  status: "collecting_data" | "not_started";
+  status:
+    | "promising"
+    | "promising_but_risk_adjustment_needed"
+    | "trigger_only_not_quality"
+    | "not_enough_data"
+    | "reject_shadow_variant";
   warning: string;
+  recommendation: "keep_collecting_data" | "tune_shadow_risk_model" | "do_not_promote_yet";
   official_entry_trigger_rate: number | null;
   shadow_entry_trigger_rate: number | null;
+  shadow_trigger_rate: number | null;
+  shadow_target_hit_rate: number | null;
+  shadow_stop_hit_rate: number | null;
+  shadow_neither_hit_rate: number | null;
   official_avg_best_r: number | null;
   shadow_avg_best_r: number | null;
   official_avg_worst_r: number | null;
   shadow_avg_worst_r: number | null;
+  official_stop_hit_rate: number | null;
+  trigger_rate_delta: number | null;
+  avg_best_r_delta: number | null;
+  avg_worst_r_delta: number | null;
+  stop_hit_rate_delta: number | null;
+  shadow_avg_time_to_entry_minutes: number | null;
+  shadow_risk_warning_count: number;
+  shadow_risk_too_tight_count: number;
+  shadow_risk_too_wide_count: number;
+  risk_warning_rate: number | null;
+  shadow_triggered_no_followthrough_count: number;
+  shadow_triggered_no_followthrough_rate: number | null;
+  quality_adjusted_shadow_score: number | null;
+  shadow_sample_size: number;
   shadow_trial_sample_size: number;
 };
 
@@ -825,9 +849,93 @@ function shadowEntryTrialRecord(outcome: RecommendationOutcome) {
         ? (variant as CounterfactualEntryVariantLabel)
         : null,
     triggered: record.triggered === true,
+    target_hit: record.target_hit === true,
+    stop_hit: record.stop_hit === true,
+    neither_hit:
+      record.neither_hit === true ||
+      record.execution_quality_label === "triggered_no_followthrough",
     best_r: finiteNumber(record.best_r),
     worst_r: finiteNumber(record.worst_r),
+    time_to_entry_minutes: finiteNumber(record.time_to_entry_minutes),
+    risk_warning:
+      typeof record.risk_warning === "string" && record.risk_warning.length > 0
+        ? record.risk_warning
+        : null,
   };
+}
+
+function delta(next: number | null, previous: number | null) {
+  return next === null || previous === null ? null : next - previous;
+}
+
+function qualityAdjustedShadowScore(input: {
+  triggerRateDelta: number | null;
+  avgBestRDelta: number | null;
+  avgWorstRDelta: number | null;
+  stopHitRateDelta: number | null;
+  riskWarningRate: number | null;
+  triggeredNoFollowthroughRate: number | null;
+}) {
+  if (input.triggerRateDelta === null) return null;
+
+  return (
+    input.triggerRateDelta +
+    (input.avgBestRDelta ?? 0) * 20 +
+    (input.avgWorstRDelta ?? 0) * 35 -
+    Math.max(input.stopHitRateDelta ?? 0, 0) * 0.5 -
+    (input.riskWarningRate ?? 0) * 0.35 -
+    (input.triggeredNoFollowthroughRate ?? 0) * 0.15
+  );
+}
+
+function classifyShadowEntryTrial(input: {
+  sampleSize: number;
+  triggerRateDelta: number | null;
+  avgWorstR: number | null;
+  avgWorstRDelta: number | null;
+  stopHitRateDelta: number | null;
+  riskWarningRate: number | null;
+  qualityAdjustedScore: number | null;
+}): ShadowEntryTrialSummary["status"] {
+  if (input.sampleSize < 20) {
+    return "not_enough_data";
+  }
+
+  const triggerImproved = (input.triggerRateDelta ?? 0) > 0;
+  const adverseRWorsenedTooMuch = (input.avgWorstRDelta ?? 0) < -0.25;
+  const stopHitsRose = (input.stopHitRateDelta ?? 0) > 10;
+  const avgWorstRAcceptable = (input.avgWorstR ?? -1) > -0.5;
+  const riskWarningsCommon = (input.riskWarningRate ?? 0) > 20;
+
+  if (triggerImproved && (adverseRWorsenedTooMuch || stopHitsRose)) {
+    return "trigger_only_not_quality";
+  }
+
+  if (triggerImproved && riskWarningsCommon) {
+    return "promising_but_risk_adjustment_needed";
+  }
+
+  if (
+    triggerImproved &&
+    avgWorstRAcceptable &&
+    (input.riskWarningRate ?? 0) <= 20 &&
+    (input.qualityAdjustedScore ?? 0) > 0
+  ) {
+    return "promising";
+  }
+
+  return triggerImproved ? "trigger_only_not_quality" : "reject_shadow_variant";
+}
+
+function shadowEntryTrialRecommendation(
+  status: ShadowEntryTrialSummary["status"],
+): ShadowEntryTrialSummary["recommendation"] {
+  if (status === "not_enough_data") return "keep_collecting_data";
+  if (status === "promising_but_risk_adjustment_needed") {
+    return "tune_shadow_risk_model";
+  }
+
+  return "do_not_promote_yet";
 }
 
 function buildShadowEntryTrialSummary(
@@ -841,23 +949,102 @@ function buildShadowEntryTrialSummary(
     );
   const variant =
     shadowResults.find((item) => item.variant !== null)?.variant ?? null;
+  const officialEntryTriggerRate = percent(
+    evaluated.filter(isEntryTriggered).length,
+    evaluated.length,
+  );
+  const officialAvgBestR = average(evaluated.map((outcome) => outcome.best_r));
+  const officialAvgWorstR = average(evaluated.map((outcome) => outcome.worst_r));
+  const officialStopHitRate = percent(
+    evaluated.filter(isStopHit).length,
+    evaluated.length,
+  );
+  const shadowTriggeredCount = shadowResults.filter(
+    (item) => item.triggered,
+  ).length;
+  const shadowTriggerRate = percent(shadowTriggeredCount, shadowResults.length);
+  const shadowTargetHitRate = percent(
+    shadowResults.filter((item) => item.target_hit).length,
+    shadowResults.length,
+  );
+  const shadowStopHitRate = percent(
+    shadowResults.filter((item) => item.stop_hit).length,
+    shadowResults.length,
+  );
+  const shadowNeitherHitRate = percent(
+    shadowResults.filter((item) => item.neither_hit).length,
+    shadowResults.length,
+  );
+  const shadowAvgBestR = average(shadowResults.map((item) => item.best_r));
+  const shadowAvgWorstR = average(shadowResults.map((item) => item.worst_r));
+  const triggerRateDelta = delta(shadowTriggerRate, officialEntryTriggerRate);
+  const avgBestRDelta = delta(shadowAvgBestR, officialAvgBestR);
+  const avgWorstRDelta = delta(shadowAvgWorstR, officialAvgWorstR);
+  const stopHitRateDelta = delta(shadowStopHitRate, officialStopHitRate);
+  const riskWarningCount = shadowResults.filter(
+    (item) => item.risk_warning !== null,
+  ).length;
+  const riskWarningRate = percent(riskWarningCount, shadowResults.length);
+  const triggeredNoFollowthroughCount = shadowResults.filter(
+    (item) => item.triggered && !item.target_hit && !item.stop_hit,
+  ).length;
+  const triggeredNoFollowthroughRate = percent(
+    triggeredNoFollowthroughCount,
+    shadowTriggeredCount,
+  );
+  const qualityAdjustedScore = qualityAdjustedShadowScore({
+    triggerRateDelta,
+    avgBestRDelta,
+    avgWorstRDelta,
+    stopHitRateDelta,
+    riskWarningRate,
+    triggeredNoFollowthroughRate,
+  });
+  const status = classifyShadowEntryTrial({
+    sampleSize: shadowResults.length,
+    triggerRateDelta,
+    avgWorstR: shadowAvgWorstR,
+    avgWorstRDelta,
+    stopHitRateDelta,
+    riskWarningRate,
+    qualityAdjustedScore,
+  });
 
   return {
     variant,
-    status: shadowResults.length > 0 ? "collecting_data" : "not_started",
+    status,
     warning: "Shadow entry trial is learning-only and not a live trade signal.",
-    official_entry_trigger_rate: percent(
-      evaluated.filter(isEntryTriggered).length,
-      evaluated.length,
+    recommendation: shadowEntryTrialRecommendation(status),
+    official_entry_trigger_rate: officialEntryTriggerRate,
+    shadow_entry_trigger_rate: shadowTriggerRate,
+    shadow_trigger_rate: shadowTriggerRate,
+    shadow_target_hit_rate: shadowTargetHitRate,
+    shadow_stop_hit_rate: shadowStopHitRate,
+    shadow_neither_hit_rate: shadowNeitherHitRate,
+    official_avg_best_r: officialAvgBestR,
+    shadow_avg_best_r: shadowAvgBestR,
+    official_avg_worst_r: officialAvgWorstR,
+    shadow_avg_worst_r: shadowAvgWorstR,
+    official_stop_hit_rate: officialStopHitRate,
+    trigger_rate_delta: triggerRateDelta,
+    avg_best_r_delta: avgBestRDelta,
+    avg_worst_r_delta: avgWorstRDelta,
+    stop_hit_rate_delta: stopHitRateDelta,
+    shadow_avg_time_to_entry_minutes: average(
+      shadowResults.map((item) => item.time_to_entry_minutes),
     ),
-    shadow_entry_trigger_rate: percent(
-      shadowResults.filter((item) => item.triggered).length,
-      shadowResults.length,
-    ),
-    official_avg_best_r: average(evaluated.map((outcome) => outcome.best_r)),
-    shadow_avg_best_r: average(shadowResults.map((item) => item.best_r)),
-    official_avg_worst_r: average(evaluated.map((outcome) => outcome.worst_r)),
-    shadow_avg_worst_r: average(shadowResults.map((item) => item.worst_r)),
+    shadow_risk_warning_count: riskWarningCount,
+    shadow_risk_too_tight_count: shadowResults.filter(
+      (item) => item.risk_warning === "risk_too_tight_vs_original",
+    ).length,
+    shadow_risk_too_wide_count: shadowResults.filter(
+      (item) => item.risk_warning === "risk_too_wide_vs_original",
+    ).length,
+    risk_warning_rate: riskWarningRate,
+    shadow_triggered_no_followthrough_count: triggeredNoFollowthroughCount,
+    shadow_triggered_no_followthrough_rate: triggeredNoFollowthroughRate,
+    quality_adjusted_shadow_score: qualityAdjustedScore,
+    shadow_sample_size: shadowResults.length,
     shadow_trial_sample_size: shadowResults.length,
   };
 }

@@ -124,10 +124,13 @@ export function buildEntryTuningProposal({
       : learningInsights.batch_fingerprint
         ? 1
         : 0;
-  const confidence = confidenceForSample({
+  const sampleConfidence = confidenceForSample({
     evaluatedOutcomes: learningInsights.total_evaluated_outcomes,
     evaluatedBatches,
   });
+  const shadowTrial = learningInsights.shadow_entry_trial;
+  const confidence =
+    shadowTrial.shadow_sample_size < 20 ? "low" : sampleConfidence;
   const triggerRateChange = delta(
     simulation.best_variant_trigger_rate,
     simulation.original_entry_trigger_rate,
@@ -145,7 +148,9 @@ export function buildEntryTuningProposal({
     confidence,
     triggerRateChange,
     avgWorstRChange,
-    riskWarningCount: simulation.variant_risk_warning_count,
+    riskWarningCount:
+      simulation.variant_risk_warning_count +
+      shadowTrial.shadow_risk_warning_count,
     simulatedRecommendations: simulation.simulated_recommendation_count,
   });
   const proposalId = `entry_tuning:${learningInsights.batch_fingerprint ?? "none"}:${simulation.best_entry_variant ?? "none"}`;
@@ -157,15 +162,24 @@ export function buildEntryTuningProposal({
     );
   }
 
+  if (shadowTrial.shadow_risk_warning_count > 0) {
+    riskNotes.push(
+      "Shadow entry improves trigger rate but risk model needs adjustment.",
+    );
+  }
+
   if ((avgWorstRChange ?? 0) < 0) {
     riskNotes.push(
       "Best variant worsened average adverse R versus the original entry.",
     );
   }
 
-  if (learningInsights.total_evaluated_outcomes < 20) {
+  if (
+    learningInsights.total_evaluated_outcomes < 20 ||
+    shadowTrial.shadow_sample_size < 20
+  ) {
     riskNotes.push(
-      "Sample size is below 20 evaluated outcomes; treat as observational only.",
+      "Sample size is below 20 evaluated shadow outcomes; confidence stays low and the proposal remains observational.",
     );
   }
 
