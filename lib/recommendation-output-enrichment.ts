@@ -11,15 +11,23 @@ export type RecommendationOutputSourceMode =
 export type RecommendationOutputEnrichmentMetadata = {
   recommendation_source_mode: RecommendationOutputSourceMode;
   provider_source: string | null;
+  provider_status: string | null;
   market_data_source: string | null;
   market_data_timestamp: string | null;
   market_data_age_minutes: number | null;
+  candle_timestamp: string | null;
+  quote_timestamp: string | null;
   intraday_indicator_source: string | null;
   intraday_indicator_stale: boolean | null;
   scanner_source: string | null;
   scan_window: string | null;
   scan_run_id: string | null;
   scan_run_fingerprint: string | null;
+  batch_fingerprint: string | null;
+  market_session: string | null;
+  provider_plan_profile_mode: string | null;
+  build_marker: string | null;
+  recommendation_publish_policy_version: string | null;
   enrichment_warnings: string[];
   enrichment_gaps: string[];
 };
@@ -40,6 +48,10 @@ export type RecommendationOutputEnrichmentItem = {
   data_timestamp: string | null;
   data_age_minutes: number | null;
   provider_source: string | null;
+  provider_status: string | null;
+  market_data_source: string | null;
+  candle_timestamp: string | null;
+  quote_timestamp: string | null;
   market_session_phase: string | null;
   quote_last_price: number | null;
   candle_context: {
@@ -56,9 +68,15 @@ export type RecommendationOutputEnrichmentItem = {
   spread: number | null;
   scan_run_id: string | null;
   scan_run_fingerprint: string | null;
+  batch_fingerprint: string | null;
+  scan_window: string | null;
+  provider_plan_profile_mode: string | null;
+  build_marker: string | null;
+  recommendation_publish_policy_version: string | null;
   source_mode: RecommendationOutputSourceMode;
   data_mode: string | null;
   missing_fields: string[];
+  explicit_gap_metadata: string[];
   warnings: string[];
   learning_compatible: boolean;
 };
@@ -76,6 +94,10 @@ export type RecommendationOutputEnrichmentSummary = {
   provider_source_coverage_rate: number;
   field_coverage_rate: number;
   market_data_timestamp_coverage_rate: number;
+  explicit_gap_count: number;
+  missing_metadata_fields: string[];
+  qa_checked_source_path: string;
+  metadata_missing_at_stage: string | null;
   items: RecommendationOutputEnrichmentItem[];
   gaps: string[];
   warnings: string[];
@@ -114,8 +136,11 @@ export type RecommendationOutputEnrichmentInputItem = {
   market_session_phase?: string | null;
   market_session_source?: string | null;
   provider_source?: string | null;
+  provider_status?: string | null;
   market_data_source?: string | null;
   market_data_timestamp?: string | Date | null;
+  candle_timestamp?: string | Date | null;
+  quote_timestamp?: string | Date | null;
   latest_price?: number | null;
   intraday_high?: number | null;
   intraday_low?: number | null;
@@ -123,6 +148,11 @@ export type RecommendationOutputEnrichmentInputItem = {
   average_volume?: number | null;
   liquidity?: string | number | null;
   spread?: number | null;
+  batch_fingerprint?: string | null;
+  scan_window?: string | null;
+  provider_plan_profile_mode?: string | null;
+  build_marker?: string | null;
+  recommendation_publish_policy_version?: string | null;
 };
 
 export type RecommendationOutputEnrichmentInput = {
@@ -133,6 +163,11 @@ export type RecommendationOutputEnrichmentInput = {
   default_market_session_source?: string | null;
   scan_run_id?: string | null;
   scan_run_fingerprint?: string | null;
+  batch_fingerprint?: string | null;
+  scan_window?: string | null;
+  provider_plan_profile_mode?: string | null;
+  build_marker?: string | null;
+  recommendation_publish_policy_version?: string | null;
   now?: Date | string | null;
 };
 
@@ -245,6 +280,31 @@ function hasField(
   return false;
 }
 
+function hasMappedGapForField(
+  item: RecommendationOutputEnrichmentItem,
+  field: (typeof requiredFields)[number],
+) {
+  if (field === "data_timestamp") {
+    return (
+      item.explicit_gap_metadata.includes("missing_data_timestamp") ||
+      item.explicit_gap_metadata.includes("market_data_timestamp_unavailable")
+    );
+  }
+
+  if (field === "provider_source") {
+    return item.explicit_gap_metadata.includes("provider_source_unavailable");
+  }
+
+  return false;
+}
+
+function hasQaSatisfiedField(
+  item: RecommendationOutputEnrichmentItem,
+  field: (typeof requiredFields)[number],
+) {
+  return hasField(item, field) || hasMappedGapForField(item, field);
+}
+
 function percent(part: number, total: number) {
   if (total <= 0) {
     return 0;
@@ -256,14 +316,22 @@ function percent(part: number, total: number) {
 export function buildRecommendationOutputEnrichmentMetadata(input: {
   recommendation_source_mode?: RecommendationOutputSourceMode | string | null;
   provider_source?: string | null;
+  provider_status?: string | null;
   market_data_source?: string | null;
   market_data_timestamp?: string | Date | null;
+  candle_timestamp?: string | Date | null;
+  quote_timestamp?: string | Date | null;
   intraday_indicator_source?: string | null;
   intraday_indicator_stale?: boolean | null;
   scanner_source?: string | null;
   scan_window?: string | null;
   scan_run_id?: string | null;
   scan_run_fingerprint?: string | null;
+  batch_fingerprint?: string | null;
+  market_session?: string | null;
+  provider_plan_profile_mode?: string | null;
+  build_marker?: string | null;
+  recommendation_publish_policy_version?: string | null;
   now?: Date | string | null;
   warnings?: string[];
   gaps?: string[];
@@ -271,10 +339,13 @@ export function buildRecommendationOutputEnrichmentMetadata(input: {
   const now = toDate(input.now) ?? new Date();
   const marketDataTimestamp = toIso(input.market_data_timestamp);
   const timestampDate = toDate(marketDataTimestamp);
+  const candleTimestamp = toIso(input.candle_timestamp);
+  const quoteTimestamp = toIso(input.quote_timestamp);
   const gaps = [...(input.gaps ?? [])];
   const warnings = [...(input.warnings ?? [])];
 
   if (!marketDataTimestamp) {
+    gaps.push("missing_data_timestamp");
     gaps.push("market_data_timestamp_unavailable");
   }
 
@@ -282,8 +353,22 @@ export function buildRecommendationOutputEnrichmentMetadata(input: {
     gaps.push("provider_source_unavailable");
   }
 
+  if (!textOrNull(input.provider_source) && !textOrNull(input.market_data_source)) {
+    gaps.push("provider_backed_metadata_unavailable");
+  }
+
+  if (!textOrNull(input.intraday_indicator_source)) {
+    gaps.push("intraday_indicators_unavailable");
+  }
+
+  if (timestampDate && minutesBetween(now, timestampDate) > 90) {
+    gaps.push("stale_market_data");
+    warnings.push("stale_market_data");
+  }
+
   if (input.intraday_indicator_stale === true) {
     warnings.push("intraday_indicator_data_stale");
+    gaps.push("stale_market_data");
   }
 
   return {
@@ -291,11 +376,14 @@ export function buildRecommendationOutputEnrichmentMetadata(input: {
       input.recommendation_source_mode,
     ),
     provider_source: textOrNull(input.provider_source),
+    provider_status: textOrNull(input.provider_status),
     market_data_source: textOrNull(input.market_data_source),
     market_data_timestamp: marketDataTimestamp,
     market_data_age_minutes: timestampDate
       ? minutesBetween(now, timestampDate)
       : null,
+    candle_timestamp: candleTimestamp,
+    quote_timestamp: quoteTimestamp,
     intraday_indicator_source: textOrNull(input.intraday_indicator_source),
     intraday_indicator_stale:
       typeof input.intraday_indicator_stale === "boolean"
@@ -305,6 +393,13 @@ export function buildRecommendationOutputEnrichmentMetadata(input: {
     scan_window: textOrNull(input.scan_window),
     scan_run_id: textOrNull(input.scan_run_id),
     scan_run_fingerprint: textOrNull(input.scan_run_fingerprint),
+    batch_fingerprint: textOrNull(input.batch_fingerprint),
+    market_session: textOrNull(input.market_session),
+    provider_plan_profile_mode: textOrNull(input.provider_plan_profile_mode),
+    build_marker: textOrNull(input.build_marker),
+    recommendation_publish_policy_version: textOrNull(
+      input.recommendation_publish_policy_version,
+    ),
     enrichment_warnings: Array.from(new Set(warnings)),
     enrichment_gaps: Array.from(new Set(gaps)),
   };
@@ -329,6 +424,10 @@ export function buildRecommendationOutputEnrichmentSummary(
       toIso(recommendation.market_data_timestamp) ??
       toIso(metadata.market_data_timestamp);
     const dataTimestampDate = toDate(dataTimestamp);
+    const candleTimestamp =
+      toIso(recommendation.candle_timestamp) ?? toIso(metadata.candle_timestamp);
+    const quoteTimestamp =
+      toIso(recommendation.quote_timestamp) ?? toIso(metadata.quote_timestamp);
     const entry = firstNumber(
       recommendation.entry,
       recommendation.entry_high,
@@ -347,6 +446,7 @@ export function buildRecommendationOutputEnrichmentSummary(
     const marketSessionPhase = firstText(
       recommendation.market_session_phase,
       input.default_market_session_phase,
+      metadata.market_session,
     );
     const quoteLastPrice = firstNumber(
       recommendation.latest_price,
@@ -357,6 +457,20 @@ export function buildRecommendationOutputEnrichmentSummary(
       indicators?.latestVolume,
       recommendation.average_volume,
       indicators?.averageVolume,
+    );
+    const explicitGapMetadata = Array.from(
+      new Set([
+        ...(metadata.enrichment_gaps ?? []),
+        ...(dataTimestamp ? [] : ["missing_data_timestamp"]),
+        ...(providerSource ? [] : ["provider_source_unavailable"]),
+        ...(dataTimestampDate && minutesBetween(now, dataTimestampDate) > 90
+          ? ["stale_market_data"]
+          : []),
+        ...(indicators ? [] : ["intraday_indicators_unavailable"]),
+        ...(!providerSource && !firstText(recommendation.market_data_source, metadata.market_data_source)
+          ? ["provider_backed_metadata_unavailable"]
+          : []),
+      ]),
     );
     const warnings = [...(metadata.enrichment_warnings ?? [])];
 
@@ -394,6 +508,16 @@ export function buildRecommendationOutputEnrichmentSummary(
             ? minutesBetween(now, dataTimestampDate)
             : null,
       provider_source: providerSource,
+      provider_status: firstText(
+        recommendation.provider_status,
+        metadata.provider_status,
+      ),
+      market_data_source: firstText(
+        recommendation.market_data_source,
+        metadata.market_data_source,
+      ),
+      candle_timestamp: candleTimestamp,
+      quote_timestamp: quoteTimestamp,
       market_session_phase: marketSessionPhase,
       quote_last_price: quoteLastPrice,
       candle_context: indicators
@@ -419,13 +543,36 @@ export function buildRecommendationOutputEnrichmentSummary(
         textOrNull(recommendation.scan_run_fingerprint) ??
         textOrNull(metadata.scan_run_fingerprint) ??
         textOrNull(input.scan_run_fingerprint),
+      batch_fingerprint:
+        textOrNull(recommendation.batch_fingerprint) ??
+        textOrNull(metadata.batch_fingerprint) ??
+        textOrNull(input.batch_fingerprint),
+      scan_window:
+        textOrNull(recommendation.scan_window) ??
+        textOrNull(metadata.scan_window) ??
+        textOrNull(input.scan_window),
+      provider_plan_profile_mode:
+        textOrNull(recommendation.provider_plan_profile_mode) ??
+        textOrNull(metadata.provider_plan_profile_mode) ??
+        textOrNull(input.provider_plan_profile_mode),
+      build_marker:
+        textOrNull(recommendation.build_marker) ??
+        textOrNull(metadata.build_marker) ??
+        textOrNull(input.build_marker),
+      recommendation_publish_policy_version:
+        textOrNull(recommendation.recommendation_publish_policy_version) ??
+        textOrNull(metadata.recommendation_publish_policy_version) ??
+        textOrNull(input.recommendation_publish_policy_version),
       source_mode: sourceMode,
       data_mode: textOrNull(recommendation.data_mode),
       missing_fields: [],
+      explicit_gap_metadata: explicitGapMetadata,
       warnings: Array.from(new Set(warnings)),
       learning_compatible: false,
     };
-    const missingFields = requiredFields.filter((field) => !hasField(item, field));
+    const missingFields = requiredFields.filter(
+      (field) => !hasQaSatisfiedField(item, field),
+    );
 
     return {
       ...item,
@@ -454,7 +601,8 @@ export function buildRecommendationOutputEnrichmentSummary(
   );
   const availableFieldCount = items.reduce(
     (total, item) =>
-      total + requiredFields.filter((field) => hasField(item, field)).length,
+      total +
+      requiredFields.filter((field) => hasQaSatisfiedField(item, field)).length,
     0,
   );
   const totalFieldCount = items.length * requiredFields.length;
@@ -463,10 +611,37 @@ export function buildRecommendationOutputEnrichmentSummary(
       ...items.flatMap((item) =>
         item.missing_fields.map((field) => `missing_${field}`),
       ),
+      ...items.flatMap((item) => item.explicit_gap_metadata),
       ...items.flatMap(
         (item) => item.warnings.filter((warning) => warning.endsWith("_unavailable")),
       ),
     ]),
+  );
+  const explicitGapCount = items.reduce(
+    (total, item) => total + item.explicit_gap_metadata.length,
+    0,
+  );
+  const missingMetadataFields = Array.from(
+    new Set(
+      items.flatMap((item) => [
+        ...(item.data_timestamp === null ? ["data_timestamp"] : []),
+        ...(item.provider_source === null ? ["provider_source"] : []),
+        ...(item.provider_status === null ? ["provider_status"] : []),
+        ...(item.market_data_source === null ? ["market_data_source"] : []),
+        ...(item.candle_timestamp === null ? ["candle_timestamp"] : []),
+        ...(item.scan_run_fingerprint === null ? ["scan_run_fingerprint"] : []),
+        ...(item.batch_fingerprint === null ? ["batch_fingerprint"] : []),
+        ...(item.scan_window === null ? ["scan_window"] : []),
+        ...(item.market_session_phase === null ? ["market_session"] : []),
+        ...(item.provider_plan_profile_mode === null
+          ? ["provider_plan_profile_mode"]
+          : []),
+        ...(item.build_marker === null ? ["build_marker"] : []),
+        ...(item.recommendation_publish_policy_version === null
+          ? ["recommendation_publish_policy_version"]
+          : []),
+      ]),
+    ),
   );
 
   return {
@@ -488,6 +663,14 @@ export function buildRecommendationOutputEnrichmentSummary(
     provider_source_coverage_rate: providerSourceCoverageRate,
     field_coverage_rate: percent(availableFieldCount, totalFieldCount),
     market_data_timestamp_coverage_rate: marketDataTimestampCoverageRate,
+    explicit_gap_count: explicitGapCount,
+    missing_metadata_fields: missingMetadataFields,
+    qa_checked_source_path:
+      "scanner candidate -> built recommendation -> recommendation row metadata -> recommendation_snapshots payload -> frontend readback -> scanner QA",
+    metadata_missing_at_stage:
+      missingMetadataFields.length > 0
+        ? "recommendation_row_or_snapshot_metadata"
+        : null,
     items,
     gaps,
     warnings: Array.from(new Set(items.flatMap((item) => item.warnings))),

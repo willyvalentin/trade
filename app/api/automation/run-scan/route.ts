@@ -58,6 +58,7 @@ import {
 } from "@/lib/recommendation-snapshot";
 import {
   buildRecommendationBatch,
+  buildRecommendationBatchFingerprint,
   persistRecommendationBatch,
 } from "@/lib/recommendation-batch-memory";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
@@ -129,6 +130,12 @@ type AutomationRunDiagnostics = {
   orchestration_decision: DayTradeScanOrchestrationSummary["decision"];
   active_window: DayTradeScanOrchestrationSummary["active_window"];
   scan_window: IntradayScanWindow;
+  grow_max_learning_mode?: boolean;
+  target_ideas_per_window?: number | null;
+  same_window_limit_reached?: boolean;
+  daily_learning_limit_reached?: boolean;
+  provider_budget_limit_reached?: boolean;
+  window_batch_already_created?: boolean;
   skipped_reason: string | null;
   latest_active_window_scan: AutomationScanDiagnosticEntry | null;
   latest_skipped_scan: AutomationScanDiagnosticEntry | null;
@@ -245,6 +252,16 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const routeSkipOpenAiOverride =
     typeof body.skip_openai === "boolean" ? body.skip_openai : null;
   const envSkipOpenAiOverride = envBoolean(process.env.TURE_SCHEDULED_SCAN_SKIP_OPENAI);
+  const growMaxLearningModeRequested =
+    envBoolean(process.env.TURE_GROW_MAX_LEARNING_MODE) === true;
+  const growMaxLearningAllowedModes = ["grow", "pro", "custom"];
+  const growMaxLearningMode =
+    growMaxLearningModeRequested &&
+    growMaxLearningAllowedModes.includes(providerPlanProfile.effective_mode);
+  const growMaxLearningModeBlockedReason =
+    growMaxLearningModeRequested && !growMaxLearningMode
+      ? "provider_plan_profile_mode_not_eligible"
+      : null;
   const scheduledMaxTickers =
     routeMaxTickersOverride !== null
       ? routeMaxTickersOverride
@@ -262,28 +279,32 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     ),
   );
   const scheduledSkipOpenAi =
-    routeSkipOpenAiOverride ??
-    envSkipOpenAiOverride ??
-    providerPlanProfile.profile_scheduled_skip_openai;
+    growMaxLearningMode
+      ? true
+      : routeSkipOpenAiOverride ??
+        envSkipOpenAiOverride ??
+        providerPlanProfile.profile_scheduled_skip_openai;
+  const effectiveScanTickerCap = Math.max(
+    1,
+    Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
+  );
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
+    grow_max_learning_mode: growMaxLearningMode,
+    grow_max_learning_mode_requested: growMaxLearningModeRequested,
+    grow_max_learning_mode_blocked_reason: growMaxLearningModeBlockedReason,
+    target_ideas_per_window: growMaxLearningMode ? effectiveScanTickerCap : null,
     provider_plan_mode: providerPlanProfile.mode,
     provider_plan_profile_mode: providerPlanProfile.effective_mode,
     provider_plan_profile_source: providerPlanProfile.source,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
-    scheduled_max_tickers: Math.max(
-      1,
-      Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
-    ),
+    scheduled_max_tickers: effectiveScanTickerCap,
     scheduled_skip_openai: scheduledSkipOpenAi,
     scheduled_timeout_ms: scheduledTimeoutMs,
-    effective_scan_ticker_cap: Math.max(
-      1,
-      Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
-    ),
+    effective_scan_ticker_cap: effectiveScanTickerCap,
     effective_scheduled_skip_openai: scheduledSkipOpenAi,
     effective_scheduled_timeout_ms: scheduledTimeoutMs,
     profile_scan_ticker_cap: providerPlanProfile.profile_scan_ticker_cap,
@@ -548,6 +569,7 @@ function buildAutomationRunDiagnostics({
   orchestration,
   decision,
   scanWindow,
+  scheduledRuntimeConfig,
   skippedReason,
   recentRecommendationScanRuns,
   recentScheduledScanRuns,
@@ -558,6 +580,7 @@ function buildAutomationRunDiagnostics({
   orchestration: DayTradeScanOrchestrationSummary;
   decision: AutomationScanDecision;
   scanWindow: IntradayScanWindow;
+  scheduledRuntimeConfig?: ReturnType<typeof scheduledScanRuntimeConfig>;
   skippedReason?: string | null;
   recentRecommendationScanRuns: RecommendationScanRun[];
   recentScheduledScanRuns: ScheduledScanRunSummary[];
@@ -610,6 +633,15 @@ function buildAutomationRunDiagnostics({
     orchestration_decision: orchestration.decision,
     active_window: orchestration.active_window,
     scan_window: scanWindow,
+    grow_max_learning_mode:
+      scheduledRuntimeConfig?.grow_max_learning_mode ?? false,
+    target_ideas_per_window:
+      scheduledRuntimeConfig?.target_ideas_per_window ?? null,
+    same_window_limit_reached: decision === "skipped_recent_scan",
+    daily_learning_limit_reached: false,
+    provider_budget_limit_reached:
+      currentScanLog?.result === "provider_rate_limited",
+    window_batch_already_created: decision === "skipped_recent_scan",
     skipped_reason: skippedReason ?? null,
     latest_active_window_scan: latestActiveWindowScan,
     latest_skipped_scan: latestSkippedScan,
@@ -1441,6 +1473,9 @@ function buildSnapshotFromRecommendation({
   marketSession,
   scanObservability,
   servingCadence,
+  scanLog,
+  providerPlanProfileMode,
+  batchFingerprint,
 }: {
   recommendation: RecommendationRow;
   scanRunId: string;
@@ -1449,6 +1484,9 @@ function buildSnapshotFromRecommendation({
   marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
   scanObservability: ScanPipelineObservabilitySummary;
   servingCadence: RecommendationServingCadenceSummary;
+  scanLog: ScanLogEntry;
+  providerPlanProfileMode: string | null;
+  batchFingerprint: string | null;
 }) {
   const entryLow = numberOrNull(recommendation.entry_low);
   const entryHigh = numberOrNull(recommendation.entry_high);
@@ -1478,11 +1516,39 @@ function buildSnapshotFromRecommendation({
   ]
     .filter((item): item is string => typeof item === "string" && item.length > 0)
     .join(" ");
+  const ticker = recommendationTicker(recommendation);
+  const scannerCandidate =
+    scanLog.real_scanner_candidate_generation?.candidates.find(
+      (candidate) => candidate.ticker === ticker,
+    ) ?? null;
+  const providerSource =
+    scannerCandidate?.provider_source ??
+    scanLog.real_scanner_candidate_generation?.provider_source ??
+    null;
+  const marketDataSource =
+    scannerCandidate?.data_source ?? scanLog.indicator_source ?? null;
+  const dataTimestamp =
+    scannerCandidate?.market_data_timestamp ?? scanLog.indicator_cached_at ?? null;
+  const providerStatus = providerSource
+    ? "observed"
+    : scanLog.real_scanner_candidate_generation
+      ? "unavailable"
+      : "not_observed";
+  const explicitMetadataGaps = Array.from(
+    new Set([
+      ...(dataTimestamp ? [] : ["missing_data_timestamp"]),
+      ...(providerSource ? [] : ["provider_source_unavailable"]),
+      ...(marketDataSource ? [] : ["provider_backed_metadata_unavailable"]),
+      ...(scannerCandidate ? [] : ["provider_backed_metadata_unavailable"]),
+      ...(scannerCandidate?.stale ? ["stale_market_data"] : []),
+      ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
+    ]),
+  );
 
   return buildRecommendationSnapshot({
     recommendation_id: textOrNull(recommendation.id),
     scan_run_id: scanRunId,
-    ticker: recommendationTicker(recommendation),
+    ticker,
     company_name: textOrNull(recommendation.company_name),
     recommended_at: recommendationCreatedAt(recommendation),
     app_timestamp: now,
@@ -1524,6 +1590,21 @@ function buildSnapshotFromRecommendation({
       scan_observability_summary: scanObservability,
     },
     payload: {
+      data_timestamp: dataTimestamp,
+      provider_source: providerSource,
+      provider_status: providerStatus,
+      market_data_source: marketDataSource,
+      candle_timestamp: dataTimestamp,
+      quote_timestamp: null,
+      scan_run_fingerprint: scanRunId,
+      batch_fingerprint: batchFingerprint,
+      scan_window: scanWindow,
+      market_session_phase: marketSession.phase,
+      provider_plan_profile_mode: providerPlanProfileMode,
+      build_marker: BUILD_MARKER,
+      recommendation_publish_policy_version:
+        RECOMMENDATION_PUBLISH_POLICY_VERSION,
+      explicit_metadata_gaps: explicitMetadataGaps,
       side,
       direction: side,
       trade_direction: side,
@@ -1556,6 +1637,7 @@ async function persistAutomationArtifacts({
   servingCadence,
   recommendations,
   activeScanTrace,
+  providerPlanProfileMode,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -1568,6 +1650,7 @@ async function persistAutomationArtifacts({
   servingCadence: RecommendationServingCadenceSummary;
   recommendations: RecommendationRow[];
   activeScanTrace?: ActiveScanTraceRecorder | null;
+  providerPlanProfileMode: string | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
   const serverSupabase = getServerSupabaseClient();
@@ -1633,6 +1716,41 @@ async function persistAutomationArtifacts({
     snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
   };
+  const preliminarySnapshots = recommendations.map((recommendation) =>
+    buildSnapshotFromRecommendation({
+      recommendation,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      scanLog,
+      providerPlanProfileMode,
+      batchFingerprint: null,
+    }),
+  );
+  const anticipatedBatchFingerprint =
+    preliminarySnapshots.length > 0 ||
+    servingCadence.no_trade_valid ||
+    servingCadence.batch_status === "no_trade_valid"
+      ? buildRecommendationBatchFingerprint({
+          trading_date: scanDate,
+          observed_at: now,
+          published_at: servingCadence.latest_official_batch_published_at,
+          served_at: servingCadence.served_at,
+          window: servingCadence.serving_window,
+          batch_type: servingCadence.batch_type,
+          snapshots: preliminarySnapshots,
+          scan_run: scanRun,
+          scan_run_id: scanRun.id,
+          scan_run_fingerprint: scanRun.run_fingerprint,
+          serving_cadence: servingCadence,
+          source_mode: "supabase",
+          data_mode: "supabase_record",
+          market_session_phase: marketSession.phase,
+        })
+      : null;
   const snapshots: RecommendationSnapshot[] = [];
 
   for (const recommendation of recommendations) {
@@ -1644,6 +1762,9 @@ async function persistAutomationArtifacts({
       marketSession,
       scanObservability: observability,
       servingCadence,
+      scanLog,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
     });
 
     snapshots.push(snapshot);
@@ -1820,6 +1941,12 @@ export async function POST(request: Request) {
   const scheduledRuntimeConfig = scheduledScanRuntimeConfig(body);
   const scheduledRuntimeFields = () => ({
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
+    grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
+    grow_max_learning_mode_requested:
+      scheduledRuntimeConfig.grow_max_learning_mode_requested,
+    grow_max_learning_mode_blocked_reason:
+      scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
+    target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
     provider_plan_profile_mode:
       scheduledRuntimeConfig.provider_plan_profile_mode,
@@ -1957,6 +2084,7 @@ export async function POST(request: Request) {
       orchestration: dayTradeScanOrchestration,
       decision,
       scanWindow: scanWindow.scanWindow,
+      scheduledRuntimeConfig,
       skippedReason,
       recentRecommendationScanRuns,
       recentScheduledScanRuns,
@@ -1978,6 +2106,12 @@ export async function POST(request: Request) {
     orchestration_decision: dayTradeScanOrchestration.decision,
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
+    grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
+    grow_max_learning_mode_requested:
+      scheduledRuntimeConfig.grow_max_learning_mode_requested,
+    grow_max_learning_mode_blocked_reason:
+      scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
+    target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
     scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
@@ -2685,7 +2819,11 @@ export async function POST(request: Request) {
     const generationPromise = generateRecommendations({
       sessionType,
       scanWindow: scanWindow.scanWindow,
-      targetCount: scheduledRuntimeConfig.live_trial_fast_mode ? 6 : undefined,
+      targetCount: scheduledRuntimeConfig.grow_max_learning_mode
+        ? undefined
+        : scheduledRuntimeConfig.live_trial_fast_mode
+          ? 6
+          : undefined,
       source: "scheduled",
       allowPowerHourRecommendationLogging:
         scanWindow.scanWindow === "power_hour"
@@ -2693,6 +2831,7 @@ export async function POST(request: Request) {
           : calendarFallbackAllowsScan,
       powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
       scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
+      growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
       skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
       activeScanTrace,
     });
@@ -2845,6 +2984,8 @@ export async function POST(request: Request) {
         servingCadence,
         recommendations: insertedRecommendations,
         activeScanTrace,
+        providerPlanProfileMode:
+          scheduledRuntimeConfig.provider_plan_profile_mode,
       });
       activeScanTrace.updatePersistence({
         scan_run_persisted:

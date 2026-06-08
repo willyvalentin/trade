@@ -10,6 +10,7 @@ import type { RealRecommendationOutputReadinessSummary } from "@/lib/real-recomm
 import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memory";
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
 import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
+import type { RecommendationOutputEnrichmentSummary } from "@/lib/recommendation-output-enrichment";
 import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
@@ -103,6 +104,14 @@ export type MarketDiagnosticsConsoleInput = {
     current_batch_recommendation_count?: number | null;
     current_batch_snapshot_count?: number | null;
     current_batch_visible_grid_count?: number | null;
+    grow_max_learning_mode?: boolean | null;
+    target_ideas_per_window?: number | null;
+    ideas_persisted_this_window?: number | null;
+    ideas_persisted_today?: number | null;
+    batches_created_today_by_window?: Record<string, number>;
+    same_window_batch_blocked_count?: number | null;
+    daily_learning_limit_status?: string | null;
+    provider_budget_used_for_scan?: number | null;
     current_batch_tickers?: string[];
     current_batch_override_reason?: string | null;
     active_trace_batch_fingerprint?: string | null;
@@ -270,6 +279,15 @@ export type MarketDiagnosticsConsoleInput = {
   } | null;
   outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
   entry_tuning_proposal?: EntryTuningProposal | null;
+  recommendation_output_enrichment?: RecommendationOutputEnrichmentSummary | null;
+  metadata_coverage?: {
+    snapshots_with_data_timestamp?: number | null;
+    snapshots_with_provider_source?: number | null;
+    explicit_gap_count?: number | null;
+    missing_metadata_fields?: string[];
+    qa_checked_source_path?: string | null;
+    metadata_missing_at_stage?: string | null;
+  } | null;
   scanner_output_qa: ScannerOutputQaSummary;
   real_output_readiness: RealRecommendationOutputReadinessSummary;
   batch_memory: RecommendationBatchSummary;
@@ -1079,6 +1097,11 @@ function determineOverallStatus(
   input: MarketDiagnosticsConsoleInput,
   blockers: MarketDiagnosticsConsoleWarning[],
 ) {
+  const closedMarketWaitState = isClosedMarketWaitState(input);
+  const hasSuccessfulLiveReadback =
+    (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+      0) > 0;
+
   if (
     blockers.length > 0 ||
     input.provider_budget_guard.status === "over_budget" ||
@@ -1086,6 +1109,10 @@ function determineOverallStatus(
     input.provider_budget_guard.status === "provider_unavailable"
   ) {
     return "blocked" as const;
+  }
+
+  if (closedMarketWaitState && hasSuccessfulLiveReadback) {
+    return "ready_with_warnings" as const;
   }
 
   if (
@@ -1158,6 +1185,10 @@ function suggestedNextAction(
 
   if (overallStatus === "ready_for_real_data_observation") {
     return "Ready for real-data observation; monitor scheduled scans and do not force recommendations.";
+  }
+
+  if (overallStatus === "ready_with_warnings" && isClosedMarketWaitState(input)) {
+    return "Market closed; review the latest official batch, outcome learning, and paper-tracking diagnostics.";
   }
 
   return input.live_market_trial_runbook.next_action.label;
@@ -1421,6 +1452,32 @@ function buildSections(
             latestAttemptedScan.result === "duplicate_ticker_skipped")
           ? "Official batch already served for this window."
         : null;
+  const growMaxLearningMode =
+    input.scan_readback?.grow_max_learning_mode === true ||
+    input.active_scan_trace?.grow_max_learning_mode === true;
+  const targetIdeasPerWindow =
+    input.scan_readback?.target_ideas_per_window ??
+    input.active_scan_trace?.target_ideas_per_window ??
+    null;
+  const batchesCreatedTodayByWindow =
+    input.scan_readback?.batches_created_today_by_window ?? {};
+  const outcomeRowsExpectedToday =
+    (input.scan_readback?.ideas_persisted_today ??
+      input.daily_targets.total_recommendations_today) * 3;
+  const outcomeRowsEvaluatedToday =
+    input.outcome_evaluation?.evaluated_outcome_count ?? 0;
+  const shadowSamplesToday =
+    input.outcome_evaluation?.shadow_entry_trial_count ??
+    input.outcome_learning?.shadow_entry_trial?.shadow_trial_sample_size ??
+    0;
+  const providerBudgetUsedForScan =
+    input.scan_readback?.provider_budget_used_for_scan ??
+    input.active_scan_trace?.universe.selected_tickers_count ??
+    null;
+  const providerBudgetUsedForOutcomes =
+    input.outcome_evaluation?.unique_candle_requests_count ??
+    input.outcome_evaluation?.candle_requests_executed ??
+    null;
   const hiddenReasonBreakdown =
     input.scan_readback?.hidden_reason_breakdown ?? {};
   const hiddenReasonById = input.scan_readback?.hidden_reason_by_id ?? {};
@@ -1473,6 +1530,30 @@ function buildSections(
   const shadowRecommendation =
     input.outcome_learning?.shadow_entry_trial.recommendation ??
     "keep_collecting_data";
+  const metadataCoverage = input.scanner_output_qa.metadata_coverage;
+  const recommendationRowsWithDataTimestamp =
+    metadataCoverage.recommendation_rows_with_data_timestamp;
+  const recommendationRowsWithProviderSource =
+    metadataCoverage.recommendation_rows_with_provider_source;
+  const snapshotsWithDataTimestamp =
+    input.metadata_coverage?.snapshots_with_data_timestamp ?? 0;
+  const snapshotsWithProviderSource =
+    input.metadata_coverage?.snapshots_with_provider_source ?? 0;
+  const explicitGapCount =
+    metadataCoverage.explicit_gap_count +
+    (input.metadata_coverage?.explicit_gap_count ?? 0);
+  const missingMetadataFields = Array.from(
+    new Set([
+      ...metadataCoverage.missing_metadata_fields,
+      ...(input.metadata_coverage?.missing_metadata_fields ?? []),
+    ]),
+  );
+  const qaCheckedSourcePath =
+    input.metadata_coverage?.qa_checked_source_path ??
+    metadataCoverage.qa_checked_source_path;
+  const metadataMissingAtStage =
+    input.metadata_coverage?.metadata_missing_at_stage ??
+    metadataCoverage.metadata_missing_at_stage;
   const shadowTrialState = !shadowProposalExists
     ? "no proposal"
     : shadowMetadataPresent === 0 && shadowMetadataMissing > 0
@@ -1820,6 +1901,48 @@ function buildSections(
           closedMarketBlockersSuppressedCount,
         closed_market_scanner_idle_reason:
           input.scan_readback?.closed_market_scanner_idle_reason ?? null,
+      },
+    }),
+    section({
+      section_id: "metadata_coverage",
+      title: "Metadata Coverage",
+      severity: explicitGapCount > 0 ? "warning" : "info",
+      lines: [
+        lineValue(
+          "Rows with data timestamp/provider",
+          `${recommendationRowsWithDataTimestamp} / ${recommendationRowsWithProviderSource}`,
+        ),
+        lineValue(
+          "Snapshots with data timestamp/provider",
+          `${snapshotsWithDataTimestamp} / ${snapshotsWithProviderSource}`,
+        ),
+        lineValue("Explicit gaps", explicitGapCount),
+        lineValue(
+          "Missing metadata fields",
+          missingMetadataFields.length > 0
+            ? missingMetadataFields.join(", ")
+            : "none",
+        ),
+        lineValue("QA source path", qaCheckedSourcePath),
+        lineValue(
+          "Missing at stage",
+          compact(metadataMissingAtStage, "none"),
+        ),
+      ],
+      metrics: {
+        recommendation_rows_with_data_timestamp:
+          recommendationRowsWithDataTimestamp,
+        recommendation_rows_with_provider_source:
+          recommendationRowsWithProviderSource,
+        snapshots_with_data_timestamp: snapshotsWithDataTimestamp,
+        snapshots_with_provider_source: snapshotsWithProviderSource,
+        explicit_gap_count: explicitGapCount,
+        missing_metadata_fields: missingMetadataFields.join(", "),
+        qa_checked_source_path: qaCheckedSourcePath,
+        metadata_missing_at_stage: metadataMissingAtStage,
+        provider_timestamp_gap_mapped:
+          missingMetadataFields.includes("data_timestamp") &&
+          explicitGapCount > 0,
       },
     }),
     section({
@@ -2470,6 +2593,24 @@ function buildSections(
         lineValue("Current batch", words(input.serving_cadence.batch_status)),
         lineValue("Batch count", latestBatch?.recommendation_count ?? 0),
         lineValue(
+          "Grow Max Learning",
+          growMaxLearningMode
+            ? `enabled / target ${targetIdeasPerWindow ?? "unknown"}`
+            : "disabled",
+        ),
+        lineValue(
+          "Learning ideas",
+          `${input.scan_readback?.ideas_persisted_this_window ?? 0} this window / ${input.scan_readback?.ideas_persisted_today ?? input.daily_targets.total_recommendations_today} today`,
+        ),
+        lineValue(
+          "Batches by window",
+          `morning ${batchesCreatedTodayByWindow.morning ?? 0} / midday ${batchesCreatedTodayByWindow.midday ?? 0} / power_hour ${batchesCreatedTodayByWindow.power_hour ?? 0}`,
+        ),
+        lineValue(
+          "Window blocks",
+          `same_window=${input.scan_readback?.same_window_batch_blocked_count ?? 0} / daily=${compact(input.scan_readback?.daily_learning_limit_status, "unknown")}`,
+        ),
+        lineValue(
           "Window target",
           `${input.serving_cadence.batch_target.min}-${input.serving_cadence.batch_target.max}`,
         ),
@@ -2502,6 +2643,22 @@ function buildSections(
           input.serving_cadence.visible_recommendation_count,
         current_batch_status: input.serving_cadence.batch_status,
         batch_recommendation_count: latestBatch?.recommendation_count ?? 0,
+        grow_max_learning_mode: growMaxLearningMode
+          ? "enabled"
+          : "disabled",
+        target_ideas_per_window: targetIdeasPerWindow,
+        ideas_persisted_this_window:
+          input.scan_readback?.ideas_persisted_this_window ?? null,
+        ideas_persisted_today:
+          input.scan_readback?.ideas_persisted_today ??
+          input.daily_targets.total_recommendations_today,
+        batches_created_today_by_window: JSON.stringify(
+          batchesCreatedTodayByWindow,
+        ),
+        same_window_batch_blocked_count:
+          input.scan_readback?.same_window_batch_blocked_count ?? null,
+        daily_learning_limit_status:
+          input.scan_readback?.daily_learning_limit_status ?? null,
         per_window_target_min: input.serving_cadence.batch_target.min,
         per_window_target_max: input.serving_cadence.batch_target.max,
         today_recommendations: input.daily_targets.total_recommendations_today,
@@ -2543,6 +2700,10 @@ function buildSections(
           input.provider_budget_guard.totals.estimated_calls_per_day,
         ),
         lineValue(
+          "Budget used",
+          `scan ${providerBudgetUsedForScan ?? "unknown"} / outcomes ${providerBudgetUsedForOutcomes ?? "unknown"}`,
+        ),
+        lineValue(
           "Latest signal",
           words(input.provider_budget_guard.latest_limit_signal.status),
         ),
@@ -2554,6 +2715,8 @@ function buildSections(
           input.provider_budget_guard.totals.estimated_calls_per_window,
         estimated_calls_per_day:
           input.provider_budget_guard.totals.estimated_calls_per_day,
+        provider_budget_used_for_scan: providerBudgetUsedForScan,
+        provider_budget_used_for_outcomes: providerBudgetUsedForOutcomes,
         latest_limit_signal:
           input.provider_budget_guard.latest_limit_signal.status,
       },
@@ -2571,6 +2734,12 @@ function buildSections(
         lineValue(
           "Caps",
           `scan ${providerPlanProfile.scanTickerCap ?? "unknown"} / outcomes ${providerPlanProfile.outcomeBudgetLimit ?? "unknown"}`,
+        ),
+        lineValue(
+          "Grow Max Learning",
+          growMaxLearningMode
+            ? `enabled / target ${targetIdeasPerWindow ?? "unknown"} per window`
+            : "disabled",
         ),
         lineValue(
           "OpenAI/timeout",
@@ -2609,6 +2778,10 @@ function buildSections(
         profile_scan_ticker_cap: providerPlanProfile.profileScanTickerCap,
         effective_outcome_budget_limit:
           providerPlanProfile.outcomeBudgetLimit,
+        grow_max_learning_mode: growMaxLearningMode
+          ? "enabled"
+          : "disabled",
+        target_ideas_per_window: targetIdeasPerWindow,
         profile_budget_limit: providerPlanProfile.profileBudgetLimit,
         override_budget_limit: providerPlanProfile.overrideBudgetLimit,
         effective_scheduled_skip_openai: providerPlanProfile.skipOpenAi,
@@ -2816,6 +2989,10 @@ function buildSections(
           `${input.outcome_evaluation?.expected_outcome_count ?? 0}/${input.outcome_evaluation?.persisted_outcome_count ?? 0}`,
         ),
         lineValue(
+          "Today expected/evaluated",
+          `${outcomeRowsExpectedToday}/${outcomeRowsEvaluatedToday}`,
+        ),
+        lineValue(
           "Evaluated/Incomplete/Pending",
           `${input.outcome_evaluation?.evaluated_outcome_count ?? 0}/${input.outcome_evaluation?.incomplete_outcome_count ?? 0}/${input.outcome_evaluation?.pending_outcome_count ?? 0}`,
         ),
@@ -2853,6 +3030,7 @@ function buildSections(
           "Retained candles / counterfactual ready",
           `${input.outcome_evaluation?.retained_candles_added_count ?? 0}/${input.outcome_evaluation?.counterfactual_ready_count ?? 0}`,
         ),
+        lineValue("Shadow samples today", shadowSamplesToday),
         lineValue(
           "Persistence",
           `${compact(input.outcome_evaluation?.persistence_status, "unknown")} / ${compact(input.outcome_evaluation?.persistence_mode, "unknown")}`,
@@ -2953,6 +3131,8 @@ function buildSections(
           input.outcome_evaluation?.outcome_backfill_error ?? null,
         expected_outcome_count:
           input.outcome_evaluation?.expected_outcome_count ?? null,
+        outcome_rows_expected_today: outcomeRowsExpectedToday,
+        outcome_rows_evaluated_today: outcomeRowsEvaluatedToday,
         persisted_outcome_count:
           input.outcome_evaluation?.persisted_outcome_count ?? null,
         evaluated_outcome_count:
@@ -3044,6 +3224,7 @@ function buildSections(
           input.outcome_evaluation?.shadow_missing_metadata_count ?? null,
         shadow_entry_trial_count:
           input.outcome_evaluation?.shadow_entry_trial_count ?? null,
+        shadow_samples_today: shadowSamplesToday,
         shadow_entry_triggered_count:
           input.outcome_evaluation?.shadow_entry_triggered_count ?? null,
         outcome_provider_budget_status:

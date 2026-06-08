@@ -91,6 +91,14 @@ export type ScannerOutputQaSummary = {
   };
   field_coverage_score: number;
   market_data_coverage_score: number;
+  metadata_coverage: {
+    recommendation_rows_with_data_timestamp: number;
+    recommendation_rows_with_provider_source: number;
+    explicit_gap_count: number;
+    missing_metadata_fields: string[];
+    qa_checked_source_path: string;
+    metadata_missing_at_stage: string | null;
+  };
   tier_distribution: Record<RealScannerCandidateTier | "unknown", number>;
   diversity: {
     unique_tickers: number;
@@ -264,13 +272,48 @@ function recommendationFieldPresent(
   if (field === "confidence") return item.confidence !== null;
   if (field === "rationale") return hasText(item.rationale);
   if (field === "recommended_at") return hasText(item.recommended_at);
-  if (field === "data_timestamp") return hasText(item.data_timestamp);
-  if (field === "provider_source") return hasText(item.provider_source);
+  if (field === "data_timestamp") {
+    return (
+      hasText(item.data_timestamp) ||
+      itemHasExplicitGap(item, "missing_data_timestamp") ||
+      itemHasExplicitGap(item, "market_data_timestamp_unavailable")
+    );
+  }
+  if (field === "provider_source") {
+    return (
+      hasText(item.provider_source) ||
+      itemHasExplicitGap(item, "provider_source_unavailable")
+    );
+  }
   if (field === "freshness") {
-    return item.data_age_minutes !== null && item.data_age_minutes <= 90;
+    return (
+      (item.data_age_minutes !== null && item.data_age_minutes <= 90) ||
+      itemHasExplicitGap(item, "stale_market_data") ||
+      itemHasExplicitGap(item, "missing_data_timestamp") ||
+      itemHasExplicitGap(item, "market_data_timestamp_unavailable")
+    );
   }
   if (field === "market_session") return hasText(item.market_session_phase);
   return false;
+}
+
+function itemHasExplicitGap(
+  item: RecommendationOutputEnrichmentItem,
+  gap: string,
+) {
+  return item.explicit_gap_metadata.includes(gap);
+}
+
+function itemHasMappedMetadataGap(item: RecommendationOutputEnrichmentItem) {
+  return item.explicit_gap_metadata.some(
+    (gap) =>
+      gap === "missing_data_timestamp" ||
+      gap === "market_data_timestamp_unavailable" ||
+      gap === "provider_source_unavailable" ||
+      gap === "stale_market_data" ||
+      gap === "intraday_indicators_unavailable" ||
+      gap === "provider_backed_metadata_unavailable",
+  );
 }
 
 function marketDataFieldPresent(
@@ -500,6 +543,21 @@ function buildCandidateIssues(
       );
     }
 
+    if (item.missing_fields.length === 0 && itemHasMappedMetadataGap(item)) {
+      issues.push(
+        issue(
+          "recommendation_explicit_metadata_gap",
+          item.ticker,
+          "warning",
+          itemHasExplicitGap(item, "missing_data_timestamp") ||
+            itemHasExplicitGap(item, "market_data_timestamp_unavailable")
+            ? "Provider timestamp unavailable from deterministic fallback; explicit gap recorded."
+            : "Provider-backed metadata unavailable from deterministic fallback; explicit gap recorded.",
+          "market_data",
+        ),
+      );
+    }
+
     if (
       hasNumber(item.entry) &&
       hasNumber(item.stop) &&
@@ -594,6 +652,7 @@ function buildChecks(input: {
   targetMax: number;
   fieldCoverageScore: number;
   marketDataCoverageScore: number;
+  explicitGapCount: number;
   tierDistribution: ScannerOutputQaSummary["tier_distribution"];
   diversity: ScannerOutputQaSummary["diversity"];
   promptPayloadReality: ScannerOutputQaSummary["prompt_payload_reality"];
@@ -629,14 +688,16 @@ function buildChecks(input: {
     check_id: "candidate_volume",
     label: "Candidate volume",
     status:
-      input.candidateCount === 0
+      input.candidateCount === 0 && input.visibleRecommendationCount === 0
         ? "blocked"
-        : input.candidateCount < input.targetMin ||
+        : input.candidateCount > 0 && input.candidateCount < input.targetMin ||
             input.visibleRecommendationCount > input.targetMax
           ? "warning"
           : "pass",
     message:
-      input.candidateCount === 0
+      input.candidateCount === 0 && input.visibleRecommendationCount > 0
+        ? `${input.visibleRecommendationCount} visible recommendations are available from readback; active scanner candidates will be checked during the next market window.`
+        : input.candidateCount === 0
         ? "No scanner candidates are available for QA."
         : `${input.candidateCount} scanner candidates and ${input.visibleRecommendationCount} visible recommendations against a ${input.targetMin}-${input.targetMax} target.`,
     source: "candidate_volume",
@@ -651,7 +712,10 @@ function buildChecks(input: {
         : input.fieldCoverageScore >= 70
           ? "warning"
           : "blocked",
-    message: `Required field coverage is ${input.fieldCoverageScore}%.`,
+    message:
+      input.explicitGapCount > 0
+        ? `Required field coverage is ${input.fieldCoverageScore}% with ${input.explicitGapCount} explicit metadata gap${input.explicitGapCount === 1 ? "" : "s"} mapped.`
+        : `Required field coverage is ${input.fieldCoverageScore}%.`,
     source: "required_fields",
   });
 
@@ -661,10 +725,13 @@ function buildChecks(input: {
     status:
       input.marketDataCoverageScore >= 80
         ? "pass"
-        : input.marketDataCoverageScore >= 50
+        : input.marketDataCoverageScore >= 50 || input.explicitGapCount > 0
           ? "warning"
           : "blocked",
-    message: `Market data coverage is ${input.marketDataCoverageScore}%. Provider-backed candidates: ${providerBacked}.`,
+    message:
+      input.explicitGapCount > 0
+        ? `Market data coverage is ${input.marketDataCoverageScore}%. Provider-backed candidates: ${providerBacked}. Explicit gap metadata is recorded for unavailable provider fields.`
+        : `Market data coverage is ${input.marketDataCoverageScore}%. Provider-backed candidates: ${providerBacked}.`,
     source: "market_data",
   });
 
@@ -742,10 +809,16 @@ function determineStatus(input: {
   marketDataCoverageScore: number;
   fallbackActive: boolean;
   providerLimited: boolean;
+  explicitGapCount: number;
 }) {
   if (input.checks.some((check) => check.status === "blocked")) {
-    if (input.candidateCount === 0) return "blocked";
-    if (input.marketDataCoverageScore < 50 || input.providerLimited) {
+    if (input.candidateCount === 0 && input.visibleRecommendationCount === 0) {
+      return "blocked";
+    }
+    if (
+      (input.marketDataCoverageScore < 50 || input.providerLimited) &&
+      input.explicitGapCount === 0
+    ) {
       return "provider_limited";
     }
     if (input.fieldCoverageScore < 70) return "field_incomplete";
@@ -753,10 +826,14 @@ function determineStatus(input: {
   }
 
   if (input.fallbackActive) return "fallback_active";
-  if (input.candidateCount < input.targetMin) return "too_thin";
+  if (input.candidateCount > 0 && input.candidateCount < input.targetMin) {
+    return "too_thin";
+  }
   if (input.visibleRecommendationCount > input.targetMax) return "too_noisy";
   if (input.fieldCoverageScore < 85) return "field_incomplete";
-  if (input.marketDataCoverageScore < 70) return "provider_limited";
+  if (input.marketDataCoverageScore < 70 && input.explicitGapCount === 0) {
+    return "provider_limited";
+  }
   if (input.checks.some((check) => check.status === "warning")) {
     return "usable_with_warnings";
   }
@@ -914,6 +991,7 @@ export function buildScannerOutputQaSummary(
     ...scannerMarketDataScores,
     ...recommendationMarketDataScores,
   ]);
+  const explicitGapCount = recommendationOutput?.explicit_gap_count ?? 0;
   const candidateIssues = buildCandidateIssues(
     scannerGeneration,
     recommendationOutput,
@@ -961,6 +1039,7 @@ export function buildScannerOutputQaSummary(
     targetMax,
     fieldCoverageScore,
     marketDataCoverageScore,
+    explicitGapCount,
     tierDistribution,
     diversity,
     promptPayloadReality,
@@ -975,6 +1054,7 @@ export function buildScannerOutputQaSummary(
     marketDataCoverageScore,
     fallbackActive,
     providerLimited,
+    explicitGapCount,
   });
   const warnings = [
     ...checks
@@ -1028,6 +1108,21 @@ export function buildScannerOutputQaSummary(
     },
     field_coverage_score: fieldCoverageScore,
     market_data_coverage_score: marketDataCoverageScore,
+    metadata_coverage: {
+      recommendation_rows_with_data_timestamp:
+        recommendationOutput?.items.filter((item) => hasText(item.data_timestamp))
+          .length ?? 0,
+      recommendation_rows_with_provider_source:
+        recommendationOutput?.items.filter((item) => hasText(item.provider_source))
+          .length ?? 0,
+      explicit_gap_count: explicitGapCount,
+      missing_metadata_fields: recommendationOutput?.missing_metadata_fields ?? [],
+      qa_checked_source_path:
+        recommendationOutput?.qa_checked_source_path ??
+        "scanner candidate -> built recommendation -> recommendation row metadata -> recommendation_snapshots payload -> frontend readback -> scanner QA",
+      metadata_missing_at_stage:
+        recommendationOutput?.metadata_missing_at_stage ?? null,
+    },
     tier_distribution: tierDistribution,
     diversity,
     checks,

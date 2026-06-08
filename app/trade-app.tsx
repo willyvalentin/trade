@@ -15,6 +15,10 @@ import {
   isRecommendationExpired,
 } from "@/lib/recommendation-freshness";
 import {
+  BUILD_MARKER,
+  RECOMMENDATION_PUBLISH_POLICY_VERSION,
+} from "@/lib/publish-path-versions";
+import {
   buildTradeExecutionPayload,
   createHandoffSessionId,
   type TradeExecutionPayload,
@@ -3023,12 +3027,18 @@ function parseOutputEnrichmentMetadata(
     recommendation_source_mode: sourceMode,
     provider_source:
       typeof raw.provider_source === "string" ? raw.provider_source : null,
+    provider_status:
+      typeof raw.provider_status === "string" ? raw.provider_status : null,
     market_data_source:
       typeof raw.market_data_source === "string" ? raw.market_data_source : null,
     market_data_timestamp:
       typeof raw.market_data_timestamp === "string"
         ? raw.market_data_timestamp
         : null,
+    candle_timestamp:
+      typeof raw.candle_timestamp === "string" ? raw.candle_timestamp : null,
+    quote_timestamp:
+      typeof raw.quote_timestamp === "string" ? raw.quote_timestamp : null,
     market_data_age_minutes: parseNumber(raw.market_data_age_minutes),
     intraday_indicator_source:
       typeof raw.intraday_indicator_source === "string"
@@ -3046,6 +3056,19 @@ function parseOutputEnrichmentMetadata(
     scan_run_fingerprint:
       typeof raw.scan_run_fingerprint === "string"
         ? raw.scan_run_fingerprint
+        : null,
+    batch_fingerprint:
+      typeof raw.batch_fingerprint === "string" ? raw.batch_fingerprint : null,
+    market_session:
+      typeof raw.market_session === "string" ? raw.market_session : null,
+    provider_plan_profile_mode:
+      typeof raw.provider_plan_profile_mode === "string"
+        ? raw.provider_plan_profile_mode
+        : null,
+    build_marker: typeof raw.build_marker === "string" ? raw.build_marker : null,
+    recommendation_publish_policy_version:
+      typeof raw.recommendation_publish_policy_version === "string"
+        ? raw.recommendation_publish_policy_version
         : null,
     enrichment_warnings: Array.isArray(raw.enrichment_warnings)
       ? raw.enrichment_warnings.filter(
@@ -4007,6 +4030,47 @@ function buildVisibleRecommendationSnapshotInput({
     .filter(Boolean)
     .join(" ");
   const sourceMode = getRecommendationSnapshotSource(recommendation);
+  const providerSource =
+    outputEnrichment?.provider_source ??
+    recommendation.outputEnrichment?.provider_source ??
+    null;
+  const providerStatus =
+    outputEnrichment?.provider_status ??
+    recommendation.outputEnrichment?.provider_status ??
+    (providerSource ? "observed" : "unavailable");
+  const marketDataSource =
+    outputEnrichment?.market_data_source ??
+    recommendation.outputEnrichment?.market_data_source ??
+    null;
+  const dataTimestamp =
+    outputEnrichment?.data_timestamp ??
+    recommendation.outputEnrichment?.market_data_timestamp ??
+    null;
+  const candleTimestamp =
+    outputEnrichment?.candle_timestamp ??
+    recommendation.outputEnrichment?.candle_timestamp ??
+    null;
+  const quoteTimestamp =
+    outputEnrichment?.quote_timestamp ??
+    recommendation.outputEnrichment?.quote_timestamp ??
+    null;
+  const batchFingerprint =
+    outputEnrichment?.batch_fingerprint ??
+    recommendation.outputEnrichment?.batch_fingerprint ??
+    null;
+  const explicitMetadataGaps = Array.from(
+    new Set([
+      ...(outputEnrichment?.explicit_gap_metadata ?? []),
+      ...(recommendation.outputEnrichment?.enrichment_gaps ?? []),
+      ...(dataTimestamp ? [] : ["missing_data_timestamp"]),
+      ...(providerSource ? [] : ["provider_source_unavailable"]),
+      ...(marketDataSource ? [] : ["provider_backed_metadata_unavailable"]),
+      ...(recommendation.intradayIndicators
+        ? []
+        : ["intraday_indicators_unavailable"]),
+      ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
+    ]),
+  );
 
   return {
     recommendation_id: recommendation.id,
@@ -4085,6 +4149,33 @@ function buildVisibleRecommendationSnapshotInput({
     was_taken: recommendation.status === "taken",
     linked_position_id: null,
     payload: {
+      data_timestamp: dataTimestamp,
+      provider_source: providerSource,
+      provider_status: providerStatus,
+      market_data_source: marketDataSource,
+      candle_timestamp: candleTimestamp,
+      quote_timestamp: quoteTimestamp,
+      scan_run_fingerprint:
+        outputEnrichment?.scan_run_fingerprint ??
+        recommendation.outputEnrichment?.scan_run_fingerprint ??
+        scanRunId,
+      batch_fingerprint:
+        batchFingerprint,
+      scan_window: recommendation.scanWindow ?? currentScanWindow,
+      market_session_phase: marketSession.phase,
+      provider_plan_profile_mode:
+        outputEnrichment?.provider_plan_profile_mode ??
+        recommendation.outputEnrichment?.provider_plan_profile_mode ??
+        null,
+      build_marker:
+        outputEnrichment?.build_marker ??
+        recommendation.outputEnrichment?.build_marker ??
+        null,
+      recommendation_publish_policy_version:
+        outputEnrichment?.recommendation_publish_policy_version ??
+        recommendation.outputEnrichment?.recommendation_publish_policy_version ??
+        null,
+      explicit_metadata_gaps: explicitMetadataGaps,
       side,
       direction: side,
       trade_direction: side,
@@ -10168,6 +10259,21 @@ export function TradeApp() {
             getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at));
+  const batchesCreatedTodayByWindow = {
+    morning: todaysSuccessfulLiveRecommendationBatches.filter(
+      (batch) => batch.window === "morning",
+    ).length,
+    midday: todaysSuccessfulLiveRecommendationBatches.filter(
+      (batch) => batch.window === "midday",
+    ).length,
+    power_hour: todaysSuccessfulLiveRecommendationBatches.filter(
+      (batch) => batch.window === "power_hour",
+    ).length,
+  };
+  const ideasPersistedToday = todaysSuccessfulLiveRecommendationBatches.reduce(
+    (total, batch) => total + Math.max(0, batch.recommendation_count),
+    0,
+  );
   const latestSuccessfulStoredRecommendationScanRun =
     [...liveStoredRecommendationScanRuns]
       .filter(
@@ -12094,6 +12200,12 @@ export function TradeApp() {
       : null);
   const latestActiveScanTrace =
     latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
+  const growMaxLearningModeEnabled =
+    latestActiveScanTrace?.grow_max_learning_mode === true;
+  const growMaxLearningTargetIdeasPerWindow =
+    typeof latestActiveScanTrace?.target_ideas_per_window === "number"
+      ? latestActiveScanTrace.target_ideas_per_window
+      : null;
   const latestSuccessfulReadbackScan = latestSuccessfulScanLog
     ? {
         result: latestSuccessfulScanLog.result,
@@ -12193,6 +12305,16 @@ export function TradeApp() {
     recommendationServingCadenceSummaryJson(
       recommendationServingCadenceSummary,
     );
+  const configuredProviderPlanMode =
+    process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE ??
+    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
+    providerPlanModeHint;
+  const providerPlanProfileSummary = buildProviderPlanProfile({
+    NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE:
+      process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE,
+    NEXT_PUBLIC_PROVIDER_PLAN_MODE:
+      process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE,
+  });
   const currentRecommendationScanRun = buildRecommendationScanRun({
     trading_date: dailySessionDate,
     observed_at: currentTime,
@@ -12275,15 +12397,27 @@ export function TradeApp() {
           market_session_phase: currentMarketSessionEvaluation.phase,
           market_session_source: currentMarketSessionEvaluation.source,
           provider_source: providerSource,
+          provider_status: providerSource ? "observed" : "unavailable",
           market_data_source:
             recommendation.outputEnrichment?.market_data_source ?? null,
           market_data_timestamp:
             recommendation.outputEnrichment?.market_data_timestamp ?? null,
+          candle_timestamp:
+            recommendation.outputEnrichment?.candle_timestamp ?? null,
+          quote_timestamp:
+            recommendation.outputEnrichment?.quote_timestamp ?? null,
           latest_price: intradayIndicators?.latestPrice ?? null,
           intraday_high: intradayIndicators?.recentHigh ?? null,
           intraday_low: intradayIndicators?.recentLow ?? null,
           latest_volume: intradayIndicators?.latestVolume ?? null,
           average_volume: intradayIndicators?.averageVolume ?? null,
+          batch_fingerprint:
+            latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+          scan_window: recommendation.scanWindow ?? currentIntradayScanWindow,
+          provider_plan_profile_mode: providerPlanProfileSummary.mode,
+          build_marker: BUILD_MARKER,
+          recommendation_publish_policy_version:
+            RECOMMENDATION_PUBLISH_POLICY_VERSION,
         };
       }),
       default_source_mode:
@@ -12294,6 +12428,13 @@ export function TradeApp() {
       default_market_session_source: currentMarketSessionEvaluation.source,
       scan_run_id: currentRecommendationScanRun.id,
       scan_run_fingerprint: currentRecommendationScanRun.run_fingerprint,
+      batch_fingerprint:
+        latestSuccessfulStoredRecommendationBatch?.batch_fingerprint ?? null,
+      scan_window: currentIntradayScanWindow,
+      provider_plan_profile_mode: providerPlanProfileSummary.mode,
+      build_marker: BUILD_MARKER,
+      recommendation_publish_policy_version:
+        RECOMMENDATION_PUBLISH_POLICY_VERSION,
       now: currentTime,
     });
   const recommendationOutputEnrichmentById = new Map(
@@ -12458,6 +12599,51 @@ export function TradeApp() {
   const visibleRecommendationSnapshotsJson = recommendationSnapshotsJson(
     visibleRecommendationSnapshots,
   );
+  const visibleSnapshotMetadataCoverage = {
+    snapshots_with_data_timestamp: visibleRecommendationSnapshots.filter(
+      (snapshot) => typeof snapshot.payload_json.data_timestamp === "string",
+    ).length,
+    snapshots_with_provider_source: visibleRecommendationSnapshots.filter(
+      (snapshot) => typeof snapshot.payload_json.provider_source === "string",
+    ).length,
+    explicit_gap_count: visibleRecommendationSnapshots.reduce(
+      (total, snapshot) =>
+        total +
+        (Array.isArray(snapshot.payload_json.explicit_metadata_gaps)
+          ? snapshot.payload_json.explicit_metadata_gaps.filter(
+              (item): item is string => typeof item === "string",
+            ).length
+          : 0),
+      0,
+    ),
+    missing_metadata_fields: Array.from(
+      new Set(
+        visibleRecommendationSnapshots.flatMap((snapshot) => [
+          ...(typeof snapshot.payload_json.data_timestamp === "string"
+            ? []
+            : ["data_timestamp"]),
+          ...(typeof snapshot.payload_json.provider_source === "string"
+            ? []
+            : ["provider_source"]),
+          ...(typeof snapshot.payload_json.provider_status === "string"
+            ? []
+            : ["provider_status"]),
+          ...(typeof snapshot.payload_json.market_data_source === "string"
+            ? []
+            : ["market_data_source"]),
+          ...(typeof snapshot.payload_json.candle_timestamp === "string"
+            ? []
+            : ["candle_timestamp"]),
+          ...(typeof snapshot.payload_json.scan_run_fingerprint === "string"
+            ? []
+            : ["scan_run_fingerprint"]),
+          ...(typeof snapshot.payload_json.batch_fingerprint === "string"
+            ? []
+            : ["batch_fingerprint"]),
+        ]),
+      ),
+    ),
+  };
   const currentRecommendationBatch = buildRecommendationBatch({
     trading_date: dailySessionDate,
     observed_at: currentTime,
@@ -12736,16 +12922,6 @@ export function TradeApp() {
     recommendationEngineControlCenterSummaryJson(
       recommendationEngineControlCenterSummary,
     );
-  const configuredProviderPlanMode =
-    process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE ??
-    process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE ??
-    providerPlanModeHint;
-  const providerPlanProfileSummary = buildProviderPlanProfile({
-    NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE:
-      process.env.NEXT_PUBLIC_TWELVE_DATA_PLAN_MODE,
-    NEXT_PUBLIC_PROVIDER_PLAN_MODE:
-      process.env.NEXT_PUBLIC_PROVIDER_PLAN_MODE,
-  });
   const providerBudgetGuardSummary = buildProviderBudgetGuardSummary({
     plan_mode: configuredProviderPlanMode,
     scanner_universe: scannerUniverseCoverageSummary,
@@ -13092,6 +13268,14 @@ export function TradeApp() {
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,
+      recommendation_output_enrichment: recommendationOutputEnrichmentSummary,
+      metadata_coverage: {
+        ...visibleSnapshotMetadataCoverage,
+        qa_checked_source_path:
+          recommendationOutputEnrichmentSummary.qa_checked_source_path,
+        metadata_missing_at_stage:
+          recommendationOutputEnrichmentSummary.metadata_missing_at_stage,
+      },
       scan_readback: {
         market_closed_readback_mode: marketClosedReadbackMode,
         latest_trading_day_with_official_batch: latestTradingDayWithOfficialBatch,
@@ -13107,6 +13291,24 @@ export function TradeApp() {
         current_batch_recommendation_count: currentBatchRecommendationCount,
         current_batch_snapshot_count: currentBatchSnapshotCount,
         current_batch_visible_grid_count: dailyRecommendations.length,
+        grow_max_learning_mode: growMaxLearningModeEnabled,
+        target_ideas_per_window: growMaxLearningTargetIdeasPerWindow,
+        ideas_persisted_this_window: currentBatchRecommendationCount,
+        ideas_persisted_today: ideasPersistedToday,
+        batches_created_today_by_window: batchesCreatedTodayByWindow,
+        same_window_batch_blocked_count:
+          latestAttemptedScanLog?.no_publish_reason ===
+            "recent_same_window_scan_completed" ||
+          latestAttemptedReadbackScan?.message
+            ?.toLowerCase()
+            .includes("scan already completed")
+            ? 1
+            : 0,
+        daily_learning_limit_status: growMaxLearningModeEnabled
+          ? "not_enforced_for_windowed_learning"
+          : "standard",
+        provider_budget_used_for_scan:
+          latestActiveScanTrace?.universe.selected_tickers_count ?? null,
         current_batch_tickers: latestSuccessfulLiveRecommendationTickerList,
         current_batch_override_reason: currentBatchOverrideReason,
         active_trace_batch_fingerprint: latestSuccessfulTraceBatchFingerprint,
@@ -14008,6 +14210,12 @@ export function TradeApp() {
                 islandRefreshState.market_status.error
               }
             />
+
+            {growMaxLearningModeEnabled && (
+              <div className="trade-learning-mode-banner">
+                TESTING / LEARNING ONLY — not for live execution
+              </div>
+            )}
 
             <div className="trade-recommendation-grid">
               {isLoading ? (

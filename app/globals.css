@@ -694,6 +694,25 @@ main {
   cursor: not-allowed;
 }
 
+.trade-learning-mode-banner {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  min-height: 32px;
+  margin-top: 16px;
+  border: 1px solid rgb(250 204 21 / 0.36);
+  border-radius: 6px;
+  background: rgb(250 204 21 / 0.08);
+  color: #f8dfa0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 16px;
+  padding: 7px 12px;
+  text-transform: uppercase;
+}
+
 .trade-recommendation-statusbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto;

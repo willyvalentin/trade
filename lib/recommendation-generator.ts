@@ -87,6 +87,7 @@ export type GenerateRecommendationsInput = {
   diagnosticRunId?: string | null;
   diagnosticMaxTickers?: number | null;
   scheduledMaxTickers?: number | null;
+  growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
@@ -199,6 +200,9 @@ export type RecommendationScanLogDetails = {
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
+  grow_max_learning_mode?: boolean | null;
+  target_ideas_per_window?: number | null;
+  recommendation_limit_status?: string | null;
   ranked_candidates_count?: number | null;
   recommendations_published_count?: number | null;
   strong_count?: number | null;
@@ -2380,12 +2384,22 @@ function sanitizeRecommendations(
             candidate.intraday_indicator_source === "cache"
               ? "twelve_data"
               : null,
+          provider_status:
+            candidate.intraday_indicator_source === "fresh" ||
+            candidate.intraday_indicator_source === "cache"
+              ? "observed"
+              : "unavailable",
           market_data_source: candidate.intraday_indicator_source ?? null,
           market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+          candle_timestamp: candidate.intraday_indicator_cached_at ?? null,
+          quote_timestamp: null,
           intraday_indicator_source: candidate.intraday_indicator_source ?? null,
           intraday_indicator_stale: candidate.intraday_indicator_stale ?? null,
           scanner_source: source,
           scan_window: scanWindow,
+          build_marker: BUILD_MARKER,
+          recommendation_publish_policy_version:
+            RECOMMENDATION_PUBLISH_POLICY_VERSION,
         }),
         local_setup_type: candidate.setup_type,
         setup_type: setupType,
@@ -2756,6 +2770,7 @@ export async function generateRecommendations({
   diagnosticRunId = null,
   diagnosticMaxTickers = null,
   scheduledMaxTickers = null,
+  growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
@@ -2793,6 +2808,7 @@ export async function generateRecommendations({
     logPipeline("diagnostic_mode", diagnosticMode);
     logPipeline("diagnostic_max_tickers", diagnosticMaxTickers);
     logPipeline("scheduled_max_tickers", scheduledMaxTickers);
+    logPipeline("grow_max_learning_mode", growMaxLearningMode);
     logPipeline("skip_openai", skipOpenAi);
 
     if (scanWindow === "pre_market") {
@@ -2929,9 +2945,15 @@ export async function generateRecommendations({
 
     const settingsRow = settingsResult.data as UserSettingsRow | null;
     const baseSettings = normalizeUserSettings(settingsRow);
+    const growMaxRecommendationTarget =
+      growMaxLearningMode && typeof scheduledMaxTickers === "number"
+        ? Math.max(1, scheduledMaxTickers)
+        : null;
     const requestedMaxRecommendations =
       typeof targetCount === "number" && Number.isFinite(targetCount)
         ? clamp(Math.round(targetCount), 1, effectiveScanPolicyMaxRecommendations)
+        : growMaxRecommendationTarget !== null
+          ? growMaxRecommendationTarget
         : Math.min(
             baseSettings.max_recommendations_per_session,
             effectiveScanPolicyMaxRecommendations,
@@ -3009,6 +3031,7 @@ export async function generateRecommendations({
     if (
       source === "scheduled" &&
       !diagnosticMode &&
+      !growMaxLearningMode &&
       currentRecommendations.length >= MAX_CURRENT_RECOMMENDATIONS
     ) {
       const message =
@@ -3025,6 +3048,7 @@ export async function generateRecommendations({
           ...publishVersionDetails(),
           result: "recommendation_limit_reached",
           no_publish_reason: "recommendation_limit_reached",
+          recommendation_limit_status: "same_window_limit_reached",
           power_hour_trial_enabled: powerHourTrialPublishing,
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
@@ -3169,8 +3193,9 @@ export async function generateRecommendations({
       removedReasons: string[],
     ) {
       const counts = getTickerCounts(candidate.ticker);
+      const maxTickerRecommendationsToday = growMaxLearningMode ? 3 : 2;
 
-      if (counts.totalToday >= 2) {
+      if (counts.totalToday >= maxTickerRecommendationsToday) {
         removedReasons.push(
           `${candidate.ticker}: recommended ${counts.totalToday} times today`,
         );
@@ -3223,7 +3248,10 @@ export async function generateRecommendations({
           return false;
         }
 
-        if (currentRecommendationTickerSet.has(candidate.ticker)) {
+        if (
+          !growMaxLearningMode &&
+          currentRecommendationTickerSet.has(candidate.ticker)
+        ) {
           freshCandidatesRemovedByCooldown.push(
             `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
           );
@@ -3250,7 +3278,10 @@ export async function generateRecommendations({
               return false;
             }
 
-            if (currentRecommendationTickerSet.has(candidate.ticker)) {
+            if (
+              !growMaxLearningMode &&
+              currentRecommendationTickerSet.has(candidate.ticker)
+            ) {
               fallbackCandidatesRemovedByCooldown.push(
                 `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
               );
@@ -3335,6 +3366,14 @@ export async function generateRecommendations({
         candidates: initiallyScoredCandidates,
         scanWindow,
         universeCoverage: scannerUniverseSelection.coverage,
+        targetMin:
+          growMaxRecommendationTarget !== null
+            ? growMaxRecommendationTarget
+            : undefined,
+        targetMax:
+          growMaxRecommendationTarget !== null
+            ? growMaxRecommendationTarget
+            : undefined,
       });
     activeScanTrace?.markStage("ranking", "completed");
     activeScanTrace?.updateRanking({
@@ -3506,6 +3545,8 @@ export async function generateRecommendations({
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          grow_max_learning_mode: growMaxLearningMode,
+          target_ideas_per_window: growMaxRecommendationTarget,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -3737,6 +3778,8 @@ export async function generateRecommendations({
             sanitizedRecommendations.skippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          grow_max_learning_mode: growMaxLearningMode,
+          target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
         } satisfies RecommendationScanLogDetails,
       };
@@ -3807,6 +3850,8 @@ export async function generateRecommendations({
             sanitizedRecommendations.skippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          grow_max_learning_mode: growMaxLearningMode,
+          target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
         } satisfies RecommendationScanLogDetails,
       };
@@ -3894,6 +3939,8 @@ export async function generateRecommendations({
           sanitizedRecommendations.skippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
         scanner_candidate_ranking: scannerCandidateRankingSummary,
+        grow_max_learning_mode: growMaxLearningMode,
+        target_ideas_per_window: growMaxRecommendationTarget,
         openai_recommendation_reality_guard: openAiRealityGuardSummary,
       } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),

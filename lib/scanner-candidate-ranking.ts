@@ -195,7 +195,7 @@ export function buildScannerCandidateRankingSummary({
       ]),
     ),
     warnings,
-    results: results.slice(0, 20),
+    results: results.slice(0, Math.max(20, targetMax)),
     selection,
   };
 }

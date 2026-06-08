@@ -661,12 +661,19 @@ export function buildLiveMarketTrialReadinessSummary(
     check({
       check_id: "scanner_universe",
       label: "Scanner universe",
-      status: selectedTickerCount > 0 ? "pass" : "blocked",
+      status:
+        selectedTickerCount > 0
+          ? "pass"
+          : activeWindow
+            ? "blocked"
+            : "pass",
       source: "scanner",
       message:
         selectedTickerCount > 0
           ? `${selectedTickerCount} tickers are selected for scanning.`
-          : "No tickers are selected for the scanner universe.",
+          : activeWindow
+            ? "No tickers are selected for the scanner universe."
+            : "Scanner universe will be verified during the next active market window.",
     }),
     check({
       check_id: "candidate_ranking",

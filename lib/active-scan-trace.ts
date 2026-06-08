@@ -47,6 +47,10 @@ export type ActiveScanTrace = {
   max_tickers: number | null;
   skipped_openai: boolean;
   live_trial_fast_mode: boolean;
+  grow_max_learning_mode: boolean;
+  grow_max_learning_mode_requested: boolean;
+  grow_max_learning_mode_blocked_reason: string | null;
+  target_ideas_per_window: number | null;
   provider_plan_profile_mode: string | null;
   provider_plan_profile_source: string | null;
   server_plan_mode: string | null;
@@ -211,6 +215,10 @@ export function createActiveScanTrace({
     max_tickers: null,
     skipped_openai: false,
     live_trial_fast_mode: false,
+    grow_max_learning_mode: false,
+    grow_max_learning_mode_requested: false,
+    grow_max_learning_mode_blocked_reason: null,
+    target_ideas_per_window: null,
     provider_plan_profile_mode: null,
     provider_plan_profile_source: null,
     server_plan_mode: null,
