@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -522,6 +522,73 @@ import {
   type LiveSellGuidance,
   type LiveSellUrgency,
 } from "@/lib/live-sell-guidance";
+import {
+  runExecutionOrchestrator,
+  type ExecutionOrchestratorResult,
+} from "@/lib/execution-orchestrator";
+import {
+  DEFAULT_EXECUTION_MODE,
+  EXECUTION_MODE_STORAGE_KEY,
+  isAutomaticExecutionModeFeatureEnabled,
+  isExecutionDevToolsEnabled,
+  normalizeExecutionMode,
+  type BrokerExecutionStatus,
+  type ExecutionMode,
+} from "@/lib/execution";
+import {
+  buildExecutionUiStatusFromOrchestratorResult,
+  type ExecutionUiBadgeTone,
+  type ExecutionUiSeverity,
+  type ExecutionUiStatus,
+} from "@/lib/execution-ui-status";
+import {
+  getExecutionLifecycleDisplayLabel,
+  isManualConfirmationState,
+  transitionExecutionLifecycle,
+  type ExecutionLifecycleSnapshot,
+} from "@/lib/execution-state-machine";
+import {
+  appendExecutionAuditEvents,
+  buildExecutionAuditEventFromLifecycleEvent,
+  createExecutionAuditEvent,
+} from "@/lib/execution-event-log";
+import {
+  buildTureExecutionRecord,
+  type BrokerExecutionCaptureStatus,
+  type BrokerExecutionCaptureResult,
+} from "@/lib/broker-execution-capture";
+import { appendExecutionRecord } from "@/lib/execution-record-store";
+import {
+  buildAvanzaAgentRequest,
+  buildAvanzaAgentProgressEvent,
+  getAvanzaAgentProgressDisplayLabel,
+  mapAvanzaAgentProgressToLifecycleEventType,
+  validateAvanzaAgentRequest,
+  type AvanzaAgentProgressEvent,
+  type AvanzaAgentProgressEventType,
+  type AvanzaAgentResult,
+} from "@/lib/avanza-agent-adapter";
+import {
+  createAvanzaAgentBridgeFromConfig,
+  createAvanzaAgentBridgeRunnerFromConfig,
+} from "@/lib/avanza-agent-bridge-factory";
+import { readAvanzaAgentBridgeConfig } from "@/lib/avanza-agent-bridge-config";
+import {
+  appendAvanzaAgentRun,
+  createStoredAvanzaAgentRun,
+} from "@/lib/avanza-agent-run-store";
+import {
+  cancelLocalhostBridgeRun,
+  runLocalhostBridgeDryRun,
+  type LocalhostBridgeClientCancelResult,
+  type LocalhostBridgeClientRunResult,
+} from "@/lib/avanza-localhost-bridge-client";
+import {
+  buildAvanzaAgentBridgeEnvelope,
+  getAvanzaAgentBridgeTransportDisplayLabel,
+  isRealAvanzaAgentBridge,
+  validateAvanzaAgentBridgeEnvelope,
+} from "@/lib/avanza-agent-bridge";
 import {
   buildPartialPositionState,
   normalizeExitFill,
@@ -1105,6 +1172,18 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
   evaluatedSnapshots: number;
+  totalSnapshotsLoadedForBatch: number;
+  totalRecommendationRowsLoadedForBatch: number;
+  eligibleVisibleSnapshotCount: number;
+  eligibleLearningSnapshotCount: number;
+  eligibleResearchOnlySnapshotCount: number;
+  growMaxLearningSnapshotsIncludedCount: number;
+  ineligibleSnapshotCount: number;
+  ineligibleReasons: Record<string, number>;
+  uniqueSnapshotFingerprintsCount: number;
+  duplicateSnapshotFingerprintsCount: number;
+  visibleGridCount: number;
+  expectedOutcomeRowsFromEligibleSnapshots: number;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
   outcomesCreated: number;
@@ -7362,6 +7441,23 @@ function readRiskControlsSettingsForTradeApp(): RiskControlsSettings {
   }
 }
 
+function readExecutionModePreferenceForTradeApp(): ExecutionMode {
+  if (typeof window === "undefined") {
+    return DEFAULT_EXECUTION_MODE;
+  }
+
+  try {
+    return normalizeExecutionMode(
+      window.localStorage.getItem(EXECUTION_MODE_STORAGE_KEY),
+      {
+        automaticEnabled: isAutomaticExecutionModeFeatureEnabled(),
+      },
+    );
+  } catch {
+    return DEFAULT_EXECUTION_MODE;
+  }
+}
+
 function readPaperSessionProtocolState(): PaperSessionProtocolLocalState {
   if (typeof window === "undefined") {
     return createDefaultPaperSessionProtocolState();
@@ -7885,6 +7981,8 @@ export function TradeApp() {
   const [riskControlsSettings, setRiskControlsSettings] = useState(() =>
     createDefaultRiskControlsSettings(),
   );
+  const [selectedExecutionMode, setSelectedExecutionMode] =
+    useState<ExecutionMode>(() => readExecutionModePreferenceForTradeApp());
   const [storedRecommendationSnapshots, setStoredRecommendationSnapshots] =
     useState<RecommendationSnapshot[]>([]);
   const [storedRecommendationScanRuns, setStoredRecommendationScanRuns] =
@@ -7979,6 +8077,18 @@ export function TradeApp() {
     status: "idle",
     eligibleSnapshots: 0,
     evaluatedSnapshots: 0,
+    totalSnapshotsLoadedForBatch: 0,
+    totalRecommendationRowsLoadedForBatch: 0,
+    eligibleVisibleSnapshotCount: 0,
+    eligibleLearningSnapshotCount: 0,
+    eligibleResearchOnlySnapshotCount: 0,
+    growMaxLearningSnapshotsIncludedCount: 0,
+    ineligibleSnapshotCount: 0,
+    ineligibleReasons: {},
+    uniqueSnapshotFingerprintsCount: 0,
+    duplicateSnapshotFingerprintsCount: 0,
+    visibleGridCount: 0,
+    expectedOutcomeRowsFromEligibleSnapshots: 0,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
     outcomesCreated: 0,
@@ -8786,6 +8896,7 @@ export function TradeApp() {
     const timer = window.setTimeout(() => {
       setBrokerCostModel(readBrokerCostModelFromStorage());
       setRiskControlsSettings(readRiskControlsSettingsForTradeApp());
+      setSelectedExecutionMode(readExecutionModePreferenceForTradeApp());
       const storedPaperSessionProtocol = readPaperSessionProtocolState();
       setPaperSessionProtocolState(storedPaperSessionProtocol);
       if (storedPaperSessionProtocol.selected_mode === "demo_rehearsal") {
@@ -8813,6 +8924,20 @@ export function TradeApp() {
     }, 0);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    function refreshExecutionModePreference() {
+      setSelectedExecutionMode(readExecutionModePreferenceForTradeApp());
+    }
+
+    window.addEventListener("focus", refreshExecutionModePreference);
+    window.addEventListener("storage", refreshExecutionModePreference);
+
+    return () => {
+      window.removeEventListener("focus", refreshExecutionModePreference);
+      window.removeEventListener("storage", refreshExecutionModePreference);
+    };
   }, []);
 
   useEffect(() => {
@@ -10312,6 +10437,13 @@ export function TradeApp() {
     0;
   const activeTraceCreatedCount =
     latestSuccessfulTraceForBatchResolver?.final.recommendations_created ?? 0;
+  const growMaxLearningModeEnabled =
+    latestSuccessfulTraceForBatchResolver?.grow_max_learning_mode === true;
+  const growMaxLearningTargetIdeasPerWindow =
+    typeof latestSuccessfulTraceForBatchResolver?.target_ideas_per_window ===
+    "number"
+      ? latestSuccessfulTraceForBatchResolver.target_ideas_per_window
+      : null;
   const activeTraceBatchOverrideAllowed =
     latestSuccessfulTraceForBatchResolver !== null &&
     latestSuccessfulTraceForBatchResolver.diagnostic_mode !== true &&
@@ -11221,14 +11353,16 @@ export function TradeApp() {
       ? "active_trace_batch_not_selected"
       : null,
     activeTraceSnapshotCount > 0 &&
-    currentBatchSnapshotCount !== activeTraceSnapshotCount
+    currentBatchSnapshotCount !== activeTraceSnapshotCount &&
+    !growMaxLearningModeEnabled
       ? `snapshot_count_${currentBatchSnapshotCount}_of_${activeTraceSnapshotCount}`
       : null,
     activeTracePublishedCount > 0 &&
     dailyRecommendations.length !== activeTracePublishedCount
       ? `grid_count_${dailyRecommendations.length}_of_${activeTracePublishedCount}`
       : null,
-    currentBatchSnapshotCount > latestOfficialBatchRowsFound.length
+    currentBatchSnapshotCount > latestOfficialBatchRowsFound.length &&
+    !growMaxLearningModeEnabled
       ? `recommendation_rows_${latestOfficialBatchRowsFound.length}_of_${currentBatchSnapshotCount}`
       : null,
     missingLatestOfficialBatchMemberTickers.length > 0
@@ -12200,12 +12334,6 @@ export function TradeApp() {
       : null);
   const latestActiveScanTrace =
     latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
-  const growMaxLearningModeEnabled =
-    latestActiveScanTrace?.grow_max_learning_mode === true;
-  const growMaxLearningTargetIdeasPerWindow =
-    typeof latestActiveScanTrace?.target_ideas_per_window === "number"
-      ? latestActiveScanTrace.target_ideas_per_window
-      : null;
   const latestSuccessfulReadbackScan = latestSuccessfulScanLog
     ? {
         result: latestSuccessfulScanLog.result,
@@ -13002,6 +13130,9 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.incompleteDueToMissingCandles,
         provider_error_count:
           recommendationOutcomeEvaluationDiagnostics.providerErrors,
+        grow_max_learning_mode: growMaxLearningModeEnabled,
+        current_batch_expected_outcomes: currentBatchExpectedOutcomeCount,
+        current_batch_persisted_outcomes: currentBatchStoredOutcomes.length,
       },
       automation_scan_route_available: true,
       latest_automation_scan: scanLogs[0]
@@ -13116,6 +13247,55 @@ export function TradeApp() {
           latestCounterfactualReadyBatchFingerprint,
         latest_evaluated_batch_fingerprint: latestEvaluatedBatchFingerprint,
         current_batch_snapshot_count: outcomeDiagnosticsSnapshots.length,
+        outcome_eligible_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots > 0
+            ? recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots
+            : growMaxLearningModeEnabled
+              ? currentBatchSnapshotCount
+              : 0,
+        outcome_evaluated_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.evaluatedSnapshots,
+        outcome_ineligible_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.ineligibleSnapshotCount,
+        total_snapshots_loaded_for_batch:
+          recommendationOutcomeEvaluationDiagnostics.totalSnapshotsLoadedForBatch,
+        total_recommendation_rows_loaded_for_batch:
+          recommendationOutcomeEvaluationDiagnostics
+            .totalRecommendationRowsLoadedForBatch,
+        eligible_visible_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .eligibleVisibleSnapshotCount,
+        eligible_learning_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .eligibleLearningSnapshotCount,
+        eligible_research_only_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .eligibleResearchOnlySnapshotCount,
+        grow_max_learning_snapshots_included_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .growMaxLearningSnapshotsIncludedCount,
+        ineligible_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.ineligibleSnapshotCount,
+        ineligible_reasons:
+          recommendationOutcomeEvaluationDiagnostics.ineligibleReasons,
+        unique_snapshot_fingerprints_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .uniqueSnapshotFingerprintsCount,
+        duplicate_snapshot_fingerprints_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .duplicateSnapshotFingerprintsCount,
+        visible_grid_count:
+          recommendationOutcomeEvaluationDiagnostics.visibleGridCount > 0
+            ? recommendationOutcomeEvaluationDiagnostics.visibleGridCount
+            : dailyRecommendations.length,
+        expected_outcome_rows_from_eligible_snapshots:
+          recommendationOutcomeEvaluationDiagnostics
+            .expectedOutcomeRowsFromEligibleSnapshots > 0
+            ? recommendationOutcomeEvaluationDiagnostics
+                .expectedOutcomeRowsFromEligibleSnapshots
+            : growMaxLearningModeEnabled
+              ? currentBatchExpectedOutcomeCount
+              : 0,
         expected_outcome_count:
           outcomeDiagnosticsSnapshots.length * currentBatchOutcomeHorizons.length,
         persisted_outcome_count: outcomeDiagnosticsStoredOutcomes.length,
@@ -13291,6 +13471,9 @@ export function TradeApp() {
         current_batch_recommendation_count: currentBatchRecommendationCount,
         current_batch_snapshot_count: currentBatchSnapshotCount,
         current_batch_visible_grid_count: dailyRecommendations.length,
+        current_batch_visible_recommendation_count: dailyRecommendations.length,
+        current_batch_learning_snapshot_count: currentBatchSnapshotCount,
+        current_batch_grid_card_count: dailyRecommendations.length,
         grow_max_learning_mode: growMaxLearningModeEnabled,
         target_ideas_per_window: growMaxLearningTargetIdeasPerWindow,
         ideas_persisted_this_window: currentBatchRecommendationCount,
@@ -13877,6 +14060,47 @@ export function TradeApp() {
         status: run.status,
         eligibleSnapshots: run.eligible_snapshot_count,
         evaluatedSnapshots: run.evaluated_snapshot_count,
+        totalSnapshotsLoadedForBatch: Number(
+          routeDiagnostics.total_snapshots_loaded_for_batch ?? 0,
+        ),
+        totalRecommendationRowsLoadedForBatch: Number(
+          routeDiagnostics.total_recommendation_rows_loaded_for_batch ?? 0,
+        ),
+        eligibleVisibleSnapshotCount: Number(
+          routeDiagnostics.eligible_visible_snapshot_count ?? 0,
+        ),
+        eligibleLearningSnapshotCount: Number(
+          routeDiagnostics.eligible_learning_snapshot_count ?? 0,
+        ),
+        eligibleResearchOnlySnapshotCount: Number(
+          routeDiagnostics.eligible_research_only_snapshot_count ?? 0,
+        ),
+        growMaxLearningSnapshotsIncludedCount: Number(
+          routeDiagnostics.grow_max_learning_snapshots_included_count ?? 0,
+        ),
+        ineligibleSnapshotCount: Number(
+          routeDiagnostics.ineligible_snapshot_count ?? 0,
+        ),
+        ineligibleReasons:
+          typeof routeDiagnostics.ineligible_reasons === "object" &&
+          routeDiagnostics.ineligible_reasons !== null &&
+          !Array.isArray(routeDiagnostics.ineligible_reasons)
+            ? Object.fromEntries(
+                Object.entries(routeDiagnostics.ineligible_reasons).map(
+                  ([reason, countValue]) => [reason, Number(countValue ?? 0)],
+                ),
+              )
+            : {},
+        uniqueSnapshotFingerprintsCount: Number(
+          routeDiagnostics.unique_snapshot_fingerprints_count ?? 0,
+        ),
+        duplicateSnapshotFingerprintsCount: Number(
+          routeDiagnostics.duplicate_snapshot_fingerprints_count ?? 0,
+        ),
+        visibleGridCount: Number(routeDiagnostics.visible_grid_count ?? 0),
+        expectedOutcomeRowsFromEligibleSnapshots: Number(
+          routeDiagnostics.expected_outcome_rows_from_eligible_snapshots ?? 0,
+        ),
         incompleteDueToMissingCandles: run.missing_candle_count,
         providerErrors: run.provider_error_count,
         outcomesCreated: Number(routeDiagnostics.outcomes_created_count ?? 0),
@@ -14288,6 +14512,10 @@ export function TradeApp() {
               }
             />
 
+            <ExecutionSandboxFixturePanel
+              executionMode={selectedExecutionMode}
+            />
+
             {isLoading ? (
               <div className="trade-live-grid">
                 <EmptyState
@@ -14322,6 +14550,7 @@ export function TradeApp() {
                       eodSafetyDate={dailySessionDate}
                       isMarketOpen={topMarketStatus === "open"}
                       currentTime={currentTime}
+                      executionMode={selectedExecutionMode}
                       riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
                         settings: riskControlsSettings,
                         ticker: position.ticker,
@@ -14369,6 +14598,7 @@ export function TradeApp() {
                           eodSafetyDate={dailySessionDate}
                           isMarketOpen={topMarketStatus === "open"}
                           currentTime={currentTime}
+                          executionMode={selectedExecutionMode}
                           riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
                             settings: riskControlsSettings,
                             ticker: position.ticker,
@@ -22392,6 +22622,7 @@ function DataModeClarityBanner({
         id="trade-data-mode-clarity-json"
         data-agent-readable="true"
         className="sr-only"
+        suppressHydrationWarning
       >
         {dataModeClaritySummaryJson(summary)}
       </div>
@@ -31099,6 +31330,205 @@ function LiveTradeDetailsModal({
   );
 }
 
+type ExecutionSandboxFixturePosition = {
+  id: string;
+  recommendationId: string;
+  ticker: string;
+  instrumentName: string;
+  quantity: number;
+  currentPrice: number;
+  targetPrice: number;
+  stopLossPrice: number;
+  createdAt: string;
+  label: string;
+  title: string;
+  description: string;
+  tone: "danger" | "success";
+};
+
+const executionSandboxFixturePositions: readonly ExecutionSandboxFixturePosition[] =
+  [
+    {
+      id: "dev-fixture-stop-loss-live-position",
+      recommendationId: "dev-fixture-stop-loss-recommendation",
+      ticker: "TURE-SL",
+      instrumentName: "Ture Stop Loss Fixture",
+      quantity: 12,
+      currentPrice: 98.4,
+      targetPrice: 124,
+      stopLossPrice: 100,
+      createdAt: "2026-06-09T13:30:00.000Z",
+      label: "Stop loss fixture",
+      title: "Stop loss reached",
+      description:
+        "Long-position fixture where current price is below stop loss.",
+      tone: "danger",
+    },
+    {
+      id: "dev-fixture-target-live-position",
+      recommendationId: "dev-fixture-target-recommendation",
+      ticker: "TURE-TGT",
+      instrumentName: "Ture Target Fixture",
+      quantity: 8,
+      currentPrice: 126.2,
+      targetPrice: 125,
+      stopLossPrice: 114,
+      createdAt: "2026-06-09T13:35:00.000Z",
+      label: "Target fixture",
+      title: "Target reached",
+      description:
+        "Long-position fixture where current price is above target.",
+      tone: "success",
+    },
+  ];
+
+function ExecutionSandboxFixturePanel({
+  executionMode,
+}: {
+  executionMode: ExecutionMode;
+}) {
+  if (!isExecutionDevToolsEnabled()) {
+    return null;
+  }
+
+  return (
+    <section
+      aria-label="Execution sandbox fixtures"
+      className="mb-5 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.045] p-4"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              DEV FIXTURE
+            </span>
+            <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
+              Not a real trade
+            </span>
+            <span className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+              Does not write Supabase
+            </span>
+          </div>
+          <h2 className="mt-3 font-mono text-sm font-bold uppercase tracking-[0.16em] text-cyan-100">
+            Execution Sandbox Fixture
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-300">
+            Local in-memory cards for execution sandbox QA only. They do not
+            write Supabase, do not enter History or Statistics, do not mutate
+            real trade state, and cannot create broker orders.
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-white/10 bg-black/25 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+          For Playwright QA only
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        {executionSandboxFixturePositions.map((fixture) => (
+          <ExecutionSandboxFixtureCard
+            key={fixture.id}
+            fixture={fixture}
+            executionMode={executionMode}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ExecutionSandboxFixtureCard({
+  fixture,
+  executionMode,
+}: {
+  fixture: ExecutionSandboxFixturePosition;
+  executionMode: ExecutionMode;
+}) {
+  const [isExecutionPreviewOpen, setIsExecutionPreviewOpen] = useState(false);
+  const orchestratorResult = runExecutionOrchestrator({
+    livePositions: [
+      {
+        positionId: fixture.id,
+        recommendationId: fixture.recommendationId,
+        ticker: fixture.ticker,
+        instrumentName: fixture.instrumentName,
+        quantity: fixture.quantity,
+        currentPrice: fixture.currentPrice,
+        targetPrice: fixture.targetPrice,
+        stopLossPrice: fixture.stopLossPrice,
+        mode: executionMode,
+        createdAt: fixture.createdAt,
+      },
+    ],
+    mode: executionMode,
+    createdAt: fixture.createdAt,
+  });
+  const uiStatus =
+    buildExecutionUiStatusFromOrchestratorResult(orchestratorResult);
+  const toneClassName =
+    fixture.tone === "danger"
+      ? "border-rose-300/25 bg-rose-300/[0.045]"
+      : "border-emerald-300/25 bg-emerald-300/[0.045]";
+
+  return (
+    <article className={`rounded-md border p-4 ${toneClassName}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              DEV FIXTURE
+            </span>
+            <span className="rounded-full border border-white/10 bg-black/25 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+              Not a real trade
+            </span>
+          </div>
+          <h3 className="mt-3 text-base font-semibold text-zinc-100">
+            {fixture.title}
+          </h3>
+          <p className="mt-1 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+            {fixture.ticker} · {fixture.label}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {fixture.description}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-white/10 bg-black/25 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
+          Local only
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-4">
+        <Detail label="Current" value={formatCurrency(fixture.currentPrice)} />
+        <Detail label="Target" value={formatCurrency(fixture.targetPrice)} />
+        <Detail label="Stop" value={formatCurrency(fixture.stopLossPrice)} />
+        <Detail label="Quantity" value={formatShares(fixture.quantity)} />
+      </div>
+
+      <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
+        This fixture uses the live-position exit monitor, execution
+        orchestrator, UI status adapter, and handoff preview modal. It is not
+        inserted into active positions and cannot be closed or saved as a trade.
+      </p>
+
+      {uiStatus.visible && (
+        <LiveExecutionStatusSurface
+          status={uiStatus}
+          onViewHandoff={() => setIsExecutionPreviewOpen(true)}
+        />
+      )}
+
+      {isExecutionPreviewOpen &&
+        uiStatus.visible &&
+        orchestratorResult.selectedIntent && (
+          <ExecutionHandoffPreviewModal
+            result={orchestratorResult}
+            status={uiStatus}
+            onClose={() => setIsExecutionPreviewOpen(false)}
+          />
+        )}
+    </article>
+  );
+}
+
 function ActivePositionCard({
   position,
   latestUpdate,
@@ -31107,6 +31537,7 @@ function ActivePositionCard({
   eodSafetyDate,
   isMarketOpen,
   currentTime,
+  executionMode,
   riskControlsEvaluation,
   isSaving,
   onClosePosition,
@@ -31118,6 +31549,7 @@ function ActivePositionCard({
   eodSafetyDate: string;
   isMarketOpen: boolean;
   currentTime: Date;
+  executionMode: ExecutionMode;
   riskControlsEvaluation: RiskControlsEvaluation;
   isSaving: boolean;
   onClosePosition: (position: ActivePosition) => void;
@@ -31187,6 +31619,7 @@ function ActivePositionCard({
     readEndOfDayAcknowledgement(position.id, eodSafetyDate),
   );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isExecutionPreviewOpen, setIsExecutionPreviewOpen] = useState(false);
   const activePositionRealityBadges = [
     isDemoPosition(position)
       ? dataModeBadgeForMode("demo")
@@ -31204,6 +31637,40 @@ function ActivePositionCard({
       {liveSellGuidance.primary_label}
     </span>
   );
+  const liveExecutionTargetPrice = position.target1Value ?? position.target2Value;
+  const liveExecutionQuantity =
+    position.executionMetadata?.remaining_shares ?? position.positionSizeValue;
+  const liveExecutionOrchestratorResult =
+    position.direction === "Long" &&
+    !isDemoPosition(position) &&
+    !isMockPosition(position) &&
+    currentPriceValue !== null &&
+    liveExecutionQuantity !== null &&
+    (liveExecutionTargetPrice !== null || position.stopLossValue !== null)
+      ? runExecutionOrchestrator({
+          livePositions: [
+            {
+              positionId: position.id,
+              recommendationId: position.recommendationId,
+              ticker: position.ticker,
+              instrumentName: position.companyName,
+              quantity: liveExecutionQuantity,
+              currentPrice: currentPriceValue,
+              targetPrice: liveExecutionTargetPrice,
+              stopLossPrice: position.stopLossValue,
+              mode: executionMode,
+              createdAt: latestUpdate?.updatedAtRaw ?? undefined,
+            },
+          ],
+          mode: executionMode,
+          createdAt: latestUpdate?.updatedAtRaw ?? undefined,
+        })
+      : null;
+  const liveExecutionStatus = liveExecutionOrchestratorResult
+    ? buildExecutionUiStatusFromOrchestratorResult(
+        liveExecutionOrchestratorResult,
+      )
+    : null;
 
   function acknowledgeEndOfDayRisk() {
     writeEndOfDayAcknowledgement(position.id, eodSafetyDate, true);
@@ -31294,6 +31761,13 @@ function ActivePositionCard({
         </span>
       </div>
 
+      {liveExecutionStatus?.visible && (
+        <LiveExecutionStatusSurface
+          status={liveExecutionStatus}
+          onViewHandoff={() => setIsExecutionPreviewOpen(true)}
+        />
+      )}
+
       <div className="trade-live-card__footer">
         <button
           type="button"
@@ -31329,6 +31803,16 @@ function ActivePositionCard({
           onClose={() => setIsDetailsOpen(false)}
         />
       )}
+
+      {isExecutionPreviewOpen &&
+        liveExecutionStatus?.visible &&
+        liveExecutionOrchestratorResult?.selectedIntent && (
+          <ExecutionHandoffPreviewModal
+            result={liveExecutionOrchestratorResult}
+            status={liveExecutionStatus}
+            onClose={() => setIsExecutionPreviewOpen(false)}
+          />
+        )}
     </article>
   );
 }
@@ -31399,6 +31883,3080 @@ function sellFormMappingConfidenceTone(confidence: SellFormMappingConfidence) {
   }
 
   return "border-white/10 bg-white/[0.035] text-zinc-400";
+}
+
+function executionUiStatusPanelClassName(severity: ExecutionUiSeverity) {
+  if (severity === "danger") {
+    return "border-rose-300/30 bg-rose-300/[0.08]";
+  }
+
+  if (severity === "success") {
+    return "border-emerald-300/25 bg-emerald-300/[0.08]";
+  }
+
+  if (severity === "warning") {
+    return "border-amber-300/25 bg-amber-300/[0.08]";
+  }
+
+  if (severity === "info") {
+    return "border-cyan-300/20 bg-cyan-300/[0.06]";
+  }
+
+  return "border-white/10 bg-white/[0.035]";
+}
+
+function executionUiStatusBadgeClassName(tone: ExecutionUiBadgeTone) {
+  if (tone === "danger") {
+    return "border-rose-300/40 bg-rose-300/15 text-rose-100";
+  }
+
+  if (tone === "success") {
+    return "border-emerald-300/35 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (tone === "warning") {
+    return "border-amber-300/35 bg-amber-300/10 text-amber-100";
+  }
+
+  if (tone === "info") {
+    return "border-cyan-300/30 bg-cyan-300/10 text-cyan-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-300";
+}
+
+function executionHandoffStatusTone(status: "ready" | "blocked" | "invalid_intent") {
+  if (status === "ready") {
+    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "blocked") {
+    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+  }
+
+  return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+}
+
+function avanzaAgentRequestValidationTone(
+  status: "ok" | "warning" | "invalid",
+) {
+  if (status === "ok") {
+    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "warning") {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+}
+
+function executionSandboxQaTone(status: ExecutionSandboxQaStatus) {
+  if (status === "pass") {
+    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "warn") {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  if (status === "fail") {
+    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-400";
+}
+
+function executionSandboxQaOverallTone(
+  status: ExecutionSandboxQaOverallStatus,
+) {
+  if (status === "ready") {
+    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "blocked") {
+    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+  }
+
+  return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+}
+
+function executionModeUiLabel(mode: ExecutionUiStatus["mode"]) {
+  if (mode === "automatic") {
+    return "Automatic";
+  }
+
+  if (mode === "semi_automatic") {
+    return "Semi-auto";
+  }
+
+  return null;
+}
+
+function LiveExecutionStatusSurface({
+  status,
+  onViewHandoff,
+}: {
+  status: ExecutionUiStatus;
+  onViewHandoff?: () => void;
+}) {
+  const modeLabel = executionModeUiLabel(status.mode);
+  const nextAction =
+    status.ctaLabel ??
+    (status.canPrepareOrder ? "Prepare in Avanza" : null);
+
+  return (
+    <div
+      className={`mx-5 mt-4 rounded-md border p-3 ${executionUiStatusPanelClassName(
+        status.severity,
+      )}`}
+      aria-label={`${status.title}: ${status.description}`}
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span
+            className={`inline-flex rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionUiStatusBadgeClassName(
+              status.badgeTone,
+            )}`}
+          >
+            {status.label}
+          </span>
+          <p className="mt-2 text-sm font-semibold text-zinc-100">
+            {status.title}
+          </p>
+        </div>
+        {modeLabel && (
+          <span className="w-fit rounded-full border border-white/10 bg-black/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
+            {modeLabel}
+          </span>
+        )}
+      </div>
+      <p className="mt-2 text-xs leading-5 text-zinc-300">
+        {status.description}
+      </p>
+      {nextAction && (
+        <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
+          Next action: {nextAction}
+          {status.canSubmitFinalOrder
+            ? " · Final submit allowed by authority"
+            : ""}
+        </p>
+      )}
+      {onViewHandoff && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewHandoff();
+          }}
+          className="mt-3 rounded-md border border-white/15 bg-black/20 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-200 transition hover:border-cyan-300/30 hover:text-cyan-100"
+        >
+          View handoff
+        </button>
+      )}
+    </div>
+  );
+}
+
+function executionSafetyCheckTone(status: "passed" | "warning" | "failed") {
+  if (status === "passed") {
+    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "warning") {
+    return "border-amber-300/25 bg-amber-300/10 text-amber-100";
+  }
+
+  return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+}
+
+function executionLifecycleStubTone(
+  state: ExecutionLifecycleSnapshot["currentState"],
+) {
+  if (isManualConfirmationState(state)) {
+    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+  }
+
+  if (state === "broker_order_submitting") {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  if (state === "broker_order_preparing") {
+    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-300";
+}
+
+function agentProgressLifecycleTone(
+  status: AgentProgressStubTimelineItem["lifecycleTransitionStatus"],
+) {
+  if (status === "applied") {
+    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "invalid") {
+    return "border-rose-300/25 bg-rose-300/10 text-rose-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-400";
+}
+
+function terminalExecutionEventForBrokerStatus(
+  status: BrokerExecutionStatus,
+  captureStatus: BrokerExecutionCaptureStatus,
+) {
+  if (
+    captureStatus === "captured" &&
+    (status === "submitted" ||
+      status === "filled" ||
+      status === "partially_filled")
+  ) {
+    return "complete_execution" as const;
+  }
+
+  if (status === "rejected") {
+    return "fail_execution" as const;
+  }
+
+  if (status === "cancelled") {
+    return "cancel_execution" as const;
+  }
+
+  if (status === "unknown") {
+    return "mark_unknown" as const;
+  }
+
+  return "fail_execution" as const;
+}
+
+function executionIntentReason(intent: ExecutionOrchestratorResult["selectedIntent"]) {
+  if (intent && "reason" in intent && typeof intent.reason === "string") {
+    return intent.reason;
+  }
+
+  return intent?.safety_warnings[0] ?? "Execution intent selected by Ture.";
+}
+
+function executionIntentIntendedPrice(
+  intent: ExecutionOrchestratorResult["selectedIntent"],
+) {
+  if (
+    intent &&
+    "intendedPrice" in intent &&
+    typeof intent.intendedPrice === "number"
+  ) {
+    return intent.intendedPrice;
+  }
+
+  return intent?.trading_package.limit_price ?? null;
+}
+
+const agentProgressStubEventTypes: AvanzaAgentProgressEventType[] = [
+  "agent_started",
+  "broker_session_check_started",
+  "broker_session_ready",
+  "broker_session_missing",
+  "instrument_search_started",
+  "instrument_selected",
+  "order_form_opened",
+  "order_form_filled",
+  "order_review_ready",
+  "waiting_for_manual_confirmation",
+  "automatic_submit_started",
+  "broker_confirmation_detected",
+  "broker_result_returned",
+  "agent_failed",
+  "agent_cancelled",
+];
+
+type AgentProgressStubTimelineItem = {
+  progressEvent: AvanzaAgentProgressEvent;
+  mappedLifecycleEventType:
+    | AvanzaAgentProgressEvent["lifecycleEventType"]
+    | null;
+  lifecycleTransitionStatus: "not_mapped" | "applied" | "invalid";
+  lifecycleNote: string;
+};
+
+type ExecutionSandboxQaStatus = "pass" | "warn" | "fail" | "pending";
+
+type ExecutionSandboxQaOverallStatus = "ready" | "blocked" | "incomplete";
+
+type ExecutionSandboxQaItem = {
+  label: string;
+  status: ExecutionSandboxQaStatus;
+  message: string;
+};
+
+function ExecutionHandoffPreviewModal({
+  result,
+  status,
+  onClose,
+}: {
+  result: ExecutionOrchestratorResult;
+  status: ExecutionUiStatus;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const [localLifecycle, setLocalLifecycle] =
+    useState<ExecutionLifecycleSnapshot>(() => result.lifecycle);
+  const [captureBaseLifecycle, setCaptureBaseLifecycle] =
+    useState<ExecutionLifecycleSnapshot | null>(null);
+  const [preparationStubMessage, setPreparationStubMessage] = useState("");
+  const [preparationStubError, setPreparationStubError] = useState("");
+  const [isAgentRunnerRunning, setIsAgentRunnerRunning] = useState(false);
+  const [agentRunnerResult, setAgentRunnerResult] =
+    useState<AvanzaAgentResult | null>(null);
+  const [agentRunnerError, setAgentRunnerError] = useState("");
+  const [agentRunStoreMessage, setAgentRunStoreMessage] = useState("");
+  const [localhostBridgeRunResult, setLocalhostBridgeRunResult] =
+    useState<LocalhostBridgeClientRunResult | null>(null);
+  const [isLocalhostBridgeRunRunning, setIsLocalhostBridgeRunRunning] =
+    useState(false);
+  const [localhostBridgeRunMessage, setLocalhostBridgeRunMessage] =
+    useState("");
+  const [localhostBridgeCancelResult, setLocalhostBridgeCancelResult] =
+    useState<LocalhostBridgeClientCancelResult | null>(null);
+  const [isLocalhostBridgeCancelRunning, setIsLocalhostBridgeCancelRunning] =
+    useState(false);
+  const [localhostBridgeCancelMessage, setLocalhostBridgeCancelMessage] =
+    useState("");
+  const [stubBrokerStatus, setStubBrokerStatus] =
+    useState<BrokerExecutionStatus>("submitted");
+  const [stubExecutedPrice, setStubExecutedPrice] = useState("");
+  const [stubOrderId, setStubOrderId] = useState("");
+  const [stubBrokerTimestamp, setStubBrokerTimestamp] = useState("");
+  const [stubCaptureResult, setStubCaptureResult] =
+    useState<BrokerExecutionCaptureResult | null>(null);
+  const [stubCaptureMessage, setStubCaptureMessage] = useState("");
+  const [stubCaptureError, setStubCaptureError] = useState("");
+  const [selectedAgentProgressType, setSelectedAgentProgressType] =
+    useState<AvanzaAgentProgressEventType>("agent_started");
+  const [agentProgressTimeline, setAgentProgressTimeline] = useState<
+    AgentProgressStubTimelineItem[]
+  >([]);
+  const [agentProgressStubMessage, setAgentProgressStubMessage] = useState("");
+  const [agentProgressStubError, setAgentProgressStubError] = useState("");
+  const intent = result.selectedIntent;
+  const handoff = result.handoff;
+  const avanzaAgentRequestPreview = useMemo(() => {
+    if (!result.handoff) {
+      return {
+        request: null,
+        validation: null,
+        error: "Future agent request preview requires an Avanza handoff.",
+      };
+    }
+
+    if (result.handoff.status !== "ready") {
+      return {
+        request: null,
+        validation: null,
+        error:
+          "Future agent request preview is unavailable until the handoff is ready.",
+      };
+    }
+
+    try {
+      const request = buildAvanzaAgentRequest(result.handoff, {
+        metadata: {
+          preview_only: true,
+          source: "execution_handoff_preview_modal",
+          broker_connected: false,
+          no_order_prepared: true,
+          no_order_submitted: true,
+        },
+      });
+
+      return {
+        request,
+        validation: validateAvanzaAgentRequest(request),
+        error: null,
+      };
+    } catch (error) {
+      return {
+        request: null,
+        validation: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Future agent request preview could not be built.",
+      };
+    }
+  }, [result.handoff]);
+  const avanzaAgentBridgeEnvelopePreview = useMemo(() => {
+    const request = avanzaAgentRequestPreview.request;
+
+    if (!isExecutionDevToolsEnabled()) {
+      return {
+        envelope: null,
+        validation: null,
+        error: "Bridge request envelope preview is hidden unless dev tools are enabled.",
+      };
+    }
+
+    if (!request) {
+      return {
+        envelope: null,
+        validation: null,
+        error:
+          avanzaAgentRequestPreview.error ??
+          "Bridge request envelope preview requires a valid future-agent request.",
+      };
+    }
+
+    try {
+      const envelope = buildAvanzaAgentBridgeEnvelope("request", request, {
+        requestId: request.requestId,
+        transport: "none",
+        metadata: {
+          preview_only: true,
+          source: "execution_handoff_preview_modal",
+          no_external_avanza_bridge_connected: true,
+          no_transport_connected: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+        },
+      });
+
+      return {
+        envelope,
+        validation: validateAvanzaAgentBridgeEnvelope(envelope),
+        error: null,
+      };
+    } catch (error) {
+      return {
+        envelope: null,
+        validation: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Bridge request envelope preview could not be built.",
+      };
+    }
+  }, [avanzaAgentRequestPreview]);
+
+  if (!status.visible || !intent || !handoff) {
+    return null;
+  }
+
+  const selectedIntent = intent;
+  const selectedHandoff = handoff;
+  const packageSnapshot = selectedIntent.trading_package;
+  const executionDevToolsEnabled = isExecutionDevToolsEnabled();
+  const canRunPreparationStub =
+    executionDevToolsEnabled &&
+    selectedHandoff.status === "ready" &&
+    selectedHandoff.canPrepareOrder &&
+    !isAgentRunnerRunning &&
+    localLifecycle.currentState === "handoff_created";
+  const preparationStubReached =
+    isManualConfirmationState(localLifecycle.currentState) ||
+    localLifecycle.currentState === "broker_order_submitting" ||
+    captureBaseLifecycle !== null;
+  const captureStubVisible =
+    preparationStubReached ||
+    stubCaptureResult !== null ||
+    localLifecycle.currentState === "broker_result_captured" ||
+    localLifecycle.currentState === "completed" ||
+    localLifecycle.currentState === "failed" ||
+    localLifecycle.currentState === "cancelled" ||
+    localLifecycle.currentState === "unknown";
+  const devCaptureStubVisible = executionDevToolsEnabled && captureStubVisible;
+  const canRunCaptureStub =
+    executionDevToolsEnabled &&
+    preparationStubReached &&
+    stubCaptureResult === null &&
+    !isAgentRunnerRunning;
+  const authorityMessage =
+    selectedIntent.mode === "automatic"
+      ? "Automatic authority allows final submit when all checks are ready, but no broker connection or order execution is implemented here."
+      : "Semi-automatic mode may allow a future agent to prepare the Avanza order, but you must manually press final KÖP or SÄLJ.";
+  const avanzaAgentRequest = avanzaAgentRequestPreview.request;
+  const avanzaAgentRequestValidation = avanzaAgentRequestPreview.validation;
+  const avanzaAgentRequestValidationStatus =
+    avanzaAgentRequestValidation?.ok === true
+      ? avanzaAgentRequestValidation.warnings.length > 0
+        ? "warning"
+        : "ok"
+      : "invalid";
+  const avanzaAgentBridgeEnvelope = avanzaAgentBridgeEnvelopePreview.envelope;
+  const avanzaAgentBridgeEnvelopeValidation =
+    avanzaAgentBridgeEnvelopePreview.validation;
+  const avanzaAgentBridgeEnvelopeValidationStatus =
+    avanzaAgentBridgeEnvelopeValidation?.ok === true
+      ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
+        ? "warning"
+        : "ok"
+      : "invalid";
+  const canRunLocalhostBridgeDryRun =
+    executionDevToolsEnabled &&
+    Boolean(avanzaAgentRequest) &&
+    Boolean(avanzaAgentBridgeEnvelope) &&
+    avanzaAgentRequestValidation?.ok === true &&
+    avanzaAgentBridgeEnvelopeValidation?.ok === true &&
+    !isLocalhostBridgeRunRunning;
+  const localhostBridgeCancelRequestId =
+    localhostBridgeRunResult?.response?.requestId ??
+    localhostBridgeRunResult?.result?.requestId ??
+    avanzaAgentRequest?.requestId ??
+    null;
+  const canCancelLocalhostBridgeRun =
+    executionDevToolsEnabled &&
+    Boolean(localhostBridgeCancelRequestId) &&
+    !isLocalhostBridgeCancelRunning;
+  const avanzaAgentBridgeConfig = executionDevToolsEnabled
+    ? readAvanzaAgentBridgeConfig()
+    : null;
+  const avanzaAgentBridgeFactoryResult = executionDevToolsEnabled
+    ? createAvanzaAgentBridgeFromConfig({
+        selectedTransport: avanzaAgentBridgeConfig?.selectedTransport,
+        metadata: {
+          source: "execution_sandbox_qa_panel",
+          no_real_transport_connected: true,
+          no_broker_order_prepared: true,
+          no_broker_order_submitted: true,
+        },
+      })
+    : null;
+  const safetyCheckFailures = selectedHandoff.safetyChecks.filter(
+    (check) => check.status === "failed",
+  );
+  const safetyCheckWarnings = selectedHandoff.safetyChecks.filter(
+    (check) => check.status === "warning",
+  );
+  const requestValidationFailed =
+    avanzaAgentRequestValidation !== null &&
+    avanzaAgentRequestValidation.ok === false;
+  const envelopeValidationFailed =
+    avanzaAgentBridgeEnvelopeValidation !== null &&
+    avanzaAgentBridgeEnvelopeValidation.ok === false;
+  const sandboxCoreValid =
+    selectedHandoff.status === "ready" &&
+    safetyCheckFailures.length === 0 &&
+    avanzaAgentRequestValidation?.ok === true &&
+    avanzaAgentBridgeEnvelopeValidation?.ok === true;
+  const sandboxBlocked =
+    selectedHandoff.status === "blocked" ||
+    selectedHandoff.status === "invalid_intent" ||
+    safetyCheckFailures.length > 0 ||
+    requestValidationFailed ||
+    envelopeValidationFailed;
+  const sandboxOverallStatus: ExecutionSandboxQaOverallStatus = sandboxBlocked
+    ? "blocked"
+    : sandboxCoreValid
+      ? "ready"
+      : "incomplete";
+  const sandboxOverallMessage =
+    sandboxOverallStatus === "ready"
+      ? "Sandbox-ready means the local typed handoff chain is valid for diagnostics only. It does not mean broker execution is available."
+      : sandboxOverallStatus === "blocked"
+        ? selectedHandoff.blockedReason ??
+          avanzaAgentRequestValidation?.errors[0] ??
+          avanzaAgentBridgeEnvelopeValidation?.errors[0] ??
+          safetyCheckFailures[0]?.message ??
+          "The local execution sandbox chain is blocked by handoff or validation errors."
+        : "The local execution sandbox chain is incomplete until the typed request and bridge envelope are available.";
+  const executionSandboxQaItems: ExecutionSandboxQaItem[] = [
+    {
+      label: "Execution dev tools",
+      status: executionDevToolsEnabled ? "pass" : "fail",
+      message: executionDevToolsEnabled
+        ? "Enabled for this local diagnostics surface."
+        : "Disabled; sandbox diagnostics and runners stay hidden.",
+    },
+    {
+      label: "Selected intent",
+      status: selectedIntent ? "pass" : "fail",
+      message: selectedIntent
+        ? `${agentCommandValue(selectedIntent.action)} ${selectedIntent.trading_package.ticker} intent is selected.`
+        : "No execution intent is selected.",
+    },
+    {
+      label: "Handoff",
+      status: selectedHandoff ? "pass" : "fail",
+      message: selectedHandoff
+        ? `Handoff status is ${agentCommandValue(selectedHandoff.status)}.`
+        : "No Avanza handoff exists.",
+    },
+    {
+      label: "Handoff ready",
+      status: selectedHandoff.status === "ready" ? "pass" : "fail",
+      message:
+        selectedHandoff.status === "ready"
+          ? "Ready for local sandbox preparation preview."
+          : (selectedHandoff.blockedReason ??
+            `Handoff is ${selectedHandoff.status}.`),
+    },
+    {
+      label: "Safety checks",
+      status:
+        safetyCheckFailures.length > 0
+          ? "fail"
+          : safetyCheckWarnings.length > 0
+            ? "warn"
+            : "pass",
+      message:
+        safetyCheckFailures.length > 0
+          ? `${safetyCheckFailures.length} safety check failed.`
+          : safetyCheckWarnings.length > 0
+            ? `${safetyCheckWarnings.length} safety check warning.`
+            : "No failed safety checks.",
+    },
+    {
+      label: "Future agent request",
+      status: avanzaAgentRequest ? "pass" : "pending",
+      message: avanzaAgentRequest
+        ? `Request ${shortPayloadId(avanzaAgentRequest.requestId)} is built.`
+        : (avanzaAgentRequestPreview.error ??
+          "Future agent request has not been built."),
+    },
+    {
+      label: "Request validation",
+      status:
+        avanzaAgentRequestValidation?.ok === true
+          ? avanzaAgentRequestValidation.warnings.length > 0
+            ? "warn"
+            : "pass"
+          : "fail",
+      message:
+        avanzaAgentRequestValidation?.ok === true
+          ? avanzaAgentRequestValidation.warnings.length > 0
+            ? `${avanzaAgentRequestValidation.warnings.length} request validation warning.`
+            : "Future agent request is valid."
+          : (avanzaAgentRequestValidation?.errors[0] ??
+            "Future agent request validation is unavailable."),
+    },
+    {
+      label: "Bridge envelope",
+      status: avanzaAgentBridgeEnvelope ? "pass" : "pending",
+      message: avanzaAgentBridgeEnvelope
+        ? `Envelope ${shortPayloadId(avanzaAgentBridgeEnvelope.envelopeId)} is built.`
+        : (avanzaAgentBridgeEnvelopePreview.error ??
+          "Bridge envelope has not been built."),
+    },
+    {
+      label: "Envelope validation",
+      status:
+        avanzaAgentBridgeEnvelopeValidation?.ok === true
+          ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
+            ? "warn"
+            : "pass"
+          : "fail",
+      message:
+        avanzaAgentBridgeEnvelopeValidation?.ok === true
+          ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
+            ? `${avanzaAgentBridgeEnvelopeValidation.warnings.length} envelope warning. Transport none is expected for this sandbox.`
+          : "Bridge envelope is valid."
+          : (avanzaAgentBridgeEnvelopeValidation?.errors[0] ??
+            "Bridge envelope validation is unavailable."),
+    },
+    {
+      label: "Bridge config loaded",
+      status: avanzaAgentBridgeConfig
+        ? avanzaAgentBridgeConfig.error
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: avanzaAgentBridgeConfig
+        ? avanzaAgentBridgeConfig.error
+          ? `Config loaded with storage warning: ${avanzaAgentBridgeConfig.error}`
+          : "Bridge config loaded locally for diagnostics."
+        : "Bridge config is hidden because dev tools are disabled.",
+    },
+    {
+      label: "Selected bridge transport",
+      status:
+        avanzaAgentBridgeFactoryResult?.selectedTransport === "none"
+          ? "pass"
+          : "warn",
+      message: avanzaAgentBridgeFactoryResult
+        ? `Selected ${getAvanzaAgentBridgeTransportDisplayLabel(
+            avanzaAgentBridgeFactoryResult.selectedTransport,
+          )}.`
+        : "No bridge factory result available.",
+    },
+    {
+      label: "Resolved bridge transport",
+      status:
+        avanzaAgentBridgeFactoryResult?.resolvedTransport === "none"
+          ? "pass"
+          : "warn",
+      message: avanzaAgentBridgeFactoryResult
+        ? `Resolved ${getAvanzaAgentBridgeTransportDisplayLabel(
+            avanzaAgentBridgeFactoryResult.resolvedTransport,
+          )}. Runtime bridge remains local diagnostics only in this build.`
+        : "No bridge factory result available.",
+    },
+    {
+      label: "Factory fallback",
+      status: avanzaAgentBridgeFactoryResult?.fallbackUsed ? "warn" : "pass",
+      message: avanzaAgentBridgeFactoryResult
+        ? avanzaAgentBridgeFactoryResult.fallbackUsed
+          ? `${avanzaAgentBridgeFactoryResult.reason} ${avanzaAgentBridgeFactoryResult.warnings.join(" ")}`
+          : avanzaAgentBridgeFactoryResult.reason
+        : "No bridge factory result available.",
+    },
+    {
+      label: "Real broker automation",
+      status: avanzaAgentBridgeFactoryResult
+        ? isRealAvanzaAgentBridge(avanzaAgentBridgeFactoryResult.bridge)
+          ? "fail"
+          : "pass"
+        : "pending",
+      message: avanzaAgentBridgeFactoryResult
+        ? isRealAvanzaAgentBridge(avanzaAgentBridgeFactoryResult.bridge)
+          ? "Unexpected real broker automation support detected."
+          : "Real broker automation is false for this diagnostics bridge."
+        : "No bridge factory result available.",
+    },
+    {
+      label: "Lifecycle",
+      status: localLifecycle ? "pass" : "fail",
+      message: localLifecycle
+        ? `Lifecycle is ${getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}.`
+        : "Lifecycle snapshot is missing.",
+    },
+    {
+      label: "Prepare stub / runner",
+      status: preparationStubReached || agentRunnerResult ? "pass" : "pending",
+      message:
+        preparationStubReached || agentRunnerResult
+          ? "Prepare stub or bridge-backed runner has been attempted locally."
+          : "Not attempted yet.",
+    },
+    {
+      label: "Runner result",
+      status: agentRunnerResult ? "pass" : "pending",
+      message: agentRunnerResult
+        ? `Runner result status is ${agentCommandValue(agentRunnerResult.status)}.`
+        : "No bridge-backed runner result yet.",
+    },
+    {
+      label: "Broker result",
+      status: agentRunnerResult
+        ? agentRunnerResult.brokerResult
+          ? "fail"
+          : "pass"
+        : "pending",
+      message: agentRunnerResult
+        ? agentRunnerResult.brokerResult
+          ? "Unexpected broker result is present."
+          : "Broker result is absent as expected for the diagnostics runner."
+        : "Pending until the bridge-backed diagnostics runner is attempted.",
+    },
+    {
+      label: "Stub capture record",
+      status: stubCaptureResult ? "pass" : "pending",
+      message: stubCaptureResult
+        ? `Dev capture status is ${agentCommandValue(stubCaptureResult.captureStatus)}.`
+        : "Optional dev capture stub has not been used.",
+    },
+  ];
+
+  function addAgentProgressStubEvent() {
+    setAgentProgressStubMessage("");
+    setAgentProgressStubError("");
+
+    if (!avanzaAgentRequest) {
+      setAgentProgressStubError(
+        "Agent progress stub requires a ready future-agent request preview.",
+      );
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const mappedLifecycleEventType = mapAvanzaAgentProgressToLifecycleEventType(
+      selectedAgentProgressType,
+    );
+    const progressEvent = buildAvanzaAgentProgressEvent({
+      requestId: avanzaAgentRequest.requestId,
+      createdAt,
+      type: selectedAgentProgressType,
+      message: `${getAvanzaAgentProgressDisplayLabel(
+        selectedAgentProgressType,
+      )} - local dev progress stub only. No Avanza agent is connected.`,
+      metadata: {
+        stub_only: true,
+        broker_connected: false,
+        no_order_prepared: true,
+        no_order_submitted: true,
+        no_broker_result_created: true,
+        handoff_status: selectedHandoff.status,
+      },
+    });
+    const progressAuditEvent = createExecutionAuditEvent({
+      type: "agent_progress_stub",
+      createdAt,
+      lifecycleId: localLifecycle.lifecycleId,
+      intentId: selectedIntent.intent_id,
+      recommendationId: selectedIntent.trading_package.recommendation_id,
+      positionId: selectedIntent.trading_package.live_position_id,
+      ticker: selectedIntent.trading_package.ticker,
+      action: selectedIntent.action,
+      mode: selectedIntent.mode,
+      triggerType: selectedIntent.trigger_type,
+      broker: "avanza",
+      handoffVersion: selectedHandoff.version,
+      handoffStatus: selectedHandoff.status,
+      message:
+        "Dev-only Avanza agent progress event stub recorded locally. No broker agent is connected and no order was prepared or submitted.",
+      metadata: {
+        stub_only: true,
+        broker_connected: false,
+        no_order_prepared: true,
+        no_order_submitted: true,
+        no_broker_result_created: true,
+        agent_request_id: avanzaAgentRequest.requestId,
+        agent_progress_event_id: progressEvent.eventId,
+        agent_progress_type: progressEvent.type,
+        mapped_lifecycle_event_type: mappedLifecycleEventType,
+      },
+    });
+
+    if (!mappedLifecycleEventType) {
+      appendExecutionAuditEvents([progressAuditEvent]);
+      setAgentProgressTimeline((current) => [
+        {
+          progressEvent,
+          mappedLifecycleEventType: null,
+          lifecycleTransitionStatus: "not_mapped",
+          lifecycleNote:
+            "No lifecycle transition is mapped for this progress event.",
+        },
+        ...current,
+      ]);
+      setAgentProgressStubMessage(
+        "Progress event added locally. It has no lifecycle mapping, so lifecycle state was unchanged.",
+      );
+      return;
+    }
+
+    const transition = transitionExecutionLifecycle(
+      localLifecycle,
+      mappedLifecycleEventType,
+      {
+        createdAt,
+        intentId: selectedIntent.intent_id,
+        handoffVersion: selectedHandoff.version,
+        mode: selectedIntent.mode,
+        action: selectedIntent.action,
+        triggerType: selectedIntent.trigger_type,
+        message:
+          "Local dev agent progress stub applied a mapped lifecycle transition. No broker agent is connected and no real order action occurred.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+          agent_request_id: avanzaAgentRequest.requestId,
+          agent_progress_event_id: progressEvent.eventId,
+          agent_progress_type: progressEvent.type,
+          handoff_status: selectedHandoff.status,
+        },
+      },
+    );
+
+    if (!transition.ok) {
+      appendExecutionAuditEvents([progressAuditEvent]);
+      setAgentProgressTimeline((current) => [
+        {
+          progressEvent,
+          mappedLifecycleEventType,
+          lifecycleTransitionStatus: "invalid",
+          lifecycleNote: transition.error,
+        },
+        ...current,
+      ]);
+      setAgentProgressStubError(
+        `Progress event added locally, but lifecycle transition was not applied: ${transition.error}`,
+      );
+      return;
+    }
+
+    appendExecutionAuditEvents([
+      progressAuditEvent,
+      buildExecutionAuditEventFromLifecycleEvent(
+        transition.event,
+        transition.snapshot,
+      ),
+    ]);
+    setLocalLifecycle(transition.snapshot);
+    setAgentProgressTimeline((current) => [
+      {
+        progressEvent,
+        mappedLifecycleEventType,
+        lifecycleTransitionStatus: "applied",
+        lifecycleNote: `${mappedLifecycleEventType} moved lifecycle to ${transition.snapshot.currentState}.`,
+      },
+      ...current,
+    ]);
+    setAgentProgressStubMessage(
+      "Progress event added locally and its mapped lifecycle transition was applied.",
+    );
+  }
+
+  async function runLocalhostBridgeEcho() {
+    setLocalhostBridgeRunMessage("");
+    setLocalhostBridgeRunResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBridgeRunMessage(
+        "Localhost bridge echo is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaAgentRequest || !avanzaAgentBridgeEnvelope) {
+      setLocalhostBridgeRunMessage(
+        "Localhost bridge echo requires a ready future-agent request and bridge envelope.",
+      );
+      return;
+    }
+
+    if (
+      avanzaAgentRequestValidation?.ok !== true ||
+      avanzaAgentBridgeEnvelopeValidation?.ok !== true
+    ) {
+      setLocalhostBridgeRunMessage(
+        "Localhost bridge echo is blocked until request and envelope validation pass.",
+      );
+      return;
+    }
+
+    setIsLocalhostBridgeRunRunning(true);
+
+    try {
+      const bridgeConfig = readAvanzaAgentBridgeConfig();
+      const factoryResult = createAvanzaAgentBridgeFromConfig({
+        selectedTransport: bridgeConfig.selectedTransport,
+        metadata: {
+          source: "localhost_bridge_echo_button",
+          runner_path: "localhost_bridge_stub",
+          dry_run: true,
+          local_diagnostics_only: true,
+          no_browser_automation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+      const runResult = await runLocalhostBridgeDryRun({
+        envelope: avanzaAgentBridgeEnvelope,
+        request: avanzaAgentRequest,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          runner_path: "localhost_bridge_stub",
+          selected_transport: factoryResult.selectedTransport,
+          resolved_transport: factoryResult.resolvedTransport,
+          dry_run: true,
+          local_diagnostics_only: true,
+          no_avanza_session: true,
+          no_browser_automation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+
+      setLocalhostBridgeRunResult(runResult);
+
+      appendExecutionAuditEvents([
+        createExecutionAuditEvent({
+          type: "localhost_bridge_run_stub",
+          createdAt: runResult.completedAt,
+          lifecycleId: localLifecycle.lifecycleId,
+          intentId: selectedIntent.intent_id,
+          recommendationId: selectedIntent.trading_package.recommendation_id,
+          positionId: selectedIntent.trading_package.live_position_id,
+          ticker: selectedIntent.trading_package.ticker,
+          action: selectedIntent.action,
+          mode: selectedIntent.mode,
+          triggerType: selectedIntent.trigger_type,
+          broker: "avanza",
+          handoffVersion: selectedHandoff.version,
+          handoffStatus: selectedHandoff.status,
+          message:
+            "Dev-only localhost bridge echo run completed locally. No Avanza session opened, no browser automation ran, no order was prepared or submitted, and no broker result was created.",
+          metadata: {
+            stub_only: true,
+            localhost_bridge_stub: true,
+            dry_run: true,
+            reachable: runResult.reachable,
+            ok: runResult.ok,
+            status_code: runResult.statusCode,
+            accepted: runResult.response?.accepted ?? false,
+            base_url: runResult.baseUrl,
+            selected_transport: factoryResult.selectedTransport,
+            resolved_transport: factoryResult.resolvedTransport,
+            broker_result_present: Boolean(runResult.result?.brokerResult),
+            progress_event_count: runResult.result?.progressEvents.length ?? 0,
+            no_avanza_session: true,
+            no_browser_automation: true,
+            no_order_prepared: true,
+            no_order_submitted: true,
+            no_broker_result_created: true,
+          },
+        }),
+      ]);
+
+      if (runResult.result) {
+        const storedRun = createStoredAvanzaAgentRun({
+          request: avanzaAgentRequest,
+          result: runResult.result,
+          runner: {
+            runnerId: "localhost_bridge_stub",
+            name: "Localhost Bridge Stub",
+            version: "avanza_localhost_bridge_v1",
+            supportsRealBrokerAutomation: false,
+          },
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            runner_path: "localhost_bridge_stub",
+            selected_transport: factoryResult.selectedTransport,
+            resolved_transport: factoryResult.resolvedTransport,
+            dry_run: true,
+            local_diagnostics_only: true,
+            no_avanza_session: true,
+            no_browser_automation: true,
+            no_order_prepared: true,
+            no_order_submitted: true,
+            no_broker_result_created: true,
+          },
+        });
+        const stored = appendAvanzaAgentRun(storedRun);
+
+        setAgentRunStoreMessage(
+          stored
+            ? "Localhost bridge echo run saved as local agent-run diagnostics. It is not a broker confirmation."
+            : "Localhost bridge echo returned a result, but the local diagnostics run could not be saved.",
+        );
+      }
+
+      setLocalhostBridgeRunMessage(
+        runResult.ok
+          ? "Localhost bridge echo completed. No Avanza session opened and no broker result was created."
+          : "Localhost bridge echo finished safely with errors. No broker action occurred.",
+      );
+    } catch (error) {
+      setLocalhostBridgeRunMessage(
+        error instanceof Error
+          ? `Localhost bridge echo failed safely: ${error.message}`
+          : "Localhost bridge echo failed safely. No broker action occurred.",
+      );
+    } finally {
+      setIsLocalhostBridgeRunRunning(false);
+    }
+  }
+
+  async function cancelLocalhostBridgeEcho() {
+    setLocalhostBridgeCancelMessage("");
+    setLocalhostBridgeCancelResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBridgeCancelMessage(
+        "Localhost bridge cancel is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!localhostBridgeCancelRequestId) {
+      setLocalhostBridgeCancelMessage(
+        "No localhost bridge request id is available to cancel.",
+      );
+      return;
+    }
+
+    setIsLocalhostBridgeCancelRunning(true);
+
+    try {
+      const cancelResult = await cancelLocalhostBridgeRun({
+        requestId: localhostBridgeCancelRequestId,
+        reason:
+          "Manual dev-only cancel contract test from Execution Handoff Preview Modal.",
+      });
+
+      setLocalhostBridgeCancelResult(cancelResult);
+      appendExecutionAuditEvents([
+        createExecutionAuditEvent({
+          type: "localhost_bridge_cancel_stub",
+          createdAt: cancelResult.completedAt,
+          lifecycleId: localLifecycle.lifecycleId,
+          intentId: selectedIntent.intent_id,
+          recommendationId: selectedIntent.trading_package.recommendation_id,
+          positionId: selectedIntent.trading_package.live_position_id,
+          ticker: selectedIntent.trading_package.ticker,
+          action: selectedIntent.action,
+          mode: selectedIntent.mode,
+          triggerType: selectedIntent.trigger_type,
+          broker: "avanza",
+          handoffVersion: selectedHandoff.version,
+          handoffStatus: selectedHandoff.status,
+          message:
+            "Dev-only localhost bridge cancel acknowledged locally. No Avanza session, browser automation, broker action, broker order, or trade state was cancelled.",
+          metadata: {
+            stub_only: true,
+            localhost_bridge_stub: true,
+            request_id: localhostBridgeCancelRequestId,
+            reachable: cancelResult.reachable,
+            ok: cancelResult.ok,
+            status_code: cancelResult.statusCode,
+            cancelled: cancelResult.cancelled ?? false,
+            base_url: cancelResult.baseUrl,
+            no_avanza_session: true,
+            no_browser_automation: true,
+            no_order_cancelled: true,
+            no_broker_result_created: true,
+          },
+        }),
+      ]);
+
+      setLocalhostBridgeCancelMessage(
+        cancelResult.ok
+          ? "Localhost bridge cancel acknowledged by the stub. No broker or Avanza action was cancelled."
+          : "Localhost bridge cancel finished safely with errors. No broker action occurred.",
+      );
+    } catch (error) {
+      setLocalhostBridgeCancelMessage(
+        error instanceof Error
+          ? `Localhost bridge cancel failed safely: ${error.message}`
+          : "Localhost bridge cancel failed safely. No broker action occurred.",
+      );
+    } finally {
+      setIsLocalhostBridgeCancelRunning(false);
+    }
+  }
+
+  async function runPreparationStub() {
+    setPreparationStubMessage("");
+    setPreparationStubError("");
+    setAgentRunnerResult(null);
+    setAgentRunnerError("");
+    setAgentRunStoreMessage("");
+
+    if (!executionDevToolsEnabled) {
+      setPreparationStubError(
+        "Avanza preparation is not connected in this build.",
+      );
+      return;
+    }
+
+    if (!canRunPreparationStub) {
+      setPreparationStubError(
+        "Preparation stub is unavailable because this handoff is not ready.",
+      );
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    setCaptureBaseLifecycle(null);
+    const baseAuditFields = {
+      createdAt,
+      lifecycleId: localLifecycle.lifecycleId,
+      intentId: selectedIntent.intent_id,
+      recommendationId: selectedIntent.trading_package.recommendation_id,
+      positionId: selectedIntent.trading_package.live_position_id,
+      ticker: selectedIntent.trading_package.ticker,
+      action: selectedIntent.action,
+      mode: selectedIntent.mode,
+      triggerType: selectedIntent.trigger_type,
+      broker: "avanza" as const,
+      handoffVersion: selectedHandoff.version,
+      handoffStatus: selectedHandoff.status,
+    };
+    appendExecutionAuditEvents([
+      createExecutionAuditEvent({
+        ...baseAuditFields,
+        type: "stub_prepare_clicked",
+        message:
+          "Prepare in Avanza stub clicked. No broker is connected, Avanza was not opened, and no real order was prepared.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          handoff_status: selectedHandoff.status,
+          can_prepare_order: selectedHandoff.canPrepareOrder,
+          can_submit_final_order: selectedHandoff.canSubmitFinalOrder,
+        },
+      }),
+    ]);
+
+    const startPreparation = transitionExecutionLifecycle(
+      localLifecycle,
+      "start_broker_preparation",
+      {
+        createdAt,
+        intentId: selectedIntent.intent_id,
+        handoffVersion: selectedHandoff.version,
+        mode: selectedIntent.mode,
+        action: selectedIntent.action,
+        triggerType: selectedIntent.trigger_type,
+        message:
+          "Local UI stub started broker preparation placeholder. No broker is connected and no real order was prepared.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          can_prepare_order: selectedHandoff.canPrepareOrder,
+          can_submit_final_order: selectedHandoff.canSubmitFinalOrder,
+        },
+      },
+    );
+
+    if (!startPreparation.ok) {
+      setPreparationStubError(startPreparation.error);
+      return;
+    }
+
+    appendExecutionAuditEvents([
+      buildExecutionAuditEventFromLifecycleEvent(
+        startPreparation.event,
+        startPreparation.snapshot,
+      ),
+    ]);
+
+    const followUpEvent =
+      selectedIntent.mode === "automatic"
+        ? "submit_broker_order"
+        : "wait_for_manual_confirmation";
+    const followUpMessage =
+      selectedIntent.mode === "automatic"
+        ? "Local UI stub reached broker_order_submitting placeholder. No broker is connected and no order was submitted."
+        : "Local UI stub reached waiting_for_manual_confirmation placeholder. No broker is connected and no order was prepared.";
+    const followUp = transitionExecutionLifecycle(
+      startPreparation.snapshot,
+      followUpEvent,
+      {
+        createdAt,
+        intentId: selectedIntent.intent_id,
+        handoffVersion: selectedHandoff.version,
+        mode: selectedIntent.mode,
+        action: selectedIntent.action,
+        triggerType: selectedIntent.trigger_type,
+        message: followUpMessage,
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          handoff_status: selectedHandoff.status,
+        },
+      },
+    );
+
+    if (!followUp.ok) {
+      setLocalLifecycle(startPreparation.snapshot);
+      setPreparationStubError(followUp.error);
+      return;
+    }
+
+    appendExecutionAuditEvents([
+      buildExecutionAuditEventFromLifecycleEvent(
+        followUp.event,
+        followUp.snapshot,
+      ),
+    ]);
+
+    setLocalLifecycle(followUp.snapshot);
+    setCaptureBaseLifecycle(followUp.snapshot);
+    setPreparationStubMessage(
+      selectedIntent.mode === "automatic"
+        ? "Automatic preparation stub reached. The bridge-backed diagnostics runner can now test the future agent path, but no real Avanza bridge or broker is connected in this build."
+        : "Preparation stub reached. The bridge-backed diagnostics runner can now test the future agent path, but Avanza will not be opened and no order will be prepared.",
+    );
+
+    if (!avanzaAgentRequest) {
+      return;
+    }
+
+    setIsAgentRunnerRunning(true);
+
+    let runnerLifecycleSnapshot = followUp.snapshot;
+
+    try {
+      const bridgeConfig = readAvanzaAgentBridgeConfig();
+      const runnerFactoryResult = createAvanzaAgentBridgeRunnerFromConfig({
+        selectedTransport: bridgeConfig.selectedTransport,
+        allowUnavailableBridgeSend: true,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          runner_path: "bridge_backed_diagnostics_runner",
+          bridge_backed_runner: true,
+          no_external_avanza_bridge_connected: true,
+          no_browser_automation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+      const runner = runnerFactoryResult.runner;
+      const runnerResult = await runner.run(avanzaAgentRequest, {
+        metadata: {
+          source: "prepare_in_avanza_button",
+          stub_only: true,
+          runner_path: "bridge_backed_diagnostics_runner",
+          bridge_backed_runner: true,
+          bridge_factory_selected_transport: runnerFactoryResult.selectedTransport,
+          bridge_factory_resolved_transport: runnerFactoryResult.resolvedTransport,
+          bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
+          bridge_factory_reason: runnerFactoryResult.reason,
+          bridge_factory_warnings: runnerFactoryResult.warnings,
+          no_external_avanza_bridge_connected: true,
+          no_browser_automation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+        onProgress: async (progressEvent) => {
+          const mappedLifecycleEventType =
+            mapAvanzaAgentProgressToLifecycleEventType(progressEvent.type);
+          const progressAuditEvent = createExecutionAuditEvent({
+            type: "agent_progress_stub",
+            createdAt: progressEvent.createdAt,
+            lifecycleId: runnerLifecycleSnapshot.lifecycleId,
+            intentId: selectedIntent.intent_id,
+            recommendationId: selectedIntent.trading_package.recommendation_id,
+            positionId: selectedIntent.trading_package.live_position_id,
+            ticker: selectedIntent.trading_package.ticker,
+            action: selectedIntent.action,
+            mode: selectedIntent.mode,
+            triggerType: selectedIntent.trigger_type,
+            broker: "avanza",
+            handoffVersion: selectedHandoff.version,
+            handoffStatus: selectedHandoff.status,
+            message:
+              "Bridge-backed Avanza agent diagnostics runner progress event recorded locally. No real Avanza bridge is connected, Avanza was not opened, no order was prepared, no order was submitted, and no broker result was created.",
+            metadata: {
+              stub_only: true,
+              diagnostics_runner: true,
+              bridge_backed_runner: true,
+              bridge_factory_selected_transport:
+                runnerFactoryResult.selectedTransport,
+              bridge_factory_resolved_transport:
+                runnerFactoryResult.resolvedTransport,
+              bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
+              bridge_factory_reason: runnerFactoryResult.reason,
+              bridge_factory_warnings: runnerFactoryResult.warnings,
+              no_external_avanza_bridge_connected: true,
+              broker_connected: false,
+              no_browser_automation: true,
+              no_order_prepared: true,
+              no_order_submitted: true,
+              no_broker_result_created: true,
+              agent_request_id: avanzaAgentRequest.requestId,
+              agent_progress_event_id: progressEvent.eventId,
+              agent_progress_type: progressEvent.type,
+              mapped_lifecycle_event_type: mappedLifecycleEventType,
+            },
+          });
+
+          if (!mappedLifecycleEventType) {
+            appendExecutionAuditEvents([progressAuditEvent]);
+            setAgentProgressTimeline((current) => [
+              {
+                progressEvent,
+                mappedLifecycleEventType: null,
+                lifecycleTransitionStatus: "not_mapped",
+                lifecycleNote:
+                  "No lifecycle transition is mapped for this bridge-backed diagnostics runner progress event.",
+              },
+              ...current,
+            ]);
+            return;
+          }
+
+          const transition = transitionExecutionLifecycle(
+            runnerLifecycleSnapshot,
+            mappedLifecycleEventType,
+            {
+              createdAt: progressEvent.createdAt,
+              intentId: selectedIntent.intent_id,
+              handoffVersion: selectedHandoff.version,
+              mode: selectedIntent.mode,
+              action: selectedIntent.action,
+              triggerType: selectedIntent.trigger_type,
+              message:
+                "Bridge-backed Avanza agent diagnostics runner progress mapped to a local lifecycle transition. No real transport, browser, or broker action occurred.",
+              metadata: {
+                stub_only: true,
+                diagnostics_runner: true,
+                bridge_backed_runner: true,
+                bridge_factory_selected_transport:
+                  runnerFactoryResult.selectedTransport,
+                bridge_factory_resolved_transport:
+                  runnerFactoryResult.resolvedTransport,
+                bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
+                bridge_factory_reason: runnerFactoryResult.reason,
+                bridge_factory_warnings: runnerFactoryResult.warnings,
+                no_external_avanza_bridge_connected: true,
+                broker_connected: false,
+                no_browser_automation: true,
+                no_order_prepared: true,
+                no_order_submitted: true,
+                no_broker_result_created: true,
+                agent_request_id: avanzaAgentRequest.requestId,
+                agent_progress_event_id: progressEvent.eventId,
+                agent_progress_type: progressEvent.type,
+                handoff_status: selectedHandoff.status,
+              },
+            },
+          );
+
+          if (!transition.ok) {
+            appendExecutionAuditEvents([progressAuditEvent]);
+            setAgentProgressTimeline((current) => [
+              {
+                progressEvent,
+                mappedLifecycleEventType,
+                lifecycleTransitionStatus: "invalid",
+                lifecycleNote: transition.error,
+              },
+              ...current,
+            ]);
+            return;
+          }
+
+          appendExecutionAuditEvents([
+            progressAuditEvent,
+            buildExecutionAuditEventFromLifecycleEvent(
+              transition.event,
+              transition.snapshot,
+            ),
+          ]);
+          runnerLifecycleSnapshot = transition.snapshot;
+          setLocalLifecycle(transition.snapshot);
+          setAgentProgressTimeline((current) => [
+            {
+              progressEvent,
+              mappedLifecycleEventType,
+              lifecycleTransitionStatus: "applied",
+              lifecycleNote: `${mappedLifecycleEventType} moved lifecycle to ${transition.snapshot.currentState}.`,
+            },
+            ...current,
+          ]);
+        },
+      });
+
+      setAgentRunnerResult(runnerResult);
+      const storedRun = createStoredAvanzaAgentRun({
+        request: avanzaAgentRequest,
+        result: runnerResult,
+        runner,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          diagnostics_runner: true,
+          bridge_backed_runner: true,
+          runner_path: "bridge_backed_diagnostics_runner",
+          bridge_factory_selected_transport: runnerFactoryResult.selectedTransport,
+          bridge_factory_resolved_transport: runnerFactoryResult.resolvedTransport,
+          bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
+          bridge_factory_reason: runnerFactoryResult.reason,
+          bridge_factory_warnings: runnerFactoryResult.warnings,
+          no_external_avanza_bridge_connected: true,
+          local_diagnostics_only: true,
+          no_browser_automation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+      const runStored = appendAvanzaAgentRun(storedRun);
+      setAgentRunStoreMessage(
+        runStored
+          ? `Local agent run saved for diagnostics. Factory resolved ${runnerFactoryResult.selectedTransport} to ${runnerFactoryResult.resolvedTransport}. No real Avanza bridge is connected, no Avanza session was opened, and no broker order was created.`
+          : `Bridge-backed diagnostics runner finished, but the local agent run could not be saved. Factory resolved ${runnerFactoryResult.selectedTransport} to ${runnerFactoryResult.resolvedTransport}. No Avanza session was opened and no broker order was created.`,
+      );
+      setPreparationStubMessage(
+        `Bridge factory runner finished. ${runnerFactoryResult.reason} Avanza was not opened, no order was prepared or submitted, and no broker result was created.`,
+      );
+    } catch (error) {
+      setAgentRunnerError(
+        error instanceof Error
+          ? error.message
+          : "Bridge-backed diagnostics runner failed safely without broker action.",
+      );
+    } finally {
+      setIsAgentRunnerRunning(false);
+    }
+  }
+
+  function captureStubBrokerResult() {
+    setStubCaptureMessage("");
+    setStubCaptureError("");
+
+    if (!canRunCaptureStub) {
+      setStubCaptureError(
+        "Dev capture stub is available only after the preparation stub reaches its placeholder state.",
+      );
+      return;
+    }
+
+    const capturedAt = new Date().toISOString();
+    const lifecycleForCapture = captureBaseLifecycle ?? localLifecycle;
+    const brokerTimestamp = stubBrokerTimestamp.trim() || capturedAt;
+    const requestedPrice = executionIntentIntendedPrice(selectedIntent);
+    const executedPrice = stubExecutedPrice.trim()
+      ? Number(stubExecutedPrice.trim().replace(",", "."))
+      : null;
+    const brokerResult = {
+      broker: "avanza",
+      broker_hint: "AVANZA" as const,
+      mode: selectedIntent.mode,
+      action: selectedIntent.action,
+      ticker: selectedIntent.trading_package.ticker,
+      instrumentName:
+        "instrumentName" in selectedIntent &&
+        typeof selectedIntent.instrumentName === "string"
+          ? selectedIntent.instrumentName
+          : status.ticker,
+      quantity: selectedIntent.trading_package.quantity,
+      orderType: selectedIntent.trading_package.order_type,
+      requestedPrice,
+      executedPrice: Number.isFinite(executedPrice) ? executedPrice : null,
+      orderId: stubOrderId.trim() || null,
+      brokerTimestamp,
+      status: stubBrokerStatus,
+      captured_at: capturedAt,
+      submitted_at: brokerTimestamp,
+      filled_at:
+        stubBrokerStatus === "filled" ||
+        stubBrokerStatus === "partially_filled"
+          ? brokerTimestamp
+          : null,
+      filled_quantity:
+        stubBrokerStatus === "filled" ||
+        stubBrokerStatus === "partially_filled"
+          ? selectedIntent.trading_package.quantity
+          : null,
+      average_fill_price: Number.isFinite(executedPrice) ? executedPrice : null,
+      broker_order_id: stubOrderId.trim() || null,
+      rejection_reason:
+        stubBrokerStatus === "rejected"
+          ? "Local dev stub rejection. No real broker confirmation was received."
+          : null,
+      cancellation_reason:
+        stubBrokerStatus === "cancelled"
+          ? "Local dev stub cancellation. No real broker confirmation was received."
+          : null,
+      raw_status: `LOCAL_DEV_STUB_${stubBrokerStatus.toUpperCase()}`,
+      rawBrokerSummary:
+        "Local dev broker result capture stub only. This is not a real Avanza confirmation.",
+      notes: [
+        "LOCAL DEV STUB ONLY - not a real Avanza broker confirmation.",
+        "No Avanza browser automation ran and no real order was prepared or submitted.",
+      ],
+    };
+    const captureResult = buildTureExecutionRecord(selectedIntent, brokerResult, {
+      createdAt: capturedAt,
+    });
+    const recordStored = appendExecutionRecord(captureResult.record);
+    setStubCaptureResult(captureResult);
+
+    appendExecutionAuditEvents([
+      createExecutionAuditEvent({
+        type: "broker_result_captured",
+        createdAt: capturedAt,
+        lifecycleId: lifecycleForCapture.lifecycleId,
+        intentId: selectedIntent.intent_id,
+        recommendationId: selectedIntent.trading_package.recommendation_id,
+        positionId: selectedIntent.trading_package.live_position_id,
+        ticker: selectedIntent.trading_package.ticker,
+        action: selectedIntent.action,
+        mode: selectedIntent.mode,
+        triggerType: selectedIntent.trigger_type,
+        broker: "avanza",
+        handoffVersion: selectedHandoff.version,
+        handoffStatus: selectedHandoff.status,
+        brokerStatus: stubBrokerStatus,
+        message:
+          "Dev broker result capture stub recorded locally. No real broker confirmation was received and no Avanza order was executed.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_real_broker_confirmation: true,
+          no_order_prepared: true,
+          no_order_submitted: true,
+          capture_status: captureResult.captureStatus,
+          broker_status: stubBrokerStatus,
+          record_id: captureResult.record.recordId,
+          record_stored_locally: recordStored,
+        },
+      }),
+    ]);
+
+    const captureTransition = transitionExecutionLifecycle(
+      lifecycleForCapture,
+      "capture_broker_result",
+      {
+        createdAt: capturedAt,
+        intentId: selectedIntent.intent_id,
+        mode: selectedIntent.mode,
+        action: selectedIntent.action,
+        triggerType: selectedIntent.trigger_type,
+        brokerStatus: stubBrokerStatus,
+        message:
+          "Local dev stub captured a broker result placeholder. No real broker confirmation was received.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_real_broker_confirmation: true,
+          capture_status: captureResult.captureStatus,
+          broker_status: stubBrokerStatus,
+          record_id: captureResult.record.recordId,
+          record_stored_locally: recordStored,
+          handoff_status: selectedHandoff.status,
+        },
+      },
+    );
+
+    if (!captureTransition.ok) {
+      setStubCaptureError(captureTransition.error);
+      return;
+    }
+
+    appendExecutionAuditEvents([
+      buildExecutionAuditEventFromLifecycleEvent(
+        captureTransition.event,
+        captureTransition.snapshot,
+      ),
+    ]);
+
+    const terminalEvent = terminalExecutionEventForBrokerStatus(
+      stubBrokerStatus,
+      captureResult.captureStatus,
+    );
+    const terminalTransition = transitionExecutionLifecycle(
+      captureTransition.snapshot,
+      terminalEvent,
+      {
+        createdAt: capturedAt,
+        intentId: selectedIntent.intent_id,
+        mode: selectedIntent.mode,
+        action: selectedIntent.action,
+        triggerType: selectedIntent.trigger_type,
+        brokerStatus: stubBrokerStatus,
+        message:
+          "Local dev stub moved the execution lifecycle after broker result capture. No real broker action occurred.",
+        metadata: {
+          stub_only: true,
+          broker_connected: false,
+          no_real_broker_confirmation: true,
+          capture_status: captureResult.captureStatus,
+          broker_status: stubBrokerStatus,
+          record_id: captureResult.record.recordId,
+          record_stored_locally: recordStored,
+          handoff_status: selectedHandoff.status,
+        },
+      },
+    );
+
+    if (terminalTransition.ok) {
+      setLocalLifecycle(terminalTransition.snapshot);
+      setCaptureBaseLifecycle(null);
+      appendExecutionAuditEvents([
+        buildExecutionAuditEventFromLifecycleEvent(
+          terminalTransition.event,
+          terminalTransition.snapshot,
+        ),
+      ]);
+    } else {
+      setLocalLifecycle(captureTransition.snapshot);
+      setStubCaptureError(terminalTransition.error);
+    }
+
+    setStubCaptureMessage(
+      recordStored
+        ? "Dev broker result captured and stored locally. This local record was created by the dev capture stub. It is not a real Avanza confirmation and it does not update the trade."
+        : "Dev broker result captured in the modal, but could not be stored locally. This is not a real Avanza confirmation and it does not update the trade.",
+    );
+  }
+
+  return (
+    <div
+      className="trade-recommendation-details-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        event.stopPropagation();
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+      onMouseDown={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <section
+        aria-labelledby="trade-execution-handoff-preview-title"
+        aria-modal="true"
+        className="trade-recommendation-details-modal trade-live-details-modal"
+        role="dialog"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="trade-recommendation-details-titlebar">
+          <h2 id="trade-execution-handoff-preview-title">
+            Execution Handoff Preview
+          </h2>
+          <button
+            type="button"
+            aria-label="Close execution handoff preview"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
+            className="trade-recommendation-details-close"
+          >
+            <Image
+              src="/trade-assets/x-icn.svg"
+              alt=""
+              aria-hidden="true"
+              width={29}
+              height={29}
+            />
+          </button>
+        </div>
+
+        <div className="trade-recommendation-details-scroll">
+          <header className="trade-recommendation-details-header">
+            <CompanyIdentity
+              ticker={packageSnapshot.ticker}
+              companyName={status.ticker ?? packageSnapshot.ticker}
+              size="live"
+            />
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              <span
+                className={`inline-flex rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionUiStatusBadgeClassName(
+                  status.badgeTone,
+                )}`}
+              >
+                {status.label}
+              </span>
+              <span
+                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionHandoffStatusTone(
+                  handoff.status,
+                )}`}
+              >
+                Handoff {agentCommandValue(handoff.status)}
+              </span>
+            </div>
+          </header>
+
+          <div
+            className={`rounded-md border p-4 ${executionUiStatusPanelClassName(
+              status.severity,
+            )}`}
+          >
+            <p className="text-sm font-semibold text-zinc-100">{status.title}</p>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              {status.description}
+            </p>
+            <p className="mt-3 text-xs leading-5 text-zinc-400">
+              {authorityMessage}
+            </p>
+          </div>
+
+          <div className="rounded-md border border-cyan-300/15 bg-cyan-300/[0.045] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">
+                  Future agent request
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-300">
+                  Preview of the typed payload Ture would send to a future
+                  Avanza browser agent. No broker agent is connected in this
+                  build, and this preview is not a live order.
+                </p>
+              </div>
+              <span
+                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
+                  avanzaAgentRequestValidationStatus,
+                )}`}
+              >
+                {avanzaAgentRequestValidationStatus === "ok"
+                  ? "Valid"
+                  : avanzaAgentRequestValidationStatus === "warning"
+                    ? "Warnings"
+                    : "Unavailable"}
+              </span>
+            </div>
+
+            {avanzaAgentRequest ? (
+              <>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <Detail label="Version" value={avanzaAgentRequest.version} />
+                  <Detail
+                    label="Request"
+                    value={shortPayloadId(avanzaAgentRequest.requestId)}
+                  />
+                  <Detail
+                    label="Broker"
+                    value={agentCommandValue(avanzaAgentRequest.broker)}
+                  />
+                  <Detail
+                    label="Mode"
+                    value={agentCommandValue(avanzaAgentRequest.mode)}
+                  />
+                  <Detail
+                    label="Action"
+                    value={agentCommandValue(avanzaAgentRequest.action)}
+                  />
+                  <Detail label="Ticker" value={packageSnapshot.ticker} />
+                  <Detail
+                    label="Quantity"
+                    value={formatShares(packageSnapshot.quantity)}
+                  />
+                  <Detail
+                    label="Manual Final"
+                    value={agentCommandValue(
+                      avanzaAgentRequest.requireManualFinalConfirmation,
+                    )}
+                  />
+                  <Detail
+                    label="Auto Submit"
+                    value={agentCommandValue(
+                      avanzaAgentRequest.allowAutomaticFinalSubmit,
+                    )}
+                  />
+                </div>
+
+                <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                  {avanzaAgentRequest.mode === "automatic"
+                    ? "Automatic final submit authority is enabled only when handoff safety checks pass. No broker agent is connected in this build."
+                    : "Manual final confirmation required. A future agent may fill the order form, but you must press final KÖP/SÄLJ."}
+                </p>
+
+                {avanzaAgentRequestValidation &&
+                  (avanzaAgentRequestValidation.errors.length > 0 ||
+                    avanzaAgentRequestValidation.warnings.length > 0) && (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {avanzaAgentRequestValidation.errors.length > 0 && (
+                        <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
+                            Errors
+                          </p>
+                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                            {avanzaAgentRequestValidation.errors.map((error) => (
+                              <li key={error}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {avanzaAgentRequestValidation.warnings.length > 0 && (
+                        <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                            Warnings
+                          </p>
+                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                            {avanzaAgentRequestValidation.warnings.map(
+                              (warning) => (
+                                <li key={warning}>{warning}</li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {executionDevToolsEnabled && (
+                  <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+                    <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                      Request JSON - future-agent payload only
+                    </summary>
+                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+                      {JSON.stringify(avanzaAgentRequest, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </>
+            ) : (
+              <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+                {avanzaAgentRequestPreview.error ??
+                  "Future agent request preview is unavailable for this handoff."}
+              </p>
+            )}
+          </div>
+
+          {executionDevToolsEnabled && avanzaAgentRequest && (
+            <div className="rounded-md border border-violet-300/15 bg-violet-300/[0.045] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-violet-100">
+                      DEV ONLY
+                    </span>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-violet-100">
+                      Bridge request envelope
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    Local boundary payload a future external Avanza agent bridge
+                    would receive. No transport is connected, the envelope is
+                    not sent anywhere, and this is not a live order.
+                  </p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
+                    avanzaAgentBridgeEnvelopeValidationStatus,
+                  )}`}
+                >
+                  {avanzaAgentBridgeEnvelopeValidationStatus === "ok"
+                    ? "Valid"
+                    : avanzaAgentBridgeEnvelopeValidationStatus === "warning"
+                      ? "Warnings"
+                      : "Unavailable"}
+                </span>
+              </div>
+
+              {avanzaAgentBridgeEnvelope ? (
+                <>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <Detail
+                      label="Envelope Version"
+                      value={avanzaAgentBridgeEnvelope.version}
+                    />
+                    <Detail
+                      label="Envelope"
+                      value={shortPayloadId(
+                        avanzaAgentBridgeEnvelope.envelopeId,
+                      )}
+                    />
+                    <Detail
+                      label="Type"
+                      value={agentCommandValue(avanzaAgentBridgeEnvelope.type)}
+                    />
+                    <Detail
+                      label="Transport"
+                      value={getAvanzaAgentBridgeTransportDisplayLabel(
+                        avanzaAgentBridgeEnvelope.transport,
+                      )}
+                    />
+                    <Detail
+                      label="Request"
+                      value={shortPayloadId(
+                        avanzaAgentBridgeEnvelope.requestId ?? null,
+                      )}
+                    />
+                    <Detail
+                      label="Payload Version"
+                      value={avanzaAgentRequest.version}
+                    />
+                    <Detail
+                      label="Payload Mode"
+                      value={agentCommandValue(avanzaAgentRequest.mode)}
+                    />
+                    <Detail
+                      label="Payload Action"
+                      value={agentCommandValue(avanzaAgentRequest.action)}
+                    />
+                    <Detail label="Payload Ticker" value={packageSnapshot.ticker} />
+                  </div>
+
+                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
+                    Transport is{" "}
+                    {getAvanzaAgentBridgeTransportDisplayLabel(
+                      avanzaAgentBridgeEnvelope.transport,
+                    )}
+                    . This preview does not call bridge.sendRequest, create
+                    progress events, write diagnostics, or contact Avanza.
+                  </p>
+
+                  {avanzaAgentBridgeEnvelopeValidation &&
+                    (avanzaAgentBridgeEnvelopeValidation.errors.length > 0 ||
+                      avanzaAgentBridgeEnvelopeValidation.warnings.length > 0) && (
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {avanzaAgentBridgeEnvelopeValidation.errors.length > 0 && (
+                          <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
+                              Envelope errors
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {avanzaAgentBridgeEnvelopeValidation.errors.map(
+                                (error) => (
+                                  <li key={error}>{error}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {avanzaAgentBridgeEnvelopeValidation.warnings.length >
+                          0 && (
+                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                              Envelope warnings
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {avanzaAgentBridgeEnvelopeValidation.warnings.map(
+                                (warning) => (
+                                  <li key={warning}>{warning}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+                    <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                      Envelope JSON - diagnostics only
+                    </summary>
+                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+                      {JSON.stringify(avanzaAgentBridgeEnvelope, null, 2)}
+                    </pre>
+                  </details>
+                </>
+              ) : (
+                <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+                  {avanzaAgentBridgeEnvelopePreview.error ??
+                    "Bridge request envelope preview is unavailable."}
+                </p>
+              )}
+            </div>
+          )}
+
+          {executionDevToolsEnabled &&
+            avanzaAgentRequest &&
+            avanzaAgentBridgeEnvelope && (
+              <div className="rounded-md border border-cyan-300/15 bg-cyan-300/[0.045] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+                        DEV ONLY
+                      </span>
+                      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">
+                        Localhost bridge echo
+                      </p>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-zinc-300">
+                      Dev only. Calls local stub server. No
+                      Avanza/browser/broker. This sends the existing request
+                      envelope to localhost dry-run `/run` only when you click.
+                    </p>
+                  </div>
+                  <span
+                    className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
+                      localhostBridgeRunResult?.ok
+                        ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
+                        : localhostBridgeRunResult
+                          ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                          : "border-white/10 bg-white/[0.04] text-zinc-500"
+                    }`}
+                  >
+                    {localhostBridgeRunResult?.ok
+                      ? "Echo complete"
+                      : localhostBridgeRunResult
+                        ? "Needs attention"
+                        : "Not run"}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-5 text-zinc-500">
+                    Requires the local stub from{" "}
+                    <span className="font-mono text-zinc-300">
+                      npm run bridge:localhost
+                    </span>
+                    . It never creates a broker record or changes the trade.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!canRunLocalhostBridgeDryRun}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void runLocalhostBridgeEcho();
+                    }}
+                    className="min-h-10 rounded-md border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+                  >
+                    {isLocalhostBridgeRunRunning
+                      ? "Running localhost echo"
+                      : "Run localhost bridge echo"}
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3 rounded-md border border-white/10 bg-black/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-5 text-zinc-500">
+                    Dev only. Calls local stub `/cancel`. Does not cancel a real
+                    broker action, Avanza session, order, or trade.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!canCancelLocalhostBridgeRun}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void cancelLocalhostBridgeEcho();
+                    }}
+                    className="min-h-10 rounded-md border border-amber-300/25 bg-amber-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100 transition hover:border-amber-200/50 hover:bg-amber-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+                  >
+                    {isLocalhostBridgeCancelRunning
+                      ? "Cancelling localhost stub"
+                      : "Cancel localhost bridge run"}
+                  </button>
+                </div>
+
+                {localhostBridgeRunMessage && (
+                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                    {localhostBridgeRunMessage}
+                  </p>
+                )}
+
+                {localhostBridgeCancelMessage && (
+                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                    {localhostBridgeCancelMessage}
+                  </p>
+                )}
+
+                {localhostBridgeRunResult && (
+                  <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+                          Localhost bridge echo result
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">
+                          {localhostBridgeRunResult.response?.message ??
+                            "Localhost bridge echo finished safely. No broker action occurred."}
+                        </p>
+                      </div>
+                      <span className="w-fit rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+                        {localhostBridgeRunResult.ok ? "OK" : "Safe stop"}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3 text-xs leading-5 text-cyan-100">
+                      Localhost bridge stub only. Avanza was not opened, no
+                      browser automation ran, no order was prepared or
+                      submitted, and no broker result was created.
+                    </p>
+
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <Detail
+                        label="Reachable"
+                        value={
+                          localhostBridgeRunResult.reachable ? "Yes" : "No"
+                        }
+                      />
+                      <Detail
+                        label="OK"
+                        value={localhostBridgeRunResult.ok ? "Yes" : "No"}
+                      />
+                      <Detail
+                        label="Status Code"
+                        value={
+                          typeof localhostBridgeRunResult.statusCode === "number"
+                            ? String(localhostBridgeRunResult.statusCode)
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Accepted"
+                        value={
+                          typeof localhostBridgeRunResult.response?.accepted ===
+                          "boolean"
+                            ? localhostBridgeRunResult.response.accepted
+                              ? "Yes"
+                              : "No"
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Result Status"
+                        value={
+                          localhostBridgeRunResult.result?.status
+                            ? agentCommandValue(
+                                localhostBridgeRunResult.result.status,
+                              )
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Progress Events"
+                        value={
+                          localhostBridgeRunResult.result
+                            ? String(
+                                localhostBridgeRunResult.result.progressEvents
+                                  .length,
+                              )
+                            : "0"
+                        }
+                      />
+                      <Detail
+                        label="Broker Result"
+                        value={
+                          localhostBridgeRunResult.result?.brokerResult
+                            ? "Unexpected result present"
+                            : "Absent"
+                        }
+                      />
+                      <Detail
+                        label="Mock Page"
+                        value={
+                          localhostBridgeRunResult.response
+                            ?.mockOrderPageAvailable
+                            ? "Available"
+                            : "Not provided"
+                        }
+                      />
+                      <Detail
+                        label="Mock Fill Plan"
+                        value={
+                          typeof localhostBridgeRunResult.response
+                            ?.mockOrderFillPlanValid === "boolean"
+                            ? localhostBridgeRunResult.response
+                                .mockOrderFillPlanValid
+                              ? "Valid"
+                              : "Invalid"
+                            : "Not provided"
+                        }
+                      />
+                      <Detail
+                        label="Base URL"
+                        value={localhostBridgeRunResult.baseUrl}
+                      />
+                      <Detail
+                        label="Completed"
+                        value={formatDate(localhostBridgeRunResult.completedAt)}
+                      />
+                    </div>
+
+                    {localhostBridgeRunResult.response?.mockOrderPageUrl && (
+                      <div className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3">
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+                          Mock order page fill plan
+                        </p>
+                        <p className="mt-2 text-xs leading-5 text-zinc-300">
+                          {localhostBridgeRunResult.response
+                            .mockOrderPageMessage ??
+                            "Mock order fill plan generated for local testing only. No browser was opened."}
+                        </p>
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <span className="break-all font-mono text-xs text-zinc-400">
+                            {
+                              localhostBridgeRunResult.response
+                                .mockOrderPageUrl
+                            }
+                          </span>
+                          <Link
+                            className="inline-flex w-fit rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15"
+                            href={
+                              localhostBridgeRunResult.response
+                                .mockOrderPageUrl
+                            }
+                          >
+                            Open mock order page
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {localhostBridgeRunResult.response
+                      ?.mockOrderFillPlanErrors &&
+                      localhostBridgeRunResult.response.mockOrderFillPlanErrors
+                        .length > 0 && (
+                        <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                            Mock fill plan errors
+                          </p>
+                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                            {localhostBridgeRunResult.response.mockOrderFillPlanErrors.map(
+                              (error) => (
+                                <li key={error}>{error}</li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    {localhostBridgeRunResult.response?.mockOrderFillPlan && (
+                      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+                        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                          Mock fill plan JSON - dry-run only
+                        </summary>
+                        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+                          {JSON.stringify(
+                            localhostBridgeRunResult.response
+                              .mockOrderFillPlan,
+                            null,
+                            2,
+                          )}
+                        </pre>
+                      </details>
+                    )}
+
+                    {(localhostBridgeRunResult.errors.length > 0 ||
+                      localhostBridgeRunResult.warnings.length > 0) && (
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {localhostBridgeRunResult.errors.length > 0 && (
+                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                              Localhost errors
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {localhostBridgeRunResult.errors.map((error) => (
+                                <li key={error}>{error}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {localhostBridgeRunResult.warnings.length > 0 && (
+                          <div className="rounded-md border border-cyan-300/15 bg-black/15 p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+                              Localhost warnings
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {localhostBridgeRunResult.warnings.map(
+                                (warning) => (
+                                  <li key={warning}>{warning}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {localhostBridgeCancelResult && (
+                  <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+                          Localhost bridge cancel result
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">
+                          {localhostBridgeCancelResult.response?.message ??
+                            "Localhost bridge cancel finished safely. No broker action was cancelled."}
+                        </p>
+                      </div>
+                      <span className="w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
+                        {localhostBridgeCancelResult.ok ? "Acknowledged" : "Safe stop"}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
+                      Localhost bridge cancel stub only. No Avanza session,
+                      browser automation, broker order, or trade state was
+                      cancelled.
+                    </p>
+
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <Detail
+                        label="Reachable"
+                        value={
+                          localhostBridgeCancelResult.reachable ? "Yes" : "No"
+                        }
+                      />
+                      <Detail
+                        label="OK"
+                        value={localhostBridgeCancelResult.ok ? "Yes" : "No"}
+                      />
+                      <Detail
+                        label="Status Code"
+                        value={
+                          typeof localhostBridgeCancelResult.statusCode ===
+                          "number"
+                            ? String(localhostBridgeCancelResult.statusCode)
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Cancelled"
+                        value={
+                          typeof localhostBridgeCancelResult.cancelled ===
+                          "boolean"
+                            ? localhostBridgeCancelResult.cancelled
+                              ? "Yes"
+                              : "No"
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Request"
+                        value={
+                          localhostBridgeCancelResult.response?.requestId
+                            ? shortPayloadId(
+                                localhostBridgeCancelResult.response.requestId,
+                              )
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Base URL"
+                        value={localhostBridgeCancelResult.baseUrl}
+                      />
+                    </div>
+
+                    {localhostBridgeCancelResult.errors.length > 0 && (
+                      <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                          Localhost cancel errors
+                        </p>
+                        <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                          {localhostBridgeCancelResult.errors.map((error) => (
+                            <li key={error}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+          {executionDevToolsEnabled && (
+            <div className="rounded-md border border-lime-300/15 bg-lime-300/[0.04] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-lime-300/30 bg-lime-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-lime-100">
+                      DEV ONLY
+                    </span>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-lime-100">
+                      Execution Sandbox QA
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    Local checklist for the typed execution sandbox chain. No
+                    external bridge is connected, no Avanza session will open,
+                    and no broker order can be created from this panel.
+                  </p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionSandboxQaOverallTone(
+                    sandboxOverallStatus,
+                  )}`}
+                >
+                  {agentCommandLabel(sandboxOverallStatus)}
+                </span>
+              </div>
+
+              <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                {sandboxOverallMessage}
+              </p>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {executionSandboxQaItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-md border border-white/10 bg-black/25 p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                        {item.label}
+                      </p>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${executionSandboxQaTone(
+                          item.status,
+                        )}`}
+                      >
+                        {agentCommandLabel(item.status)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-zinc-300">
+                      {item.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-3 text-xs leading-5 text-zinc-500">
+                QA status is derived in memory from this modal only. It is not
+                persisted, logged, sent to a bridge, or used to change trade
+                state.
+              </p>
+            </div>
+          )}
+
+          {executionDevToolsEnabled && avanzaAgentRequest && (
+            <div className="rounded-md border border-sky-300/15 bg-sky-300/[0.045] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100">
+                      DEV ONLY
+                    </span>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-sky-100">
+                      Agent progress stub
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    Test the future agent-progress pipeline locally. Events are
+                    audit-log stubs only; no Avanza browser agent is connected,
+                    no broker result is created, and no trade state changes.
+                  </p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
+                    localLifecycle.currentState,
+                  )}`}
+                >
+                  {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <label className="block">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Progress event type
+                  </span>
+                  <select
+                    value={selectedAgentProgressType}
+                    onChange={(event) =>
+                      setSelectedAgentProgressType(
+                        event.target.value as AvanzaAgentProgressEventType,
+                      )
+                    }
+                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-sky-300"
+                  >
+                    {agentProgressStubEventTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {getAvanzaAgentProgressDisplayLabel(type)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    addAgentProgressStubEvent();
+                  }}
+                  className="min-h-10 rounded-md border border-sky-300/25 bg-sky-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100 transition hover:border-sky-200/50 hover:bg-sky-300/15"
+                >
+                  Add progress event
+                </button>
+              </div>
+
+              <p className="mt-3 text-xs leading-5 text-zinc-500">
+                Request {shortPayloadId(avanzaAgentRequest.requestId)} · mapped
+                lifecycle transitions are attempted only when the current modal
+                state allows them.
+              </p>
+
+              {agentProgressStubMessage && (
+                <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
+                  {agentProgressStubMessage}
+                </p>
+              )}
+
+              {agentProgressStubError && (
+                <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
+                  {agentProgressStubError}
+                </p>
+              )}
+
+              {agentProgressTimeline.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {agentProgressTimeline.map((item) => (
+                    <div
+                      key={item.progressEvent.eventId}
+                      className="rounded-md border border-white/10 bg-black/25 p-3"
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-300">
+                            {getAvanzaAgentProgressDisplayLabel(
+                              item.progressEvent.type,
+                            )}
+                          </p>
+                          <p className="mt-1 text-xs leading-5 text-zinc-500">
+                            {formatDate(item.progressEvent.createdAt)} · event{" "}
+                            {shortPayloadId(item.progressEvent.eventId)}
+                          </p>
+                        </div>
+                        <span
+                          className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${agentProgressLifecycleTone(
+                            item.lifecycleTransitionStatus,
+                          )}`}
+                        >
+                          {item.lifecycleTransitionStatus === "applied"
+                            ? "Mapped"
+                            : item.lifecycleTransitionStatus === "invalid"
+                              ? "Invalid transition"
+                              : "No mapping"}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-zinc-300">
+                        {item.progressEvent.message}
+                      </p>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <Detail
+                          label="Lifecycle Event"
+                          value={
+                            item.mappedLifecycleEventType
+                              ? agentCommandValue(item.mappedLifecycleEventType)
+                              : "—"
+                          }
+                        />
+                        <Detail
+                          label="Lifecycle Note"
+                          value={item.lifecycleNote}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
+                  Avanza preparation stub
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-300">
+                  {executionDevToolsEnabled
+                    ? "This button only advances local preview state. It does not open Avanza, prepare a real order, submit KÖP/SÄLJ, or save anything."
+                    : "Avanza preparation is not connected in this build."}
+                </p>
+              </div>
+              <span
+                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
+                  localLifecycle.currentState,
+                )}`}
+              >
+                {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs leading-5 text-zinc-500">
+                {handoff.status === "ready"
+                  ? executionDevToolsEnabled
+                    ? "Ready handoff. The bridge-backed diagnostics runner tests where a future Avanza agent bridge would begin without opening Avanza."
+                    : "Ready handoff. Avanza preparation is disabled because execution dev tools are off."
+                  : "Preparation is disabled until the handoff is ready."}
+              </p>
+              <button
+                type="button"
+                disabled={!canRunPreparationStub}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  runPreparationStub();
+                }}
+                className="min-h-10 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/50 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+              >
+                {isAgentRunnerRunning
+                  ? "Running bridge diagnostics"
+                  : preparationStubReached
+                    ? "Stub reached"
+                    : executionDevToolsEnabled
+                      ? "Prepare in Avanza"
+                      : "Not connected"}
+              </button>
+            </div>
+
+            {!executionDevToolsEnabled && (
+              <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-400">
+                Execution dev tools are disabled in this build. The future
+                Avanza bridge is not connected, and no local bridge-backed
+                diagnostics runner will run from this modal.
+              </p>
+            )}
+
+            {preparationStubMessage && (
+              <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
+                {preparationStubMessage}
+              </p>
+            )}
+
+            {preparationStubError && (
+              <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
+                {preparationStubError}
+              </p>
+            )}
+
+            {executionDevToolsEnabled && agentRunnerError && (
+              <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
+                {agentRunnerError}
+              </p>
+            )}
+
+            {executionDevToolsEnabled && agentRunStoreMessage && (
+              <p className="mt-3 rounded-md border border-sky-300/20 bg-sky-300/[0.06] p-3 text-sm leading-6 text-sky-100">
+                {agentRunStoreMessage}
+              </p>
+            )}
+
+            {executionDevToolsEnabled && agentRunnerResult && (
+              <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+                      Bridge-backed diagnostics runner result
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                      {agentRunnerResult.error ??
+                        agentRunnerResult.rawSummary ??
+                        "Bridge-backed diagnostics runner finished without broker action."}
+                    </p>
+                  </div>
+                  <span className="w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
+                    {agentCommandValue(agentRunnerResult.status)}
+                  </span>
+                </div>
+
+                <p className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3 text-xs leading-5 text-cyan-100">
+                  Bridge-backed diagnostics runner only. Echo bridge and no-op
+                  bridge are local protocol tools only. Avanza was not opened,
+                  no order was prepared or submitted, and no broker result was
+                  created.
+                </p>
+
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <Detail
+                    label="Request"
+                    value={shortPayloadId(agentRunnerResult.requestId)}
+                  />
+                  <Detail
+                    label="Progress Events"
+                    value={String(agentRunnerResult.progressEvents.length)}
+                  />
+                  <Detail
+                    label="Broker Result"
+                    value={
+                      agentRunnerResult.brokerResult
+                        ? "Unexpected result present"
+                        : "Absent"
+                    }
+                  />
+                  <Detail
+                    label="Raw Summary"
+                    value={agentRunnerResult.rawSummary ?? "—"}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {devCaptureStubVisible && (
+            <div className="rounded-md border border-fuchsia-300/20 bg-fuchsia-300/[0.045] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100">
+                      DEV ONLY
+                    </span>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-100">
+                      Broker result capture stub
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    Test Ture&apos;s capture pipeline without Avanza. This does
+                    not confirm a real KÖP/SÄLJ, update the trade, close the
+                    position, or write to Supabase.
+                  </p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
+                    localLifecycle.currentState,
+                  )}`}
+                >
+                  {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Broker status
+                  </span>
+                  <select
+                    value={stubBrokerStatus}
+                    disabled={!canRunCaptureStub}
+                    onChange={(event) =>
+                      setStubBrokerStatus(
+                        event.target.value as BrokerExecutionStatus,
+                      )
+                    }
+                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
+                  >
+                    <option value="submitted">Submitted</option>
+                    <option value="filled">Filled</option>
+                    <option value="partially_filled">Partially filled</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Executed price
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={stubExecutedPrice}
+                    disabled={!canRunCaptureStub}
+                    onChange={(event) => setStubExecutedPrice(event.target.value)}
+                    placeholder="Optional"
+                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Order id
+                  </span>
+                  <input
+                    value={stubOrderId}
+                    disabled={!canRunCaptureStub}
+                    onChange={(event) => setStubOrderId(event.target.value)}
+                    placeholder="Optional local stub id"
+                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Broker timestamp
+                  </span>
+                  <input
+                    value={stubBrokerTimestamp}
+                    disabled={!canRunCaptureStub}
+                    onChange={(event) =>
+                      setStubBrokerTimestamp(event.target.value)
+                    }
+                    placeholder="Optional, defaults to now"
+                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs leading-5 text-zinc-500">
+                  Capturing creates a modal-local execution record and a local
+                  audit event only. It is not production broker evidence.
+                </p>
+                <button
+                  type="button"
+                  disabled={!canRunCaptureStub}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    captureStubBrokerResult();
+                  }}
+                  className="min-h-10 rounded-md border border-fuchsia-300/25 bg-fuchsia-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100 transition hover:border-fuchsia-200/50 hover:bg-fuchsia-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+                >
+                  Capture stub broker result
+                </button>
+              </div>
+
+              {stubCaptureMessage && (
+                <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
+                  {stubCaptureMessage}
+                </p>
+              )}
+
+              {stubCaptureError && (
+                <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
+                  {stubCaptureError}
+                </p>
+              )}
+
+              {stubCaptureResult && (
+                <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+                        Local capture result
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-zinc-400">
+                        {stubCaptureResult.reason}
+                      </p>
+                    </div>
+                    <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                      {stubCaptureResult.captureStatus}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <Detail
+                      label="Record"
+                      value={shortPayloadId(stubCaptureResult.record.recordId)}
+                    />
+                    <Detail
+                      label="Broker Status"
+                      value={agentCommandValue(
+                        stubCaptureResult.record.brokerStatus,
+                      )}
+                    />
+                    <Detail
+                      label="Ticker"
+                      value={stubCaptureResult.record.ticker ?? "—"}
+                    />
+                    <Detail
+                      label="Quantity"
+                      value={formatShares(stubCaptureResult.record.quantity)}
+                    />
+                    <Detail
+                      label="Requested Price"
+                      value={formatCurrency(
+                        stubCaptureResult.record.requestedPrice,
+                      )}
+                    />
+                    <Detail
+                      label="Executed Price"
+                      value={formatCurrency(
+                        stubCaptureResult.record.executedPrice,
+                      )}
+                    />
+                    <Detail
+                      label="Order Id"
+                      value={stubCaptureResult.record.orderId ?? "—"}
+                    />
+                    <Detail
+                      label="Lifecycle"
+                      value={getExecutionLifecycleDisplayLabel(
+                        localLifecycle.currentState,
+                      )}
+                    />
+                    <Detail
+                      label="Reason"
+                      value={stubCaptureResult.record.reason}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Detail label="Action" value={intent.action.toUpperCase()} />
+            <Detail label="Ticker" value={packageSnapshot.ticker} />
+            <Detail label="Quantity" value={formatShares(packageSnapshot.quantity)} />
+            <Detail
+              label="Intended Price"
+              value={formatCurrency(executionIntentIntendedPrice(intent))}
+            />
+            <Detail
+              label="Target"
+              value={formatCurrency(packageSnapshot.target_price)}
+            />
+            <Detail
+              label="Stop Loss"
+              value={formatCurrency(packageSnapshot.stop_loss)}
+            />
+            <Detail
+              label="Trigger"
+              value={agentCommandValue(intent.trigger_type)}
+            />
+            <Detail label="Mode" value={agentCommandValue(intent.mode)} />
+            <Detail label="Broker" value="Avanza" />
+            <Detail
+              label="Can Prepare"
+              value={agentCommandValue(handoff.canPrepareOrder)}
+            />
+            <Detail
+              label="Can Submit Final"
+              value={agentCommandValue(handoff.canSubmitFinalOrder)}
+            />
+            <Detail
+              label="Intent"
+              value={shortPayloadId(intent.intent_id)}
+            />
+          </div>
+
+          {handoff.blockedReason && (
+            <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                Blocked reason
+              </p>
+              <p className="mt-2 text-sm leading-6 text-zinc-300">
+                {handoff.blockedReason}
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-md border border-white/10 bg-black/20 p-4">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+              Intent reason
+            </p>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              {executionIntentReason(intent)}
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-black/20 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
+                  Safety checks
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  Read-only checks for the future Avanza execution handoff.
+                </p>
+              </div>
+              <span
+                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionHandoffStatusTone(
+                  handoff.status,
+                )}`}
+              >
+                {agentCommandValue(handoff.status)}
+              </span>
+            </div>
+
+            <div className="mt-3 space-y-2">
+              {handoff.safetyChecks.map((check) => (
+                <div
+                  key={check.id}
+                  className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="text-sm font-semibold text-zinc-200">
+                      {agentCommandValue(check.id)}
+                    </p>
+                    <span
+                      className={`w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${executionSafetyCheckTone(
+                        check.status,
+                      )}`}
+                    >
+                      {check.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">
+                    {check.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="trade-add-modal__footer">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onClose();
+              }}
+              className="trade-discard-modal__button trade-discard-modal__button--neutral"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function SellHardStopContractPanel({

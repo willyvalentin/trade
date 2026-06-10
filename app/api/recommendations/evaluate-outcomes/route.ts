@@ -6,6 +6,7 @@ import {
   persistRecommendationOutcome,
   recommendationOutcomeFromPersistenceRow,
   readRecommendationOutcomesFromLocalStorage,
+  resolveRecommendationOutcomeSide,
   type RecommendationOutcome,
   type RecommendationOutcomeHorizon,
   type RecommendationOutcomePersistenceResult,
@@ -24,6 +25,7 @@ import { supabase } from "@/lib/supabase";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -35,6 +37,33 @@ type EvaluateOutcomesRequest = {
   max_snapshots?: unknown;
   max_candle_requests?: unknown;
   enrich_completed_outcomes?: unknown;
+};
+
+type OutcomeSnapshotIneligibleReason =
+  | "diagnostic_dry_run"
+  | "duplicate_snapshot_fingerprint"
+  | "missing_snapshot_fingerprint"
+  | "missing_ticker"
+  | "missing_side"
+  | "missing_entry"
+  | "missing_stop"
+  | "missing_target"
+  | "missing_recommended_at"
+  | "missing_batch_membership";
+
+type OutcomeEligibilityDiagnostics = {
+  total_snapshots_loaded_for_batch: number;
+  total_recommendation_rows_loaded_for_batch: number;
+  eligible_visible_snapshot_count: number;
+  eligible_learning_snapshot_count: number;
+  eligible_research_only_snapshot_count: number;
+  grow_max_learning_snapshots_included_count: number;
+  ineligible_snapshot_count: number;
+  ineligible_reasons: Record<string, number>;
+  unique_snapshot_fingerprints_count: number;
+  duplicate_snapshot_fingerprints_count: number;
+  visible_grid_count: number;
+  expected_outcome_rows_from_eligible_snapshots: number;
 };
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
@@ -286,11 +315,29 @@ function hasDiagnosticPayload(payload: Record<string, unknown>) {
   );
 }
 
-function isOfficialLiveBatch(row: Record<string, unknown>) {
+function hasDryRunDiagnosticPayload(payload: Record<string, unknown>) {
+  return (
+    payload.diagnostic_mode === true ||
+    payload.batch_type === "diagnostic" ||
+    payload.source_mode === "diagnostic" ||
+    payload.diagnostic_run === true ||
+    payload.dry_run === true
+  );
+}
+
+function isOfficialLiveBatch(
+  row: Record<string, unknown>,
+  options: { includeGrowMaxLearningSnapshots?: boolean } = {},
+) {
   const payload = objectOrNull(row.payload_json) ?? {};
   const batchType = stringOrNull(row.batch_type) ?? stringOrNull(payload.batch_type);
 
-  return batchType === "official" && !hasDiagnosticPayload(payload);
+  return (
+    batchType === "official" &&
+    (options.includeGrowMaxLearningSnapshots
+      ? !hasDryRunDiagnosticPayload(payload)
+      : !hasDiagnosticPayload(payload))
+  );
 }
 
 function isOfficialLiveSnapshot(snapshot: RecommendationSnapshot) {
@@ -313,9 +360,11 @@ function officialEvaluationSnapshot(snapshot: RecommendationSnapshot) {
 
 async function loadOfficialLiveSnapshots({
   batchFingerprint,
+  includeGrowMaxLearningSnapshots,
   now,
 }: {
   batchFingerprint: string | null;
+  includeGrowMaxLearningSnapshots: boolean;
   now: Date;
 }) {
   const serverSupabase = getServerSupabaseClient();
@@ -326,6 +375,7 @@ async function loadOfficialLiveSnapshots({
       error: `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`,
       batch: null as Record<string, unknown> | null,
       snapshots: [] as RecommendationSnapshot[],
+      recommendation_rows_loaded_count: 0,
       missing_snapshot_fingerprints: [] as string[],
     };
   }
@@ -354,7 +404,10 @@ async function loadOfficialLiveSnapshots({
 
     const batch =
       (batchResult.data as Array<Record<string, unknown>>).find(
-        isOfficialLiveBatch,
+        (row) =>
+          isOfficialLiveBatch(row, {
+            includeGrowMaxLearningSnapshots,
+          }),
       ) ?? null;
 
     if (!batch) {
@@ -365,6 +418,7 @@ async function loadOfficialLiveSnapshots({
           : "No non-diagnostic official live batch found for today.",
         batch: null,
         snapshots: [],
+        recommendation_rows_loaded_count: 0,
         missing_snapshot_fingerprints: [],
       };
     }
@@ -374,48 +428,117 @@ async function loadOfficialLiveSnapshots({
       new Set(arrayOfStrings(payload.recommendation_snapshot_fingerprints)),
     );
     const scanRunFingerprint = stringOrNull(batch.scan_run_fingerprint);
-    const snapshotQuery = serverSupabase.client
-      .from("recommendation_snapshots")
-      .select("*")
-      .order("created_at", { ascending: false });
-    const snapshotResult =
-      expectedSnapshotFingerprints.length > 0
-        ? await snapshotQuery.in(
-            "snapshot_fingerprint",
-            expectedSnapshotFingerprints,
-          )
-        : scanRunFingerprint
-          ? await snapshotQuery.eq("scan_run_id", scanRunFingerprint)
-          : await snapshotQuery.limit(0);
+    const snapshotRows: Array<Record<string, unknown>> = [];
+    const snapshotQueryErrors: string[] = [];
 
-    if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+    if (expectedSnapshotFingerprints.length > 0) {
+      const snapshotResult = await serverSupabase.client
+        .from("recommendation_snapshots")
+        .select("*")
+        .in("snapshot_fingerprint", expectedSnapshotFingerprints)
+        .order("created_at", { ascending: false });
+
+      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+        snapshotQueryErrors.push(
+          snapshotResult.error?.message ??
+            "Unable to load snapshots by batch fingerprint members.",
+        );
+      } else {
+        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+      }
+    }
+
+    if (scanRunFingerprint) {
+      const snapshotResult = await serverSupabase.client
+        .from("recommendation_snapshots")
+        .select("*")
+        .eq("scan_run_id", scanRunFingerprint)
+        .order("created_at", { ascending: false });
+
+      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+        snapshotQueryErrors.push(
+          snapshotResult.error?.message ??
+            "Unable to load snapshots by scan run fingerprint.",
+        );
+      } else {
+        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+      }
+    }
+
+    const selectedBatchFingerprint = stringOrNull(batch.batch_fingerprint);
+    if (
+      includeGrowMaxLearningSnapshots &&
+      selectedBatchFingerprint &&
+      expectedSnapshotFingerprints.length === 0 &&
+      !scanRunFingerprint
+    ) {
+      const snapshotResult = await serverSupabase.client
+        .from("recommendation_snapshots")
+        .select("*")
+        .contains("payload_json", { batch_fingerprint: selectedBatchFingerprint })
+        .order("created_at", { ascending: false });
+
+      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+        snapshotQueryErrors.push(
+          snapshotResult.error?.message ??
+            "Unable to load snapshots by payload batch fingerprint.",
+        );
+      } else {
+        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+      }
+    }
+
+    if (snapshotRows.length === 0 && snapshotQueryErrors.length > 0) {
       return {
         status: "failed" as const,
-        error:
-          snapshotResult.error?.message ??
-          "Unable to load official recommendation snapshots.",
+        error: snapshotQueryErrors.join("; "),
         batch,
         snapshots: [],
+        recommendation_rows_loaded_count: 0,
         missing_snapshot_fingerprints: expectedSnapshotFingerprints,
       };
     }
 
-    const snapshots = (snapshotResult.data as Array<Record<string, unknown>>)
+    const rawSnapshots = snapshotRows
       .map(recommendationSnapshotFromPersistenceRow)
       .filter(
         (snapshot): snapshot is RecommendationSnapshot =>
-          snapshot !== null && isOfficialLiveSnapshot(snapshot),
-      )
-      .map(officialEvaluationSnapshot);
+          snapshot !== null,
+      );
+    const snapshots = includeGrowMaxLearningSnapshots
+      ? rawSnapshots
+      : rawSnapshots
+          .filter(isOfficialLiveSnapshot)
+          .map(officialEvaluationSnapshot);
     const foundFingerprints = new Set(
       snapshots.map((snapshot) => snapshot.snapshot_fingerprint),
     );
+    const recommendationIds = Array.from(
+      new Set(
+        snapshots
+          .map((snapshot) => snapshot.recommendation_id)
+          .filter((id): id is string => id !== null),
+      ),
+    );
+    let recommendationRowsLoadedCount = 0;
+
+    if (recommendationIds.length > 0) {
+      const recommendationResult = await serverSupabase.client
+        .from("recommendations")
+        .select("id")
+        .in("id", recommendationIds);
+
+      recommendationRowsLoadedCount = Array.isArray(recommendationResult.data)
+        ? recommendationResult.data.length
+        : 0;
+    }
 
     return {
       status: snapshots.length > 0 ? ("ready" as const) : ("blocked" as const),
       error: snapshots.length > 0 ? null : "No official snapshot members were available for evaluation.",
       batch,
       snapshots,
+      recommendation_rows_loaded_count: recommendationRowsLoadedCount,
       missing_snapshot_fingerprints: expectedSnapshotFingerprints.filter(
         (fingerprint) => !foundFingerprints.has(fingerprint),
       ),
@@ -429,6 +552,7 @@ async function loadOfficialLiveSnapshots({
           : "Unknown official outcome snapshot load error.",
       batch: null,
       snapshots: [],
+      recommendation_rows_loaded_count: 0,
       missing_snapshot_fingerprints: [],
     };
   }
@@ -475,6 +599,245 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
           : "Unknown recommendation outcome readback error.",
     };
   }
+}
+
+function incrementReason(
+  reasons: Record<string, number>,
+  reason: OutcomeSnapshotIneligibleReason,
+) {
+  reasons[reason] = (reasons[reason] ?? 0) + 1;
+}
+
+function snapshotPayloadHasBatchMembership(
+  snapshot: RecommendationSnapshot,
+  batchFingerprint: string | null,
+) {
+  if (!batchFingerprint) return false;
+
+  const payload = snapshot.payload_json;
+  const directValues = [
+    payload.batch_fingerprint,
+    payload.recommendation_batch_fingerprint,
+  ];
+
+  if (
+    directValues.some(
+      (value) => typeof value === "string" && value.trim() === batchFingerprint,
+    )
+  ) {
+    return true;
+  }
+
+  try {
+    return JSON.stringify(payload).includes(batchFingerprint);
+  } catch {
+    return false;
+  }
+}
+
+function isDiagnosticDryRunSnapshot(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+
+  return (
+    snapshot.is_demo === true ||
+    snapshot.is_mock === true ||
+    snapshot.source_mode === "diagnostic" ||
+    snapshot.status === "invalid" ||
+    hasDryRunDiagnosticPayload(payload)
+  );
+}
+
+function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+
+  return (
+    snapshot.source_mode === "research_only" ||
+    snapshot.data_mode === "research_only" ||
+    payload.research_only === true ||
+    payload.source_mode === "research_only" ||
+    payload.learning_scope === "research_only"
+  );
+}
+
+function isLearningOnlySnapshot(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+
+  return (
+    snapshot.source_mode === "learning_only" ||
+    snapshot.data_mode === "learning_only" ||
+    snapshot.is_visible === false ||
+    snapshot.status === "hidden" ||
+    payload.learning_only === true ||
+    payload.source_mode === "learning_only" ||
+    payload.visible_in_primary_recommendations === false ||
+    payload.grow_max_learning_mode === true
+  );
+}
+
+function hasSnapshotBatchMembership({
+  batchFingerprint,
+  batchSnapshotFingerprints,
+  scanRunFingerprint,
+  snapshot,
+}: {
+  batchFingerprint: string | null;
+  batchSnapshotFingerprints: Set<string>;
+  scanRunFingerprint: string | null;
+  snapshot: RecommendationSnapshot;
+}) {
+  return (
+    batchFingerprint === null ||
+    batchSnapshotFingerprints.has(snapshot.snapshot_fingerprint) ||
+    (scanRunFingerprint !== null && snapshot.scan_run_id === scanRunFingerprint) ||
+    snapshotPayloadHasBatchMembership(snapshot, batchFingerprint)
+  );
+}
+
+function buildOutcomeEligibility({
+  batch,
+  growMaxLearningModeEnabled,
+  horizons,
+  recommendationRowsLoadedCount,
+  snapshots,
+}: {
+  batch: Record<string, unknown> | null;
+  growMaxLearningModeEnabled: boolean;
+  horizons: RecommendationOutcomeHorizon[];
+  recommendationRowsLoadedCount: number;
+  snapshots: RecommendationSnapshot[];
+}) {
+  const payload = objectOrNull(batch?.payload_json) ?? {};
+  const batchFingerprint = stringOrNull(batch?.batch_fingerprint);
+  const batchSnapshotFingerprints = new Set(
+    arrayOfStrings(payload.recommendation_snapshot_fingerprints),
+  );
+  const scanRunFingerprint = stringOrNull(batch?.scan_run_fingerprint);
+  const seenFingerprints = new Set<string>();
+  const uniqueFingerprints = new Set<string>();
+  const ineligibleReasons: Record<string, number> = {};
+  const eligibleSnapshots: RecommendationSnapshot[] = [];
+  let eligibleVisibleSnapshotCount = 0;
+  let eligibleLearningSnapshotCount = 0;
+  let eligibleResearchOnlySnapshotCount = 0;
+  let duplicateSnapshotFingerprintsCount = 0;
+
+  for (const snapshot of snapshots) {
+    const reasons: OutcomeSnapshotIneligibleReason[] = [];
+    const fingerprint =
+      typeof snapshot.snapshot_fingerprint === "string" &&
+      snapshot.snapshot_fingerprint.trim().length > 0
+        ? snapshot.snapshot_fingerprint
+        : null;
+
+    if (!fingerprint) {
+      reasons.push("missing_snapshot_fingerprint");
+    } else {
+      uniqueFingerprints.add(fingerprint);
+      if (seenFingerprints.has(fingerprint)) {
+        duplicateSnapshotFingerprintsCount += 1;
+        reasons.push("duplicate_snapshot_fingerprint");
+      }
+    }
+
+    if (isDiagnosticDryRunSnapshot(snapshot)) {
+      reasons.push("diagnostic_dry_run");
+    }
+
+    if (!snapshot.ticker) {
+      reasons.push("missing_ticker");
+    }
+
+    const side = resolveRecommendationOutcomeSide({ snapshot }).side;
+    if (side !== "long" && side !== "short") {
+      reasons.push("missing_side");
+    }
+
+    if (snapshot.entry === null) {
+      reasons.push("missing_entry");
+    }
+    if (snapshot.stop === null) {
+      reasons.push("missing_stop");
+    }
+    if (snapshot.target === null) {
+      reasons.push("missing_target");
+    }
+    if (!snapshot.recommended_at) {
+      reasons.push("missing_recommended_at");
+    }
+
+    if (
+      !hasSnapshotBatchMembership({
+        batchFingerprint,
+        batchSnapshotFingerprints,
+        scanRunFingerprint,
+        snapshot,
+      })
+    ) {
+      reasons.push("missing_batch_membership");
+    }
+
+    if (reasons.length > 0) {
+      for (const reason of reasons) {
+        incrementReason(ineligibleReasons, reason);
+      }
+      if (fingerprint) {
+        seenFingerprints.add(fingerprint);
+      }
+      continue;
+    }
+
+    const researchOnly = isResearchOnlySnapshot(snapshot);
+    const learningOnly = isLearningOnlySnapshot(snapshot);
+    const visible =
+      snapshot.is_visible !== false &&
+      snapshot.status !== "hidden" &&
+      !researchOnly &&
+      !learningOnly;
+
+    if (visible) {
+      eligibleVisibleSnapshotCount += 1;
+    }
+    if (learningOnly) {
+      eligibleLearningSnapshotCount += 1;
+    }
+    if (researchOnly) {
+      eligibleResearchOnlySnapshotCount += 1;
+    }
+
+    eligibleSnapshots.push({
+      ...snapshot,
+      is_visible:
+        growMaxLearningModeEnabled && (learningOnly || researchOnly)
+          ? true
+          : snapshot.is_visible,
+    });
+    if (fingerprint) {
+      seenFingerprints.add(fingerprint);
+    }
+  }
+
+  const diagnostics: OutcomeEligibilityDiagnostics = {
+    total_snapshots_loaded_for_batch: snapshots.length,
+    total_recommendation_rows_loaded_for_batch: recommendationRowsLoadedCount,
+    eligible_visible_snapshot_count: eligibleVisibleSnapshotCount,
+    eligible_learning_snapshot_count: eligibleLearningSnapshotCount,
+    eligible_research_only_snapshot_count: eligibleResearchOnlySnapshotCount,
+    grow_max_learning_snapshots_included_count: growMaxLearningModeEnabled
+      ? eligibleSnapshots.length
+      : 0,
+    ineligible_snapshot_count: snapshots.length - eligibleSnapshots.length,
+    ineligible_reasons: ineligibleReasons,
+    unique_snapshot_fingerprints_count: uniqueFingerprints.size,
+    duplicate_snapshot_fingerprints_count: duplicateSnapshotFingerprintsCount,
+    visible_grid_count: eligibleVisibleSnapshotCount,
+    expected_outcome_rows_from_eligible_snapshots:
+      eligibleSnapshots.length * horizons.length,
+  };
+
+  return {
+    diagnostics,
+    eligibleSnapshots,
+  };
 }
 
 function outcomeKey(outcome: Pick<RecommendationOutcome, "snapshot_fingerprint" | "horizon">) {
@@ -674,7 +1037,14 @@ export async function POST(request: Request) {
     body?.max_candle_requests,
   );
   const providerPlanProfile = providerBudgetResolution.providerPlanProfile;
-  const providerBudgetLimit = providerBudgetResolution.effectiveBudgetLimit;
+  const growMaxLearningMode = evaluateGrowMaxLearningMode({
+    providerPlanProfileMode: providerPlanProfile.effective_mode,
+  });
+  const growMaxLearningModeEnabled = growMaxLearningMode.grow_max_learning_mode;
+  const providerBudgetLimit = growMaxLearningModeEnabled
+    ? Math.min(25, providerBudgetResolution.effectiveBudgetLimit)
+    : providerBudgetResolution.effectiveBudgetLimit;
+  const horizons = parseHorizons(body?.horizons);
 
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
@@ -701,7 +1071,11 @@ export async function POST(request: Request) {
     : [];
   const officialSnapshotLoad =
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
-      ? await loadOfficialLiveSnapshots({ batchFingerprint, now })
+      ? await loadOfficialLiveSnapshots({
+          batchFingerprint,
+          includeGrowMaxLearningSnapshots: growMaxLearningModeEnabled,
+          now,
+        })
       : null;
   const snapshots =
     officialSnapshotLoad !== null
@@ -709,12 +1083,24 @@ export async function POST(request: Request) {
       : bodySnapshots.length > 0
         ? bodySnapshots
         : await loadRecentSupabaseSnapshots();
+  const eligibility = buildOutcomeEligibility({
+    batch: officialSnapshotLoad?.batch ?? null,
+    growMaxLearningModeEnabled,
+    horizons,
+    recommendationRowsLoadedCount:
+      officialSnapshotLoad?.recommendation_rows_loaded_count ?? 0,
+    snapshots,
+  });
+  const eligibleSnapshots =
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
+      ? eligibility.eligibleSnapshots
+      : snapshots;
   const shadowSnapshotSummary =
-    summarizeRecommendationSnapshotShadowEntryTrialMetadata(snapshots);
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata(eligibleSnapshots);
   const supabaseOutcomes =
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadSupabaseOutcomes(
-          snapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+          eligibleSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
         )
       : null;
   const existingOutcomes =
@@ -741,7 +1127,7 @@ export async function POST(request: Request) {
 
   if (
     (mode === "official_live_today" || mode === "enrich_completed_outcomes") &&
-    officialSnapshotLoad?.status !== "ready"
+    (officialSnapshotLoad?.status !== "ready" || eligibleSnapshots.length === 0)
   ) {
     const diagnostics = {
       route_version: outcomeEvaluationRouteVersion,
@@ -769,6 +1155,9 @@ export async function POST(request: Request) {
       provider_plan_mode: providerPlanProfile.mode,
       provider_plan_profile_mode: providerPlanProfile.effective_mode,
       provider_plan_profile_source: providerPlanProfile.source,
+      grow_max_learning_mode: growMaxLearningModeEnabled,
+      grow_max_learning_mode_enabled_source:
+        growMaxLearningMode.grow_max_learning_mode_enabled_source,
       server_plan_mode: providerPlanProfile.server_plan_mode,
       public_plan_mode: providerPlanProfile.public_plan_mode,
       plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -776,6 +1165,7 @@ export async function POST(request: Request) {
         providerPlanProfile.profile_outcome_candle_requests_per_run,
       override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
       effective_budget_limit: providerBudgetLimit,
+      ...eligibility.diagnostics,
       candle_requests_planned: 0,
       candle_requests_executed: 0,
       candle_requests_saved_by_reuse: 0,
@@ -829,17 +1219,32 @@ export async function POST(request: Request) {
       candidates: [],
       outcomes: [],
       warnings: [],
-      summary: officialSnapshotLoad?.error ?? "Official outcome evaluation is blocked.",
+      summary:
+        officialSnapshotLoad?.error ??
+        (eligibleSnapshots.length === 0
+          ? "No structurally valid batch snapshots were eligible for outcome evaluation."
+          : "Official outcome evaluation is blocked."),
       ...diagnostics,
       outcome_evaluation: diagnostics,
     });
   }
 
   const run = await runRecommendationOutcomeEvaluation({
-    snapshots,
+    snapshots: eligibleSnapshots,
     existingOutcomes,
-    horizons: parseHorizons(body?.horizons),
-    maxSnapshots: maxSnapshots === null ? 6 : Math.max(1, Math.min(10, Math.round(maxSnapshots))),
+    horizons,
+    maxSnapshots:
+      maxSnapshots === null
+        ? growMaxLearningModeEnabled
+          ? Math.max(1, eligibleSnapshots.length)
+          : 6
+        : Math.max(
+            1,
+            Math.min(
+              growMaxLearningModeEnabled ? eligibleSnapshots.length : 10,
+              Math.round(maxSnapshots),
+            ),
+          ),
     maxCandleRequests: providerBudgetLimit,
     now,
     source: "api",
@@ -958,6 +1363,9 @@ export async function POST(request: Request) {
     provider_plan_mode: providerPlanProfile.mode,
     provider_plan_profile_mode: providerPlanProfile.effective_mode,
     provider_plan_profile_source: providerPlanProfile.source,
+    grow_max_learning_mode: growMaxLearningModeEnabled,
+    grow_max_learning_mode_enabled_source:
+      growMaxLearningMode.grow_max_learning_mode_enabled_source,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -965,6 +1373,7 @@ export async function POST(request: Request) {
       providerPlanProfile.profile_outcome_candle_requests_per_run,
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
+    ...eligibility.diagnostics,
     candle_requests_planned: run.candle_requests_planned,
     candle_requests_executed: run.candle_requests_executed,
     candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,

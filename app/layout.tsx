@@ -6,12 +6,6 @@ export const metadata: Metadata = {
   description: "Private mock trading recommendations app",
 };
 
-const themeBootstrapScript = `
-(() => {
-  document.documentElement.dataset.theme = "dark";
-})();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,9 +18,6 @@ export default function RootLayout({
       data-theme="dark"
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
-      </head>
       <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );

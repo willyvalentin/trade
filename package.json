@@ -6,7 +6,13 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "bridge:localhost": "node scripts/avanza-localhost-bridge-server.mjs",
+    "bridge:localhost:smoke": "node scripts/avanza-localhost-bridge-server-smoke.mjs",
+    "mock-agent:run": "node scripts/mock-order-page-agent-runner.mjs",
+    "mock-agent:run:headed": "node scripts/mock-order-page-agent-runner.mjs --headed",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@netlify/functions": "^5.2.2",
@@ -17,6 +23,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

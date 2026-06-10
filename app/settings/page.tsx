@@ -45,6 +45,63 @@ import {
   buildDataModeClaritySummary,
   dataModeClaritySummaryJson,
 } from "@/lib/data-mode-clarity";
+import {
+  DEFAULT_EXECUTION_MODE,
+  EXECUTION_MODE_STORAGE_KEY,
+  getExecutionAuthorityForMode,
+  isAutomaticExecutionModeFeatureEnabled,
+  isExecutionDevToolsEnabled,
+  normalizeExecutionMode,
+  type ExecutionMode,
+} from "@/lib/execution";
+import {
+  clearExecutionAuditEvents,
+  readExecutionEventLog,
+  type ExecutionAuditEvent,
+  type ExecutionEventLogReadResult,
+} from "@/lib/execution-event-log";
+import {
+  clearExecutionRecords,
+  readExecutionRecordStoreResult,
+  type ExecutionRecordStoreReadResult,
+  type StoredExecutionRecord,
+} from "@/lib/execution-record-store";
+import {
+  clearAvanzaAgentRuns,
+  readAvanzaAgentRunStoreResult,
+  type AvanzaAgentRunStoreReadResult,
+  type StoredAvanzaAgentRun,
+} from "@/lib/avanza-agent-run-store";
+import {
+  getAvanzaAgentBridgeStatusDisplayLabel,
+  getAvanzaAgentBridgeTransportDisplayLabel,
+  isRealAvanzaAgentBridge,
+  type AvanzaAgentBridge,
+  type AvanzaAgentBridgeHealth,
+  type AvanzaAgentBridgeTransport,
+} from "@/lib/avanza-agent-bridge";
+import {
+  createAvanzaAgentBridgeFromConfig,
+  type AvanzaAgentBridgeFactoryResult,
+} from "@/lib/avanza-agent-bridge-factory";
+import {
+  AVANZA_AGENT_BRIDGE_CONFIG_STORAGE_KEY,
+  avanzaAgentBridgeTransportOptions,
+  clearAvanzaAgentBridgeConfig,
+  createDefaultAvanzaAgentBridgeConfig,
+  normalizeAvanzaAgentBridgeTransport,
+  readAvanzaAgentBridgeConfig,
+  writeAvanzaAgentBridgeConfig,
+  type AvanzaAgentBridgeConfig,
+  type AvanzaAgentBridgeTransportOption,
+} from "@/lib/avanza-agent-bridge-config";
+import {
+  DEFAULT_LOCALHOST_BRIDGE_BASE_URL,
+} from "@/lib/avanza-localhost-bridge-contract";
+import {
+  checkLocalhostBridgeHealth,
+  type LocalhostBridgeClientHealthCheckResult,
+} from "@/lib/avanza-localhost-bridge-client";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 
@@ -102,6 +159,28 @@ type MarketStatus = {
   fromCache: boolean;
 };
 
+type AgentAdapterDiagnosticsEntry = {
+  event: ExecutionAuditEvent;
+  progressEventId: string | null;
+  requestId: string | null;
+  progressType: string | null;
+  mappedLifecycleEventType: string | null;
+};
+
+type ExecutionSandboxSmokeChecklistStatus = "not_tested" | "pass" | "fail";
+
+type ExecutionSandboxSmokeChecklistItemDefinition = {
+  id: string;
+  label: string;
+};
+
+type ExecutionSandboxSmokeChecklistState = {
+  statuses: Record<string, ExecutionSandboxSmokeChecklistStatus>;
+  lastUpdated: string | null;
+  storageAvailable: boolean;
+  error: string | null;
+};
+
 const emptyForm: SettingsForm = {
   portfolioSize: "",
   riskPerTradePercent: "",
@@ -132,6 +211,98 @@ const defaultSettingsRow = {
   preferred_timeframe: "Intraday / day trade",
   long_only: true,
 };
+
+const EXECUTION_SANDBOX_SMOKE_CHECKLIST_STORAGE_KEY =
+  "ture_execution_sandbox_smoke_checklist_v1";
+
+const executionSandboxSmokeChecklistItems: ExecutionSandboxSmokeChecklistItemDefinition[] =
+  [
+    {
+      id: "dev_tools_flag_enabled",
+      label: "Dev tools flag is enabled.",
+    },
+    {
+      id: "execution_mode_setting_visible",
+      label: "Execution Mode setting is visible.",
+    },
+    {
+      id: "semi_automatic_selectable",
+      label: "Semi-automatic mode can be selected.",
+    },
+    {
+      id: "automatic_mode_gated",
+      label:
+        "Automatic mode remains gated unless NEXT_PUBLIC_ENABLE_AUTOMATIC_EXECUTION=true.",
+    },
+    {
+      id: "live_card_execution_status",
+      label:
+        "A real/non-demo Live Day Trade at target or stop shows execution status.",
+    },
+    {
+      id: "view_handoff_opens_modal",
+      label: "View handoff opens the preview modal.",
+    },
+    {
+      id: "modal_shows_intent_safety_authority",
+      label: "Handoff preview shows intent, safety checks, and authority.",
+    },
+    {
+      id: "agent_request_validates",
+      label: "Future agent request preview validates successfully.",
+    },
+    {
+      id: "bridge_envelope_validates",
+      label: "Bridge request envelope preview validates successfully.",
+    },
+    {
+      id: "sandbox_qa_expected_status",
+      label:
+        "Execution Sandbox QA panel shows ready or expected blocked/incomplete status.",
+    },
+    {
+      id: "prepare_runs_bridge_noop",
+      label:
+        "Prepare in Avanza runs bridge-backed diagnostics runner when dev tools are enabled.",
+    },
+    {
+      id: "noop_runner_no_broker_result",
+      label: "Diagnostics runner result clearly shows no broker result.",
+    },
+    {
+      id: "agent_progress_stub_events",
+      label: "Agent progress stub can add local progress events.",
+    },
+    {
+      id: "broker_capture_stub_record",
+      label: "Broker result capture stub can create a local stub record.",
+    },
+    {
+      id: "event_log_shows_events",
+      label: "Execution Event Log viewer shows new local events.",
+    },
+    {
+      id: "agent_adapter_diagnostics_progress",
+      label: "Agent Adapter Diagnostics shows progress stub events.",
+    },
+    {
+      id: "agent_runs_viewer_noop_runs",
+      label: "Avanza Agent Runs viewer shows diagnostics runner runs.",
+    },
+    {
+      id: "execution_records_viewer_stub_records",
+      label: "Execution Records viewer shows stub capture records.",
+    },
+    {
+      id: "clearing_diagnostics_scoped",
+      label:
+        "Clearing diagnostics only clears the intended local storage keys.",
+    },
+    {
+      id: "dev_tools_disabled_hidden",
+      label: "With dev tools disabled, dev-only sections are hidden/disabled.",
+    },
+  ];
 
 function toForm(row: UserSettingsRow): SettingsForm {
   const brokerCostModel = readBrokerCostModelFromStorage();
@@ -314,6 +485,233 @@ function formatDateTime(value: string | null) {
   });
 }
 
+function shortExecutionAuditId(value: string | null | undefined) {
+  if (!value) {
+    return "—";
+  }
+
+  return value.length > 14 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
+}
+
+function executionAuditValue(value: string | number | boolean | null | undefined) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+
+  return String(value);
+}
+
+function executionAuditMetadataString(
+  event: ExecutionAuditEvent,
+  key: string,
+) {
+  const value = event.metadata?.[key];
+
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function buildAgentAdapterDiagnosticsEntries(
+  events: readonly ExecutionAuditEvent[],
+): AgentAdapterDiagnosticsEntry[] {
+  const entriesByProgressId = new Map<string, AgentAdapterDiagnosticsEntry>();
+
+  for (const event of events) {
+    const progressEventId = executionAuditMetadataString(
+      event,
+      "agent_progress_event_id",
+    );
+    const requestId = executionAuditMetadataString(event, "agent_request_id");
+    const progressType = executionAuditMetadataString(
+      event,
+      "agent_progress_type",
+    );
+    const mappedLifecycleEventType = executionAuditMetadataString(
+      event,
+      "mapped_lifecycle_event_type",
+    );
+    const hasAgentProgressMetadata =
+      Boolean(progressEventId) || Boolean(requestId) || Boolean(progressType);
+
+    if (event.type !== "agent_progress_stub" && !hasAgentProgressMetadata) {
+      continue;
+    }
+
+    const entry: AgentAdapterDiagnosticsEntry = {
+      event,
+      progressEventId,
+      requestId,
+      progressType,
+      mappedLifecycleEventType,
+    };
+    const dedupeKey = progressEventId ?? event.eventId;
+    const current = entriesByProgressId.get(dedupeKey);
+
+    if (!current || event.type === "agent_progress_stub") {
+      entriesByProgressId.set(dedupeKey, entry);
+    }
+  }
+
+  return [...entriesByProgressId.values()].sort(
+    (a, b) => Date.parse(b.event.createdAt) - Date.parse(a.event.createdAt),
+  );
+}
+
+function readExecutionEventLogForSettings(): ExecutionEventLogReadResult {
+  return readExecutionEventLog();
+}
+
+function readExecutionRecordsForSettings(): ExecutionRecordStoreReadResult {
+  return readExecutionRecordStoreResult();
+}
+
+function readAvanzaAgentRunsForSettings(): AvanzaAgentRunStoreReadResult {
+  return readAvanzaAgentRunStoreResult();
+}
+
+function isExecutionSandboxSmokeChecklistStatus(
+  value: unknown,
+): value is ExecutionSandboxSmokeChecklistStatus {
+  return value === "not_tested" || value === "pass" || value === "fail";
+}
+
+function createDefaultExecutionSandboxSmokeChecklistState(
+  options: Partial<Pick<ExecutionSandboxSmokeChecklistState, "error">> = {},
+): ExecutionSandboxSmokeChecklistState {
+  return {
+    statuses: {},
+    lastUpdated: null,
+    storageAvailable: typeof window !== "undefined",
+    error: options.error ?? null,
+  };
+}
+
+function normalizeExecutionSandboxSmokeChecklistState(
+  value: unknown,
+  storageAvailable = typeof window !== "undefined",
+): ExecutionSandboxSmokeChecklistState {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {
+      ...createDefaultExecutionSandboxSmokeChecklistState(),
+      storageAvailable,
+    };
+  }
+
+  const record = value as Record<string, unknown>;
+  const rawStatuses =
+    typeof record.statuses === "object" &&
+    record.statuses !== null &&
+    !Array.isArray(record.statuses)
+      ? (record.statuses as Record<string, unknown>)
+      : {};
+  const allowedIds = new Set(
+    executionSandboxSmokeChecklistItems.map((item) => item.id),
+  );
+  const statuses: Record<string, ExecutionSandboxSmokeChecklistStatus> = {};
+
+  for (const [id, status] of Object.entries(rawStatuses)) {
+    if (allowedIds.has(id) && isExecutionSandboxSmokeChecklistStatus(status)) {
+      statuses[id] = status;
+    }
+  }
+
+  const lastUpdated =
+    typeof record.lastUpdated === "string" &&
+    Number.isFinite(Date.parse(record.lastUpdated))
+      ? record.lastUpdated
+      : null;
+
+  return {
+    statuses,
+    lastUpdated,
+    storageAvailable,
+    error: null,
+  };
+}
+
+function readExecutionSandboxSmokeChecklistState(): ExecutionSandboxSmokeChecklistState {
+  if (typeof window === "undefined") {
+    return createDefaultExecutionSandboxSmokeChecklistState();
+  }
+
+  try {
+    const stored = window.localStorage.getItem(
+      EXECUTION_SANDBOX_SMOKE_CHECKLIST_STORAGE_KEY,
+    );
+
+    return stored
+      ? normalizeExecutionSandboxSmokeChecklistState(JSON.parse(stored), true)
+      : createDefaultExecutionSandboxSmokeChecklistState();
+  } catch (error) {
+    const normalizedError = normalizeUnknownError(error);
+
+    return createDefaultExecutionSandboxSmokeChecklistState({
+      error: normalizedError.message,
+    });
+  }
+}
+
+function writeExecutionSandboxSmokeChecklistState(
+  state: ExecutionSandboxSmokeChecklistState,
+) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    window.localStorage.setItem(
+      EXECUTION_SANDBOX_SMOKE_CHECKLIST_STORAGE_KEY,
+      JSON.stringify({
+        statuses: state.statuses,
+        lastUpdated: state.lastUpdated,
+      }),
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resetExecutionSandboxSmokeChecklistStorage() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    window.localStorage.removeItem(
+      EXECUTION_SANDBOX_SMOKE_CHECKLIST_STORAGE_KEY,
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function formatExecutionRecordNumber(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 4,
+  }).format(value);
+}
+
+function executionRecordTriggerType(record: StoredExecutionRecord) {
+  return record.intent?.trigger_type ?? null;
+}
+
+function executionRecordRawBrokerSummary(record: StoredExecutionRecord) {
+  const brokerResult = record.brokerResult as
+    | (Record<string, unknown> & { rawBrokerSummary?: unknown })
+    | null;
+
+  return typeof brokerResult?.rawBrokerSummary === "string"
+    ? brokerResult.rawBrokerSummary
+    : null;
+}
+
 function formatSessionType(value: string | null) {
   if (value === "morning") {
     return "Early session";
@@ -424,6 +822,27 @@ function writeRiskControlsSettings(settings: RiskControlsSettings) {
     RISK_CONTROLS_STORAGE_KEY,
     riskControlsSettingsJson(settings),
   );
+}
+
+function readExecutionModePreference(): ExecutionMode {
+  if (typeof window === "undefined") {
+    return DEFAULT_EXECUTION_MODE;
+  }
+
+  try {
+    return normalizeExecutionMode(
+      window.localStorage.getItem(EXECUTION_MODE_STORAGE_KEY),
+      {
+        automaticEnabled: isAutomaticExecutionModeFeatureEnabled(),
+      },
+    );
+  } catch {
+    return DEFAULT_EXECUTION_MODE;
+  }
+}
+
+function writeExecutionModePreference(mode: ExecutionMode) {
+  window.localStorage.setItem(EXECUTION_MODE_STORAGE_KEY, mode);
 }
 
 function logRiskControlsSettingsEvent(
@@ -553,7 +972,61 @@ export default function SettingsPage() {
     readRiskControlsSettings(),
   );
   const [riskControlsMessage, setRiskControlsMessage] = useState("");
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>(() =>
+    readExecutionModePreference(),
+  );
+  const [executionModeMessage, setExecutionModeMessage] = useState("");
+  const [executionEventLog, setExecutionEventLog] =
+    useState<ExecutionEventLogReadResult>(() => readExecutionEventLogForSettings());
+  const [executionEventLogMessage, setExecutionEventLogMessage] = useState("");
+  const [executionRecordStore, setExecutionRecordStore] =
+    useState<ExecutionRecordStoreReadResult>(() =>
+      readExecutionRecordsForSettings(),
+    );
+  const [executionRecordStoreMessage, setExecutionRecordStoreMessage] =
+    useState("");
+  const [avanzaAgentRunStore, setAvanzaAgentRunStore] =
+    useState<AvanzaAgentRunStoreReadResult>(() =>
+      readAvanzaAgentRunsForSettings(),
+    );
+  const [avanzaAgentRunStoreMessage, setAvanzaAgentRunStoreMessage] =
+    useState("");
+  const [avanzaAgentBridgeHealth, setAvanzaAgentBridgeHealth] =
+    useState<AvanzaAgentBridgeHealth | null>(null);
+  const [isCheckingAvanzaAgentBridge, setIsCheckingAvanzaAgentBridge] =
+    useState(false);
+  const [avanzaAgentBridgeMessage, setAvanzaAgentBridgeMessage] = useState("");
+  const [localhostBridgeHealthCheck, setLocalhostBridgeHealthCheck] =
+    useState<LocalhostBridgeClientHealthCheckResult | null>(null);
+  const [isCheckingLocalhostBridge, setIsCheckingLocalhostBridge] =
+    useState(false);
+  const [avanzaAgentBridgeConfig, setAvanzaAgentBridgeConfig] =
+    useState<AvanzaAgentBridgeConfig>(() => readAvanzaAgentBridgeConfig());
+  const [avanzaAgentBridgeConfigMessage, setAvanzaAgentBridgeConfigMessage] =
+    useState("");
+  const [executionSandboxSmokeChecklist, setExecutionSandboxSmokeChecklist] =
+    useState<ExecutionSandboxSmokeChecklistState>(() =>
+      readExecutionSandboxSmokeChecklistState(),
+    );
+  const [
+    executionSandboxSmokeChecklistMessage,
+    setExecutionSandboxSmokeChecklistMessage,
+  ] = useState("");
   const browserAgentPlanGeneratedRef = useRef(false);
+  const avanzaAgentBridgeFactoryResult = useMemo(
+    () =>
+      createAvanzaAgentBridgeFromConfig({
+        selectedTransport: avanzaAgentBridgeConfig.selectedTransport,
+        metadata: {
+          source: "settings_bridge_health_diagnostics",
+          no_real_transport_connected: true,
+          no_broker_order_prepared: true,
+          no_broker_order_submitted: true,
+        },
+      }),
+    [avanzaAgentBridgeConfig.selectedTransport],
+  );
+  const avanzaAgentBridge = avanzaAgentBridgeFactoryResult.bridge;
   const browserAgentPlan = useMemo(
     () =>
       buildBrowserAgentPrototypePlan({
@@ -569,6 +1042,65 @@ export default function SettingsPage() {
     () => validateAvanzaVerificationNotes(avanzaNotesState),
     [avanzaNotesState],
   );
+  const automaticExecutionEnabled = isAutomaticExecutionModeFeatureEnabled();
+  const executionDevToolsEnabled = isExecutionDevToolsEnabled();
+  const executionAuthority = useMemo(
+    () => getExecutionAuthorityForMode(executionMode),
+    [executionMode],
+  );
+  const latestExecutionAuditEvents = useMemo(
+    () =>
+      [...executionEventLog.events]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 50),
+    [executionEventLog.events],
+  );
+  const latestExecutionAuditTimestamp =
+    latestExecutionAuditEvents[0]?.createdAt ?? null;
+  const agentAdapterDiagnosticsEntries = useMemo(
+    () => buildAgentAdapterDiagnosticsEntries(executionEventLog.events),
+    [executionEventLog.events],
+  );
+  const latestAgentAdapterDiagnosticsEntries =
+    agentAdapterDiagnosticsEntries.slice(0, 50);
+  const latestAgentAdapterDiagnosticsTimestamp =
+    latestAgentAdapterDiagnosticsEntries[0]?.event.createdAt ?? null;
+  const uniqueAgentAdapterRequestCount = useMemo(
+    () =>
+      new Set(
+        agentAdapterDiagnosticsEntries
+          .map((entry) => entry.requestId)
+          .filter((requestId): requestId is string => Boolean(requestId)),
+      ).size,
+    [agentAdapterDiagnosticsEntries],
+  );
+  const uniqueAgentAdapterIntentCount = useMemo(
+    () =>
+      new Set(
+        agentAdapterDiagnosticsEntries
+          .map((entry) => entry.event.intentId)
+          .filter((intentId): intentId is string => Boolean(intentId)),
+      ).size,
+    [agentAdapterDiagnosticsEntries],
+  );
+  const latestExecutionRecords = useMemo(
+    () =>
+      [...executionRecordStore.records]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 50),
+    [executionRecordStore.records],
+  );
+  const latestExecutionRecordTimestamp =
+    latestExecutionRecords[0]?.createdAt ?? null;
+  const latestAvanzaAgentRuns = useMemo(
+    () =>
+      [...avanzaAgentRunStore.runs]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 50),
+    [avanzaAgentRunStore.runs],
+  );
+  const latestAvanzaAgentRunTimestamp =
+    latestAvanzaAgentRuns[0]?.createdAt ?? null;
   const avanzaNotesJson = useMemo(
     () => avanzaVerificationNotesJson(avanzaNotesState),
     [avanzaNotesState],
@@ -642,6 +1174,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      setExecutionEventLog(readExecutionEventLogForSettings());
+      setExecutionRecordStore(readExecutionRecordsForSettings());
+      setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
+      setAvanzaAgentBridgeConfig(readAvanzaAgentBridgeConfig());
+      setExecutionSandboxSmokeChecklist(
+        readExecutionSandboxSmokeChecklistState(),
+      );
       loadSettings();
       loadAutomationRuns();
     }, 0);
@@ -668,6 +1207,231 @@ export default function SettingsPage() {
     }));
     setMessage("");
     setSuccessMessage("");
+  }
+
+  function updateExecutionModePreference(nextMode: ExecutionMode) {
+    if (nextMode === "automatic" && !automaticExecutionEnabled) {
+      setExecutionModeMessage(
+        "Automatic mode is locked. Set NEXT_PUBLIC_ENABLE_AUTOMATIC_EXECUTION=true to enable the advanced opt-in.",
+      );
+      return;
+    }
+
+    try {
+      writeExecutionModePreference(nextMode);
+      setExecutionMode(nextMode);
+      setExecutionModeMessage(
+        nextMode === "automatic"
+          ? "Automatic execution mode saved locally. Broker automation is still not connected in this build."
+          : "Semi-automatic execution mode saved locally.",
+      );
+    } catch {
+      setExecutionModeMessage("Could not save execution mode locally.");
+    }
+  }
+
+  function refreshExecutionEventLog() {
+    setExecutionEventLog(readExecutionEventLogForSettings());
+    setExecutionEventLogMessage("Execution event log refreshed.");
+  }
+
+  function clearExecutionEventLog() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Clear the local execution event log in this browser? This does not affect trades or broker state.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearExecutionAuditEvents();
+    setExecutionEventLog(readExecutionEventLogForSettings());
+    setExecutionEventLogMessage(
+      cleared
+        ? "Local execution event log cleared."
+        : "Could not clear the local execution event log.",
+    );
+  }
+
+  function refreshExecutionRecords() {
+    setExecutionRecordStore(readExecutionRecordsForSettings());
+    setExecutionRecordStoreMessage("Execution records refreshed.");
+  }
+
+  function clearLocalExecutionRecords() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Clear local execution records in this browser? This does not affect trades, broker state, History, or Statistics.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearExecutionRecords();
+    setExecutionRecordStore(readExecutionRecordsForSettings());
+    setExecutionRecordStoreMessage(
+      cleared
+        ? "Local execution records cleared."
+        : "Could not clear local execution records.",
+    );
+  }
+
+  function refreshAvanzaAgentRuns() {
+    setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
+    setAvanzaAgentRunStoreMessage("Avanza agent runs refreshed.");
+  }
+
+  async function checkAvanzaAgentBridgeHealth(
+    options: { quiet?: boolean } = {},
+  ) {
+    setIsCheckingAvanzaAgentBridge(true);
+
+    if (!options.quiet) {
+      setAvanzaAgentBridgeMessage("");
+    }
+
+    try {
+      const health = await avanzaAgentBridge.getHealth();
+      setAvanzaAgentBridgeHealth(health);
+      setAvanzaAgentBridgeMessage(
+        options.quiet ? "" : "Avanza agent bridge health checked.",
+      );
+    } catch (error) {
+      const normalizedError = normalizeUnknownError(error);
+
+      setAvanzaAgentBridgeHealth(null);
+      setAvanzaAgentBridgeMessage(
+        `Avanza agent bridge health check failed safely: ${normalizedError.message}`,
+      );
+    } finally {
+      setIsCheckingAvanzaAgentBridge(false);
+    }
+  }
+
+  async function checkLocalhostBridgeStubHealth() {
+    setIsCheckingLocalhostBridge(true);
+
+    try {
+      const result = await checkLocalhostBridgeHealth();
+
+      setLocalhostBridgeHealthCheck(result);
+    } finally {
+      setIsCheckingLocalhostBridge(false);
+    }
+  }
+
+  function updateAvanzaAgentBridgeTransport(
+    transport: AvanzaAgentBridgeTransport,
+  ) {
+    const normalizedTransport = normalizeAvanzaAgentBridgeTransport(transport);
+    const nextConfig: AvanzaAgentBridgeConfig = {
+      selectedTransport: normalizedTransport,
+      updatedAt: new Date().toISOString(),
+      storageAvailable: typeof window !== "undefined",
+      error: null,
+    };
+    const saved = writeAvanzaAgentBridgeConfig(nextConfig);
+
+    setAvanzaAgentBridgeConfig(nextConfig);
+    setAvanzaAgentBridgeConfigMessage(
+      saved
+        ? `Avanza agent bridge configuration saved locally. ${getAvanzaAgentBridgeTransportDisplayLabel(
+            normalizedTransport,
+          )} is selected for local diagnostics only.`
+        : "Bridge configuration updated in memory, but localStorage could not be written.",
+    );
+  }
+
+  function resetAvanzaAgentBridgeConfig() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Reset the local Avanza agent bridge configuration? This clears only the bridge config key and does not affect diagnostics, trades, or broker state.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearAvanzaAgentBridgeConfig();
+
+    setAvanzaAgentBridgeConfig(createDefaultAvanzaAgentBridgeConfig());
+    setAvanzaAgentBridgeConfigMessage(
+      cleared
+        ? "Avanza agent bridge configuration reset to no transport."
+        : "Bridge configuration reset in memory, but localStorage could not be cleared.",
+    );
+  }
+
+  function updateExecutionSandboxSmokeChecklistStatus(
+    itemId: string,
+    status: ExecutionSandboxSmokeChecklistStatus,
+  ) {
+    const nextState: ExecutionSandboxSmokeChecklistState = {
+      ...executionSandboxSmokeChecklist,
+      statuses: {
+        ...executionSandboxSmokeChecklist.statuses,
+        [itemId]: status,
+      },
+      lastUpdated: new Date().toISOString(),
+      storageAvailable: typeof window !== "undefined",
+      error: null,
+    };
+    const saved = writeExecutionSandboxSmokeChecklistState(nextState);
+
+    setExecutionSandboxSmokeChecklist(nextState);
+    setExecutionSandboxSmokeChecklistMessage(
+      saved
+        ? "Execution sandbox smoke checklist updated locally."
+        : "Checklist updated in memory, but localStorage could not be written.",
+    );
+  }
+
+  function resetExecutionSandboxSmokeChecklist() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Reset the local execution sandbox smoke checklist? This clears only the checklist key and does not affect diagnostics, trades, or broker state.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const reset = resetExecutionSandboxSmokeChecklistStorage();
+
+    setExecutionSandboxSmokeChecklist(
+      createDefaultExecutionSandboxSmokeChecklistState(),
+    );
+    setExecutionSandboxSmokeChecklistMessage(
+      reset
+        ? "Execution sandbox smoke checklist reset."
+        : "Checklist reset in memory, but localStorage could not be cleared.",
+    );
+  }
+
+  function clearLocalAvanzaAgentRuns() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Clear local Avanza agent runs in this browser? This only removes local diagnostics and does not affect trades or broker state.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearAvanzaAgentRuns();
+    setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
+    setAvanzaAgentRunStoreMessage(
+      cleared
+        ? "Local Avanza agent runs cleared."
+        : "Could not clear local Avanza agent runs.",
+    );
   }
 
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
@@ -1011,6 +1775,7 @@ export default function SettingsPage() {
             id="trade-data-mode-clarity-json"
             data-agent-readable="true"
             className="sr-only"
+            suppressHydrationWarning
           >
             {dataModeClaritySummaryJson(dataModeClaritySummary)}
           </div>
@@ -1292,6 +2057,218 @@ export default function SettingsPage() {
               </div>
             </section>
 
+            <section className="mt-6 rounded-lg border border-emerald-300/15 bg-emerald-300/[0.035] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-emerald-100">
+                    Execution Mode
+                  </h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                    Choose how Ture labels future Avanza handoffs. This build
+                    is read-only: no broker connection, order preparation, or
+                    KÖP/SÄLJ submission is implemented.
+                  </p>
+                </div>
+                <span className="inline-flex w-fit items-center rounded-full border border-white/10 bg-black/25 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                  {executionMode === "automatic" ? "Automatic" : "Semi-auto"}
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  aria-pressed={executionMode === "semi_automatic"}
+                  onClick={() => updateExecutionModePreference("semi_automatic")}
+                  className={`rounded-md border p-4 text-left transition ${
+                    executionMode === "semi_automatic"
+                      ? "border-emerald-300/45 bg-emerald-300/10"
+                      : "border-white/10 bg-black/25 hover:border-white/25"
+                  }`}
+                >
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-white">
+                      Semi-automatic
+                    </span>
+                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                      Default
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                      Recommended
+                    </span>
+                  </span>
+                  <span className="mt-3 block text-sm leading-6 text-zinc-400">
+                    Ture may prepare Avanza order details in the future, but the
+                    user must manually press final KÖP/SÄLJ.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  aria-pressed={executionMode === "automatic"}
+                  disabled={!automaticExecutionEnabled}
+                  onClick={() => updateExecutionModePreference("automatic")}
+                  className={`rounded-md border p-4 text-left transition ${
+                    executionMode === "automatic"
+                      ? "border-amber-300/45 bg-amber-300/10"
+                      : "border-white/10 bg-black/25 hover:border-white/25"
+                  } ${
+                    automaticExecutionEnabled
+                      ? ""
+                      : "cursor-not-allowed opacity-60"
+                  }`}
+                >
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-white">
+                      Automatic
+                    </span>
+                    <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
+                      Advanced
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                      Experimental
+                    </span>
+                    {!automaticExecutionEnabled && (
+                      <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                        Locked
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-3 block text-sm leading-6 text-zinc-400">
+                    Ture may later be allowed to submit final KÖP/SÄLJ
+                    automatically when safety checks pass.
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+                <div className="rounded-md border border-white/10 bg-black/25 p-3">
+                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Authority
+                  </div>
+                  <div className="mt-1 text-zinc-200">
+                    {executionAuthority.final_confirmation_actor === "agent"
+                      ? "Agent final confirmation"
+                      : "Human final confirmation"}
+                  </div>
+                </div>
+                <div className="rounded-md border border-white/10 bg-black/25 p-3">
+                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Prepare Order
+                  </div>
+                  <div className="mt-1 text-zinc-200">
+                    {executionAuthority.can_prepare_broker_form ? "Allowed" : "Blocked"}
+                  </div>
+                </div>
+                <div className="rounded-md border border-white/10 bg-black/25 p-3">
+                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Final Submit
+                  </div>
+                  <div className="mt-1 text-zinc-200">
+                    {executionAuthority.allowFinalSubmit ? "Allowed by mode" : "Manual only"}
+                  </div>
+                </div>
+              </div>
+
+              {!automaticExecutionEnabled && (
+                <p className="mt-3 text-xs leading-5 text-zinc-500">
+                  Automatic mode is visible for planning, but locked unless
+                  NEXT_PUBLIC_ENABLE_AUTOMATIC_EXECUTION is set to true.
+                </p>
+              )}
+
+              {executionModeMessage && (
+                <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                  {executionModeMessage}
+                </p>
+              )}
+            </section>
+
+            {executionDevToolsEnabled ? (
+              <>
+                <ExecutionSandboxSmokeChecklistPanel
+                  state={executionSandboxSmokeChecklist}
+                  items={executionSandboxSmokeChecklistItems}
+                  bridgeFactoryResult={avanzaAgentBridgeFactoryResult}
+                  message={executionSandboxSmokeChecklistMessage}
+                  onUpdateStatus={updateExecutionSandboxSmokeChecklistStatus}
+                  onReset={resetExecutionSandboxSmokeChecklist}
+                />
+
+                <AvanzaAgentBridgeConfigPanel
+                  config={avanzaAgentBridgeConfig}
+                  options={avanzaAgentBridgeTransportOptions}
+                  message={avanzaAgentBridgeConfigMessage}
+                  onSelectTransport={updateAvanzaAgentBridgeTransport}
+                  onReset={resetAvanzaAgentBridgeConfig}
+                />
+
+                <AvanzaAgentBridgeDiagnosticsPanel
+                  bridge={avanzaAgentBridge}
+                  factoryResult={avanzaAgentBridgeFactoryResult}
+                  health={avanzaAgentBridgeHealth}
+                  isChecking={isCheckingAvanzaAgentBridge}
+                  message={avanzaAgentBridgeMessage}
+                  localhostHealthCheck={localhostBridgeHealthCheck}
+                  isCheckingLocalhost={isCheckingLocalhostBridge}
+                  onCheckHealth={() => void checkAvanzaAgentBridgeHealth()}
+                  onCheckLocalhostHealth={() =>
+                    void checkLocalhostBridgeStubHealth()
+                  }
+                />
+
+                <ExecutionEventLogPanel
+                  readResult={executionEventLog}
+                  visibleEvents={latestExecutionAuditEvents}
+                  latestTimestamp={latestExecutionAuditTimestamp}
+                  message={executionEventLogMessage}
+                  onRefresh={refreshExecutionEventLog}
+                  onClear={clearExecutionEventLog}
+                />
+
+                <AgentAdapterDiagnosticsPanel
+                  readResult={executionEventLog}
+                  entries={latestAgentAdapterDiagnosticsEntries}
+                  totalCount={agentAdapterDiagnosticsEntries.length}
+                  latestTimestamp={latestAgentAdapterDiagnosticsTimestamp}
+                  uniqueRequestCount={uniqueAgentAdapterRequestCount}
+                  uniqueIntentCount={uniqueAgentAdapterIntentCount}
+                  message={executionEventLogMessage}
+                  onRefresh={refreshExecutionEventLog}
+                />
+
+                <AvanzaAgentRunsPanel
+                  readResult={avanzaAgentRunStore}
+                  visibleRuns={latestAvanzaAgentRuns}
+                  latestTimestamp={latestAvanzaAgentRunTimestamp}
+                  message={avanzaAgentRunStoreMessage}
+                  onRefresh={refreshAvanzaAgentRuns}
+                  onClear={clearLocalAvanzaAgentRuns}
+                />
+
+                <ExecutionRecordsPanel
+                  readResult={executionRecordStore}
+                  visibleRecords={latestExecutionRecords}
+                  latestTimestamp={latestExecutionRecordTimestamp}
+                  message={executionRecordStoreMessage}
+                  onRefresh={refreshExecutionRecords}
+                  onClear={clearLocalExecutionRecords}
+                />
+              </>
+            ) : (
+              <section className="mt-6 rounded-lg border border-white/10 bg-black/25 p-4">
+                <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-zinc-200">
+                  Execution Dev Tools
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  Execution dev tools are disabled in this build.
+                </p>
+                <p className="mt-2 text-xs leading-5 text-zinc-500">
+                  Enable NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=true for local
+                  diagnostics.
+                </p>
+              </section>
+            )}
+
             <RiskControlsSettingsPanel
               settings={riskControlsSettings}
               settingsJson={riskControlsJson}
@@ -1367,6 +2344,1414 @@ function SettingsField({
       </span>
       {children}
     </label>
+  );
+}
+
+function executionSandboxSmokeChecklistStatusLabel(
+  status: ExecutionSandboxSmokeChecklistStatus,
+) {
+  if (status === "pass") {
+    return "Pass";
+  }
+
+  if (status === "fail") {
+    return "Fail";
+  }
+
+  return "Not tested";
+}
+
+function executionSandboxSmokeChecklistStatusTone(
+  status: ExecutionSandboxSmokeChecklistStatus,
+) {
+  if (status === "pass") {
+    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
+  }
+
+  if (status === "fail") {
+    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-400";
+}
+
+function ExecutionSandboxSmokeChecklistPanel({
+  state,
+  items,
+  bridgeFactoryResult,
+  message,
+  onUpdateStatus,
+  onReset,
+}: {
+  state: ExecutionSandboxSmokeChecklistState;
+  items: ExecutionSandboxSmokeChecklistItemDefinition[];
+  bridgeFactoryResult: AvanzaAgentBridgeFactoryResult;
+  message: string;
+  onUpdateStatus: (
+    itemId: string,
+    status: ExecutionSandboxSmokeChecklistStatus,
+  ) => void;
+  onReset: () => void;
+}) {
+  const counts = items.reduce(
+    (summary, item) => {
+      const status = state.statuses[item.id] ?? "not_tested";
+
+      summary[status] += 1;
+      return summary;
+    },
+    { not_tested: 0, pass: 0, fail: 0 },
+  );
+
+  return (
+    <section className="mt-6 rounded-lg border border-lime-300/15 bg-lime-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-lime-100">
+            Execution Sandbox Smoke Test
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Local manual checklist for the execution sandbox. It does not run
+            Avanza, send bridge traffic, execute trades, create broker results,
+            mutate trade state, or write to Supabase.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onReset}
+          className="w-fit rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40"
+        >
+          Reset checklist
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-5">
+        <AuditDetail label="Total" value={items.length} />
+        <AuditDetail label="Pass" value={counts.pass} />
+        <AuditDetail label="Fail" value={counts.fail} />
+        <AuditDetail label="Not Tested" value={counts.not_tested} />
+        <AuditDetail label="Last Updated" value={formatDateTime(state.lastUpdated)} />
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Stored locally in this browser under{" "}
+        {EXECUTION_SANDBOX_SMOKE_CHECKLIST_STORAGE_KEY}. Status changes create
+        no audit events and do not clear any diagnostics.
+      </p>
+
+      {state.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Checklist storage could not be parsed safely: {state.error}
+        </p>
+      )}
+
+      {!state.storageAvailable && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          localStorage is unavailable. Checklist changes can only live in
+          memory for this render.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-lime-100">
+              Bridge Config / Factory Status
+            </p>
+            <p className="mt-2 text-xs leading-5 text-zinc-400">
+              Read-only summary for manual QA. This does not auto-mark checklist
+              items, check bridge health, send bridge requests, or contact
+              Avanza.
+            </p>
+          </div>
+          <span
+            className={`w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${
+              bridgeFactoryResult.fallbackUsed
+                ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                : "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
+            }`}
+          >
+            {bridgeFactoryResult.fallbackUsed ? "Fallback" : "No-op"}
+          </span>
+        </div>
+
+        <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+          <AuditDetail
+            label="Selected"
+            value={getAvanzaAgentBridgeTransportDisplayLabel(
+              bridgeFactoryResult.selectedTransport,
+            )}
+          />
+          <AuditDetail
+            label="Resolved"
+            value={getAvanzaAgentBridgeTransportDisplayLabel(
+              bridgeFactoryResult.resolvedTransport,
+            )}
+          />
+          <AuditDetail label="Fallback" value={bridgeFactoryResult.fallbackUsed} />
+          <AuditDetail label="Reason" value={bridgeFactoryResult.reason} />
+        </div>
+
+        {bridgeFactoryResult.warnings.length > 0 && (
+          <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+              Factory warnings
+            </p>
+            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+              {bridgeFactoryResult.warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {items.map((item, index) => {
+          const currentStatus = state.statuses[item.id] ?? "not_tested";
+
+          return (
+            <article
+              key={item.id}
+              className="rounded-md border border-white/10 bg-black/20 p-3"
+            >
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${executionSandboxSmokeChecklistStatusTone(
+                        currentStatus,
+                      )}`}
+                    >
+                      {executionSandboxSmokeChecklistStatusLabel(currentStatus)}
+                    </span>
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                      Check {index + 1}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    {item.label}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["not_tested", "pass", "fail"] as const).map((status) => (
+                    <button
+                      type="button"
+                      key={status}
+                      onClick={() => onUpdateStatus(item.id, status)}
+                      className={`rounded-full border px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition ${
+                        currentStatus === status
+                          ? executionSandboxSmokeChecklistStatusTone(status)
+                          : "border-white/10 bg-black/25 text-zinc-400 hover:border-lime-300/30 hover:text-lime-100"
+                      }`}
+                    >
+                      {executionSandboxSmokeChecklistStatusLabel(status)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function AvanzaAgentBridgeConfigPanel({
+  config,
+  options,
+  message,
+  onSelectTransport,
+  onReset,
+}: {
+  config: AvanzaAgentBridgeConfig;
+  options: AvanzaAgentBridgeTransportOption[];
+  message: string;
+  onSelectTransport: (transport: AvanzaAgentBridgeTransport) => void;
+  onReset: () => void;
+}) {
+  return (
+    <section className="mt-6 rounded-lg border border-indigo-300/15 bg-indigo-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-indigo-100">
+            Avanza Agent Bridge Configuration
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Local dev-only configuration for the future external Avanza agent
+            bridge. No transport is connected in this build, and no host, port,
+            token, credential, or Avanza login fields are available.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onReset}
+          className="w-fit rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40"
+        >
+          Reset configuration
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+        <AuditDetail
+          label="Selected Transport"
+          value={getAvanzaAgentBridgeTransportDisplayLabel(
+            config.selectedTransport,
+          )}
+        />
+        <AuditDetail label="Last Updated" value={formatDateTime(config.updatedAt)} />
+        <AuditDetail
+          label="Storage"
+          value={config.storageAvailable ? "Local browser" : "Unavailable"}
+        />
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Stored locally in this browser under {AVANZA_AGENT_BRIDGE_CONFIG_STORAGE_KEY}.
+        No bridge and Echo bridge are selectable for local diagnostics right
+        now. Future transports are shown for planning only.
+      </p>
+
+      {config.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Bridge configuration could not be parsed safely: {config.error}
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {options.map((option) => {
+          const selected = option.transport === config.selectedTransport;
+
+          return (
+            <button
+              type="button"
+              key={option.transport}
+              disabled={!option.enabled}
+              onClick={() => onSelectTransport(option.transport)}
+              className={`rounded-md border p-3 text-left transition ${
+                selected
+                  ? "border-indigo-300/35 bg-indigo-300/10"
+                  : "border-white/10 bg-black/20 hover:border-indigo-300/25"
+              } disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.025] disabled:opacity-70`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-200">
+                  {getAvanzaAgentBridgeTransportDisplayLabel(option.transport)}
+                </span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${
+                    option.enabled
+                      ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
+                      : "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                  }`}
+                >
+                  {option.enabled ? (selected ? "Current" : "Available") : "Future"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-zinc-400">
+                {option.note}
+              </p>
+              {!option.enabled && (
+                <p className="mt-2 text-xs leading-5 text-zinc-600">
+                  Disabled in this build. No transport settings are exposed.
+                </p>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function AvanzaAgentBridgeDiagnosticsPanel({
+  bridge,
+  factoryResult,
+  health,
+  isChecking,
+  message,
+  localhostHealthCheck,
+  isCheckingLocalhost,
+  onCheckHealth,
+  onCheckLocalhostHealth,
+}: {
+  bridge: AvanzaAgentBridge;
+  factoryResult: AvanzaAgentBridgeFactoryResult;
+  health: AvanzaAgentBridgeHealth | null;
+  isChecking: boolean;
+  message: string;
+  localhostHealthCheck: LocalhostBridgeClientHealthCheckResult | null;
+  isCheckingLocalhost: boolean;
+  onCheckHealth: () => void;
+  onCheckLocalhostHealth: () => void;
+}) {
+  const capabilities = health?.capabilities;
+  const localhostHealth = localhostHealthCheck?.response;
+  const localhostCapabilities = localhostHealth?.capabilities;
+
+  return (
+    <section className="mt-6 rounded-lg border border-amber-300/15 bg-amber-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-amber-100">
+            Avanza Agent Bridge
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Diagnostics for the future external Avanza agent bridge. No broker
+            agent is connected in this build, no Avanza session will open, and
+            no broker order can be created from this bridge.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onCheckHealth}
+            disabled={isChecking}
+            className="w-fit rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-amber-300/30 hover:text-amber-100 disabled:cursor-not-allowed disabled:text-zinc-600"
+          >
+            {isChecking ? "Checking..." : "Check bridge health"}
+          </button>
+          <button
+            type="button"
+            onClick={onCheckLocalhostHealth}
+            disabled={isCheckingLocalhost}
+            className="w-fit rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100 transition hover:border-sky-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+          >
+            {isCheckingLocalhost ? "Checking localhost..." : "Check localhost stub"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Bridge
+          </div>
+          <div className="mt-1 text-zinc-200">{bridge.name}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Transport
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {getAvanzaAgentBridgeTransportDisplayLabel(
+              health?.transport ?? bridge.transport,
+            )}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Status
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {health
+              ? getAvanzaAgentBridgeStatusDisplayLabel(health.status)
+              : "Not checked"}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail
+          label="Selected Transport"
+          value={getAvanzaAgentBridgeTransportDisplayLabel(
+            factoryResult.selectedTransport,
+          )}
+        />
+        <AuditDetail
+          label="Resolved Transport"
+          value={getAvanzaAgentBridgeTransportDisplayLabel(
+            factoryResult.resolvedTransport,
+          )}
+        />
+        <AuditDetail label="Factory Fallback" value={factoryResult.fallbackUsed} />
+        <AuditDetail label="Factory Reason" value={factoryResult.reason} />
+        <AuditDetail
+          label="Real Automation"
+          value={bridge.supportsRealBrokerAutomation}
+        />
+        <AuditDetail label="Real Bridge" value={isRealAvanzaAgentBridge(bridge)} />
+        <AuditDetail
+          label="Checked At"
+          value={health ? formatDateTime(health.checkedAt) : null}
+        />
+        <AuditDetail
+          label="Health Message"
+          value={health?.message ?? "Health has not been checked yet."}
+        />
+      </div>
+
+      {capabilities && (
+        <>
+          <div className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Capabilities
+          </div>
+          <div className="mt-2 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+            <AuditDetail
+              label="Progress Events"
+              value={capabilities.supportsProgressEvents}
+            />
+            <AuditDetail
+              label="Cancellation"
+              value={capabilities.supportsCancellation}
+            />
+            <AuditDetail
+              label="Automatic Submit"
+              value={capabilities.supportsAutomaticSubmit}
+            />
+            <AuditDetail
+              label="Manual Wait"
+              value={capabilities.supportsManualConfirmationWait}
+            />
+            <AuditDetail
+              label="Broker Result Return"
+              value={capabilities.supportsBrokerResultReturn}
+            />
+            <AuditDetail
+              label="Real Broker Automation"
+              value={capabilities.supportsRealBrokerAutomation}
+            />
+            <AuditDetail
+              label="Max Concurrent Runs"
+              value={capabilities.maxConcurrentRuns}
+            />
+            <AuditDetail label="Version" value={capabilities.version} />
+          </div>
+        </>
+      )}
+
+      {factoryResult.warnings.length > 0 && (
+        <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+            Factory Warnings
+          </p>
+          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+            {factoryResult.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        This panel creates the bridge through the bridge factory and calls only
+        the resulting health method. It does not send bridge requests, create
+        audit events, write storage, or contact Avanza.
+      </p>
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 rounded-md border border-sky-300/15 bg-sky-300/[0.04] p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-sky-100">
+              Localhost Stub Health
+            </p>
+            <p className="mt-2 text-xs leading-5 text-zinc-400">
+              Health check only. Does not run bridge requests or execute
+              orders. Start the stub with{" "}
+              <span className="font-mono text-zinc-300">
+                npm run bridge:localhost
+              </span>
+              .
+            </p>
+          </div>
+          <span
+            className={`w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${
+              localhostHealthCheck?.ok
+                ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
+                : localhostHealthCheck
+                  ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                  : "border-white/10 bg-white/[0.04] text-zinc-500"
+            }`}
+          >
+            {localhostHealthCheck?.ok
+              ? "Healthy"
+              : localhostHealthCheck
+                ? "Unavailable"
+                : "Not checked"}
+          </span>
+        </div>
+
+        <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+          <AuditDetail
+            label="Reachable"
+            value={localhostHealthCheck?.reachable ?? null}
+          />
+          <AuditDetail label="Valid" value={localhostHealthCheck?.ok ?? null} />
+          <AuditDetail
+            label="Status Code"
+            value={localhostHealthCheck?.statusCode ?? null}
+          />
+          <AuditDetail
+            label="Base URL"
+            value={localhostHealthCheck?.baseUrl ?? DEFAULT_LOCALHOST_BRIDGE_BASE_URL}
+          />
+          <AuditDetail
+            label="Checked At"
+            value={
+              localhostHealthCheck
+                ? formatDateTime(localhostHealthCheck.checkedAt)
+                : null
+            }
+          />
+          <AuditDetail
+            label="Bridge Status"
+            value={
+              localhostHealth
+                ? getAvanzaAgentBridgeStatusDisplayLabel(
+                    localhostHealth.bridgeStatus,
+                  )
+                : null
+            }
+          />
+          <AuditDetail label="Message" value={localhostHealth?.message ?? null} />
+          <AuditDetail
+            label="Real Automation"
+            value={localhostCapabilities?.supportsRealBrokerAutomation ?? null}
+          />
+        </div>
+
+        {localhostHealthCheck && !localhostHealthCheck.reachable && (
+          <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+            Localhost bridge server not reachable. Start with{" "}
+            <span className="font-mono">npm run bridge:localhost</span>.
+          </p>
+        )}
+
+        {localhostHealthCheck?.errors.length ? (
+          <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+              Localhost health errors
+            </p>
+            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+              {localhostHealthCheck.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {localhostHealthCheck?.warnings.length ? (
+          <div className="mt-3 rounded-md border border-sky-300/15 bg-black/15 p-3">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-sky-100">
+              Localhost health warnings
+            </p>
+            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+              {localhostHealthCheck.warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function ExecutionEventLogPanel({
+  readResult,
+  visibleEvents,
+  latestTimestamp,
+  message,
+  onRefresh,
+  onClear,
+}: {
+  readResult: ExecutionEventLogReadResult;
+  visibleEvents: ExecutionAuditEvent[];
+  latestTimestamp: string | null;
+  message: string;
+  onRefresh: () => void;
+  onClear: () => void;
+}) {
+  const hasEvents = readResult.events.length > 0;
+
+  return (
+    <section className="mt-6 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-cyan-100">
+            Execution Event Log
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Local browser audit data for execution handoff diagnostics. No
+            broker orders are executed from this log.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-cyan-300/30 hover:text-cyan-100"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={!readResult.storageAvailable}
+            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+          >
+            Clear execution event log
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Total Events
+          </div>
+          <div className="mt-1 text-zinc-200">{readResult.events.length}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest Event
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {formatDateTime(latestTimestamp)}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Storage
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Stored locally in this browser. Refresh reads the current local log;
+        clear removes only execution audit events.
+      </p>
+
+      {readResult.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Event log could not be parsed safely: {readResult.error}
+        </p>
+      )}
+
+      {readResult.discardedCount > 0 && (
+        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+          Ignored {readResult.discardedCount} malformed execution audit event
+          {readResult.discardedCount === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-2">
+        {!hasEvents ? (
+          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
+            No execution audit events are stored in this browser yet.
+          </div>
+        ) : (
+          visibleEvents.map((event) => (
+            <ExecutionEventLogRow event={event} key={event.eventId} />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ExecutionEventLogRow({ event }: { event: ExecutionAuditEvent }) {
+  const status = event.handoffStatus ?? event.brokerStatus;
+
+  return (
+    <article className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              {event.type}
+            </span>
+            {status && (
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                {status}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {event.message ?? "Execution audit event recorded locally."}
+          </p>
+        </div>
+        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+          {formatDateTime(event.createdAt)}
+        </time>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail label="Ticker" value={event.ticker} />
+        <AuditDetail label="Action" value={event.action} />
+        <AuditDetail label="Mode" value={event.mode} />
+        <AuditDetail label="Trigger" value={event.triggerType} />
+        <AuditDetail
+          label="Intent"
+          value={shortExecutionAuditId(event.intentId)}
+        />
+        <AuditDetail
+          label="Position"
+          value={shortExecutionAuditId(event.positionId)}
+        />
+        <AuditDetail
+          label="Recommendation"
+          value={shortExecutionAuditId(event.recommendationId)}
+        />
+        <AuditDetail label="Broker" value={event.broker} />
+      </div>
+
+      {event.metadata && (
+        <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+            Metadata
+          </summary>
+          <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+            {JSON.stringify(event.metadata, null, 2)}
+          </pre>
+        </details>
+      )}
+    </article>
+  );
+}
+
+function AgentAdapterDiagnosticsPanel({
+  readResult,
+  entries,
+  totalCount,
+  latestTimestamp,
+  uniqueRequestCount,
+  uniqueIntentCount,
+  message,
+  onRefresh,
+}: {
+  readResult: ExecutionEventLogReadResult;
+  entries: AgentAdapterDiagnosticsEntry[];
+  totalCount: number;
+  latestTimestamp: string | null;
+  uniqueRequestCount: number;
+  uniqueIntentCount: number;
+  message: string;
+  onRefresh: () => void;
+}) {
+  const hasEntries = totalCount > 0;
+
+  return (
+    <section className="mt-6 rounded-lg border border-sky-300/15 bg-sky-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-sky-100">
+            Agent Adapter Diagnostics
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Local dev-only view of future Avanza agent progress events. No
+            broker agent is connected, and this viewer cannot create broker
+            orders or broker results.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="w-fit rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-sky-300/30 hover:text-sky-100"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-4">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Progress Events
+          </div>
+          <div className="mt-1 text-zinc-200">{totalCount}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest Event
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {formatDateTime(latestTimestamp)}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Requests
+          </div>
+          <div className="mt-1 text-zinc-200">{uniqueRequestCount}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Intents
+          </div>
+          <div className="mt-1 text-zinc-200">{uniqueIntentCount}</div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Reads only local execution audit events with agent-progress metadata.
+        Use the Execution Event Log section to clear the underlying local log.
+      </p>
+
+      {readResult.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Event log could not be parsed safely: {readResult.error}
+        </p>
+      )}
+
+      {readResult.discardedCount > 0 && (
+        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+          Ignored {readResult.discardedCount} malformed execution audit event
+          {readResult.discardedCount === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-2">
+        {!hasEntries ? (
+          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
+            No local agent progress stub events are stored in this browser yet.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <AgentAdapterDiagnosticsRow
+              entry={entry}
+              key={entry.progressEventId ?? entry.event.eventId}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AgentAdapterDiagnosticsRow({
+  entry,
+}: {
+  entry: AgentAdapterDiagnosticsEntry;
+}) {
+  const { event } = entry;
+
+  return (
+    <article className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-sky-300/20 bg-sky-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100">
+              {entry.progressType ?? event.type}
+            </span>
+            {entry.mappedLifecycleEventType && (
+              <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                {entry.mappedLifecycleEventType}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {event.message ??
+              "Local dev-only agent adapter progress event recorded."}
+          </p>
+        </div>
+        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+          {formatDateTime(event.createdAt)}
+        </time>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail
+          label="Request"
+          value={shortExecutionAuditId(entry.requestId)}
+        />
+        <AuditDetail
+          label="Progress"
+          value={shortExecutionAuditId(entry.progressEventId)}
+        />
+        <AuditDetail
+          label="Lifecycle"
+          value={entry.mappedLifecycleEventType}
+        />
+        <AuditDetail label="Ticker" value={event.ticker} />
+        <AuditDetail label="Action" value={event.action} />
+        <AuditDetail label="Mode" value={event.mode} />
+        <AuditDetail
+          label="Intent"
+          value={shortExecutionAuditId(event.intentId)}
+        />
+        <AuditDetail
+          label="Position"
+          value={shortExecutionAuditId(event.positionId)}
+        />
+      </div>
+
+      {event.metadata && (
+        <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+            Agent metadata
+          </summary>
+          <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+            {JSON.stringify(event.metadata, null, 2)}
+          </pre>
+        </details>
+      )}
+    </article>
+  );
+}
+
+function AvanzaAgentRunsPanel({
+  readResult,
+  visibleRuns,
+  latestTimestamp,
+  message,
+  onRefresh,
+  onClear,
+}: {
+  readResult: AvanzaAgentRunStoreReadResult;
+  visibleRuns: StoredAvanzaAgentRun[];
+  latestTimestamp: string | null;
+  message: string;
+  onRefresh: () => void;
+  onClear: () => void;
+}) {
+  const hasRuns = readResult.runs.length > 0;
+
+  return (
+    <section className="mt-6 rounded-lg border border-violet-300/15 bg-violet-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-violet-100">
+            Avanza Agent Runs
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Stored locally in this browser. These are diagnostics for
+            future/no-op agent runs and are not broker confirmations.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-violet-300/30 hover:text-violet-100"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={!readResult.storageAvailable}
+            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+          >
+            Clear Avanza agent runs
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Total Runs
+          </div>
+          <div className="mt-1 text-zinc-200">{readResult.runs.length}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest Run
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {formatDateTime(latestTimestamp)}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Storage
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Refresh reads the local no-op/future agent run store; clear removes only
+        the Avanza agent runs storage key.
+      </p>
+
+      {readResult.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Avanza agent runs could not be parsed safely: {readResult.error}
+        </p>
+      )}
+
+      {readResult.discardedCount > 0 && (
+        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+          Ignored {readResult.discardedCount} malformed Avanza agent run
+          {readResult.discardedCount === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-2">
+        {!hasRuns ? (
+          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
+            No local Avanza agent runs are stored in this browser yet.
+          </div>
+        ) : (
+          visibleRuns.map((run) => (
+            <AvanzaAgentRunRow key={run.runId} run={run} />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function getAvanzaAgentRunMetadataString(
+  run: StoredAvanzaAgentRun,
+  key: string,
+): string | undefined {
+  const value = run.metadata?.[key];
+
+  return typeof value === "string" && value.trim().length > 0
+    ? value
+    : undefined;
+}
+
+function AvanzaAgentRunRow({ run }: { run: StoredAvanzaAgentRun }) {
+  const selectedTransport = getAvanzaAgentRunMetadataString(
+    run,
+    "bridge_factory_selected_transport",
+  );
+  const resolvedTransport = getAvanzaAgentRunMetadataString(
+    run,
+    "bridge_factory_resolved_transport",
+  );
+
+  return (
+    <article className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-violet-300/20 bg-violet-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-violet-100">
+              {run.resultStatus}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+              {run.brokerResultPresent ? "Broker result present" : "No broker result"}
+            </span>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {run.resultError ??
+              "Local Avanza agent run diagnostic stored without broker confirmation."}
+          </p>
+        </div>
+        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+          {formatDateTime(run.createdAt)}
+        </time>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail label="Broker" value={run.broker} />
+        <AuditDetail label="Mode" value={run.mode} />
+        <AuditDetail label="Action" value={run.action} />
+        <AuditDetail label="Ticker" value={run.ticker} />
+        <AuditDetail
+          label="Quantity"
+          value={formatExecutionRecordNumber(run.quantity)}
+        />
+        <AuditDetail
+          label="Request"
+          value={shortExecutionAuditId(run.requestId)}
+        />
+        <AuditDetail label="Intent" value={shortExecutionAuditId(run.intentId)} />
+        <AuditDetail
+          label="Position"
+          value={shortExecutionAuditId(run.positionId)}
+        />
+        <AuditDetail
+          label="Recommendation"
+          value={shortExecutionAuditId(run.recommendationId)}
+        />
+        <AuditDetail label="Runner" value={run.runnerName} />
+        <AuditDetail
+          label="Progress Events"
+          value={run.progressEventCount}
+        />
+        <AuditDetail
+          label="Broker Result"
+          value={run.brokerResultPresent ? "Present" : "Absent"}
+        />
+        <AuditDetail
+          label="Selected Bridge"
+          value={selectedTransport ?? "—"}
+        />
+        <AuditDetail
+          label="Resolved Bridge"
+          value={resolvedTransport ?? "—"}
+        />
+      </div>
+
+      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+          Agent run details
+        </summary>
+        <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2">
+          <AuditDetail
+            label="Progress Types"
+            value={
+              run.progressEventTypes.length > 0
+                ? run.progressEventTypes.join(", ")
+                : "—"
+            }
+          />
+          <AuditDetail label="Raw Summary" value={run.rawSummary} />
+          <AuditDetail label="Run" value={shortExecutionAuditId(run.runId)} />
+          <AuditDetail label="Runner Version" value={run.runnerVersion} />
+        </div>
+        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+          {JSON.stringify(
+            {
+              request: run.request,
+              result: run.result,
+              metadata: run.metadata,
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </details>
+    </article>
+  );
+}
+
+function AuditDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | boolean | null | undefined;
+}) {
+  return (
+    <div className="rounded-md border border-white/10 bg-white/[0.025] p-2">
+      <div className="font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-600">
+        {label}
+      </div>
+      <div className="mt-1 break-words text-zinc-300">
+        {executionAuditValue(value)}
+      </div>
+    </div>
+  );
+}
+
+function ExecutionRecordsPanel({
+  readResult,
+  visibleRecords,
+  latestTimestamp,
+  message,
+  onRefresh,
+  onClear,
+}: {
+  readResult: ExecutionRecordStoreReadResult;
+  visibleRecords: StoredExecutionRecord[];
+  latestTimestamp: string | null;
+  message: string;
+  onRefresh: () => void;
+  onClear: () => void;
+}) {
+  const hasRecords = readResult.records.length > 0;
+
+  return (
+    <section className="mt-6 rounded-lg border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-fuchsia-100">
+            Execution Records
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Stored locally in this browser. Stub/dev records are not proof of
+            real broker execution and do not affect History, Statistics, or live
+            trades.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-fuchsia-300/30 hover:text-fuchsia-100"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={!readResult.storageAvailable}
+            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+          >
+            Clear execution records
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Total Records
+          </div>
+          <div className="mt-1 text-zinc-200">{readResult.records.length}</div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest Record
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {formatDateTime(latestTimestamp)}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Storage
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Refresh reads the current local records store; clear removes only the
+        local execution records key.
+      </p>
+
+      {readResult.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Execution records could not be parsed safely: {readResult.error}
+        </p>
+      )}
+
+      {readResult.discardedCount > 0 && (
+        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+          Ignored {readResult.discardedCount} malformed execution record
+          {readResult.discardedCount === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-2">
+        {!hasRecords ? (
+          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
+            No local execution records are stored in this browser yet.
+          </div>
+        ) : (
+          visibleRecords.map((record) => (
+            <ExecutionRecordRow key={record.recordId} record={record} />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ExecutionRecordRow({ record }: { record: StoredExecutionRecord }) {
+  const triggerType = executionRecordTriggerType(record);
+  const rawBrokerSummary = executionRecordRawBrokerSummary(record);
+
+  return (
+    <article className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100">
+              {record.captureStatus}
+            </span>
+            {record.brokerStatus && (
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+                {record.brokerStatus}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {record.reason}
+          </p>
+        </div>
+        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+          {formatDateTime(record.createdAt)}
+        </time>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail label="Ticker" value={record.ticker} />
+        <AuditDetail label="Action" value={record.action} />
+        <AuditDetail label="Mode" value={record.mode} />
+        <AuditDetail label="Trigger" value={triggerType} />
+        <AuditDetail label="Quantity" value={formatExecutionRecordNumber(record.quantity)} />
+        <AuditDetail
+          label="Requested"
+          value={formatExecutionRecordNumber(record.requestedPrice)}
+        />
+        <AuditDetail
+          label="Executed"
+          value={formatExecutionRecordNumber(record.executedPrice)}
+        />
+        <AuditDetail label="Order" value={record.orderId} />
+        <AuditDetail label="Intent" value={shortExecutionAuditId(record.intentId)} />
+        <AuditDetail
+          label="Position"
+          value={shortExecutionAuditId(record.positionId)}
+        />
+        <AuditDetail
+          label="Recommendation"
+          value={shortExecutionAuditId(record.recommendationId)}
+        />
+        <AuditDetail label="Record" value={shortExecutionAuditId(record.recordId)} />
+      </div>
+
+      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+          Broker result / record JSON
+        </summary>
+        {rawBrokerSummary && (
+          <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
+            {rawBrokerSummary}
+          </p>
+        )}
+        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+          {JSON.stringify(record, null, 2)}
+        </pre>
+      </details>
+    </article>
   );
 }
 
@@ -1814,7 +4199,10 @@ function BrowserAgentPrototypePlanPanel({
         <summary className="cursor-pointer font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-300">
           View browser agent plan JSON
         </summary>
-        <pre className="mt-4 max-h-96 overflow-auto rounded-md border border-white/10 bg-black/40 p-4 text-xs leading-5 text-zinc-300">
+        <pre
+          className="mt-4 max-h-96 overflow-auto rounded-md border border-white/10 bg-black/40 p-4 text-xs leading-5 text-zinc-300"
+          suppressHydrationWarning
+        >
           {planJson}
         </pre>
       </details>
@@ -1823,6 +4211,7 @@ function BrowserAgentPrototypePlanPanel({
         id="trade-browser-agent-prototype-plan-json"
         data-agent-readable="true"
         className="sr-only"
+        suppressHydrationWarning
       >
         {planJson}
       </div>
@@ -2031,7 +4420,10 @@ function AvanzaVerificationNotesPanel({
             <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
               Current JSON
             </div>
-            <pre className="mt-2 max-h-80 overflow-auto rounded-md border border-white/10 bg-black/40 p-4 text-xs leading-5 text-zinc-300">
+            <pre
+              className="mt-2 max-h-80 overflow-auto rounded-md border border-white/10 bg-black/40 p-4 text-xs leading-5 text-zinc-300"
+              suppressHydrationWarning
+            >
               {notesJson}
             </pre>
           </div>

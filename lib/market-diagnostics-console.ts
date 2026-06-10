@@ -104,6 +104,9 @@ export type MarketDiagnosticsConsoleInput = {
     current_batch_recommendation_count?: number | null;
     current_batch_snapshot_count?: number | null;
     current_batch_visible_grid_count?: number | null;
+    current_batch_visible_recommendation_count?: number | null;
+    current_batch_learning_snapshot_count?: number | null;
+    current_batch_grid_card_count?: number | null;
     grow_max_learning_mode?: boolean | null;
     target_ideas_per_window?: number | null;
     ideas_persisted_this_window?: number | null;
@@ -200,6 +203,21 @@ export type MarketDiagnosticsConsoleInput = {
     latest_counterfactual_ready_batch_fingerprint?: string | null;
     latest_evaluated_batch_fingerprint?: string | null;
     current_batch_snapshot_count?: number | null;
+    outcome_eligible_snapshot_count?: number | null;
+    outcome_evaluated_snapshot_count?: number | null;
+    outcome_ineligible_snapshot_count?: number | null;
+    total_snapshots_loaded_for_batch?: number | null;
+    total_recommendation_rows_loaded_for_batch?: number | null;
+    eligible_visible_snapshot_count?: number | null;
+    eligible_learning_snapshot_count?: number | null;
+    eligible_research_only_snapshot_count?: number | null;
+    grow_max_learning_snapshots_included_count?: number | null;
+    ineligible_snapshot_count?: number | null;
+    ineligible_reasons?: Record<string, number>;
+    unique_snapshot_fingerprints_count?: number | null;
+    duplicate_snapshot_fingerprints_count?: number | null;
+    visible_grid_count?: number | null;
+    expected_outcome_rows_from_eligible_snapshots?: number | null;
     expected_outcome_count?: number | null;
     persisted_outcome_count?: number | null;
     evaluated_outcome_count?: number | null;
@@ -2333,10 +2351,34 @@ function buildSections(
           "Current batch",
           compact(input.scan_readback?.current_batch_fingerprint, "not observed"),
         ),
-        lineValue(
-          "Current batch rec/snapshot/grid",
-          `${input.scan_readback?.current_batch_recommendation_count ?? 0}/${input.scan_readback?.current_batch_snapshot_count ?? 0}/${input.scan_readback?.current_batch_visible_grid_count ?? 0}`,
-        ),
+        ...(input.scan_readback?.grow_max_learning_mode
+          ? [
+              lineValue(
+                "Visible recommendations",
+                input.scan_readback?.current_batch_visible_recommendation_count ??
+                  input.scan_readback?.current_batch_visible_grid_count ??
+                  0,
+              ),
+              lineValue(
+                "Learning snapshots",
+                input.scan_readback?.current_batch_learning_snapshot_count ??
+                  input.scan_readback?.current_batch_snapshot_count ??
+                  0,
+              ),
+              lineValue(
+                "Grid cards",
+                input.scan_readback?.current_batch_grid_card_count ??
+                  input.scan_readback?.current_batch_visible_grid_count ??
+                  0,
+              ),
+              lineValue("Grow Max Learning", "enabled"),
+            ]
+          : [
+              lineValue(
+                "Current batch rec/snapshot/grid",
+                `${input.scan_readback?.current_batch_recommendation_count ?? 0}/${input.scan_readback?.current_batch_snapshot_count ?? 0}/${input.scan_readback?.current_batch_visible_grid_count ?? 0}`,
+              ),
+            ]),
         lineValue(
           "Current batch tickers",
           (input.scan_readback?.current_batch_tickers ?? []).join(", ") || "none",
@@ -2390,6 +2432,12 @@ function buildSections(
           input.scan_readback?.current_batch_snapshot_count ?? null,
         current_batch_visible_grid_count:
           input.scan_readback?.current_batch_visible_grid_count ?? null,
+        current_batch_visible_recommendation_count:
+          input.scan_readback?.current_batch_visible_recommendation_count ?? null,
+        current_batch_learning_snapshot_count:
+          input.scan_readback?.current_batch_learning_snapshot_count ?? null,
+        current_batch_grid_card_count:
+          input.scan_readback?.current_batch_grid_card_count ?? null,
         current_batch_tickers:
           (input.scan_readback?.current_batch_tickers ?? []).join(","),
         current_batch_override_reason:
@@ -3027,6 +3075,31 @@ function buildSections(
           "Expected/Persisted",
           `${input.outcome_evaluation?.expected_outcome_count ?? 0}/${input.outcome_evaluation?.persisted_outcome_count ?? 0}`,
         ),
+        ...(input.scan_readback?.grow_max_learning_mode
+          ? [
+              lineValue(
+                "Outcome eligible snapshots",
+                input.outcome_evaluation?.outcome_eligible_snapshot_count ??
+                  input.outcome_evaluation?.eligible_visible_snapshot_count ??
+                  0,
+              ),
+              lineValue(
+                "Outcome evaluated snapshots",
+                input.outcome_evaluation?.outcome_evaluated_snapshot_count ??
+                  0,
+              ),
+              lineValue(
+                "Skipped/ineligible snapshots",
+                input.outcome_evaluation?.outcome_ineligible_snapshot_count ??
+                  input.outcome_evaluation?.ineligible_snapshot_count ??
+                  0,
+              ),
+              lineValue(
+                "Eligible visible/learning/research",
+                `${input.outcome_evaluation?.eligible_visible_snapshot_count ?? 0}/${input.outcome_evaluation?.eligible_learning_snapshot_count ?? 0}/${input.outcome_evaluation?.eligible_research_only_snapshot_count ?? 0}`,
+              ),
+            ]
+          : []),
         lineValue(
           "Today expected/evaluated",
           `${outcomeRowsExpectedToday}/${outcomeRowsEvaluatedToday}`,
@@ -3115,6 +3188,40 @@ function buildSections(
           input.outcome_evaluation?.latest_evaluated_batch_fingerprint ?? null,
         current_batch_snapshot_count:
           input.outcome_evaluation?.current_batch_snapshot_count ?? null,
+        outcome_eligible_snapshot_count:
+          input.outcome_evaluation?.outcome_eligible_snapshot_count ?? null,
+        outcome_evaluated_snapshot_count:
+          input.outcome_evaluation?.outcome_evaluated_snapshot_count ?? null,
+        outcome_ineligible_snapshot_count:
+          input.outcome_evaluation?.outcome_ineligible_snapshot_count ?? null,
+        total_snapshots_loaded_for_batch:
+          input.outcome_evaluation?.total_snapshots_loaded_for_batch ?? null,
+        total_recommendation_rows_loaded_for_batch:
+          input.outcome_evaluation
+            ?.total_recommendation_rows_loaded_for_batch ?? null,
+        eligible_visible_snapshot_count:
+          input.outcome_evaluation?.eligible_visible_snapshot_count ?? null,
+        eligible_learning_snapshot_count:
+          input.outcome_evaluation?.eligible_learning_snapshot_count ?? null,
+        eligible_research_only_snapshot_count:
+          input.outcome_evaluation?.eligible_research_only_snapshot_count ?? null,
+        grow_max_learning_snapshots_included_count:
+          input.outcome_evaluation
+            ?.grow_max_learning_snapshots_included_count ?? null,
+        ineligible_snapshot_count:
+          input.outcome_evaluation?.ineligible_snapshot_count ?? null,
+        ineligible_reasons: JSON.stringify(
+          input.outcome_evaluation?.ineligible_reasons ?? {},
+        ),
+        unique_snapshot_fingerprints_count:
+          input.outcome_evaluation?.unique_snapshot_fingerprints_count ?? null,
+        duplicate_snapshot_fingerprints_count:
+          input.outcome_evaluation?.duplicate_snapshot_fingerprints_count ?? null,
+        visible_grid_count:
+          input.outcome_evaluation?.visible_grid_count ?? null,
+        expected_outcome_rows_from_eligible_snapshots:
+          input.outcome_evaluation
+            ?.expected_outcome_rows_from_eligible_snapshots ?? null,
         outcome_rows_loaded_count:
           input.outcome_evaluation?.outcome_rows_loaded_count ?? null,
         outcome_rows_raw_count:

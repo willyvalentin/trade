@@ -200,6 +200,9 @@ export type LiveMarketTrialReadinessInput = {
     incomplete_snapshot_count?: number | null;
     missing_candle_count?: number | null;
     provider_error_count?: number | null;
+    grow_max_learning_mode?: boolean | null;
+    current_batch_expected_outcomes?: number | null;
+    current_batch_persisted_outcomes?: number | null;
   } | null;
   automation_scan_route_available?: boolean | null;
   latest_automation_scan?: {
@@ -754,7 +757,13 @@ export function buildLiveMarketTrialReadinessSummary(
       label: "Snapshots and outcomes",
       status: input.performance.summary.total_recommendations > 0 ? "pass" : "warning",
       source: "persistence",
-      message: `${input.performance.summary.total_recommendations} recommendation snapshots in scope; ${input.performance.summary.evaluated_recommendations} evaluated.`,
+      message:
+        outcomeEvaluation?.grow_max_learning_mode === true &&
+        count(outcomeEvaluation.current_batch_expected_outcomes) > 0 &&
+        count(outcomeEvaluation.current_batch_persisted_outcomes) <
+          count(outcomeEvaluation.current_batch_expected_outcomes)
+          ? "Current Grow Max batch has pending outcome evaluation."
+          : `${input.performance.summary.total_recommendations} recommendation snapshots in scope; ${input.performance.summary.evaluated_recommendations} evaluated.`,
     }),
     check({
       check_id: "outcome_evaluation",
