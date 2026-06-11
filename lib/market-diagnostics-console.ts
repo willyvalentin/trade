@@ -103,10 +103,15 @@ export type MarketDiagnosticsConsoleInput = {
     current_batch_source?: string | null;
     current_batch_recommendation_count?: number | null;
     current_batch_snapshot_count?: number | null;
+    current_batch_raw_snapshot_rows?: number | null;
+    current_batch_unique_snapshot_fingerprints?: number | null;
+    current_batch_duplicate_snapshot_rows?: number | null;
+    current_batch_unique_learning_ideas?: number | null;
     current_batch_visible_grid_count?: number | null;
     current_batch_visible_recommendation_count?: number | null;
     current_batch_learning_snapshot_count?: number | null;
     current_batch_grid_card_count?: number | null;
+    current_batch_batch_health?: string | null;
     grow_max_learning_mode?: boolean | null;
     target_ideas_per_window?: number | null;
     ideas_persisted_this_window?: number | null;
@@ -207,6 +212,7 @@ export type MarketDiagnosticsConsoleInput = {
     outcome_evaluated_snapshot_count?: number | null;
     outcome_ineligible_snapshot_count?: number | null;
     total_snapshots_loaded_for_batch?: number | null;
+    raw_snapshot_rows?: number | null;
     total_recommendation_rows_loaded_for_batch?: number | null;
     eligible_visible_snapshot_count?: number | null;
     eligible_learning_snapshot_count?: number | null;
@@ -215,9 +221,17 @@ export type MarketDiagnosticsConsoleInput = {
     ineligible_snapshot_count?: number | null;
     ineligible_reasons?: Record<string, number>;
     unique_snapshot_fingerprints_count?: number | null;
+    unique_learning_ideas?: number | null;
     duplicate_snapshot_fingerprints_count?: number | null;
+    duplicate_snapshot_rows?: number | null;
+    duplicate_snapshot_rows_ignored_count?: number | null;
+    duplicate_snapshot_conflict_count?: number | null;
+    duplicate_snapshot_conflict_reasons?: Record<string, number>;
+    visible_recommendations?: number | null;
     visible_grid_count?: number | null;
+    grid_cards?: number | null;
     expected_outcome_rows_from_eligible_snapshots?: number | null;
+    batch_health?: string | null;
     expected_outcome_count?: number | null;
     persisted_outcome_count?: number | null;
     evaluated_outcome_count?: number | null;
@@ -2354,16 +2368,26 @@ function buildSections(
         ...(input.scan_readback?.grow_max_learning_mode
           ? [
               lineValue(
-                "Visible recommendations",
+                "Visible cards",
                 input.scan_readback?.current_batch_visible_recommendation_count ??
                   input.scan_readback?.current_batch_visible_grid_count ??
                   0,
               ),
               lineValue(
-                "Learning snapshots",
-                input.scan_readback?.current_batch_learning_snapshot_count ??
+                "Raw snapshot rows",
+                input.scan_readback?.current_batch_raw_snapshot_rows ??
                   input.scan_readback?.current_batch_snapshot_count ??
                   0,
+              ),
+              lineValue(
+                "Unique learning ideas",
+                input.scan_readback?.current_batch_unique_learning_ideas ??
+                  input.scan_readback?.current_batch_learning_snapshot_count ??
+                  0,
+              ),
+              lineValue(
+                "Duplicate snapshot rows",
+                input.scan_readback?.current_batch_duplicate_snapshot_rows ?? 0,
               ),
               lineValue(
                 "Grid cards",
@@ -2387,7 +2411,10 @@ function buildSections(
           "Batch health",
           input.scan_readback?.current_batch_mismatch_reason
             ? compact(input.scan_readback.current_batch_mismatch_reason, "mismatch")
-            : "membership aligned",
+            : compact(
+                input.scan_readback?.current_batch_batch_health,
+                "membership aligned",
+              ),
         ),
         lineValue(
           "Successful visible count",
@@ -2430,6 +2457,14 @@ function buildSections(
           input.scan_readback?.current_batch_recommendation_count ?? null,
         current_batch_snapshot_count:
           input.scan_readback?.current_batch_snapshot_count ?? null,
+        current_batch_raw_snapshot_rows:
+          input.scan_readback?.current_batch_raw_snapshot_rows ?? null,
+        current_batch_unique_snapshot_fingerprints:
+          input.scan_readback?.current_batch_unique_snapshot_fingerprints ?? null,
+        current_batch_duplicate_snapshot_rows:
+          input.scan_readback?.current_batch_duplicate_snapshot_rows ?? null,
+        current_batch_unique_learning_ideas:
+          input.scan_readback?.current_batch_unique_learning_ideas ?? null,
         current_batch_visible_grid_count:
           input.scan_readback?.current_batch_visible_grid_count ?? null,
         current_batch_visible_recommendation_count:
@@ -2438,6 +2473,8 @@ function buildSections(
           input.scan_readback?.current_batch_learning_snapshot_count ?? null,
         current_batch_grid_card_count:
           input.scan_readback?.current_batch_grid_card_count ?? null,
+        current_batch_batch_health:
+          input.scan_readback?.current_batch_batch_health ?? null,
         current_batch_tickers:
           (input.scan_readback?.current_batch_tickers ?? []).join(","),
         current_batch_override_reason:
@@ -3048,8 +3085,14 @@ function buildSections(
             ]
           : []),
         lineValue(
-          "Current expected/persisted",
-          `${input.outcome_evaluation?.current_batch_expected_outcomes ?? 0}/${input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0}`,
+          "Expected outcome rows",
+          input.outcome_evaluation?.expected_outcome_rows_from_eligible_snapshots ??
+            input.outcome_evaluation?.current_batch_expected_outcomes ??
+            0,
+        ),
+        lineValue(
+          "Persisted outcome rows",
+          input.outcome_evaluation?.current_batch_persisted_outcomes ?? 0,
         ),
         lineValue(
           "Learning source batch",
@@ -3077,6 +3120,44 @@ function buildSections(
         ),
         ...(input.scan_readback?.grow_max_learning_mode
           ? [
+              lineValue(
+                "Raw snapshot rows",
+                input.outcome_evaluation?.raw_snapshot_rows ??
+                  input.outcome_evaluation?.total_snapshots_loaded_for_batch ??
+                  0,
+              ),
+              lineValue(
+                "Unique learning ideas",
+                input.outcome_evaluation?.unique_learning_ideas ??
+                  input.outcome_evaluation?.unique_snapshot_fingerprints_count ??
+                  0,
+              ),
+              lineValue(
+                "Duplicate snapshot rows",
+                input.outcome_evaluation?.duplicate_snapshot_rows ??
+                  input.outcome_evaluation
+                    ?.duplicate_snapshot_fingerprints_count ??
+                  0,
+              ),
+              lineValue(
+                "Duplicate rows ignored",
+                input.outcome_evaluation?.duplicate_snapshot_rows_ignored_count ??
+                  0,
+              ),
+              lineValue(
+                "Duplicate conflicts",
+                input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? 0,
+              ),
+              lineValue(
+                "Visible cards",
+                input.outcome_evaluation?.grid_cards ??
+                  input.outcome_evaluation?.visible_grid_count ??
+                  0,
+              ),
+              lineValue(
+                "Batch health",
+                compact(input.outcome_evaluation?.batch_health, "unknown"),
+              ),
               lineValue(
                 "Outcome eligible snapshots",
                 input.outcome_evaluation?.outcome_eligible_snapshot_count ??
@@ -3196,6 +3277,8 @@ function buildSections(
           input.outcome_evaluation?.outcome_ineligible_snapshot_count ?? null,
         total_snapshots_loaded_for_batch:
           input.outcome_evaluation?.total_snapshots_loaded_for_batch ?? null,
+        raw_snapshot_rows:
+          input.outcome_evaluation?.raw_snapshot_rows ?? null,
         total_recommendation_rows_loaded_for_batch:
           input.outcome_evaluation
             ?.total_recommendation_rows_loaded_for_batch ?? null,
@@ -3215,13 +3298,31 @@ function buildSections(
         ),
         unique_snapshot_fingerprints_count:
           input.outcome_evaluation?.unique_snapshot_fingerprints_count ?? null,
+        unique_learning_ideas:
+          input.outcome_evaluation?.unique_learning_ideas ?? null,
         duplicate_snapshot_fingerprints_count:
           input.outcome_evaluation?.duplicate_snapshot_fingerprints_count ?? null,
+        duplicate_snapshot_rows:
+          input.outcome_evaluation?.duplicate_snapshot_rows ?? null,
+        duplicate_snapshot_rows_ignored_count:
+          input.outcome_evaluation?.duplicate_snapshot_rows_ignored_count ??
+          null,
+        duplicate_snapshot_conflict_count:
+          input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? null,
+        duplicate_snapshot_conflict_reasons: JSON.stringify(
+          input.outcome_evaluation?.duplicate_snapshot_conflict_reasons ?? {},
+        ),
+        visible_recommendations:
+          input.outcome_evaluation?.visible_recommendations ?? null,
         visible_grid_count:
           input.outcome_evaluation?.visible_grid_count ?? null,
+        grid_cards:
+          input.outcome_evaluation?.grid_cards ?? null,
         expected_outcome_rows_from_eligible_snapshots:
           input.outcome_evaluation
             ?.expected_outcome_rows_from_eligible_snapshots ?? null,
+        batch_health:
+          input.outcome_evaluation?.batch_health ?? null,
         outcome_rows_loaded_count:
           input.outcome_evaluation?.outcome_rows_loaded_count ?? null,
         outcome_rows_raw_count:
@@ -3611,6 +3712,21 @@ function buildSections(
         shadow_risk_too_wide_count:
           input.outcome_learning?.shadow_entry_trial
             .shadow_risk_too_wide_count ?? null,
+        shadow_risk_model_invalid_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_model_invalid_count ?? null,
+        shadow_risk_model_invalid_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_model_invalid_rate ?? null,
+        long_stop_above_or_equal_shadow_entry_count:
+          input.outcome_learning?.shadow_entry_trial
+            .long_stop_above_or_equal_shadow_entry_count ?? null,
+        short_stop_below_or_equal_shadow_entry_count:
+          input.outcome_learning?.shadow_entry_trial
+            .short_stop_below_or_equal_shadow_entry_count ?? null,
+        valid_shadow_risk_sample_count:
+          input.outcome_learning?.shadow_entry_trial
+            .valid_shadow_risk_sample_count ?? null,
         shadow_triggered_no_followthrough_count:
           input.outcome_learning?.shadow_entry_trial
             .shadow_triggered_no_followthrough_count ?? null,
@@ -3683,6 +3799,19 @@ function buildSections(
         lineValue(
           "Risk warning count/rate",
           `${input.outcome_learning?.shadow_entry_trial.shadow_risk_warning_count ?? 0} / ${shadowRiskWarningRate ?? "unknown"}`,
+        ),
+        lineValue(
+          "Valid / invalid risk samples",
+          `${input.outcome_learning?.shadow_entry_trial.valid_shadow_risk_sample_count ?? 0} / ${input.outcome_learning?.shadow_entry_trial.shadow_risk_model_invalid_count ?? 0}`,
+        ),
+        lineValue(
+          "Risk invalid rate",
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_model_invalid_rate ?? "unknown",
+        ),
+        lineValue(
+          "Risk invalid reasons long/short",
+          `${input.outcome_learning?.shadow_entry_trial.long_stop_above_or_equal_shadow_entry_count ?? 0} / ${input.outcome_learning?.shadow_entry_trial.short_stop_below_or_equal_shadow_entry_count ?? 0}`,
         ),
         lineValue(
           "Tight/wide risk warnings",
@@ -3760,6 +3889,21 @@ function buildSections(
         shadow_risk_too_wide_count:
           input.outcome_learning?.shadow_entry_trial
             .shadow_risk_too_wide_count ?? null,
+        shadow_risk_model_invalid_count:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_model_invalid_count ?? null,
+        shadow_risk_model_invalid_rate:
+          input.outcome_learning?.shadow_entry_trial
+            .shadow_risk_model_invalid_rate ?? null,
+        long_stop_above_or_equal_shadow_entry_count:
+          input.outcome_learning?.shadow_entry_trial
+            .long_stop_above_or_equal_shadow_entry_count ?? null,
+        short_stop_below_or_equal_shadow_entry_count:
+          input.outcome_learning?.shadow_entry_trial
+            .short_stop_below_or_equal_shadow_entry_count ?? null,
+        valid_shadow_risk_sample_count:
+          input.outcome_learning?.shadow_entry_trial
+            .valid_shadow_risk_sample_count ?? null,
         shadow_triggered_no_followthrough_count:
           input.outcome_learning?.shadow_entry_trial
             .shadow_triggered_no_followthrough_count ?? null,

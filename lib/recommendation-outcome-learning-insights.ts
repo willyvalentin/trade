@@ -37,6 +37,7 @@ export type EntryPlanExecutionQualityLabel =
   | "triggered_no_followthrough"
   | "target_hit"
   | "stop_hit"
+  | "shadow_risk_model_invalid"
   | "data_incomplete";
 
 export type CounterfactualEntryVariantLabel =
@@ -141,6 +142,11 @@ export type ShadowEntryTrialSummary = {
   shadow_risk_warning_count: number;
   shadow_risk_too_tight_count: number;
   shadow_risk_too_wide_count: number;
+  shadow_risk_model_invalid_count: number;
+  shadow_risk_model_invalid_rate: number | null;
+  long_stop_above_or_equal_shadow_entry_count: number;
+  short_stop_below_or_equal_shadow_entry_count: number;
+  valid_shadow_risk_sample_count: number;
   risk_warning_rate: number | null;
   shadow_triggered_no_followthrough_count: number;
   shadow_triggered_no_followthrough_rate: number | null;
@@ -577,22 +583,33 @@ export function simulateCounterfactualVariant(input: {
   entry: number | null;
 }): CounterfactualEntryVariantResult {
   const side = input.snapshot.side;
+  const stop = finiteNumber(input.snapshot.stop);
   const originalRisk = riskPerShare(
     finiteNumber(input.snapshot.entry),
-    finiteNumber(input.snapshot.stop),
+    stop,
     side,
   );
-  const variantRisk = riskPerShare(
-    input.entry,
-    finiteNumber(input.snapshot.stop),
-    side,
-  );
+  const invalidRiskGeometryReason =
+    input.entry !== null && stop !== null && side === "long" && stop >= input.entry
+      ? "long_stop_above_or_equal_shadow_entry"
+      : input.entry !== null &&
+          stop !== null &&
+          side === "short" &&
+          stop <= input.entry
+        ? "short_stop_below_or_equal_shadow_entry"
+        : null;
+  const variantRisk =
+    invalidRiskGeometryReason === null
+      ? riskPerShare(input.entry, stop, side)
+      : null;
   const riskWidthRatio =
     originalRisk !== null && variantRisk !== null && originalRisk > 0
       ? variantRisk / originalRisk
       : null;
   const riskWarning =
-    riskWidthRatio === null
+    invalidRiskGeometryReason !== null
+      ? invalidRiskGeometryReason
+      : riskWidthRatio === null
       ? null
       : riskWidthRatio > 1.5
         ? "risk_too_wide_vs_original"
@@ -605,7 +622,7 @@ export function simulateCounterfactualVariant(input: {
       variant: input.variant,
       entry: input.entry,
       valid: false,
-      invalid_reason: "risk_per_share_invalid",
+      invalid_reason: invalidRiskGeometryReason ?? "risk_per_share_invalid",
       risk_per_share: variantRisk,
       risk_width_ratio_vs_original: riskWidthRatio,
       risk_warning: riskWarning,
@@ -857,6 +874,16 @@ function shadowEntryTrialRecord(outcome: RecommendationOutcome) {
     best_r: finiteNumber(record.best_r),
     worst_r: finiteNumber(record.worst_r),
     time_to_entry_minutes: finiteNumber(record.time_to_entry_minutes),
+    risk_per_share: finiteNumber(record.risk_per_share),
+    status:
+      typeof record.status === "string" && record.status.length > 0
+        ? record.status
+        : null,
+    execution_quality_label:
+      typeof record.execution_quality_label === "string" &&
+      record.execution_quality_label.length > 0
+        ? record.execution_quality_label
+        : null,
     risk_warning:
       typeof record.risk_warning === "string" && record.risk_warning.length > 0
         ? record.risk_warning
@@ -985,6 +1012,26 @@ function buildShadowEntryTrialSummary(
     (item) => item.risk_warning !== null,
   ).length;
   const riskWarningRate = percent(riskWarningCount, shadowResults.length);
+  const riskModelInvalidCount = shadowResults.filter(
+    (item) =>
+      item.status === "risk_model_invalid" ||
+      item.execution_quality_label === "shadow_risk_model_invalid" ||
+      item.risk_warning === "long_stop_above_or_equal_shadow_entry" ||
+      item.risk_warning === "short_stop_below_or_equal_shadow_entry",
+  ).length;
+  const riskModelInvalidRate = percent(
+    riskModelInvalidCount,
+    shadowResults.length,
+  );
+  const longStopAboveOrEqualShadowEntryCount = shadowResults.filter(
+    (item) => item.risk_warning === "long_stop_above_or_equal_shadow_entry",
+  ).length;
+  const shortStopBelowOrEqualShadowEntryCount = shadowResults.filter(
+    (item) => item.risk_warning === "short_stop_below_or_equal_shadow_entry",
+  ).length;
+  const validShadowRiskSampleCount = shadowResults.filter(
+    (item) => item.risk_per_share !== null && item.risk_per_share > 0,
+  ).length;
   const triggeredNoFollowthroughCount = shadowResults.filter(
     (item) => item.triggered && !item.target_hit && !item.stop_hit,
   ).length;
@@ -1040,6 +1087,13 @@ function buildShadowEntryTrialSummary(
     shadow_risk_too_wide_count: shadowResults.filter(
       (item) => item.risk_warning === "risk_too_wide_vs_original",
     ).length,
+    shadow_risk_model_invalid_count: riskModelInvalidCount,
+    shadow_risk_model_invalid_rate: riskModelInvalidRate,
+    long_stop_above_or_equal_shadow_entry_count:
+      longStopAboveOrEqualShadowEntryCount,
+    short_stop_below_or_equal_shadow_entry_count:
+      shortStopBelowOrEqualShadowEntryCount,
+    valid_shadow_risk_sample_count: validShadowRiskSampleCount,
     risk_warning_rate: riskWarningRate,
     shadow_triggered_no_followthrough_count: triggeredNoFollowthroughCount,
     shadow_triggered_no_followthrough_rate: triggeredNoFollowthroughRate,

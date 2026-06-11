@@ -12,6 +12,7 @@ import {
   MOCK_ORDER_PAGE_AGENT_SELECTORS,
   type MockOrderPageFieldKey,
 } from "@/lib/mock-order-page-agent-contract";
+import { buildMockOrderConfirmationUrl } from "@/lib/mock-order-confirmation-contract";
 
 type MockBrokerOrderType = "market" | "limit";
 
@@ -147,6 +148,21 @@ export function MockBrokerOrderTicket({
   const requiresManualFinalConfirmation =
     formState.mode === DEFAULT_EXECUTION_MODE;
   const allowsAutomaticFinalSubmit = formState.mode === "automatic";
+  const mockConfirmationHref = reviewState
+    ? buildMockOrderConfirmationUrl({
+        action: reviewState.action,
+        executedPrice: "",
+        intentId: reviewState.intentId,
+        message:
+          "Local mock confirmation preview only. No brokerResult created.",
+        orderId: "mock_order_preview_only",
+        quantity: reviewState.quantity,
+        requestId: reviewState.requestId,
+        requestedPrice: reviewState.limitPrice || reviewState.intendedPrice,
+        status: "submitted",
+        ticker: reviewState.ticker,
+      })
+    : "";
 
   function updateFormField<K extends keyof MockBrokerOrderFormState>(
     field: K,
@@ -517,6 +533,21 @@ export function MockBrokerOrderTicket({
                     value={reviewState.requestId}
                   />
                   <SummaryRow label="Intent ID" value={reviewState.intentId} />
+                  <div className="rounded-md border border-emerald-400/20 bg-emerald-400/[0.06] p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-100">
+                      Mock confirmation preview
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-300">
+                      Opens a local mock confirmation page only. It does not
+                      submit this order and does not create brokerResult.
+                    </p>
+                    <Link
+                      className="mt-3 inline-flex rounded-md border border-emerald-300/30 px-3 py-2 text-xs font-semibold text-emerald-100 transition hover:border-emerald-200/60 hover:text-white"
+                      href={mockConfirmationHref}
+                    >
+                      Open mock confirmation page
+                    </Link>
+                  </div>
                 </dl>
               ) : (
                 <p className="mt-4 rounded-md border border-slate-800 bg-slate-950/70 p-4 text-sm leading-6 text-slate-400">

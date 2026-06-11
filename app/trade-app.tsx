@@ -1173,6 +1173,7 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   eligibleSnapshots: number;
   evaluatedSnapshots: number;
   totalSnapshotsLoadedForBatch: number;
+  rawSnapshotRows: number;
   totalRecommendationRowsLoadedForBatch: number;
   eligibleVisibleSnapshotCount: number;
   eligibleLearningSnapshotCount: number;
@@ -1181,9 +1182,17 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   ineligibleSnapshotCount: number;
   ineligibleReasons: Record<string, number>;
   uniqueSnapshotFingerprintsCount: number;
+  uniqueLearningIdeas: number;
   duplicateSnapshotFingerprintsCount: number;
+  duplicateSnapshotRows: number;
+  duplicateSnapshotRowsIgnoredCount: number;
+  duplicateSnapshotConflictCount: number;
+  duplicateSnapshotConflictReasons: Record<string, number>;
+  visibleRecommendations: number;
   visibleGridCount: number;
+  gridCards: number;
   expectedOutcomeRowsFromEligibleSnapshots: number;
+  batchHealth: string | null;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
   outcomesCreated: number;
@@ -8078,6 +8087,7 @@ export function TradeApp() {
     eligibleSnapshots: 0,
     evaluatedSnapshots: 0,
     totalSnapshotsLoadedForBatch: 0,
+    rawSnapshotRows: 0,
     totalRecommendationRowsLoadedForBatch: 0,
     eligibleVisibleSnapshotCount: 0,
     eligibleLearningSnapshotCount: 0,
@@ -8086,9 +8096,17 @@ export function TradeApp() {
     ineligibleSnapshotCount: 0,
     ineligibleReasons: {},
     uniqueSnapshotFingerprintsCount: 0,
+    uniqueLearningIdeas: 0,
     duplicateSnapshotFingerprintsCount: 0,
+    duplicateSnapshotRows: 0,
+    duplicateSnapshotRowsIgnoredCount: 0,
+    duplicateSnapshotConflictCount: 0,
+    duplicateSnapshotConflictReasons: {},
+    visibleRecommendations: 0,
     visibleGridCount: 0,
+    gridCards: 0,
     expectedOutcomeRowsFromEligibleSnapshots: 0,
+    batchHealth: null,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
     outcomesCreated: 0,
@@ -10887,6 +10905,11 @@ export function TradeApp() {
       (snapshot) => snapshot.snapshot_fingerprint,
     ),
   );
+  const currentBatchUniqueLearningIdeaCount = currentBatchSnapshotFingerprints.size;
+  const currentBatchDuplicateSnapshotRowCount = Math.max(
+    0,
+    currentBatchSnapshotCount - currentBatchUniqueLearningIdeaCount,
+  );
   const currentBatchStoredOutcomes = storedRecommendationOutcomes.filter(
     (outcome) =>
       outcome.snapshot_fingerprint !== null &&
@@ -10911,7 +10934,7 @@ export function TradeApp() {
     "expired",
   ]);
   const currentBatchExpectedOutcomeCount =
-    currentBatchSnapshotCount * currentBatchOutcomeHorizons.length;
+    currentBatchUniqueLearningIdeaCount * currentBatchOutcomeHorizons.length;
   const currentBatchPendingOutcomeCount = Math.max(
     0,
     currentBatchExpectedOutcomeCount - currentBatchStoredOutcomes.length,
@@ -11212,6 +11235,17 @@ export function TradeApp() {
         : useClosedMarketReviewReadback
           ? latestReviewBatchSnapshots
           : [];
+  const outcomeDiagnosticsUniqueSnapshotFingerprintCount = new Set(
+    outcomeDiagnosticsSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  ).size;
+  const outcomeDiagnosticsDuplicateSnapshotRowCount = Math.max(
+    0,
+    outcomeDiagnosticsSnapshots.length -
+      outcomeDiagnosticsUniqueSnapshotFingerprintCount,
+  );
+  const outcomeDiagnosticsExpectedOutcomeCount =
+    outcomeDiagnosticsUniqueSnapshotFingerprintCount *
+    currentBatchOutcomeHorizons.length;
   const outcomeDiagnosticsStoredOutcomes =
     latestEvaluatedBatchOutcomes.length > 0
       ? latestEvaluatedBatchOutcomes
@@ -11240,7 +11274,7 @@ export function TradeApp() {
       ? currentBatchPendingOutcomeCount
       : Math.max(
           0,
-          outcomeDiagnosticsSnapshots.length * currentBatchOutcomeHorizons.length -
+          outcomeDiagnosticsExpectedOutcomeCount -
             outcomeDiagnosticsStoredOutcomes.length,
         );
   const outcomeDiagnosticsProviderErrorCount =
@@ -13251,14 +13285,20 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots > 0
             ? recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots
             : growMaxLearningModeEnabled
-              ? currentBatchSnapshotCount
+              ? outcomeDiagnosticsUniqueSnapshotFingerprintCount
               : 0,
         outcome_evaluated_snapshot_count:
           recommendationOutcomeEvaluationDiagnostics.evaluatedSnapshots,
         outcome_ineligible_snapshot_count:
           recommendationOutcomeEvaluationDiagnostics.ineligibleSnapshotCount,
         total_snapshots_loaded_for_batch:
-          recommendationOutcomeEvaluationDiagnostics.totalSnapshotsLoadedForBatch,
+          recommendationOutcomeEvaluationDiagnostics.rawSnapshotRows > 0
+            ? recommendationOutcomeEvaluationDiagnostics.rawSnapshotRows
+            : outcomeDiagnosticsSnapshots.length,
+        raw_snapshot_rows:
+          recommendationOutcomeEvaluationDiagnostics.rawSnapshotRows > 0
+            ? recommendationOutcomeEvaluationDiagnostics.rawSnapshotRows
+            : outcomeDiagnosticsSnapshots.length,
         total_recommendation_rows_loaded_for_batch:
           recommendationOutcomeEvaluationDiagnostics
             .totalRecommendationRowsLoadedForBatch,
@@ -13280,13 +13320,47 @@ export function TradeApp() {
           recommendationOutcomeEvaluationDiagnostics.ineligibleReasons,
         unique_snapshot_fingerprints_count:
           recommendationOutcomeEvaluationDiagnostics
-            .uniqueSnapshotFingerprintsCount,
+            .uniqueSnapshotFingerprintsCount > 0
+            ? recommendationOutcomeEvaluationDiagnostics
+                .uniqueSnapshotFingerprintsCount
+            : outcomeDiagnosticsUniqueSnapshotFingerprintCount,
+        unique_learning_ideas:
+          recommendationOutcomeEvaluationDiagnostics.uniqueLearningIdeas > 0
+            ? recommendationOutcomeEvaluationDiagnostics.uniqueLearningIdeas
+            : outcomeDiagnosticsUniqueSnapshotFingerprintCount,
         duplicate_snapshot_fingerprints_count:
           recommendationOutcomeEvaluationDiagnostics
-            .duplicateSnapshotFingerprintsCount,
+            .duplicateSnapshotFingerprintsCount > 0
+            ? recommendationOutcomeEvaluationDiagnostics
+                .duplicateSnapshotFingerprintsCount
+            : outcomeDiagnosticsDuplicateSnapshotRowCount,
+        duplicate_snapshot_rows:
+          recommendationOutcomeEvaluationDiagnostics.duplicateSnapshotRows > 0
+            ? recommendationOutcomeEvaluationDiagnostics.duplicateSnapshotRows
+            : outcomeDiagnosticsDuplicateSnapshotRowCount,
+        duplicate_snapshot_rows_ignored_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .duplicateSnapshotRowsIgnoredCount > 0
+            ? recommendationOutcomeEvaluationDiagnostics
+                .duplicateSnapshotRowsIgnoredCount
+            : outcomeDiagnosticsDuplicateSnapshotRowCount,
+        duplicate_snapshot_conflict_count:
+          recommendationOutcomeEvaluationDiagnostics
+            .duplicateSnapshotConflictCount,
+        duplicate_snapshot_conflict_reasons:
+          recommendationOutcomeEvaluationDiagnostics
+            .duplicateSnapshotConflictReasons,
+        visible_recommendations:
+          recommendationOutcomeEvaluationDiagnostics.visibleRecommendations > 0
+            ? recommendationOutcomeEvaluationDiagnostics.visibleRecommendations
+            : dailyRecommendations.length,
         visible_grid_count:
           recommendationOutcomeEvaluationDiagnostics.visibleGridCount > 0
             ? recommendationOutcomeEvaluationDiagnostics.visibleGridCount
+            : dailyRecommendations.length,
+        grid_cards:
+          recommendationOutcomeEvaluationDiagnostics.gridCards > 0
+            ? recommendationOutcomeEvaluationDiagnostics.gridCards
             : dailyRecommendations.length,
         expected_outcome_rows_from_eligible_snapshots:
           recommendationOutcomeEvaluationDiagnostics
@@ -13294,10 +13368,16 @@ export function TradeApp() {
             ? recommendationOutcomeEvaluationDiagnostics
                 .expectedOutcomeRowsFromEligibleSnapshots
             : growMaxLearningModeEnabled
-              ? currentBatchExpectedOutcomeCount
+              ? outcomeDiagnosticsExpectedOutcomeCount
               : 0,
         expected_outcome_count:
-          outcomeDiagnosticsSnapshots.length * currentBatchOutcomeHorizons.length,
+          outcomeDiagnosticsExpectedOutcomeCount,
+        batch_health:
+          recommendationOutcomeEvaluationDiagnostics.batchHealth ??
+          (outcomeDiagnosticsDuplicateSnapshotRowCount > 0 &&
+          outcomeDiagnosticsUniqueSnapshotFingerprintCount > 0
+            ? "grow_max_deduped"
+            : "eligible"),
         persisted_outcome_count: outcomeDiagnosticsStoredOutcomes.length,
         evaluated_outcome_count: outcomeDiagnosticsEvaluatedCount,
         incomplete_outcome_count: outcomeDiagnosticsIncompleteCount,
@@ -13470,10 +13550,21 @@ export function TradeApp() {
         current_batch_source: currentBatchSource,
         current_batch_recommendation_count: currentBatchRecommendationCount,
         current_batch_snapshot_count: currentBatchSnapshotCount,
+        current_batch_raw_snapshot_rows: currentBatchSnapshotCount,
+        current_batch_unique_snapshot_fingerprints:
+          currentBatchUniqueLearningIdeaCount,
+        current_batch_duplicate_snapshot_rows:
+          currentBatchDuplicateSnapshotRowCount,
+        current_batch_unique_learning_ideas: currentBatchUniqueLearningIdeaCount,
         current_batch_visible_grid_count: dailyRecommendations.length,
         current_batch_visible_recommendation_count: dailyRecommendations.length,
-        current_batch_learning_snapshot_count: currentBatchSnapshotCount,
+        current_batch_learning_snapshot_count: currentBatchUniqueLearningIdeaCount,
         current_batch_grid_card_count: dailyRecommendations.length,
+        current_batch_batch_health:
+          currentBatchDuplicateSnapshotRowCount > 0 &&
+          currentBatchUniqueLearningIdeaCount > 0
+            ? "grow_max_deduped"
+            : "membership_aligned",
         grow_max_learning_mode: growMaxLearningModeEnabled,
         target_ideas_per_window: growMaxLearningTargetIdeasPerWindow,
         ideas_persisted_this_window: currentBatchRecommendationCount,
@@ -14063,6 +14154,11 @@ export function TradeApp() {
         totalSnapshotsLoadedForBatch: Number(
           routeDiagnostics.total_snapshots_loaded_for_batch ?? 0,
         ),
+        rawSnapshotRows: Number(
+          routeDiagnostics.raw_snapshot_rows ??
+            routeDiagnostics.total_snapshots_loaded_for_batch ??
+            0,
+        ),
         totalRecommendationRowsLoadedForBatch: Number(
           routeDiagnostics.total_recommendation_rows_loaded_for_batch ?? 0,
         ),
@@ -14094,13 +14190,56 @@ export function TradeApp() {
         uniqueSnapshotFingerprintsCount: Number(
           routeDiagnostics.unique_snapshot_fingerprints_count ?? 0,
         ),
+        uniqueLearningIdeas: Number(
+          routeDiagnostics.unique_learning_ideas ??
+            routeDiagnostics.eligible_snapshot_count ??
+            run.eligible_snapshot_count ??
+            0,
+        ),
         duplicateSnapshotFingerprintsCount: Number(
           routeDiagnostics.duplicate_snapshot_fingerprints_count ?? 0,
         ),
+        duplicateSnapshotRows: Number(
+          routeDiagnostics.duplicate_snapshot_rows ??
+            routeDiagnostics.duplicate_snapshot_fingerprints_count ??
+            0,
+        ),
+        duplicateSnapshotRowsIgnoredCount: Number(
+          routeDiagnostics.duplicate_snapshot_rows_ignored_count ?? 0,
+        ),
+        duplicateSnapshotConflictCount: Number(
+          routeDiagnostics.duplicate_snapshot_conflict_count ?? 0,
+        ),
+        duplicateSnapshotConflictReasons:
+          typeof routeDiagnostics.duplicate_snapshot_conflict_reasons ===
+            "object" &&
+          routeDiagnostics.duplicate_snapshot_conflict_reasons !== null &&
+          !Array.isArray(routeDiagnostics.duplicate_snapshot_conflict_reasons)
+            ? Object.fromEntries(
+                Object.entries(
+                  routeDiagnostics.duplicate_snapshot_conflict_reasons,
+                ).map(([reason, countValue]) => [
+                  reason,
+                  Number(countValue ?? 0),
+                ]),
+              )
+            : {},
+        visibleRecommendations: Number(
+          routeDiagnostics.visible_recommendations ??
+            routeDiagnostics.eligible_visible_snapshot_count ??
+            0,
+        ),
         visibleGridCount: Number(routeDiagnostics.visible_grid_count ?? 0),
+        gridCards: Number(
+          routeDiagnostics.grid_cards ?? routeDiagnostics.visible_grid_count ?? 0,
+        ),
         expectedOutcomeRowsFromEligibleSnapshots: Number(
           routeDiagnostics.expected_outcome_rows_from_eligible_snapshots ?? 0,
         ),
+        batchHealth:
+          typeof routeDiagnostics.batch_health === "string"
+            ? routeDiagnostics.batch_health
+            : null,
         incompleteDueToMissingCandles: run.missing_candle_count,
         providerErrors: run.provider_error_count,
         outcomesCreated: Number(routeDiagnostics.outcomes_created_count ?? 0),
@@ -19024,6 +19163,12 @@ function RecommendationOutcomeLearningInsightsPanel({
           value={formatPercent(summary.shadow_entry_trial.risk_warning_rate)}
         />
         <SummaryCard
+          label="Shadow Invalid Risk"
+          value={formatPercent(
+            summary.shadow_entry_trial.shadow_risk_model_invalid_rate,
+          )}
+        />
+        <SummaryCard
           label="Shadow Trigger Delta"
           value={formatSignedPercent(summary.shadow_entry_trial.trigger_rate_delta)}
         />
@@ -19205,6 +19350,20 @@ function RecommendationOutcomeLearningInsightsPanel({
           <Detail
             label="Risk warnings"
             value={`${summary.shadow_entry_trial.shadow_risk_warning_count} / ${formatPercent(summary.shadow_entry_trial.risk_warning_rate)}`}
+          />
+          <Detail
+            label="Valid / invalid risk samples"
+            value={`${summary.shadow_entry_trial.valid_shadow_risk_sample_count} / ${summary.shadow_entry_trial.shadow_risk_model_invalid_count}`}
+          />
+          <Detail
+            label="Risk invalid rate"
+            value={formatPercent(
+              summary.shadow_entry_trial.shadow_risk_model_invalid_rate,
+            )}
+          />
+          <Detail
+            label="Risk invalid reasons long / short"
+            value={`${summary.shadow_entry_trial.long_stop_above_or_equal_shadow_entry_count} / ${summary.shadow_entry_trial.short_stop_below_or_equal_shadow_entry_count}`}
           />
           <Detail
             label="Tight / wide risk"
@@ -31382,6 +31541,27 @@ const executionSandboxFixturePositions: readonly ExecutionSandboxFixturePosition
     },
   ];
 
+function getLocalhostMockPageBaseUrl(): string | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(window.location.origin);
+
+    if (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
+    ) {
+      return url.origin;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return "http://localhost:3000";
+}
+
 function ExecutionSandboxFixturePanel({
   executionMode,
 }: {
@@ -32226,6 +32406,12 @@ function ExecutionHandoffPreviewModal({
     useState(false);
   const [localhostBridgeRunMessage, setLocalhostBridgeRunMessage] =
     useState("");
+  const [localhostMockAgentRunResult, setLocalhostMockAgentRunResult] =
+    useState<LocalhostBridgeClientRunResult | null>(null);
+  const [isLocalhostMockAgentRunRunning, setIsLocalhostMockAgentRunRunning] =
+    useState(false);
+  const [localhostMockAgentRunMessage, setLocalhostMockAgentRunMessage] =
+    useState("");
   const [localhostBridgeCancelResult, setLocalhostBridgeCancelResult] =
     useState<LocalhostBridgeClientCancelResult | null>(null);
   const [isLocalhostBridgeCancelRunning, setIsLocalhostBridgeCancelRunning] =
@@ -32407,6 +32593,14 @@ function ExecutionHandoffPreviewModal({
     avanzaAgentRequestValidation?.ok === true &&
     avanzaAgentBridgeEnvelopeValidation?.ok === true &&
     !isLocalhostBridgeRunRunning;
+  const canRunLocalhostMockAgent =
+    executionDevToolsEnabled &&
+    Boolean(avanzaAgentRequest) &&
+    Boolean(avanzaAgentBridgeEnvelope) &&
+    avanzaAgentRequestValidation?.ok === true &&
+    avanzaAgentBridgeEnvelopeValidation?.ok === true &&
+    !isLocalhostBridgeRunRunning &&
+    !isLocalhostMockAgentRunRunning;
   const localhostBridgeCancelRequestId =
     localhostBridgeRunResult?.response?.requestId ??
     localhostBridgeRunResult?.result?.requestId ??
@@ -32958,6 +33152,171 @@ function ExecutionHandoffPreviewModal({
       );
     } finally {
       setIsLocalhostBridgeRunRunning(false);
+    }
+  }
+
+  async function runLocalhostMockAgent() {
+    setLocalhostMockAgentRunMessage("");
+    setLocalhostMockAgentRunResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostMockAgentRunMessage(
+        "Localhost mock agent is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaAgentRequest || !avanzaAgentBridgeEnvelope) {
+      setLocalhostMockAgentRunMessage(
+        "Localhost mock agent requires a ready future-agent request and bridge envelope.",
+      );
+      return;
+    }
+
+    if (
+      avanzaAgentRequestValidation?.ok !== true ||
+      avanzaAgentBridgeEnvelopeValidation?.ok !== true
+    ) {
+      setLocalhostMockAgentRunMessage(
+        "Localhost mock agent is blocked until request and envelope validation pass.",
+      );
+      return;
+    }
+
+    setIsLocalhostMockAgentRunRunning(true);
+
+    try {
+      const bridgeConfig = readAvanzaAgentBridgeConfig();
+      const factoryResult = createAvanzaAgentBridgeFromConfig({
+        selectedTransport: bridgeConfig.selectedTransport,
+        metadata: {
+          source: "localhost_mock_agent_button",
+          runner_path: "localhost_mock_agent_run",
+          dry_run: true,
+          local_diagnostics_only: true,
+          local_mock_page_review_only: true,
+          no_avanza_session: true,
+          no_real_broker_automation: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+      const runResult = await runLocalhostBridgeDryRun({
+        envelope: avanzaAgentBridgeEnvelope,
+        request: avanzaAgentRequest,
+        enableMockAgentRun: true,
+        mockPageBaseUrl: getLocalhostMockPageBaseUrl(),
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          runner_path: "localhost_mock_agent_run",
+          selected_transport: factoryResult.selectedTransport,
+          resolved_transport: factoryResult.resolvedTransport,
+          dry_run: true,
+          local_diagnostics_only: true,
+          local_mock_page_review_only: true,
+          no_avanza_session: true,
+          no_real_broker_automation: true,
+          no_order_submitted: true,
+          no_broker_result_created: true,
+        },
+      });
+
+      setLocalhostMockAgentRunResult(runResult);
+
+      appendExecutionAuditEvents([
+        createExecutionAuditEvent({
+          type: "localhost_mock_agent_run_stub",
+          createdAt: runResult.completedAt,
+          lifecycleId: localLifecycle.lifecycleId,
+          intentId: selectedIntent.intent_id,
+          recommendationId: selectedIntent.trading_package.recommendation_id,
+          positionId: selectedIntent.trading_package.live_position_id,
+          ticker: selectedIntent.trading_package.ticker,
+          action: selectedIntent.action,
+          mode: selectedIntent.mode,
+          triggerType: selectedIntent.trigger_type,
+          broker: "avanza",
+          handoffVersion: selectedHandoff.version,
+          handoffStatus: selectedHandoff.status,
+          message:
+            "Dev-only localhost mock agent run completed against the local mock broker page only. No Avanza session opened, no real broker page was automated, no submit was clicked, and no broker result was created.",
+          metadata: {
+            stub_only: true,
+            localhost_bridge_stub: true,
+            path: "localhost_mock_agent_run",
+            dry_run: true,
+            reachable: runResult.reachable,
+            ok: runResult.ok,
+            status_code: runResult.statusCode,
+            accepted: runResult.response?.accepted ?? false,
+            base_url: runResult.baseUrl,
+            selected_transport: factoryResult.selectedTransport,
+            resolved_transport: factoryResult.resolvedTransport,
+            mockAgentRunAttempted:
+              runResult.response?.mockAgentRunAttempted ?? false,
+            mockAgentRunOk: runResult.response?.mockAgentRunOk ?? false,
+            mockAgentRunErrors: runResult.response?.mockAgentRunErrors ?? [],
+            brokerResultPresent: Boolean(runResult.result?.brokerResult),
+            progress_event_count: runResult.result?.progressEvents.length ?? 0,
+            no_avanza_session: true,
+            no_real_broker_automation: true,
+            no_order_submitted: true,
+            no_broker_result_created: true,
+          },
+        }),
+      ]);
+
+      if (runResult.result) {
+        const storedRun = createStoredAvanzaAgentRun({
+          request: avanzaAgentRequest,
+          result: runResult.result,
+          runner: {
+            runnerId: "localhost_mock_agent_run",
+            name: "Localhost Mock Agent Run",
+            version: "avanza_localhost_bridge_v1",
+            supportsRealBrokerAutomation: false,
+          },
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            path: "localhost_mock_agent_run",
+            selected_transport: factoryResult.selectedTransport,
+            resolved_transport: factoryResult.resolvedTransport,
+            dry_run: true,
+            local_diagnostics_only: true,
+            local_mock_page_review_only: true,
+            mockAgentRunAttempted:
+              runResult.response?.mockAgentRunAttempted ?? false,
+            mockAgentRunOk: runResult.response?.mockAgentRunOk ?? false,
+            mockAgentRunErrors: runResult.response?.mockAgentRunErrors ?? [],
+            brokerResultPresent: Boolean(runResult.result.brokerResult),
+            no_avanza_session: true,
+            no_real_broker_automation: true,
+            no_order_submitted: true,
+            no_broker_result_created: true,
+          },
+        });
+        const stored = appendAvanzaAgentRun(storedRun);
+
+        setAgentRunStoreMessage(
+          stored
+            ? "Localhost mock agent run saved as local agent-run diagnostics. It is not a broker confirmation."
+            : "Localhost mock agent returned a result, but the local diagnostics run could not be saved.",
+        );
+      }
+
+      setLocalhostMockAgentRunMessage(
+        runResult.ok
+          ? "Localhost mock agent completed. It reviewed only the local mock page and did not create a broker result."
+          : "Localhost mock agent finished safely with errors. No broker action occurred.",
+      );
+    } catch (error) {
+      setLocalhostMockAgentRunMessage(
+        error instanceof Error
+          ? `Localhost mock agent failed safely: ${error.message}`
+          : "Localhost mock agent failed safely. No broker action occurred.",
+      );
+    } finally {
+      setIsLocalhostMockAgentRunRunning(false);
     }
   }
 
@@ -33988,6 +34347,26 @@ function ExecutionHandoffPreviewModal({
                   </button>
                 </div>
 
+                <div className="mt-3 flex flex-col gap-3 rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-5 text-zinc-300">
+                    Dev only. Opens/fills local mock broker page through
+                    localhost bridge. Not Avanza. No submit. No brokerResult.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!canRunLocalhostMockAgent}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void runLocalhostMockAgent();
+                    }}
+                    className="min-h-10 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/50 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+                  >
+                    {isLocalhostMockAgentRunRunning
+                      ? "Running mock agent"
+                      : "Run localhost mock agent"}
+                  </button>
+                </div>
+
                 <div className="mt-3 flex flex-col gap-3 rounded-md border border-white/10 bg-black/20 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs leading-5 text-zinc-500">
                     Dev only. Calls local stub `/cancel`. Does not cancel a real
@@ -34011,6 +34390,12 @@ function ExecutionHandoffPreviewModal({
                 {localhostBridgeRunMessage && (
                   <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
                     {localhostBridgeRunMessage}
+                  </p>
+                )}
+
+                {localhostMockAgentRunMessage && (
+                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+                    {localhostMockAgentRunMessage}
                   </p>
                 )}
 
@@ -34219,6 +34604,174 @@ function ExecutionHandoffPreviewModal({
                             </p>
                             <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
                               {localhostBridgeRunResult.warnings.map(
+                                (warning) => (
+                                  <li key={warning}>{warning}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {localhostMockAgentRunResult && (
+                  <div className="mt-4 rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
+                          Localhost mock agent result
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-300">
+                          {localhostMockAgentRunResult.response
+                            ?.mockAgentRunMessage ??
+                            localhostMockAgentRunResult.response?.message ??
+                            "Localhost mock agent finished safely. No broker action occurred."}
+                        </p>
+                      </div>
+                      <span className="w-fit rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                        {localhostMockAgentRunResult.ok ? "OK" : "Safe stop"}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 rounded-md border border-emerald-300/15 bg-black/20 p-3 text-xs leading-5 text-emerald-100">
+                      Localhost mock agent only. It targets the dev-only mock
+                      broker page, clicks only Review mock order, verifies
+                      disabled submit, and creates no broker result.
+                    </p>
+
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <Detail
+                        label="Reachable"
+                        value={
+                          localhostMockAgentRunResult.reachable ? "Yes" : "No"
+                        }
+                      />
+                      <Detail
+                        label="OK"
+                        value={
+                          localhostMockAgentRunResult.ok ? "Yes" : "No"
+                        }
+                      />
+                      <Detail
+                        label="Accepted"
+                        value={
+                          typeof localhostMockAgentRunResult.response
+                            ?.accepted === "boolean"
+                            ? localhostMockAgentRunResult.response.accepted
+                              ? "Yes"
+                              : "No"
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Result Status"
+                        value={
+                          localhostMockAgentRunResult.result?.status
+                            ? agentCommandValue(
+                                localhostMockAgentRunResult.result.status,
+                              )
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Broker Result"
+                        value={
+                          localhostMockAgentRunResult.result?.brokerResult
+                            ? "Unexpected result present"
+                            : "Absent"
+                        }
+                      />
+                      <Detail
+                        label="Mock Agent Attempted"
+                        value={
+                          localhostMockAgentRunResult.response
+                            ?.mockAgentRunAttempted
+                            ? "Yes"
+                            : "No"
+                        }
+                      />
+                      <Detail
+                        label="Mock Agent OK"
+                        value={
+                          typeof localhostMockAgentRunResult.response
+                            ?.mockAgentRunOk === "boolean"
+                            ? localhostMockAgentRunResult.response
+                                .mockAgentRunOk
+                              ? "Yes"
+                              : "No"
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Started"
+                        value={
+                          localhostMockAgentRunResult.response
+                            ?.mockAgentRunStartedAt
+                            ? formatDate(
+                                localhostMockAgentRunResult.response
+                                  .mockAgentRunStartedAt,
+                              )
+                            : "—"
+                        }
+                      />
+                      <Detail
+                        label="Completed"
+                        value={
+                          localhostMockAgentRunResult.response
+                            ?.mockAgentRunCompletedAt
+                            ? formatDate(
+                                localhostMockAgentRunResult.response
+                                  .mockAgentRunCompletedAt,
+                              )
+                            : formatDate(localhostMockAgentRunResult.completedAt)
+                        }
+                      />
+                    </div>
+
+                    {localhostMockAgentRunResult.response
+                      ?.mockAgentRunErrors &&
+                      localhostMockAgentRunResult.response.mockAgentRunErrors
+                        .length > 0 && (
+                        <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                            Mock agent run errors
+                          </p>
+                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                            {localhostMockAgentRunResult.response.mockAgentRunErrors.map(
+                              (error) => (
+                                <li key={error}>{error}</li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    {(localhostMockAgentRunResult.errors.length > 0 ||
+                      localhostMockAgentRunResult.warnings.length > 0) && (
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {localhostMockAgentRunResult.errors.length > 0 && (
+                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                              Localhost mock-agent errors
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {localhostMockAgentRunResult.errors.map(
+                                (error) => (
+                                  <li key={error}>{error}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {localhostMockAgentRunResult.warnings.length > 0 && (
+                          <div className="rounded-md border border-emerald-300/15 bg-black/15 p-3">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-100">
+                              Localhost mock-agent warnings
+                            </p>
+                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                              {localhostMockAgentRunResult.warnings.map(
                                 (warning) => (
                                   <li key={warning}>{warning}</li>
                                 ),

@@ -129,8 +129,14 @@ export function buildEntryTuningProposal({
     evaluatedBatches,
   });
   const shadowTrial = learningInsights.shadow_entry_trial;
+  const shadowRiskModelInvalidRateHigh =
+    (shadowTrial.shadow_risk_model_invalid_rate ?? 0) >= 25 ||
+    shadowTrial.shadow_risk_model_invalid_count >=
+      Math.max(3, Math.ceil(shadowTrial.shadow_trial_sample_size * 0.25));
   const confidence =
-    shadowTrial.shadow_sample_size < 20 ? "low" : sampleConfidence;
+    shadowTrial.shadow_sample_size < 20 || shadowRiskModelInvalidRateHigh
+      ? "low"
+      : sampleConfidence;
   const triggerRateChange = delta(
     simulation.best_variant_trigger_rate,
     simulation.original_entry_trigger_rate,
@@ -165,6 +171,12 @@ export function buildEntryTuningProposal({
   if (shadowTrial.shadow_risk_warning_count > 0) {
     riskNotes.push(
       "Shadow entry improves trigger rate but risk model needs adjustment.",
+    );
+  }
+
+  if (shadowRiskModelInvalidRateHigh) {
+    riskNotes.push(
+      "Shadow entry improves trigger rate, but current risk model is invalid for many samples because the original stop cannot be reused after moving the entry.",
     );
   }
 

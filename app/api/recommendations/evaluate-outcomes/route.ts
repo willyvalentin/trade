@@ -53,6 +53,7 @@ type OutcomeSnapshotIneligibleReason =
 
 type OutcomeEligibilityDiagnostics = {
   total_snapshots_loaded_for_batch: number;
+  raw_snapshot_rows: number;
   total_recommendation_rows_loaded_for_batch: number;
   eligible_visible_snapshot_count: number;
   eligible_learning_snapshot_count: number;
@@ -61,9 +62,17 @@ type OutcomeEligibilityDiagnostics = {
   ineligible_snapshot_count: number;
   ineligible_reasons: Record<string, number>;
   unique_snapshot_fingerprints_count: number;
+  unique_learning_ideas: number;
   duplicate_snapshot_fingerprints_count: number;
+  duplicate_snapshot_rows: number;
+  duplicate_snapshot_rows_ignored_count: number;
+  duplicate_snapshot_conflict_count: number;
+  duplicate_snapshot_conflict_reasons: Record<string, number>;
+  visible_recommendations: number;
   visible_grid_count: number;
+  grid_cards: number;
   expected_outcome_rows_from_eligible_snapshots: number;
+  batch_health: string;
 };
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
@@ -608,6 +617,64 @@ function incrementReason(
   reasons[reason] = (reasons[reason] ?? 0) + 1;
 }
 
+function incrementDiagnosticReason(reasons: Record<string, number>, reason: string) {
+  reasons[reason] = (reasons[reason] ?? 0) + 1;
+}
+
+function stableDiagnosticJson(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value) ?? "undefined";
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map(stableDiagnosticJson).join(",")}]`;
+  }
+
+  return `{${Object.entries(value as Record<string, unknown>)
+    .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
+    .map(
+      ([key, entryValue]) =>
+        `${JSON.stringify(key)}:${stableDiagnosticJson(entryValue)}`,
+    )
+    .join(",")}}`;
+}
+
+function normalizedTicker(value: string | null | undefined) {
+  return value?.trim().toUpperCase() ?? null;
+}
+
+function duplicateSnapshotConflictReasons(
+  first: RecommendationSnapshot,
+  next: RecommendationSnapshot,
+) {
+  const reasons: string[] = [];
+
+  if (normalizedTicker(first.ticker) !== normalizedTicker(next.ticker)) {
+    reasons.push("mismatched_ticker");
+  }
+
+  if (finiteNumber(first.entry) !== finiteNumber(next.entry)) {
+    reasons.push("mismatched_entry");
+  }
+
+  if (finiteNumber(first.stop) !== finiteNumber(next.stop)) {
+    reasons.push("mismatched_stop");
+  }
+
+  if (finiteNumber(first.target) !== finiteNumber(next.target)) {
+    reasons.push("mismatched_target");
+  }
+
+  if (
+    stableDiagnosticJson(first.payload_json) !==
+    stableDiagnosticJson(next.payload_json)
+  ) {
+    reasons.push("conflicting_payload");
+  }
+
+  return reasons;
+}
+
 function snapshotPayloadHasBatchMembership(
   snapshot: RecommendationSnapshot,
   batchFingerprint: string | null,
@@ -714,12 +781,15 @@ function buildOutcomeEligibility({
   const scanRunFingerprint = stringOrNull(batch?.scan_run_fingerprint);
   const seenFingerprints = new Set<string>();
   const uniqueFingerprints = new Set<string>();
+  const firstSnapshotByFingerprint = new Map<string, RecommendationSnapshot>();
   const ineligibleReasons: Record<string, number> = {};
+  const duplicateConflictReasons: Record<string, number> = {};
   const eligibleSnapshots: RecommendationSnapshot[] = [];
   let eligibleVisibleSnapshotCount = 0;
   let eligibleLearningSnapshotCount = 0;
   let eligibleResearchOnlySnapshotCount = 0;
   let duplicateSnapshotFingerprintsCount = 0;
+  let duplicateSnapshotConflictCount = 0;
 
   for (const snapshot of snapshots) {
     const reasons: OutcomeSnapshotIneligibleReason[] = [];
@@ -735,6 +805,16 @@ function buildOutcomeEligibility({
       uniqueFingerprints.add(fingerprint);
       if (seenFingerprints.has(fingerprint)) {
         duplicateSnapshotFingerprintsCount += 1;
+        const firstSnapshot = firstSnapshotByFingerprint.get(fingerprint);
+        const conflictReasons = firstSnapshot
+          ? duplicateSnapshotConflictReasons(firstSnapshot, snapshot)
+          : [];
+        if (conflictReasons.length > 0) {
+          duplicateSnapshotConflictCount += 1;
+          for (const conflictReason of conflictReasons) {
+            incrementDiagnosticReason(duplicateConflictReasons, conflictReason);
+          }
+        }
         reasons.push("duplicate_snapshot_fingerprint");
       }
     }
@@ -782,6 +862,9 @@ function buildOutcomeEligibility({
       }
       if (fingerprint) {
         seenFingerprints.add(fingerprint);
+        if (!firstSnapshotByFingerprint.has(fingerprint)) {
+          firstSnapshotByFingerprint.set(fingerprint, snapshot);
+        }
       }
       continue;
     }
@@ -813,11 +896,28 @@ function buildOutcomeEligibility({
     });
     if (fingerprint) {
       seenFingerprints.add(fingerprint);
+      if (!firstSnapshotByFingerprint.has(fingerprint)) {
+        firstSnapshotByFingerprint.set(fingerprint, snapshot);
+      }
     }
   }
 
+  const duplicateSnapshotRowsIgnoredCount = Math.max(
+    0,
+    duplicateSnapshotFingerprintsCount - duplicateSnapshotConflictCount,
+  );
+  const batchHealth =
+    duplicateSnapshotConflictCount > 0
+      ? "grow_max_duplicate_conflicts"
+      : duplicateSnapshotFingerprintsCount > 0 && eligibleSnapshots.length > 0
+        ? "grow_max_deduped"
+        : eligibleSnapshots.length > 0
+          ? "eligible"
+          : "no_eligible_snapshots";
+
   const diagnostics: OutcomeEligibilityDiagnostics = {
     total_snapshots_loaded_for_batch: snapshots.length,
+    raw_snapshot_rows: snapshots.length,
     total_recommendation_rows_loaded_for_batch: recommendationRowsLoadedCount,
     eligible_visible_snapshot_count: eligibleVisibleSnapshotCount,
     eligible_learning_snapshot_count: eligibleLearningSnapshotCount,
@@ -828,10 +928,18 @@ function buildOutcomeEligibility({
     ineligible_snapshot_count: snapshots.length - eligibleSnapshots.length,
     ineligible_reasons: ineligibleReasons,
     unique_snapshot_fingerprints_count: uniqueFingerprints.size,
+    unique_learning_ideas: eligibleSnapshots.length,
     duplicate_snapshot_fingerprints_count: duplicateSnapshotFingerprintsCount,
+    duplicate_snapshot_rows: duplicateSnapshotFingerprintsCount,
+    duplicate_snapshot_rows_ignored_count: duplicateSnapshotRowsIgnoredCount,
+    duplicate_snapshot_conflict_count: duplicateSnapshotConflictCount,
+    duplicate_snapshot_conflict_reasons: duplicateConflictReasons,
+    visible_recommendations: eligibleVisibleSnapshotCount,
     visible_grid_count: eligibleVisibleSnapshotCount,
+    grid_cards: eligibleVisibleSnapshotCount,
     expected_outcome_rows_from_eligible_snapshots:
       eligibleSnapshots.length * horizons.length,
+    batch_health: batchHealth,
   };
 
   return {

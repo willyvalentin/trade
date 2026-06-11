@@ -24,7 +24,8 @@ A manually started localhost bridge server stub exists at `scripts/avanza-localh
 Settings can perform an explicit dev-only health check against `GET /health`.
 The Execution Handoff Preview Modal can perform an explicit dev-only dry-run
 echo request against `POST /run` and an explicit dev-only cancel contract test
-against `POST /cancel`.
+against `POST /cancel`. It also has a separate explicit dev-only `Run localhost
+mock agent` button that calls `POST /run` with `enableMockAgentRun: true`.
 
 A separate dev-only mock order ticket exists at `/mock-broker/order`. It is not
 Avanza and cannot submit or capture orders. Its selector/fill-plan contract
@@ -107,6 +108,13 @@ send the current future-agent request and bridge envelope to the local stub.
 This is dev-only and manual. It calls `POST /run` with `dryRun: true`, displays
 the echo response, and may save local diagnostics. It does not create a
 `TureExecutionRecord`, broker confirmation, Supabase row, or trade-state change.
+
+Use `Run localhost mock agent` to manually exercise the explicit local mock-page
+runner path. This is dev-only and manual. It calls `POST /run` with
+`enableMockAgentRun: true` and a localhost `mockPageBaseUrl`, displays
+`mockAgentRun...` metadata, and may save local agent-run diagnostics. It does
+not open Avanza, submit the mock order, create `brokerResult`, create a
+`TureExecutionRecord`, write Supabase, or mutate trade state.
 
 Use `Cancel localhost bridge run` to test the local `/cancel` contract. This is
 also dev-only and manual. It acknowledges a local stub request id only and does
@@ -431,6 +439,7 @@ The TypeScript contract exports:
 
 - `dryRun` is true by default and required in v1.
 - No Avanza page is in scope for the first localhost server prototype.
+- The Execution Handoff Preview Modal can trigger the explicit mock-agent run mode only through the separate dev-only `Run localhost mock agent` button.
 - The mock order page exists for dev QA only. The localhost bridge may return a mock fill plan and relative mock page URL by default, but it must not auto-open, auto-fill, submit, or capture anything.
 - `scripts/mock-order-page-agent-runner.mjs` can manually consume a local fill plan for mock-page QA.
 - The bridge may import that runner only when `/run` explicitly sets `enableMockAgentRun=true`; that mode is localhost-only, mock-page-only, and review-only.

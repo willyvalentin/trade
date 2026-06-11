@@ -59,6 +59,9 @@ export type RunLocalhostBridgeDryRunOptions = {
   request: AvanzaAgentRequest;
   baseUrl?: string | null;
   timeoutMs?: number | null;
+  enableMockAgentRun?: boolean | null;
+  mockPageBaseUrl?: string | null;
+  mockAgentHeaded?: boolean | null;
   metadata?: Record<string, unknown> | null;
   fetchFn?: typeof fetch | null;
 };
@@ -234,12 +237,16 @@ export async function runLocalhostBridgeDryRun(
 
   try {
     body = buildLocalhostBridgeRunRequest(options.envelope, options.request, {
+      enableMockAgentRun: options.enableMockAgentRun ?? undefined,
+      mockPageBaseUrl: options.mockPageBaseUrl ?? undefined,
+      mockAgentHeaded: options.mockAgentHeaded ?? undefined,
       metadata: {
         ...(options.metadata ?? {}),
         dry_run: true,
         local_diagnostics_only: true,
         no_avanza_session: true,
-        no_browser_automation: true,
+        no_browser_automation: options.enableMockAgentRun === true ? false : true,
+        mock_agent_run_requested: options.enableMockAgentRun === true,
         no_broker_result_created: true,
       },
     });
@@ -302,11 +309,27 @@ export async function runLocalhostBridgeDryRun(
       );
     }
 
+    const mockAgentRunFailed =
+      options.enableMockAgentRun === true &&
+      responseBody?.mockAgentRunOk === false;
+
+    if (mockAgentRunFailed) {
+      errors.push(
+        ...(responseBody?.mockAgentRunErrors?.length
+          ? responseBody.mockAgentRunErrors
+          : [
+              responseBody?.mockAgentRunMessage ??
+                "Localhost mock agent run failed safely.",
+            ]),
+      );
+    }
+
     return buildRunResult({
       ok:
         response.ok &&
         validation.ok &&
         responseBody?.accepted === true &&
+        !mockAgentRunFailed &&
         !responseBody.result?.brokerResult,
       reachable: true,
       statusCode: response.status,

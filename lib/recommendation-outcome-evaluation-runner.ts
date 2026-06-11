@@ -343,7 +343,14 @@ function shadowExecutionQualityLabel(result: {
   target_hit: boolean | null;
   stop_hit: boolean | null;
   best_r: number | null;
+  invalid_reason?: string | null;
 }) {
+  if (
+    result.invalid_reason === "long_stop_above_or_equal_shadow_entry" ||
+    result.invalid_reason === "short_stop_below_or_equal_shadow_entry"
+  ) {
+    return "shadow_risk_model_invalid";
+  }
   if (result.target_hit === true) return "target_hit";
   if (result.stop_hit === true) return "stop_hit";
   if (result.entry_triggered === false) {
@@ -378,6 +385,9 @@ function shadowEntryTrialPayload(input: {
     variant,
     entry: firstClose,
   });
+  const riskModelInvalid =
+    result.invalid_reason === "long_stop_above_or_equal_shadow_entry" ||
+    result.invalid_reason === "short_stop_below_or_equal_shadow_entry";
 
   return {
     shadow_entry_trial: {
@@ -396,7 +406,7 @@ function shadowEntryTrialPayload(input: {
       risk_warning: result.risk_warning,
       not_live_signal: true,
       source: "entry_tuning_proposal",
-      status: "collecting_data",
+      status: riskModelInvalid ? "risk_model_invalid" : "collecting_data",
     },
   };
 }

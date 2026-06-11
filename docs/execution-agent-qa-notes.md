@@ -363,6 +363,7 @@ Commands run:
 ./node_modules/.bin/tsc --noEmit
 npm run lint
 git diff --check
+npm run bridge:localhost:smoke
 npm run test:e2e
 NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
 ```
@@ -637,6 +638,7 @@ Results:
 - TypeScript passed.
 - Lint passed.
 - Diff check passed.
+- Localhost bridge smoke passed.
 - Dev-tools-enabled E2E passed: 7 tests passed.
 - Dev-tools-disabled E2E passed: 7 tests passed.
 
@@ -857,3 +859,1652 @@ Safety notes:
 - No broker confirmation or `brokerResult` is created.
 - No Supabase write path was used.
 - No real trade state was mutated.
+
+## Action 203 - Dev UI Button for Localhost Mock Agent Run
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added dev-only modal UI wiring for the explicit localhost mock-agent run:
+
+- Updated `lib/avanza-localhost-bridge-client.ts` so `runLocalhostBridgeDryRun(...)` accepts and forwards:
+  - `enableMockAgentRun`
+  - `mockPageBaseUrl`
+  - `mockAgentHeaded`
+- Updated the client result calculation so an explicit mock-agent run with `mockAgentRunOk=false` reports `ok=false` while preserving the response metadata.
+- Added `localhost_mock_agent_run_stub` to the local execution audit event contract.
+- Added a separate `Run localhost mock agent` button in the Execution Handoff Preview Modal.
+- The existing `Run localhost bridge echo` button remains unchanged.
+- The new button is dev-only, manual-only, and calls localhost `/run` with `enableMockAgentRun=true` plus a safe localhost mock page base URL.
+- The modal displays mock-agent run metadata:
+  - reachable
+  - ok
+  - accepted
+  - result status
+  - broker result absence
+  - `mockAgentRunAttempted`
+  - `mockAgentRunOk`
+  - `mockAgentRunMessage`
+  - `mockAgentRunErrors`
+  - `mockAgentRunStartedAt`
+  - `mockAgentRunCompletedAt`
+- The modal appends a local `localhost_mock_agent_run_stub` audit event and saves local agent-run diagnostics when a result exists.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed: 7 tests passed.
+- Dev-tools-disabled E2E passed: 7 tests passed.
+- The modal E2E intercepts localhost `/run`, verifies the new button sends `enableMockAgentRun=true`, displays mock-agent metadata, and shows `Broker Result` as `Absent`.
+
+Safety notes:
+
+- The button is hidden unless execution dev tools are enabled.
+- The button is explicit and does not run on render.
+- No Avanza URL or Avanza selectors were added.
+- No real broker page is automated.
+- No mock submit is clicked.
+- No broker confirmation or `brokerResult` is created.
+- No `TureExecutionRecord` is created from the mock-agent run.
+- No Supabase write path was used.
+- No real trade state was mutated.
+
+## Action 204 - Mock Agent Prototype Checkpoint + Next Phase Plan
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Documentation-only checkpoint:
+
+- Added `docs/mock-agent-prototype-checkpoint.md`.
+- Linked the new checkpoint from `docs/execution-agent-checkpoint.md`.
+- Documented the completed Actions 196-203 local mock-agent pipeline:
+  - execution handoff
+  - future agent request
+  - bridge envelope
+  - localhost bridge `/run`
+  - mock fill plan
+  - mock page runner
+  - review-only verification
+  - local diagnostics/audit/agent-run record
+- Documented proven capabilities, involved files, safety boundaries, local run commands, QA status, next-phase plan, and recommended Action 205.
+
+Command run:
+
+```bash
+git diff --check
+```
+
+Result:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Avanza automation was added.
+- No mock or real automation behavior was changed.
+- No submit path was added.
+- No broker confirmation or `brokerResult` was created.
+- No Supabase write path was used.
+- No real trade state was mutated.
+
+## Action 205 - Mock Confirmation Page Contract
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added dev-only mock confirmation contract and UI:
+
+- Added `lib/mock-order-confirmation-contract.ts`.
+- Added `/mock-broker/confirmation`.
+- Added `app/mock-broker/confirmation/page.tsx`.
+- Added `app/mock-broker/confirmation/confirmation.tsx`.
+- Added stable `data-testid` and `data-agent-field` selectors for status, ticker, action, quantity, requested price, executed price, order id, request id, intent id, position id, recommendation id, message, and safety label.
+- Added safe query-param parsing and `buildMockOrderConfirmationUrl(...)`.
+- Added a manual `Open mock confirmation page` link from the mock order review panel.
+- The confirmation page supports local mock statuses:
+  - `filled`
+  - `submitted`
+  - `partially_filled`
+  - `rejected`
+  - `cancelled`
+  - `unknown`
+- The confirmation page is dev-gated by `NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=true`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed: 9 tests passed.
+- Dev-tools-disabled E2E passed: 9 tests passed.
+- E2E verifies mock confirmation URL building, stable selectors, rendered values, filled/rejected statuses, disabled-dev-tools behavior, and the mock order review link to `/mock-broker/confirmation`.
+
+Safety notes:
+
+- This is mock confirmation contract/UI/test only.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is automated.
+- No mock or real submit path was added.
+- No real broker confirmation is created.
+- No `brokerResult` is created.
+- No `TureExecutionRecord` is created.
+- No Supabase write path was used.
+- No real trade state was mutated.
+
+## Action 206 - Mock Confirmation Parser Test Runner
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added Playwright-only mock confirmation parser support:
+
+- Added `tests/e2e/helpers/mock-confirmation-parser.ts`.
+- Extended `MockOrderConfirmationParseResult` with top-level:
+  - `ok`
+  - `errors`
+  - `warnings`
+  - `parsedAt`
+- The helper reads only stable `data-testid` plus `data-agent-field` selector pairs from `/mock-broker/confirmation`.
+- The helper returns the typed mock confirmation parse result from the existing contract.
+- Added parser e2e coverage for:
+  - `filled`
+  - `rejected`
+  - `cancelled`
+- Dev-tools-disabled behavior remains covered.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This helper is Playwright/dev-test only.
+- No app runtime code imports the parser helper.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is parsed.
+- No submit path was added.
+- No `BrokerExecutionResult` is created.
+- No `TureExecutionRecord` is created.
+- No Supabase write path was used.
+- No real trade state was mutated.
+
+## Action 207 - Mock Confirmation to Dev Broker Result Mapper
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added dev-only mock broker result mapping:
+
+- Added `lib/mock-broker-execution-result.ts`.
+- Added `DevMockBrokerExecutionStatus`.
+- Added `DevMockBrokerExecutionResult`.
+- Added `normalizeDevMockBrokerExecutionStatus(...)`.
+- Added `buildDevMockBrokerExecutionResultFromConfirmationPayload(...)`.
+- Added `buildDevMockBrokerExecutionResultFromParseResult(...)`.
+- Added `validateDevMockBrokerExecutionResult(...)`.
+- Added e2e coverage for filled, rejected, and cancelled mock mappings.
+- The mapper is intentionally named `DevMock...` and remains separate from the real `BrokerExecutionResult`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This is dev/mock mapping logic only.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is parsed.
+- No submit path was added.
+- No real `BrokerExecutionResult` is created.
+- No `TureExecutionRecord` is created.
+- No Supabase write path was used.
+- No real trade state was mutated.
+
+## Action 208 - Dev Mock Broker Result Diagnostics Viewer
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added dev-only local diagnostics for mock broker-like results:
+
+- Added `lib/dev-mock-broker-result-store.ts`.
+- Added isolated local storage key `ture_dev_mock_broker_results_v1`.
+- Added safe read/append/filter/clear helpers for `DevMockBrokerExecutionResult`.
+- Added a dev-only `Save dev mock result` control on `/mock-broker/confirmation`.
+- Added a Settings `Dev Mock Broker Results` viewer with refresh, latest 50 rows, details JSON, and scoped clear.
+- Added e2e coverage for saving a mock confirmation result, viewing it in Settings, clearing it, and keeping the viewer hidden when execution dev tools are disabled.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This is dev-only local diagnostics.
+- The store is separate from real execution records and agent run stores.
+- Clearing dev mock results removes only `ture_dev_mock_broker_results_v1`.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is parsed.
+- No submit path was added.
+- No real `BrokerExecutionResult` is created.
+- No `TureExecutionRecord` is created.
+- No Supabase write path was used.
+- No History/Statistics integration was added.
+- No real trade state was mutated.
+
+## Action 209 - Dev-only Mock Result to BrokerExecutionResult Bridge
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a pure dev-only conversion preview from mock diagnostics to the real broker-result shape:
+
+- Added `lib/dev-mock-to-broker-execution-result.ts`.
+- Added `DevMockBrokerToBrokerExecutionResultConversion`.
+- Added `DevMockBrokerConvertedBrokerExecutionResult`.
+- Added `convertDevMockBrokerResultToBrokerExecutionResult(...)`.
+- Added `canConvertDevMockBrokerResult(...)`.
+- Conversion maps valid dev mock filled/rejected/cancelled results into Avanza-shaped `BrokerExecutionResult` previews.
+- Converted previews include `DEV MOCK CONVERSION - not a real Avanza confirmation.`
+- Settings `Dev Mock Broker Results` rows now include a collapsed `BrokerExecutionResult preview`.
+- The preview is clearly labeled as not saved, not real, and not `TureExecutionRecord`.
+- Added e2e coverage for filled, rejected, cancelled, malformed conversion errors, and preview display.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This is dev-only conversion/diagnostics logic.
+- The converter does not call `buildTureExecutionRecord`.
+- The Settings preview does not save converted broker results.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is parsed.
+- No submit path was added.
+- No `TureExecutionRecord` is created.
+- No Supabase write path was used.
+- No History/Statistics integration was added.
+- No real trade state was mutated.
+
+## Action 210 - Dev-only Mock Broker Capture Pipeline
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added an explicit dev-only local capture test for stored mock broker results:
+
+- Added audit event type `dev_mock_broker_capture_stub`.
+- Added `Capture mock result locally` in the Settings `Dev Mock Broker Results` viewer.
+- The button converts the stored `DevMockBrokerExecutionResult` with `convertDevMockBrokerResultToBrokerExecutionResult(...)`.
+- It builds a matching local `ExecutionIntent` from mock identifiers, action, ticker, quantity, and price data.
+- It calls `buildTureExecutionRecord(...)`.
+- It appends the resulting `TureExecutionRecord` to the existing local execution-record store only.
+- It appends a local audit event.
+- The UI labels the result as `DEV MOCK CAPTURE` and warns it is not real broker execution.
+- E2E covers save mock result -> capture locally -> local Execution Records diagnostics display.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This is dev-only local capture testing.
+- The capture button is explicit and manual only.
+- No Avanza automation was added.
+- No Avanza URL, branding, or selector was added.
+- No real broker page is parsed.
+- No submit path was added.
+- No Supabase write path was used.
+- No live trade state was mutated.
+- No History/Statistics integration was added.
+- No positions are opened or closed.
+
+## Action 211 - Mock Execution End-to-End Checkpoint
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added documentation-only checkpoint:
+
+- Added `docs/mock-execution-e2e-checkpoint.md`.
+- Summarized the full Actions 196-210 dev-only mock execution pipeline.
+- Documented what is proven, what is explicitly not implemented, safety boundaries, key files, runbook, QA status, next phases, and recommended Action 212 options.
+- Linked the new checkpoint from `docs/mock-agent-prototype-checkpoint.md`.
+- Linked the new checkpoint from `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Avanza automation was added.
+- No broker execution was added.
+- No Supabase write path was added.
+- No trade mutation was added.
+- No History/Statistics integration was added.
+
+## Action 212 - Mock Capture Duplicate Guard
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added local-only duplicate protection for dev mock captures:
+
+- Added duplicate key helpers for dev mock captures.
+- Duplicate identity uses dev mock source, order id, request id, intent id, status, ticker, action, and quantity.
+- Settings checks existing local execution records before capture.
+- The primary `Capture mock result locally` button is disabled when a matching local capture exists.
+- The UI warns: `This mock result already has a local capture record.`
+- The UI states that duplicate guard checks localStorage only.
+- E2E verifies first capture succeeds, second capture is blocked/disabled, and only one matching local execution record exists.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run bridge:localhost:smoke
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Localhost bridge smoke passed after rerunning with localhost bind permission.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- This is local/dev duplicate protection only.
+- It does not remove existing local records.
+- It does not silently clear duplicates.
+- It does not write Supabase.
+- It does not mutate real trades.
+- It does not affect History or Statistics.
+- It is not broker order dedupe.
+- No Avanza automation was added.
+
+## Action 213 - Execution Persistence Schema Proposal
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a documentation-only Supabase persistence schema proposal:
+
+- Added `docs/execution-persistence-schema-proposal.md`.
+- Documented current localStorage-backed execution diagnostics stores:
+  - `ture_execution_event_log_v1`
+  - `ture_execution_records_v1`
+  - `ture_avanza_agent_runs_v1`
+  - `ture_dev_mock_broker_results_v1`
+  - `ture_avanza_agent_bridge_config_v1`
+  - `ture_execution_sandbox_smoke_checklist_v1`
+- Proposed future tables for execution intents, lifecycle events, broker execution results, execution records, agent runs, and agent progress events.
+- Proposed optional broker handoff, execution safety check, and dev mock broker result tables.
+- Documented fields, JSONB usage, indexes, relationships, retention notes, idempotency/dedupe boundaries, dev/mock separation, security/RLS considerations, migration order, and future API route implications.
+- Linked the proposal from `docs/execution-agent-checkpoint.md`.
+- Updated `docs/mock-execution-e2e-checkpoint.md` to mark Action 213 complete and recommend Action 214 review/risk notes before migrations.
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No app behavior was changed.
+- No local store behavior was altered.
+- No Avanza automation was added.
+- No broker execution was added.
+- No trade mutation was added.
+
+## Action 214 - Execution Persistence Schema Review / Risk Notes
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a documentation-only critical review of the execution persistence schema proposal:
+
+- Added `docs/execution-persistence-schema-review.md`.
+- Identified major risks before migrations:
+  - dev/mock data mixing with real execution data
+  - client-side spoofing of broker results
+  - duplicate broker confirmations
+  - partial fills
+  - mismatched intent/result data
+  - execution authority drift
+  - automatic mode auditability
+  - raw payload over-storage
+  - RLS and `user_id` assumptions
+  - retention/table bloat
+  - product linkage too early
+- Defined trust boundaries for untrusted client/localStorage data, semi-trusted local bridge or agent output, and trusted server-side validation/capture.
+- Recommended schema clarifications including `source_environment`, `capture_source`, `authority_snapshot`, minimized raw payloads, required real idempotency keys, append-only events, and keeping `execution_records` as normalized summaries.
+- Added idempotency review and partial-fill nuance.
+- Added RLS/security review.
+- Added migration go/no-go checklist.
+- Updated `docs/execution-persistence-schema-proposal.md` to link to the review and recommend Action 215.
+- Updated `docs/execution-agent-checkpoint.md` to record Action 214.
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No app behavior was changed.
+- No local store behavior was altered.
+- No Avanza automation was added.
+- No broker execution was added.
+- No trade mutation was added.
+
+## Action 215 - Execution Server Capture API Contract
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a typed/documented contract for future server-side execution capture:
+
+- Added `lib/execution-server-capture-contract.ts`.
+- Added `EXECUTION_SERVER_CAPTURE_CONTRACT_VERSION`.
+- Added source and environment types:
+  - `ExecutionServerCaptureSource`
+  - `ExecutionServerCaptureEnvironment`
+- Added request/response types:
+  - `ExecutionServerCaptureRequest`
+  - `ExecutionServerCaptureValidationResult`
+  - `ExecutionServerCaptureResponseStatus`
+  - `ExecutionServerCaptureResponse`
+  - `ExecutionServerCaptureIdempotencyInput`
+- Added pure helpers:
+  - `buildExecutionServerCaptureIdempotencyKey(...)`
+  - `buildExecutionServerCaptureRequest(...)`
+  - `validateExecutionServerCaptureRequest(...)`
+  - `createRejectedExecutionServerCaptureResponse(...)`
+  - `createAcceptedExecutionServerCaptureResponse(...)`
+- Added `docs/execution-server-capture-api-contract.md` with proposed future `POST /api/execution/capture` semantics, examples, validation rules, idempotency strategy, trust boundaries, RLS/security notes, Supabase table relationships, open questions, and recommended Action 216.
+- Updated persistence proposal/review/checkpoint docs to link to the new contract.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+
+Safety notes:
+
+- Contract/documentation only.
+- No API route was added.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No app runtime behavior was changed.
+- No local store behavior was altered.
+- No Avanza automation was added.
+- No broker execution was added.
+- No trade mutation was added.
+
+## Action 216 - Execution Server Capture API Route Stub
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a dev-only API route stub for the execution server capture contract:
+
+- Added `app/api/execution/capture/route.ts`.
+- Route: `POST /api/execution/capture`.
+- The route is server-gated by `NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=true`.
+- Dev-tools-disabled builds return 403 with a contract-shaped rejection.
+- Malformed JSON returns 400.
+- Invalid capture requests return 400 with validation errors/warnings.
+- Valid capture requests return 202 with `status: accepted`.
+- Accepted response message states: `Capture request accepted by dev stub only. No Supabase write or trade mutation occurred.`
+- The route uses:
+  - `validateExecutionServerCaptureRequest(...)`
+  - `createAcceptedExecutionServerCaptureResponse(...)`
+  - `createRejectedExecutionServerCaptureResponse(...)`
+- Added Playwright/API request coverage for:
+  - valid accepted stub response when dev tools are enabled
+  - invalid request rejection
+  - malformed JSON rejection
+  - dev-tools-disabled 403 behavior
+- Updated `docs/execution-server-capture-api-contract.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Dev-only validation/stub route only.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No app runtime capture flow was wired to the route.
+- No local store behavior was altered.
+- No `buildTureExecutionRecord(...)` call was added to the route.
+- No execution record is created by the route.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 217 - Dev-only Capture API Client + Settings Test Button
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a frontend-safe client helper and manual Settings tester for the execution capture route stub:
+
+- Added `lib/execution-server-capture-client.ts`.
+- Added `postExecutionServerCaptureRequest(...)`.
+- Client helper:
+  - POSTs JSON to `/api/execution/capture`.
+  - Uses `AbortController` timeout handling.
+  - Parses response JSON safely.
+  - Returns a normalized non-throwing result with `ok`, `statusCode`, `response`, `errors`, `warnings`, and `completedAt`.
+  - Does not write localStorage or mutate anything.
+- Added `Test server capture stub` in the Settings `Dev Mock Broker Results` viewer.
+- The button:
+  - converts the selected dev mock result to `BrokerExecutionResult`-shaped data
+  - builds the matching dev mock `ExecutionIntent`
+  - builds and locally validates an `ExecutionServerCaptureRequest`
+  - POSTs to the dev-only route stub
+  - displays accepted/rejected/disabled response status, HTTP status, idempotency key, message, errors, and warnings
+  - does not create execution records
+  - does not append audit events
+  - does not write Supabase
+  - does not mutate trades, History, or Statistics
+- Updated e2e coverage to save a dev mock result, click `Test server capture stub`, verify accepted response display, and verify no execution record was created by the stub test.
+- Updated `docs/execution-server-capture-api-contract.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Dev-only route stub testing only.
+- No automatic POST on render was added.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No local execution record is created by the new button.
+- No audit event is appended by the new button.
+- No local store behavior was altered.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 218 - Execution Capture Route Test Fixtures + Contract Hardening
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added shared fixtures and broader validation coverage for the execution server capture contract/route:
+
+- Added `tests/e2e/helpers/execution-server-capture-fixtures.ts`.
+- Fixture exports:
+  - `buildValidDevMockExecutionServerCaptureRequest()`
+  - `buildInvalidExecutionServerCaptureRequestMissingIntent()`
+  - `buildInvalidExecutionServerCaptureRequestMissingBrokerResult()`
+  - `buildMismatchedExecutionServerCaptureRequest()`
+  - `buildProductionMockExecutionServerCaptureRequest()`
+- Hardened `validateExecutionServerCaptureRequest(...)`:
+  - broker result `action`, when present, must be `buy` or `sell`
+  - broker result `action`, when present, must match intent action
+  - broker result `ticker`, when present, must match intent ticker case-insensitively
+  - broker result `quantity`, when present, must match intent quantity
+  - idempotency key must match `buildExecutionServerCaptureIdempotencyKey(...)`
+  - production mock/dev capture remains invalid by default
+- Expanded e2e coverage:
+  - valid fixture validates ok
+  - idempotency key is deterministic
+  - missing intent validates and routes as invalid
+  - missing broker result validates and routes as invalid
+  - mismatched action/ticker/quantity validates and routes as invalid
+  - production mock capture validates and routes as invalid
+  - malformed JSON remains invalid
+  - dev-tools-disabled 403 behavior remains covered
+- Updated `docs/execution-server-capture-api-contract.md` with fixture list, validation matrix, idempotency determinism, and production mock behavior.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Test fixture/contract hardening only.
+- No Supabase migration was added.
+- No database code was modified.
+- No Supabase write path was added.
+- No local execution record write was added.
+- No local store behavior was altered.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 219 - Minimal Supabase Migration Draft
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a draft-only Supabase migration for the lowest-risk execution persistence foundation:
+
+- Added `supabase/migrations/20260610000000_execution_audit_foundation.sql`.
+- Draft tables:
+  - `execution_lifecycle_events`
+  - `execution_agent_runs`
+  - `execution_agent_progress_events`
+- Included indexes for timestamps, ids, tickers, event/status fields, and source environment/mock/dev filtering.
+- Included low-risk check constraints for:
+  - nullable `action` in `buy`/`sell`
+  - nullable `mode` in `semi_automatic`/`automatic`
+  - `broker` in `avanza`
+  - `source_environment` in `local_dev`/`staging`/`production`
+- Added comments documenting:
+  - draft-only status
+  - no app writes wired
+  - no credentials/raw broker pages/session data in payloads
+  - nullable `user_id` until auth ownership is finalized
+  - RLS TODO because the current migration set does not show a project-wide RLS convention
+- Confirmed the draft does not create:
+  - `broker_execution_results`
+  - `execution_records`
+  - `execution_intents`
+  - `broker_handoffs`
+- Updated `docs/execution-persistence-schema-proposal.md`.
+- Updated `docs/execution-persistence-schema-review.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Migration draft/schema only.
+- Migration was not applied.
+- No Supabase write path was added.
+- No app code writes these tables.
+- No API route persistence was added.
+- No broker execution result persistence was added.
+- No local execution record write was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 220 - Execution Audit Persistence API Contract + Dev Stub
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added validation-only contracts and route stubs for future execution audit persistence:
+
+- Added `lib/execution-audit-persistence-contract.ts`.
+- Added `EXECUTION_AUDIT_PERSISTENCE_CONTRACT_VERSION`.
+- Added request types:
+  - `PersistExecutionLifecycleEventRequest`
+  - `PersistExecutionAgentRunRequest`
+  - `PersistExecutionAgentProgressEventRequest`
+- Added response type:
+  - `ExecutionAuditPersistenceResponse`
+- Added validation helpers:
+  - `validatePersistExecutionLifecycleEventRequest(...)`
+  - `validatePersistExecutionAgentRunRequest(...)`
+  - `validatePersistExecutionAgentProgressEventRequest(...)`
+- Added response helpers:
+  - `createAcceptedExecutionAuditPersistenceResponse(...)`
+  - `createRejectedExecutionAuditPersistenceResponse(...)`
+- Added dev-gated route stubs:
+  - `POST /api/execution/audit/lifecycle-events`
+  - `POST /api/execution/audit/agent-runs`
+  - `POST /api/execution/audit/agent-progress-events`
+- Route behavior:
+  - 403 when `NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS` is not `true`
+  - 400 for malformed JSON
+  - 400 for invalid contract payloads
+  - 202 for valid payloads
+  - no Supabase writes
+  - no local store writes
+  - no trade mutation
+  - no broker result persistence
+- Added e2e coverage for:
+  - valid lifecycle event accepted
+  - invalid lifecycle event rejected
+  - valid agent run accepted
+  - valid progress event accepted
+  - malformed JSON rejection
+  - disabled mode 403 behavior for all three audit endpoints
+- Updated `docs/execution-persistence-schema-proposal.md`.
+- Updated `docs/execution-persistence-schema-review.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- API contract/stub only.
+- No migration was applied.
+- No Supabase write path was added.
+- No app code writes the Action 219 draft tables.
+- No local store write was added.
+- No broker execution result persistence was added.
+- No local execution record write was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 221 - Execution Audit Persistence API Client + Dev Test Buttons
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added frontend-safe client helpers and explicit dev-only Settings testers for the Action 220 audit persistence route stubs:
+
+- Added `lib/execution-audit-persistence-client.ts`.
+- Added non-throwing helpers:
+  - `postPersistExecutionLifecycleEventRequest(...)`
+  - `postPersistExecutionAgentRunRequest(...)`
+  - `postPersistExecutionAgentProgressEventRequest(...)`
+- Helpers POST JSON to the matching route stubs, use `AbortController` timeouts, parse responses safely, and return normalized HTTP/status/errors/warnings metadata.
+- Added Settings `Execution Audit API Stubs` panel when execution dev tools are enabled.
+- Added manual buttons:
+  - `Test lifecycle event audit stub`
+  - `Test agent run audit stub`
+  - `Test agent progress audit stub`
+- The buttons build safe local_dev/isMock/isDev sample payloads, call the route stubs, and display accepted/rejected/disabled responses.
+- Expanded e2e Settings coverage to click all three buttons and verify accepted no-Supabase responses.
+- Expanded dev-tools-disabled Settings coverage to verify the panel is hidden.
+- Updated `docs/execution-persistence-schema-proposal.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- UI buttons are dev-gated and explicit manual actions only.
+- No migration was applied.
+- No Supabase write path was added.
+- No localStorage write was added.
+- No local audit event was appended.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 222 - Supabase Migration Apply Plan + Rollback Plan
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a documentation-only apply/rollback plan for the Action 219 execution audit foundation migration:
+
+- Added `docs/execution-audit-migration-apply-plan.md`.
+- Documented scope limited to:
+  - `execution_lifecycle_events`
+  - `execution_agent_runs`
+  - `execution_agent_progress_events`
+- Explicitly excluded:
+  - `broker_execution_results`
+  - `execution_records`
+  - `execution_intents`
+  - `broker_handoffs`
+  - History/Statistics integration
+  - live trade mutation
+  - broker execution
+- Added preflight checklist for git state, target Supabase project, backups, auth/RLS decisions, SQL review, app write-path status, dev flags, and rollback review.
+- Added staging-first apply steps with placeholder Supabase command shapes.
+- Added verification SQL for table existence, columns, indexes, RLS status, and initial row counts.
+- Added rollback SQL that drops tables in reverse dependency order.
+- Added post-apply app checks and risk/go-no-go notes.
+- Updated:
+  - `docs/execution-persistence-schema-proposal.md`
+  - `docs/execution-persistence-schema-review.md`
+  - `docs/execution-agent-checkpoint.md`
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Supabase migration command was run.
+- No database state was modified.
+- No Supabase write path was added.
+- No API route behavior was changed.
+- No local store behavior was changed.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 223 - Audit Persistence Server Writer Draft
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a pure mapping/writer draft for future execution audit persistence:
+
+- Added `lib/execution-audit-persistence-writer.ts`.
+- Added insert-shaped payload types:
+  - `ExecutionLifecycleEventInsertPayload`
+  - `ExecutionAgentRunInsertPayload`
+  - `ExecutionAgentProgressEventInsertPayload`
+- Added mapping helpers:
+  - `mapLifecycleEventRequestToInsertPayload(...)`
+  - `mapAgentRunRequestToInsertPayload(...)`
+  - `mapAgentProgressEventRequestToInsertPayload(...)`
+- Added `ExecutionAuditPersistenceWriter` interface and `createNoopExecutionAuditPersistenceWriter()`.
+- The mapping helpers validate requests first and return errors without payloads for invalid requests.
+- Payloads match the Action 219 draft table columns.
+- JSON payload/metadata is sanitized and sensitive key names are redacted.
+- `user_id` remains nullable unless a safe UUID user context is supplied.
+- Text/local agent run ids are preserved in metadata when they cannot populate the UUID `agent_run_id` foreign key.
+- Added e2e/contract coverage for:
+  - lifecycle request mapping
+  - agent run request mapping
+  - agent progress request mapping
+  - invalid request mapping failure
+  - no-op writer result with `persisted: false`
+- Updated:
+  - `docs/execution-audit-migration-apply-plan.md`
+  - `docs/execution-persistence-schema-proposal.md`
+  - `docs/execution-persistence-schema-review.md`
+  - `docs/execution-agent-checkpoint.md`
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Mapping/writer draft only.
+- No migration was applied.
+- No Supabase import was added to the writer draft.
+- No Supabase write path was added.
+- No API route was modified to persist.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 224 - Audit Persistence Apply Readiness Review
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a documentation-only readiness review before applying the execution audit foundation migration:
+
+- Added `docs/execution-audit-apply-readiness-review.md`.
+- Documented current implementation state:
+  - migration draft exists
+  - audit route stubs exist
+  - audit API client and Settings buttons exist
+  - writer mapping/no-op writer exists
+  - no DB writes are wired
+- Added pass/pending readiness checklist for:
+  - migration SQL review
+  - writer/table column mapping
+  - route stub validation
+  - no persistence enabled
+  - rollback and verification SQL
+  - RLS/`user_id` local/staging caveat
+  - dev/mock separation
+  - excluded broker/result/history tables
+- Documented risks before apply:
+  - RLS TODOs
+  - nullable `user_id`
+  - table names becoming permanent
+  - check constraint uncertainty
+  - future production hardening
+  - low-risk but untested DB insertion because no write route exists yet
+- Documented recommendation:
+  - OK for local/staging only after explicit user approval
+  - not recommended for production yet
+  - do not enable route persistence until after migration verification
+- Updated:
+  - `docs/execution-audit-migration-apply-plan.md`
+  - `docs/execution-agent-checkpoint.md`
+
+Commands run:
+
+```bash
+git diff --check
+```
+
+Results:
+
+- Diff check passed.
+
+Safety notes:
+
+- Documentation only.
+- No Supabase migration command was run.
+- No database state was modified.
+- No Supabase write path was added.
+- No API route behavior was changed.
+- No local store behavior was changed.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 225B - Audit Route Persistence Flag Design
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added a server-only feature flag design and helper for future audit Supabase writes:
+
+- Added `lib/execution-persistence-flags.ts`.
+- Added helpers:
+  - `isExecutionAuditSupabasePersistenceEnabled(...)`
+  - `getExecutionPersistenceEnvironment(...)`
+  - `getExecutionPersistenceEnvironmentWarnings(...)`
+  - `assertExecutionAuditPersistenceAllowed(...)`
+- Defaults are safe/off:
+  - `EXECUTION_AUDIT_SUPABASE_PERSISTENCE_ENABLED` must be `true`
+  - `EXECUTION_PERSISTENCE_ENVIRONMENT` defaults to `local_dev`
+  - unknown environments normalize to `local_dev` with a warning
+  - production is blocked unless `EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true`
+- Added `docs/execution-audit-persistence-flag-design.md`.
+- Updated:
+  - `docs/execution-audit-migration-apply-plan.md`
+  - `docs/execution-audit-apply-readiness-review.md`
+  - `docs/execution-agent-checkpoint.md`
+- Added e2e/contract coverage for:
+  - default disabled
+  - enabled `local_dev`
+  - enabled `staging` with dev-tools warning
+  - unknown environment normalization
+  - production blocked without second flag
+  - production allowed with second flag plus warning
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Flag/design/helper only.
+- No migration was applied.
+- No Supabase import was added.
+- No Supabase write path was added.
+- No API route was modified to persist.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 226 - Audit Route Persistence Writer Wiring Behind Disabled Flag
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Wired the audit route success paths through the server-only persistence flag branch while keeping actual persistence disabled:
+
+- Added `lib/execution-audit-persistence-route-handler.ts`.
+- Updated route success paths:
+  - `POST /api/execution/audit/lifecycle-events`
+  - `POST /api/execution/audit/agent-runs`
+  - `POST /api/execution/audit/agent-progress-events`
+- Existing dev-tools gating remains unchanged.
+- Existing JSON parsing and validation behavior remains unchanged.
+- Flag-off behavior remains the accepted validation stub response.
+- Flag-on `local_dev`/`staging` behavior uses the no-op writer and returns an accepted warning:
+  - no database write occurred
+  - no-op writer draft only
+- Flag-on `production` without `EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true` returns a blocked response.
+- Updated `docs/execution-audit-persistence-flag-design.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+- Added e2e/contract coverage for:
+  - flag-off route helper response
+  - flag-on local no-op writer response
+  - production blocked response
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Route branching only.
+- No migration was applied.
+- No Supabase import was added.
+- No Supabase write path was added.
+- No real persistence writer was implemented.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 227 - Supabase Writer Implementation Draft Behind Flag
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added an injected-client Supabase audit writer implementation draft:
+
+- Added `lib/execution-audit-supabase-writer.ts`.
+- Added audit table constants:
+  - `execution_lifecycle_events`
+  - `execution_agent_runs`
+  - `execution_agent_progress_events`
+- Added `createSupabaseExecutionAuditPersistenceWriter(...)`.
+- The writer:
+  - checks `assertExecutionAuditPersistenceAllowed(...)`
+  - maps requests with existing insert-payload helpers
+  - requires an injected server DB client
+  - inserts with a Supabase-like `from(table).insert(payload).select("id").single()` shape
+  - returns `persisted`, `table`, `id`, `payload`, `errors`, `warnings`, and `message`
+  - does not throw for normal disabled/missing-client/insert-error cases
+- Routes remain on the no-op writer path by default.
+- Tests use fake DB clients only and cover:
+  - allowed fake insert success
+  - allowed fake insert error
+  - production blocked without second flag and no DB call
+  - missing DB client failure without throw
+- Updated:
+  - `docs/execution-audit-persistence-flag-design.md`
+  - `docs/execution-audit-migration-apply-plan.md`
+  - `docs/execution-audit-apply-readiness-review.md`
+  - `docs/execution-agent-checkpoint.md`
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Writer implementation draft only.
+- No migration was applied.
+- No real Supabase call was made in tests.
+- No route was wired to the Supabase writer.
+- No default route persistence was enabled.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 228 - Audit Route Supabase Writer Wiring, Disabled by Default
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Prepared audit route wiring so routes can optionally use the injected-client Supabase writer, while keeping default behavior no-op/no-write:
+
+- Added server-side flag:
+  - `EXECUTION_AUDIT_SUPABASE_WRITER_ENABLED`
+- Updated `lib/execution-persistence-flags.ts`.
+- Updated `lib/execution-audit-persistence-route-handler.ts`.
+- Added lazy server DB client provider:
+  - `app/api/execution/audit/server-db.ts`
+- Updated audit routes to pass the lazy provider:
+  - `POST /api/execution/audit/lifecycle-events`
+  - `POST /api/execution/audit/agent-runs`
+  - `POST /api/execution/audit/agent-progress-events`
+- Route behavior:
+  - persistence flag off: existing accepted stub response
+  - persistence on + writer off: no-op writer response, no DB write
+  - persistence on + writer on + missing DB client: failed response, no DB write
+  - persistence on + writer on + fake/injected DB in tests: writer path can persist through injected client
+  - production without `EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true`: blocked
+- Added optional response metadata for writer diagnostics:
+  - `persisted`
+  - `writerMode`
+  - `table`
+- Updated `docs/execution-audit-persistence-flag-design.md`.
+- Updated `docs/execution-agent-checkpoint.md`.
+- Expanded e2e/contract coverage for:
+  - writer flag default false
+  - writer flag true while persistence disabled
+  - default route stub metadata
+  - no-op writer metadata
+  - writer enabled missing DB client failure
+  - fake DB success through route handler
+
+Commands run:
+
+```bash
+./node_modules/.bin/tsc --noEmit
+npm run lint
+git diff --check
+npm run test:e2e
+NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=false npm run test:e2e
+```
+
+Results:
+
+- TypeScript passed.
+- Lint passed.
+- Diff check passed.
+- Dev-tools-enabled E2E passed.
+- Dev-tools-disabled E2E passed.
+
+Safety notes:
+
+- Guarded route wiring only.
+- Default route behavior remains no-op/no-write.
+- No migration was applied.
+- No real Supabase call was made in tests.
+- No persistence is enabled by default.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 229 - Apply Audit Migration Local/Staging and Verify Attempt
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Requested target environment:
+
+- staging/dev Supabase
+- explicitly not production
+
+Preflight performed:
+
+- Confirmed the intended migration file exists:
+  - `supabase/migrations/20260610000000_execution_audit_foundation.sql`
+- Inspected migration contents and confirmed scope:
+  - `execution_lifecycle_events`
+  - `execution_agent_runs`
+  - `execution_agent_progress_events`
+- Checked git state and confirmed the worktree already contains expected in-progress Action 196-228 changes.
+- Checked Supabase project command setup:
+  - no `supabase/config.toml`
+  - no Supabase CLI installed
+  - no `psql` installed
+- Checked local environment variable names without printing secrets:
+  - `.env.local` only contains public/anon Supabase variables:
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - no service-role key, database URL, or admin SQL credential is available in the shell environment
+
+Apply result:
+
+- Blocked before apply.
+- No migration command was run.
+- No Supabase migration was applied.
+- No verification SQL was run against Supabase.
+- No test rows were inserted.
+- No test rows were deleted.
+- No route persistence flags were enabled.
+
+Commands run:
+
+```bash
+git status --short
+ls supabase
+sed -n '1,260p' supabase/migrations/20260610000000_execution_audit_foundation.sql
+which supabase
+which psql
+node -e "<env-name inspection only>"
+git diff --check
+npm run lint
+./node_modules/.bin/tsc --noEmit
+npm run test:e2e
+```
+
+Results:
+
+- Migration apply blocked due missing staging/dev SQL execution path.
+- Diff check passed.
+- Lint passed.
+- TypeScript passed.
+- E2E passed.
+
+Required to retry:
+
+- A confirmed staging/dev Supabase SQL execution path:
+  - Supabase CLI installed and linked to the staging/dev project, or
+  - staging/dev database URL usable by `psql`, or
+  - an approved staging/dev SQL runner for the migration SQL
+
+Safety notes:
+
+- No production apply occurred.
+- No database state was modified.
+- No Supabase write path was enabled.
+- No localStorage write was added.
+- No execution record was created.
+- No broker result persistence was added.
+- No History or Statistics update was added.
+- No trade state mutation was added.
+- No Avanza automation was added.
+- No broker execution was added.
+
+## Action 230 - Supabase Apply Tooling Setup Plan
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added documentation:
+
+- `docs/supabase-migration-tooling-setup-plan.md`
+
+Purpose:
+
+- Document the missing migration execution path discovered during Action 229.
+- Describe safe local Supabase and staging/dev Supabase setup options.
+- Compare Supabase CLI, `psql`, and Supabase dashboard SQL editor choices.
+- Define credential handling and non-production safety rules.
+- Provide preflight checklist and placeholder commands before retrying Action 229.
+
+Existing docs updated:
+
+- `docs/execution-audit-migration-apply-plan.md`
+- `docs/execution-audit-apply-readiness-review.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Safety result:
+
+- No Supabase CLI was installed.
+- No `psql` was installed.
+- No migration command was run.
+- No Supabase migration was applied.
+- No database state was modified.
+- No credentials were added to the repo.
+- No route persistence flags were enabled.
+- No app behavior changed.
+
+Recommended next step:
+
+- Choose `Action 231A - Configure Local Supabase Tooling` for the lowest-risk validation path, or
+- choose `Action 231B - Configure Staging Supabase Link` if a specific staging/dev project ref and safe credential path are ready.
+
+## Action 231A - Configure Local Supabase Tooling
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Target path:
+
+- Local Supabase only.
+- No production target.
+- No staging/dev target.
+
+Discovery performed:
+
+- Inspected `supabase/` and confirmed the repo has:
+  - `supabase/migrations/`
+  - `supabase/migrations/20260610000000_execution_audit_foundation.sql`
+- Confirmed `supabase/config.toml` is missing.
+- Inspected `package.json` and confirmed there are no Supabase CLI scripts.
+- Inspected `.gitignore` and confirmed `.env*` and `.env*.local` are ignored.
+- Ran `supabase --version`; it failed because the CLI is not installed.
+- Ran `which supabase`; no binary was found.
+- Ran `which psql`; no binary was found.
+- Searched docs/repo for existing Supabase CLI command convention; only the Action 229/230 blocker docs exist.
+
+Outcome:
+
+- Local Supabase tooling is not configured yet.
+- No Supabase CLI was installed.
+- No `psql` was installed.
+- No `supabase init` was run.
+- No local Supabase stack was started.
+- No migration was applied.
+- No remote Supabase connection was attempted.
+- No credentials were added to the repo.
+- No route persistence flags were enabled.
+- No app behavior changed.
+
+Docs updated:
+
+- `docs/supabase-migration-tooling-setup-plan.md`
+- `docs/execution-agent-qa-notes.md`
+- `docs/execution-agent-checkpoint.md`
+
+Next local-only step:
+
+```bash
+supabase --version
+```
+
+If missing, install/use the Supabase CLI locally with explicit approval, for example:
+
+```bash
+brew install supabase/tap/supabase
+```
+
+After the CLI exists, decide whether this repo should run:
+
+```bash
+supabase init
+```
+
+Do not apply migrations until local config exists, local services are clearly running, and a later action explicitly approves modifying the local database.
+
+## Action 232 - Avanza UI Research Plan / Manual Mapping Checklist
+
+Date/time: 2026-06-10, Europe/Stockholm
+
+Added documentation:
+
+- `docs/avanza-ui-research-plan.md`
+
+Purpose:
+
+- Define a manual-only research plan for future Avanza order-flow mapping.
+- Document safety rules before any automation proposal.
+- Provide a checklist for login/session, instrument search, action selection, quantity, order type, price, review, validation, confirmation labels, cancel/back, and timeout behavior.
+- Provide a reusable mapping table template.
+- Define how future Avanza observations should be compared back to the mock order fill plan and mock confirmation contracts.
+
+Existing docs updated:
+
+- `docs/execution-agent-checkpoint.md`
+- `docs/mock-execution-e2e-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza page was opened from code.
+- No Avanza URL was added to app runtime.
+- No browser automation was added.
+- No scraping was added.
+- No credentials were added.
+- No order was submitted.
+- No broker result capture from Avanza was added.
+- No Supabase write was added.
+- No app behavior changed.
+
+Recommended next step:
+
+- Action 233 - Avanza UI Research Notes Template

@@ -29,6 +29,8 @@ export type ExecutionAuditEventType =
   | "stub_prepare_clicked"
   | "agent_progress_stub"
   | "localhost_bridge_run_stub"
+  | "localhost_mock_agent_run_stub"
+  | "dev_mock_broker_capture_stub"
   | "localhost_bridge_cancel_stub";
 
 export type ExecutionAuditEvent = {
@@ -96,6 +98,8 @@ const auditEventTypes: ExecutionAuditEventType[] = [
   "stub_prepare_clicked",
   "agent_progress_stub",
   "localhost_bridge_run_stub",
+  "localhost_mock_agent_run_stub",
+  "dev_mock_broker_capture_stub",
   "localhost_bridge_cancel_stub",
 ];
 

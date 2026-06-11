@@ -1,6 +1,6 @@
 # Execution Agent Checkpoint
 
-Last updated: Action 202
+Last updated: Action 232
 
 ## Current Status
 
@@ -15,7 +15,36 @@ Current safety boundaries:
 - No trade state is mutated by the execution-agent sandbox.
 - No Supabase persistence is used for execution-agent data yet.
 - Bridge/runtime paths currently resolve to either the no-op bridge or the dev-only echo bridge. Both are diagnostics-only and neither can create broker effects.
-- The mock order page has a stable agent-fill contract, Playwright-only fill runner, localhost dry-run fill-plan metadata, and a manual local mock-page agent runner script. The localhost bridge can run that mock-page runner only when explicitly requested with a localhost mock base URL; no production runtime agent fills it.
+- The mock order page has a stable agent-fill contract, Playwright-only fill runner, localhost dry-run fill-plan metadata, and a manual local mock-page agent runner script. The localhost bridge can run that mock-page runner only when explicitly requested with a localhost mock base URL, and the dev-only modal now has a separate manual button for that path. No production runtime agent fills it.
+- The mock confirmation page has a stable local selector/URL/validation contract for future result parsing tests. It does not create `brokerResult` or `TureExecutionRecord`.
+- The mock confirmation parser helper is Playwright/test-only and does not parse real broker pages.
+- `DevMockBrokerExecutionResult` exists as a dev-only mock mapping type and remains separate from the real `BrokerExecutionResult`.
+- Local `DevMockBrokerExecutionResult` diagnostics can be saved from the dev-only mock confirmation page and viewed/cleared in Settings under a separate `ture_dev_mock_broker_results_v1` key.
+- A pure dev-only helper can preview-convert `DevMockBrokerExecutionResult` into an Avanza-shaped `BrokerExecutionResult` with mock metadata. It is not captured, persisted, or used to create `TureExecutionRecord`.
+- Settings can explicitly capture one stored dev mock result into the existing local execution-record store for diagnostics. This creates a local `TureExecutionRecord` only, appends a local audit event, and does not write Supabase or mutate trades.
+- Settings guards repeated local captures for the same dev mock result by checking existing local execution records. This duplicate guard is localStorage-only and is not broker or Supabase dedupe.
+- A documentation-only Supabase persistence schema proposal now exists in `docs/execution-persistence-schema-proposal.md`. It defines candidate future tables, indexes, relationships, dev/mock separation, safety notes, API implications, and migration order without adding migrations or runtime writes.
+- A documentation-only schema review now exists in `docs/execution-persistence-schema-review.md`. It identifies persistence risks, trust boundaries, schema clarifications, idempotency concerns, RLS/security requirements, and a go/no-go checklist before migrations.
+- A typed/documented server capture API contract now exists in `lib/execution-server-capture-contract.ts` and `docs/execution-server-capture-api-contract.md`. It defines future request/response/idempotency shapes and validation expectations without adding a route, Supabase write, or runtime wiring.
+- A dev-only server capture API route stub now exists at `POST /api/execution/capture`. It is server-gated by `NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS`, validates contract-shaped requests, and returns accepted/rejected responses without Supabase writes, localStorage writes, execution records, trade mutation, History/Statistics updates, broker execution, or Avanza automation.
+- A frontend-safe capture client and manual Settings tester now exist for the route stub. The `Dev Mock Broker Results` viewer can explicitly send a dev mock capture request to the stub and display the response/idempotency key without creating execution records, audit events, Supabase writes, trade mutations, or broker effects.
+- Shared execution capture route fixtures now cover valid dev mock capture, missing intent, missing broker result, mismatched action/ticker/quantity, and production mock rejection. Contract validation now checks deterministic idempotency keys and broker result action/ticker/quantity consistency when those fields are present.
+- A minimal Supabase migration draft now exists for append-only execution audit foundations: `execution_lifecycle_events`, `execution_agent_runs`, and `execution_agent_progress_events`. It is not applied, app code does not write to it, RLS remains a TODO because project ownership conventions are not finalized, and broker result/execution record tables remain out of scope.
+- Typed audit persistence contracts and dev-gated route stubs now exist for the Action 219 draft audit tables. The lifecycle, agent-run, and progress-event endpoints validate payloads and return accepted/rejected/disabled responses without Supabase writes, local store writes, broker result persistence, trade mutation, or Avanza automation.
+- A frontend-safe audit persistence client and manual Settings testers now exist for those three audit route stubs. The Settings `Execution Audit API Stubs` panel explicitly POSTs local_dev mock lifecycle/run/progress payloads and displays the stub responses without localStorage writes, audit event creation, Supabase writes, trade mutation, History/Statistics updates, broker execution, or Avanza automation.
+- A documentation-only apply/rollback plan now exists for the Action 219 audit foundation migration in `docs/execution-audit-migration-apply-plan.md`. It defines preflight checks, staging-first apply steps, verification SQL, rollback SQL, risk notes, and go/no-go criteria. No Supabase migration has been applied.
+- A pure server-side audit persistence writer draft now exists in `lib/execution-audit-persistence-writer.ts`. It maps validated audit persistence requests to insert-shaped payloads for the three draft tables and includes a no-op writer interface only. It does not import Supabase, call Supabase, or wire route persistence.
+- A documentation-only readiness review now exists in `docs/execution-audit-apply-readiness-review.md`. It marks local/staging apply as ready only after explicit user approval and marks production apply as not recommended until RLS and `user_id` ownership are resolved.
+- A server-only audit persistence flag design now exists in `docs/execution-audit-persistence-flag-design.md` and `lib/execution-persistence-flags.ts`. Future Supabase audit writes default off, require `EXECUTION_AUDIT_SUPABASE_PERSISTENCE_ENABLED=true`, and production also requires `EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true`.
+- Audit API routes now branch through the server-only persistence flag after validation. Flag-off behavior remains the existing accepted stub response. Flag-on local/staging uses the no-op writer and warns that no database write occurred. Production without the second allow flag is blocked. No Supabase import/write or real persistence was added.
+- An injected-client Supabase audit writer implementation draft now exists in `lib/execution-audit-supabase-writer.ts`. It can map and insert audit rows when a server DB client is supplied and flags allow persistence, but routes remain on the no-op writer path by default. No real Supabase writes were added.
+- Audit API route handler writer selection is now guarded by `EXECUTION_AUDIT_SUPABASE_WRITER_ENABLED`. Routes use the no-op writer unless both persistence and writer flags are enabled, the environment is allowed, and a server DB client is available. Default behavior remains no-op/no-write.
+- Action 229 attempted to apply the audit foundation migration to the approved staging/dev target, but the workspace lacks a Supabase CLI, `psql`, linked Supabase project config, or admin SQL credential. The migration remains unapplied and route persistence flags remain off.
+- A documentation-only Supabase migration tooling setup plan now exists in `docs/supabase-migration-tooling-setup-plan.md`. It explains the missing local/staging execution path, compares local Supabase, staging/dev Supabase, Supabase CLI, `psql`, and dashboard SQL editor options, and defines credential safety rules before retrying Action 229.
+- Action 231A inspected the local Supabase tooling path. The repo has migrations but no Supabase CLI, no `psql`, no `supabase/config.toml`, and no package scripts for local Supabase. No tools were installed, no config was initialized, no local stack was started, and no migration was applied.
+- A documentation-only Avanza UI research plan now exists in `docs/avanza-ui-research-plan.md`. It defines a manual mapping checklist, sanitized data-capture rules, safety boundaries, and mock-contract comparison steps before any future Avanza automation proposal. No Avanza automation, URLs, credentials, browser automation, scraping, or order submission was added.
+- The mock-agent prototype milestone is documented in `docs/mock-agent-prototype-checkpoint.md`.
+- The mock execution end-to-end checkpoint is documented in `docs/mock-execution-e2e-checkpoint.md`.
 
 ## Product Direction
 
@@ -113,6 +142,36 @@ Today, the bridge factory and bridge-backed runner stop at diagnostics-only beha
 - Action 200: Extended the localhost bridge dry-run `/run` response with mock order fill-plan metadata and a manual relative mock page URL. The stub still does not open or fill any browser page.
 - Action 201: Added a manually-run local mock order page agent runner script that opens only localhost `/mock-broker/order`, fills the mock form, clicks local review, and verifies disabled submit.
 - Action 202: Added an explicit localhost bridge mock-agent run mode for `/run`. Default runs still do not open a browser; `enableMockAgentRun=true` can drive only localhost `/mock-broker/order` review and reports response-level mock-agent run metadata without `brokerResult`.
+- Action 203: Added a dev-only `Run localhost mock agent` button to the Execution Handoff Preview Modal. It calls localhost `/run` with `enableMockAgentRun=true`, displays `mockAgentRun...` metadata, appends a local audit event, and stores local diagnostics without creating broker results or execution records.
+- Action 204: Added the mock-agent prototype checkpoint document for Actions 196-203, including milestone summary, safety boundaries, run commands, QA status, next-phase plan, and recommended Action 205.
+- Action 205: Added a dev-only mock broker confirmation page and pure mock confirmation contract with stable selectors, safe query parsing, URL building, and validation. No broker result, execution record, Supabase write, or trade mutation was added.
+- Action 206: Added a Playwright-only mock confirmation parser helper that reads stable mock confirmation selectors and returns a typed parse result. E2E now covers filled, rejected, and cancelled parsing without creating `BrokerExecutionResult`.
+- Action 207: Added `DevMockBrokerExecutionResult` and pure dev-only mapping/validation helpers for mock confirmation payloads and parse results. E2E covers filled, rejected, and cancelled mapping without creating real `BrokerExecutionResult` or `TureExecutionRecord`.
+- Action 208: Added a dev-only local `DevMockBrokerExecutionResult` store, explicit mock confirmation save control, and Settings diagnostics viewer. E2E covers save/view/clear while keeping mock results separate from real broker results and execution records.
+- Action 209: Added a pure dev-only `DevMockBrokerExecutionResult` to `BrokerExecutionResult` preview converter plus a non-persistent Settings preview. E2E covers filled, rejected, and cancelled conversion without creating `TureExecutionRecord`.
+- Action 210: Added an explicit dev-only Settings action to convert a stored dev mock result, build a matching local execution intent, call `buildTureExecutionRecord`, append the resulting record to the local execution-record store, and append a local audit event. E2E covers save -> capture -> Execution Records diagnostics without Supabase or trade mutation.
+- Action 211: Added `docs/mock-execution-e2e-checkpoint.md`, a documentation-only checkpoint for the completed Actions 196-210 dev mock execution pipeline and recommended next phases.
+- Action 212: Added local-only duplicate protection for dev mock captures. Settings now detects matching local execution records, disables repeated capture for the same mock result, and documents that this is localStorage-only diagnostics dedupe.
+- Action 213: Added `docs/execution-persistence-schema-proposal.md`, a documentation-only Supabase persistence schema proposal for future execution-agent events, intents, runs, broker results, execution records, idempotency, dev/mock separation, API implications, and migration order. No migration or runtime persistence was added.
+- Action 214: Added `docs/execution-persistence-schema-review.md`, a documentation-only review/risk note for the persistence proposal. It defines trust boundaries, major risks, schema clarifications, idempotency review, RLS/security notes, a migration go/no-go checklist, and recommends Action 215 - Execution Server Capture API Contract before migrations.
+- Action 215: Added `lib/execution-server-capture-contract.ts` and `docs/execution-server-capture-api-contract.md`, a typed/documented contract for future server-side execution capture. It defines request/response shapes, source/environment types, idempotency helper, request builder, validation helper, trust boundaries, and recommends a dev-only no-Supabase route stub next. No route, migration, Supabase write, or runtime behavior was added.
+- Action 216: Added a dev-gated `POST /api/execution/capture` route stub that validates `ExecutionServerCaptureRequest` bodies and returns contract-shaped responses. Valid requests are accepted by the stub only; invalid or malformed requests are rejected; dev-tools-disabled builds return 403. No Supabase write, execution record, local store write, trade mutation, History/Statistics update, broker execution, or Avanza automation was added.
+- Action 217: Added `lib/execution-server-capture-client.ts` and a dev-only `Test server capture stub` button in the Settings `Dev Mock Broker Results` viewer. The button converts a stored dev mock result, builds a dev mock capture request, POSTs to `/api/execution/capture`, and displays the stub response/idempotency key without creating execution records, audit events, Supabase writes, trade mutation, History/Statistics updates, broker execution, or Avanza automation.
+- Action 218: Added shared execution server capture fixtures and hardened contract/route validation coverage. Validation now checks broker result action/ticker/quantity consistency when present, deterministic idempotency key matching, and production mock/dev rejection. E2E covers valid, missing intent, missing broker result, mismatched, production mock, malformed JSON, and dev-tools-disabled route behavior without persistence.
+- Action 219: Added `supabase/migrations/20260610000000_execution_audit_foundation.sql`, a draft-only Supabase migration for `execution_lifecycle_events`, `execution_agent_runs`, and `execution_agent_progress_events`. It includes indexes, low-risk check constraints, comments, and RLS TODO notes matching current project migration style. No app writes, route persistence, broker result tables, execution record tables, Supabase writes, or trade mutation were added.
+- Action 220: Added `lib/execution-audit-persistence-contract.ts` plus dev-gated POST stubs for `/api/execution/audit/lifecycle-events`, `/api/execution/audit/agent-runs`, and `/api/execution/audit/agent-progress-events`. The stubs validate request contracts and return 202/400/403 responses only. No migration was applied, and no Supabase write, local store write, broker result persistence, trade mutation, History/Statistics update, broker execution, or Avanza automation was added.
+- Action 221: Added `lib/execution-audit-persistence-client.ts` and a dev-only Settings `Execution Audit API Stubs` panel. The panel manually tests lifecycle event, agent run, and agent progress route stubs from the UI and displays HTTP/status/message/errors without localStorage writes, audit event creation, Supabase writes, trade mutation, History/Statistics updates, broker execution, or Avanza automation.
+- Action 222: Added `docs/execution-audit-migration-apply-plan.md`, a documentation-only apply/rollback plan for the Action 219 audit foundation migration. It includes scope, preflight checklist, apply steps, verification SQL, rollback SQL, post-apply checks, risk notes, and go/no-go criteria. No Supabase command was run and no app behavior changed.
+- Action 223: Added `lib/execution-audit-persistence-writer.ts`, a pure mapping/writer draft for the Action 219 tables. It validates audit persistence requests, maps them into insert-shaped payloads, redacts sensitive metadata keys, keeps non-UUID external run ids in metadata, and exposes a no-op writer interface that never persists. Routes remain stub-only and no Supabase import/write was added.
+- Action 224: Added `docs/execution-audit-apply-readiness-review.md`, a documentation-only local/staging readiness review. It checks migration SQL, route stubs, client testers, writer mappings, rollback coverage, dev/mock separation, excluded tables, and production blockers. It recommends local/staging apply only after explicit user approval and does not recommend production apply yet.
+- Action 225B: Added `lib/execution-persistence-flags.ts` and `docs/execution-audit-persistence-flag-design.md`. The helper defaults audit Supabase persistence off, normalizes persistence environment, blocks production without a second explicit flag, and returns non-throwing errors/warnings for future route wiring. No route persistence, Supabase import/write, migration apply, or app behavior change was added.
+- Action 226: Added `lib/execution-audit-persistence-route-handler.ts` and wired the three audit API route success paths through the persistence flag branch. With the flag off, routes keep accepted stub behavior. With the flag on for local/staging, routes return an accepted no-op writer warning and no database write. Production without `EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true` is blocked. No Supabase import/write, migration apply, trade mutation, or History/Statistics update was added.
+- Action 227: Added `lib/execution-audit-supabase-writer.ts`, an injected-client Supabase writer draft for the three audit tables. It checks persistence flags, maps requests to insert payloads, fails safely when disabled/not allowed/missing client, and returns persisted/id/table/errors metadata. Tests use fake DB clients only. Routes remain no-op by default and no migration/Supabase write was run.
+- Action 228: Added `EXECUTION_AUDIT_SUPABASE_WRITER_ENABLED` to the server-side flag helper and wired audit route handler writer selection. Persistence-enabled routes still use no-op writer unless the writer flag is also true. When the writer flag is true, the handler can call the injected-client Supabase writer through a lazy server DB provider; missing client fails safely. Tests use fake DB clients only, and default route behavior remains no-op/no-write.
+- Action 229 attempt: Confirmed the requested target was staging/dev, inspected the intended migration, and checked local Supabase tooling/config. Apply was blocked because no Supabase CLI, `psql`, linked project config, service-role key, database URL, or admin SQL execution credential is available. No migration was applied, no verification SQL was run, and no Supabase writes occurred.
+- Action 230: Added `docs/supabase-migration-tooling-setup-plan.md`, a documentation-only plan for establishing a safe local or staging/dev Supabase migration execution path before retrying Action 229. No tools were installed, no credentials were added, no migration was applied, and no database state changed.
+- Action 231A: Inspected the local Supabase tooling path and documented that local migration apply remains blocked until the Supabase CLI or another local SQL runner is installed and `supabase/config.toml` is intentionally initialized. No remote connection, tool install, config init, migration apply, or database change occurred.
+- Action 232: Added `docs/avanza-ui-research-plan.md`, a documentation-only manual research and mapping checklist for future Avanza order-flow study. It requires semi-automatic/manual inspection only, prohibits final submit and automation, defines sanitized capture rules, and recommends an Avanza UI research notes template next.
 
 ## Key Files
 
@@ -148,6 +207,38 @@ UI status:
 
 - `lib/execution-ui-status.ts`
 
+Execution server capture contract:
+
+- `lib/execution-server-capture-contract.ts`
+- `lib/execution-server-capture-client.ts`
+- `app/api/execution/capture/route.ts`
+- `docs/execution-server-capture-api-contract.md`
+- `tests/e2e/helpers/execution-server-capture-fixtures.ts`
+
+Execution persistence draft:
+
+- `supabase/migrations/20260610000000_execution_audit_foundation.sql`
+- `docs/execution-audit-migration-apply-plan.md`
+- `docs/execution-audit-apply-readiness-review.md`
+- `docs/execution-audit-persistence-flag-design.md`
+- `docs/supabase-migration-tooling-setup-plan.md`
+
+Avanza UI research:
+
+- `docs/avanza-ui-research-plan.md`
+
+Execution audit persistence contract:
+
+- `lib/execution-audit-persistence-contract.ts`
+- `lib/execution-audit-persistence-client.ts`
+- `lib/execution-audit-persistence-writer.ts`
+- `lib/execution-audit-supabase-writer.ts`
+- `lib/execution-audit-persistence-route-handler.ts`
+- `lib/execution-persistence-flags.ts`
+- `app/api/execution/audit/lifecycle-events/route.ts`
+- `app/api/execution/audit/agent-runs/route.ts`
+- `app/api/execution/audit/agent-progress-events/route.ts`
+
 Event log:
 
 - `lib/execution-event-log.ts`
@@ -180,6 +271,15 @@ Localhost bridge contract:
 - `lib/avanza-localhost-bridge-contract.ts`
 - `docs/avanza-localhost-bridge-contract.md`
 
+Mock-agent prototype checkpoint:
+
+- `docs/mock-agent-prototype-checkpoint.md`
+- `docs/mock-execution-e2e-checkpoint.md`
+- `docs/execution-persistence-schema-proposal.md`
+- `docs/execution-persistence-schema-review.md`
+- `docs/execution-server-capture-api-contract.md`
+- `lib/execution-server-capture-contract.ts`
+
 Localhost bridge stub:
 
 - `scripts/avanza-localhost-bridge-server.mjs`
@@ -198,8 +298,13 @@ Localhost bridge client:
 Mock order page contract:
 
 - `lib/mock-order-page-agent-contract.ts`
+- `lib/mock-order-confirmation-contract.ts`
+- `lib/mock-broker-execution-result.ts`
 - `app/mock-broker/order/ticket.tsx`
+- `app/mock-broker/confirmation/page.tsx`
+- `app/mock-broker/confirmation/confirmation.tsx`
 - `tests/e2e/helpers/mock-order-fill-runner.ts`
+- `tests/e2e/helpers/mock-confirmation-parser.ts`
 
 Settings diagnostics:
 
@@ -239,6 +344,7 @@ Execution-agent keys:
 - `ture_execution_event_log_v1`
 - `ture_execution_records_v1`
 - `ture_avanza_agent_runs_v1`
+- `ture_dev_mock_broker_results_v1`
 - `ture_execution_sandbox_smoke_checklist_v1`
 - `ture_avanza_agent_bridge_config_v1`
 - `ture_execution_mode`
@@ -279,15 +385,25 @@ Live Day Trades dev fixture:
 Mock broker order page:
 
 - `/mock-broker/order`
+- `/mock-broker/confirmation`
 - Dev-gated by `NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS=true`
-- Local fake order ticket and review panel only
+- Local fake order ticket, review panel, and mock confirmation preview only
 - Not Avanza and not connected to the bridge, broker automation, Supabase, History, Statistics, or trade-state mutation
 - Stable selector contract in `lib/mock-order-page-agent-contract.ts`
+- Stable mock confirmation selector contract in `lib/mock-order-confirmation-contract.ts`
 - The contract maps an `AvanzaAgentRequest` to a structured `MockOrderPageFillPlan` and relative mock-page URL. It does not perform browser automation.
+- The mock confirmation contract validates local query-param payloads and builds safe relative `/mock-broker/confirmation` URLs. It does not map to `BrokerExecutionResult`.
+- The dev mock broker execution result helper maps mock confirmation payloads into `DevMockBrokerExecutionResult` only. It does not create or export real broker results.
+- The dev mock broker result store keeps `DevMockBrokerExecutionResult` diagnostics under `ture_dev_mock_broker_results_v1`; Settings can view and clear only this key.
+- The dev mock to broker-result converter can build an Avanza-shaped `BrokerExecutionResult` preview with explicit `DEV MOCK CONVERSION` text. It does not call `buildTureExecutionRecord`, write storage, or mutate trades.
+- The dev mock capture button is the only current path that calls `buildTureExecutionRecord` from mock data. It appends only to local execution records and labels the record `DEV MOCK CAPTURE`.
+- The dev mock capture duplicate guard checks local execution records only; it does not remove records, upsert Supabase, or dedupe broker orders.
 - A Playwright-only fill runner under `tests/e2e/helpers` can fill the dev-only mock page and click local review for test proof only. It is not available to app runtime code.
+- A Playwright-only parser helper under `tests/e2e/helpers` can read the dev-only mock confirmation page and return a typed parse result. It is not available to app runtime code and does not create `BrokerExecutionResult`.
 - The localhost bridge dry-run response can include `mockOrderFillPlan`, fill-plan validation status/errors, and `mockOrderPageUrl` as response-level metadata only.
 - A manual local script can open localhost `/mock-broker/order`, apply a safe fill plan, click `Review mock order`, and verify final submit stays disabled.
 - The localhost bridge can explicitly opt into that same local mock-page review flow with `enableMockAgentRun=true` and a localhost `mockPageBaseUrl`. This remains response-level metadata only and does not create broker results.
+- The Execution Handoff Preview Modal exposes this explicit path through a separate dev-only `Run localhost mock agent` button.
 
 ## Current Safe User-Visible Flow
 
@@ -312,16 +428,25 @@ Mock broker order page:
 - A manually started localhost HTTP no-op/echo stub exists for development diagnostics only.
 - Ture Settings can explicitly health-check the localhost stub when execution dev tools are enabled.
 - Ture handoff modal can explicitly POST a dev-only localhost dry-run echo to `/run`.
+- Ture handoff modal can explicitly POST a dev-only localhost mock-agent run to `/run` with `enableMockAgentRun=true`.
 - Localhost `/run` can return mock order fill-plan metadata and a manual relative mock-page URL.
 - Localhost `/run` can optionally run the local mock-page runner only when `enableMockAgentRun=true`.
 - Ture handoff modal can explicitly POST a dev-only localhost cancel test to `/cancel`.
 - A dev-only `/mock-broker/order` page exists for local fake order-ticket QA.
+- A dev-only `/mock-broker/confirmation` page exists for local fake result-page QA.
 - The mock order page exposes stable `data-testid` and `data-agent-field` attributes for future local mock-page tooling.
+- The mock confirmation page exposes stable `data-testid` and `data-agent-field` attributes for future local parsing tooling.
+- The mock confirmation parser is Playwright/test-only and uses those stable selectors.
+- `DevMockBrokerExecutionResult` is mock/dev-only and must not be used as a real broker confirmation.
+- The Settings `Dev Mock Broker Results` viewer is dev-gated and separate from History, Statistics, local execution records, and agent runs.
+- The Settings `BrokerExecutionResult preview` is non-persistent. The adjacent `Capture mock result locally` button is manual, dev-gated, and local only.
+- Local mock capture records must remain separate from Supabase, live trade state, History, and Statistics.
+- Duplicate protection for mock captures is localStorage-only and must not be treated as real broker order protection.
 - The mock order page is wired to the bridge only through the explicit local mock-agent run mode and cannot create broker results.
 - No app runtime code opens, fills, reviews, or submits the mock page automatically.
-- The only fill runner is Playwright/dev-test support under `tests/e2e`.
+- The only fill/parser runners are Playwright/dev-test support under `tests/e2e`.
 - The localhost bridge mock fill-plan metadata is not a broker result and does not create execution records.
-- The manual mock-agent runner is not wired into the app runtime, Supabase, execution records, History, or Statistics.
+- The manual mock-agent runner is wired into the dev-only modal only through the localhost bridge explicit run path; it is not wired into production app runtime, Supabase, execution records, History, or Statistics.
 - The bridge mock-agent run mode must use localhost only and must not run for normal `/run` calls.
 - Localhost `/run` is not part of production execution flow and does not create broker records.
 - Localhost `/cancel` does not cancel real broker actions, orders, trades, or runner state.
@@ -370,10 +495,10 @@ Mock broker order page:
 
 Recommended:
 
-- Run the Action 202 explicit localhost bridge mock-agent mode against a local dev server when evaluating the next mock-page automation step.
+- Action 231A follow-up - Install/Use Supabase CLI Locally and Initialize Config.
 
-Alternative after browser-backed QA:
+Alternative:
 
-- External Bridge Echo Transport Prototype
+- Action 231B - Configure Staging Supabase Link.
 
-Browser-backed Local Visual QA should happen before external bridge work. It validates the current sandbox and UI gating before any external bridge work begins.
+After one tooling path exists, retry Action 229 - Apply Audit Migration Locally/Staging and Verify. Production remains no-go until RLS and `user_id` ownership are resolved.
