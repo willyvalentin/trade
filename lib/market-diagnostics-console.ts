@@ -15,6 +15,7 @@ import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recomme
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
+import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
@@ -116,6 +117,13 @@ export type MarketDiagnosticsConsoleInput = {
     target_ideas_per_window?: number | null;
     ideas_persisted_this_window?: number | null;
     ideas_persisted_today?: number | null;
+    raw_rows_today?: number | null;
+    unique_learning_ideas_today?: number | null;
+    unique_evaluated_ideas_today?: number | null;
+    expected_outcome_rows_today?: number | null;
+    persisted_outcome_rows_today?: number | null;
+    visible_cards_today?: number | null;
+    hidden_archived_members_today?: number | null;
     batches_created_today_by_window?: Record<string, number>;
     same_window_batch_blocked_count?: number | null;
     daily_learning_limit_status?: string | null;
@@ -308,6 +316,7 @@ export type MarketDiagnosticsConsoleInput = {
     persistence_mode?: string | null;
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
+    plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
   } | null;
   outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
   entry_tuning_proposal?: EntryTuningProposal | null;
@@ -1411,6 +1420,16 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
         item.message,
       ),
     ),
+    ...(input.outcome_evaluation?.plan_price_freshness_summary?.warning
+      ? [
+          warning(
+            "plan_price_freshness:stale_official_plans",
+            "warning",
+            "plan_price_freshness",
+            input.outcome_evaluation.plan_price_freshness_summary.warning,
+          ),
+        ]
+      : []),
   ]).slice(0, 12);
 
   return { blockers, warnings };
@@ -1418,6 +1437,12 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
 
 function lineValue(label: string, value: string | number | boolean | null) {
   return `${label}: ${value === null ? "unknown" : String(value)}`;
+}
+
+function pctValue(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? `${value.toFixed(3)}%`
+    : "unknown";
 }
 
 function buildSections(
@@ -1433,6 +1458,8 @@ function buildSections(
   const headline = diagnosticsHeadline(input);
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
+  const planFreshnessSummary =
+    input.outcome_evaluation?.plan_price_freshness_summary ?? null;
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -1494,10 +1521,14 @@ function buildSections(
   const batchesCreatedTodayByWindow =
     input.scan_readback?.batches_created_today_by_window ?? {};
   const outcomeRowsExpectedToday =
-    (input.scan_readback?.ideas_persisted_today ??
+    input.scan_readback?.expected_outcome_rows_today ??
+    (input.scan_readback?.unique_learning_ideas_today ??
+      input.scan_readback?.ideas_persisted_today ??
       input.daily_targets.total_recommendations_today) * 3;
   const outcomeRowsEvaluatedToday =
-    input.outcome_evaluation?.evaluated_outcome_count ?? 0;
+    input.scan_readback?.persisted_outcome_rows_today ??
+    input.outcome_evaluation?.evaluated_outcome_count ??
+    0;
   const shadowSamplesToday =
     input.outcome_evaluation?.shadow_entry_trial_count ??
     input.outcome_learning?.shadow_entry_trial?.shadow_trial_sample_size ??
@@ -2723,12 +2754,28 @@ function buildSections(
             : "disabled",
         ),
         lineValue(
-          "Learning ideas",
-          `${input.scan_readback?.ideas_persisted_this_window ?? 0} this window / ${input.scan_readback?.ideas_persisted_today ?? input.daily_targets.total_recommendations_today} today`,
+          "Unique learning ideas",
+          `${input.scan_readback?.ideas_persisted_this_window ?? 0} this window / ${input.scan_readback?.unique_learning_ideas_today ?? input.scan_readback?.ideas_persisted_today ?? input.daily_targets.total_recommendations_today} today`,
+        ),
+        lineValue(
+          "Raw rows today",
+          input.scan_readback?.raw_rows_today ?? 0,
+        ),
+        lineValue(
+          "Unique evaluated ideas today",
+          input.scan_readback?.unique_evaluated_ideas_today ?? 0,
+        ),
+        lineValue(
+          "Expected/persisted outcome rows today",
+          `${input.scan_readback?.expected_outcome_rows_today ?? outcomeRowsExpectedToday}/${input.scan_readback?.persisted_outcome_rows_today ?? outcomeRowsEvaluatedToday}`,
+        ),
+        lineValue(
+          "Visible cards / hidden archived members",
+          `${input.scan_readback?.visible_cards_today ?? input.serving_cadence.visible_recommendation_count}/${input.scan_readback?.hidden_archived_members_today ?? 0}`,
         ),
         lineValue(
           "Batches by window",
-          `morning ${batchesCreatedTodayByWindow.morning ?? 0} / midday ${batchesCreatedTodayByWindow.midday ?? 0} / power_hour ${batchesCreatedTodayByWindow.power_hour ?? 0}`,
+          `morning ${batchesCreatedTodayByWindow.morning ?? 0} / midday ${batchesCreatedTodayByWindow.midday ?? 0} / power_hour ${batchesCreatedTodayByWindow.power_hour ?? 0} / unknown_window_batches ${batchesCreatedTodayByWindow.unknown_window_batches ?? 0}`,
         ),
         lineValue(
           "Window blocks",
@@ -2774,8 +2821,21 @@ function buildSections(
         ideas_persisted_this_window:
           input.scan_readback?.ideas_persisted_this_window ?? null,
         ideas_persisted_today:
+          input.scan_readback?.unique_learning_ideas_today ??
           input.scan_readback?.ideas_persisted_today ??
           input.daily_targets.total_recommendations_today,
+        raw_rows_today: input.scan_readback?.raw_rows_today ?? null,
+        unique_learning_ideas_today:
+          input.scan_readback?.unique_learning_ideas_today ?? null,
+        unique_evaluated_ideas_today:
+          input.scan_readback?.unique_evaluated_ideas_today ?? null,
+        expected_outcome_rows_today:
+          input.scan_readback?.expected_outcome_rows_today ?? null,
+        persisted_outcome_rows_today:
+          input.scan_readback?.persisted_outcome_rows_today ?? null,
+        visible_cards_today: input.scan_readback?.visible_cards_today ?? null,
+        hidden_archived_members_today:
+          input.scan_readback?.hidden_archived_members_today ?? null,
         batches_created_today_by_window: JSON.stringify(
           batchesCreatedTodayByWindow,
         ),
@@ -3182,8 +3242,14 @@ function buildSections(
             ]
           : []),
         lineValue(
-          "Today expected/evaluated",
+          "Expected/persisted outcome rows today",
           `${outcomeRowsExpectedToday}/${outcomeRowsEvaluatedToday}`,
+        ),
+        lineValue(
+          "Unique evaluated ideas today",
+          input.scan_readback?.unique_evaluated_ideas_today ??
+            input.outcome_evaluation?.outcome_evaluated_snapshot_count ??
+            0,
         ),
         lineValue(
           "Evaluated/Incomplete/Pending",
@@ -3379,7 +3445,9 @@ function buildSections(
         expected_outcome_count:
           input.outcome_evaluation?.expected_outcome_count ?? null,
         outcome_rows_expected_today: outcomeRowsExpectedToday,
-        outcome_rows_evaluated_today: outcomeRowsEvaluatedToday,
+        outcome_rows_persisted_today: outcomeRowsEvaluatedToday,
+        unique_evaluated_ideas_today:
+          input.scan_readback?.unique_evaluated_ideas_today ?? null,
         persisted_outcome_count:
           input.outcome_evaluation?.persisted_outcome_count ?? null,
         evaluated_outcome_count:
@@ -3486,6 +3554,94 @@ function buildSections(
         tickers_evaluated: (
           input.outcome_evaluation?.tickers_evaluated ?? []
         ).join(","),
+        plan_price_freshness_summary: JSON.stringify(planFreshnessSummary ?? null),
+      },
+    }),
+    section({
+      section_id: "plan_price_freshness",
+      title: "Plan Price Freshness",
+      severity: planFreshnessSummary?.warning ? "warning" : "info",
+      lines: [
+        lineValue(
+          "Fresh/Slightly/Stale/Severe",
+          `${planFreshnessSummary?.fresh_plan_count ?? 0}/${planFreshnessSummary?.slightly_stale_plan_count ?? 0}/${planFreshnessSummary?.stale_plan_count ?? 0}/${planFreshnessSummary?.severely_stale_plan_count ?? 0}`,
+        ),
+        lineValue(
+          "Missing reference/timestamp/provider",
+          `${planFreshnessSummary?.missing_reference_price_count ?? 0}/${planFreshnessSummary?.missing_reference_timestamp_count ?? 0}/${planFreshnessSummary?.provider_price_unavailable_count ?? 0}`,
+        ),
+        lineValue(
+          "Average entry distance",
+          pctValue(
+            planFreshnessSummary?.average_entry_distance_from_first_candle_close_pct,
+          ),
+        ),
+        lineValue(
+          "Worst entry distance",
+          pctValue(
+            planFreshnessSummary?.worst_entry_distance_from_first_candle_close_pct,
+          ),
+        ),
+        lineValue(
+          "Stale or severe ratio",
+          pctValue(
+            planFreshnessSummary
+              ? planFreshnessSummary.stale_or_severely_stale_ratio * 100
+              : null,
+          ),
+        ),
+        lineValue(
+          "Largest distance tickers",
+          (planFreshnessSummary?.largest_distance_tickers ?? []).length > 0
+            ? (planFreshnessSummary?.largest_distance_tickers ?? [])
+                .slice(0, 5)
+                .map(
+                  (item) =>
+                    `${item.ticker ?? "unknown"} ${pctValue(item.entry_distance_from_first_candle_close_pct)} ${item.classification}`,
+                )
+                .join("; ")
+            : "none",
+        ),
+        lineValue(
+          "Reference price sources",
+          Object.entries(planFreshnessSummary?.reference_price_source_counts ?? {})
+            .map(([source, countValue]) => `${source}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        ...(planFreshnessSummary?.warning
+          ? [lineValue("Warning", planFreshnessSummary.warning)]
+          : []),
+      ],
+      metrics: {
+        total_snapshots: planFreshnessSummary?.total_snapshots ?? 0,
+        evaluated_snapshots: planFreshnessSummary?.evaluated_snapshots ?? 0,
+        fresh_plan_count: planFreshnessSummary?.fresh_plan_count ?? 0,
+        slightly_stale_plan_count:
+          planFreshnessSummary?.slightly_stale_plan_count ?? 0,
+        stale_plan_count: planFreshnessSummary?.stale_plan_count ?? 0,
+        severely_stale_plan_count:
+          planFreshnessSummary?.severely_stale_plan_count ?? 0,
+        missing_reference_price_count:
+          planFreshnessSummary?.missing_reference_price_count ?? 0,
+        missing_reference_timestamp_count:
+          planFreshnessSummary?.missing_reference_timestamp_count ?? 0,
+        provider_price_unavailable_count:
+          planFreshnessSummary?.provider_price_unavailable_count ?? 0,
+        average_entry_distance_from_first_candle_close_pct:
+          planFreshnessSummary
+            ?.average_entry_distance_from_first_candle_close_pct ?? null,
+        worst_entry_distance_from_first_candle_close_pct:
+          planFreshnessSummary?.worst_entry_distance_from_first_candle_close_pct ??
+          null,
+        stale_or_severely_stale_ratio:
+          planFreshnessSummary?.stale_or_severely_stale_ratio ?? null,
+        largest_distance_tickers: JSON.stringify(
+          planFreshnessSummary?.largest_distance_tickers ?? [],
+        ),
+        reference_price_source_counts: JSON.stringify(
+          planFreshnessSummary?.reference_price_source_counts ?? {},
+        ),
+        warning: planFreshnessSummary?.warning ?? null,
       },
     }),
     section({

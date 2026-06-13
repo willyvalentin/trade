@@ -1,6 +1,6 @@
 # Execution Agent Checkpoint
 
-Last updated: Action 232
+Last updated: Action 283
 
 ## Current Status
 
@@ -43,6 +43,85 @@ Current safety boundaries:
 - A documentation-only Supabase migration tooling setup plan now exists in `docs/supabase-migration-tooling-setup-plan.md`. It explains the missing local/staging execution path, compares local Supabase, staging/dev Supabase, Supabase CLI, `psql`, and dashboard SQL editor options, and defines credential safety rules before retrying Action 229.
 - Action 231A inspected the local Supabase tooling path. The repo has migrations but no Supabase CLI, no `psql`, no `supabase/config.toml`, and no package scripts for local Supabase. No tools were installed, no config was initialized, no local stack was started, and no migration was applied.
 - A documentation-only Avanza UI research plan now exists in `docs/avanza-ui-research-plan.md`. It defines a manual mapping checklist, sanitized data-capture rules, safety boundaries, and mock-contract comparison steps before any future Avanza automation proposal. No Avanza automation, URLs, credentials, browser automation, scraping, or order submission was added.
+- A documentation-only Avanza UI research mapping now exists in `docs/avanza-ui-research-mapping.md`. It converts the sanitized screenshot package into an observed flow, semi-automatic stop point, buy/sell order-form mapping, validation/error mapping, confirmation modal mapping, and mock-contract gap list. It does not add selectors, URLs, credentials, automation, broker results, Supabase writes, or trade mutation.
+- A documentation-only Avanza vs mock order contract gap analysis now exists in `docs/avanza-vs-mock-order-contract-gap-analysis.md`. It compares observed Avanza Advanced order fields, confirmation readback, validation states, and progress states against the current mock order/confirmation contracts and recommends mock-first Actions 235-239. No code behavior, Avanza automation, URLs, selectors, credentials, browser automation, broker result, Supabase write, or trade mutation was added.
+- Action 235 extended the mock order page contract and dev-only mock order UI with Avanza Advanced-style P0 readback fields: account, SEK amount, price/instrument currency, instrument market/type, Advanced order mode, validity date, estimated fees/courtage/FX/total, preliminary FX rate, and review/confirm/cancel labels. The Playwright-only fill runner, manual local mock-agent runner, URL prefill, validation, review panel, and e2e coverage now include those fields. This remains mock/dev only and adds no Avanza automation, broker result, Supabase write, order submit, or trade mutation.
+- Action 236 extended the dev-only mock confirmation contract/page/parser with Avanza-like readback fields for account, amount excluding fees, courtage, FX fee, preliminary FX rate, valid until, total amount, price/instrument currency, instrument market/type, Advanced order mode, and review/confirm/cancel labels. The mock order review link passes these fields manually, final confirm/cancel controls are disabled/readback only, and no broker result, execution record, Supabase write, order submit, Avanza automation, or trade mutation was added.
+- Action 237 added mock-only Advanced-order validation for required fields, invalid numbers/prices, minimum amount, and unsupported order modes. The mock order page now blocks review while validation errors are present, renders stable validation selectors for future agent tests, keeps the review panel hidden, and keeps final submit disabled. No Avanza automation, broker result, Supabase write, order submit, or trade mutation was added.
+- Action 238 hardened the Playwright-only fill runner and manual local mock-agent runner so they verify `orderMode=advanced`, stop on mock validation errors, require the review panel and confirmation link after a valid review, and confirm final submit remains disabled. Localhost bridge mock-agent metadata can now surface validation errors, review visibility, confirmation-link availability, disabled-submit status, and order-mode verification without creating broker results or opening confirmation links.
+- Action 239 added `docs/avanza-manual-selector-notes.md`, a documentation-only manual visible-label/anchor note set for future Avanza research. It maps observed labels to mock fields, records risk notes and open questions, and explicitly avoids real Avanza selectors, URLs, credentials, browser automation, scraping, order submission, broker results, Supabase writes, or trade mutation.
+- Action 240 added `docs/avanza-manual-mapping-qa-checklist.md`, a documentation-only manual QA checklist for the next Avanza research session. It covers pre-session safety, setup, search, stock page, Advanced order form, validation, confirmation modal, Stop Loss/Glidande observation-only notes, mock contract mapping, open questions, and a sanitized output template. No Avanza automation, runtime selectors, URLs, credentials, scraping, order submission, broker results, Supabase writes, or trade mutation was added.
+- Action 241 added `docs/avanza-manual-mapping-session-notes.md`, a documentation-only session-notes intake template for future manual Avanza observations. It captures session metadata, safety confirmation, screenshot index, step observations, form-field inventory, validation and confirmation notes, risk findings, resolved/open questions, and recommended doc updates without adding automation or runtime selectors.
+- Action 242 added `docs/semi-auto-avanza-prototype-safety-plan.md`, a documentation-only safety plan for a possible future semi-automatic Avanza prototype. It defines allowed and forbidden actions, hard stop states, verification gates, progress events, manual test protocol, prerequisites, risk register, and go/no-go criteria. It does not approve or implement live automation.
+- Action 243 added `docs/semi-auto-avanza-prototype-requirements.md`, a documentation-only requirements specification for the first future semi-automatic Avanza prototype. It defines scope, functional requirements, verification requirements, safety requirements, failure states, progress-event payload expectations, data minimization, phased test plan, acceptance criteria, and pre-implementation checklist without adding automation.
+- Action 244 added `docs/avanza-final-confirm-block-design.md`, a documentation-only technical safety design for preventing accidental final confirmation clicks in any future semi-automatic Avanza runner. It defines threat model, mode authority guard, action allowlist, final-confirm denylist, state-machine guard, safe browser action wrapper expectations, test guard, runtime emergency stop, and automatic-mode separation.
+- Action 245 added `lib/safe-browser-action-contract.ts` and `docs/safe-browser-action-contract.md`, a pure contract/helper layer for future safe browser actions. It defines action kinds, modes, target risk metadata, final-confirm denylist terms, action creation, display/risk helpers, and validation that blocks semi-auto final-confirm click/select actions without importing browser automation.
+- Action 246 added `lib/safe-browser-action-runner.ts`, a pure no-op runner interface for future safe browser actions. It validates action batches through the safe action contract, reports validated/blocked/skipped results, keeps `supportsRealBrowserExecution=false`, and executes no browser actions.
+- Action 247 added `lib/mock-order-safe-action-plan.ts`, a pure adapter from `MockOrderPageFillPlan` to `SafeBrowserAction` plans for the local mock order page. Valid mock fill plans now produce safe fill/select/read/review actions that validate through the safe action contract and no-op runner without executing browser actions or generating final-confirm clicks.
+- Action 248 added `tests/e2e/helpers/safe-browser-action-playwright-adapter.ts`, a Playwright-only adapter for executing validated safe action plans against the dev-only mock order page in tests. It validates every action, supports only known mock selectors, clicks only the local review button, blocks final-confirm-like clicks, verifies readbacks, and never submits.
+- Action 249 added `lib/safe-browser-action-diagnostics.ts`, a pure shared diagnostics contract for safe action execution. The Playwright mock adapter now returns standardized per-action steps, aggregate execution/block/failure counts, and `finalConfirmBlocked` telemetry without creating broker results or runtime automation.
+- Action 250 added `lib/safe-browser-action-diagnostics-store.ts` and a dev-gated Settings viewer for local safe-action diagnostics. It stores only local telemetry under `ture_safe_browser_action_diagnostics_v1`, shows final-confirm-blocked counts and step details, and remains separate from broker results, execution records, Supabase, and trade state.
+- Action 251 integrated safe-action diagnostics into the dev-only localhost mock-agent path. The mock-agent runner emits diagnostics, the bridge returns them as response-level metadata, the modal displays/saves them locally after explicit user action, and Settings can inspect them without broker results or execution records.
+- Action 252 added `lib/browser-runner-capability-gate.ts`, a pure capability gate that classifies mock browser execution separately from future Avanza/broker execution. Mock-only runners validate as `safe_mock_only`, while Avanza, broker submission, final-confirm click, automatic-capable, and unknown browser capabilities are blocked by default.
+- Action 253 added `docs/avanza-dry-run-capability-spec.md`, a documentation-only specification for a possible future Avanza dry-run capability. It defines dry-run as semi-automatic navigation/fill/review/readback only and keeps broker submission, final confirmation, broker results, Supabase writes, and trade mutation out of scope.
+- Action 254 extended `lib/browser-runner-capability-gate.ts` with `createAvanzaDryRunBrowserRunnerCapability(...)` and explicit `dry_run_only` validation when `allowAvanzaDryRun=true`. Avanza dry-run remains blocked by default, broker submission/final-confirm/automatic/unknown capabilities remain blocked by default, and no Avanza automation or browser runner was added.
+- Action 255 added `lib/avanza-dry-run-request-contract.ts`, a pure future Avanza dry-run request/input contract. It defaults to Advanced mode, manual account review, and stop at confirmation modal, validates buy/sell ticker/quantity/price/account policy, rejects unsafe final-submit/broker-submission metadata, and adds summary/safety-label helpers without adding automation.
+- Action 256 added `lib/execution-intent-to-avanza-dry-run.ts`, a pure adapter from Ture execution intent/handoff data to validated `AvanzaDryRunOrderInput`. It extracts action, ticker, quantity, price reference, recommendation/intent ids, and safe metadata while blocking missing fields, automatic/final-submit authority, and unsafe metadata. No Avanza automation or browser runner was added.
+- Action 257 added a dev-gated, read-only Avanza dry-run request preview to the Execution Handoff Preview Modal. It shows Action 256 adapter output and safety labels such as Advanced mode, stop at confirmation, no broker submission, final confirm disabled, and manual account review. It adds no run button, Avanza URL, selector, browser runner, broker result, Supabase write, or trade mutation.
+- Action 258 added a dev-gated, read-only Avanza dry-run readiness checklist to the Execution Handoff Preview Modal. It shows request validity, capability-gate status, disabled broker submission/final confirm/automatic mode, missing runner implementation, intentionally missing selectors/URLs, and manual final confirmation. Overall status remains `Not ready to run`.
+- Action 259 added `docs/avanza-dry-run-runner-implementation-plan.md`, a documentation-only implementation plan for the first future Avanza dry-run runner. It defines the safest proposed architecture, required gates, review-only flow, stop/failure states, diagnostics, staged tests, UI behavior, security/privacy boundaries, and recommends a pure runner self-check contract next. No Avanza automation, selectors, URLs, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 260 added `lib/avanza-dry-run-runner-self-check.ts`, a pure self-check contract for future Avanza dry-run runner readiness. It represents the current missing runner as `unavailable`, distinguishes mock-only diagnostics from `available_dry_run_only`, and blocks broker-submission or final-confirm-capable runners without adding browser control.
+- Action 261 added a localhost bridge `GET /self-check` contract, client helper, server stub, and dev-only read-only modal button for runner readiness metadata. The default bridge self-check reports `unavailable`; optional mock-only metadata remains distinct from Avanza dry-run capability. No Avanza automation, URLs, selectors, browser runner, run/start button, broker result, Supabase write, or trade mutation was added.
+- Action 262 integrated the latest localhost self-check result into the read-only Avanza dry-run readiness panel. The panel now distinguishes unavailable, mock-only, blocked/failed, and future dry-run-only self-check states while keeping broker submission/final confirm disabled and adding no Avanza run/start button.
+- Action 263 added a localhost bridge `POST /dry-run` contract and server stub for future Avanza dry-run requests. The endpoint validates `AvanzaDryRunOrderInput`, capability options, and unavailable runner state, then returns `not_implemented` or `blocked` with no browser actions, no Avanza automation, no run button, no broker submission, no broker result, no Supabase write, and no trade mutation.
+- Action 264 added a frontend-safe `runLocalhostBridgeAvanzaDryRunStub(...)` client helper for `POST /dry-run`. It builds, posts, times out, validates, normalizes, and summarizes non-executing stub responses and failure modes without wiring a UI run button, browser runner, broker result, Supabase write, or trade mutation.
+- Action 265 added a dev-gated, read-only `Dry-run bridge response preview` to the handoff modal. The user can manually test the localhost `/dry-run` stub response for the current validated dry-run request and inspect `not_implemented` or `blocked` metadata, while the modal still has no Avanza run/start button and no browser action, broker submission, broker result, Supabase write, or trade mutation.
+- Action 266 added `scripts/avanza-dry-run-runner-skeleton.mjs` and localhost bridge mode `AVANZA_LOCALHOST_BRIDGE_SELF_CHECK_MODE=dry_run_skeleton`. The bridge can report skeleton `available_dry_run_only` self-check metadata and return a safe `/dry-run` `accepted_stub` response, but the skeleton controls no browser, opens no Avanza URL, uses no selectors, submits no order, creates no broker result, writes no Supabase data, and mutates no trade state.
+- Action 267 expanded `npm run bridge:localhost:smoke` into an explicit localhost bridge smoke matrix. It now covers default unavailable mode, `mock_only`, `dry_run_skeleton`, valid dry-run, unsafe dry-run, missing input, invalid JSON, skeleton unsafe blocking, and existing `/run`/`/cancel` regressions while asserting no `brokerResult` and no executed browser diagnostics.
+- Action 268 added `docs/avanza-manual-mapping-refresh-pack.md`, a documentation-only manual refresh pack for the next Avanza UI validation pass. It defines safety rules, session setup, required manual flows, screenshot/notes templates, field/validation/confirmation readback tables, decision checklist, and green/yellow/red outcomes before any session-detection/search-only runner design.
+- Action 269 added `docs/avanza-session-detection-only-design.md`, a documentation-only design for the first future Avanza-adjacent phase. It limits that phase to sanitized browser/session readiness detection and explicitly forbids click, type, search, navigation, order-page access, account-data reads, broker results, Supabase writes, and trade mutation.
+- Action 270 added `lib/avanza-session-detection-contract.ts`, a pure TypeScript session detection result contract. It models unavailable, browser-not-connected, Avanza-not-visible, login-required, ready-for-search-only, blocked, and failed states, blocks sensitive/order/confirmation contexts, and provides summary/safety-label helpers without browser control.
+- Action 271 added a localhost bridge `GET /session-detection` contract, client helper, server stub, and smoke coverage for synthetic session-detection modes. The endpoint can report unavailable, browser-not-connected, Avanza-not-visible, login-required, ready-for-search-only, sensitive-data-blocked, or order-page-blocked metadata without browser control, Avanza URLs/selectors, broker results, Supabase writes, or trade mutation.
+- Action 272 added a dev-gated, read-only Session-detection preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/session-detection` stub, inspect status/summary/labels/sanitized context, and see informational readiness rows without enabling search-only, Avanza dry-run, browser control, broker results, Supabase writes, or trade mutation.
+- Action 273 added `docs/avanza-search-only-phase-design.md`, a documentation-only design for the future search-only phase after session detection. It defines search-only as sanitized instrument candidate lookup, exact/ambiguous/no-match classification, exact-match policy, hard stops, privacy rules, and graduation criteria while forbidding order pages, buy/sell clicks, order forms, submissions, broker results, Supabase writes, and trade mutation.
+- Action 274 added `lib/avanza-search-only-result-contract.ts`, a pure TypeScript search-only result contract. It scores sanitized instrument candidates against expected ticker/name/market/currency/type, classifies exact/ambiguous/no-match/blocked/failed outcomes, and exposes summary/safety-label helpers without browser control, Avanza URLs/selectors, search buttons, order pages, broker results, Supabase writes, or trade mutation.
+- Action 275 added a localhost bridge `POST /search-only` contract, client helper, server stub, smoke matrix coverage, and e2e/client normalization coverage for synthetic search-only results. The endpoint can return exact, ambiguous, no-match, search-not-available, session-not-ready, sensitive-data-blocked, or order-flow-blocked metadata without browser control, Avanza URLs/selectors, search/run/start buttons, order pages, buy/sell clicks, broker results, Supabase writes, or trade mutation.
+- Action 276 added a dev-gated, read-only Search-only preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/search-only` stub for the current dry-run request instrument, inspect exact/ambiguous/no-match/blocked candidate results, and see informational readiness rows without enabling real search, browser control, Avanza URLs/selectors, order pages, buy/sell clicks, broker results, Supabase writes, or trade mutation.
+- Action 277 added `docs/avanza-instrument-verification-phase-design.md`, a documentation-only design for the future phase after a search-only exact match. It scopes verification to sanitized instrument identity comparison and explicitly forbids order pages, buy/sell clicks, order-form behavior, submissions, broker results, Supabase writes, and trade mutation.
+- Action 278 added `lib/avanza-instrument-verification-contract.ts`, a pure TypeScript result contract for future Avanza instrument verification. It compares expected instrument identity with the selected search-only candidate, verifies/rejects/marks ambiguous/blocks safely, and covers sensitive/order-flow risk without browser control, Avanza URLs/selectors, verify/search/run/start buttons, order pages, buy/sell clicks, form filling, broker results, Supabase writes, or trade mutation.
+- Action 279 added localhost bridge `POST /instrument-verification` request/response contracts, `checkLocalhostBridgeInstrumentVerification(...)`, server stub modes for unavailable/verified/rejected/ambiguous/blocked/search-not-ready/missing-candidate states, smoke matrix assertions, and e2e client normalization tests. No browser control, Avanza selectors/URLs, verify/search/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 280 added a dev-gated, read-only Instrument verification preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/instrument-verification` stub for the current dry-run request instrument, include the latest exact search-only candidate when available, inspect verified/rejected/ambiguous/blocked field-check results, and see informational readiness rows without enabling real verification, browser control, Avanza URLs/selectors, order pages, buy/sell clicks, form fills, broker results, Supabase writes, or trade mutation.
+- Action 281 added `docs/avanza-instrument-page-phase-design.md`, a documentation-only design for the future phase after verified instrument identity. It scopes the phase to non-order instrument-page identity observation, defines planned statuses and prohibited-control policy, and explicitly forbids order pages, buy/sell clicks, order-form behavior, submissions, broker results, Supabase writes, and trade mutation.
+- Action 282 added `lib/avanza-instrument-page-contract.ts`, a pure TypeScript result contract for future Avanza instrument-page identity checks. It compares expected/verified instrument identity with sanitized page identity, identifies matching pages, detects page mismatches, blocks order-page/form/final-confirm/sensitive states, treats buy/sell button visibility as guarded warnings, and adds e2e contract coverage without browser control, Avanza URLs/selectors, instrument-page/run/start buttons, order pages, buy/sell clicks, form fills, broker results, Supabase writes, or trade mutation.
+- Action 283 added localhost bridge `POST /instrument-page` request/response contracts, `checkLocalhostBridgeInstrumentPage(...)`, response summaries, server stub modes for unavailable/page-identified/buy-sell-visible/mismatch/prohibited-controls/blocked/page-not-open/verification-not-ready states, bridge smoke matrix rows, and e2e/client normalization coverage. No browser control, Avanza selectors/URLs, instrument-page/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 284 added a dev-gated, read-only Instrument page preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/instrument-page` stub for the current dry-run request instrument, include the latest verified instrument result when available, inspect page-identified/mismatch/buy-sell-visible/blocked field-check results, and see informational readiness rows without enabling real instrument-page behavior, browser control, Avanza URLs/selectors, order-page opening, buy/sell clicks, form fills, broker results, Supabase writes, or trade mutation.
+- Action 285 added `docs/avanza-order-page-open-phase-design.md`, a documentation-only design for the future phase after identified instrument-page identity. It scopes the phase to a guarded matching entry `Kop`/`Salj` click and order-page-open verification only, and explicitly forbids form fills, `Granska`, `Bekrafta`, final confirmation, broker results, Supabase writes, and trade mutation.
+- Action 286 added `lib/avanza-order-page-open-contract.ts`, a pure TypeScript result contract for future order-page-open checks. It compares expected buy/sell action and instrument identity with sanitized order-page identity, returns opened/mismatch/wrong-action/prohibited-form-interaction/blocked states, blocks final-confirm/review-click/keyboard-submit/prefilled-form/sensitive states, and adds e2e contract coverage without browser control, Avanza selectors/URLs, form fills, review clicks, final-confirm clicks, broker results, Supabase writes, or trade mutation.
+- Action 287 added localhost bridge `POST /order-page-open` request/response contracts, `checkLocalhostBridgeOrderPageOpen(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for synthetic opened/wrong-action/mismatch/prefill/final-confirm/review-click/keyboard-submit/sensitive/not-ready states. No browser control, Avanza selectors/URLs, form fill, review click, final-confirm click, broker result, Supabase write, or trade mutation was added.
+- Action 288 added a dev-gated, read-only Order page open preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/order-page-open` stub for the current dry-run request and latest identified instrument-page result when available, inspect opened/wrong-action/mismatch/blocked field-check results, and see informational readiness rows without enabling real order-page behavior, browser control, Avanza URLs/selectors, form fills, `Granska`, `Bekrafta`, broker results, Supabase writes, or trade mutation.
+- Action 289 added `docs/avanza-advanced-form-fill-phase-design.md`, a documentation-only design for the future phase after `order_page_opened`. It scopes the phase to Advanced quantity/price field population and verification only, and explicitly forbids `Granska`, `Bekrafta`, keyboard submit, unsupported order modes, broker results, Supabase writes, History/Statistics updates, and trade mutation.
+- Action 290 added `lib/avanza-advanced-form-fill-contract.ts`, a pure TypeScript result contract for future Advanced form-fill diagnostics. It evaluates sanitized form state against a dry-run request and `order_page_opened` result, covers filled/mismatch/validation/review/final-confirm/blocked states, and adds e2e contract coverage without browser control, Avanza selectors/URLs, runtime form fill, `Granska`, `Bekrafta`, broker results, Supabase writes, or trade mutation.
+- Action 292 added a dev-gated, read-only Advanced form-fill preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/advanced-form-fill` stub for the current dry-run request and latest order-page-open result when available, inspect filled/mismatch/validation/prohibited/blocked field-check results, and see informational readiness rows without enabling real form fill, browser control, Avanza URLs/selectors, `Granska`, `Bekrafta`, broker results, Supabase writes, or trade mutation.
+- Action 293 added `docs/avanza-review-click-phase-design.md`, a documentation-only design for the future phase after verified Advanced form fill. It defines a future `Granska`-only review click, confirmation-modal readback, and stop at `waiting_for_manual_confirmation`, while explicitly forbidding `Bekrafta`, keyboard submit, broker results, Supabase writes, and trade mutation.
+- Action 294 added `lib/avanza-review-click-contract.ts`, a pure TypeScript contract for future review-click and confirmation-modal readback diagnostics. It evaluates sanitized confirmation modal readback against a dry-run request and `form_filled` Advanced result, covers confirmation-ready/mismatch/validation/final-confirm/blocked states, sets `waitingForManualConfirmation` metadata on success, and adds e2e contract coverage without browser control, Avanza URLs/selectors, runtime `Granska`, `Bekrafta`, broker results, Supabase writes, or trade mutation.
+- Action 295 added localhost bridge `POST /review-click` request/response contracts, `checkLocalhostBridgeReviewClick(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for synthetic confirmation-ready, mismatch, validation, final-confirm-visible, final-confirm-click, keyboard-submit, sensitive-data, missing-modal, review-label-mismatch, and form-not-ready states. No browser control, Avanza URLs/selectors, real `Granska`, `Bekrafta`, broker results, Supabase writes, or trade mutation was added.
+- Action 296 added a dev-gated, read-only Review click preview to the Execution Handoff Preview Modal. The user can manually check the localhost `/review-click` stub for the current dry-run request and latest `form_filled` Advanced result when available, inspect confirmation-ready/mismatch/validation/final-confirm/keyboard/sensitive states, and see informational readiness rows without enabling real `Granska`, `Bekrafta`, browser control, Avanza URLs/selectors, broker results, Supabase writes, or trade mutation.
+- Action 297 added `docs/avanza-manual-confirmation-wait-phase-design.md`, a documentation-only design for the future phase after `confirmation_ready`. It defines `waiting_for_manual_confirmation` as a human-authority boundary and explicitly forbids agent `Bekrafta`, keyboard submit, broker-result creation, Supabase writes, and trade mutation.
+- Action 298 added `lib/avanza-manual-confirmation-wait-contract.ts`, a pure TypeScript result contract for future manual confirmation wait states. It evaluates `confirmation_ready` review-click results plus sanitized observations, covers waiting/cancelled/timed-out/user-confirmed-unverified/blocked states, and blocks agent final-confirm attempts, keyboard submit, unexpected broker results, unexpected trade mutations, and sensitive signals without browser control or Avanza selectors/URLs.
+- Action 299 added localhost bridge `POST /manual-confirmation-wait` request/response contracts, `checkLocalhostBridgeManualConfirmationWait(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for waiting, cancelled, unverified-confirmed, timed-out, final-confirm-visible-read-only, final-confirm-attempt, keyboard-submit, unexpected broker-result, unexpected trade-mutation, sensitive-data, and confirmation-not-ready states. No browser control, Avanza URLs/selectors, `Bekrafta`, broker results, Supabase writes, or trade mutation was added.
+- Action 300 added `docs/avanza-broker-confirmation-capture-phase-design.md`, a documentation-only design for the future phase after a human manual final confirmation. It defines sanitized broker confirmation/receipt evidence capture, planned statuses, validation policy, privacy rules, hard stops, and the boundary between capture result, `BrokerExecutionResult`, execution record creation, Supabase persistence, History/Statistics integration, and live trade mutation. No Avanza automation, URLs/selectors, browser control, `Bekrafta`, broker result creation, Supabase write, or trade mutation was added.
+- Action 301 added `lib/avanza-broker-confirmation-capture-contract.ts`, a pure TypeScript result contract for future sanitized broker confirmation capture. It compares dry-run input, `user_confirmed_unverified` manual wait state, and sanitized receipt readback; models captured, partial, mismatch, rejected/cancelled, blocked, and failed states; separates placed/accepted from filled execution; and blocks sensitive/raw evidence, broker-result creation attempts, and trade-mutation attempts without creating `BrokerExecutionResult`, execution records, Supabase writes, or trade mutation.
+- Action 302 added localhost bridge `POST /broker-confirmation-capture` request/response contracts, `checkLocalhostBridgeBrokerConfirmationCapture(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for synthetic captured, partial, mismatch, rejected/cancelled/expired, sensitive/raw evidence, broker-result-attempt, trade-mutation-attempt, manual-confirmation-not-observed, and confirmation-page-not-found states. No browser control, Avanza URLs/selectors, `Bekrafta`, order submission, `BrokerExecutionResult`, execution record, Supabase write, or trade mutation was added.
+- Action 303 added a dev-gated, read-only Broker Confirmation Capture preview to the Execution Handoff Preview Modal. The UI calls only the localhost `/broker-confirmation-capture` stub, displays captured/partial/mismatch/rejected/blocked synthetic metadata plus field checks and safety labels, and adds informational readiness rows for future conversion design. No browser control, Avanza URLs/selectors, `Bekrafta`, order submission, `BrokerExecutionResult`, execution record, Supabase write, or trade mutation was added.
+- Action 304 added `docs/avanza-broker-execution-result-conversion-boundary-design.md`, a documentation-only boundary design for future conversion from broker confirmation capture evidence to `BrokerExecutionResult`. It defines allowed/blocked criteria, placed-vs-filled policy, evidence requirements, idempotency, safety gates, UI expectations, diagnostics, and the recommended pure eligibility-contract next step. No conversion code, `BrokerExecutionResult`, execution record, Supabase write, Avanza automation, selectors/URLs, or trade mutation was added.
+- Action 305 added `lib/avanza-broker-execution-result-eligibility.ts`, a pure TypeScript eligibility contract for future conversion. It evaluates capture results, builds sanitized evidence fingerprints, detects duplicate risk, separates placed/accepted/partial evidence from filled execution, and blocks mismatch, rejected/cancelled, missing evidence, sensitive/raw data, broker-result-attempt, and trade-mutation-attempt cases without creating `BrokerExecutionResult`, execution records, Supabase writes, or trade mutation.
+- Action 306 added localhost bridge `POST /broker-execution-result-eligibility` request/response contracts, `checkLocalhostBridgeBrokerExecutionResultEligibility(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for synthetic eligible, partial, blocked, duplicate, malformed, sensitive, broker-result-attempt, and trade-mutation-attempt states. No `BrokerExecutionResult`, execution record, Supabase write, trade mutation, Avanza automation, selector/URL, browser control, or order submission was added.
+- Action 307 added a dev-gated, read-only BrokerExecutionResult eligibility preview to the Execution Handoff Preview Modal. It calls only the localhost eligibility stub, displays eligible/partial/blocked/duplicate synthetic metadata plus sanitized evidence fingerprints and readiness rows, and still creates no `BrokerExecutionResult`, execution record, Supabase write, trade mutation, Avanza automation, selector/URL, browser control, or order submission.
+- Action 308 added `docs/avanza-broker-execution-result-conversion-mapping-design.md`, a documentation-only mapping design for future eligible filled broker-confirmation evidence to `BrokerExecutionResult`-shaped preview fields. It defines source requirements, target shape, field mapping, validation rules, status policy, idempotency, UI expectations, and future tests without implementing conversion, records, Supabase writes, trade mutation, Avanza automation, selectors/URLs, browser control, or order submission.
+- Action 309 added `lib/avanza-broker-execution-result-preview.ts`, a pure TypeScript preview contract that maps eligible filled broker-confirmation capture evidence into a `BrokerExecutionResult`-shaped preview object marked `previewOnly` and `notBrokerExecutionResult`. Ineligible, partial-only, duplicate-risk, blocked, and failed evidence returns no preview. No real `BrokerExecutionResult`, execution record, Supabase write, trade mutation, Avanza automation, selector/URL, browser control, or order submission was added.
+- Action 310 added localhost bridge `POST /broker-execution-result-preview` request/response contracts, `checkLocalhostBridgeBrokerExecutionResultPreview(...)`, response summaries, server stub modes, smoke matrix rows, and e2e/client normalization coverage for preview-available, missing-optional, partial-only, blocked, duplicate-risk, malformed, and invalid-response states. Preview objects remain marked `previewOnly` and `notBrokerExecutionResult`; no real `BrokerExecutionResult`, execution record, Supabase write, trade mutation, Avanza automation, selector/URL, browser control, or order submission was added.
+- Action 311 added a dev-gated, read-only BrokerExecutionResult conversion preview panel to the Execution Handoff Preview Modal. It calls only the localhost preview stub, displays preview-shaped data and preview-only metadata when available, shows partial/blocked/duplicate/not-eligible states, and adds informational readiness rows. No real `BrokerExecutionResult`, execution record, Supabase write, trade mutation, Avanza automation, selector/URL, browser control, or order submission was added.
+- Action 312 added `docs/execution-record-creation-boundary-design.md`, a documentation-only design for the future boundary from a real `BrokerExecutionResult` to local execution record creation. It separates broker-result conversion, local records, Supabase persistence, and live trade mutation; defines allowed/blocked criteria, idempotency, diagnostics, UI expectations, and recommends Action 313 as a pure execution-record eligibility contract. No code behavior changed.
 - The mock-agent prototype milestone is documented in `docs/mock-agent-prototype-checkpoint.md`.
 - The mock execution end-to-end checkpoint is documented in `docs/mock-execution-e2e-checkpoint.md`.
 
@@ -172,6 +251,54 @@ Today, the bridge factory and bridge-backed runner stop at diagnostics-only beha
 - Action 230: Added `docs/supabase-migration-tooling-setup-plan.md`, a documentation-only plan for establishing a safe local or staging/dev Supabase migration execution path before retrying Action 229. No tools were installed, no credentials were added, no migration was applied, and no database state changed.
 - Action 231A: Inspected the local Supabase tooling path and documented that local migration apply remains blocked until the Supabase CLI or another local SQL runner is installed and `supabase/config.toml` is intentionally initialized. No remote connection, tool install, config init, migration apply, or database change occurred.
 - Action 232: Added `docs/avanza-ui-research-plan.md`, a documentation-only manual research and mapping checklist for future Avanza order-flow study. It requires semi-automatic/manual inspection only, prohibits final submit and automation, defines sanitized capture rules, and recommends an Avanza UI research notes template next.
+- Action 233: Added `docs/avanza-ui-research-mapping.md`, a documentation-only mapping intake from the sanitized Avanza screenshot package. It documents search, instrument selection, stock detail, buy/sell order forms, validation states, review buttons, confirmation modal fields, the semi-automatic stop point, and mock-contract gaps. No Avanza automation, selector contract, URL, credential, broker result, Supabase write, or trade mutation was added.
+- Action 234: Added `docs/avanza-vs-mock-order-contract-gap-analysis.md`, a documentation-only comparison of the Avanza UI mapping against current mock order and confirmation contracts. It identifies P0/P1/P2 mock gaps, future mock selectors, confirmation readback gaps, validation gaps, agent progress gaps, and recommends Actions 235-239. No code behavior or Avanza automation was added.
+- Action 235: Extended `MockOrderPageFillPlan`, mock order page selectors, safe URL query prefill, validation, review UI, Playwright fill runner, manual mock-agent runner, and e2e coverage with mock-only Avanza Advanced fields. The final submit remains disabled and no broker result, Avanza automation, Supabase write, or trade mutation was added.
+- Action 236: Extended the mock confirmation payload, URL builder, selectors, page query parsing, readback UI, disabled final-action labels, Playwright parser, and e2e coverage with mock-only Avanza confirmation readback fields. No broker result, `TureExecutionRecord`, Avanza automation, Supabase write, order submit, or trade mutation was added.
+- Action 237: Added `MOCK_ORDER_MIN_AMOUNT_SEK`, pure mock order form validation categories, stable validation error selectors, UI error rendering, review blocking, and e2e coverage for missing required fields, minimum amount, unsupported order mode, and corrected valid review. No real broker behavior, Avanza automation, Supabase write, broker result, order submit, or trade mutation was added.
+- Action 238: Hardened the mock fill runner and local mock-agent runner to enforce Advanced-only mode, fail safely on validation errors, verify review panel/confirmation link/disabled submit, expose response-level mock-agent verification metadata, and cover valid/failure paths in e2e. No Avanza automation, broker result, Supabase write, order submit, or trade mutation was added.
+- Action 239: Added `docs/avanza-manual-selector-notes.md`, documenting manual Avanza visible labels, visual anchors, mock-field mappings, selector strategy notes, risks, and open questions. This is documentation only and does not add real selectors, URLs, automation, credentials, scraping, order submission, broker results, Supabase writes, or trade mutation.
+- Action 240: Added `docs/avanza-manual-mapping-qa-checklist.md`, a safety-first manual session checklist and output template for resolving Avanza mapping open questions without automation or order submission.
+- Action 241: Added `docs/avanza-manual-mapping-session-notes.md`, a structured manual session-notes intake template for sanitized Avanza observations, safety confirmation, screenshots, field inventory, validation notes, confirmation readback, risks, open questions, and follow-up doc updates.
+- Action 242: Added `docs/semi-auto-avanza-prototype-safety-plan.md`, a documentation-only safety plan for the first future semi-automatic Avanza prototype. It defines review-only scope, forbidden final confirmation, hard stops, verification gates, progress events, manual test protocol, prerequisites, risk register, and go/no-go criteria.
+- Action 243: Added `docs/semi-auto-avanza-prototype-requirements.md`, a documentation-only requirements spec for the first future semi-automatic Avanza prototype. It covers functional, verification, safety, failure, progress-event, logging, test, acceptance, and pre-implementation requirements.
+- Action 244: Added `docs/avanza-final-confirm-block-design.md`, a documentation-only final-confirm block design. It requires future semi-auto Avanza runner clicks to go through safe action wrappers, treats confirmation modal detection as a terminal success state, deny-lists final confirmation labels, and keeps automatic mode as a separate future capability.
+- Action 245: Added `lib/safe-browser-action-contract.ts` and `docs/safe-browser-action-contract.md`, a pure safe browser action contract. It validates planned future actions, blocks semi-auto final-confirm-like click/select actions, allows read/wait/stop on final-confirm-like targets, and keeps automatic final confirmation as an out-of-scope warning.
+- Action 246: Added `lib/safe-browser-action-runner.ts`, a pure no-op safe browser action runner interface. It accepts validated safe action batches, returns per-action execution results, blocks final-confirm clicks, skips later actions when configured, and never executes browser actions.
+- Action 247: Added `lib/mock-order-safe-action-plan.ts`, a pure mock order safe action plan builder. It converts `MockOrderPageFillPlan` into validated `SafeBrowserAction` objects for local mock order fill/review/readback planning and proves the plan through the no-op runner.
+- Action 248: Added `tests/e2e/helpers/safe-browser-action-playwright-adapter.ts`, a test-only Playwright adapter for safe action plans on `/mock-broker/order`. It executes only validated mock targets, clicks only review, blocks unsafe final-confirm actions, and remains outside app runtime.
+- Action 249: Added `lib/safe-browser-action-diagnostics.ts`, a pure diagnostics contract for safe action execution results. The mock Playwright adapter emits that shape for successful and blocked paths, including `finalConfirmBlocked`, without adding app-runtime browser automation.
+- Action 250: Added `lib/safe-browser-action-diagnostics-store.ts` and the Settings `Safe Browser Action Diagnostics` viewer. It stores/displays local safe-action telemetry only, supports scoped clear, and does not create broker results, execution records, Supabase writes, or trade mutations.
+- Action 251: Integrated safe-action diagnostics into the dev-only localhost mock-agent flow. The mock runner and bridge return diagnostics metadata, the modal displays/saves it locally, and e2e verifies Settings can inspect the saved run with no broker result or Avanza automation.
+- Action 252: Added `lib/browser-runner-capability-gate.ts`, capability metadata labels, and UI diagnostics classification. Mock-only diagnostics show `Mock-only browser diagnostics` / `No broker submission`; unknown or real-broker-like capabilities are blocked by default.
+- Action 253: Added `docs/avanza-dry-run-capability-spec.md`, documenting the future `avanza_broker` dry-run capability, required gates, allowed/forbidden actions, hard stops, diagnostics requirements, and next pure gate work. No code behavior changed.
+- Action 254: Extended the pure capability gate with an Avanza dry-run capability factory, stricter validation, dry-run UI labels, and e2e coverage for allowed dry-run plus blocked broker-submission/final-confirm/automatic variants. No Avanza automation, URLs, selectors, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 255: Added a pure Avanza dry-run request contract with defaults, validation, summary helpers, safety labels, and e2e coverage for valid buy/sell plus invalid ticker, quantity, price, order mode, account policy, and unsafe metadata. No Avanza automation, URLs, selectors, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 256: Added a pure execution-intent-to-Avanza-dry-run adapter and e2e coverage for valid buy/sell intent conversion plus missing ticker, missing quantity, missing price, unsupported action, automatic authority, and unsafe metadata blocking. No Avanza automation, URLs, selectors, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 257: Added a dev-only read-only dry-run request preview to the handoff modal and e2e coverage that verifies preview labels and absence of Avanza run/start/open controls. No Avanza automation, URLs, selectors, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 258: Added a dev-only read-only Avanza dry-run readiness checklist panel and e2e coverage for `Not ready to run`, missing runner, default blocked gate, explicit `dry_run_only` classification, disabled broker submission/final confirm/automatic mode, missing selectors/URLs, and manual final confirmation. No Avanza automation, URLs, selectors, browser runner, broker result, Supabase write, or trade mutation was added.
+- Action 259: Added `docs/avanza-dry-run-runner-implementation-plan.md`, a documentation-only implementation plan for the first future Avanza dry-run runner. It covers architecture, flags/gates, execution flow, stop/failure states, diagnostics requirements, staged tests, future UI behavior, security/privacy notes, explicit out-of-scope items, and recommends Action 260 - Avanza Dry-Run Runner Self-Check Contract. No code behavior changed.
+- Action 260: Added `lib/avanza-dry-run-runner-self-check.ts`, a pure self-check contract and e2e coverage for unavailable, mock-only, blocked-by-default Avanza dry-run, explicitly allowed dry-run-only, broker-submission blocked, and final-confirm blocked runner capability states. The readiness panel now uses the unavailable self-check blocker for the current no-runner state. No Avanza automation, URLs, selectors, browser runner, run button, broker result, Supabase write, or trade mutation was added.
+- Action 261: Added `GET /self-check` to the localhost bridge contract, client, and server stub. The Execution Handoff Preview Modal can manually check localhost runner self-check metadata and display status, labels, blockers, and capability flags without enabling Avanza dry-run or browser control. E2E covers unavailable and mock-only self-check responses. No Avanza automation or broker effect was added.
+- Action 262: Integrated the latest localhost self-check result into the Avanza dry-run readiness panel. Unavailable remains `Not ready to run`, mock-only becomes `Not ready for Avanza dry-run`, and future dry-run-only can show `Dry-run runner available` while still showing no broker submission, final confirm disabled, manual final confirmation, and no Avanza run/start control.
+- Action 266: Added a local Avanza dry-run runner skeleton and bridge env mode `dry_run_skeleton`. Skeleton self-check can report `available_dry_run_only`, and skeleton `/dry-run` can return `accepted_stub` with explicit no-browser-control/no-actions/no-broker-submission metadata. No Avanza automation, selectors, URLs, browser control, run button, broker result, Supabase write, or trade mutation was added.
+- Action 267: Formalized the localhost bridge smoke coverage as a printed mode/endpoint matrix. Default, mock-only, skeleton, unsafe, missing-input, and invalid-JSON cases are covered without adding Avanza automation, selectors, URLs, browser control, run buttons, broker results, Supabase writes, or trade mutation.
+- Action 268: Added the Avanza manual mapping refresh pack and linked it from the manual session notes, QA checklist, research mapping, selector notes, and dry-run runner plan. The next Avanza-adjacent step should use this pack to refresh manual UI evidence before any session-detection/search-only design.
+- Action 269: Added the Avanza session detection only design. It defines allowed readiness detection, forbidden browser/order/account actions, planned result statuses, privacy rules, UI labels, failure handling, test plan, and graduation criteria for a future search-only phase.
+- Action 270: Added the pure Avanza session detection result contract and e2e contract coverage for browser disconnected, Avanza not visible, login required, sensitive data blocked, order/confirmation contexts blocked, ready-for-search-only, summaries, labels, and metadata safety flags.
+- Action 271: Added localhost bridge `GET /session-detection` contract/client/server stub support and smoke coverage for unavailable/default plus ready-for-search-only, login-required, and sensitive-data-blocked synthetic modes. The stub returns only sanitized metadata and asserts no browser actions, no Avanza page touch, no broker result, no Supabase write, and no trade mutation.
+- Action 272: Added a dev-only read-only session-detection preview in the handoff modal and e2e coverage for ready-for-search-only, login-required, and blocked-sensitive stub responses. The readiness panel now includes informational session-detection rows while still adding no search/run/start button and no browser or broker behavior.
+- Action 273: Added the documentation-only Avanza search-only phase design. It scopes the next possible phase to sanitized instrument candidate lookup and recommends Action 274 - Avanza Search-Only Result Contract as pure TypeScript only, with no browser control, Avanza selectors/URLs, search button, order page, buy/sell click, broker result, Supabase write, or trade mutation.
+- Action 274: Added the pure Avanza search-only result contract and e2e contract coverage for exact match, duplicate/ambiguous candidates, ticker mismatch/no-match, missing currency risk, sensitive-data blocking, order-flow blocking, summaries, safety labels, and no-order/no-broker metadata. No browser control, Avanza selectors/URLs, search button, order page, buy/sell click, broker result, Supabase write, or trade mutation was added.
+- Action 275: Added localhost bridge `POST /search-only` request/response contracts, `checkLocalhostBridgeSearchOnly(...)`, server stub modes for unavailable/search-not-available/exact/ambiguous/no-match/session-not-ready/sensitive-data block/order-flow block, smoke matrix assertions, and e2e client normalization tests. No browser control, Avanza selectors/URLs, search/run/start button, order page, buy/sell click, broker result, Supabase write, or trade mutation was added.
+- Action 276: Added a dev-only read-only Search-only preview in the handoff modal and e2e coverage for exact-match, ambiguous, no-match, and order-flow-blocked stub responses. The readiness panel now includes informational search-only rows while still adding no search/run/start/order button, browser control, Avanza selectors/URLs, order page, buy/sell click, broker result, Supabase write, or trade mutation.
+- Action 277: Added the documentation-only Avanza instrument-verification phase design. It defines allowed identity comparison, forbidden order-flow behavior, planned statuses, verification policy, hard stops, privacy rules, UI boundaries, test plan, and graduation criteria toward a later instrument-page or order-page design. No code behavior, browser control, Avanza selectors/URLs, verify/search/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 278: Added the pure Avanza instrument-verification result contract and e2e contract coverage for verified exact candidates, ambiguous search state, missing selected candidate, ticker/market/currency rejection, missing currency ambiguity, low-confidence ambiguity, sensitive-data blocking, order-flow blocking, summaries, safety labels, and no-order/no-broker metadata. No browser control, Avanza selectors/URLs, verify/search/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 279: Added localhost bridge `POST /instrument-verification` request/response contracts, `checkLocalhostBridgeInstrumentVerification(...)`, response summaries, server stub modes for verified, rejected ticker/market/currency, ambiguous missing-currency/low-confidence, blocked sensitive/order-flow, search-not-ready, and missing-candidate states, bridge smoke matrix rows, and e2e/client normalization coverage. No browser control, Avanza selectors/URLs, verify/search/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 280: Added a dev-only read-only Instrument verification preview in the handoff modal and e2e coverage for verified, rejected, ambiguous, and order-flow-blocked stub responses. The readiness panel now includes informational instrument-verification rows while still adding no verify/search/run/start/order button, browser control, Avanza selectors/URLs, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation.
+- Action 281: Added the documentation-only Avanza instrument-page phase design. It defines allowed non-order page identity observation, forbidden order-flow behavior, planned statuses, page identity policy, prohibited control policy, hard stops, privacy rules, UI boundaries, test plan, and graduation criteria toward a later order-page-open design. No code behavior, browser control, Avanza selectors/URLs, instrument-page/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 282: Added the pure Avanza instrument-page result contract and e2e contract coverage for matching page identity, verification-not-ready, page-not-open, ticker/currency/missing-field mismatches, order-page context blocking, order-form blocking, final-confirm blocking, account/balance/holdings/sensitive blocking, buy/sell visibility warnings, summaries, safety labels, and no-order/no-broker metadata. No browser control, Avanza selectors/URLs, instrument-page/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation was added.
+- Action 283: Added localhost bridge `POST /instrument-page` request/response contracts, `checkLocalhostBridgeInstrumentPage(...)`, response summaries, server stub modes for page identified, buy/sell-visible warnings, ticker/currency/missing-field mismatches, prohibited controls, blocked order-page/order-form/final-confirm/sensitive states, verification-not-ready, page-not-open, unavailable, and malformed request failures. Bridge smoke and e2e/client tests cover the major states without browser control, Avanza selectors/URLs, instrument-page/run/start button, order page, buy/sell click, form fill, broker result, Supabase write, or trade mutation.
 
 ## Key Files
 
@@ -225,7 +352,20 @@ Execution persistence draft:
 
 Avanza UI research:
 
+- `lib/safe-browser-action-contract.ts`
+- `lib/safe-browser-action-runner.ts`
+- `lib/mock-order-safe-action-plan.ts`
+- `docs/safe-browser-action-contract.md`
+- `tests/e2e/helpers/safe-browser-action-playwright-adapter.ts`
 - `docs/avanza-ui-research-plan.md`
+- `docs/avanza-ui-research-mapping.md`
+- `docs/avanza-manual-selector-notes.md`
+- `docs/avanza-manual-mapping-qa-checklist.md`
+- `docs/avanza-manual-mapping-session-notes.md`
+- `docs/avanza-final-confirm-block-design.md`
+- `docs/semi-auto-avanza-prototype-safety-plan.md`
+- `docs/semi-auto-avanza-prototype-requirements.md`
+- `docs/avanza-vs-mock-order-contract-gap-analysis.md`
 
 Execution audit persistence contract:
 
@@ -432,6 +572,10 @@ Mock broker order page:
 - Localhost `/run` can return mock order fill-plan metadata and a manual relative mock-page URL.
 - Localhost `/run` can optionally run the local mock-page runner only when `enableMockAgentRun=true`.
 - Ture handoff modal can explicitly POST a dev-only localhost cancel test to `/cancel`.
+- Localhost `/self-check` can report a dry-run skeleton only when `AVANZA_LOCALHOST_BRIDGE_SELF_CHECK_MODE=dry_run_skeleton` is set.
+- Localhost `/session-detection` can report synthetic session-detection metadata only when explicitly configured through `AVANZA_LOCALHOST_BRIDGE_SESSION_DETECTION_MODE`; it never controls a browser or touches Avanza.
+- Localhost `/dry-run` can return skeleton `accepted_stub` only in that explicit mode, and still executes no browser actions.
+- Localhost bridge smoke now prints a mode matrix for default, mock-only, skeleton, session-detection, unsafe, missing-input, and invalid-JSON dry-run cases.
 - A dev-only `/mock-broker/order` page exists for local fake order-ticket QA.
 - A dev-only `/mock-broker/confirmation` page exists for local fake result-page QA.
 - The mock order page exposes stable `data-testid` and `data-agent-field` attributes for future local mock-page tooling.
@@ -495,10 +639,858 @@ Mock broker order page:
 
 Recommended:
 
-- Action 231A follow-up - Install/Use Supabase CLI Locally and Initialize Config.
+- Action 287 - Order Page Open Bridge Stub Contract.
 
 Alternative:
 
-- Action 231B - Configure Staging Supabase Link.
+- Action 287 - Avanza Mapping Refresh Update.
 
-After one tooling path exists, retry Action 229 - Apply Audit Migration Locally/Staging and Verify. Production remains no-go until RLS and `user_id` ownership are resolved.
+The preferred next step is still non-executing contract/stub work, not
+automation. Avanza automation, URLs, selectors, browser runners,
+order-page/run/start controls, form fills, review clicks, final-confirm clicks,
+broker results, Supabase writes, and trade mutation remain out of scope.
+Supabase audit persistence can resume separately after local/staging tooling
+exists; production remains no-go until RLS and `user_id` ownership are
+resolved.
+
+## Action 287 - Order Page Open Bridge Stub Integration
+
+Files changed:
+
+- `lib/avanza-localhost-bridge-contract.ts`
+- `lib/avanza-localhost-bridge-client.ts`
+- `scripts/avanza-localhost-bridge-server.mjs`
+- `scripts/avanza-localhost-bridge-server-smoke.mjs`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-order-page-open-phase-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a non-executing localhost bridge `POST /order-page-open` contract and
+  stub for future order-page-open diagnostics.
+- Return synthetic `AvanzaOrderPageOpenResult`-compatible responses from
+  explicit local stub modes.
+- Keep order-page-open diagnostics separate from browser control, Avanza
+  runtime selectors, form fill, review clicks, final-confirm clicks, broker
+  results, Supabase writes, and trade mutation.
+
+Contract/client coverage:
+
+- `LocalhostBridgeOrderPageOpenRequest`
+- `LocalhostBridgeOrderPageOpenResponse`
+- `buildLocalhostBridgeOrderPageOpenRequest(...)`
+- `validateLocalhostBridgeOrderPageOpenRequest(...)`
+- `validateLocalhostBridgeOrderPageOpenResponse(...)`
+- `checkLocalhostBridgeOrderPageOpen(...)`
+- `summarizeLocalhostOrderPageOpenBridgeResponse(...)`
+
+Server stub modes:
+
+- `unavailable`
+- `order_page_opened_buy`
+- `order_page_opened_sell`
+- `wrong_action_opened`
+- `order_page_mismatch_ticker`
+- `order_page_mismatch_currency`
+- `prohibited_form_prefilled`
+- `blocked_final_confirm`
+- `blocked_review_click_attempt`
+- `blocked_keyboard_submit`
+- `blocked_sensitive`
+- `instrument_page_not_ready`
+- `missing_order_page_identity`
+
+Smoke/e2e coverage:
+
+- default `/order-page-open` returns unavailable safely.
+- missing dry-run input returns failed/400 safely.
+- malformed JSON returns failed/400 safely.
+- opened buy/sell modes return `order_page_opened`.
+- wrong action returns `wrong_action_opened`.
+- ticker/currency mismatch returns `order_page_mismatch`.
+- prefilled form returns `prohibited_form_interaction_detected`.
+- final-confirm, review-click attempt, keyboard-submit, and sensitive-data
+  modes return `blocked`.
+- instrument-page-not-ready returns `instrument_page_not_ready`.
+- client normalization handles opened, mismatch, wrong action, prefill,
+  blocked, not-ready, missing identity, invalid JSON, and invalid request
+  inputs.
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No order-page/run/start button was added.
+- No form fill was added.
+- No `Granska` click was added.
+- No `Bekrafta` click was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 298 - Manual Confirmation Wait Result Contract
+
+Files changed:
+
+- `lib/avanza-manual-confirmation-wait-contract.ts`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-manual-confirmation-wait-phase-design.md`
+- `docs/avanza-review-click-phase-design.md`
+- `docs/avanza-final-confirm-block-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a pure TypeScript result contract for future manual confirmation wait
+  states after a `confirmation_ready` review-click result.
+- Represent `waiting_for_manual_confirmation`, `user_cancelled`,
+  `user_confirmed_unverified`, `timed_out`, `confirmation_not_ready`,
+  `blocked`, and failed-style states.
+- Keep `user_confirmed_unverified` separate from broker result capture.
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added.
+- No browser control was added.
+- No `Bekrafta` click was added.
+- No keyboard submit was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 297 - Manual Confirmation Wait Phase Design
+
+Files changed:
+
+- `docs/avanza-manual-confirmation-wait-phase-design.md`
+- `docs/avanza-review-click-phase-design.md`
+- `docs/avanza-final-confirm-block-design.md`
+- `docs/semi-auto-avanza-prototype-safety-plan.md`
+- `docs/semi-auto-avanza-prototype-requirements.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Define the future Manual Confirmation Wait phase after a
+  `confirmation_ready` review-click result.
+- Clarify that the human remains final authority and Ture may only display
+  sanitized wait state such as `waiting_for_manual_confirmation`.
+- Define planned statuses including `confirmation_not_ready`,
+  `waiting_for_manual_confirmation`, `user_cancelled`,
+  `user_confirmed_unverified`, `timed_out`, `blocked`, and `failed`.
+
+Safety result:
+
+- Documentation only.
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added.
+- No browser control was added.
+- No `Bekrafta` click was added.
+- No keyboard submit was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 296 - Review Click UI Preview
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-review-click-phase-design.md`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a dev-gated, read-only `Review click preview` panel to the Execution
+  Handoff Preview Modal.
+- Let the modal manually call the localhost `/review-click` stub for the
+  current dry-run request and latest `form_filled` Advanced result when
+  available.
+- Display confirmation-ready, mismatch, validation-error,
+  final-confirm-blocked, keyboard-submit-blocked, sensitive-data-blocked,
+  field-check, risk-flag, blocker, warning, and no-action metadata.
+
+Readiness/UI coverage:
+
+- The Avanza dry-run readiness checklist now includes informational
+  review-click rows.
+- `confirmation_ready` shows `Ready for future manual-confirmation wait design`
+  but does not enable final confirmation or broker-result capture.
+- mismatch, validation, final-confirm, keyboard-submit, and sensitive-data
+  states surface manual-review or blocker copy.
+- The button text is `Check review-click stub`; no Avanza run/start/review,
+  `Granska`, or `Bekrafta` button was added.
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No real `Granska` click was added.
+- No `Bekrafta` click was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 291 - Advanced Form Fill Bridge Stub Integration
+
+Files changed:
+
+- `lib/avanza-localhost-bridge-contract.ts`
+- `lib/avanza-localhost-bridge-client.ts`
+- `scripts/avanza-localhost-bridge-server.mjs`
+- `scripts/avanza-localhost-bridge-server-smoke.mjs`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-advanced-form-fill-phase-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a non-executing localhost bridge `POST /advanced-form-fill` contract and
+  stub for future Advanced form-fill diagnostics.
+- Return synthetic `AvanzaAdvancedFormFillResult`-compatible responses from
+  explicit local stub modes.
+- Keep Advanced form-fill diagnostics separate from browser control, Avanza
+  runtime selectors, real form fills, review/final-confirm clicks, broker
+  results, Supabase writes, and trade mutation.
+
+Coverage:
+
+- default `/advanced-form-fill` returns unavailable safely.
+- missing `dryRunOrderInput` and malformed JSON fail safely.
+- buy/sell filled stubs return `form_filled`.
+- quantity/price mismatch returns `field_mismatch`.
+- validation errors return `validation_error`.
+- Stop Loss mode returns `unsupported_order_mode`.
+- prohibited `Granska`, prohibited final-confirm, and keyboard-submit cases
+  stop with blocked/prohibited statuses.
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No real form fill was added.
+- No `Granska` click was added.
+- No `Bekrafta` click was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 289 - Avanza Advanced Form Fill Phase Design
+
+Files changed:
+
+- `docs/avanza-advanced-form-fill-phase-design.md`
+- `docs/avanza-order-page-open-phase-design.md`
+- `docs/avanza-instrument-page-phase-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/avanza-manual-mapping-refresh-pack.md`
+- `docs/semi-auto-avanza-prototype-safety-plan.md`
+- `docs/avanza-final-confirm-block-design.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Define the future Advanced form-fill phase after `order_page_opened`.
+- Scope the phase to allowed Advanced quantity/`antal` and price/course/`kurs`
+  field population plus readback verification only.
+- Document planned inputs, statuses, field policy, Advanced-mode policy,
+  verification policy, safe action requirements, hard stops, privacy rules, UI
+  behavior, test plan, and graduation criteria.
+
+Recommended next action:
+
+- Action 290 - Avanza Advanced Form Fill Result Contract
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No Avanza form-fill/run/start button was added.
+- No runtime form fill was added.
+- No `Granska` click was added.
+- No `Bekrafta` click was added.
+- No keyboard submit was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 290 - Avanza Advanced Form Fill Result Contract
+
+Files changed:
+
+- `lib/avanza-advanced-form-fill-contract.ts`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-advanced-form-fill-phase-design.md`
+- `docs/avanza-order-page-open-phase-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a pure TypeScript result contract for future Avanza Advanced form-fill
+  diagnostics.
+- Evaluate sanitized form state against a valid dry-run request and
+  `order_page_opened` result.
+- Model `unavailable`, `order_page_not_ready`, `unsupported_order_mode`,
+  `form_filled`, `field_mismatch`, `validation_error`,
+  `prohibited_review_detected`, `prohibited_final_confirm_detected`, `blocked`,
+  and `failed` states.
+
+Contract coverage:
+
+- matching Advanced action/ticker/quantity/price -> `form_filled`
+- order page not ready -> `order_page_not_ready`
+- missing form state -> `unavailable`
+- Stop Loss / Glidande / unknown order mode -> `unsupported_order_mode`
+- action/ticker/quantity/price mismatch -> `field_mismatch`
+- validation error visible -> `validation_error`
+- review/`Granska` click attempt -> `prohibited_review_detected`
+- final-confirm visible or attempted -> `prohibited_final_confirm_detected`
+- keyboard submit, account change, unsupported field touch, account/balance/
+  holdings/sensitive signals -> `blocked`
+- review button visible only is a warning by default
+
+Recommended next action:
+
+- Action 291 - Advanced Form Fill Bridge Stub Contract
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No runtime form fill was added.
+- No `Granska` click was added.
+- No `Bekrafta` click was added.
+- No keyboard submit was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 288 - Order Page Open UI Preview
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-order-page-open-phase-design.md`
+- `docs/avanza-dry-run-runner-implementation-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Purpose:
+
+- Add a dev-gated, read-only `Order page open preview` panel to the Execution
+  Handoff Preview Modal.
+- Let the modal manually call the localhost `/order-page-open` stub for the
+  current dry-run request and latest identified instrument-page result when
+  available.
+- Display opened, wrong-action, mismatch, blocked, field-check, risk-flag,
+  blocker, warning, and safety metadata without activating any order-page or
+  form-fill behavior.
+
+Readiness/UI coverage:
+
+- The Avanza dry-run readiness checklist now includes informational
+  order-page-open rows.
+- `order_page_opened` shows `Ready for future form-fill design` but does not
+  enable form fill.
+- wrong-action, mismatch, and blocked states surface manual-review or blocker
+  copy.
+- The button text is `Check order-page-open stub`; no Avanza open/run/start
+  button was added.
+
+Safety result:
+
+- No Avanza automation was implemented.
+- No Avanza URL or selector was added.
+- No Playwright import was added to runtime.
+- No browser control was added.
+- No real order page was opened.
+- No form fill was added.
+- No `Granska` click was added.
+- No `Bekrafta` click was added.
+- No order submission was added.
+- No broker result was created.
+- No Supabase write was added.
+- No trade state was mutated.
+
+## Action 313 - Execution Record Eligibility Contract
+
+Files changed:
+
+- `lib/execution-record-eligibility.ts`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/execution-record-creation-boundary-design.md`
+- `docs/avanza-broker-execution-result-conversion-mapping-design.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Added a pure TypeScript eligibility contract for sanitized
+  broker-result-like candidates before any future local execution record
+  creation.
+- Added deterministic candidate fingerprinting from sanitized broker, action,
+  ticker, quantity, price, timestamp, broker reference, and source
+  fingerprints.
+- Added blockers for preview-only candidates, missing required fields,
+  not-filled status, missing source fingerprint, sensitive/raw data,
+  Supabase-write attempts, trade-mutation attempts, and execution-record
+  creation attempts.
+- Added duplicate-risk detection for source fingerprints and broker
+  references.
+- Added e2e contract coverage for eligible, missing, blocked, warning, and
+  duplicate-risk states.
+
+Safety result:
+
+- Eligibility check only.
+- No `BrokerExecutionResult` was created.
+- No execution record was created.
+- No Supabase write was added.
+- No trade state was mutated.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, or order
+  submission was added.
+
+## Action 314 - Execution Record Eligibility Bridge Stub
+
+Files changed:
+
+- `lib/avanza-localhost-bridge-contract.ts`
+- `lib/avanza-localhost-bridge-client.ts`
+- `scripts/avanza-localhost-bridge-server.mjs`
+- `scripts/avanza-localhost-bridge-server-smoke.mjs`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/execution-record-creation-boundary-design.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Added localhost bridge `POST /execution-record-eligibility`.
+- Added request/response contract types, builder, validators, client helper,
+  and summary helper.
+- Added server stub modes for eligible filled candidates, preview-only
+  blockers, missing evidence, not-filled status, sensitive/raw evidence,
+  Supabase/trade/record-creation attempts, duplicate source fingerprints, and
+  duplicate broker references.
+- Extended the bridge smoke matrix and e2e client normalization coverage.
+
+Safety result:
+
+- Eligibility bridge stub only.
+- No real `BrokerExecutionResult` was created.
+- No execution record was created.
+- No Supabase write was added.
+- No trade state was mutated.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, or order
+  submission was added.
+
+## Action 315 - Execution Record Eligibility UI Preview
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `tests/e2e/execution-sandbox.spec.ts`
+- `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-broker-execution-result-conversion-boundary-design.md`
+- `docs/execution-record-creation-boundary-design.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Added a dev-gated, read-only Execution Handoff Preview Modal panel for
+  `POST /execution-record-eligibility`.
+- Added modal state, readiness rows, and a manual
+  `Check execution-record eligibility stub` control.
+- The panel uses the latest BrokerExecutionResult-shaped preview candidate
+  when available, while preserving `previewOnly` metadata so default eligibility
+  remains blocked unless the stub explicitly returns synthetic eligible data.
+- The panel displays eligible, blocked, not-eligible, duplicate-risk, and
+  failed states, plus record fingerprint, reasons, blockers, warnings, labels,
+  and no-record/no-Supabase/no-trade-mutation metadata.
+- Extended e2e coverage for eligible, preview-only blocked, missing-price,
+  not-filled, and duplicate-source-fingerprint states.
+
+Safety result:
+
+- UI preview/stub check only.
+- No real `BrokerExecutionResult` was created.
+- No execution record was created.
+- No Supabase write was added.
+- No trade state was mutated.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, or order
+  submission was added.
+
+## Action 316 - Handoff Modal Decomposition Plan
+
+Files changed:
+
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Added a documentation-only decomposition plan for the large Execution Handoff
+  Preview Modal in `app/trade-app.tsx`.
+- Inventoried the current core preview, readiness, localhost bridge, dry-run,
+  session/search/instrument, order/form/review/manual confirmation, broker
+  confirmation, BrokerExecutionResult, and execution-record eligibility panels.
+- Proposed future component and hook boundaries under `components/execution/**`
+  and `hooks/execution/**`.
+- Documented state ownership, behavior preservation rules, test preservation,
+  staged extraction actions, risk register, and acceptance criteria.
+- Recommended Action 317 as a no-behavior-change extraction of shared
+  presentational components.
+
+Safety result:
+
+- Documentation only.
+- No code behavior changed.
+- No modal code was moved.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 317 - Extract Handoff Modal Shared Display Components
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/handoff-modal-shared.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted pure shared presentational helpers from `app/trade-app.tsx`:
+  `Detail`, `TextBlock`, and `EmptyState`.
+- Added `components/execution/handoff-modal-shared.tsx`.
+- Updated `app/trade-app.tsx` to import those helpers.
+- Left modal state, hooks, bridge/client calls, endpoint handlers, readiness
+  derivation, and preview panels in place.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 323 - Handoff Modal ESLint Override Feasibility Check
+
+Files changed:
+
+- `eslint.config.mjs`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Evaluated the narrow `app/trade-app.tsx` React Hooks ESLint override after
+  Actions 317-322 decomposed much of the modal rendering.
+- Temporarily removed the override and ran `npm run lint`.
+- Lint completed successfully without a React Hooks rule stack overflow or
+  rule failure.
+- Removed the override permanently from `eslint.config.mjs`.
+- Documented that the next recommended action is
+  `Action 324 - Handoff Modal State/Handler Grouping Plan`.
+
+Safety result:
+
+- No modal behavior changed.
+- No state ownership changed.
+- No hook extraction or handler movement was performed.
+- No bridge/client logic changed.
+- No button text or dev gating changed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 324 - Handoff Modal State/Handler Grouping Plan
+
+Files changed:
+
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Added a documentation-only plan for grouping the remaining Execution Handoff
+  Preview Modal state, handlers, derived readiness values, diagnostics side
+  effects, and result chaining before hook extraction.
+- Documented current ownership in `app/trade-app.tsx`.
+- Defined proposed state clusters for core modal state, localhost bridge state,
+  early/middle/late phase preview state, readiness derived state, and
+  diagnostics/local storage side effects.
+- Documented the dependency chain from dry-run request through execution-record
+  eligibility.
+- Recommended future hook candidates and staged Actions 325-331.
+- Recommended `Action 325 - Extract Handoff Modal Pure Data Mappers` as the
+  next step before moving any state or handlers.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No modal state moved.
+- No handlers moved.
+- No hooks were created.
+- No bridge/client logic changed.
+- No button text or dev gating changed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 322 - Extract Late Phase Stub Previews
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/handoff-modal-shared.tsx`
+- `components/execution/stub-previews/BrokerConfirmationCapturePreview.tsx`
+- `components/execution/stub-previews/BrokerExecutionResultEligibilityPreview.tsx`
+- `components/execution/stub-previews/BrokerExecutionResultPreview.tsx`
+- `components/execution/stub-previews/ExecutionRecordEligibilityPreview.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted the rendered dev-only late phase stub preview UI from
+  `app/trade-app.tsx`.
+- Added presentational components for broker-confirmation-capture,
+  BrokerExecutionResult eligibility, BrokerExecutionResult conversion preview,
+  and execution-record eligibility previews.
+- Kept all loading state, response state, messages, derived booleans, result
+  chaining, bridge client calls, and click handlers in the parent modal.
+- Extended shared presentation helpers with the existing late-panel color tones.
+- Left manual-confirmation wait as readiness/contract-only in the current modal
+  because no separate preview control was rendered to extract.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 321 - Extract Middle Phase Stub Previews
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/handoff-modal-shared.tsx`
+- `components/execution/stub-previews/InstrumentPagePreview.tsx`
+- `components/execution/stub-previews/OrderPageOpenPreview.tsx`
+- `components/execution/stub-previews/AdvancedFormFillPreview.tsx`
+- `components/execution/stub-previews/ReviewClickPreview.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted the dev-only middle phase stub preview rendering from
+  `app/trade-app.tsx`.
+- Added presentational components for instrument-page, order-page-open,
+  Advanced form-fill, and review-click previews.
+- Kept all loading state, response state, messages, derived booleans, result
+  chaining, bridge client calls, and click handlers in the parent modal.
+- Added small shared presentation helpers for repeated safety labels and field
+  check rows.
+- Left late-phase stub preview panels inline for later decomposition actions.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 318 - Extract Avanza Readiness Panel
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/AvanzaDryRunReadinessPanel.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted the dev-only Avanza dry-run readiness panel rendering from
+  `app/trade-app.tsx` into
+  `components/execution/AvanzaDryRunReadinessPanel.tsx`.
+- Kept all readiness derivation, state, hooks, bridge/client calls, and response
+  handlers in the parent modal.
+- Passed already-computed readiness data into the panel through typed props.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 319 - Extract Localhost Bridge Controls
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/LocalhostBridgeControls.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted the localhost bridge control/rendering surface from
+  `app/trade-app.tsx` into
+  `components/execution/LocalhostBridgeControls.tsx`.
+- Moved only rendering for the dry-run bridge response preview, localhost echo,
+  runner self-check, mock-agent, and cancel controls/result displays.
+- Kept all loading state, response state, messages, derived booleans, bridge
+  client calls, and click handlers in the parent modal.
+- Left broader early-phase preview panels and the bridge request envelope
+  preview inline for later decomposition actions.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 320 - Extract Early Phase Stub Previews
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/stub-previews/SessionDetectionPreview.tsx`
+- `components/execution/stub-previews/SearchOnlyPreview.tsx`
+- `components/execution/stub-previews/InstrumentVerificationPreview.tsx`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted the dev-only early phase stub preview rendering from
+  `app/trade-app.tsx`.
+- Added presentational components for session-detection, search-only, and
+  instrument-verification previews.
+- Kept all loading state, response state, messages, derived booleans, result
+  chaining, bridge client calls, and click handlers in the parent modal.
+- Left middle/later stub preview panels inline for later decomposition actions.
+- Left the `app/trade-app.tsx` ESLint override in place for now.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 325 - Extract Handoff Modal Pure Data Mappers
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `lib/handoff-modal-data-mappers.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Implemented:
+
+- Extracted pure readiness row mappers for BrokerExecutionResult conversion
+  preview readiness and execution-record eligibility readiness.
+- Moved shared `ExecutionSandboxQaItem` / `ExecutionSandboxQaStatus` display row
+  types into the mapper module.
+- Kept modal state, hooks, handlers, bridge/client calls, API calls, loading
+  flags, response state, and result chaining in `app/trade-app.tsx`.
+- Updated the state/handler grouping and decomposition docs to make Action 326,
+  the localhost bridge state hook, the next recommended step.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No dev gating changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.

@@ -55,18 +55,33 @@ export default async function MockBrokerConfirmationPage({
   }
 
   const parsed = parseMockOrderConfirmationFields({
+    account: readSingleSearchParam(params, "account"),
     action: readSingleSearchParam(params, "action"),
+    amountExcludingFees: readSingleSearchParam(params, "amountExcludingFees"),
+    cancelButtonLabel: readSingleSearchParam(params, "cancelButtonLabel"),
+    confirmButtonLabel: readSingleSearchParam(params, "confirmButtonLabel"),
+    courtage: readSingleSearchParam(params, "courtage"),
     executedPrice: readSingleSearchParam(params, "executedPrice"),
+    fxFee: readSingleSearchParam(params, "fxFee"),
+    instrumentCurrency: readSingleSearchParam(params, "instrumentCurrency"),
+    instrumentMarket: readSingleSearchParam(params, "instrumentMarket"),
+    instrumentType: readSingleSearchParam(params, "instrumentType"),
     intentId: readSingleSearchParam(params, "intentId"),
     message: readSingleSearchParam(params, "message"),
+    orderMode: readSingleSearchParam(params, "orderMode"),
     orderId: readSingleSearchParam(params, "orderId"),
+    preliminaryFxRate: readSingleSearchParam(params, "preliminaryFxRate"),
+    priceCurrency: readSingleSearchParam(params, "priceCurrency"),
     positionId: readSingleSearchParam(params, "positionId"),
     quantity: readSingleSearchParam(params, "quantity"),
     recommendationId: readSingleSearchParam(params, "recommendationId"),
     requestId: readSingleSearchParam(params, "requestId"),
     requestedPrice: readSingleSearchParam(params, "requestedPrice"),
+    reviewButtonLabel: readSingleSearchParam(params, "reviewButtonLabel"),
     status: readSingleSearchParam(params, "status"),
     ticker: readSingleSearchParam(params, "ticker"),
+    totalAmount: readSingleSearchParam(params, "totalAmount"),
+    validUntil: readSingleSearchParam(params, "validUntil"),
   });
 
   return (

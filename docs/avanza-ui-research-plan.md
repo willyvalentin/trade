@@ -6,6 +6,12 @@ Status: Documentation-only manual research plan. No Avanza automation was added,
 
 Related:
 
+- `docs/avanza-ui-research-mapping.md`
+- `docs/avanza-manual-selector-notes.md`
+- `docs/avanza-manual-mapping-refresh-pack.md`
+- `docs/avanza-manual-mapping-qa-checklist.md`
+- `docs/avanza-manual-mapping-session-notes.md`
+- `docs/semi-auto-avanza-prototype-safety-plan.md`
 - `docs/execution-agent-checkpoint.md`
 - `docs/mock-execution-e2e-checkpoint.md`
 - `docs/execution-agent-qa-notes.md`
@@ -27,6 +33,21 @@ The research is manual only:
 - no real order
 
 The goal is to document screen flow, visible labels, validation behavior, and safety boundaries before any future automation proposal is considered.
+
+Action 233 converted the first sanitized screenshot package into `docs/avanza-ui-research-mapping.md`. That mapping remains documentation-only and should be treated as manual research intake, not an automation design or selector contract.
+
+Action 240 added `docs/avanza-manual-mapping-qa-checklist.md`, a manual session checklist for validating open questions safely before any automation proposal.
+
+Action 241 added `docs/avanza-manual-mapping-session-notes.md`, a structured intake template for recording future sanitized manual observations and feeding them back into the mapping, selector-note, and gap-analysis docs.
+
+Action 242 added `docs/semi-auto-avanza-prototype-safety-plan.md`, a documentation-only safety plan for a possible future semi-automatic Avanza prototype. It defines allowed actions, forbidden actions, hard stops, verification gates, manual test protocol, prerequisites, and go/no-go criteria without approving live automation.
+
+Action 268 added `docs/avanza-manual-mapping-refresh-pack.md`, a
+documentation-only refresh pack for the next manual UI validation pass. Use it
+before any Avanza session-detection/search-only runner design to confirm the
+current search, instrument, Advanced order, review, confirmation, validation,
+keyboard, focus, and cancel behavior still match the mapping and mock/dry-run
+contracts.
 
 ## Current Safe Foundation
 
@@ -208,6 +229,12 @@ If there is a gap, update the mock contract first. Do not jump directly to Avanz
 - Supabase persistence of Avanza research data.
 - Any code path that opens Avanza.
 
+## Future Prototype Safety Plan
+
+Before any Avanza prototype implementation is proposed, review `docs/semi-auto-avanza-prototype-safety-plan.md`.
+
+That plan keeps the first future scope limited to `semi_automatic`, Advanced buy/sell, review-only form preparation, confirmation-modal readback, and a hard stop before final `Bekräfta köp` or `Bekräfta sälj`.
+
 ## Recommended Manual Research Session Protocol
 
 Before the session:
@@ -231,6 +258,7 @@ After the session:
 
 - Sanitize notes and screenshots.
 - Remove private data before adding anything to the repo.
+- Record observations in `docs/avanza-manual-mapping-session-notes.md`.
 - List unknowns and questions.
 - Compare observations with the mock page contracts.
 - Decide whether the mock contract needs another iteration before any future Avanza work.
@@ -239,10 +267,10 @@ After the session:
 
 Preferred:
 
-- Action 233 - Avanza UI Research Notes Template
+- Action 243 - Avanza Prototype Requirements Spec
 
 Alternative:
 
-- Action 233 - Manual Avanza Mapping Session
+- Action 243 - Avanza Manual Mapping Update From New Screenshots
 
-Create the notes template first so the first manual mapping session has a consistent, sanitized structure.
+If more sanitized screenshots or observations are available, update the mapping first. Otherwise, write a requirements spec before any automation code is considered.

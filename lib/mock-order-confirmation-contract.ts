@@ -13,6 +13,21 @@ export type MockOrderConfirmationFieldKey =
   | "quantity"
   | "requestedPrice"
   | "executedPrice"
+  | "account"
+  | "amountExcludingFees"
+  | "courtage"
+  | "fxFee"
+  | "preliminaryFxRate"
+  | "validUntil"
+  | "totalAmount"
+  | "priceCurrency"
+  | "instrumentMarket"
+  | "instrumentCurrency"
+  | "instrumentType"
+  | "orderMode"
+  | "reviewButtonLabel"
+  | "confirmButtonLabel"
+  | "cancelButtonLabel"
   | "orderId"
   | "requestId"
   | "intentId"
@@ -35,6 +50,21 @@ export type MockOrderConfirmationPayload = {
   quantity: string;
   requestedPrice: string;
   executedPrice: string;
+  account: string;
+  amountExcludingFees: string;
+  courtage: string;
+  fxFee: string;
+  preliminaryFxRate: string;
+  validUntil: string;
+  totalAmount: string;
+  priceCurrency: string;
+  instrumentMarket: string;
+  instrumentCurrency: string;
+  instrumentType: string;
+  orderMode: string;
+  reviewButtonLabel: string;
+  confirmButtonLabel: string;
+  cancelButtonLabel: string;
   orderId: string;
   requestId: string;
   intentId: string;
@@ -97,6 +127,96 @@ export const MOCK_ORDER_CONFIRMATION_SELECTORS = {
     testId: "mock-confirmation-executed-price",
     dataAgentField: "mock-confirmation-executed-price",
     description: "Mock executed price.",
+  },
+  account: {
+    fieldKey: "account",
+    testId: "mock-confirmation-account",
+    dataAgentField: "mock-confirmation-account",
+    description: "Mock confirmation account readback.",
+  },
+  amountExcludingFees: {
+    fieldKey: "amountExcludingFees",
+    testId: "mock-confirmation-amount-excluding-fees",
+    dataAgentField: "mock-confirmation-amount-excluding-fees",
+    description: "Mock confirmation amount before fees.",
+  },
+  courtage: {
+    fieldKey: "courtage",
+    testId: "mock-confirmation-courtage",
+    dataAgentField: "mock-confirmation-courtage",
+    description: "Mock confirmation courtage/commission readback.",
+  },
+  fxFee: {
+    fieldKey: "fxFee",
+    testId: "mock-confirmation-fx-fee",
+    dataAgentField: "mock-confirmation-fx-fee",
+    description: "Mock confirmation FX fee readback.",
+  },
+  preliminaryFxRate: {
+    fieldKey: "preliminaryFxRate",
+    testId: "mock-confirmation-preliminary-fx-rate",
+    dataAgentField: "mock-confirmation-preliminary-fx-rate",
+    description: "Mock preliminary FX rate readback.",
+  },
+  validUntil: {
+    fieldKey: "validUntil",
+    testId: "mock-confirmation-valid-until",
+    dataAgentField: "mock-confirmation-valid-until",
+    description: "Mock confirmation valid-until date.",
+  },
+  totalAmount: {
+    fieldKey: "totalAmount",
+    testId: "mock-confirmation-total-amount",
+    dataAgentField: "mock-confirmation-total-amount",
+    description: "Mock confirmation total amount including fees.",
+  },
+  priceCurrency: {
+    fieldKey: "priceCurrency",
+    testId: "mock-confirmation-price-currency",
+    dataAgentField: "mock-confirmation-price-currency",
+    description: "Mock confirmation price currency.",
+  },
+  instrumentMarket: {
+    fieldKey: "instrumentMarket",
+    testId: "mock-confirmation-instrument-market",
+    dataAgentField: "mock-confirmation-instrument-market",
+    description: "Mock confirmation instrument market.",
+  },
+  instrumentCurrency: {
+    fieldKey: "instrumentCurrency",
+    testId: "mock-confirmation-instrument-currency",
+    dataAgentField: "mock-confirmation-instrument-currency",
+    description: "Mock confirmation instrument currency.",
+  },
+  instrumentType: {
+    fieldKey: "instrumentType",
+    testId: "mock-confirmation-instrument-type",
+    dataAgentField: "mock-confirmation-instrument-type",
+    description: "Mock confirmation instrument type.",
+  },
+  orderMode: {
+    fieldKey: "orderMode",
+    testId: "mock-confirmation-order-mode",
+    dataAgentField: "mock-confirmation-order-mode",
+    description: "Mock confirmation order mode. Advanced only.",
+  },
+  reviewButtonLabel: {
+    fieldKey: "reviewButtonLabel",
+    testId: "mock-confirmation-review-label",
+    dataAgentField: "mock-confirmation-review-label",
+    description: "Mock confirmation review label readback.",
+  },
+  confirmButtonLabel: {
+    fieldKey: "confirmButtonLabel",
+    testId: "mock-confirmation-confirm-label",
+    dataAgentField: "mock-confirmation-confirm-label",
+    description: "Mock confirmation final confirm label readback.",
+  },
+  cancelButtonLabel: {
+    fieldKey: "cancelButtonLabel",
+    testId: "mock-confirmation-cancel-label",
+    dataAgentField: "mock-confirmation-cancel-label",
+    description: "Mock confirmation cancel label readback.",
   },
   orderId: {
     fieldKey: "orderId",
@@ -161,6 +281,21 @@ const confirmationPayloadFieldKeys: (keyof MockOrderConfirmationPayload)[] = [
   "quantity",
   "requestedPrice",
   "executedPrice",
+  "account",
+  "amountExcludingFees",
+  "courtage",
+  "fxFee",
+  "preliminaryFxRate",
+  "validUntil",
+  "totalAmount",
+  "priceCurrency",
+  "instrumentMarket",
+  "instrumentCurrency",
+  "instrumentType",
+  "orderMode",
+  "reviewButtonLabel",
+  "confirmButtonLabel",
+  "cancelButtonLabel",
   "orderId",
   "requestId",
   "intentId",
@@ -177,6 +312,28 @@ function textValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function hasAdvancedReadbackFields(
+  payload: Partial<MockOrderConfirmationPayload>,
+) {
+  return Boolean(
+    textValue(payload.account) ||
+      textValue(payload.amountExcludingFees) ||
+      textValue(payload.courtage) ||
+      textValue(payload.fxFee) ||
+      textValue(payload.preliminaryFxRate) ||
+      textValue(payload.validUntil) ||
+      textValue(payload.totalAmount) ||
+      textValue(payload.priceCurrency) ||
+      textValue(payload.instrumentMarket) ||
+      textValue(payload.instrumentCurrency) ||
+      textValue(payload.instrumentType) ||
+      textValue(payload.orderMode) ||
+      textValue(payload.reviewButtonLabel) ||
+      textValue(payload.confirmButtonLabel) ||
+      textValue(payload.cancelButtonLabel),
+  );
+}
+
 export function normalizeMockOrderConfirmationStatus(
   value: unknown,
 ): MockOrderConfirmationStatus {
@@ -189,18 +346,33 @@ export function parseMockOrderConfirmationFields(
   input: Partial<Record<keyof MockOrderConfirmationPayload, unknown>>,
 ): MockOrderConfirmationParseResult {
   const payload: MockOrderConfirmationPayload = {
+    account: textValue(input.account),
     action: textValue(input.action),
+    amountExcludingFees: textValue(input.amountExcludingFees),
+    cancelButtonLabel: textValue(input.cancelButtonLabel),
+    confirmButtonLabel: textValue(input.confirmButtonLabel),
+    courtage: textValue(input.courtage),
     executedPrice: textValue(input.executedPrice),
+    fxFee: textValue(input.fxFee),
+    instrumentCurrency: textValue(input.instrumentCurrency),
+    instrumentMarket: textValue(input.instrumentMarket),
+    instrumentType: textValue(input.instrumentType),
     intentId: textValue(input.intentId),
     message: textValue(input.message),
+    orderMode: textValue(input.orderMode),
     orderId: textValue(input.orderId),
+    preliminaryFxRate: textValue(input.preliminaryFxRate),
+    priceCurrency: textValue(input.priceCurrency),
     positionId: textValue(input.positionId),
     quantity: textValue(input.quantity),
     recommendationId: textValue(input.recommendationId),
     requestId: textValue(input.requestId),
     requestedPrice: textValue(input.requestedPrice),
+    reviewButtonLabel: textValue(input.reviewButtonLabel),
     status: normalizeMockOrderConfirmationStatus(input.status),
     ticker: textValue(input.ticker),
+    totalAmount: textValue(input.totalAmount),
+    validUntil: textValue(input.validUntil),
   };
   const validation = validateMockOrderConfirmationPayload(payload);
 
@@ -263,6 +435,24 @@ export function validateMockOrderConfirmationPayload(
 
   if (!textValue(payload.quantity)) {
     warnings.push("Mock confirmation quantity is missing.");
+  }
+
+  if (textValue(payload.orderMode) && textValue(payload.orderMode) !== "advanced") {
+    errors.push("Mock confirmation order mode must be advanced.");
+  }
+
+  if (hasAdvancedReadbackFields(payload)) {
+    if (!textValue(payload.account)) {
+      warnings.push("Mock confirmation account is missing.");
+    }
+
+    if (!textValue(payload.confirmButtonLabel)) {
+      warnings.push("Mock confirmation confirm label is missing.");
+    }
+
+    if (!textValue(payload.cancelButtonLabel)) {
+      warnings.push("Mock confirmation cancel label is missing.");
+    }
   }
 
   if (!textValue(payload.requestId)) {

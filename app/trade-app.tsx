@@ -569,6 +569,32 @@ import {
   type AvanzaAgentResult,
 } from "@/lib/avanza-agent-adapter";
 import {
+  Detail,
+  EmptyState,
+  TextBlock,
+} from "@/components/execution/handoff-modal-shared";
+import { AvanzaDryRunReadinessPanel } from "@/components/execution/AvanzaDryRunReadinessPanel";
+import { LocalhostBridgeControls } from "@/components/execution/LocalhostBridgeControls";
+import { InstrumentVerificationPreview } from "@/components/execution/stub-previews/InstrumentVerificationPreview";
+import { AdvancedFormFillPreview } from "@/components/execution/stub-previews/AdvancedFormFillPreview";
+import { BrokerConfirmationCapturePreview } from "@/components/execution/stub-previews/BrokerConfirmationCapturePreview";
+import { BrokerExecutionResultEligibilityPreview } from "@/components/execution/stub-previews/BrokerExecutionResultEligibilityPreview";
+import { BrokerExecutionResultPreview } from "@/components/execution/stub-previews/BrokerExecutionResultPreview";
+import { ExecutionRecordEligibilityPreview } from "@/components/execution/stub-previews/ExecutionRecordEligibilityPreview";
+import { InstrumentPagePreview } from "@/components/execution/stub-previews/InstrumentPagePreview";
+import { OrderPageOpenPreview } from "@/components/execution/stub-previews/OrderPageOpenPreview";
+import { ReviewClickPreview } from "@/components/execution/stub-previews/ReviewClickPreview";
+import { SearchOnlyPreview } from "@/components/execution/stub-previews/SearchOnlyPreview";
+import { SessionDetectionPreview } from "@/components/execution/stub-previews/SessionDetectionPreview";
+import {
+  getAvanzaDryRunSafetyLabels,
+  summarizeAvanzaDryRunOrderInput,
+} from "@/lib/avanza-dry-run-request-contract";
+import {
+  buildAvanzaDryRunOrderInputFromExecutionIntent,
+  summarizeExecutionIntentToAvanzaDryRunResult,
+} from "@/lib/execution-intent-to-avanza-dry-run";
+import {
   createAvanzaAgentBridgeFromConfig,
   createAvanzaAgentBridgeRunnerFromConfig,
 } from "@/lib/avanza-agent-bridge-factory";
@@ -577,12 +603,52 @@ import {
   appendAvanzaAgentRun,
   createStoredAvanzaAgentRun,
 } from "@/lib/avanza-agent-run-store";
+import { appendSafeBrowserActionDiagnostics } from "@/lib/safe-browser-action-diagnostics-store";
+import {
+  createAvanzaDryRunBrowserRunnerCapability,
+  summarizeBrowserRunnerCapabilityValidation,
+  validateBrowserRunnerCapability,
+} from "@/lib/browser-runner-capability-gate";
+import { createUnavailableAvanzaDryRunRunnerSelfCheck } from "@/lib/avanza-dry-run-runner-self-check";
 import {
   cancelLocalhostBridgeRun,
+  checkLocalhostBridgeAdvancedFormFill,
+  checkLocalhostBridgeBrokerConfirmationCapture,
+  checkLocalhostBridgeBrokerExecutionResultEligibility,
+  checkLocalhostBridgeBrokerExecutionResultPreview,
+  checkLocalhostBridgeExecutionRecordEligibility,
+  checkLocalhostBridgeInstrumentPage,
+  checkLocalhostBridgeInstrumentVerification,
+  checkLocalhostBridgeOrderPageOpen,
+  checkLocalhostBridgeReviewClick,
+  checkLocalhostBridgeRunnerSelfCheck,
+  checkLocalhostBridgeSessionDetection,
+  checkLocalhostBridgeSearchOnly,
+  runLocalhostBridgeAvanzaDryRunStub,
   runLocalhostBridgeDryRun,
+  type LocalhostBridgeClientAvanzaDryRunStubResult,
+  type LocalhostBridgeClientAdvancedFormFillResult,
+  type LocalhostBridgeClientBrokerConfirmationCaptureResult,
+  type LocalhostBridgeClientBrokerExecutionResultEligibilityResult,
+  type LocalhostBridgeClientBrokerExecutionResultPreviewResult,
   type LocalhostBridgeClientCancelResult,
+  type LocalhostBridgeClientExecutionRecordEligibilityResult,
+  type LocalhostBridgeClientInstrumentPageResult,
+  type LocalhostBridgeClientInstrumentVerificationResult,
+  type LocalhostBridgeClientOrderPageOpenResult,
+  type LocalhostBridgeClientReviewClickResult,
+  type LocalhostBridgeClientRunnerSelfCheckResult,
   type LocalhostBridgeClientRunResult,
+  type LocalhostBridgeClientSearchOnlyResult,
+  type LocalhostBridgeClientSessionDetectionResult,
 } from "@/lib/avanza-localhost-bridge-client";
+import {
+  buildBrokerExecutionPreviewReadinessItems,
+  buildExecutionRecordEligibilityReadinessItems,
+  type ExecutionSandboxQaItem,
+  type ExecutionSandboxQaStatus,
+} from "@/lib/handoff-modal-data-mappers";
+import type { ExecutionRecordCandidate } from "@/lib/execution-record-eligibility";
 import {
   buildAvanzaAgentBridgeEnvelope,
   getAvanzaAgentBridgeTransportDisplayLabel,
@@ -5944,6 +6010,21 @@ function isSuccessfulLiveRecommendationBatch(batch: RecommendationBatch) {
   );
 }
 
+function recommendationSnapshotIdentity(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.snapshot_fingerprint ||
+    snapshot.recommendation_id ||
+    `${snapshot.ticker ?? "unknown"}:${snapshot.recommended_at ?? snapshot.app_timestamp}`
+  );
+}
+
+function recommendationIdentity(recommendation: Recommendation) {
+  return (
+    recommendation.id ||
+    `${normalizeRecommendationTicker(recommendation.ticker) ?? "unknown"}:${recommendation.createdAtRaw}`
+  );
+}
+
 function isScheduledOfficialRecommendationBatch(batch: RecommendationBatch) {
   return (
     isSuccessfulLiveRecommendationBatch(batch) &&
@@ -10402,21 +10483,36 @@ export function TradeApp() {
             getNewYorkDateFromIso(batch.observed_at) === dailySessionDate),
       )
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at));
-  const batchesCreatedTodayByWindow = {
-    morning: todaysSuccessfulLiveRecommendationBatches.filter(
-      (batch) => batch.window === "morning",
-    ).length,
-    midday: todaysSuccessfulLiveRecommendationBatches.filter(
-      (batch) => batch.window === "midday",
-    ).length,
-    power_hour: todaysSuccessfulLiveRecommendationBatches.filter(
-      (batch) => batch.window === "power_hour",
-    ).length,
-  };
-  const ideasPersistedToday = todaysSuccessfulLiveRecommendationBatches.reduce(
-    (total, batch) => total + Math.max(0, batch.recommendation_count),
-    0,
+  const uniqueTodaysSuccessfulLiveRecommendationBatches = Array.from(
+    new Map(
+      todaysSuccessfulLiveRecommendationBatches.map((batch) => [
+        batch.batch_fingerprint,
+        batch,
+      ]),
+    ).values(),
   );
+  const batchesCreatedTodayByWindow =
+    uniqueTodaysSuccessfulLiveRecommendationBatches.reduce(
+      (counts, batch) => {
+        if (
+          batch.window === "morning" ||
+          batch.window === "midday" ||
+          batch.window === "power_hour"
+        ) {
+          counts[batch.window] += 1;
+        } else {
+          counts.unknown_window_batches += 1;
+        }
+
+        return counts;
+      },
+      {
+        morning: 0,
+        midday: 0,
+        power_hour: 0,
+        unknown_window_batches: 0,
+      },
+    );
   const latestSuccessfulStoredRecommendationScanRun =
     [...liveStoredRecommendationScanRuns]
       .filter(
@@ -10910,11 +11006,57 @@ export function TradeApp() {
     0,
     currentBatchSnapshotCount - currentBatchUniqueLearningIdeaCount,
   );
+  const todaysLiveRecommendationSnapshots = liveStoredRecommendationSnapshots.filter(
+    (snapshot) =>
+      getNewYorkDateFromIso(snapshot.app_timestamp) === dailySessionDate ||
+      snapshot.created_at.slice(0, 10) === dailySessionDate,
+  );
+  const todaysUniqueLearningSnapshotFingerprints = new Set(
+    todaysLiveRecommendationSnapshots.map(recommendationSnapshotIdentity),
+  );
+  const rawLearningSnapshotRowsToday = todaysLiveRecommendationSnapshots.length;
+  const uniqueLearningIdeasToday =
+    todaysUniqueLearningSnapshotFingerprints.size;
+  const uniqueLearningIdeasByWindowToday = {
+    morning: new Set(
+      todaysLiveRecommendationSnapshots
+        .filter((snapshot) => snapshot.window === "morning")
+        .map(recommendationSnapshotIdentity),
+    ).size,
+    midday: new Set(
+      todaysLiveRecommendationSnapshots
+        .filter((snapshot) => snapshot.window === "midday")
+        .map(recommendationSnapshotIdentity),
+    ).size,
+    power_hour: new Set(
+      todaysLiveRecommendationSnapshots
+        .filter((snapshot) => snapshot.window === "power_hour")
+        .map(recommendationSnapshotIdentity),
+    ).size,
+  };
+  const uniqueLearningIdeasThisWindow = currentBatchUniqueLearningIdeaCount;
   const currentBatchStoredOutcomes = storedRecommendationOutcomes.filter(
     (outcome) =>
       outcome.snapshot_fingerprint !== null &&
       currentBatchSnapshotFingerprints.has(outcome.snapshot_fingerprint),
   );
+  const persistedOutcomeRowsToday = storedRecommendationOutcomes.filter(
+    (outcome) =>
+      getNewYorkDateFromIso(outcome.evaluated_at ?? outcome.updated_at) ===
+      dailySessionDate,
+  ).length;
+  const uniqueEvaluatedIdeasToday = new Set(
+    storedRecommendationOutcomes
+      .filter(
+        (outcome) =>
+          outcome.snapshot_fingerprint !== null &&
+          getNewYorkDateFromIso(outcome.evaluated_at ?? outcome.updated_at) ===
+            dailySessionDate,
+      )
+      .map((outcome) => outcome.snapshot_fingerprint),
+  ).size;
+  const expectedOutcomeRowsToday =
+    uniqueLearningIdeasToday * currentBatchOutcomeHorizons.length;
   const latestReviewBatchSnapshotFingerprints = new Set(
     latestReviewBatchSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
   );
@@ -11380,6 +11522,24 @@ export function TradeApp() {
       ]),
     ),
   });
+  const todaysRecommendationRows = recommendations.filter(
+    (recommendation) =>
+      getNewYorkDateFromIso(recommendation.createdAtRaw) === dailySessionDate,
+  );
+  const hiddenOrArchivedMembersToday = new Set(
+    todaysRecommendationRows
+      .filter(
+        (recommendation) =>
+          !isPrimaryRecommendationVisible(recommendation) ||
+          recommendation.archived ||
+          historyStatuses.includes(recommendation.status) ||
+          isRecommendationExpired(toFreshnessInput(recommendation)),
+      )
+      .map(recommendationIdentity),
+  ).size;
+  const visibleCardsToday = new Set(
+    dailyRecommendations.map(recommendationIdentity),
+  ).size;
   const currentBatchMismatchReasons = [
     activeTraceBatchOverrideAllowed &&
     currentOfficialRecommendationBatch?.batch_fingerprint !==
@@ -12292,6 +12452,7 @@ export function TradeApp() {
           snapshot.created_at.slice(0, 10) === dailySessionDate ||
           getNewYorkDateFromIso(snapshot.app_timestamp) === dailySessionDate,
       ),
+      uniqueLearningIdeaCountsByWindow: uniqueLearningIdeasByWindowToday,
       tradesOpenedToday: statsTodaySummary.tradesOpenedToday,
       tradesClosedToday: statsTodaySummary.tradesClosedToday,
       liveTradesToday: statsTodaySummary.liveTradesToday,
@@ -13525,6 +13686,8 @@ export function TradeApp() {
               : latestReviewBatchOutcomeTickers.length > 0
                 ? latestReviewBatchOutcomeTickers
                 : latestEvaluatedBatchTickerList,
+        plan_price_freshness_summary:
+          recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,
@@ -13567,8 +13730,15 @@ export function TradeApp() {
             : "membership_aligned",
         grow_max_learning_mode: growMaxLearningModeEnabled,
         target_ideas_per_window: growMaxLearningTargetIdeasPerWindow,
-        ideas_persisted_this_window: currentBatchRecommendationCount,
-        ideas_persisted_today: ideasPersistedToday,
+        ideas_persisted_this_window: uniqueLearningIdeasThisWindow,
+        ideas_persisted_today: uniqueLearningIdeasToday,
+        raw_rows_today: rawLearningSnapshotRowsToday,
+        unique_learning_ideas_today: uniqueLearningIdeasToday,
+        unique_evaluated_ideas_today: uniqueEvaluatedIdeasToday,
+        expected_outcome_rows_today: expectedOutcomeRowsToday,
+        persisted_outcome_rows_today: persistedOutcomeRowsToday,
+        visible_cards_today: visibleCardsToday,
+        hidden_archived_members_today: hiddenOrArchivedMembersToday,
         batches_created_today_by_window: batchesCreatedTodayByWindow,
         same_window_batch_blocked_count:
           latestAttemptedScanLog?.no_publish_reason ===
@@ -32359,15 +32529,7 @@ type AgentProgressStubTimelineItem = {
   lifecycleNote: string;
 };
 
-type ExecutionSandboxQaStatus = "pass" | "warn" | "fail" | "pending";
-
 type ExecutionSandboxQaOverallStatus = "ready" | "blocked" | "incomplete";
-
-type ExecutionSandboxQaItem = {
-  label: string;
-  status: ExecutionSandboxQaStatus;
-  message: string;
-};
 
 function ExecutionHandoffPreviewModal({
   result,
@@ -32406,6 +32568,150 @@ function ExecutionHandoffPreviewModal({
     useState(false);
   const [localhostBridgeRunMessage, setLocalhostBridgeRunMessage] =
     useState("");
+  const [
+    localhostBridgeSelfCheckResult,
+    setLocalhostBridgeSelfCheckResult,
+  ] = useState<LocalhostBridgeClientRunnerSelfCheckResult | null>(null);
+  const [
+    isLocalhostBridgeSelfCheckRunning,
+    setIsLocalhostBridgeSelfCheckRunning,
+  ] = useState(false);
+  const [localhostBridgeSelfCheckMessage, setLocalhostBridgeSelfCheckMessage] =
+    useState("");
+  const [
+    localhostSessionDetectionResult,
+    setLocalhostSessionDetectionResult,
+  ] = useState<LocalhostBridgeClientSessionDetectionResult | null>(null);
+  const [
+    isLocalhostSessionDetectionRunning,
+    setIsLocalhostSessionDetectionRunning,
+  ] = useState(false);
+  const [
+    localhostSessionDetectionMessage,
+    setLocalhostSessionDetectionMessage,
+  ] = useState("");
+  const [
+    localhostSearchOnlyResult,
+    setLocalhostSearchOnlyResult,
+  ] = useState<LocalhostBridgeClientSearchOnlyResult | null>(null);
+  const [
+    isLocalhostSearchOnlyRunning,
+    setIsLocalhostSearchOnlyRunning,
+  ] = useState(false);
+  const [
+    localhostSearchOnlyMessage,
+    setLocalhostSearchOnlyMessage,
+  ] = useState("");
+  const [
+    localhostInstrumentVerificationResult,
+    setLocalhostInstrumentVerificationResult,
+  ] = useState<LocalhostBridgeClientInstrumentVerificationResult | null>(null);
+  const [
+    isLocalhostInstrumentVerificationRunning,
+    setIsLocalhostInstrumentVerificationRunning,
+  ] = useState(false);
+  const [
+    localhostInstrumentVerificationMessage,
+    setLocalhostInstrumentVerificationMessage,
+  ] = useState("");
+  const [
+    localhostInstrumentPageResult,
+    setLocalhostInstrumentPageResult,
+  ] = useState<LocalhostBridgeClientInstrumentPageResult | null>(null);
+  const [
+    isLocalhostInstrumentPageRunning,
+    setIsLocalhostInstrumentPageRunning,
+  ] = useState(false);
+  const [
+    localhostInstrumentPageMessage,
+    setLocalhostInstrumentPageMessage,
+  ] = useState("");
+  const [
+    localhostOrderPageOpenResult,
+    setLocalhostOrderPageOpenResult,
+  ] = useState<LocalhostBridgeClientOrderPageOpenResult | null>(null);
+  const [
+    isLocalhostOrderPageOpenRunning,
+    setIsLocalhostOrderPageOpenRunning,
+  ] = useState(false);
+  const [
+    localhostOrderPageOpenMessage,
+    setLocalhostOrderPageOpenMessage,
+  ] = useState("");
+  const [
+    localhostAdvancedFormFillResult,
+    setLocalhostAdvancedFormFillResult,
+  ] = useState<LocalhostBridgeClientAdvancedFormFillResult | null>(null);
+  const [
+    isLocalhostAdvancedFormFillRunning,
+    setIsLocalhostAdvancedFormFillRunning,
+  ] = useState(false);
+  const [
+    localhostAdvancedFormFillMessage,
+    setLocalhostAdvancedFormFillMessage,
+  ] = useState("");
+  const [localhostReviewClickResult, setLocalhostReviewClickResult] =
+    useState<LocalhostBridgeClientReviewClickResult | null>(null);
+  const [isLocalhostReviewClickRunning, setIsLocalhostReviewClickRunning] =
+    useState(false);
+  const [localhostReviewClickMessage, setLocalhostReviewClickMessage] =
+    useState("");
+  const [
+    localhostBrokerConfirmationCaptureResult,
+    setLocalhostBrokerConfirmationCaptureResult,
+  ] = useState<LocalhostBridgeClientBrokerConfirmationCaptureResult | null>(
+    null,
+  );
+  const [
+    isLocalhostBrokerConfirmationCaptureRunning,
+    setIsLocalhostBrokerConfirmationCaptureRunning,
+  ] = useState(false);
+  const [
+    localhostBrokerConfirmationCaptureMessage,
+    setLocalhostBrokerConfirmationCaptureMessage,
+  ] = useState("");
+  const [
+    localhostBrokerExecutionConversionState,
+    setLocalhostBrokerExecutionConversionState,
+  ] = useState<{
+    eligibilityResult: LocalhostBridgeClientBrokerExecutionResultEligibilityResult | null;
+    isEligibilityRunning: boolean;
+    eligibilityMessage: string;
+    previewResult: LocalhostBridgeClientBrokerExecutionResultPreviewResult | null;
+    isPreviewRunning: boolean;
+    previewMessage: string;
+  }>({
+    eligibilityResult: null,
+    isEligibilityRunning: false,
+    eligibilityMessage: "",
+    previewResult: null,
+    isPreviewRunning: false,
+    previewMessage: "",
+  });
+  const [
+    localhostExecutionRecordEligibilityState,
+    setLocalhostExecutionRecordEligibilityState,
+  ] = useState<{
+    result: LocalhostBridgeClientExecutionRecordEligibilityResult | null;
+    isRunning: boolean;
+    message: string;
+  }>({
+    result: null,
+    isRunning: false,
+    message: "",
+  });
+  const [
+    localhostDryRunBridgeStubResult,
+    setLocalhostDryRunBridgeStubResult,
+  ] = useState<LocalhostBridgeClientAvanzaDryRunStubResult | null>(null);
+  const [
+    isLocalhostDryRunBridgeStubRunning,
+    setIsLocalhostDryRunBridgeStubRunning,
+  ] = useState(false);
+  const [
+    localhostDryRunBridgeStubMessage,
+    setLocalhostDryRunBridgeStubMessage,
+  ] = useState("");
   const [localhostMockAgentRunResult, setLocalhostMockAgentRunResult] =
     useState<LocalhostBridgeClientRunResult | null>(null);
   const [isLocalhostMockAgentRunRunning, setIsLocalhostMockAgentRunRunning] =
@@ -32532,6 +32838,24 @@ function ExecutionHandoffPreviewModal({
       };
     }
   }, [avanzaAgentRequestPreview]);
+  const avanzaDryRunRequestPreview = useMemo(() => {
+    if (!isExecutionDevToolsEnabled()) {
+      return null;
+    }
+
+    return buildAvanzaDryRunOrderInputFromExecutionIntent({
+      executionIntent: result.selectedIntent,
+      handoffPayload: result.handoff,
+      metadata: {
+        preview_only: true,
+        source: "execution_handoff_preview_modal",
+        no_browser_runner: true,
+        no_avanza_navigation: true,
+        no_order_submitted: true,
+        no_broker_result_created: true,
+      },
+    });
+  }, [result.handoff, result.selectedIntent]);
 
   if (!status.visible || !intent || !handoff) {
     return null;
@@ -32593,6 +32917,76 @@ function ExecutionHandoffPreviewModal({
     avanzaAgentRequestValidation?.ok === true &&
     avanzaAgentBridgeEnvelopeValidation?.ok === true &&
     !isLocalhostBridgeRunRunning;
+  const canCheckLocalhostBridgeSelfCheck =
+    executionDevToolsEnabled && !isLocalhostBridgeSelfCheckRunning;
+  const canCheckLocalhostSessionDetection =
+    executionDevToolsEnabled && !isLocalhostSessionDetectionRunning;
+  const avanzaSearchOnlyExpectedInstrument =
+    avanzaDryRunRequestPreview?.request?.instrument ?? null;
+  const avanzaSearchOnlyExpectedInstrumentValid = Boolean(
+    avanzaSearchOnlyExpectedInstrument?.ticker,
+  );
+  const canCheckLocalhostSearchOnly =
+    executionDevToolsEnabled &&
+    avanzaSearchOnlyExpectedInstrumentValid &&
+    !isLocalhostSearchOnlyRunning;
+  const canCheckLocalhostInstrumentVerification =
+    executionDevToolsEnabled &&
+    avanzaSearchOnlyExpectedInstrumentValid &&
+    !isLocalhostInstrumentVerificationRunning;
+  const canCheckLocalhostInstrumentPage =
+    executionDevToolsEnabled &&
+    avanzaSearchOnlyExpectedInstrumentValid &&
+    !isLocalhostInstrumentPageRunning;
+  const canCheckLocalhostOrderPageOpen =
+    executionDevToolsEnabled &&
+    avanzaDryRunRequestPreview?.ok === true &&
+    Boolean(avanzaDryRunRequestPreview.request) &&
+    !isLocalhostOrderPageOpenRunning;
+  const canCheckLocalhostAdvancedFormFill =
+    executionDevToolsEnabled &&
+    avanzaDryRunRequestPreview?.ok === true &&
+    Boolean(avanzaDryRunRequestPreview.request) &&
+    !isLocalhostAdvancedFormFillRunning;
+  const canCheckLocalhostReviewClick =
+    executionDevToolsEnabled &&
+    avanzaDryRunRequestPreview?.ok === true &&
+    Boolean(avanzaDryRunRequestPreview.request) &&
+    !isLocalhostReviewClickRunning;
+  const canCheckLocalhostBrokerConfirmationCapture =
+    executionDevToolsEnabled &&
+    avanzaDryRunRequestPreview?.ok === true &&
+    Boolean(avanzaDryRunRequestPreview.request) &&
+    !isLocalhostBrokerConfirmationCaptureRunning;
+  const localhostBrokerExecutionEligibilityResult =
+    localhostBrokerExecutionConversionState.eligibilityResult;
+  const isLocalhostBrokerExecutionEligibilityRunning =
+    localhostBrokerExecutionConversionState.isEligibilityRunning;
+  const localhostBrokerExecutionEligibilityMessage =
+    localhostBrokerExecutionConversionState.eligibilityMessage;
+  const localhostBrokerExecutionPreviewResult =
+    localhostBrokerExecutionConversionState.previewResult;
+  const isLocalhostBrokerExecutionPreviewRunning =
+    localhostBrokerExecutionConversionState.isPreviewRunning;
+  const localhostBrokerExecutionPreviewMessage =
+    localhostBrokerExecutionConversionState.previewMessage;
+  const localhostExecutionRecordEligibilityResult =
+    localhostExecutionRecordEligibilityState.result;
+  const isLocalhostExecutionRecordEligibilityRunning =
+    localhostExecutionRecordEligibilityState.isRunning;
+  const localhostExecutionRecordEligibilityMessage =
+    localhostExecutionRecordEligibilityState.message;
+  const canCheckLocalhostBrokerExecutionEligibility =
+    executionDevToolsEnabled && !isLocalhostBrokerExecutionEligibilityRunning;
+  const canCheckLocalhostBrokerExecutionPreview =
+    executionDevToolsEnabled && !isLocalhostBrokerExecutionPreviewRunning;
+  const canCheckLocalhostExecutionRecordEligibility =
+    executionDevToolsEnabled && !isLocalhostExecutionRecordEligibilityRunning;
+  const canTestLocalhostDryRunBridgeStub =
+    executionDevToolsEnabled &&
+    avanzaDryRunRequestPreview?.ok === true &&
+    Boolean(avanzaDryRunRequestPreview.request) &&
+    !isLocalhostDryRunBridgeStubRunning;
   const canRunLocalhostMockAgent =
     executionDevToolsEnabled &&
     Boolean(avanzaAgentRequest) &&
@@ -32613,6 +33007,1443 @@ function ExecutionHandoffPreviewModal({
   const avanzaAgentBridgeConfig = executionDevToolsEnabled
     ? readAvanzaAgentBridgeConfig()
     : null;
+  const avanzaDryRunCapability = createAvanzaDryRunBrowserRunnerCapability({
+    runnerId: "future_avanza_dry_run_runner_missing",
+    runnerName: "Future Avanza Dry-Run Runner - Not Implemented",
+    createdAt: new Date().toISOString(),
+    metadata: {
+      source: "execution_handoff_preview_modal",
+      runnerImplemented: false,
+      no_browser_runner: true,
+      no_avanza_navigation: true,
+      no_order_submitted: true,
+    },
+  });
+  const avanzaDryRunDefaultGateValidation =
+    validateBrowserRunnerCapability(avanzaDryRunCapability);
+  const avanzaDryRunAllowedGateValidation = validateBrowserRunnerCapability(
+    avanzaDryRunCapability,
+    { allowAvanzaDryRun: true },
+  );
+  const avanzaDryRunRunnerSelfCheck =
+    createUnavailableAvanzaDryRunRunnerSelfCheck({
+      runnerId: "future_avanza_dry_run_runner_missing",
+      runnerName: "Future Avanza Dry-Run Runner - Not Implemented",
+      version: "not-implemented",
+      checkedAt: avanzaDryRunCapability.createdAt,
+      metadata: {
+        source: "execution_handoff_preview_modal",
+        runnerImplemented: false,
+      },
+    });
+  const localhostRunnerSelfCheck =
+    localhostBridgeSelfCheckResult?.response?.selfCheck ??
+    avanzaDryRunRunnerSelfCheck;
+  const localhostRunnerCapability =
+    localhostBridgeSelfCheckResult?.response?.capability;
+  const localhostRunnerSelfCheckHasRun = Boolean(
+    localhostBridgeSelfCheckResult?.response?.selfCheck,
+  );
+  const localhostRunnerCanRunAvanzaDryRun =
+    localhostRunnerSelfCheck.capabilityValidation.canRunAvanzaDryRun;
+  const localhostRunnerCanSubmitBrokerOrder =
+    localhostRunnerSelfCheck.capabilityValidation.canSubmitBrokerOrder;
+  const localhostRunnerCanClickFinalConfirm =
+    localhostRunnerCapability?.supportsFinalConfirmClick === true;
+  const localhostRunnerSelfCheckSummary = localhostRunnerSelfCheckHasRun
+    ? `Latest localhost self-check: ${localhostRunnerSelfCheck.status} at ${formatDate(
+        localhostBridgeSelfCheckResult?.response?.checkedAt ??
+          localhostBridgeSelfCheckResult?.checkedAt,
+      )}.`
+    : "Localhost self-check has not been run in this modal session.";
+  const localhostSessionDetection =
+    localhostSessionDetectionResult?.response?.sessionDetection ?? null;
+  const localhostSessionDetectionHasRun = Boolean(localhostSessionDetection);
+  const localhostSessionDetectionReadyForSearchOnly =
+    localhostSessionDetection?.ok === true &&
+    localhostSessionDetection.status === "ready_for_search_only";
+  const localhostSessionDetectionNoBrowserActions =
+    localhostSessionDetection?.metadata?.noBrowserActions === true ||
+    localhostSessionDetectionResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostSessionDetectionNoAvanzaTouched =
+    localhostSessionDetectionResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostSessionDetectionSummary = localhostSessionDetectionHasRun
+    ? `Latest session-detection status: ${localhostSessionDetection?.status ?? "unknown"} at ${formatDate(
+        localhostSessionDetectionResult?.response?.checkedAt ??
+          localhostSessionDetectionResult?.completedAt,
+      )}.`
+    : "Session-detection stub has not been checked in this modal session.";
+  const localhostSearchOnly =
+    localhostSearchOnlyResult?.response?.searchOnly ?? null;
+  const localhostSearchOnlyHasRun = Boolean(localhostSearchOnly);
+  const localhostSearchOnlyExactMatch =
+    localhostSearchOnly?.ok === true &&
+    localhostSearchOnly.status === "exact_match";
+  const localhostSearchOnlyAmbiguous =
+    localhostSearchOnly?.status === "ambiguous";
+  const localhostSearchOnlyNoMatch =
+    localhostSearchOnly?.status === "no_match";
+  const localhostSearchOnlyBlocked =
+    localhostSearchOnly?.status === "blocked" ||
+    localhostSearchOnly?.status === "failed";
+  const localhostSearchOnlyNoBrowserActions =
+    localhostSearchOnlyResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostSearchOnlyNoAvanzaTouched =
+    localhostSearchOnlyResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostSearchOnlyNoOrderPageOpened =
+    localhostSearchOnlyResult?.response?.metadata
+      ?.no_order_page_opened === true ||
+    localhostSearchOnly?.metadata?.noOrderPage === true;
+  const localhostSearchOnlyNoBrokerSubmission =
+    localhostSearchOnly?.metadata?.noBrokerSubmission === true ||
+    localhostSearchOnlyResult?.response?.metadata?.no_broker_submission === true;
+  const localhostSearchOnlySummary = localhostSearchOnlyHasRun
+    ? `Latest search-only status: ${localhostSearchOnly?.status ?? "unknown"} at ${formatDate(
+        localhostSearchOnlyResult?.response?.completedAt ??
+          localhostSearchOnlyResult?.completedAt,
+      )}.`
+    : "Search-only stub has not been checked in this modal session.";
+  const localhostInstrumentVerification =
+    localhostInstrumentVerificationResult?.response?.instrumentVerification ??
+    null;
+  const localhostInstrumentVerificationHasRun = Boolean(
+    localhostInstrumentVerification,
+  );
+  const localhostInstrumentVerified =
+    localhostInstrumentVerification?.ok === true &&
+    localhostInstrumentVerification.status === "verified";
+  const localhostInstrumentRejected =
+    localhostInstrumentVerification?.status === "rejected";
+  const localhostInstrumentAmbiguous =
+    localhostInstrumentVerification?.status === "ambiguous";
+  const localhostInstrumentBlocked =
+    localhostInstrumentVerification?.status === "blocked" ||
+    localhostInstrumentVerification?.status === "failed";
+  const localhostInstrumentNoBrowserActions =
+    localhostInstrumentVerificationResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostInstrumentNoAvanzaTouched =
+    localhostInstrumentVerificationResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostInstrumentNoOrderPageOpened =
+    localhostInstrumentVerificationResult?.response?.metadata
+      ?.no_order_page_opened === true ||
+    localhostInstrumentVerification?.metadata?.noOrderPage === true;
+  const localhostInstrumentNoBrokerSubmission =
+    localhostInstrumentVerification?.metadata?.noBrokerSubmission === true ||
+    localhostInstrumentVerificationResult?.response?.metadata
+      ?.no_broker_submission === true;
+  const localhostInstrumentNoFormFill =
+    localhostInstrumentVerification?.metadata?.noFormFill === true;
+  const localhostInstrumentVerificationSummary =
+    localhostInstrumentVerificationHasRun
+      ? `Latest instrument-verification status: ${localhostInstrumentVerification?.status ?? "unknown"} at ${formatDate(
+          localhostInstrumentVerificationResult?.response?.completedAt ??
+            localhostInstrumentVerificationResult?.completedAt,
+        )}.`
+      : "Instrument-verification stub has not been checked in this modal session.";
+  const localhostInstrumentPage =
+    localhostInstrumentPageResult?.response?.instrumentPage ?? null;
+  const localhostInstrumentPageHasRun = Boolean(localhostInstrumentPage);
+  const localhostInstrumentPageIdentified =
+    localhostInstrumentPage?.ok === true &&
+    localhostInstrumentPage.status === "page_identified";
+  const localhostInstrumentPageMismatch =
+    localhostInstrumentPage?.status === "page_mismatch";
+  const localhostInstrumentPageBlocked =
+    localhostInstrumentPage?.status === "blocked" ||
+    localhostInstrumentPage?.status === "failed";
+  const localhostInstrumentPageProhibitedControlsVisible =
+    localhostInstrumentPage?.riskFlags.includes(
+      "prohibited_buy_button_visible",
+    ) === true ||
+    localhostInstrumentPage?.riskFlags.includes(
+      "prohibited_sell_button_visible",
+    ) === true ||
+    localhostInstrumentPage?.status === "prohibited_order_controls_detected";
+  const localhostInstrumentPageNoBrowserActions =
+    localhostInstrumentPageResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostInstrumentPageNoAvanzaTouched =
+    localhostInstrumentPageResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostInstrumentPageNoOrderPageOpened =
+    localhostInstrumentPageResult?.response?.metadata
+      ?.no_order_page_opened === true ||
+    localhostInstrumentPage?.metadata?.noOrderPage === true;
+  const localhostInstrumentPageNoBuySellClick =
+    localhostInstrumentPage?.metadata?.noBuySellClick === true ||
+    localhostInstrumentPageResult?.response?.metadata?.no_buy_sell_click ===
+      true;
+  const localhostInstrumentPageNoFormFill =
+    localhostInstrumentPage?.metadata?.noFormFill === true ||
+    localhostInstrumentPageResult?.response?.metadata?.no_form_fill === true;
+  const localhostInstrumentPageNoBrokerSubmission =
+    localhostInstrumentPage?.metadata?.noBrokerSubmission === true ||
+    localhostInstrumentPageResult?.response?.metadata
+      ?.no_broker_submission === true;
+  const localhostInstrumentPageSummary = localhostInstrumentPageHasRun
+    ? `Latest instrument-page status: ${localhostInstrumentPage?.status ?? "unknown"} at ${formatDate(
+        localhostInstrumentPageResult?.response?.completedAt ??
+          localhostInstrumentPageResult?.completedAt,
+      )}.`
+    : "Instrument-page stub has not been checked in this modal session.";
+  const localhostOrderPageOpen =
+    localhostOrderPageOpenResult?.response?.orderPageOpen ?? null;
+  const localhostOrderPageOpenHasRun = Boolean(localhostOrderPageOpen);
+  const localhostOrderPageOpened =
+    localhostOrderPageOpen?.ok === true &&
+    localhostOrderPageOpen.status === "order_page_opened";
+  const localhostOrderPageWrongAction =
+    localhostOrderPageOpen?.status === "wrong_action_opened";
+  const localhostOrderPageMismatch =
+    localhostOrderPageOpen?.status === "order_page_mismatch";
+  const localhostOrderPageBlocked =
+    localhostOrderPageOpen?.status === "blocked" ||
+    localhostOrderPageOpen?.status === "failed" ||
+    localhostOrderPageOpen?.status ===
+      "prohibited_form_interaction_detected";
+  const localhostOrderPageNoBrowserActions =
+    localhostOrderPageOpenResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostOrderPageNoAvanzaTouched =
+    localhostOrderPageOpenResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostOrderPageNoRealOrderPageOpened =
+    localhostOrderPageOpenResult?.response?.metadata
+      ?.no_real_order_page_opened === true ||
+    localhostOrderPageNoAvanzaTouched;
+  const localhostOrderPageNoFormFill =
+    localhostOrderPageOpen?.metadata?.noFormFill === true ||
+    localhostOrderPageOpenResult?.response?.metadata?.no_form_fill === true;
+  const localhostOrderPageNoReviewClick =
+    localhostOrderPageOpen?.metadata?.noReviewClick === true ||
+    localhostOrderPageOpenResult?.response?.metadata?.no_review_click === true;
+  const localhostOrderPageNoFinalConfirmClick =
+    localhostOrderPageOpen?.metadata?.noFinalConfirmClick === true ||
+    localhostOrderPageOpenResult?.response?.metadata
+      ?.no_final_confirm_click === true;
+  const localhostOrderPageNoBrokerSubmission =
+    localhostOrderPageOpen?.metadata?.noBrokerSubmission === true ||
+    localhostOrderPageOpenResult?.response?.metadata
+      ?.no_broker_submission === true;
+  const localhostOrderPageSummary = localhostOrderPageOpenHasRun
+    ? `Latest order-page-open status: ${localhostOrderPageOpen?.status ?? "unknown"} at ${formatDate(
+        localhostOrderPageOpenResult?.response?.completedAt ??
+          localhostOrderPageOpenResult?.completedAt,
+      )}.`
+    : "Order-page-open stub has not been checked in this modal session.";
+  const localhostAdvancedFormFill =
+    localhostAdvancedFormFillResult?.response?.advancedFormFill ?? null;
+  const localhostAdvancedFormFillHasRun = Boolean(localhostAdvancedFormFill);
+  const localhostAdvancedFormFilled =
+    localhostAdvancedFormFill?.ok === true &&
+    localhostAdvancedFormFill.status === "form_filled";
+  const localhostAdvancedFormFieldMismatch =
+    localhostAdvancedFormFill?.status === "field_mismatch";
+  const localhostAdvancedFormValidationError =
+    localhostAdvancedFormFill?.status === "validation_error";
+  const localhostAdvancedFormUnsupportedMode =
+    localhostAdvancedFormFill?.status === "unsupported_order_mode";
+  const localhostAdvancedFormProhibited =
+    localhostAdvancedFormFill?.status === "prohibited_review_detected" ||
+    localhostAdvancedFormFill?.status ===
+      "prohibited_final_confirm_detected";
+  const localhostAdvancedFormBlocked =
+    localhostAdvancedFormFill?.status === "blocked" ||
+    localhostAdvancedFormFill?.status === "failed" ||
+    localhostAdvancedFormProhibited;
+  const localhostAdvancedFormNoBrowserActions =
+    localhostAdvancedFormFillResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostAdvancedFormNoAvanzaTouched =
+    localhostAdvancedFormFillResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostAdvancedFormNoRealFormFieldsFilled =
+    localhostAdvancedFormFillResult?.response?.metadata
+      ?.no_real_form_fields_filled === true;
+  const localhostAdvancedFormNoReviewClick =
+    localhostAdvancedFormFill?.metadata?.noReviewClick === true ||
+    localhostAdvancedFormFillResult?.response?.metadata?.no_review_click ===
+      true;
+  const localhostAdvancedFormNoFinalConfirmClick =
+    localhostAdvancedFormFill?.metadata?.noFinalConfirmClick === true ||
+    localhostAdvancedFormFillResult?.response?.metadata
+      ?.no_final_confirm_click === true;
+  const localhostAdvancedFormNoBrokerSubmission =
+    localhostAdvancedFormFill?.metadata?.noBrokerSubmission === true ||
+    localhostAdvancedFormFillResult?.response?.metadata
+      ?.no_broker_submission === true;
+  const localhostAdvancedFormSummary = localhostAdvancedFormFillHasRun
+    ? `Latest Advanced form-fill status: ${localhostAdvancedFormFill?.status ?? "unknown"} at ${formatDate(
+        localhostAdvancedFormFillResult?.response?.completedAt ??
+          localhostAdvancedFormFillResult?.completedAt,
+      )}.`
+    : "Advanced form-fill stub has not been checked in this modal session.";
+  const localhostReviewClick =
+    localhostReviewClickResult?.response?.reviewClick ?? null;
+  const localhostReviewClickHasRun = Boolean(localhostReviewClick);
+  const localhostReviewClickConfirmationReady =
+    localhostReviewClick?.ok === true &&
+    localhostReviewClick.status === "confirmation_ready";
+  const localhostReviewClickConfirmationMismatch =
+    localhostReviewClick?.status === "confirmation_mismatch";
+  const localhostReviewClickValidationError =
+    localhostReviewClick?.status === "validation_error";
+  const localhostReviewClickFinalConfirmBlocked =
+    localhostReviewClick?.status === "prohibited_final_confirm_detected";
+  const localhostReviewClickBlocked =
+    localhostReviewClick?.status === "blocked" ||
+    localhostReviewClick?.status === "failed" ||
+    localhostReviewClickFinalConfirmBlocked;
+  const localhostReviewClickWaitingForManualConfirmation =
+    localhostReviewClickConfirmationReady &&
+    localhostReviewClick?.metadata?.waitingForManualConfirmation === true;
+  const localhostReviewClickNoBrowserActions =
+    localhostReviewClickResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostReviewClickNoAvanzaTouched =
+    localhostReviewClickResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostReviewClickNoRealReviewClick =
+    localhostReviewClick?.metadata?.noRealReviewClick === true ||
+    localhostReviewClickResult?.response?.metadata
+      ?.no_real_granska_clicked === true ||
+    localhostReviewClickResult?.response?.metadata?.no_review_click === true;
+  const localhostReviewClickNoFinalConfirmClick =
+    localhostReviewClick?.metadata?.noFinalConfirmClick === true ||
+    localhostReviewClickResult?.response?.metadata
+      ?.no_final_confirm_click === true;
+  const localhostReviewClickNoBrokerResult =
+    localhostReviewClick?.metadata?.noBrokerResult === true ||
+    localhostReviewClickResult?.response?.metadata
+      ?.no_broker_result_created === true;
+  const localhostReviewClickNoTradeMutation =
+    localhostReviewClick?.metadata?.noTradeMutation === true ||
+    localhostReviewClickResult?.response?.metadata?.no_trade_mutation === true;
+  const localhostReviewClickSummary = localhostReviewClickHasRun
+    ? `Latest review-click status: ${localhostReviewClick?.status ?? "unknown"} at ${formatDate(
+        localhostReviewClickResult?.response?.completedAt ??
+          localhostReviewClickResult?.completedAt,
+      )}.`
+    : "Review-click stub has not been checked in this modal session.";
+  const localhostBrokerConfirmationCapture =
+    localhostBrokerConfirmationCaptureResult?.response
+      ?.brokerConfirmationCapture ?? null;
+  const localhostBrokerConfirmationCaptureHasRun = Boolean(
+    localhostBrokerConfirmationCapture,
+  );
+  const localhostBrokerConfirmationCaptured =
+    localhostBrokerConfirmationCapture?.ok === true &&
+    localhostBrokerConfirmationCapture.status === "confirmation_captured";
+  const localhostBrokerConfirmationPartial =
+    localhostBrokerConfirmationCapture?.status === "confirmation_partial";
+  const localhostBrokerConfirmationMismatch =
+    localhostBrokerConfirmationCapture?.status === "confirmation_mismatch";
+  const localhostBrokerConfirmationRejectedOrCancelled =
+    localhostBrokerConfirmationCapture?.status ===
+    "confirmation_rejected_or_cancelled";
+  const localhostBrokerConfirmationBlocked =
+    localhostBrokerConfirmationCapture?.status === "blocked" ||
+    localhostBrokerConfirmationCapture?.status === "failed" ||
+    localhostBrokerConfirmationCapture?.status ===
+      "manual_confirmation_not_observed" ||
+    localhostBrokerConfirmationCapture?.status ===
+      "confirmation_page_not_found";
+  const localhostBrokerConfirmationNoBrowserActions =
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_browser_actions_executed === true;
+  const localhostBrokerConfirmationNoAvanzaTouched =
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_avanza_page_touched === true;
+  const localhostBrokerConfirmationNoBekrafta =
+    localhostBrokerConfirmationCapture?.metadata?.noBekraftaByAgent === true ||
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_bekrafta_clicked === true;
+  const localhostBrokerConfirmationNoBrokerExecutionResult =
+    localhostBrokerConfirmationCapture?.metadata
+      ?.noBrokerExecutionResult === true ||
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_broker_execution_result_created === true;
+  const localhostBrokerConfirmationNoExecutionRecord =
+    localhostBrokerConfirmationCapture?.metadata?.noExecutionRecord === true ||
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_execution_record_created === true;
+  const localhostBrokerConfirmationNoSupabaseWrite =
+    localhostBrokerConfirmationCapture?.metadata?.noSupabaseWrite === true ||
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_supabase_write === true;
+  const localhostBrokerConfirmationNoTradeMutation =
+    localhostBrokerConfirmationCapture?.metadata?.noTradeMutation === true ||
+    localhostBrokerConfirmationCaptureResult?.response?.metadata
+      ?.no_trade_mutation === true;
+  const localhostBrokerConfirmationSummary =
+    localhostBrokerConfirmationCaptureHasRun
+      ? `Latest broker-confirmation-capture status: ${localhostBrokerConfirmationCapture?.status ?? "unknown"} at ${formatDate(
+          localhostBrokerConfirmationCaptureResult?.response?.completedAt ??
+            localhostBrokerConfirmationCaptureResult?.completedAt,
+        )}.`
+      : "Broker-confirmation-capture stub has not been checked in this modal session.";
+  const localhostBrokerExecutionEligibility =
+    localhostBrokerExecutionEligibilityResult?.response?.eligibility ?? null;
+  const localhostBrokerExecutionEligibilityHasRun = Boolean(
+    localhostBrokerExecutionEligibility,
+  );
+  const localhostBrokerExecutionEligible =
+    localhostBrokerExecutionEligibility?.ok === true &&
+    localhostBrokerExecutionEligibility.status === "eligible";
+  const localhostBrokerExecutionPartialOnly =
+    localhostBrokerExecutionEligibility?.status === "partial_only";
+  const localhostBrokerExecutionDuplicateRisk =
+    localhostBrokerExecutionEligibility?.status === "duplicate_risk";
+  const localhostBrokerExecutionNotEligible =
+    localhostBrokerExecutionEligibility?.status === "not_eligible";
+  const localhostBrokerExecutionEligibilityBlocked =
+    localhostBrokerExecutionEligibility?.status === "blocked";
+  const localhostBrokerExecutionEligibilityFailed =
+    localhostBrokerExecutionEligibility?.status === "failed";
+  const localhostBrokerExecutionEligibilityNoBrokerExecutionResult =
+    localhostBrokerExecutionEligibility?.metadata
+      ?.noBrokerExecutionResultCreated === true ||
+    localhostBrokerExecutionEligibilityResult?.response?.metadata
+      ?.no_broker_execution_result_created === true;
+  const localhostBrokerExecutionEligibilityNoExecutionRecord =
+    localhostBrokerExecutionEligibility?.metadata?.noExecutionRecordCreated ===
+      true ||
+    localhostBrokerExecutionEligibilityResult?.response?.metadata
+      ?.no_execution_record_created === true;
+  const localhostBrokerExecutionEligibilityNoSupabaseWrite =
+    localhostBrokerExecutionEligibility?.metadata?.noSupabaseWrite === true ||
+    localhostBrokerExecutionEligibilityResult?.response?.metadata
+      ?.no_supabase_write === true;
+  const localhostBrokerExecutionEligibilityNoTradeMutation =
+    localhostBrokerExecutionEligibility?.metadata?.noTradeMutation === true ||
+    localhostBrokerExecutionEligibilityResult?.response?.metadata
+      ?.no_trade_mutation === true;
+  const localhostBrokerExecutionPreview =
+    localhostBrokerExecutionPreviewResult?.response
+      ?.brokerExecutionResultPreview ?? null;
+  const localhostBrokerExecutionPreviewShape =
+    localhostBrokerExecutionPreview?.preview ?? null;
+  const localhostBrokerExecutionPreviewHasRun = Boolean(
+    localhostBrokerExecutionPreview,
+  );
+  const localhostBrokerExecutionPreviewAvailable =
+    localhostBrokerExecutionPreview?.ok === true &&
+    localhostBrokerExecutionPreview.status === "preview_available";
+  const localhostBrokerExecutionPreviewPartialOnly =
+    localhostBrokerExecutionPreview?.status === "partial_only";
+  const localhostBrokerExecutionPreviewDuplicateRisk =
+    localhostBrokerExecutionPreview?.status === "duplicate_risk";
+  const localhostBrokerExecutionPreviewNotEligible =
+    localhostBrokerExecutionPreview?.status === "not_eligible";
+  const localhostBrokerExecutionPreviewBlocked =
+    localhostBrokerExecutionPreview?.status === "blocked";
+  const localhostBrokerExecutionPreviewFailed =
+    localhostBrokerExecutionPreview?.status === "failed";
+  const localhostBrokerExecutionPreviewNoRealBrokerExecutionResult =
+    localhostBrokerExecutionPreview?.metadata?.notBrokerExecutionResult ===
+      true ||
+    localhostBrokerExecutionPreviewShape?.metadata?.notBrokerExecutionResult ===
+      true ||
+    localhostBrokerExecutionPreviewResult?.response?.metadata
+      ?.no_real_broker_execution_result_created === true;
+  const localhostBrokerExecutionPreviewNoExecutionRecord =
+    localhostBrokerExecutionPreview?.metadata?.noExecutionRecord === true ||
+    localhostBrokerExecutionPreviewShape?.metadata?.noExecutionRecord ===
+      true ||
+    localhostBrokerExecutionPreviewResult?.response?.metadata
+      ?.no_execution_record_created === true;
+  const localhostBrokerExecutionPreviewNoSupabaseWrite =
+    localhostBrokerExecutionPreview?.metadata?.noSupabaseWrite === true ||
+    localhostBrokerExecutionPreviewShape?.metadata?.noSupabaseWrite === true ||
+    localhostBrokerExecutionPreviewResult?.response?.metadata
+      ?.no_supabase_write === true;
+  const localhostBrokerExecutionPreviewNoTradeMutation =
+    localhostBrokerExecutionPreview?.metadata?.noTradeMutation === true ||
+    localhostBrokerExecutionPreviewShape?.metadata?.noTradeMutation === true ||
+    localhostBrokerExecutionPreviewResult?.response?.metadata
+      ?.no_trade_mutation === true;
+  const executionRecordEligibilityCandidate: ExecutionRecordCandidate | null =
+    localhostBrokerExecutionPreviewShape
+      ? {
+          action: localhostBrokerExecutionPreviewShape.action,
+          broker: localhostBrokerExecutionPreviewShape.broker,
+          brokerOrderId: localhostBrokerExecutionPreviewShape.brokerOrderId,
+          currency: localhostBrokerExecutionPreviewShape.currency,
+          fees: localhostBrokerExecutionPreviewShape.fees,
+          instrumentName: localhostBrokerExecutionPreviewShape.instrumentName,
+          instrumentType: localhostBrokerExecutionPreviewShape.instrumentType,
+          market: localhostBrokerExecutionPreviewShape.market,
+          metadata: {
+            ...(localhostBrokerExecutionPreviewShape.metadata.metadata ?? {}),
+            noExecutionRecord:
+              localhostBrokerExecutionPreviewShape.metadata.noExecutionRecord,
+            noSupabaseWrite:
+              localhostBrokerExecutionPreviewShape.metadata.noSupabaseWrite,
+            noTradeMutation:
+              localhostBrokerExecutionPreviewShape.metadata.noTradeMutation,
+            notBrokerExecutionResult:
+              localhostBrokerExecutionPreviewShape.metadata
+                .notBrokerExecutionResult,
+            previewOnly:
+              localhostBrokerExecutionPreviewShape.metadata.previewOnly,
+          },
+          price: localhostBrokerExecutionPreviewShape.price,
+          quantity: localhostBrokerExecutionPreviewShape.quantity,
+          sourceBrokerResultFingerprint:
+            localhostBrokerExecutionPreviewShape.sourceCaptureFingerprint,
+          sourceCaptureId:
+            localhostBrokerExecutionPreviewShape.sourceCaptureId,
+          sourceEvidenceFingerprint:
+            localhostBrokerExecutionPreviewShape.sourceCaptureFingerprint,
+          sourceRequestId:
+            localhostBrokerExecutionPreviewShape.sourceRequestId,
+          status: localhostBrokerExecutionPreviewShape.orderStatus,
+          ticker: localhostBrokerExecutionPreviewShape.ticker,
+          timestamp: localhostBrokerExecutionPreviewShape.timestamp,
+          totalAmount: localhostBrokerExecutionPreviewShape.totalAmount,
+          warnings: localhostBrokerExecutionPreviewShape.warnings,
+        }
+      : null;
+  const executionRecordEligibilityCandidateIsPreviewOnly =
+    executionRecordEligibilityCandidate?.metadata?.previewOnly === true ||
+    executionRecordEligibilityCandidate?.metadata?.notBrokerExecutionResult ===
+      true;
+  const localhostExecutionRecordEligibility =
+    localhostExecutionRecordEligibilityResult?.response
+      ?.executionRecordEligibility ?? null;
+  const localhostExecutionRecordEligibilityHasRun = Boolean(
+    localhostExecutionRecordEligibility,
+  );
+  const localhostExecutionRecordEligible =
+    localhostExecutionRecordEligibility?.ok === true &&
+    localhostExecutionRecordEligibility.status === "eligible";
+  const localhostExecutionRecordDuplicateRisk =
+    localhostExecutionRecordEligibility?.status === "duplicate_risk";
+  const localhostExecutionRecordNotEligible =
+    localhostExecutionRecordEligibility?.status === "not_eligible";
+  const localhostExecutionRecordBlocked =
+    localhostExecutionRecordEligibility?.status === "blocked";
+  const localhostExecutionRecordFailed =
+    localhostExecutionRecordEligibility?.status === "failed";
+  const localhostExecutionRecordNoBrokerExecutionResult =
+    localhostExecutionRecordEligibilityResult?.response?.metadata
+      ?.no_broker_execution_result_created === true;
+  const localhostExecutionRecordNoExecutionRecord =
+    localhostExecutionRecordEligibility?.metadata?.noExecutionRecordCreated ===
+      true ||
+    localhostExecutionRecordEligibilityResult?.response?.metadata
+      ?.no_execution_record_created === true;
+  const localhostExecutionRecordNoSupabaseWrite =
+    localhostExecutionRecordEligibility?.metadata?.noSupabaseWrite === true ||
+    localhostExecutionRecordEligibilityResult?.response?.metadata
+      ?.no_supabase_write === true;
+  const localhostExecutionRecordNoTradeMutation =
+    localhostExecutionRecordEligibility?.metadata?.noTradeMutation === true ||
+    localhostExecutionRecordEligibilityResult?.response?.metadata
+      ?.no_trade_mutation === true;
+  const avanzaDryRunReadinessCriticalBlocked =
+    selectedIntent.authority.can_submit_broker_order ||
+    selectedIntent.authority.allowFinalSubmit ||
+    selectedHandoff.canSubmitFinalOrder;
+  const avanzaDryRunReadinessOverall = !avanzaDryRunRequestPreview?.ok
+    ? "Blocked: invalid dry-run request"
+    : selectedIntent.mode === "automatic"
+      ? "Blocked: automatic mode out of scope"
+      : avanzaDryRunReadinessCriticalBlocked
+        ? "Critical blocked: broker submission or final confirm is allowed"
+        : localhostRunnerSelfCheck.status === "available_dry_run_only"
+          ? "Dry-run runner available"
+          : localhostRunnerSelfCheck.status === "available_mock_only"
+            ? "Not ready for Avanza dry-run"
+            : localhostRunnerSelfCheck.status === "blocked"
+              ? "Blocked: runner self-check blocked"
+              : localhostRunnerSelfCheck.status === "failed"
+                ? "Blocked: runner self-check failed"
+                : "Not ready to run";
+  const avanzaDryRunReadinessItems: ExecutionSandboxQaItem[] = [
+    {
+      label: "Dev tools enabled",
+      status: executionDevToolsEnabled ? "pass" : "fail",
+      message: executionDevToolsEnabled
+        ? "Execution dev tools are enabled for this read-only checklist."
+        : "Execution dev tools are disabled; dry-run readiness is hidden.",
+    },
+    {
+      label: "Execution mode is semi_automatic",
+      status: selectedIntent.mode === "semi_automatic" ? "pass" : "fail",
+      message:
+        selectedIntent.mode === "semi_automatic"
+          ? "Semi-automatic mode keeps final confirmation with the user."
+          : "Automatic mode is out of scope for Avanza dry-run.",
+    },
+    {
+      label: "Avanza dry-run request is valid",
+      status: avanzaDryRunRequestPreview?.ok ? "pass" : "fail",
+      message: avanzaDryRunRequestPreview?.ok
+        ? "The read-only dry-run request preview validates."
+        : (avanzaDryRunRequestPreview?.errors[0] ??
+          "Dry-run request preview is invalid or unavailable."),
+    },
+    {
+      label: "Default capability gate",
+      status: avanzaDryRunDefaultGateValidation.blocked ? "pass" : "fail",
+      message: avanzaDryRunDefaultGateValidation.blocked
+        ? "Default gate: blocked. Avanza dry-run is not enabled unless explicitly allowed."
+        : "Default gate unexpectedly allows Avanza dry-run.",
+    },
+    {
+      label: "Dry-run capability classification",
+      status:
+        avanzaDryRunAllowedGateValidation.safetyLevel === "dry_run_only" &&
+        avanzaDryRunAllowedGateValidation.canRunAvanzaDryRun
+          ? "pass"
+          : "fail",
+      message:
+        avanzaDryRunAllowedGateValidation.safetyLevel === "dry_run_only" &&
+        avanzaDryRunAllowedGateValidation.canRunAvanzaDryRun
+          ? "Dry-run classification: dry_run_only when explicitly allowed."
+          : summarizeBrowserRunnerCapabilityValidation(
+              avanzaDryRunAllowedGateValidation,
+            ),
+    },
+    {
+      label: "Broker submission disabled",
+      status: selectedIntent.authority.can_submit_broker_order ? "fail" : "pass",
+      message: selectedIntent.authority.can_submit_broker_order
+        ? "Broker submission is enabled and blocks dry-run."
+        : "Broker submission disabled.",
+    },
+    {
+      label: "Final confirm disabled",
+      status:
+        selectedIntent.authority.allowFinalSubmit ||
+        selectedHandoff.canSubmitFinalOrder
+          ? "fail"
+          : "pass",
+      message:
+        selectedIntent.authority.allowFinalSubmit ||
+        selectedHandoff.canSubmitFinalOrder
+          ? "Final confirm is allowed and blocks dry-run."
+          : "Final confirm disabled.",
+    },
+    {
+      label: "Automatic mode disabled",
+      status: selectedIntent.mode === "automatic" ? "fail" : "pass",
+      message:
+        selectedIntent.mode === "automatic"
+          ? "Automatic mode is out of scope."
+          : "Automatic mode disabled.",
+    },
+    {
+      label: "Avanza runner implementation missing",
+      status:
+        localhostRunnerSelfCheck.status === "unavailable" ? "fail" : "pass",
+      message:
+        localhostRunnerSelfCheck.status === "unavailable"
+          ? (localhostRunnerSelfCheck.blockers[0] ??
+            "No Avanza runner exists yet. This is why the overall status remains Not ready to run.")
+          : "Latest localhost self-check returned a runner capability state.",
+    },
+    {
+      label: "Localhost self-check status",
+      status: localhostRunnerSelfCheckHasRun
+        ? localhostRunnerSelfCheck.status === "available_dry_run_only"
+          ? "pass"
+          : localhostRunnerSelfCheck.status === "available_mock_only"
+            ? "warn"
+            : "fail"
+        : "pending",
+      message: localhostRunnerSelfCheckHasRun
+        ? `Latest localhost self-check status: ${localhostRunnerSelfCheck.status}.`
+        : "No localhost runner self-check has been run in this modal session.",
+    },
+    {
+      label: "Session detection status",
+      status: localhostSessionDetectionHasRun
+        ? localhostSessionDetectionReadyForSearchOnly
+          ? "pass"
+          : localhostSessionDetection?.status === "login_required"
+            ? "warn"
+            : localhostSessionDetection?.status === "blocked" ||
+                localhostSessionDetection?.status === "failed"
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostSessionDetectionHasRun
+        ? `Latest session-detection status: ${localhostSessionDetection?.status ?? "unknown"}.`
+        : "No session-detection stub check has been run in this modal session.",
+    },
+    {
+      label: "Ready for search-only",
+      status: localhostSessionDetectionHasRun
+        ? localhostSessionDetectionReadyForSearchOnly
+          ? "pass"
+          : localhostSessionDetection?.status === "login_required"
+            ? "warn"
+            : "fail"
+        : "pending",
+      message: localhostSessionDetectionReadyForSearchOnly
+        ? "Ready for future search-only phase. This does not enable search or dry-run execution."
+        : localhostSessionDetection?.status === "login_required"
+          ? "Login required before any future search-only phase."
+          : localhostSessionDetection?.blockers[0] ??
+            "Session detection is informational only and has not cleared search-only readiness.",
+    },
+    {
+      label: "Search-only status",
+      status: localhostSearchOnlyHasRun
+        ? localhostSearchOnlyExactMatch
+          ? "pass"
+          : localhostSearchOnlyAmbiguous || localhostSearchOnlyNoMatch
+            ? "warn"
+            : localhostSearchOnlyBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostSearchOnlyHasRun
+        ? `Latest search-only status: ${localhostSearchOnly?.status ?? "unknown"}.`
+        : "No search-only stub check has been run in this modal session.",
+    },
+    {
+      label: "Exact match found",
+      status: localhostSearchOnlyHasRun
+        ? localhostSearchOnlyExactMatch
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostSearchOnlyExactMatch
+        ? "Ready for future instrument-verification phase. This remains informational only."
+        : localhostSearchOnlyAmbiguous
+          ? "Manual review required before any future instrument-verification phase."
+          : localhostSearchOnlyNoMatch
+            ? "No exact match found by the search-only stub."
+            : localhostSearchOnly?.blockers[0] ??
+              "Search-only has not produced an exact match.",
+    },
+    {
+      label: "Ambiguous candidates",
+      status: localhostSearchOnlyHasRun
+        ? localhostSearchOnlyAmbiguous
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostSearchOnlyAmbiguous
+        ? "Manual review required."
+        : localhostSearchOnlyHasRun
+          ? "No ambiguous candidates reported by latest search-only stub."
+          : "No search-only stub response available yet.",
+    },
+    {
+      label: "Search-only no order page opened",
+      status: localhostSearchOnlyHasRun
+        ? localhostSearchOnlyNoOrderPageOpened
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostSearchOnlyNoOrderPageOpened
+        ? "No order page opened."
+        : "No search-only no-order-page metadata is available yet.",
+    },
+    {
+      label: "Instrument verification status",
+      status: localhostInstrumentVerificationHasRun
+        ? localhostInstrumentVerified
+          ? "pass"
+          : localhostInstrumentRejected || localhostInstrumentAmbiguous
+            ? "warn"
+            : localhostInstrumentBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostInstrumentVerificationHasRun
+        ? `Latest instrument-verification status: ${localhostInstrumentVerification?.status ?? "unknown"}.`
+        : "No instrument-verification stub check has been run in this modal session.",
+    },
+    {
+      label: "Instrument verified",
+      status: localhostInstrumentVerificationHasRun
+        ? localhostInstrumentVerified
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostInstrumentVerified
+        ? "Ready for future instrument-page phase. This remains informational only."
+        : localhostInstrumentRejected
+          ? "Rejected: manual review required."
+          : localhostInstrumentAmbiguous
+            ? "Ambiguous: manual review required."
+            : localhostInstrumentVerification?.blockers[0] ??
+              "Instrument verification has not produced a verified result.",
+    },
+    {
+      label: "Instrument rejected",
+      status: localhostInstrumentVerificationHasRun
+        ? localhostInstrumentRejected
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostInstrumentRejected
+        ? "Rejected: manual review required."
+        : localhostInstrumentVerificationHasRun
+          ? "Latest instrument-verification stub did not reject the instrument."
+          : "No instrument-verification stub response available yet.",
+    },
+    {
+      label: "Instrument ambiguous",
+      status: localhostInstrumentVerificationHasRun
+        ? localhostInstrumentAmbiguous
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostInstrumentAmbiguous
+        ? "Ambiguous: manual review required."
+        : localhostInstrumentVerificationHasRun
+          ? "Latest instrument-verification stub did not report ambiguity."
+          : "No instrument-verification stub response available yet.",
+    },
+    {
+      label: "Instrument no order page opened",
+      status: localhostInstrumentVerificationHasRun
+        ? localhostInstrumentNoOrderPageOpened
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostInstrumentNoOrderPageOpened
+        ? "No order page opened."
+        : "No instrument-verification no-order-page metadata is available yet.",
+    },
+    {
+      label: "Instrument page status",
+      status: localhostInstrumentPageHasRun
+        ? localhostInstrumentPageIdentified
+          ? "pass"
+          : localhostInstrumentPageMismatch ||
+              localhostInstrumentPageProhibitedControlsVisible
+            ? "warn"
+            : localhostInstrumentPageBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostInstrumentPageHasRun
+        ? `Latest instrument-page status: ${localhostInstrumentPage?.status ?? "unknown"}.`
+        : "No instrument-page stub check has been run in this modal session.",
+    },
+    {
+      label: "Page identified",
+      status: localhostInstrumentPageHasRun
+        ? localhostInstrumentPageIdentified
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostInstrumentPageIdentified
+        ? "Ready for future order-page-open design. This remains informational only."
+        : localhostInstrumentPageMismatch
+          ? "Page mismatch: manual review required."
+          : localhostInstrumentPage?.blockers[0] ??
+            "Instrument page identity has not been confirmed.",
+    },
+    {
+      label: "Page mismatch",
+      status: localhostInstrumentPageHasRun
+        ? localhostInstrumentPageMismatch
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostInstrumentPageMismatch
+        ? "Page mismatch: manual review required."
+        : localhostInstrumentPageHasRun
+          ? "Latest instrument-page stub did not report a page mismatch."
+          : "No instrument-page stub response available yet.",
+    },
+    {
+      label: "Prohibited controls visible",
+      status: localhostInstrumentPageHasRun
+        ? localhostInstrumentPageProhibitedControlsVisible
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostInstrumentPageProhibitedControlsVisible
+        ? "Buy/sell controls visible - no click allowed."
+        : localhostInstrumentPageHasRun
+          ? "No prohibited buy/sell controls reported by latest instrument-page stub."
+          : "No instrument-page stub response available yet.",
+    },
+    {
+      label: "Instrument page no order page opened",
+      status: localhostInstrumentPageHasRun
+        ? localhostInstrumentPageNoOrderPageOpened
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostInstrumentPageNoOrderPageOpened
+        ? "No order page opened."
+        : "No instrument-page no-order-page metadata is available yet.",
+    },
+    {
+      label: "Order page open status",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageOpened
+          ? "pass"
+          : localhostOrderPageWrongAction || localhostOrderPageMismatch
+            ? "warn"
+            : localhostOrderPageBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostOrderPageOpenHasRun
+        ? `Latest order-page-open status: ${localhostOrderPageOpen?.status ?? "unknown"}.`
+        : "No order-page-open stub check has been run in this modal session.",
+    },
+    {
+      label: "Order page opened",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageOpened
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostOrderPageOpened
+        ? "Ready for future form-fill design. This remains informational only."
+        : localhostOrderPageWrongAction
+          ? "Wrong action opened: manual review required."
+          : localhostOrderPageMismatch
+            ? "Order page mismatch: manual review required."
+            : localhostOrderPageOpen?.blockers[0] ??
+              "Order-page-open has not produced an opened result.",
+    },
+    {
+      label: "Wrong action opened",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageWrongAction
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostOrderPageWrongAction
+        ? "Wrong action opened: manual review required."
+        : localhostOrderPageOpenHasRun
+          ? "Latest order-page-open stub did not report a wrong action."
+          : "No order-page-open stub response available yet.",
+    },
+    {
+      label: "Order page mismatch",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageMismatch
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostOrderPageMismatch
+        ? "Order page mismatch: manual review required."
+        : localhostOrderPageOpenHasRun
+          ? "Latest order-page-open stub did not report a page mismatch."
+          : "No order-page-open stub response available yet.",
+    },
+    {
+      label: "Order page no form fill",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageNoFormFill
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostOrderPageNoFormFill
+        ? "No form fill occurred."
+        : "No order-page-open no-form-fill metadata is available yet.",
+    },
+    {
+      label: "Order page no Granska/Bekräfta",
+      status: localhostOrderPageOpenHasRun
+        ? localhostOrderPageNoReviewClick &&
+          localhostOrderPageNoFinalConfirmClick
+          ? "pass"
+          : "fail"
+        : "pending",
+      message:
+        localhostOrderPageNoReviewClick && localhostOrderPageNoFinalConfirmClick
+          ? "No Granska or Bekrafta click occurred."
+          : "No order-page-open review/final-confirm metadata is available yet.",
+    },
+    {
+      label: "Advanced form-fill status",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormFilled
+          ? "pass"
+          : localhostAdvancedFormFieldMismatch ||
+              localhostAdvancedFormValidationError ||
+              localhostAdvancedFormUnsupportedMode
+            ? "warn"
+            : localhostAdvancedFormBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostAdvancedFormFillHasRun
+        ? `Latest Advanced form-fill status: ${localhostAdvancedFormFill?.status ?? "unknown"}.`
+        : "No Advanced form-fill stub check has been run in this modal session.",
+    },
+    {
+      label: "Advanced form filled",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormFilled
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostAdvancedFormFilled
+        ? "Ready for future review-click design. This remains informational only."
+        : localhostAdvancedFormFieldMismatch
+          ? "Field mismatch: manual review required."
+          : localhostAdvancedFormValidationError
+            ? "Validation error: manual review required."
+            : localhostAdvancedFormFill?.blockers[0] ??
+              "Advanced form-fill has not produced a filled result.",
+    },
+    {
+      label: "Advanced field mismatch",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormFieldMismatch
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostAdvancedFormFieldMismatch
+        ? "Field mismatch: manual review required."
+        : localhostAdvancedFormFillHasRun
+          ? "Latest Advanced form-fill stub did not report a field mismatch."
+          : "No Advanced form-fill stub response available yet.",
+    },
+    {
+      label: "Advanced validation error",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormValidationError
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostAdvancedFormValidationError
+        ? "Validation error: manual review required."
+        : localhostAdvancedFormFillHasRun
+          ? "Latest Advanced form-fill stub did not report validation errors."
+          : "No Advanced form-fill stub response available yet.",
+    },
+    {
+      label: "Advanced no Granska/Bekräfta",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormNoReviewClick &&
+          localhostAdvancedFormNoFinalConfirmClick
+          ? "pass"
+          : "fail"
+        : "pending",
+      message:
+        localhostAdvancedFormNoReviewClick &&
+        localhostAdvancedFormNoFinalConfirmClick
+          ? "No Granska or Bekrafta click occurred."
+          : "No Advanced form-fill review/final-confirm metadata is available yet.",
+    },
+    {
+      label: "Advanced no order submission",
+      status: localhostAdvancedFormFillHasRun
+        ? localhostAdvancedFormNoBrokerSubmission
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostAdvancedFormNoBrokerSubmission
+        ? "No order submission occurred."
+        : "No Advanced form-fill no-submission metadata is available yet.",
+    },
+    {
+      label: "Review click status",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickConfirmationReady
+          ? "pass"
+          : localhostReviewClickConfirmationMismatch ||
+              localhostReviewClickValidationError
+            ? "warn"
+            : localhostReviewClickBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostReviewClickHasRun
+        ? `Latest review-click status: ${localhostReviewClick?.status ?? "unknown"}.`
+        : "No review-click stub check has been run in this modal session.",
+    },
+    {
+      label: "Confirmation ready",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickConfirmationReady
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostReviewClickConfirmationReady
+        ? "Ready for future manual-confirmation wait design. This remains informational only."
+        : localhostReviewClickConfirmationMismatch
+          ? "Confirmation mismatch: manual review required."
+          : localhostReviewClickValidationError
+            ? "Validation error: manual review required."
+            : localhostReviewClick?.blockers[0] ??
+              "Review-click has not produced a confirmation-ready result.",
+    },
+    {
+      label: "Confirmation mismatch",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickConfirmationMismatch
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostReviewClickConfirmationMismatch
+        ? "Confirmation mismatch: manual review required."
+        : localhostReviewClickHasRun
+          ? "Latest review-click stub did not report a confirmation mismatch."
+          : "No review-click stub response available yet.",
+    },
+    {
+      label: "Waiting for manual confirmation",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickWaitingForManualConfirmation
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostReviewClickWaitingForManualConfirmation
+        ? "Waiting for manual confirmation. No Bekrafta click is available in Ture."
+        : "Review-click stub has not reported a manual-confirmation wait state.",
+    },
+    {
+      label: "Review click no Bekräfta",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickNoFinalConfirmClick
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostReviewClickNoFinalConfirmClick
+        ? "No Bekrafta click occurred."
+        : "No review-click final-confirm metadata is available yet.",
+    },
+    {
+      label: "Review click no broker result",
+      status: localhostReviewClickHasRun
+        ? localhostReviewClickNoBrokerResult
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostReviewClickNoBrokerResult
+        ? "No broker result was created."
+        : "No review-click broker-result metadata is available yet.",
+    },
+    {
+      label: "Broker confirmation capture status",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationCaptured
+          ? "pass"
+          : localhostBrokerConfirmationPartial ||
+              localhostBrokerConfirmationMismatch ||
+              localhostBrokerConfirmationRejectedOrCancelled
+            ? "warn"
+            : localhostBrokerConfirmationBlocked
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostBrokerConfirmationCaptureHasRun
+        ? `Latest broker-confirmation-capture status: ${localhostBrokerConfirmationCapture?.status ?? "unknown"}.`
+        : "No broker-confirmation-capture stub check has been run in this modal session.",
+    },
+    {
+      label: "Broker confirmation captured",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationCaptured
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostBrokerConfirmationCaptured
+        ? "Ready for future BrokerExecutionResult conversion design. This remains informational only."
+        : localhostBrokerConfirmationPartial
+          ? "Partial confirmation: manual review required."
+          : localhostBrokerConfirmationMismatch
+            ? "Confirmation mismatch: manual review required."
+            : localhostBrokerConfirmationRejectedOrCancelled
+              ? "Rejected/cancelled: no execution result."
+              : (localhostBrokerConfirmationCapture?.blockers[0] ??
+                "Broker confirmation capture has not produced a captured result."),
+    },
+    {
+      label: "Broker confirmation partial",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationPartial
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostBrokerConfirmationPartial
+        ? "Partial confirmation: manual review required."
+        : localhostBrokerConfirmationCaptureHasRun
+          ? "Latest broker-confirmation-capture stub did not report a partial confirmation."
+          : "No broker-confirmation-capture stub response available yet.",
+    },
+    {
+      label: "Broker confirmation mismatch",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationMismatch
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostBrokerConfirmationMismatch
+        ? "Confirmation mismatch: manual review required."
+        : localhostBrokerConfirmationCaptureHasRun
+          ? "Latest broker-confirmation-capture stub did not report a mismatch."
+          : "No broker-confirmation-capture stub response available yet.",
+    },
+    {
+      label: "Broker confirmation rejected/cancelled",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationRejectedOrCancelled
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostBrokerConfirmationRejectedOrCancelled
+        ? "Rejected/cancelled: no execution result."
+        : localhostBrokerConfirmationCaptureHasRun
+          ? "Latest broker-confirmation-capture stub did not report rejected/cancelled."
+          : "No broker-confirmation-capture stub response available yet.",
+    },
+    {
+      label: "Broker capture no BrokerExecutionResult",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationNoBrokerExecutionResult
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerConfirmationNoBrokerExecutionResult
+        ? "No BrokerExecutionResult was created."
+        : "No broker-confirmation no-BrokerExecutionResult metadata is available yet.",
+    },
+    {
+      label: "Broker capture no execution record",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationNoExecutionRecord
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerConfirmationNoExecutionRecord
+        ? "No execution record was created."
+        : "No broker-confirmation no-execution-record metadata is available yet.",
+    },
+    {
+      label: "Broker capture no trade mutation",
+      status: localhostBrokerConfirmationCaptureHasRun
+        ? localhostBrokerConfirmationNoTradeMutation
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerConfirmationNoTradeMutation
+        ? "No trade mutation occurred."
+        : "No broker-confirmation no-trade-mutation metadata is available yet.",
+    },
+    {
+      label: "BrokerExecutionResult eligibility status",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligible
+          ? "pass"
+          : localhostBrokerExecutionPartialOnly ||
+              localhostBrokerExecutionDuplicateRisk ||
+              localhostBrokerExecutionNotEligible
+            ? "warn"
+            : localhostBrokerExecutionEligibilityBlocked ||
+                localhostBrokerExecutionEligibilityFailed
+              ? "fail"
+              : "pending"
+        : "pending",
+      message: localhostBrokerExecutionEligibilityHasRun
+        ? `Latest BrokerExecutionResult eligibility status: ${localhostBrokerExecutionEligibility?.status ?? "unknown"}.`
+        : "No BrokerExecutionResult eligibility stub check has been run in this modal session.",
+    },
+    {
+      label: "BrokerExecutionResult eligible",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligible
+          ? "pass"
+          : "warn"
+        : "pending",
+      message: localhostBrokerExecutionEligible
+        ? "Ready for future BrokerExecutionResult conversion preview design."
+        : localhostBrokerExecutionPartialOnly
+          ? "Partial only: conversion blocked until separate policy."
+          : localhostBrokerExecutionDuplicateRisk
+            ? "Duplicate risk: conversion blocked/idempotency review required."
+            : localhostBrokerExecutionEligibilityBlocked
+              ? (localhostBrokerExecutionEligibility?.blockers[0] ??
+                "Blocked: not eligible.")
+              : "BrokerExecutionResult eligibility has not produced an eligible result.",
+    },
+    {
+      label: "BrokerExecutionResult partial only",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionPartialOnly
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostBrokerExecutionPartialOnly
+        ? "Partial only: conversion blocked until separate policy."
+        : localhostBrokerExecutionEligibilityHasRun
+          ? "Latest eligibility check did not report partial-only evidence."
+          : "No BrokerExecutionResult eligibility response available yet.",
+    },
+    {
+      label: "BrokerExecutionResult duplicate risk",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionDuplicateRisk
+          ? "warn"
+          : "pass"
+        : "pending",
+      message: localhostBrokerExecutionDuplicateRisk
+        ? "Duplicate risk: conversion blocked/idempotency review required."
+        : localhostBrokerExecutionEligibilityHasRun
+          ? "Latest eligibility check did not report duplicate risk."
+          : "No BrokerExecutionResult eligibility response available yet.",
+    },
+    {
+      label: "Eligibility no BrokerExecutionResult",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligibilityNoBrokerExecutionResult
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerExecutionEligibilityNoBrokerExecutionResult
+        ? "No BrokerExecutionResult was created."
+        : "No eligibility no-BrokerExecutionResult metadata is available yet.",
+    },
+    {
+      label: "Eligibility no execution record",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligibilityNoExecutionRecord
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerExecutionEligibilityNoExecutionRecord
+        ? "No execution record was created."
+        : "No eligibility no-execution-record metadata is available yet.",
+    },
+    {
+      label: "Eligibility no Supabase write",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligibilityNoSupabaseWrite
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerExecutionEligibilityNoSupabaseWrite
+        ? "No Supabase write occurred."
+        : "No eligibility no-Supabase-write metadata is available yet.",
+    },
+    {
+      label: "Eligibility no trade mutation",
+      status: localhostBrokerExecutionEligibilityHasRun
+        ? localhostBrokerExecutionEligibilityNoTradeMutation
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostBrokerExecutionEligibilityNoTradeMutation
+        ? "No trade mutation occurred."
+        : "No eligibility no-trade-mutation metadata is available yet.",
+    },
+    ...buildBrokerExecutionPreviewReadinessItems({
+      blocked: localhostBrokerExecutionPreviewBlocked,
+      duplicateRisk: localhostBrokerExecutionPreviewDuplicateRisk,
+      failed: localhostBrokerExecutionPreviewFailed,
+      hasRun: localhostBrokerExecutionPreviewHasRun,
+      noExecutionRecord: localhostBrokerExecutionPreviewNoExecutionRecord,
+      noRealBrokerExecutionResult:
+        localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
+      noSupabaseWrite: localhostBrokerExecutionPreviewNoSupabaseWrite,
+      noTradeMutation: localhostBrokerExecutionPreviewNoTradeMutation,
+      notEligible: localhostBrokerExecutionPreviewNotEligible,
+      partialOnly: localhostBrokerExecutionPreviewPartialOnly,
+      previewAvailable: localhostBrokerExecutionPreviewAvailable,
+      previewResult: localhostBrokerExecutionPreview,
+    }),
+    ...buildExecutionRecordEligibilityReadinessItems({
+      blocked: localhostExecutionRecordBlocked,
+      duplicateRisk: localhostExecutionRecordDuplicateRisk,
+      eligible: localhostExecutionRecordEligible,
+      failed: localhostExecutionRecordFailed,
+      hasRun: localhostExecutionRecordEligibilityHasRun,
+      noBrokerExecutionResult: localhostExecutionRecordNoBrokerExecutionResult,
+      noExecutionRecord: localhostExecutionRecordNoExecutionRecord,
+      noSupabaseWrite: localhostExecutionRecordNoSupabaseWrite,
+      noTradeMutation: localhostExecutionRecordNoTradeMutation,
+      notEligible: localhostExecutionRecordNotEligible,
+      result: localhostExecutionRecordEligibility,
+    }),
+    {
+      label: "Session detection no browser actions",
+      status: localhostSessionDetectionHasRun
+        ? localhostSessionDetectionNoBrowserActions
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostSessionDetectionNoBrowserActions
+        ? "No browser actions were executed by the session-detection stub."
+        : "No session-detection stub metadata is available yet.",
+    },
+    {
+      label: "Session detection no Avanza page touched",
+      status: localhostSessionDetectionHasRun
+        ? localhostSessionDetectionNoAvanzaTouched
+          ? "pass"
+          : "fail"
+        : "pending",
+      message: localhostSessionDetectionNoAvanzaTouched
+        ? "No Avanza page was touched by the session-detection stub."
+        : "No session-detection stub metadata is available yet.",
+    },
+    {
+      label: "Runner capability",
+      status:
+        localhostRunnerSelfCheck.status === "available_dry_run_only"
+          ? "pass"
+          : localhostRunnerSelfCheck.status === "available_mock_only"
+            ? "warn"
+            : "fail",
+      message:
+        localhostRunnerSelfCheck.status === "available_dry_run_only"
+          ? "Runner self-check passed for Avanza dry-run only. This still does not enable submission."
+          : localhostRunnerSelfCheck.status === "available_mock_only"
+            ? "Mock-only runner detected. It cannot run Avanza dry-run."
+            : (localhostRunnerSelfCheck.blockers[0] ??
+              "No Avanza runner exists yet. This is why the overall status remains Not ready to run."),
+    },
+    {
+      label: "Runner Avanza dry-run capable",
+      status: localhostRunnerCanRunAvanzaDryRun ? "pass" : "fail",
+      message: localhostRunnerCanRunAvanzaDryRun
+        ? "Latest self-check says the runner can run Avanza dry-run only."
+        : "Latest self-check does not allow Avanza dry-run.",
+    },
+    {
+      label: "Runner can submit broker order",
+      status: localhostRunnerCanSubmitBrokerOrder ? "fail" : "pass",
+      message: localhostRunnerCanSubmitBrokerOrder
+        ? "Runner reports broker submission capability and is blocked."
+        : "Runner cannot submit broker orders.",
+    },
+    {
+      label: "Runner can click final confirm",
+      status: localhostRunnerCanClickFinalConfirm ? "fail" : "pass",
+      message: localhostRunnerCanClickFinalConfirm
+        ? "Runner reports final-confirm click capability and is blocked."
+        : "Runner cannot click final confirmation.",
+    },
+    {
+      label: "Avanza selectors/URLs missing intentionally",
+      status: "pass",
+      message:
+        "No Avanza selectors or URLs are present in runtime code for this dry-run preview.",
+    },
+    {
+      label: "User manual final confirmation required",
+      status: selectedIntent.authority.requires_human_final_confirmation
+        ? "pass"
+        : "fail",
+      message: selectedIntent.authority.requires_human_final_confirmation
+        ? "User manual final confirmation required."
+        : "Human final confirmation is not required and dry-run is blocked.",
+    },
+  ];
   const avanzaAgentBridgeFactoryResult = executionDevToolsEnabled
     ? createAvanzaAgentBridgeFromConfig({
         selectedTransport: avanzaAgentBridgeConfig?.selectedTransport,
@@ -33002,6 +34833,852 @@ function ExecutionHandoffPreviewModal({
     );
   }
 
+  async function checkLocalhostBridgeSelfCheck() {
+    setLocalhostBridgeSelfCheckMessage("");
+    setLocalhostBridgeSelfCheckResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBridgeSelfCheckMessage(
+        "Localhost runner self-check is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    setIsLocalhostBridgeSelfCheckRunning(true);
+
+    try {
+      const selfCheckResult = await checkLocalhostBridgeRunnerSelfCheck();
+
+      setLocalhostBridgeSelfCheckResult(selfCheckResult);
+      setLocalhostBridgeSelfCheckMessage(
+        selfCheckResult.ok
+          ? "Localhost runner self-check completed. This is readiness metadata only; no browser or Avanza action occurred."
+          : "Localhost runner self-check finished safely with errors. No browser or Avanza action occurred.",
+      );
+    } catch (error) {
+      setLocalhostBridgeSelfCheckMessage(
+        error instanceof Error
+          ? `Localhost runner self-check failed safely: ${error.message}`
+          : "Localhost runner self-check failed safely. No browser or Avanza action occurred.",
+      );
+    } finally {
+      setIsLocalhostBridgeSelfCheckRunning(false);
+    }
+  }
+
+  async function checkLocalhostSessionDetectionStub() {
+    setLocalhostSessionDetectionMessage("");
+    setLocalhostSessionDetectionResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostSessionDetectionMessage(
+        "Session-detection preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    setIsLocalhostSessionDetectionRunning(true);
+
+    try {
+      const sessionDetectionResult =
+        await checkLocalhostBridgeSessionDetection();
+
+      setLocalhostSessionDetectionResult(sessionDetectionResult);
+      setLocalhostSessionDetectionMessage(
+        sessionDetectionResult.ok
+          ? "Session-detection stub returned readiness metadata. No browser control or Avanza page touch occurred."
+          : "Session-detection stub finished safely with blockers or errors. No browser control or Avanza page touch occurred.",
+      );
+    } catch (error) {
+      setLocalhostSessionDetectionMessage(
+        error instanceof Error
+          ? `Session-detection stub check failed safely: ${error.message}`
+          : "Session-detection stub check failed safely. No browser control or Avanza page touch occurred.",
+      );
+    } finally {
+      setIsLocalhostSessionDetectionRunning(false);
+    }
+  }
+
+  async function checkLocalhostSearchOnlyStub() {
+    setLocalhostSearchOnlyMessage("");
+    setLocalhostSearchOnlyResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostSearchOnlyMessage(
+        "Search-only preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    const expectedInstrument =
+      avanzaDryRunRequestPreview?.request?.instrument ?? null;
+
+    if (!expectedInstrument?.ticker) {
+      setLocalhostSearchOnlyMessage(
+        "Unavailable: invalid expected instrument.",
+      );
+      return;
+    }
+
+    setIsLocalhostSearchOnlyRunning(true);
+
+    try {
+      const searchOnlyResult = await checkLocalhostBridgeSearchOnly({
+        expectedInstrument: {
+          ticker: expectedInstrument.ticker,
+          name: expectedInstrument.name,
+          market: expectedInstrument.market,
+          currency: expectedInstrument.currency,
+          instrumentType: expectedInstrument.instrumentType,
+        },
+        requestId: `localhost_search_only_stub_${selectedIntent.intent_id}`,
+        sessionDetection: localhostSessionDetection ?? undefined,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          read_only_response_preview: true,
+          stub_only: true,
+          no_browser_actions_requested: true,
+          no_avanza_session: true,
+          no_order_page: true,
+          no_buy_sell_click: true,
+          no_broker_submission: true,
+          no_broker_result_created: true,
+          no_trade_mutation: true,
+        },
+      });
+
+      setLocalhostSearchOnlyResult(searchOnlyResult);
+      setLocalhostSearchOnlyMessage(
+        searchOnlyResult.ok
+          ? "Search-only stub response normalized. No browser control, Avanza page touch, order page, or broker submission occurred."
+          : "Search-only stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostSearchOnlyMessage(
+        error instanceof Error
+          ? `Search-only stub check failed safely: ${error.message}`
+          : "Search-only stub check failed safely. No browser control, Avanza page touch, order page, or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostSearchOnlyRunning(false);
+    }
+  }
+
+  async function checkLocalhostInstrumentVerificationStub() {
+    setLocalhostInstrumentVerificationMessage("");
+    setLocalhostInstrumentVerificationResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostInstrumentVerificationMessage(
+        "Instrument verification preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    const expectedInstrument =
+      avanzaDryRunRequestPreview?.request?.instrument ?? null;
+
+    if (!expectedInstrument?.ticker) {
+      setLocalhostInstrumentVerificationMessage(
+        "Unavailable: invalid expected instrument.",
+      );
+      return;
+    }
+
+    setIsLocalhostInstrumentVerificationRunning(true);
+
+    try {
+      const hasExactSearchCandidate =
+        localhostSearchOnlyExactMatch &&
+        Boolean(localhostSearchOnly?.selectedCandidate);
+      const instrumentVerificationResult =
+        await checkLocalhostBridgeInstrumentVerification({
+          expectedInstrument: {
+            ticker: expectedInstrument.ticker,
+            name: expectedInstrument.name,
+            market: expectedInstrument.market,
+            currency: expectedInstrument.currency,
+            instrumentType: expectedInstrument.instrumentType,
+          },
+          requestId: `localhost_instrument_verification_stub_${selectedIntent.intent_id}`,
+          searchOnlyResult: hasExactSearchCandidate
+            ? localhostSearchOnly
+            : undefined,
+          selectedCandidate: hasExactSearchCandidate
+            ? localhostSearchOnly?.selectedCandidate
+            : undefined,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            search_only_exact_candidate_available: hasExactSearchCandidate,
+            real_verification_requires_exact_search_only_candidate:
+              !hasExactSearchCandidate,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_order_page: true,
+            no_buy_sell_click: true,
+            no_form_fill: true,
+            no_broker_submission: true,
+            no_broker_result_created: true,
+            no_trade_mutation: true,
+          },
+        });
+
+      setLocalhostInstrumentVerificationResult(instrumentVerificationResult);
+      setLocalhostInstrumentVerificationMessage(
+        instrumentVerificationResult.ok
+          ? "Instrument-verification stub response normalized. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred."
+          : "Instrument-verification stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostInstrumentVerificationMessage(
+        error instanceof Error
+          ? `Instrument-verification stub check failed safely: ${error.message}`
+          : "Instrument-verification stub check failed safely. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostInstrumentVerificationRunning(false);
+    }
+  }
+
+  async function checkLocalhostInstrumentPageStub() {
+    setLocalhostInstrumentPageMessage("");
+    setLocalhostInstrumentPageResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostInstrumentPageMessage(
+        "Instrument page preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    const expectedInstrument =
+      avanzaDryRunRequestPreview?.request?.instrument ?? null;
+
+    if (!expectedInstrument?.ticker) {
+      setLocalhostInstrumentPageMessage(
+        "Unavailable: invalid expected instrument.",
+      );
+      return;
+    }
+
+    setIsLocalhostInstrumentPageRunning(true);
+
+    try {
+      const hasVerifiedInstrument =
+        localhostInstrumentVerified && Boolean(localhostInstrumentVerification);
+      const instrumentPageResult = await checkLocalhostBridgeInstrumentPage({
+        expectedInstrument: {
+          ticker: expectedInstrument.ticker,
+          name: expectedInstrument.name,
+          market: expectedInstrument.market,
+          currency: expectedInstrument.currency,
+          instrumentType: expectedInstrument.instrumentType,
+        },
+        requestId: `localhost_instrument_page_stub_${selectedIntent.intent_id}`,
+        instrumentVerificationResult: hasVerifiedInstrument
+          ? localhostInstrumentVerification
+          : undefined,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          read_only_response_preview: true,
+          stub_only: true,
+          verified_instrument_available: hasVerifiedInstrument,
+          real_instrument_page_phase_requires_verified_instrument:
+            !hasVerifiedInstrument,
+          no_browser_actions_requested: true,
+          no_avanza_session: true,
+          no_order_page: true,
+          no_buy_sell_click: true,
+          no_form_fill: true,
+          no_broker_submission: true,
+          no_broker_result_created: true,
+          no_trade_mutation: true,
+        },
+      });
+
+      setLocalhostInstrumentPageResult(instrumentPageResult);
+      setLocalhostInstrumentPageMessage(
+        instrumentPageResult.ok
+          ? "Instrument-page stub response normalized. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred."
+          : "Instrument-page stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostInstrumentPageMessage(
+        error instanceof Error
+          ? `Instrument-page stub check failed safely: ${error.message}`
+          : "Instrument-page stub check failed safely. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostInstrumentPageRunning(false);
+    }
+  }
+
+  async function checkLocalhostOrderPageOpenStub() {
+    setLocalhostOrderPageOpenMessage("");
+    setLocalhostOrderPageOpenResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostOrderPageOpenMessage(
+        "Order page open preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
+      setLocalhostOrderPageOpenMessage(
+        "Unavailable: invalid dry-run request.",
+      );
+      return;
+    }
+
+    setIsLocalhostOrderPageOpenRunning(true);
+
+    try {
+      const hasIdentifiedInstrumentPage =
+        localhostInstrumentPageIdentified && Boolean(localhostInstrumentPage);
+      const orderPageOpenResult = await checkLocalhostBridgeOrderPageOpen({
+        dryRunOrderInput: avanzaDryRunRequestPreview.request,
+        requestId: `localhost_order_page_open_stub_${selectedIntent.intent_id}`,
+        instrumentPageResult: hasIdentifiedInstrumentPage
+          ? localhostInstrumentPage
+          : undefined,
+        attemptedAction: avanzaDryRunRequestPreview.request.action,
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          read_only_response_preview: true,
+          stub_only: true,
+          identified_instrument_page_available: hasIdentifiedInstrumentPage,
+          real_order_page_open_phase_requires_identified_instrument_page:
+            !hasIdentifiedInstrumentPage,
+          no_browser_actions_requested: true,
+          no_avanza_session: true,
+          no_real_order_page_opened: true,
+          no_form_fill: true,
+          no_review_click: true,
+          no_final_confirm_click: true,
+          no_broker_submission: true,
+          no_broker_result_created: true,
+          no_trade_mutation: true,
+        },
+      });
+
+      setLocalhostOrderPageOpenResult(orderPageOpenResult);
+      setLocalhostOrderPageOpenMessage(
+        orderPageOpenResult.ok
+          ? "Order-page-open stub response normalized. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred."
+          : "Order-page-open stub finished safely with blockers or errors. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostOrderPageOpenMessage(
+        error instanceof Error
+          ? `Order-page-open stub check failed safely: ${error.message}`
+          : "Order-page-open stub check failed safely. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostOrderPageOpenRunning(false);
+    }
+  }
+
+  async function checkLocalhostAdvancedFormFillStub() {
+    setLocalhostAdvancedFormFillMessage("");
+    setLocalhostAdvancedFormFillResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostAdvancedFormFillMessage(
+        "Advanced form-fill preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
+      setLocalhostAdvancedFormFillMessage(
+        "Unavailable: invalid dry-run request.",
+      );
+      return;
+    }
+
+    setIsLocalhostAdvancedFormFillRunning(true);
+
+    try {
+      const hasOpenedOrderPage =
+        localhostOrderPageOpened && Boolean(localhostOrderPageOpen);
+      const advancedFormFillResult =
+        await checkLocalhostBridgeAdvancedFormFill({
+          dryRunOrderInput: avanzaDryRunRequestPreview.request,
+          requestId: `localhost_advanced_form_fill_stub_${selectedIntent.intent_id}`,
+          orderPageOpenResult: hasOpenedOrderPage
+            ? localhostOrderPageOpen
+            : undefined,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            opened_order_page_available: hasOpenedOrderPage,
+            real_advanced_form_fill_phase_requires_order_page_open:
+              !hasOpenedOrderPage,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_avanza_page_touched: true,
+            no_real_form_fields_filled: true,
+            no_review_click: true,
+            no_final_confirm_click: true,
+            no_broker_submission: true,
+            no_broker_result_created: true,
+            no_supabase_write: true,
+            no_trade_mutation: true,
+          },
+        });
+
+      setLocalhostAdvancedFormFillResult(advancedFormFillResult);
+      setLocalhostAdvancedFormFillMessage(
+        advancedFormFillResult.ok
+          ? "Advanced form-fill stub response normalized. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred."
+          : "Advanced form-fill stub finished safely with blockers or errors. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostAdvancedFormFillMessage(
+        error instanceof Error
+          ? `Advanced form-fill stub check failed safely: ${error.message}`
+          : "Advanced form-fill stub check failed safely. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostAdvancedFormFillRunning(false);
+    }
+  }
+
+  async function checkLocalhostReviewClickStub() {
+    setLocalhostReviewClickMessage("");
+    setLocalhostReviewClickResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostReviewClickMessage(
+        "Review-click preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
+      setLocalhostReviewClickMessage("Unavailable: invalid dry-run request.");
+      return;
+    }
+
+    setIsLocalhostReviewClickRunning(true);
+
+    try {
+      const hasFilledAdvancedForm =
+        localhostAdvancedFormFilled && Boolean(localhostAdvancedFormFill);
+      const reviewClickResult = await checkLocalhostBridgeReviewClick({
+        dryRunOrderInput: avanzaDryRunRequestPreview.request,
+        requestId: `localhost_review_click_stub_${selectedIntent.intent_id}`,
+        advancedFormFillResult: hasFilledAdvancedForm
+          ? localhostAdvancedFormFill
+          : undefined,
+        reviewClickAttempted: true,
+        reviewLabel:
+          avanzaDryRunRequestPreview.request.action === "sell"
+            ? "Granska sälj"
+            : "Granska köp",
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          read_only_response_preview: true,
+          stub_only: true,
+          advanced_form_fill_available: hasFilledAdvancedForm,
+          real_review_click_phase_requires_form_filled:
+            !hasFilledAdvancedForm,
+          no_browser_actions_requested: true,
+          no_avanza_session: true,
+          no_avanza_page_touched: true,
+          no_real_granska_clicked: true,
+          no_bekrafta_clicked: true,
+          no_final_confirm_click: true,
+          no_broker_submission: true,
+          no_broker_result_created: true,
+          no_supabase_write: true,
+          no_trade_mutation: true,
+        },
+      });
+
+      setLocalhostReviewClickResult(reviewClickResult);
+      setLocalhostReviewClickMessage(
+        reviewClickResult.ok
+          ? "Review-click stub response normalized. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred."
+          : "Review-click stub finished safely with blockers or errors. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred.",
+      );
+    } catch (error) {
+      setLocalhostReviewClickMessage(
+        error instanceof Error
+          ? `Review-click stub check failed safely: ${error.message}`
+          : "Review-click stub check failed safely. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred.",
+      );
+    } finally {
+      setIsLocalhostReviewClickRunning(false);
+    }
+  }
+
+  async function checkLocalhostBrokerConfirmationCaptureStub() {
+    setLocalhostBrokerConfirmationCaptureMessage("");
+    setLocalhostBrokerConfirmationCaptureResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBrokerConfirmationCaptureMessage(
+        "Broker confirmation capture preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
+      setLocalhostBrokerConfirmationCaptureMessage(
+        "Unavailable: invalid dry-run request.",
+      );
+      return;
+    }
+
+    setIsLocalhostBrokerConfirmationCaptureRunning(true);
+
+    try {
+      const brokerConfirmationCaptureResult =
+        await checkLocalhostBridgeBrokerConfirmationCapture({
+          dryRunOrderInput: avanzaDryRunRequestPreview.request,
+          requestId: `localhost_broker_confirmation_capture_stub_${selectedIntent.intent_id}`,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            real_broker_confirmation_capture_requires_user_confirmed_unverified:
+              true,
+            manual_confirmation_wait_preview_available: false,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_avanza_page_touched: true,
+            no_bekrafta_clicked: true,
+            no_order_submission: true,
+            no_broker_execution_result_created: true,
+            no_execution_record_created: true,
+            no_supabase_write: true,
+            no_trade_mutation: true,
+            sanitized_evidence_only: true,
+          },
+        });
+
+      setLocalhostBrokerConfirmationCaptureResult(
+        brokerConfirmationCaptureResult,
+      );
+      setLocalhostBrokerConfirmationCaptureMessage(
+        brokerConfirmationCaptureResult.ok
+          ? "Broker-confirmation-capture stub response normalized. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
+          : "Broker-confirmation-capture stub finished safely with blockers or errors. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
+      );
+    } catch (error) {
+      setLocalhostBrokerConfirmationCaptureMessage(
+        error instanceof Error
+          ? `Broker-confirmation-capture stub check failed safely: ${error.message}`
+          : "Broker-confirmation-capture stub check failed safely. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
+      );
+    } finally {
+      setIsLocalhostBrokerConfirmationCaptureRunning(false);
+    }
+  }
+
+  async function checkLocalhostBrokerExecutionEligibilityStub() {
+    setLocalhostBrokerExecutionConversionState((current) => ({
+      ...current,
+      eligibilityResult: null,
+      eligibilityMessage: "",
+    }));
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        eligibilityMessage:
+          "BrokerExecutionResult eligibility preview is hidden unless execution dev tools are enabled.",
+      }));
+      return;
+    }
+
+    let preflightMessage = "";
+    if (!localhostBrokerConfirmationCapture) {
+      preflightMessage =
+        "Real eligibility requires broker confirmation capture evidence. This stub check may still return synthetic local metadata; no BrokerExecutionResult, execution record, Supabase write, or trade mutation will occur.";
+    }
+
+    setLocalhostBrokerExecutionConversionState((current) => ({
+      ...current,
+      eligibilityResult: null,
+      isEligibilityRunning: true,
+      eligibilityMessage: preflightMessage,
+    }));
+
+    try {
+      const eligibilityResult =
+        await checkLocalhostBridgeBrokerExecutionResultEligibility({
+          captureResult: localhostBrokerConfirmationCapture ?? undefined,
+          requestId: `localhost_broker_execution_result_eligibility_stub_${selectedIntent.intent_id}`,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            real_eligibility_requires_broker_confirmation_capture:
+              !localhostBrokerConfirmationCapture,
+            eligibility_check_only: true,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_avanza_page_touched: true,
+            no_broker_execution_result_created: true,
+            no_execution_record_created: true,
+            no_supabase_write: true,
+            no_trade_mutation: true,
+          },
+        });
+
+      const normalizedMessage = eligibilityResult.ok
+        ? "BrokerExecutionResult eligibility stub response normalized. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
+        : "BrokerExecutionResult eligibility stub finished safely with blockers or errors. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
+
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        eligibilityResult,
+        isEligibilityRunning: false,
+        eligibilityMessage: preflightMessage
+          ? `${preflightMessage} ${normalizedMessage}`
+          : normalizedMessage,
+      }));
+    } catch (error) {
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        eligibilityResult: null,
+        isEligibilityRunning: false,
+        eligibilityMessage:
+          error instanceof Error
+            ? `BrokerExecutionResult eligibility stub check failed safely: ${error.message}`
+            : "BrokerExecutionResult eligibility stub check failed safely. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
+      }));
+    }
+  }
+
+  async function checkLocalhostBrokerExecutionPreviewStub() {
+    setLocalhostBrokerExecutionConversionState((current) => ({
+      ...current,
+      previewResult: null,
+      previewMessage: "",
+    }));
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        previewMessage:
+          "BrokerExecutionResult conversion preview is hidden unless execution dev tools are enabled.",
+      }));
+      return;
+    }
+
+    let preflightMessage = "";
+    if (
+      !localhostBrokerConfirmationCapture &&
+      !localhostBrokerExecutionEligibility
+    ) {
+      preflightMessage =
+        "Real preview conversion requires eligible broker confirmation capture evidence. This stub check may still return synthetic local metadata; no real BrokerExecutionResult, execution record, Supabase write, or trade mutation will occur.";
+    }
+
+    setLocalhostBrokerExecutionConversionState((current) => ({
+      ...current,
+      previewResult: null,
+      isPreviewRunning: true,
+      previewMessage: preflightMessage,
+    }));
+
+    try {
+      const previewResult =
+        await checkLocalhostBridgeBrokerExecutionResultPreview({
+          captureResult: localhostBrokerConfirmationCapture ?? undefined,
+          eligibilityResult:
+            localhostBrokerExecutionEligibility ?? undefined,
+          requestId: `localhost_broker_execution_result_preview_stub_${selectedIntent.intent_id}`,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            preview_only: true,
+            real_preview_requires_eligible_broker_confirmation_capture:
+              !localhostBrokerConfirmationCapture ||
+              !localhostBrokerExecutionEligible,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_avanza_page_touched: true,
+            no_real_broker_execution_result_created: true,
+            no_execution_record_created: true,
+            no_supabase_write: true,
+            no_trade_mutation: true,
+          },
+        });
+
+      const normalizedMessage = previewResult.ok
+        ? "BrokerExecutionResult preview stub response normalized. Preview only; no real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
+        : "BrokerExecutionResult preview stub finished safely with blockers or errors. No real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
+
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        previewResult,
+        isPreviewRunning: false,
+        previewMessage: preflightMessage
+          ? `${preflightMessage} ${normalizedMessage}`
+          : normalizedMessage,
+      }));
+    } catch (error) {
+      setLocalhostBrokerExecutionConversionState((current) => ({
+        ...current,
+        previewResult: null,
+        isPreviewRunning: false,
+        previewMessage:
+          error instanceof Error
+            ? `BrokerExecutionResult preview stub check failed safely: ${error.message}`
+            : "BrokerExecutionResult preview stub check failed safely. No real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
+      }));
+    }
+  }
+
+  async function checkLocalhostExecutionRecordEligibilityStub() {
+    setLocalhostExecutionRecordEligibilityState({
+      result: null,
+      isRunning: false,
+      message: "",
+    });
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostExecutionRecordEligibilityState({
+        result: null,
+        isRunning: false,
+        message:
+          "Execution record eligibility preview is hidden unless execution dev tools are enabled.",
+      });
+      return;
+    }
+
+    const preflightMessages: string[] = [];
+
+    if (!executionRecordEligibilityCandidate) {
+      preflightMessages.push(
+        "Real execution-record eligibility requires a non-preview BrokerExecutionResult candidate. This stub check may still return synthetic local metadata.",
+      );
+    } else if (executionRecordEligibilityCandidateIsPreviewOnly) {
+      preflightMessages.push(
+        "Latest BrokerExecutionResult-shaped candidate is preview-only; default eligibility should block it unless the stub synthesizes a safe eligible response.",
+      );
+    }
+
+    setLocalhostExecutionRecordEligibilityState({
+      result: null,
+      isRunning: true,
+      message: preflightMessages.join(" "),
+    });
+
+    try {
+      const eligibilityResult =
+        await checkLocalhostBridgeExecutionRecordEligibility({
+          candidate: executionRecordEligibilityCandidate ?? undefined,
+          requestId: `localhost_execution_record_eligibility_stub_${selectedIntent.intent_id}`,
+          metadata: {
+            source: "execution_handoff_preview_modal",
+            read_only_response_preview: true,
+            stub_only: true,
+            execution_record_eligibility_check_only: true,
+            real_eligibility_requires_non_preview_broker_result_candidate:
+              !executionRecordEligibilityCandidate ||
+              executionRecordEligibilityCandidateIsPreviewOnly,
+            no_browser_actions_requested: true,
+            no_avanza_session: true,
+            no_avanza_page_touched: true,
+            no_broker_execution_result_created: true,
+            no_execution_record_created: true,
+            no_supabase_write: true,
+            no_trade_mutation: true,
+          },
+        });
+
+      const normalizedMessage = eligibilityResult.ok
+        ? "Execution record eligibility stub response normalized. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
+        : "Execution record eligibility stub finished safely with blockers or errors. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
+
+      setLocalhostExecutionRecordEligibilityState({
+        result: eligibilityResult,
+        isRunning: false,
+        message: preflightMessages.length
+          ? `${preflightMessages.join(" ")} ${normalizedMessage}`
+          : normalizedMessage,
+      });
+    } catch (error) {
+      setLocalhostExecutionRecordEligibilityState({
+        result: null,
+        isRunning: false,
+        message:
+          error instanceof Error
+            ? `Execution record eligibility stub check failed safely: ${error.message}`
+            : "Execution record eligibility stub check failed safely. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
+      });
+    }
+  }
+
+  async function testLocalhostDryRunBridgeStub() {
+    setLocalhostDryRunBridgeStubMessage("");
+    setLocalhostDryRunBridgeStubResult(null);
+
+    if (!executionDevToolsEnabled) {
+      setLocalhostDryRunBridgeStubMessage(
+        "Dry-run bridge response preview is hidden unless execution dev tools are enabled.",
+      );
+      return;
+    }
+
+    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
+      setLocalhostDryRunBridgeStubMessage(
+        "Unavailable: invalid dry-run request.",
+      );
+      return;
+    }
+
+    setIsLocalhostDryRunBridgeStubRunning(true);
+
+    try {
+      const stubResult = await runLocalhostBridgeAvanzaDryRunStub({
+        dryRunOrderInput: avanzaDryRunRequestPreview.request,
+        requestId: `localhost_dry_run_bridge_stub_${selectedIntent.intent_id}`,
+        capabilityValidationOptions: {
+          allowAvanzaDryRun: true,
+          allowBrokerSubmission: false,
+          allowAutomaticMode: false,
+        },
+        metadata: {
+          source: "execution_handoff_preview_modal",
+          read_only_response_preview: true,
+          stub_only: true,
+          no_browser_actions_requested: true,
+          no_avanza_session: true,
+          no_broker_submission: true,
+          no_broker_result_created: true,
+          no_trade_mutation: true,
+        },
+      });
+
+      setLocalhostDryRunBridgeStubResult(stubResult);
+      setLocalhostDryRunBridgeStubMessage(
+        stubResult.ok
+          ? "Dry-run bridge stub response normalized. No browser actions or broker submission occurred."
+          : "Dry-run bridge stub response finished safely with errors or blockers. No browser actions or broker submission occurred.",
+      );
+    } catch (error) {
+      setLocalhostDryRunBridgeStubMessage(
+        error instanceof Error
+          ? `Dry-run bridge stub check failed safely: ${error.message}`
+          : "Dry-run bridge stub check failed safely. No browser actions or broker submission occurred.",
+      );
+    } finally {
+      setIsLocalhostDryRunBridgeStubRunning(false);
+    }
+  }
+
   async function runLocalhostBridgeEcho() {
     setLocalhostBridgeRunMessage("");
     setLocalhostBridgeRunResult(null);
@@ -33222,6 +35899,12 @@ function ExecutionHandoffPreviewModal({
       });
 
       setLocalhostMockAgentRunResult(runResult);
+      const safeActionDiagnosticsStored =
+        runResult.response?.safeActionDiagnostics
+          ? appendSafeBrowserActionDiagnostics(
+              runResult.response.safeActionDiagnostics,
+            )
+          : false;
 
       appendExecutionAuditEvents([
         createExecutionAuditEvent({
@@ -33306,8 +35989,12 @@ function ExecutionHandoffPreviewModal({
 
       setLocalhostMockAgentRunMessage(
         runResult.ok
-          ? "Localhost mock agent completed. It reviewed only the local mock page and did not create a broker result."
-          : "Localhost mock agent finished safely with errors. No broker action occurred.",
+          ? safeActionDiagnosticsStored
+            ? "Localhost mock agent completed. It reviewed only the local mock page, saved safe action diagnostics locally, and did not create a broker result."
+            : "Localhost mock agent completed. It reviewed only the local mock page and did not create a broker result."
+          : safeActionDiagnosticsStored
+            ? "Localhost mock agent finished safely with errors. Safe action diagnostics were saved locally. No broker action occurred."
+            : "Localhost mock agent finished safely with errors. No broker action occurred.",
       );
     } catch (error) {
       setLocalhostMockAgentRunMessage(
@@ -34149,6 +36836,590 @@ function ExecutionHandoffPreviewModal({
             )}
           </div>
 
+          {executionDevToolsEnabled && avanzaDryRunRequestPreview && (
+            <div className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.04] p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                      DEV ONLY
+                    </span>
+                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
+                      Avanza dry-run request preview
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                    Read-only preview. No Avanza runner exists. No broker
+                    submission.
+                  </p>
+                </div>
+                <span
+                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
+                    avanzaDryRunRequestPreview.ok
+                      ? avanzaDryRunRequestPreview.warnings.length > 0
+                        ? "warning"
+                        : "ok"
+                      : "invalid",
+                  )}`}
+                >
+                  {avanzaDryRunRequestPreview.ok
+                    ? avanzaDryRunRequestPreview.warnings.length > 0
+                      ? "Warnings"
+                      : "Valid"
+                    : "Unavailable"}
+                </span>
+              </div>
+
+              {avanzaDryRunRequestPreview.request ? (
+                <>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <Detail
+                      label="Action"
+                      value={agentCommandValue(
+                        avanzaDryRunRequestPreview.request.action,
+                      )}
+                    />
+                    <Detail
+                      label="Ticker"
+                      value={
+                        avanzaDryRunRequestPreview.request.instrument.ticker
+                      }
+                    />
+                    <Detail
+                      label="Instrument"
+                      value={
+                        avanzaDryRunRequestPreview.request.instrument.name ??
+                        "—"
+                      }
+                    />
+                    <Detail
+                      label="Quantity"
+                      value={formatShares(
+                        avanzaDryRunRequestPreview.request.quantity,
+                      )}
+                    />
+                    <Detail
+                      label="Price"
+                      value={formatCurrency(
+                        avanzaDryRunRequestPreview.request.price,
+                      )}
+                    />
+                    <Detail
+                      label="Order Mode"
+                      value={agentCommandValue(
+                        avanzaDryRunRequestPreview.request.orderMode,
+                      )}
+                    />
+                    <Detail
+                      label="Account Policy"
+                      value={agentCommandValue(
+                        avanzaDryRunRequestPreview.request.accountPolicy,
+                      )}
+                    />
+                    <Detail
+                      label="Stop Policy"
+                      value={agentCommandValue(
+                        avanzaDryRunRequestPreview.request.stopPolicy,
+                      )}
+                    />
+                    <Detail
+                      label="Source Recommendation"
+                      value={shortPayloadId(
+                        avanzaDryRunRequestPreview.request
+                          .sourceRecommendationId ?? null,
+                      )}
+                    />
+                    <Detail
+                      label="Execution Intent"
+                      value={shortPayloadId(
+                        avanzaDryRunRequestPreview.request.executionIntentId ??
+                          null,
+                      )}
+                    />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {getAvanzaDryRunSafetyLabels(
+                      avanzaDryRunRequestPreview.request,
+                    ).map((label) => (
+                      <span
+                        className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                      Final confirm disabled
+                    </span>
+                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                      Manual account review
+                    </span>
+                  </div>
+
+                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
+                    {summarizeAvanzaDryRunOrderInput(
+                      avanzaDryRunRequestPreview.request,
+                    )}
+                    . This preview does not create a browser runner, navigate
+                    to Avanza, submit orders, create broker results, write
+                    Supabase, or mutate trades.
+                  </p>
+                </>
+              ) : (
+                <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                    Dry-run request unavailable
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-zinc-300">
+                    {summarizeExecutionIntentToAvanzaDryRunResult(
+                      avanzaDryRunRequestPreview,
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {(avanzaDryRunRequestPreview.errors.length > 0 ||
+                avanzaDryRunRequestPreview.warnings.length > 0) && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {avanzaDryRunRequestPreview.errors.length > 0 && (
+                    <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
+                        Dry-run errors
+                      </p>
+                      <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                        {avanzaDryRunRequestPreview.errors.map((error) => (
+                          <li key={error}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {avanzaDryRunRequestPreview.warnings.length > 0 && (
+                    <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                        Dry-run warnings
+                      </p>
+                      <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                        {avanzaDryRunRequestPreview.warnings.map((warning) => (
+                          <li key={warning}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {executionDevToolsEnabled && (
+            <>
+              <SessionDetectionPreview
+                canCheck={canCheckLocalhostSessionDetection}
+                isRunning={isLocalhostSessionDetectionRunning}
+                message={localhostSessionDetectionMessage}
+                noAvanzaTouched={localhostSessionDetectionNoAvanzaTouched}
+                noBrowserActions={localhostSessionDetectionNoBrowserActions}
+                onCheck={() => void checkLocalhostSessionDetectionStub()}
+                readyForSearchOnly={
+                  localhostSessionDetectionReadyForSearchOnly
+                }
+                result={localhostSessionDetectionResult}
+                sessionDetection={localhostSessionDetection}
+              />
+
+              <SearchOnlyPreview
+                ambiguous={localhostSearchOnlyAmbiguous}
+                blocked={localhostSearchOnlyBlocked}
+                canCheck={canCheckLocalhostSearchOnly}
+                exactMatch={localhostSearchOnlyExactMatch}
+                expectedInstrumentValid={
+                  avanzaSearchOnlyExpectedInstrumentValid
+                }
+                isRunning={isLocalhostSearchOnlyRunning}
+                message={localhostSearchOnlyMessage}
+                noAvanzaTouched={localhostSearchOnlyNoAvanzaTouched}
+                noBrokerSubmission={localhostSearchOnlyNoBrokerSubmission}
+                noBrowserActions={localhostSearchOnlyNoBrowserActions}
+                noMatch={localhostSearchOnlyNoMatch}
+                noOrderPageOpened={localhostSearchOnlyNoOrderPageOpened}
+                onCheck={() => void checkLocalhostSearchOnlyStub()}
+                result={localhostSearchOnlyResult}
+                searchOnly={localhostSearchOnly}
+              />
+
+              <InstrumentVerificationPreview
+                ambiguous={localhostInstrumentAmbiguous}
+                blocked={localhostInstrumentBlocked}
+                canCheck={canCheckLocalhostInstrumentVerification}
+                expectedInstrumentValid={
+                  avanzaSearchOnlyExpectedInstrumentValid
+                }
+                isRunning={isLocalhostInstrumentVerificationRunning}
+                message={localhostInstrumentVerificationMessage}
+                noAvanzaTouched={localhostInstrumentNoAvanzaTouched}
+                noBrokerSubmission={localhostInstrumentNoBrokerSubmission}
+                noBrowserActions={localhostInstrumentNoBrowserActions}
+                noFormFill={localhostInstrumentNoFormFill}
+                noOrderPageOpened={localhostInstrumentNoOrderPageOpened}
+                onCheck={() =>
+                  void checkLocalhostInstrumentVerificationStub()
+                }
+                rejected={localhostInstrumentRejected}
+                result={localhostInstrumentVerificationResult}
+                searchOnlyExactMatch={localhostSearchOnlyExactMatch}
+                verification={localhostInstrumentVerification}
+                verified={localhostInstrumentVerified}
+              />
+            </>
+          )}
+
+          {executionDevToolsEnabled && (
+            <>
+              <InstrumentPagePreview
+                blocked={localhostInstrumentPageBlocked}
+                canCheck={canCheckLocalhostInstrumentPage}
+                expectedInstrumentValid={avanzaSearchOnlyExpectedInstrumentValid}
+                identified={localhostInstrumentPageIdentified}
+                instrumentVerified={localhostInstrumentVerified}
+                isRunning={isLocalhostInstrumentPageRunning}
+                message={localhostInstrumentPageMessage}
+                mismatch={localhostInstrumentPageMismatch}
+                noAvanzaTouched={localhostInstrumentPageNoAvanzaTouched}
+                noBrokerSubmission={localhostInstrumentPageNoBrokerSubmission}
+                noBrowserActions={localhostInstrumentPageNoBrowserActions}
+                noBuySellClick={localhostInstrumentPageNoBuySellClick}
+                noFormFill={localhostInstrumentPageNoFormFill}
+                noOrderPageOpened={localhostInstrumentPageNoOrderPageOpened}
+                onCheck={() => void checkLocalhostInstrumentPageStub()}
+                page={localhostInstrumentPage}
+                prohibitedControlsVisible={
+                  localhostInstrumentPageProhibitedControlsVisible
+                }
+                result={localhostInstrumentPageResult}
+              />
+
+              <OrderPageOpenPreview
+                blocked={localhostOrderPageBlocked}
+                canCheck={canCheckLocalhostOrderPageOpen}
+                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
+                instrumentPageIdentified={localhostInstrumentPageIdentified}
+                isRunning={isLocalhostOrderPageOpenRunning}
+                message={localhostOrderPageOpenMessage}
+                mismatch={localhostOrderPageMismatch}
+                noAvanzaTouched={localhostOrderPageNoAvanzaTouched}
+                noBrokerSubmission={localhostOrderPageNoBrokerSubmission}
+                noBrowserActions={localhostOrderPageNoBrowserActions}
+                noFinalConfirmClick={localhostOrderPageNoFinalConfirmClick}
+                noFormFill={localhostOrderPageNoFormFill}
+                noRealOrderPageOpened={localhostOrderPageNoRealOrderPageOpened}
+                noReviewClick={localhostOrderPageNoReviewClick}
+                onCheck={() => void checkLocalhostOrderPageOpenStub()}
+                opened={localhostOrderPageOpened}
+                orderPage={localhostOrderPageOpen}
+                result={localhostOrderPageOpenResult}
+                wrongAction={localhostOrderPageWrongAction}
+              />
+
+              <AdvancedFormFillPreview
+                blocked={localhostAdvancedFormBlocked}
+                canCheck={canCheckLocalhostAdvancedFormFill}
+                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
+                fieldMismatch={localhostAdvancedFormFieldMismatch}
+                filled={localhostAdvancedFormFilled}
+                formFill={localhostAdvancedFormFill}
+                isRunning={isLocalhostAdvancedFormFillRunning}
+                message={localhostAdvancedFormFillMessage}
+                noAvanzaTouched={localhostAdvancedFormNoAvanzaTouched}
+                noBrokerSubmission={localhostAdvancedFormNoBrokerSubmission}
+                noBrowserActions={localhostAdvancedFormNoBrowserActions}
+                noFinalConfirmClick={localhostAdvancedFormNoFinalConfirmClick}
+                noRealFormFieldsFilled={
+                  localhostAdvancedFormNoRealFormFieldsFilled
+                }
+                noReviewClick={localhostAdvancedFormNoReviewClick}
+                onCheck={() => void checkLocalhostAdvancedFormFillStub()}
+                orderPageOpened={localhostOrderPageOpened}
+                result={localhostAdvancedFormFillResult}
+                unsupportedMode={localhostAdvancedFormUnsupportedMode}
+                validationError={localhostAdvancedFormValidationError}
+              />
+
+              <ReviewClickPreview
+                advancedFormFilled={localhostAdvancedFormFilled}
+                blocked={localhostReviewClickBlocked}
+                canCheck={canCheckLocalhostReviewClick}
+                confirmationMismatch={localhostReviewClickConfirmationMismatch}
+                confirmationReady={localhostReviewClickConfirmationReady}
+                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
+                finalConfirmBlocked={localhostReviewClickFinalConfirmBlocked}
+                isRunning={isLocalhostReviewClickRunning}
+                message={localhostReviewClickMessage}
+                noAvanzaTouched={localhostReviewClickNoAvanzaTouched}
+                noBrokerResult={localhostReviewClickNoBrokerResult}
+                noBrowserActions={localhostReviewClickNoBrowserActions}
+                noFinalConfirmClick={localhostReviewClickNoFinalConfirmClick}
+                noRealReviewClick={localhostReviewClickNoRealReviewClick}
+                noTradeMutation={localhostReviewClickNoTradeMutation}
+                onCheck={() => void checkLocalhostReviewClickStub()}
+                result={localhostReviewClickResult}
+                reviewClick={localhostReviewClick}
+                validationError={localhostReviewClickValidationError}
+                waitingForManualConfirmation={
+                  localhostReviewClickWaitingForManualConfirmation
+                }
+              />
+            </>
+          )}
+
+          {executionDevToolsEnabled && (
+            <>
+              <BrokerConfirmationCapturePreview
+                blocked={localhostBrokerConfirmationBlocked}
+                canCheck={canCheckLocalhostBrokerConfirmationCapture}
+                capture={localhostBrokerConfirmationCapture}
+                captured={localhostBrokerConfirmationCaptured}
+                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
+                isRunning={isLocalhostBrokerConfirmationCaptureRunning}
+                message={localhostBrokerConfirmationCaptureMessage}
+                mismatch={localhostBrokerConfirmationMismatch}
+                noAvanzaTouched={localhostBrokerConfirmationNoAvanzaTouched}
+                noBekrafta={localhostBrokerConfirmationNoBekrafta}
+                noBrokerExecutionResult={
+                  localhostBrokerConfirmationNoBrokerExecutionResult
+                }
+                noBrowserActions={localhostBrokerConfirmationNoBrowserActions}
+                noExecutionRecord={localhostBrokerConfirmationNoExecutionRecord}
+                noSupabaseWrite={localhostBrokerConfirmationNoSupabaseWrite}
+                noTradeMutation={localhostBrokerConfirmationNoTradeMutation}
+                onCheck={() => void checkLocalhostBrokerConfirmationCaptureStub()}
+                partial={localhostBrokerConfirmationPartial}
+                rejectedOrCancelled={
+                  localhostBrokerConfirmationRejectedOrCancelled
+                }
+                result={localhostBrokerConfirmationCaptureResult}
+              />
+
+              <BrokerExecutionResultEligibilityPreview
+                blocked={localhostBrokerExecutionEligibilityBlocked}
+                canCheck={canCheckLocalhostBrokerExecutionEligibility}
+                duplicateRisk={localhostBrokerExecutionDuplicateRisk}
+                eligible={localhostBrokerExecutionEligible}
+                eligibility={localhostBrokerExecutionEligibility}
+                failed={localhostBrokerExecutionEligibilityFailed}
+                hasCaptureEvidence={Boolean(localhostBrokerConfirmationCapture)}
+                isRunning={isLocalhostBrokerExecutionEligibilityRunning}
+                message={localhostBrokerExecutionEligibilityMessage}
+                noBrokerExecutionResult={
+                  localhostBrokerExecutionEligibilityNoBrokerExecutionResult
+                }
+                noExecutionRecord={
+                  localhostBrokerExecutionEligibilityNoExecutionRecord
+                }
+                noSupabaseWrite={
+                  localhostBrokerExecutionEligibilityNoSupabaseWrite
+                }
+                noTradeMutation={
+                  localhostBrokerExecutionEligibilityNoTradeMutation
+                }
+                notEligible={localhostBrokerExecutionNotEligible}
+                onCheck={() =>
+                  void checkLocalhostBrokerExecutionEligibilityStub()
+                }
+                partialOnly={localhostBrokerExecutionPartialOnly}
+                result={localhostBrokerExecutionEligibilityResult}
+              />
+            </>
+          )}
+
+          {executionDevToolsEnabled && (
+            <BrokerExecutionResultPreview
+              canCheck={canCheckLocalhostBrokerExecutionPreview}
+              formatTimestamp={formatDate}
+              hasCaptureOrEligibilityEvidence={Boolean(
+                localhostBrokerConfirmationCapture ||
+                  localhostBrokerExecutionEligibility,
+              )}
+              isRunning={isLocalhostBrokerExecutionPreviewRunning}
+              message={localhostBrokerExecutionPreviewMessage}
+              noExecutionRecord={
+                localhostBrokerExecutionPreviewNoExecutionRecord
+              }
+              noRealBrokerExecutionResult={
+                localhostBrokerExecutionPreviewNoRealBrokerExecutionResult
+              }
+              noSupabaseWrite={localhostBrokerExecutionPreviewNoSupabaseWrite}
+              noTradeMutation={localhostBrokerExecutionPreviewNoTradeMutation}
+              onCheck={() => void checkLocalhostBrokerExecutionPreviewStub()}
+              result={localhostBrokerExecutionPreviewResult}
+            />
+          )}
+
+          {executionDevToolsEnabled && (
+            <ExecutionRecordEligibilityPreview
+              canCheck={canCheckLocalhostExecutionRecordEligibility}
+              candidateIsPreviewOnly={
+                executionRecordEligibilityCandidateIsPreviewOnly
+              }
+              hasPreviewCandidate={Boolean(executionRecordEligibilityCandidate)}
+              isRunning={isLocalhostExecutionRecordEligibilityRunning}
+              message={localhostExecutionRecordEligibilityMessage}
+              noBrokerExecutionResult={
+                localhostExecutionRecordNoBrokerExecutionResult
+              }
+              noExecutionRecord={localhostExecutionRecordNoExecutionRecord}
+              noSupabaseWrite={localhostExecutionRecordNoSupabaseWrite}
+              noTradeMutation={localhostExecutionRecordNoTradeMutation}
+              onCheck={() =>
+                void checkLocalhostExecutionRecordEligibilityStub()
+              }
+              result={localhostExecutionRecordEligibilityResult}
+            />
+          )}
+
+          <LocalhostBridgeControls
+            canCancelLocalhostBridgeRun={canCancelLocalhostBridgeRun}
+            canCheckLocalhostBridgeSelfCheck={
+              canCheckLocalhostBridgeSelfCheck
+            }
+            canRunLocalhostBridgeDryRun={canRunLocalhostBridgeDryRun}
+            canRunLocalhostMockAgent={canRunLocalhostMockAgent}
+            canTestLocalhostDryRunBridgeStub={
+              canTestLocalhostDryRunBridgeStub
+            }
+            dryRunRequestValid={avanzaDryRunRequestPreview?.ok === true}
+            isLocalhostBridgeCancelRunning={isLocalhostBridgeCancelRunning}
+            isLocalhostBridgeRunRunning={isLocalhostBridgeRunRunning}
+            isLocalhostBridgeSelfCheckRunning={
+              isLocalhostBridgeSelfCheckRunning
+            }
+            isLocalhostDryRunBridgeStubRunning={
+              isLocalhostDryRunBridgeStubRunning
+            }
+            isLocalhostMockAgentRunRunning={isLocalhostMockAgentRunRunning}
+            localhostBridgeCancelMessage={localhostBridgeCancelMessage}
+            localhostBridgeCancelResult={localhostBridgeCancelResult}
+            localhostBridgeRunMessage={localhostBridgeRunMessage}
+            localhostBridgeRunResult={localhostBridgeRunResult}
+            localhostBridgeSelfCheckMessage={localhostBridgeSelfCheckMessage}
+            localhostBridgeSelfCheckResult={localhostBridgeSelfCheckResult}
+            localhostDryRunBridgeStubMessage={
+              localhostDryRunBridgeStubMessage
+            }
+            localhostDryRunBridgeStubResult={localhostDryRunBridgeStubResult}
+            localhostMockAgentRunMessage={localhostMockAgentRunMessage}
+            localhostMockAgentRunResult={localhostMockAgentRunResult}
+            onCancelLocalhostBridgeEcho={() => void cancelLocalhostBridgeEcho()}
+            onCheckLocalhostBridgeSelfCheck={() =>
+              void checkLocalhostBridgeSelfCheck()
+            }
+            onRunLocalhostBridgeEcho={() => void runLocalhostBridgeEcho()}
+            onRunLocalhostMockAgent={() => void runLocalhostMockAgent()}
+            onTestLocalhostDryRunBridgeStub={() =>
+              void testLocalhostDryRunBridgeStub()
+            }
+            showDryRunBridgePreview={executionDevToolsEnabled}
+            showLocalhostBridgeEchoControls={false}
+          />
+
+          {executionDevToolsEnabled && (
+            <AvanzaDryRunReadinessPanel
+              advancedForm={{
+                blocked: localhostAdvancedFormBlocked,
+                blockerMessage:
+                  localhostAdvancedFormFill?.blockers[0] ??
+                  localhostAdvancedFormFill?.errors[0] ??
+                  "Advanced form-fill cannot proceed safely.",
+                fieldMismatch: localhostAdvancedFormFieldMismatch,
+                filled: localhostAdvancedFormFilled,
+                labels: localhostAdvancedFormFill?.labels,
+                summary: localhostAdvancedFormSummary,
+                validationError: localhostAdvancedFormValidationError,
+              }}
+              allowedSafetyLevel={
+                avanzaDryRunAllowedGateValidation.safetyLevel
+              }
+              brokerConfirmation={{
+                blocked: localhostBrokerConfirmationBlocked,
+                blockerMessage:
+                  localhostBrokerConfirmationCapture?.blockers[0] ??
+                  localhostBrokerConfirmationCapture?.errors[0] ??
+                  "broker-confirmation-capture cannot proceed safely.",
+                captured: localhostBrokerConfirmationCaptured,
+                labels: localhostBrokerConfirmationCapture?.labels,
+                mismatch: localhostBrokerConfirmationMismatch,
+                partial: localhostBrokerConfirmationPartial,
+                rejectedOrCancelled:
+                  localhostBrokerConfirmationRejectedOrCancelled,
+                summary: localhostBrokerConfirmationSummary,
+              }}
+              defaultGateBlocked={avanzaDryRunDefaultGateValidation.blocked}
+              instrumentPage={{
+                blocked: localhostInstrumentPageBlocked,
+                blockerMessage:
+                  localhostInstrumentPage?.blockers[0] ??
+                  localhostInstrumentPage?.errors[0] ??
+                  "instrument-page identity cannot proceed safely.",
+                identified: localhostInstrumentPageIdentified,
+                labels: localhostInstrumentPage?.labels,
+                mismatch: localhostInstrumentPageMismatch,
+                prohibitedControlsVisible:
+                  localhostInstrumentPageProhibitedControlsVisible,
+                summary: localhostInstrumentPageSummary,
+              }}
+              instrumentVerification={{
+                ambiguous: localhostInstrumentAmbiguous,
+                labels: localhostInstrumentVerification?.labels,
+                rejected: localhostInstrumentRejected,
+                summary: localhostInstrumentVerificationSummary,
+                verified: localhostInstrumentVerified,
+              }}
+              items={avanzaDryRunReadinessItems}
+              localhostRunnerSelfCheckLabels={
+                localhostRunnerSelfCheck.readinessLabels
+              }
+              localhostRunnerSelfCheckSummary={
+                localhostRunnerSelfCheckSummary
+              }
+              orderPage={{
+                blocked: localhostOrderPageBlocked,
+                blockerMessage:
+                  localhostOrderPageOpen?.blockers[0] ??
+                  localhostOrderPageOpen?.errors[0] ??
+                  "order-page-open cannot proceed safely.",
+                labels: localhostOrderPageOpen?.labels,
+                mismatch: localhostOrderPageMismatch,
+                opened: localhostOrderPageOpened,
+                summary: localhostOrderPageSummary,
+                wrongAction: localhostOrderPageWrongAction,
+              }}
+              overall={avanzaDryRunReadinessOverall}
+              reviewClick={{
+                blocked: localhostReviewClickBlocked,
+                blockerMessage:
+                  localhostReviewClick?.blockers[0] ??
+                  localhostReviewClick?.errors[0] ??
+                  "Review-click cannot proceed safely.",
+                confirmationMismatch: localhostReviewClickConfirmationMismatch,
+                confirmationReady: localhostReviewClickConfirmationReady,
+                finalConfirmBlocked: localhostReviewClickFinalConfirmBlocked,
+                labels: localhostReviewClick?.labels,
+                summary: localhostReviewClickSummary,
+                validationError: localhostReviewClickValidationError,
+              }}
+              searchOnly={{
+                ambiguous: localhostSearchOnlyAmbiguous,
+                exactMatch: localhostSearchOnlyExactMatch,
+                labels: localhostSearchOnly?.labels,
+                summary: localhostSearchOnlySummary,
+              }}
+              sessionDetection={{
+                labels: localhostSessionDetection?.labels,
+                readyForSearchOnly:
+                  localhostSessionDetectionReadyForSearchOnly,
+                summary: localhostSessionDetectionSummary,
+              }}
+            />
+          )}
           {executionDevToolsEnabled && avanzaAgentRequest && (
             <div className="rounded-md border border-violet-300/15 bg-violet-300/[0.045] p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -34287,589 +37558,53 @@ function ExecutionHandoffPreviewModal({
             </div>
           )}
 
-          {executionDevToolsEnabled &&
-            avanzaAgentRequest &&
-            avanzaAgentBridgeEnvelope && (
-              <div className="rounded-md border border-cyan-300/15 bg-cyan-300/[0.045] p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-                        DEV ONLY
-                      </span>
-                      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">
-                        Localhost bridge echo
-                      </p>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-zinc-300">
-                      Dev only. Calls local stub server. No
-                      Avanza/browser/broker. This sends the existing request
-                      envelope to localhost dry-run `/run` only when you click.
-                    </p>
-                  </div>
-                  <span
-                    className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
-                      localhostBridgeRunResult?.ok
-                        ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
-                        : localhostBridgeRunResult
-                          ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
-                          : "border-white/10 bg-white/[0.04] text-zinc-500"
-                    }`}
-                  >
-                    {localhostBridgeRunResult?.ok
-                      ? "Echo complete"
-                      : localhostBridgeRunResult
-                        ? "Needs attention"
-                        : "Not run"}
-                  </span>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs leading-5 text-zinc-500">
-                    Requires the local stub from{" "}
-                    <span className="font-mono text-zinc-300">
-                      npm run bridge:localhost
-                    </span>
-                    . It never creates a broker record or changes the trade.
-                  </p>
-                  <button
-                    type="button"
-                    disabled={!canRunLocalhostBridgeDryRun}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void runLocalhostBridgeEcho();
-                    }}
-                    className="min-h-10 rounded-md border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-                  >
-                    {isLocalhostBridgeRunRunning
-                      ? "Running localhost echo"
-                      : "Run localhost bridge echo"}
-                  </button>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs leading-5 text-zinc-300">
-                    Dev only. Opens/fills local mock broker page through
-                    localhost bridge. Not Avanza. No submit. No brokerResult.
-                  </p>
-                  <button
-                    type="button"
-                    disabled={!canRunLocalhostMockAgent}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void runLocalhostMockAgent();
-                    }}
-                    className="min-h-10 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/50 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-                  >
-                    {isLocalhostMockAgentRunRunning
-                      ? "Running mock agent"
-                      : "Run localhost mock agent"}
-                  </button>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 rounded-md border border-white/10 bg-black/20 p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs leading-5 text-zinc-500">
-                    Dev only. Calls local stub `/cancel`. Does not cancel a real
-                    broker action, Avanza session, order, or trade.
-                  </p>
-                  <button
-                    type="button"
-                    disabled={!canCancelLocalhostBridgeRun}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void cancelLocalhostBridgeEcho();
-                    }}
-                    className="min-h-10 rounded-md border border-amber-300/25 bg-amber-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100 transition hover:border-amber-200/50 hover:bg-amber-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-                  >
-                    {isLocalhostBridgeCancelRunning
-                      ? "Cancelling localhost stub"
-                      : "Cancel localhost bridge run"}
-                  </button>
-                </div>
-
-                {localhostBridgeRunMessage && (
-                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                    {localhostBridgeRunMessage}
-                  </p>
-                )}
-
-                {localhostMockAgentRunMessage && (
-                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                    {localhostMockAgentRunMessage}
-                  </p>
-                )}
-
-                {localhostBridgeCancelMessage && (
-                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                    {localhostBridgeCancelMessage}
-                  </p>
-                )}
-
-                {localhostBridgeRunResult && (
-                  <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-                          Localhost bridge echo result
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">
-                          {localhostBridgeRunResult.response?.message ??
-                            "Localhost bridge echo finished safely. No broker action occurred."}
-                        </p>
-                      </div>
-                      <span className="w-fit rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-                        {localhostBridgeRunResult.ok ? "OK" : "Safe stop"}
-                      </span>
-                    </div>
-
-                    <p className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3 text-xs leading-5 text-cyan-100">
-                      Localhost bridge stub only. Avanza was not opened, no
-                      browser automation ran, no order was prepared or
-                      submitted, and no broker result was created.
-                    </p>
-
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      <Detail
-                        label="Reachable"
-                        value={
-                          localhostBridgeRunResult.reachable ? "Yes" : "No"
-                        }
-                      />
-                      <Detail
-                        label="OK"
-                        value={localhostBridgeRunResult.ok ? "Yes" : "No"}
-                      />
-                      <Detail
-                        label="Status Code"
-                        value={
-                          typeof localhostBridgeRunResult.statusCode === "number"
-                            ? String(localhostBridgeRunResult.statusCode)
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Accepted"
-                        value={
-                          typeof localhostBridgeRunResult.response?.accepted ===
-                          "boolean"
-                            ? localhostBridgeRunResult.response.accepted
-                              ? "Yes"
-                              : "No"
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Result Status"
-                        value={
-                          localhostBridgeRunResult.result?.status
-                            ? agentCommandValue(
-                                localhostBridgeRunResult.result.status,
-                              )
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Progress Events"
-                        value={
-                          localhostBridgeRunResult.result
-                            ? String(
-                                localhostBridgeRunResult.result.progressEvents
-                                  .length,
-                              )
-                            : "0"
-                        }
-                      />
-                      <Detail
-                        label="Broker Result"
-                        value={
-                          localhostBridgeRunResult.result?.brokerResult
-                            ? "Unexpected result present"
-                            : "Absent"
-                        }
-                      />
-                      <Detail
-                        label="Mock Page"
-                        value={
-                          localhostBridgeRunResult.response
-                            ?.mockOrderPageAvailable
-                            ? "Available"
-                            : "Not provided"
-                        }
-                      />
-                      <Detail
-                        label="Mock Fill Plan"
-                        value={
-                          typeof localhostBridgeRunResult.response
-                            ?.mockOrderFillPlanValid === "boolean"
-                            ? localhostBridgeRunResult.response
-                                .mockOrderFillPlanValid
-                              ? "Valid"
-                              : "Invalid"
-                            : "Not provided"
-                        }
-                      />
-                      <Detail
-                        label="Base URL"
-                        value={localhostBridgeRunResult.baseUrl}
-                      />
-                      <Detail
-                        label="Completed"
-                        value={formatDate(localhostBridgeRunResult.completedAt)}
-                      />
-                    </div>
-
-                    {localhostBridgeRunResult.response?.mockOrderPageUrl && (
-                      <div className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3">
-                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-100">
-                          Mock order page fill plan
-                        </p>
-                        <p className="mt-2 text-xs leading-5 text-zinc-300">
-                          {localhostBridgeRunResult.response
-                            .mockOrderPageMessage ??
-                            "Mock order fill plan generated for local testing only. No browser was opened."}
-                        </p>
-                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <span className="break-all font-mono text-xs text-zinc-400">
-                            {
-                              localhostBridgeRunResult.response
-                                .mockOrderPageUrl
-                            }
-                          </span>
-                          <Link
-                            className="inline-flex w-fit rounded-md border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15"
-                            href={
-                              localhostBridgeRunResult.response
-                                .mockOrderPageUrl
-                            }
-                          >
-                            Open mock order page
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-
-                    {localhostBridgeRunResult.response
-                      ?.mockOrderFillPlanErrors &&
-                      localhostBridgeRunResult.response.mockOrderFillPlanErrors
-                        .length > 0 && (
-                        <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                            Mock fill plan errors
-                          </p>
-                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                            {localhostBridgeRunResult.response.mockOrderFillPlanErrors.map(
-                              (error) => (
-                                <li key={error}>{error}</li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
-
-                    {localhostBridgeRunResult.response?.mockOrderFillPlan && (
-                      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-                        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                          Mock fill plan JSON - dry-run only
-                        </summary>
-                        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-                          {JSON.stringify(
-                            localhostBridgeRunResult.response
-                              .mockOrderFillPlan,
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </details>
-                    )}
-
-                    {(localhostBridgeRunResult.errors.length > 0 ||
-                      localhostBridgeRunResult.warnings.length > 0) && (
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {localhostBridgeRunResult.errors.length > 0 && (
-                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                              Localhost errors
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {localhostBridgeRunResult.errors.map((error) => (
-                                <li key={error}>{error}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {localhostBridgeRunResult.warnings.length > 0 && (
-                          <div className="rounded-md border border-cyan-300/15 bg-black/15 p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-100">
-                              Localhost warnings
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {localhostBridgeRunResult.warnings.map(
-                                (warning) => (
-                                  <li key={warning}>{warning}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {localhostMockAgentRunResult && (
-                  <div className="mt-4 rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-3">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
-                          Localhost mock agent result
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-300">
-                          {localhostMockAgentRunResult.response
-                            ?.mockAgentRunMessage ??
-                            localhostMockAgentRunResult.response?.message ??
-                            "Localhost mock agent finished safely. No broker action occurred."}
-                        </p>
-                      </div>
-                      <span className="w-fit rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
-                        {localhostMockAgentRunResult.ok ? "OK" : "Safe stop"}
-                      </span>
-                    </div>
-
-                    <p className="mt-3 rounded-md border border-emerald-300/15 bg-black/20 p-3 text-xs leading-5 text-emerald-100">
-                      Localhost mock agent only. It targets the dev-only mock
-                      broker page, clicks only Review mock order, verifies
-                      disabled submit, and creates no broker result.
-                    </p>
-
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      <Detail
-                        label="Reachable"
-                        value={
-                          localhostMockAgentRunResult.reachable ? "Yes" : "No"
-                        }
-                      />
-                      <Detail
-                        label="OK"
-                        value={
-                          localhostMockAgentRunResult.ok ? "Yes" : "No"
-                        }
-                      />
-                      <Detail
-                        label="Accepted"
-                        value={
-                          typeof localhostMockAgentRunResult.response
-                            ?.accepted === "boolean"
-                            ? localhostMockAgentRunResult.response.accepted
-                              ? "Yes"
-                              : "No"
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Result Status"
-                        value={
-                          localhostMockAgentRunResult.result?.status
-                            ? agentCommandValue(
-                                localhostMockAgentRunResult.result.status,
-                              )
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Broker Result"
-                        value={
-                          localhostMockAgentRunResult.result?.brokerResult
-                            ? "Unexpected result present"
-                            : "Absent"
-                        }
-                      />
-                      <Detail
-                        label="Mock Agent Attempted"
-                        value={
-                          localhostMockAgentRunResult.response
-                            ?.mockAgentRunAttempted
-                            ? "Yes"
-                            : "No"
-                        }
-                      />
-                      <Detail
-                        label="Mock Agent OK"
-                        value={
-                          typeof localhostMockAgentRunResult.response
-                            ?.mockAgentRunOk === "boolean"
-                            ? localhostMockAgentRunResult.response
-                                .mockAgentRunOk
-                              ? "Yes"
-                              : "No"
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Started"
-                        value={
-                          localhostMockAgentRunResult.response
-                            ?.mockAgentRunStartedAt
-                            ? formatDate(
-                                localhostMockAgentRunResult.response
-                                  .mockAgentRunStartedAt,
-                              )
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Completed"
-                        value={
-                          localhostMockAgentRunResult.response
-                            ?.mockAgentRunCompletedAt
-                            ? formatDate(
-                                localhostMockAgentRunResult.response
-                                  .mockAgentRunCompletedAt,
-                              )
-                            : formatDate(localhostMockAgentRunResult.completedAt)
-                        }
-                      />
-                    </div>
-
-                    {localhostMockAgentRunResult.response
-                      ?.mockAgentRunErrors &&
-                      localhostMockAgentRunResult.response.mockAgentRunErrors
-                        .length > 0 && (
-                        <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                            Mock agent run errors
-                          </p>
-                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                            {localhostMockAgentRunResult.response.mockAgentRunErrors.map(
-                              (error) => (
-                                <li key={error}>{error}</li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
-
-                    {(localhostMockAgentRunResult.errors.length > 0 ||
-                      localhostMockAgentRunResult.warnings.length > 0) && (
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {localhostMockAgentRunResult.errors.length > 0 && (
-                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                              Localhost mock-agent errors
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {localhostMockAgentRunResult.errors.map(
-                                (error) => (
-                                  <li key={error}>{error}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        {localhostMockAgentRunResult.warnings.length > 0 && (
-                          <div className="rounded-md border border-emerald-300/15 bg-black/15 p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-100">
-                              Localhost mock-agent warnings
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {localhostMockAgentRunResult.warnings.map(
-                                (warning) => (
-                                  <li key={warning}>{warning}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {localhostBridgeCancelResult && (
-                  <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-                          Localhost bridge cancel result
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">
-                          {localhostBridgeCancelResult.response?.message ??
-                            "Localhost bridge cancel finished safely. No broker action was cancelled."}
-                        </p>
-                      </div>
-                      <span className="w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-                        {localhostBridgeCancelResult.ok ? "Acknowledged" : "Safe stop"}
-                      </span>
-                    </div>
-
-                    <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
-                      Localhost bridge cancel stub only. No Avanza session,
-                      browser automation, broker order, or trade state was
-                      cancelled.
-                    </p>
-
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      <Detail
-                        label="Reachable"
-                        value={
-                          localhostBridgeCancelResult.reachable ? "Yes" : "No"
-                        }
-                      />
-                      <Detail
-                        label="OK"
-                        value={localhostBridgeCancelResult.ok ? "Yes" : "No"}
-                      />
-                      <Detail
-                        label="Status Code"
-                        value={
-                          typeof localhostBridgeCancelResult.statusCode ===
-                          "number"
-                            ? String(localhostBridgeCancelResult.statusCode)
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Cancelled"
-                        value={
-                          typeof localhostBridgeCancelResult.cancelled ===
-                          "boolean"
-                            ? localhostBridgeCancelResult.cancelled
-                              ? "Yes"
-                              : "No"
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Request"
-                        value={
-                          localhostBridgeCancelResult.response?.requestId
-                            ? shortPayloadId(
-                                localhostBridgeCancelResult.response.requestId,
-                              )
-                            : "—"
-                        }
-                      />
-                      <Detail
-                        label="Base URL"
-                        value={localhostBridgeCancelResult.baseUrl}
-                      />
-                    </div>
-
-                    {localhostBridgeCancelResult.errors.length > 0 && (
-                      <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                          Localhost cancel errors
-                        </p>
-                        <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                          {localhostBridgeCancelResult.errors.map((error) => (
-                            <li key={error}>{error}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+          <LocalhostBridgeControls
+            canCancelLocalhostBridgeRun={canCancelLocalhostBridgeRun}
+            canCheckLocalhostBridgeSelfCheck={
+              canCheckLocalhostBridgeSelfCheck
+            }
+            canRunLocalhostBridgeDryRun={canRunLocalhostBridgeDryRun}
+            canRunLocalhostMockAgent={canRunLocalhostMockAgent}
+            canTestLocalhostDryRunBridgeStub={
+              canTestLocalhostDryRunBridgeStub
+            }
+            dryRunRequestValid={avanzaDryRunRequestPreview?.ok === true}
+            isLocalhostBridgeCancelRunning={isLocalhostBridgeCancelRunning}
+            isLocalhostBridgeRunRunning={isLocalhostBridgeRunRunning}
+            isLocalhostBridgeSelfCheckRunning={
+              isLocalhostBridgeSelfCheckRunning
+            }
+            isLocalhostDryRunBridgeStubRunning={
+              isLocalhostDryRunBridgeStubRunning
+            }
+            isLocalhostMockAgentRunRunning={isLocalhostMockAgentRunRunning}
+            localhostBridgeCancelMessage={localhostBridgeCancelMessage}
+            localhostBridgeCancelResult={localhostBridgeCancelResult}
+            localhostBridgeRunMessage={localhostBridgeRunMessage}
+            localhostBridgeRunResult={localhostBridgeRunResult}
+            localhostBridgeSelfCheckMessage={localhostBridgeSelfCheckMessage}
+            localhostBridgeSelfCheckResult={localhostBridgeSelfCheckResult}
+            localhostDryRunBridgeStubMessage={
+              localhostDryRunBridgeStubMessage
+            }
+            localhostDryRunBridgeStubResult={localhostDryRunBridgeStubResult}
+            localhostMockAgentRunMessage={localhostMockAgentRunMessage}
+            localhostMockAgentRunResult={localhostMockAgentRunResult}
+            onCancelLocalhostBridgeEcho={() => void cancelLocalhostBridgeEcho()}
+            onCheckLocalhostBridgeSelfCheck={() =>
+              void checkLocalhostBridgeSelfCheck()
+            }
+            onRunLocalhostBridgeEcho={() => void runLocalhostBridgeEcho()}
+            onRunLocalhostMockAgent={() => void runLocalhostMockAgent()}
+            onTestLocalhostDryRunBridgeStub={() =>
+              void testLocalhostDryRunBridgeStub()
+            }
+            showDryRunBridgePreview={false}
+            showLocalhostBridgeEchoControls={
+              executionDevToolsEnabled &&
+              Boolean(avanzaAgentRequest && avanzaAgentBridgeEnvelope)
+            }
+          />
 
           {executionDevToolsEnabled && (
             <div className="rounded-md border border-lime-300/15 bg-lime-300/[0.04] p-4">
@@ -43311,39 +46046,6 @@ function MarketRegimeCard({
           <div>{marketTrendStatus("QQQ", marketRegime.qqq)}</div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-white/10 bg-black/25 p-3">
-      <dt className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words font-mono text-sm text-zinc-100">{value}</dd>
-    </div>
-  );
-}
-
-function TextBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        {label}
-      </h3>
-      <p className="mt-2 text-sm leading-6 text-zinc-300">{value}</p>
-    </div>
-  );
-}
-
-function EmptyState({ title, message }: { title: string; message: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-white/15 bg-white/[0.025] p-8 text-center">
-      <h3 className="font-mono text-lg font-semibold text-white">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        {message}
-      </p>
     </div>
   );
 }

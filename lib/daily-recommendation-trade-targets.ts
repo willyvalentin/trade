@@ -101,6 +101,9 @@ export type DailyRecommendationTradeTargetsInput = {
   riskControlsSettings?: RiskControlsSettings | null;
   scanRuns?: RecommendationScanRun[];
   snapshots?: RecommendationSnapshot[];
+  uniqueLearningIdeaCountsByWindow?: Partial<
+    Record<"morning" | "midday" | "power_hour", number>
+  >;
   tradesOpenedToday: number;
   tradesClosedToday: number;
   liveTradesToday: number;
@@ -268,7 +271,23 @@ function targetCountFromSnapshots(
   snapshots: RecommendationSnapshot[] | undefined,
   window: (typeof activeWindows)[number],
 ) {
-  return (snapshots ?? []).filter((snapshot) => snapshot.window === window).length;
+  return new Set(
+    (snapshots ?? [])
+      .filter(
+        (snapshot) =>
+          snapshot.window === window &&
+          snapshot.status !== "hidden" &&
+          snapshot.payload_json.visible_in_primary_recommendations !== false &&
+          snapshot.payload_json.diagnostic_mode !== true &&
+          snapshot.payload_json.not_live_trade_signal !== true,
+      )
+      .map(
+        (snapshot) =>
+          snapshot.snapshot_fingerprint ||
+          snapshot.recommendation_id ||
+          `${snapshot.ticker ?? "unknown"}:${snapshot.recommended_at ?? snapshot.app_timestamp}`,
+      ),
+  ).size;
 }
 
 function buildRiskControlsCapacity(input: {
@@ -377,7 +396,13 @@ export function buildDailyRecommendationTradeTargetsSummary(
         0,
       );
     const snapshotCount = snapshotCountByWindow.get(window) ?? 0;
-    const producedCount = Math.max(currentWindowCount, scanRunCount, snapshotCount);
+    const uniqueLearningIdeaCount =
+      input.uniqueLearningIdeaCountsByWindow?.[window] ?? null;
+    const producedCount =
+      typeof uniqueLearningIdeaCount === "number" &&
+      Number.isFinite(uniqueLearningIdeaCount)
+        ? Math.max(0, uniqueLearningIdeaCount)
+        : Math.max(currentWindowCount, scanRunCount, snapshotCount);
     const latestScanAt = latestScanAtForWindow(
       window,
       scanRuns,

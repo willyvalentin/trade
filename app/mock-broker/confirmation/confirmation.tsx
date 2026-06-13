@@ -150,6 +150,16 @@ export function MockBrokerConfirmation({
                 value={payload.action}
               />
               <ConfirmationRow
+                fieldKey="orderMode"
+                label="Order mode"
+                value={payload.orderMode}
+              />
+              <ConfirmationRow
+                fieldKey="account"
+                label="Account"
+                value={payload.account}
+              />
+              <ConfirmationRow
                 fieldKey="quantity"
                 label="Quantity"
                 value={payload.quantity}
@@ -163,6 +173,71 @@ export function MockBrokerConfirmation({
                 fieldKey="executedPrice"
                 label="Executed price"
                 value={payload.executedPrice}
+              />
+              <ConfirmationRow
+                fieldKey="priceCurrency"
+                label="Price currency"
+                value={payload.priceCurrency}
+              />
+              <ConfirmationRow
+                fieldKey="instrumentMarket"
+                label="Instrument market"
+                value={payload.instrumentMarket}
+              />
+              <ConfirmationRow
+                fieldKey="instrumentCurrency"
+                label="Instrument currency"
+                value={payload.instrumentCurrency}
+              />
+              <ConfirmationRow
+                fieldKey="instrumentType"
+                label="Instrument type"
+                value={payload.instrumentType}
+              />
+              <ConfirmationRow
+                fieldKey="amountExcludingFees"
+                label="Amount excluding fees"
+                value={payload.amountExcludingFees}
+              />
+              <ConfirmationRow
+                fieldKey="courtage"
+                label="Courtage"
+                value={payload.courtage}
+              />
+              <ConfirmationRow
+                fieldKey="fxFee"
+                label="FX fee"
+                value={payload.fxFee}
+              />
+              <ConfirmationRow
+                fieldKey="preliminaryFxRate"
+                label="Preliminary FX rate"
+                value={payload.preliminaryFxRate}
+              />
+              <ConfirmationRow
+                fieldKey="validUntil"
+                label="Valid until"
+                value={payload.validUntil}
+              />
+              <ConfirmationRow
+                fieldKey="totalAmount"
+                label="Total amount"
+                value={payload.totalAmount}
+              />
+              <ConfirmationRow
+                fieldKey="reviewButtonLabel"
+                label="Review button label"
+                value={payload.reviewButtonLabel}
+              />
+              <ConfirmationRow
+                fieldKey="confirmButtonLabel"
+                label="Final confirm label"
+                value={payload.confirmButtonLabel}
+              />
+              <ConfirmationRow
+                fieldKey="cancelButtonLabel"
+                label="Cancel label"
+                value={payload.cancelButtonLabel}
               />
               <ConfirmationRow
                 fieldKey="orderId"
@@ -210,6 +285,32 @@ export function MockBrokerConfirmation({
                 <li>No brokerResult or TureExecutionRecord is created.</li>
                 <li>No Supabase writes and no real trade state mutation.</li>
               </ul>
+            </section>
+
+            <section className="rounded-lg border border-slate-800 bg-slate-900/80 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                Final action labels
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                These controls are disabled readback labels only. This mock page
+                cannot confirm, cancel, submit, or create broker records.
+              </p>
+              <div className="mt-4 grid gap-2">
+                <button
+                  className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100 opacity-60"
+                  disabled
+                  type="button"
+                >
+                  {payload.confirmButtonLabel || "Confirm disabled"}
+                </button>
+                <button
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-slate-200 opacity-60"
+                  disabled
+                  type="button"
+                >
+                  {payload.cancelButtonLabel || "Cancel disabled"}
+                </button>
+              </div>
             </section>
 
             <SaveDevMockResultButton payload={payload} />

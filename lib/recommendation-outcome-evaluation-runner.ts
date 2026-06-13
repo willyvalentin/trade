@@ -12,6 +12,11 @@ import {
   type CounterfactualEntryVariantLabel,
 } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  summarizePlanPriceFreshness,
+  type PlanPriceFreshnessDiagnostics,
+  type PlanPriceFreshnessSummary,
+} from "@/lib/plan-price-freshness";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -86,6 +91,7 @@ export type RecommendationOutcomeEvaluationCandidate = {
   outcome_id: string | null;
   outcome_status: RecommendationOutcome["status"] | null;
   persistence_mode: RecommendationOutcomePersistenceResult["mode"] | "unknown";
+  plan_price_freshness?: PlanPriceFreshnessDiagnostics | null;
   warnings: string[];
   error: string | null;
 };
@@ -129,6 +135,7 @@ export type RecommendationOutcomeEvaluationRun = {
   counterfactual_ready_count: number;
   shadow_entry_trial_count: number;
   shadow_entry_triggered_count: number;
+  plan_price_freshness_summary: PlanPriceFreshnessSummary | null;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
@@ -268,6 +275,20 @@ function annotateOutcome(
       ...payload,
     },
   };
+}
+
+function planPriceFreshnessFromOutcome(
+  outcome: RecommendationOutcome | null | undefined,
+): PlanPriceFreshnessDiagnostics | null {
+  const value = outcome?.payload_json.plan_price_freshness;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const classification = (value as Record<string, unknown>).classification;
+  if (typeof classification !== "string") {
+    return null;
+  }
+  return value as PlanPriceFreshnessDiagnostics;
 }
 
 function compactOutcomeCandles(candles: RecommendationOutcomeCandle[]) {
@@ -642,6 +663,7 @@ export async function runRecommendationOutcomeEvaluation(
       counterfactual_ready_count: 0,
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
+      plan_price_freshness_summary: null,
       candle_request_debug_sample: [],
       candidates,
       outcomes,
@@ -1111,6 +1133,23 @@ export async function runRecommendationOutcomeEvaluation(
           : providerErrorCount > 0 && missingCandleCount + incompleteCount === 0
             ? "failed"
             : "partial";
+  const outcomesById = new Map(outcomes.map((outcome) => [outcome.id, outcome]));
+  const candidatesWithPlanFreshness = candidates.map((candidate) => ({
+    ...candidate,
+    plan_price_freshness:
+      candidate.plan_price_freshness ??
+      planPriceFreshnessFromOutcome(
+        candidate.outcome_id ? outcomesById.get(candidate.outcome_id) : null,
+      ),
+  }));
+  const planPriceFreshnessSummary = summarizePlanPriceFreshness(
+    candidatesWithPlanFreshness.map((candidate) => ({
+      ticker: candidate.ticker,
+      snapshot_fingerprint: candidate.snapshot_fingerprint,
+      horizon: candidate.horizon,
+      diagnostics: candidate.plan_price_freshness ?? null,
+    })),
+  );
   const completedRun = {
     run_id: createRunId(startedAt),
     run_version: "1.0" as const,
@@ -1148,8 +1187,9 @@ export async function runRecommendationOutcomeEvaluation(
     counterfactual_ready_count: counterfactualReadyCount,
     shadow_entry_trial_count: shadowEntryTrialCount,
     shadow_entry_triggered_count: shadowEntryTriggeredCount,
+    plan_price_freshness_summary: planPriceFreshnessSummary,
     candle_request_debug_sample: candleRequestDebugSample,
-    candidates,
+    candidates: candidatesWithPlanFreshness,
     outcomes,
     warnings,
   };

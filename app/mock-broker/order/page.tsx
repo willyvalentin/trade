@@ -27,16 +27,35 @@ function buildInitialValues(
 ): MockBrokerOrderInitialValues {
   return {
     action: readSingleSearchParam(searchParams, "action"),
+    account: readSingleSearchParam(searchParams, "account"),
+    amountSek: readSingleSearchParam(searchParams, "amountSek"),
+    cancelButtonLabel: readSingleSearchParam(searchParams, "cancelButtonLabel"),
+    confirmButtonLabel: readSingleSearchParam(searchParams, "confirmButtonLabel"),
+    estimatedCourtage: readSingleSearchParam(searchParams, "estimatedCourtage"),
+    estimatedFees: readSingleSearchParam(searchParams, "estimatedFees"),
+    estimatedFxFee: readSingleSearchParam(searchParams, "estimatedFxFee"),
+    estimatedTotalAmount: readSingleSearchParam(
+      searchParams,
+      "estimatedTotalAmount",
+    ),
+    instrumentCurrency: readSingleSearchParam(searchParams, "instrumentCurrency"),
+    instrumentMarket: readSingleSearchParam(searchParams, "instrumentMarket"),
+    instrumentType: readSingleSearchParam(searchParams, "instrumentType"),
     intendedPrice: readSingleSearchParam(searchParams, "intendedPrice"),
     intentId: readSingleSearchParam(searchParams, "intentId"),
     limitPrice: readSingleSearchParam(searchParams, "limitPrice"),
     mode: readSingleSearchParam(searchParams, "mode"),
+    orderMode: readSingleSearchParam(searchParams, "orderMode"),
     orderType: readSingleSearchParam(searchParams, "orderType"),
+    preliminaryFxRate: readSingleSearchParam(searchParams, "preliminaryFxRate"),
+    priceCurrency: readSingleSearchParam(searchParams, "priceCurrency"),
     quantity: readSingleSearchParam(searchParams, "quantity"),
     requestId: readSingleSearchParam(searchParams, "requestId"),
+    reviewButtonLabel: readSingleSearchParam(searchParams, "reviewButtonLabel"),
     stopLossPrice: readSingleSearchParam(searchParams, "stopLossPrice"),
     targetPrice: readSingleSearchParam(searchParams, "targetPrice"),
     ticker: readSingleSearchParam(searchParams, "ticker"),
+    validUntil: readSingleSearchParam(searchParams, "validUntil"),
   };
 }
 

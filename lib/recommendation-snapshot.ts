@@ -1,5 +1,6 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
+import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -517,6 +518,37 @@ export function buildRecommendationSnapshot(
     calculateRiskReward(riskPerShare, rewardPerShare);
   const snapshotFingerprint = buildRecommendationSnapshotFingerprint(input);
   const quality = input.quality ?? null;
+  const payloadJson = {
+    ...(input.payload ?? {}),
+    ...shadowEntryTrialPayload(input),
+    side,
+    direction: side,
+    trade_direction: side,
+    recommendation_side: side,
+    trade_plan: {
+      ...((input.payload?.trade_plan &&
+      typeof input.payload.trade_plan === "object" &&
+      !Array.isArray(input.payload.trade_plan)
+        ? input.payload.trade_plan
+        : {}) as Record<string, unknown>),
+      side,
+      direction: side,
+      action: side === "short" ? "sell" : side === "long" ? "buy" : null,
+    },
+  };
+  const planPriceFreshness = computePlanPriceFreshnessDiagnostics({
+    snapshot: {
+      snapshot_fingerprint: snapshotFingerprint,
+      ticker: textOrNull(input.ticker)?.toUpperCase() ?? null,
+      recommended_at: toIso(input.recommended_at),
+      entry,
+      stop,
+      target,
+      quote_price: finiteNumber(input.quote_price),
+      market_data_snapshot: input.market_data_snapshot ?? null,
+      payload_json: payloadJson,
+    },
+  });
 
   return {
     id: snapshotFingerprint,
@@ -568,22 +600,8 @@ export function buildRecommendationSnapshot(
     empty_state_json: quality?.empty_state_summary ?? null,
     quality_json: quality,
     payload_json: {
-      ...(input.payload ?? {}),
-      ...shadowEntryTrialPayload(input),
-      side,
-      direction: side,
-      trade_direction: side,
-      recommendation_side: side,
-      trade_plan: {
-        ...((input.payload?.trade_plan &&
-        typeof input.payload.trade_plan === "object" &&
-        !Array.isArray(input.payload.trade_plan)
-          ? input.payload.trade_plan
-          : {}) as Record<string, unknown>),
-        side,
-        direction: side,
-        action: side === "short" ? "sell" : side === "long" ? "buy" : null,
-      },
+      ...payloadJson,
+      plan_price_freshness: planPriceFreshness,
     },
     was_taken: input.was_taken === true,
     linked_position_id: textOrNull(input.linked_position_id),

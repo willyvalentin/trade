@@ -1,5 +1,6 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
 
 export type RecommendationOutcomeStatus =
   | "pending"
@@ -653,6 +654,14 @@ export function computeRecommendationOutcome(
   const dataCompleteness =
     textOrNull(input.data_completeness) ??
     (hasCandles ? "complete" : currentPrice !== null || eodPrice !== null ? "partial" : "none");
+  const planPriceFreshness = computePlanPriceFreshnessDiagnostics({
+    snapshot,
+    entry,
+    stop,
+    target,
+    candles,
+    latestProviderPrice: currentPrice ?? eodPrice,
+  });
 
   const outcome: RecommendationOutcome = {
     id: outcomeId(snapshotFingerprint, horizon),
@@ -702,6 +711,7 @@ export function computeRecommendationOutcome(
       provider: textOrNull(input.provider),
       side_read_source: sideResolution.source,
       side_inferred: sideResolution.inferred,
+      plan_price_freshness: planPriceFreshness,
     },
     created_at: toIso(input.created_at) ?? evaluatedAt,
     updated_at: toIso(input.updated_at) ?? evaluatedAt,

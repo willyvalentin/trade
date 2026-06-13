@@ -111,6 +111,7 @@ Docs:
 - `docs/execution-agent-checkpoint.md`
 - `docs/execution-agent-qa-notes.md`
 - `docs/avanza-localhost-bridge-contract.md`
+- `docs/avanza-vs-mock-order-contract-gap-analysis.md`
 
 ## Safety Boundaries
 
@@ -191,6 +192,59 @@ Known caveat:
 
 - In restricted/sandboxed environments, localhost server binding for Playwright or the bridge smoke may require explicit permission. This is an environment restriction, not a product runtime requirement.
 
+Action 235 update:
+
+- The mock order page fill/review contract now includes mock-only Avanza Advanced-style fields for account, amount in SEK, price/instrument currency, instrument market/type, Advanced order mode, validity date, estimated fees/courtage/FX/total, preliminary FX rate, and review/confirm/cancel labels.
+- The Playwright-only fill runner and manual `npm run mock-agent:run` runner fill and verify these fields on the local mock page.
+- The runner still clicks only `Review mock order`, verifies final submit remains disabled, and does not create broker results, Supabase writes, or trade mutations.
+
+Action 236 update:
+
+- The mock confirmation contract/page now includes mock-only Avanza-like readback fields for account, amount excluding fees, courtage, FX fee, preliminary FX rate, valid until, total amount, price/instrument currency, instrument market/type, Advanced order mode, and review/confirm/cancel labels.
+- The mock order review link passes those fields to the confirmation page manually.
+- The Playwright-only parser reads the expanded confirmation contract.
+- Confirm/cancel labels are disabled readback controls only; no broker result, execution record, Supabase write, or trade mutation is created.
+
+Action 237 update:
+
+- The mock order page now validates required Advanced-order fields, quantity/price/amount numbers, minimum amount, and unsupported order modes before review.
+- Validation failures render stable mock selectors and block the review panel.
+- The disabled final submit placeholder remains disabled throughout validation failures and valid review.
+- This is mock/dev validation only and does not create broker results, execution records, Supabase writes, or trade mutations.
+
+Action 238 update:
+
+- The Playwright-only fill runner and manual `npm run mock-agent:run` runner now explicitly verify `orderMode=advanced`.
+- Runner flows stop safely on mock validation errors and expose those errors in runner metadata.
+- Valid runner flows verify the review panel, manual mock confirmation link availability, and disabled final submit.
+- The confirmation link is verified but not opened automatically.
+- Localhost bridge mock-agent metadata can surface the runner verification fields without creating broker results or execution records.
+
+Action 247 update:
+
+- `lib/mock-order-safe-action-plan.ts` can now convert a valid `MockOrderPageFillPlan` into a pure `SafeBrowserAction` plan for the mock order page.
+- The generated plan uses mock selector test IDs/descriptions, includes local fill/select/read steps, can include the local review click, and reads disabled submit state.
+- The mock final confirm label is handled as form/readback data, and no final confirm click action is generated.
+- The plan validates through the safe browser action contract and can run through the no-op safe browser action runner with `executedCount=0`.
+- This is pure mock/dev planning only; it does not import Playwright, open a browser, click/fill/read a real page, create broker results, write Supabase, or mutate trade state.
+
+Action 248 update:
+
+- `tests/e2e/helpers/safe-browser-action-playwright-adapter.ts` can now execute validated `SafeBrowserAction` plans against the dev-only mock order page in Playwright tests only.
+- The adapter validates each action before execution, supports only known mock selectors, fills/selects local mock fields, clicks only the local review button, verifies readbacks, and blocks final-confirm-like clicks.
+- E2E covers a valid mock safe-action plan through `/mock-broker/order` and an injected unsafe final-confirm click that is blocked before execution.
+- This remains test-only and mock-only. It is not app runtime code, Avanza automation, broker execution, Supabase persistence, or trade-state mutation.
+
+Action 249-251 safe-action diagnostics update:
+
+- `lib/safe-browser-action-diagnostics.ts` defines a shared diagnostics shape for safe-action execution steps and aggregate runner status.
+- `lib/safe-browser-action-diagnostics-store.ts` stores those diagnostics locally under `ture_safe_browser_action_diagnostics_v1`.
+- Settings has a dev-gated `Safe Browser Action Diagnostics` viewer with final-confirm-blocked counts and step details.
+- The local mock-agent runner now emits safe-action diagnostics for mock-only fill/review/readback steps.
+- The localhost bridge can return those diagnostics as response-level metadata when the user explicitly runs the local mock agent.
+- The Execution Handoff Preview Modal displays and locally saves those diagnostics.
+- This remains local/dev diagnostics only. It does not create broker results, execution records, Supabase writes, real broker automation, Avanza automation, order submissions, or trade mutations.
+
 ## Recommended Next Phase
 
 Phase 1 - Polish and harden the mock-agent loop:
@@ -198,9 +252,11 @@ Phase 1 - Polish and harden the mock-agent loop:
 - Add more mock-agent run viewer details if local diagnostics need richer inspection.
 - Add Playwright screenshots or traces if useful for reviewing mock-page runner behavior.
 - Improve displayed errors for unavailable mock page, missing dev-tools flag, invalid fill plan, or localhost bridge unreachability.
+- Add richer diagnostics around validation-failure screenshots/traces if needed.
 
 Phase 2 - Mock confirmation dev result diagnostics, still no Avanza:
 
+- Harden mock confirmation validation/error states now that the readback fields exist.
 - Extend the local runner to navigate to a mock confirmation page only after review.
 - Surface parsed mock confirmation diagnostics if needed.
 - Continue hardening `DevMockBrokerExecutionResult` diagnostics now that Settings can view and clear them.
@@ -216,6 +272,7 @@ Phase 3 - External local process bridge:
 Phase 4 - Avanza UI research:
 
 - Manual mapping only.
+- Use `docs/avanza-vs-mock-order-contract-gap-analysis.md` before adding any Avanza-specific mock contract fields.
 - Document selectors and flows before any automation discussion.
 - No credentials in Ture.
 - No Avanza automation until safety gates, selector contracts, and manual review flows are documented and approved.

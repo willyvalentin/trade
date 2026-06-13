@@ -9,12 +9,17 @@ import {
   type ExecutionMode,
 } from "@/lib/execution";
 import {
+  MOCK_ORDER_MIN_AMOUNT_SEK,
   MOCK_ORDER_PAGE_AGENT_SELECTORS,
+  validateMockOrderPageFormValues,
   type MockOrderPageFieldKey,
+  type MockOrderPageValidationError,
+  type MockOrderPageValidationErrorCode,
 } from "@/lib/mock-order-page-agent-contract";
 import { buildMockOrderConfirmationUrl } from "@/lib/mock-order-confirmation-contract";
 
 type MockBrokerOrderType = "market" | "limit";
+type MockBrokerOrderMode = "advanced" | "stop_loss" | "trailing";
 
 export type MockBrokerOrderInitialValues = {
   ticker?: string;
@@ -26,6 +31,22 @@ export type MockBrokerOrderInitialValues = {
   targetPrice?: string;
   stopLossPrice?: string;
   mode?: string;
+  account?: string;
+  amountSek?: string;
+  priceCurrency?: string;
+  instrumentMarket?: string;
+  instrumentCurrency?: string;
+  instrumentType?: string;
+  orderMode?: string;
+  reviewButtonLabel?: string;
+  confirmButtonLabel?: string;
+  cancelButtonLabel?: string;
+  validUntil?: string;
+  estimatedFees?: string;
+  estimatedCourtage?: string;
+  estimatedFxFee?: string;
+  estimatedTotalAmount?: string;
+  preliminaryFxRate?: string;
   requestId?: string;
   intentId?: string;
 };
@@ -40,6 +61,22 @@ type MockBrokerOrderFormState = {
   targetPrice: string;
   stopLossPrice: string;
   mode: ExecutionMode;
+  account: string;
+  amountSek: string;
+  priceCurrency: string;
+  instrumentMarket: string;
+  instrumentCurrency: string;
+  instrumentType: string;
+  orderMode: MockBrokerOrderMode;
+  reviewButtonLabel: string;
+  confirmButtonLabel: string;
+  cancelButtonLabel: string;
+  validUntil: string;
+  estimatedFees: string;
+  estimatedCourtage: string;
+  estimatedFxFee: string;
+  estimatedTotalAmount: string;
+  preliminaryFxRate: string;
   requestId: string;
   intentId: string;
 };
@@ -52,23 +89,60 @@ function normalizeOrderType(value: unknown): MockBrokerOrderType {
   return value === "limit" ? "limit" : "market";
 }
 
+function reviewLabelForAction(action: ExecutionAction) {
+  return action === "sell" ? "Granska sälj" : "Granska köp";
+}
+
+function confirmLabelForAction(action: ExecutionAction) {
+  return action === "sell" ? "Bekräfta sälj" : "Bekräfta köp";
+}
+
+function normalizeOrderMode(value: unknown): MockBrokerOrderMode {
+  if (value === "stop_loss" || value === "trailing") {
+    return value;
+  }
+
+  return "advanced";
+}
+
 function createInitialFormState(
   initialValues: MockBrokerOrderInitialValues,
 ): MockBrokerOrderFormState {
+  const action = normalizeAction(initialValues.action);
+
   return {
-    action: normalizeAction(initialValues.action),
+    account: initialValues.account ?? "Mock account",
+    action,
+    amountSek: initialValues.amountSek ?? "",
+    cancelButtonLabel: initialValues.cancelButtonLabel ?? "Avbryt",
+    confirmButtonLabel:
+      initialValues.confirmButtonLabel ?? confirmLabelForAction(action),
+    estimatedCourtage: initialValues.estimatedCourtage ?? "",
+    estimatedFees: initialValues.estimatedFees ?? "",
+    estimatedFxFee: initialValues.estimatedFxFee ?? "",
+    estimatedTotalAmount: initialValues.estimatedTotalAmount ?? "",
+    instrumentCurrency: initialValues.instrumentCurrency ?? "USD",
+    instrumentMarket: initialValues.instrumentMarket ?? "Mock market",
+    instrumentType: initialValues.instrumentType ?? "stock",
     intendedPrice: initialValues.intendedPrice ?? "",
     intentId: initialValues.intentId ?? "",
     limitPrice: initialValues.limitPrice ?? "",
     mode: normalizeExecutionMode(initialValues.mode, {
       automaticEnabled: true,
     }),
+    orderMode: normalizeOrderMode(initialValues.orderMode),
     orderType: normalizeOrderType(initialValues.orderType),
+    preliminaryFxRate: initialValues.preliminaryFxRate ?? "",
+    priceCurrency: initialValues.priceCurrency ?? "USD",
     quantity: initialValues.quantity ?? "",
+    reviewButtonLabel:
+      initialValues.reviewButtonLabel ?? reviewLabelForAction(action),
     requestId: initialValues.requestId ?? "",
     stopLossPrice: initialValues.stopLossPrice ?? "",
     targetPrice: initialValues.targetPrice ?? "",
     ticker: initialValues.ticker ?? "",
+    validUntil:
+      initialValues.validUntil ?? new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -131,6 +205,89 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function validationSelectorProps(
+  selectorKey:
+    | "validationErrors"
+    | "validationError"
+    | "validationErrorRequired"
+    | "validationErrorMinimumAmount"
+    | "validationErrorUnsupportedOrderMode",
+) {
+  const selector = MOCK_ORDER_PAGE_AGENT_SELECTORS[selectorKey];
+
+  return {
+    "data-agent-field": selector.dataAgentField,
+    "data-testid": selector.testId,
+  };
+}
+
+function validationGroupSelectorKey(code: MockOrderPageValidationErrorCode) {
+  if (code === "minimum_amount") {
+    return "validationErrorMinimumAmount" as const;
+  }
+
+  if (code === "unsupported_order_mode") {
+    return "validationErrorUnsupportedOrderMode" as const;
+  }
+
+  return "validationErrorRequired" as const;
+}
+
+function ValidationErrorBlock({
+  errors,
+}: {
+  errors: MockOrderPageValidationError[];
+}) {
+  if (errors.length === 0) {
+    return null;
+  }
+
+  const groupedErrors = errors.reduce<
+    Partial<Record<MockOrderPageValidationErrorCode, MockOrderPageValidationError[]>>
+  >((groups, error) => {
+    groups[error.code] = [...(groups[error.code] ?? []), error];
+
+    return groups;
+  }, {});
+
+  return (
+    <section
+      className="rounded-lg border border-amber-400/30 bg-amber-950/20 p-4"
+      {...validationSelectorProps("validationErrors")}
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-100">
+        Mock validation errors
+      </p>
+      <p className="mt-2 text-sm leading-6 text-amber-50/90">
+        Review is blocked in this local sandbox until the mock Advanced order
+        fields are valid. No submit or broker action is available.
+      </p>
+      <div className="mt-3 space-y-3">
+        {Object.entries(groupedErrors).map(([code, groupErrors]) => (
+          <ul
+            className="space-y-2"
+            key={code}
+            {...validationSelectorProps(
+              validationGroupSelectorKey(code as MockOrderPageValidationErrorCode),
+            )}
+          >
+            {groupErrors.map((error) => (
+              <li
+                className="rounded-md border border-amber-300/20 bg-slate-950/70 px-3 py-2 text-sm text-amber-50"
+                data-error-code={error.code}
+                key={`${error.code}-${error.fieldKey ?? "form"}-${error.message}`}
+                {...validationSelectorProps("validationError")}
+              >
+                {error.message}
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function MockBrokerOrderTicket({
   initialValues,
 }: {
@@ -144,23 +301,41 @@ export function MockBrokerOrderTicket({
     useState<MockBrokerOrderFormState>(initialFormState);
   const [reviewState, setReviewState] =
     useState<MockBrokerOrderFormState | null>(null);
+  const [validationErrors, setValidationErrors] = useState<
+    MockOrderPageValidationError[]
+  >([]);
 
   const requiresManualFinalConfirmation =
     formState.mode === DEFAULT_EXECUTION_MODE;
   const allowsAutomaticFinalSubmit = formState.mode === "automatic";
   const mockConfirmationHref = reviewState
     ? buildMockOrderConfirmationUrl({
+        account: reviewState.account,
         action: reviewState.action,
+        amountExcludingFees: reviewState.amountSek,
+        cancelButtonLabel: reviewState.cancelButtonLabel,
+        confirmButtonLabel: reviewState.confirmButtonLabel,
+        courtage: reviewState.estimatedCourtage,
         executedPrice: "",
+        fxFee: reviewState.estimatedFxFee,
+        instrumentCurrency: reviewState.instrumentCurrency,
+        instrumentMarket: reviewState.instrumentMarket,
+        instrumentType: reviewState.instrumentType,
         intentId: reviewState.intentId,
         message:
           "Local mock confirmation preview only. No brokerResult created.",
+        orderMode: reviewState.orderMode,
         orderId: "mock_order_preview_only",
+        preliminaryFxRate: reviewState.preliminaryFxRate,
+        priceCurrency: reviewState.priceCurrency,
         quantity: reviewState.quantity,
         requestId: reviewState.requestId,
         requestedPrice: reviewState.limitPrice || reviewState.intendedPrice,
+        reviewButtonLabel: reviewState.reviewButtonLabel,
         status: "submitted",
         ticker: reviewState.ticker,
+        totalAmount: reviewState.estimatedTotalAmount,
+        validUntil: reviewState.validUntil,
       })
     : "";
 
@@ -173,16 +348,51 @@ export function MockBrokerOrderTicket({
       [field]: value,
     }));
     setReviewState(null);
+    setValidationErrors([]);
+  }
+
+  function updateAction(value: string) {
+    const nextAction = normalizeAction(value);
+
+    setFormState((current) => {
+      const previousReviewLabel = reviewLabelForAction(current.action);
+      const previousConfirmLabel = confirmLabelForAction(current.action);
+
+      return {
+        ...current,
+        action: nextAction,
+        reviewButtonLabel:
+          current.reviewButtonLabel === previousReviewLabel
+            ? reviewLabelForAction(nextAction)
+            : current.reviewButtonLabel,
+        confirmButtonLabel:
+          current.confirmButtonLabel === previousConfirmLabel
+            ? confirmLabelForAction(nextAction)
+            : current.confirmButtonLabel,
+      };
+    });
+    setReviewState(null);
+    setValidationErrors([]);
   }
 
   function reviewMockOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const validation = validateMockOrderPageFormValues(formState);
+
+    if (!validation.ok) {
+      setValidationErrors(validation.errors);
+      setReviewState(null);
+      return;
+    }
+
+    setValidationErrors([]);
     setReviewState({ ...formState });
   }
 
   function resetMockForm() {
     setFormState(initialFormState);
     setReviewState(null);
+    setValidationErrors([]);
   }
 
   return (
@@ -261,17 +471,22 @@ export function MockBrokerOrderTicket({
                     data-testid={MOCK_ORDER_PAGE_AGENT_SELECTORS.action.testId}
                     id="action"
                     name="action"
-                    onChange={(event) =>
-                      updateFormField(
-                        "action",
-                        normalizeAction(event.target.value),
-                      )
-                    }
+                    onChange={(event) => updateAction(event.target.value)}
                     value={formState.action}
                   >
                     <option value="buy">Buy</option>
                     <option value="sell">Sell</option>
                   </select>
+                </div>
+                <div>
+                  <FieldLabel htmlFor="account">Account</FieldLabel>
+                  <TextInput
+                    id="account"
+                    onChange={(value) => updateFormField("account", value)}
+                    placeholder="Mock account"
+                    selectorKey="account"
+                    value={formState.account}
+                  />
                 </div>
                 <div>
                   <FieldLabel htmlFor="orderType">Order type</FieldLabel>
@@ -298,6 +513,29 @@ export function MockBrokerOrderTicket({
                   </select>
                 </div>
                 <div>
+                  <FieldLabel htmlFor="orderMode">Order mode</FieldLabel>
+                  <select
+                    className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400"
+                    data-agent-field={
+                      MOCK_ORDER_PAGE_AGENT_SELECTORS.orderMode.dataAgentField
+                    }
+                    data-testid={MOCK_ORDER_PAGE_AGENT_SELECTORS.orderMode.testId}
+                    id="orderMode"
+                    name="orderMode"
+                    onChange={(event) =>
+                      updateFormField(
+                        "orderMode",
+                        normalizeOrderMode(event.target.value),
+                      )
+                    }
+                    value={formState.orderMode}
+                  >
+                    <option value="advanced">Advanced</option>
+                    <option value="stop_loss">Stop Loss - unsupported</option>
+                    <option value="trailing">Trailing - unsupported</option>
+                  </select>
+                </div>
+                <div>
                   <FieldLabel htmlFor="limitPrice">Limit price</FieldLabel>
                   <TextInput
                     id="limitPrice"
@@ -319,6 +557,68 @@ export function MockBrokerOrderTicket({
                     placeholder="145.50"
                     selectorKey="intendedPrice"
                     value={formState.intendedPrice}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="amountSek">Amount SEK</FieldLabel>
+                  <TextInput
+                    id="amountSek"
+                    onChange={(value) => updateFormField("amountSek", value)}
+                    placeholder="15000"
+                    selectorKey="amountSek"
+                    value={formState.amountSek}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="priceCurrency">Price currency</FieldLabel>
+                  <TextInput
+                    id="priceCurrency"
+                    onChange={(value) =>
+                      updateFormField("priceCurrency", value.toUpperCase())
+                    }
+                    placeholder="USD"
+                    selectorKey="priceCurrency"
+                    value={formState.priceCurrency}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="instrumentMarket">
+                    Instrument market
+                  </FieldLabel>
+                  <TextInput
+                    id="instrumentMarket"
+                    onChange={(value) =>
+                      updateFormField("instrumentMarket", value)
+                    }
+                    placeholder="NASDAQ"
+                    selectorKey="instrumentMarket"
+                    value={formState.instrumentMarket}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="instrumentCurrency">
+                    Instrument currency
+                  </FieldLabel>
+                  <TextInput
+                    id="instrumentCurrency"
+                    onChange={(value) =>
+                      updateFormField("instrumentCurrency", value.toUpperCase())
+                    }
+                    placeholder="USD"
+                    selectorKey="instrumentCurrency"
+                    value={formState.instrumentCurrency}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="instrumentType">Instrument type</FieldLabel>
+                  <TextInput
+                    id="instrumentType"
+                    onChange={(value) =>
+                      updateFormField("instrumentType", value)
+                    }
+                    placeholder="stock"
+                    selectorKey="instrumentType"
+                    value={formState.instrumentType}
                   />
                 </div>
                 <div>
@@ -370,6 +670,122 @@ export function MockBrokerOrderTicket({
                   </select>
                 </div>
                 <div>
+                  <FieldLabel htmlFor="validUntil">Valid until</FieldLabel>
+                  <TextInput
+                    id="validUntil"
+                    onChange={(value) => updateFormField("validUntil", value)}
+                    placeholder="2026-06-11"
+                    selectorKey="validUntil"
+                    value={formState.validUntil}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="estimatedFees">Estimated fees</FieldLabel>
+                  <TextInput
+                    id="estimatedFees"
+                    onChange={(value) => updateFormField("estimatedFees", value)}
+                    placeholder="19.00"
+                    selectorKey="estimatedFees"
+                    value={formState.estimatedFees}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="estimatedCourtage">
+                    Estimated courtage
+                  </FieldLabel>
+                  <TextInput
+                    id="estimatedCourtage"
+                    onChange={(value) =>
+                      updateFormField("estimatedCourtage", value)
+                    }
+                    placeholder="9.00"
+                    selectorKey="estimatedCourtage"
+                    value={formState.estimatedCourtage}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="estimatedFxFee">Estimated FX fee</FieldLabel>
+                  <TextInput
+                    id="estimatedFxFee"
+                    onChange={(value) =>
+                      updateFormField("estimatedFxFee", value)
+                    }
+                    placeholder="10.00"
+                    selectorKey="estimatedFxFee"
+                    value={formState.estimatedFxFee}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="estimatedTotalAmount">
+                    Estimated total amount
+                  </FieldLabel>
+                  <TextInput
+                    id="estimatedTotalAmount"
+                    onChange={(value) =>
+                      updateFormField("estimatedTotalAmount", value)
+                    }
+                    placeholder="15019.00"
+                    selectorKey="estimatedTotalAmount"
+                    value={formState.estimatedTotalAmount}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="preliminaryFxRate">
+                    Preliminary FX rate
+                  </FieldLabel>
+                  <TextInput
+                    id="preliminaryFxRate"
+                    onChange={(value) =>
+                      updateFormField("preliminaryFxRate", value)
+                    }
+                    placeholder="10.50"
+                    selectorKey="preliminaryFxRate"
+                    value={formState.preliminaryFxRate}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="reviewButtonLabel">
+                    Review button label
+                  </FieldLabel>
+                  <TextInput
+                    id="reviewButtonLabel"
+                    onChange={(value) =>
+                      updateFormField("reviewButtonLabel", value)
+                    }
+                    placeholder="Granska köp"
+                    selectorKey="reviewButtonLabel"
+                    value={formState.reviewButtonLabel}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="confirmButtonLabel">
+                    Confirm button label
+                  </FieldLabel>
+                  <TextInput
+                    id="confirmButtonLabel"
+                    onChange={(value) =>
+                      updateFormField("confirmButtonLabel", value)
+                    }
+                    placeholder="Bekräfta köp"
+                    selectorKey="confirmButtonLabel"
+                    value={formState.confirmButtonLabel}
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="cancelButtonLabel">
+                    Cancel button label
+                  </FieldLabel>
+                  <TextInput
+                    id="cancelButtonLabel"
+                    onChange={(value) =>
+                      updateFormField("cancelButtonLabel", value)
+                    }
+                    placeholder="Avbryt"
+                    selectorKey="cancelButtonLabel"
+                    value={formState.cancelButtonLabel}
+                  />
+                </div>
+                <div>
                   <FieldLabel htmlFor="requestId">Request ID</FieldLabel>
                   <TextInput
                     id="requestId"
@@ -390,6 +806,8 @@ export function MockBrokerOrderTicket({
                   />
                 </div>
               </div>
+
+              <ValidationErrorBlock errors={validationErrors} />
 
               <div className="grid gap-3 rounded-lg border border-slate-800 bg-slate-950/70 p-4 sm:grid-cols-2">
                 <div
@@ -500,6 +918,31 @@ export function MockBrokerOrderTicket({
                     value={reviewState.orderType}
                   />
                   <SummaryRow
+                    label="Order mode"
+                    value={reviewState.orderMode}
+                  />
+                  <SummaryRow label="Account" value={reviewState.account} />
+                  <SummaryRow
+                    label="Amount SEK"
+                    value={reviewState.amountSek}
+                  />
+                  <SummaryRow
+                    label="Price currency"
+                    value={reviewState.priceCurrency}
+                  />
+                  <SummaryRow
+                    label="Instrument market"
+                    value={reviewState.instrumentMarket}
+                  />
+                  <SummaryRow
+                    label="Instrument currency"
+                    value={reviewState.instrumentCurrency}
+                  />
+                  <SummaryRow
+                    label="Instrument type"
+                    value={reviewState.instrumentType}
+                  />
+                  <SummaryRow
                     label="Limit price"
                     value={reviewState.limitPrice}
                   />
@@ -514,6 +957,42 @@ export function MockBrokerOrderTicket({
                   <SummaryRow
                     label="Stop loss price"
                     value={reviewState.stopLossPrice}
+                  />
+                  <SummaryRow
+                    label="Valid until"
+                    value={reviewState.validUntil}
+                  />
+                  <SummaryRow
+                    label="Estimated fees"
+                    value={reviewState.estimatedFees}
+                  />
+                  <SummaryRow
+                    label="Estimated courtage"
+                    value={reviewState.estimatedCourtage}
+                  />
+                  <SummaryRow
+                    label="Estimated FX fee"
+                    value={reviewState.estimatedFxFee}
+                  />
+                  <SummaryRow
+                    label="Estimated total amount"
+                    value={reviewState.estimatedTotalAmount}
+                  />
+                  <SummaryRow
+                    label="Preliminary FX rate"
+                    value={reviewState.preliminaryFxRate}
+                  />
+                  <SummaryRow
+                    label="Review button label"
+                    value={reviewState.reviewButtonLabel}
+                  />
+                  <SummaryRow
+                    label="Confirm button label"
+                    value={reviewState.confirmButtonLabel}
+                  />
+                  <SummaryRow
+                    label="Cancel button label"
+                    value={reviewState.cancelButtonLabel}
                   />
                   <SummaryRow label="Mode" value={reviewState.mode} />
                   <SummaryRow
@@ -551,8 +1030,9 @@ export function MockBrokerOrderTicket({
                 </dl>
               ) : (
                 <p className="mt-4 rounded-md border border-slate-800 bg-slate-950/70 p-4 text-sm leading-6 text-slate-400">
-                  Fill the fake ticket and choose Review mock order. The review
-                  panel is local component state only.
+                  {validationErrors.length > 0
+                    ? `Fix the mock validation errors before reviewing. Minimum amount threshold: ${MOCK_ORDER_MIN_AMOUNT_SEK} SEK.`
+                    : "Fill the fake ticket and choose Review mock order. The review panel is local component state only."}
                 </p>
               )}
             </section>

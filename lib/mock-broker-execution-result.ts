@@ -1,5 +1,6 @@
 import {
   normalizeMockOrderConfirmationStatus,
+  parseMockOrderConfirmationFields,
   type MockOrderConfirmationParseResult,
   type MockOrderConfirmationPayload,
   type MockOrderConfirmationStatus,
@@ -97,18 +98,23 @@ export function normalizeDevMockBrokerExecutionStatus(
 }
 
 export function buildDevMockBrokerExecutionResultFromConfirmationPayload(
-  payload: MockOrderConfirmationPayload,
+  payload: Partial<MockOrderConfirmationPayload>,
   options: DevMockBrokerExecutionResultBuildOptions = {},
 ): DevMockBrokerExecutionResult {
+  const normalizedPayload = parseMockOrderConfirmationFields(payload).payload;
   const warnings: string[] = [];
-  const quantity = readOptionalNumber(payload.quantity, "Quantity", warnings);
+  const quantity = readOptionalNumber(
+    normalizedPayload.quantity,
+    "Quantity",
+    warnings,
+  );
   const requestedPrice = readOptionalNumber(
-    payload.requestedPrice,
+    normalizedPayload.requestedPrice,
     "Requested price",
     warnings,
   );
   const executedPrice = readOptionalNumber(
-    payload.executedPrice,
+    normalizedPayload.executedPrice,
     "Executed price",
     warnings,
   );
@@ -116,25 +122,31 @@ export function buildDevMockBrokerExecutionResultFromConfirmationPayload(
     source: "mock_broker",
     isMock: true,
     createdAt: normalizeCreatedAt(options.createdAt),
-    status: normalizeDevMockBrokerExecutionStatus(payload.status),
-    ticker: payload.ticker.trim(),
-    action: payload.action.trim(),
+    status: normalizeDevMockBrokerExecutionStatus(normalizedPayload.status),
+    ticker: normalizedPayload.ticker.trim(),
+    action: normalizedPayload.action.trim(),
     ...(typeof quantity === "number" ? { quantity } : {}),
     ...(typeof requestedPrice === "number" ? { requestedPrice } : {}),
     ...(typeof executedPrice === "number" ? { executedPrice } : {}),
-    ...(optionalString(payload.orderId) ? { orderId: payload.orderId.trim() } : {}),
-    ...(optionalString(payload.requestId)
-      ? { requestId: payload.requestId.trim() }
+    ...(optionalString(normalizedPayload.orderId)
+      ? { orderId: normalizedPayload.orderId.trim() }
       : {}),
-    ...(optionalString(payload.intentId) ? { intentId: payload.intentId.trim() } : {}),
-    ...(optionalString(payload.positionId)
-      ? { positionId: payload.positionId.trim() }
+    ...(optionalString(normalizedPayload.requestId)
+      ? { requestId: normalizedPayload.requestId.trim() }
       : {}),
-    ...(optionalString(payload.recommendationId)
-      ? { recommendationId: payload.recommendationId.trim() }
+    ...(optionalString(normalizedPayload.intentId)
+      ? { intentId: normalizedPayload.intentId.trim() }
       : {}),
-    ...(optionalString(payload.message) ? { message: payload.message.trim() } : {}),
-    rawPayload: payload,
+    ...(optionalString(normalizedPayload.positionId)
+      ? { positionId: normalizedPayload.positionId.trim() }
+      : {}),
+    ...(optionalString(normalizedPayload.recommendationId)
+      ? { recommendationId: normalizedPayload.recommendationId.trim() }
+      : {}),
+    ...(optionalString(normalizedPayload.message)
+      ? { message: normalizedPayload.message.trim() }
+      : {}),
+    rawPayload: normalizedPayload,
     warnings,
     errors: [],
   };

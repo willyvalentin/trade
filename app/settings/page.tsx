@@ -96,6 +96,17 @@ import {
   type StoredDevMockBrokerExecutionResult,
 } from "@/lib/dev-mock-broker-result-store";
 import {
+  clearSafeBrowserActionDiagnostics,
+  readSafeBrowserActionDiagnosticsStoreResult,
+  type SafeBrowserActionDiagnosticsStoreReadResult,
+  type StoredSafeBrowserActionExecutionDiagnostics,
+} from "@/lib/safe-browser-action-diagnostics-store";
+import {
+  classifyDiagnosticsCapability,
+  summarizeBrowserRunnerCapabilityValidation,
+  validateBrowserRunnerCapability,
+} from "@/lib/browser-runner-capability-gate";
+import {
   buildDevMockCaptureDuplicateKey,
   convertDevMockBrokerResultToBrokerExecutionResult,
   findLocalExecutionRecordsForDevMockCapture,
@@ -619,6 +630,10 @@ function readAvanzaAgentRunsForSettings(): AvanzaAgentRunStoreReadResult {
 
 function readDevMockBrokerResultsForSettings(): DevMockBrokerResultStoreReadResult {
   return readDevMockBrokerResultStoreResult();
+}
+
+function readSafeBrowserActionDiagnosticsForSettings(): SafeBrowserActionDiagnosticsStoreReadResult {
+  return readSafeBrowserActionDiagnosticsStoreResult();
 }
 
 function isExecutionSandboxSmokeChecklistStatus(
@@ -1259,6 +1274,16 @@ export default function SettingsPage() {
     devMockBrokerResultStoreMessage,
     setDevMockBrokerResultStoreMessage,
   ] = useState("");
+  const [
+    safeBrowserActionDiagnosticsStore,
+    setSafeBrowserActionDiagnosticsStore,
+  ] = useState<SafeBrowserActionDiagnosticsStoreReadResult>(() =>
+    readSafeBrowserActionDiagnosticsForSettings(),
+  );
+  const [
+    safeBrowserActionDiagnosticsMessage,
+    setSafeBrowserActionDiagnosticsMessage,
+  ] = useState("");
   const [avanzaAgentBridgeHealth, setAvanzaAgentBridgeHealth] =
     useState<AvanzaAgentBridgeHealth | null>(null);
   const [isCheckingAvanzaAgentBridge, setIsCheckingAvanzaAgentBridge] =
@@ -1378,6 +1403,22 @@ export default function SettingsPage() {
   );
   const latestDevMockBrokerResultTimestamp =
     latestDevMockBrokerResults[0]?.createdAt ?? null;
+  const latestSafeBrowserActionDiagnostics = useMemo(
+    () =>
+      [...safeBrowserActionDiagnosticsStore.diagnostics]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 50),
+    [safeBrowserActionDiagnosticsStore.diagnostics],
+  );
+  const latestSafeBrowserActionDiagnosticsTimestamp =
+    latestSafeBrowserActionDiagnostics[0]?.createdAt ?? null;
+  const safeBrowserActionFinalConfirmBlockedCount = useMemo(
+    () =>
+      safeBrowserActionDiagnosticsStore.diagnostics.filter(
+        (diagnostics) => diagnostics.finalConfirmBlocked,
+      ).length,
+    [safeBrowserActionDiagnosticsStore.diagnostics],
+  );
   const avanzaNotesJson = useMemo(
     () => avanzaVerificationNotesJson(avanzaNotesState),
     [avanzaNotesState],
@@ -1455,6 +1496,9 @@ export default function SettingsPage() {
       setExecutionRecordStore(readExecutionRecordsForSettings());
       setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
       setDevMockBrokerResultStore(readDevMockBrokerResultsForSettings());
+      setSafeBrowserActionDiagnosticsStore(
+        readSafeBrowserActionDiagnosticsForSettings(),
+      );
       setAvanzaAgentBridgeConfig(readAvanzaAgentBridgeConfig());
       setExecutionSandboxSmokeChecklist(
         readExecutionSandboxSmokeChecklistState(),
@@ -1566,6 +1610,15 @@ export default function SettingsPage() {
   function refreshDevMockBrokerResults() {
     setDevMockBrokerResultStore(readDevMockBrokerResultsForSettings());
     setDevMockBrokerResultStoreMessage("Dev mock broker results refreshed.");
+  }
+
+  function refreshSafeBrowserActionDiagnostics() {
+    setSafeBrowserActionDiagnosticsStore(
+      readSafeBrowserActionDiagnosticsForSettings(),
+    );
+    setSafeBrowserActionDiagnosticsMessage(
+      "Safe browser action diagnostics refreshed.",
+    );
   }
 
   async function checkAvanzaAgentBridgeHealth(
@@ -1734,6 +1787,28 @@ export default function SettingsPage() {
       cleared
         ? "Local dev mock broker results cleared."
         : "Could not clear local dev mock broker results.",
+    );
+  }
+
+  function clearLocalSafeBrowserActionDiagnostics() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Clear local safe browser action diagnostics in this browser? This only removes the safe-action diagnostics key and does not affect broker results, execution records, trades, or Supabase.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearSafeBrowserActionDiagnostics();
+    setSafeBrowserActionDiagnosticsStore(
+      readSafeBrowserActionDiagnosticsForSettings(),
+    );
+    setSafeBrowserActionDiagnosticsMessage(
+      cleared
+        ? "Safe browser action diagnostics cleared."
+        : "Could not clear safe browser action diagnostics.",
     );
   }
 
@@ -2544,6 +2619,18 @@ export default function SettingsPage() {
                   uniqueIntentCount={uniqueAgentAdapterIntentCount}
                   message={executionEventLogMessage}
                   onRefresh={refreshExecutionEventLog}
+                />
+
+                <SafeBrowserActionDiagnosticsPanel
+                  readResult={safeBrowserActionDiagnosticsStore}
+                  visibleDiagnostics={latestSafeBrowserActionDiagnostics}
+                  latestTimestamp={latestSafeBrowserActionDiagnosticsTimestamp}
+                  finalConfirmBlockedCount={
+                    safeBrowserActionFinalConfirmBlockedCount
+                  }
+                  message={safeBrowserActionDiagnosticsMessage}
+                  onRefresh={refreshSafeBrowserActionDiagnostics}
+                  onClear={clearLocalSafeBrowserActionDiagnostics}
                 />
 
                 <AvanzaAgentRunsPanel
@@ -3845,6 +3932,325 @@ function AgentAdapterDiagnosticsRow({
           </pre>
         </details>
       )}
+    </article>
+  );
+}
+
+function SafeBrowserActionDiagnosticsPanel({
+  readResult,
+  visibleDiagnostics,
+  latestTimestamp,
+  finalConfirmBlockedCount,
+  message,
+  onRefresh,
+  onClear,
+}: {
+  readResult: SafeBrowserActionDiagnosticsStoreReadResult;
+  visibleDiagnostics: StoredSafeBrowserActionExecutionDiagnostics[];
+  latestTimestamp: string | null;
+  finalConfirmBlockedCount: number;
+  message: string;
+  onRefresh: () => void;
+  onClear: () => void;
+}) {
+  const hasDiagnostics = readResult.diagnostics.length > 0;
+
+  return (
+    <section className="mt-6 rounded-lg border border-teal-300/15 bg-teal-300/[0.035] p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-teal-100">
+            Safe Browser Action Diagnostics
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+            Local diagnostics for mock/future browser action runs. Not broker
+            results. Not order execution.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-teal-300/30 hover:text-teal-100"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={!readResult.storageAvailable}
+            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
+          >
+            Clear diagnostics
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-4">
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Total Diagnostics
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {readResult.diagnostics.length}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest Diagnostic
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {formatDateTime(latestTimestamp)}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Final-confirm Blocked
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {finalConfirmBlockedCount}
+          </div>
+        </div>
+        <div className="rounded-md border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Storage
+          </div>
+          <div className="mt-1 text-zinc-200">
+            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-zinc-500">
+        Refresh reads only the safe browser action diagnostics key; clear
+        removes only that diagnostics key and does not affect broker results,
+        execution records, trades, or Supabase.
+      </p>
+
+      {readResult.error && (
+        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
+          Safe browser action diagnostics could not be parsed safely:{" "}
+          {readResult.error}
+        </p>
+      )}
+
+      {readResult.discardedCount > 0 && (
+        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
+          Ignored {readResult.discardedCount} malformed safe browser action
+          diagnostic{readResult.discardedCount === 1 ? "" : "s"}.
+        </p>
+      )}
+
+      {message && (
+        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-2">
+        {!hasDiagnostics ? (
+          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
+            No local safe browser action diagnostics are stored in this browser
+            yet.
+          </div>
+        ) : (
+          visibleDiagnostics.map((diagnostics) => (
+            <SafeBrowserActionDiagnosticsRow
+              diagnostics={diagnostics}
+              key={diagnostics.diagnosticsId}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SafeBrowserActionDiagnosticsRow({
+  diagnostics,
+}: {
+  diagnostics: StoredSafeBrowserActionExecutionDiagnostics;
+}) {
+  const capability = classifyDiagnosticsCapability(diagnostics);
+  const allowAvanzaDryRun =
+    capability.targetEnvironment === "avanza_broker" &&
+    capability.metadata?.dryRunOnly === true;
+  const capabilityValidation = validateBrowserRunnerCapability(capability, {
+    allowAvanzaDryRun,
+  });
+  const capabilitySummary =
+    summarizeBrowserRunnerCapabilityValidation(capabilityValidation);
+  const isMockOnlySafe =
+    capabilityValidation.safetyLevel === "safe_mock_only" &&
+    capabilityValidation.ok;
+  const isAvanzaDryRun =
+    capabilityValidation.safetyLevel === "dry_run_only" &&
+    capabilityValidation.ok &&
+    capabilityValidation.canRunAvanzaDryRun;
+  const capabilityLabel = isMockOnlySafe
+    ? "Mock-only browser diagnostics"
+    : isAvanzaDryRun
+      ? "Avanza dry-run diagnostics"
+      : capabilityValidation.safetyLevel;
+
+  return (
+    <article className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
+                diagnostics.ok
+                  ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+                  : "border-rose-300/25 bg-rose-300/10 text-rose-100"
+              }`}
+            >
+              {diagnostics.ok ? "OK" : "Blocked or failed"}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+              {diagnostics.mode}
+            </span>
+            <span
+              className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
+                isMockOnlySafe || isAvanzaDryRun
+                  ? "border-teal-300/25 bg-teal-300/10 text-teal-100"
+                  : "border-amber-300/25 bg-amber-300/10 text-amber-100"
+              }`}
+            >
+              {capabilityLabel}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+              No broker submission
+            </span>
+            {diagnostics.finalConfirmBlocked && (
+              <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
+                Final confirm blocked
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {diagnostics.runnerName}
+          </p>
+        </div>
+        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+          {formatDateTime(diagnostics.createdAt)}
+        </time>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+        <AuditDetail
+          label="Diagnostic"
+          value={shortExecutionAuditId(diagnostics.diagnosticsId)}
+        />
+        <AuditDetail label="Mode" value={diagnostics.mode} />
+        <AuditDetail label="OK" value={diagnostics.ok} />
+        <AuditDetail label="Blocked" value={diagnostics.blocked} />
+        <AuditDetail
+          label="Final Confirm Blocked"
+          value={diagnostics.finalConfirmBlocked}
+        />
+        <AuditDetail
+          label="Real Browser Support"
+          value={diagnostics.supportsRealBrowserExecution}
+        />
+        <AuditDetail
+          label="Capability Safety"
+          value={capabilityValidation.safetyLevel}
+        />
+        <AuditDetail
+          label="Target Environment"
+          value={capability.targetEnvironment}
+        />
+        <AuditDetail
+          label="Broker Submission"
+          value={
+            capability.supportsBrokerSubmission
+              ? "Supported"
+              : "No broker submission"
+          }
+        />
+        <AuditDetail
+          label="Final Confirm"
+          value={
+            capability.supportsFinalConfirmClick
+              ? "Click capable"
+              : "Final confirm disabled"
+          }
+        />
+        <AuditDetail label="Executed" value={diagnostics.executedCount} />
+        <AuditDetail label="Blocked Count" value={diagnostics.blockedCount} />
+        <AuditDetail label="Failed" value={diagnostics.failedCount} />
+        <AuditDetail label="Skipped" value={diagnostics.skippedCount} />
+        <AuditDetail label="Errors" value={diagnostics.errors.length} />
+        <AuditDetail label="Warnings" value={diagnostics.warnings.length} />
+      </div>
+
+      <p
+        className={`mt-3 rounded-md border p-3 text-xs leading-5 ${
+          capabilityValidation.ok
+            ? "border-teal-300/15 bg-teal-300/[0.06] text-teal-100"
+            : "border-amber-300/20 bg-amber-300/[0.06] text-amber-100"
+        }`}
+      >
+        Capability gate: {capabilitySummary}.{" "}
+        {isMockOnlySafe
+          ? "Mock browser execution is classified separately from broker execution."
+          : isAvanzaDryRun
+            ? "Avanza dry-run diagnostics are non-submitting and must remain separate from broker execution."
+            : "This diagnostics item is blocked or unknown by default and must not be treated as broker execution."}
+      </p>
+
+      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+          Safe action steps
+        </summary>
+        <div className="mt-3 space-y-2">
+          {diagnostics.steps.length === 0 ? (
+            <p className="text-xs leading-5 text-zinc-500">
+              No steps were recorded.
+            </p>
+          ) : (
+            diagnostics.steps.map((step) => (
+              <div
+                className="rounded-md border border-white/10 bg-black/20 p-2 text-xs leading-5 text-zinc-400"
+                key={step.actionId}
+              >
+                <div className="flex flex-wrap gap-2">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-teal-100">
+                    {step.status}
+                  </span>
+                  <span>{step.kind}</span>
+                  <span>{step.targetDescription}</span>
+                  {step.targetTestId && (
+                    <span className="font-mono text-zinc-500">
+                      {step.targetTestId}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-zinc-500">{step.message}</p>
+                {(step.errors.length > 0 || step.warnings.length > 0) && (
+                  <p className="mt-1 text-zinc-500">
+                    Errors: {step.errors.length}; Warnings:{" "}
+                    {step.warnings.length}
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
+          {JSON.stringify(
+            {
+              metadata: diagnostics.metadata,
+              errors: diagnostics.errors,
+              warnings: diagnostics.warnings,
+              diagnostics,
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </details>
     </article>
   );
 }
