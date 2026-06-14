@@ -11,6 +11,7 @@ import {
   buildRealScannerBaseCandidateSelection,
 } from "@/lib/real-scanner-candidate-generation";
 import { scanMarket } from "@/lib/scanner";
+import { discoverDynamicMoversDiagnostics } from "@/lib/dynamic-movers-discovery";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import {
   createScanLog,
@@ -558,6 +559,8 @@ function createDiagnosticScanLog({
     skipped_tickers: generationScanLog?.skipped_tickers ?? null,
     real_scanner_candidate_generation:
       generationScanLog?.real_scanner_candidate_generation ?? null,
+    dynamic_movers_discovery:
+      generationScanLog?.dynamic_movers_discovery ?? null,
     scanner_candidate_ranking: generationScanLog?.scanner_candidate_ranking ?? null,
     openai_recommendation_reality_guard:
       generationScanLog?.openai_recommendation_reality_guard ?? null,
@@ -850,6 +853,11 @@ export async function POST(request: Request) {
   });
 
   if (diagnosticStep === "env_check") {
+    const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+      maxTickers,
+      now,
+    });
+
     activeScanTrace.markStage("provider_env", "completed");
     activeScanTrace.markStage("final", "completed");
     activeScanTrace.updateFinal({
@@ -868,12 +876,18 @@ export async function POST(request: Request) {
       extra: {
         provider_env: providerEnvSnapshot(),
         schema_check: schemaCheck,
+        dynamic_movers_discovery: dynamicMoversDiscovery,
         ...providerProfileDiagnostics,
       },
     });
   }
 
   const selection = baseCandidateSelection({ scanWindow, maxTickers });
+  const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+    candidates: selection.candidates,
+    maxTickers,
+    now,
+  });
   updateUniverseTrace(activeScanTrace, selection);
 
   if (diagnosticStep === "universe_only") {
@@ -897,6 +911,7 @@ export async function POST(request: Request) {
           .map((candidate) => candidate.ticker)
           .slice(0, 12),
         scan_budget: selection.coverage?.scan_budget ?? null,
+        dynamic_movers_discovery: dynamicMoversDiscovery,
       },
     });
   }
@@ -1015,6 +1030,7 @@ export async function POST(request: Request) {
             candle_error_count:
               activeScanTrace.trace.market_data_fetch.candle_error_count,
             stale_count: activeScanTrace.trace.market_data_fetch.stale_count,
+            dynamic_movers_discovery: dynamicMoversDiscovery,
           },
         });
       }
@@ -1074,6 +1090,7 @@ export async function POST(request: Request) {
             tier: result.score.tier,
           })),
           top_penalties: rankingSummary.top_penalty_reasons.slice(0, 8),
+          dynamic_movers_discovery: dynamicMoversDiscovery,
         },
       });
     }

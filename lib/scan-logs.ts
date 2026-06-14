@@ -1,4 +1,5 @@
 import type { DayTradeScanOrchestrationSummary } from "@/lib/day-trade-scan-orchestration";
+import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discovery";
 import type { LegacySessionType } from "@/lib/intraday-scan-window";
 import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
@@ -77,6 +78,7 @@ export type ScanLogEntry = {
   skipped_tickers?: number | null;
   pre_market_candidates?: PreMarketCandidate[] | null;
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
+  dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   ranked_candidates_count?: number | null;

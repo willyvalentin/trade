@@ -36,6 +36,7 @@ export type MarketQuote = {
   high: number;
   low: number;
   previous_close: number;
+  volume: number | null;
 };
 
 type TwelveDataErrorResponse = {
@@ -65,6 +66,7 @@ type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
   high?: unknown;
   low?: unknown;
   previous_close?: unknown;
+  volume?: unknown;
 };
 
 function getTwelveDataApiKey() {
@@ -100,6 +102,19 @@ function numberField(value: unknown, fieldName: string) {
   }
 
   return parsed;
+}
+
+function optionalNumberField(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : Number.NaN;
+
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function timestampField(value: unknown, fieldName: string) {
@@ -431,5 +446,6 @@ export async function getQuote(symbol: string): Promise<MarketQuote> {
     high: numberField(data.high, "high"),
     low: numberField(data.low, "low"),
     previous_close: numberField(data.previous_close, "previous close"),
+    volume: optionalNumberField(data.volume),
   };
 }

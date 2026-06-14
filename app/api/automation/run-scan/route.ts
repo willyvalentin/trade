@@ -1254,6 +1254,11 @@ function createAutomationScanLog({
     pre_market_candidates: Array.isArray(details?.pre_market_candidates)
       ? (details.pre_market_candidates as ScanLogEntry["pre_market_candidates"])
       : null,
+    dynamic_movers_discovery:
+      typeof details?.dynamic_movers_discovery === "object" &&
+      details.dynamic_movers_discovery !== null
+        ? (details.dynamic_movers_discovery as ScanLogEntry["dynamic_movers_discovery"])
+        : null,
     day_trade_scan_orchestration:
       typeof details?.day_trade_scan_orchestration === "object" &&
       details.day_trade_scan_orchestration !== null

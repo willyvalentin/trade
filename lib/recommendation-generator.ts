@@ -31,6 +31,10 @@ import {
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildRecommendationOutputEnrichmentMetadata } from "@/lib/recommendation-output-enrichment";
 import {
+  discoverDynamicMoversDiagnostics,
+  type DynamicMoversDiscoverySummary,
+} from "@/lib/dynamic-movers-discovery";
+import {
   buildRealScannerBaseCandidateSelection,
   buildRealScannerCandidateGenerationSummary,
   type RealScannerCandidateGenerationSummary,
@@ -198,6 +202,7 @@ export type RecommendationScanLogDetails = {
   skipped_tickers?: number | null;
   pre_market_candidates?: PreMarketCandidate[] | null;
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
+  dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   grow_max_learning_mode?: boolean | null;
@@ -3081,6 +3086,13 @@ export async function generateRecommendations({
           ? scannerUniverseSelection.candidates.slice(0, scheduledMaxTickers)
         : scannerUniverseSelection.candidates;
     const universeCoverage = scannerUniverseSelection.coverage;
+    const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+      candidates: scannerBaseCandidates,
+      maxTickers: diagnosticMode
+        ? diagnosticMaxTickers
+        : scheduledMaxTickers ?? undefined,
+      now: new Date(),
+    });
 
     activeScanTrace?.markStage("universe", "completed");
     activeScanTrace?.updateUniverse({
@@ -3128,6 +3140,7 @@ export async function generateRecommendations({
       "real_scanner_candidate_generation",
       initialRealScannerCandidateGeneration,
     );
+    logPipeline("dynamic_movers_discovery", dynamicMoversDiscovery);
 
     if (scannerCandidates.length === 0) {
       if (source === "scheduled") {
@@ -3145,6 +3158,7 @@ export async function generateRecommendations({
             candidates_scanned: 0,
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
+            dynamic_movers_discovery: dynamicMoversDiscovery,
           } satisfies RecommendationScanLogDetails,
         };
       }
@@ -3345,6 +3359,7 @@ export async function generateRecommendations({
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation:
             initialRealScannerCandidateGeneration,
+          dynamic_movers_discovery: dynamicMoversDiscovery,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -3544,6 +3559,7 @@ export async function generateRecommendations({
           candidates_scanned: scoredCandidates.length,
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
+          dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -3777,6 +3793,7 @@ export async function generateRecommendations({
             candidatesRemovedByCooldown.length +
             sanitizedRecommendations.skippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
+          dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -3849,6 +3866,7 @@ export async function generateRecommendations({
             candidatesRemovedByCooldown.length +
             sanitizedRecommendations.skippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
+          dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -3938,6 +3956,7 @@ export async function generateRecommendations({
           candidatesRemovedByCooldown.length +
           sanitizedRecommendations.skippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
+        dynamic_movers_discovery: dynamicMoversDiscovery,
         scanner_candidate_ranking: scannerCandidateRankingSummary,
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,

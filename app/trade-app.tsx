@@ -12282,6 +12282,11 @@ export function TradeApp() {
   const dynamicMarketMoversSummaryJsonText = dynamicMarketMoversSummary
     ? dynamicMarketMoversSummaryJson(dynamicMarketMoversSummary)
     : "";
+  const dynamicMoversDiscoverySummary =
+    latestSuccessfulDailyScanLog?.dynamic_movers_discovery ??
+    dailyScanLogs.find((scanLog) => scanLog.dynamic_movers_discovery)
+      ?.dynamic_movers_discovery ??
+    null;
   const realScannerCandidateGenerationJsonText =
     latestRealScannerCandidateGenerationSummary === null
       ? ""
@@ -13200,6 +13205,7 @@ export function TradeApp() {
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
+      dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
       ui_refresh: {

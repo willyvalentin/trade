@@ -2,6 +2,7 @@ import type { DataModeClaritySummary } from "@/lib/data-mode-clarity";
 import type { DayTradeScanOrchestrationSummary } from "@/lib/day-trade-scan-orchestration";
 import type { DailyRecommendationTradeTargetsSummary } from "@/lib/daily-recommendation-trade-targets";
 import type { DayTradeWindowRecommendationTargetSummary } from "@/lib/day-trade-window-recommendation-target";
+import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discovery";
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
@@ -92,6 +93,7 @@ export type MarketDiagnosticsConsoleInput = {
   provider_plan_profile?: ProviderPlanProfile | null;
   scanner_universe: ScannerUniverseCoverageSummary;
   dynamic_movers?: DynamicMarketMoversSummary | null;
+  dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   scan_readback?: {
@@ -1461,6 +1463,7 @@ function buildSections(
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
+  const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -1965,6 +1968,74 @@ function buildSections(
           closedMarketBlockersSuppressedCount,
         closed_market_scanner_idle_reason:
           input.scan_readback?.closed_market_scanner_idle_reason ?? null,
+      },
+    }),
+    section({
+      section_id: "dynamic_movers_discovery",
+      title: "Dynamic Movers Discovery",
+      severity:
+        dynamicMoversDiscovery?.discovery_enabled === true &&
+        dynamicMoversDiscovery.provider_error_type !== "none"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Discovery enabled",
+          dynamicMoversDiscovery?.discovery_enabled ?? false,
+        ),
+        lineValue(
+          "Provider attempted",
+          dynamicMoversDiscovery?.provider_attempted ?? "none",
+        ),
+        lineValue(
+          "Provider used",
+          dynamicMoversDiscovery?.provider_used ?? "none",
+        ),
+        lineValue(
+          "Provider error type",
+          dynamicMoversDiscovery?.provider_error_type ??
+            "dynamic_movers_provider_unavailable",
+        ),
+        lineValue("Returned count", dynamicMoversDiscovery?.returned_count ?? 0),
+        lineValue(
+          "Selected preview count",
+          dynamicMoversDiscovery?.selected_preview_count ?? 0,
+        ),
+        lineValue(
+          "Top dynamic movers",
+          (dynamicMoversDiscovery?.top_dynamic_movers ?? []).length > 0
+            ? (dynamicMoversDiscovery?.top_dynamic_movers ?? [])
+                .slice(0, 8)
+                .map(
+                  (mover) =>
+                    `${mover.ticker} ${mover.mover_source} ${pctValue(mover.price_change_pct)} scanned=${bool(mover.would_have_been_scanned_today)}`,
+                )
+                .join("; ")
+            : "none",
+        ),
+        lineValue(
+          "Stale/invalid mover count",
+          dynamicMoversDiscovery?.stale_invalid_mover_count ?? 0,
+        ),
+      ],
+      metrics: {
+        discovery_enabled: dynamicMoversDiscovery?.discovery_enabled ?? false,
+        provider_attempted:
+          dynamicMoversDiscovery?.provider_attempted ?? "none",
+        provider_used: dynamicMoversDiscovery?.provider_used ?? "none",
+        provider_error_type:
+          dynamicMoversDiscovery?.provider_error_type ??
+          "dynamic_movers_provider_unavailable",
+        provider_error_message:
+          dynamicMoversDiscovery?.provider_error_message ?? null,
+        returned_count: dynamicMoversDiscovery?.returned_count ?? 0,
+        selected_preview_count:
+          dynamicMoversDiscovery?.selected_preview_count ?? 0,
+        stale_invalid_mover_count:
+          dynamicMoversDiscovery?.stale_invalid_mover_count ?? 0,
+        top_dynamic_movers: JSON.stringify(
+          dynamicMoversDiscovery?.top_dynamic_movers ?? [],
+        ),
       },
     }),
     section({
