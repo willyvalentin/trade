@@ -7247,6 +7247,1417 @@ Safety result:
   submission, `BrokerExecutionResult`, execution record, Supabase write, or
   trade mutation was added.
 
+## Action 370 - Create History Tab Extraction Plan
+
+Files changed:
+
+- `docs/history-tab-extraction-plan.md`
+- `docs/active-position-card-post-details-modal-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created a documentation-only History tab extraction plan.
+- Confirmed the History tab currently combines shell/layout rendering,
+  History refresh/status, hidden recommendation diagnostics JSON, performance
+  and setup summaries, closed position journal controls, closed trade cards,
+  recommendation history, discarded setup analytics, and recommendation
+  decisions.
+- Confirmed `ClosedPositionCard` remains behavior-adjacent because it owns
+  local details-open state and derives timeline/replay, execution quality,
+  handoff quality, improvement suggestions, and outcome explanations.
+- Recommended extracting a `HistoryTab` shell first, mirroring the earlier
+  Recommendations and Live Day Trades shell pattern.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No History filter/sort state, refresh handler, closed trade card state,
+  localStorage/Supabase behavior, statistics calculation, audit/timeline
+  derivation, Avanza/browser, execution, persistence, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 371 - Extract History Tab Shell**
+
+## Action 371 - Extract History Tab Shell
+
+Files changed:
+
+- `components/history/HistoryTab.tsx`
+- `app/trade-app.tsx`
+- `docs/history-tab-extraction-plan.md`
+- `docs/active-position-card-post-details-modal-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the History tab shell into `HistoryTab`.
+- Preserved the existing History panel order by passing the current statusbar,
+  data-mode banner, optional outcome evaluation runner, hidden diagnostics, and
+  section children from `app/trade-app.tsx`.
+- Kept `ClosedPositionCard`, `HistoryJournalControls`,
+  `RecommendationHistoryPanel`, discarded setup rendering, recommendation
+  decision rendering, and all filter/sort/data construction logic in
+  `app/trade-app.tsx`.
+
+Safety result:
+
+- No runtime behavior intentionally changed.
+- No History filter/sort state, refresh handler, closed trade card state,
+  localStorage/Supabase behavior, statistics calculation, audit/timeline
+  derivation, Avanza/browser, execution, persistence, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 372 - Reassess History Tab After Shell Extraction**
+
+## Action 372 - Reassess History Tab After Shell Extraction
+
+Files changed:
+
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/active-position-card-post-details-modal-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created a documentation-only reassessment after `HistoryTab` shell
+  extraction.
+- Confirmed `ClosedPositionCard` remains local to `app/trade-app.tsx`.
+- Confirmed the card combines display mapping, local details-open state, local
+  audit event reads, timeline/replay derivation, execution and handoff quality
+  derivation, improvement suggestions, outcome explanation, and expanded modal
+  composition.
+- Recommended extracting a pure closed trade display mapper before moving the
+  full card boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No History filtering/sorting, PnL/result, plan-adherence/statistics,
+  audit/timeline, selected/details state, localStorage/Supabase, Avanza/browser,
+  execution, persistence, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 373 - Extract Closed Trade Display Mapper**
+
+## Action 373 - Extract Closed Trade Display Mapper
+
+Files changed:
+
+- `components/history/closed-trade-display-mapper.ts`
+- `app/trade-app.tsx`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Added a pure closed trade display mapper.
+- Moved only display derivation for the closed trade card outcome label/tone,
+  PnL/R display, metric rows, journal-note fallback, data-mode/reality badges,
+  and History / Statistics surface notice metadata.
+- Kept `ClosedPositionCard` in `app/trade-app.tsx`.
+- Kept card-local details state, audit event reads, timeline/replay derivation,
+  execution quality, handoff quality, improvement suggestions, outcome
+  explanation, plan-vs-actual review, details modal rendering, and all History
+  filter/sort/persistence/statistics ownership in place.
+
+Safety result:
+
+- No runtime behavior intentionally changed.
+- No History filtering/sorting, PnL/result calculation beyond equivalent
+  display formatting, plan-adherence/statistics calculation, audit/timeline
+  derivation, selected/details state, localStorage/Supabase, Avanza/browser,
+  execution, persistence, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 374 - Reassess ClosedPositionCard After Display Mapper Extraction**
+
+## Action 374 - Reassess ClosedPositionCard After Display Mapper Extraction
+
+Files changed:
+
+- `docs/closed-position-card-post-display-mapper-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created a documentation-only reassessment after the closed trade display
+  mapper extraction.
+- Confirmed the mapper moved only pure card display props.
+- Confirmed `ClosedPositionCard` still owns local details-open state, modal
+  rendering, audit/timeline derivation, execution and handoff quality
+  derivation, improvement suggestions, outcome explanation, and
+  plan-vs-actual review display.
+- Recommended extracting the closed trade details modal presentational component
+  next, with state and derivation staying in `ClosedPositionCard`.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No History filtering/sorting, PnL/result, plan-adherence/statistics,
+  audit/timeline, details modal state, localStorage/Supabase, Avanza/browser,
+  execution, persistence, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 375 - Extract Closed Trade Details Modal Presentational Component**
+
+## Action 375 - Extract Closed Trade Details Modal Presentational Component
+
+Files changed:
+
+- `components/history/ClosedTradeDetailsModal.tsx`
+- `app/trade-app.tsx`
+- `docs/closed-position-card-post-display-mapper-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the closed trade details modal shell/rendering.
+- Kept `ClosedPositionCard` responsible for local details-open state and all
+  closed trade data/derivation.
+- Preserved modal close behavior by moving the same Escape, backdrop, and close
+  button handling into `ClosedTradeDetailsModal`.
+- Passed the existing identity/status/content nodes from `ClosedPositionCard`
+  to avoid moving app-local helper dependencies or panel derivation.
+
+Safety result:
+
+- No runtime behavior intentionally changed.
+- No History filtering/sorting, PnL/result calculation, plan-adherence/statistics
+  calculation, audit/timeline derivation, details panel derivation, details-open
+  state, localStorage/Supabase, Avanza/browser, execution, persistence, or trade
+  mutation behavior moved.
+
+Next recommended action:
+
+**Action 376 - Reassess ClosedPositionCard After Details Modal Extraction**
+
+## Action 365 - Reassess ActivePositionCard After Execution Status Surface Extraction
+
+Files changed:
+
+- `docs/active-position-card-post-execution-status-surface-reassessment.md`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/active-position-card-post-display-mapper-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the current `ActivePositionCard` after
+  `LiveExecutionStatusSurface` extraction.
+- Confirmed the card still owns local UI state, EOD acknowledgement
+  persistence, close/sell callback wiring, execution preview state,
+  orchestrator calls, and handoff preview modal wiring.
+- Confirmed `ClosePositionModal` is still behavior-heavy and should not be the
+  next extraction.
+- Recommended a smaller next runtime step: extract the visible live-card
+  body/header/actions rendering while keeping all state and behavior in
+  `ActivePositionCard`.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No close/sell/exit, EOD acknowledgement, execution preview, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 366 - Extract Live Day Trade Card Body Presentational Component**
+
+## Action 366 - Extract Live Day Trade Card Body Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/LiveDayTradeCardBody.tsx`
+- `docs/active-position-card-post-execution-status-surface-reassessment.md`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the visible live card body/header/actions rendering into
+  `LiveDayTradeCardBody`.
+- `ActivePositionCard` still owns local UI state, EOD acknowledgement
+  persistence, close/sell callback wiring, execution preview state,
+  orchestrator calls, details modal rendering, and handoff preview modal
+  wiring.
+- Shared/helper-heavy UI pieces are still rendered by `app/trade-app.tsx` and
+  passed as slots: identity, data-mode badges, metric grid, execution status,
+  details modal, and execution preview modal.
+
+Safety result:
+
+- No close/sell/exit, EOD acknowledgement, orchestrator, execution preview,
+  modal, persistence, Supabase/localStorage, Avanza/browser, execution, or trade
+  mutation behavior moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 367 - Reassess ActivePositionCard After Card Body Extraction**
+
+## Action 367 - Reassess ActivePositionCard After Card Body Extraction
+
+Files changed:
+
+- `docs/active-position-card-post-card-body-reassessment.md`
+- `docs/active-position-card-post-execution-status-surface-reassessment.md`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `ActivePositionCard` after `LiveDayTradeCardBody` extraction.
+- Confirmed the visible card body/header/actions are extracted and the card now
+  mostly owns local state, EOD acknowledgement persistence, close callback
+  wiring, orchestrator calls, execution preview state, and modal slots.
+- Confirmed `ClosePositionModal` is still behavior-heavy and should not be the
+  next extraction.
+- Recommended extracting `LiveTradeDetailsModal` next because it is the largest
+  remaining read-only live-card display surface.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No close/sell/exit, EOD acknowledgement, execution preview, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 368 - Extract LiveTradeDetailsModal Presentational Component**
+
+## Action 368 - Extract LiveTradeDetailsModal Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/LiveTradeDetailsModal.tsx`
+- `docs/active-position-card-post-card-body-reassessment.md`
+- `docs/active-position-card-post-execution-status-surface-reassessment.md`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted `LiveTradeDetailsModal` rendering into a dedicated presentational
+  component.
+- Preserved Escape/backdrop/modal close behavior and existing visible copy.
+- Kept `ActivePositionCard` responsible for details-open state, EOD
+  acknowledgement state/persistence, close callback wiring, orchestrator calls,
+  execution preview state, and handoff modal wiring.
+- Kept audit event reading in `app/trade-app.tsx`; the extracted modal receives
+  derived audit display props plus the existing `FullAuditTrail` node.
+- `ClosePositionModal` and close/sell/exit behavior remain untouched.
+
+Safety result:
+
+- No close/sell/exit, EOD acknowledgement persistence, orchestrator, execution
+  preview, handoff modal, close modal, Supabase/localStorage, Avanza/browser,
+  execution, or trade mutation behavior moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 369 - Reassess ActivePositionCard After Details Modal Extraction**
+
+## Action 369 - Reassess ActivePositionCard After Details Modal Extraction
+
+Files changed:
+
+- `docs/active-position-card-post-details-modal-reassessment.md`
+- `docs/active-position-card-post-card-body-reassessment.md`
+- `docs/active-position-card-post-execution-status-surface-reassessment.md`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `ActivePositionCard` after `LiveTradeDetailsModal` extraction.
+- Confirmed `ActivePositionCard` now mainly owns local UI state, EOD
+  acknowledgement persistence, close callback wiring, execution preview wiring,
+  audit display derivation, and rendered slots.
+- Confirmed `ClosePositionModal` remains behavior-heavy and should not be
+  extracted as a presentational component without a dedicated plan.
+- Recommended pausing Live Day Trades extraction and creating a History tab
+  extraction plan next.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No close/sell/exit, EOD acknowledgement, execution preview, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 370 - Create History Tab Extraction Plan**
+
+## Action 344 - Reassess Recommendations Tab After Shell Extraction
+
+Files changed:
+
+- `docs/recommendations-tab-post-shell-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the Recommendations tab after `RecommendationsTab` shell
+  extraction.
+- Confirmed `RecommendationCard`, details modal, discard confirmation, ADD
+  TRADE callback wiring, selected `TradeModal` state, discard persistence,
+  Supabase/localStorage behavior, and execution handoff creation remain in
+  `app/trade-app.tsx`.
+- Documented the current card visual sections and coupling points so the next
+  extraction can preserve button labels, disabled states, modal behavior,
+  callback flow, class names, and e2e-visible text.
+- Recommended Action 345: extract a move-only Recommendation Card component
+  boundary while keeping app-wide data, validation, persistence, and execution
+  behavior in the parent.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No ADD TRADE, discard, details modal, Avanza automation, browser control,
+  execution behavior, persistence behavior, Supabase write behavior, or trade
+  mutation behavior was added or moved.
+
+## Action 351 - Extract RecommendationDetailsModal Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/RecommendationDetailsModal.tsx`
+- `docs/recommendation-details-modal-post-helper-extraction-reassessment.md`
+- `docs/recommendations-area-post-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted `RecommendationDetailsModal` as a presentational component.
+- Moved modal-specific wrapper/content, close behavior, read-only sections, and
+  direct render-only JSX helpers.
+- Exported shared details JSX helpers for existing later sections in
+  `app/trade-app.tsx`.
+- Parent still owns details open state, ADD TRADE validation, discard
+  persistence, selected `TradeModal`, Supabase/localStorage behavior, data
+  construction, and execution handoff behavior.
+- `app/trade-app.tsx` is approximately 41,082 lines after this extraction.
+
+Safety result:
+
+- No ADD TRADE validation moved.
+- No discard persistence moved.
+- No details modal state moved.
+- No selected `TradeModal` wiring moved.
+- No Supabase/localStorage behavior moved.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, Supabase write behavior, or trade mutation behavior was added.
+
+## Action 352 - Reassess Recommendations Area After Details Modal Extraction
+
+Files added:
+
+- `docs/recommendations-area-post-details-modal-extraction-reassessment.md`
+
+Files updated:
+
+- `docs/recommendation-details-modal-post-helper-extraction-reassessment.md`
+- `docs/recommendations-area-post-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Assessment result:
+
+- Confirmed `RecommendationDetailsModal` is extracted.
+- Confirmed `RecommendationCardContainer` remains inline and owns local
+  details/discard UI state plus card/details display prop assembly.
+- Confirmed ADD TRADE validation, discard persistence, selected `TradeModal`,
+  Supabase/localStorage behavior, recommendation data construction, and
+  execution handoff behavior remain in `app/trade-app.tsx`.
+- Recommended Action 353: extract a pure recommendation card display mapper
+  before moving the full container boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No ADD TRADE, discard, details modal state, execution, Avanza/browser,
+  Supabase, localStorage, persistence, or trade mutation behavior moved.
+
+## Action 353 - Extract Recommendation Card Display Mapper
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/recommendation-card-display-mapper.ts`
+- `docs/recommendations-area-post-details-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only pure Recommendation card display/prop mapping.
+- The mapper now builds confidence labels/tones, metrics, confidence breakdown
+  rows, source badge descriptors, card summary fallback, ADD TRADE display
+  label, disabled display flags, and details-modal display props.
+- `RecommendationCardContainer` remains local in `app/trade-app.tsx`.
+- The container still owns details/discard modal state, discard confirmation
+  loading state, and parent callback wiring.
+- ADD TRADE validation, discard persistence, selected `TradeModal`,
+  Supabase/localStorage behavior, recommendation data construction, and
+  execution handoff behavior remain parent-owned.
+
+Safety result:
+
+- No state ownership moved.
+- No handler implementation moved.
+- No ADD TRADE validation, discard persistence, details state, selected
+  `TradeModal`, Supabase/localStorage behavior, execution behavior,
+  Avanza/browser behavior, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 354 - Reassess RecommendationCardContainer After Display Mapper Extraction**
+
+## Action 354 - Reassess RecommendationCardContainer After Display Mapper Extraction
+
+Files added:
+
+- `docs/recommendation-card-container-post-mapper-reassessment.md`
+
+Files updated:
+
+- `docs/recommendations-area-post-details-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Assessment result:
+
+- Confirmed `RecommendationCardContainer` remains in `app/trade-app.tsx`.
+- Confirmed the container is now mainly local details/discard UI state,
+  modal slot composition, parent callback bridge wiring, and mapper usage.
+- Confirmed ADD TRADE validation, discard persistence, selected `TradeModal`,
+  Supabase/localStorage behavior, recommendation data construction, and
+  execution handoff behavior remain parent-owned.
+- Recommended Action 355: extract `RecommendationCardContainer` into a
+  dedicated boundary component.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No ADD TRADE, discard, details state, selected `TradeModal`, execution,
+  Avanza/browser, Supabase, localStorage, persistence, or trade mutation
+  behavior moved.
+
+Next recommended action:
+
+**Action 355 - Extract RecommendationCardContainer Boundary**
+
+## Action 355 - Extract RecommendationCardContainer Boundary
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/RecommendationCardContainer.tsx`
+- `docs/recommendation-card-container-post-mapper-reassessment.md`
+- `docs/recommendations-area-post-details-modal-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted `RecommendationCardContainer` into a dedicated component.
+- The extracted component owns only card-local details/discard UI state and
+  modal slot composition.
+- The parent passes freshness, ADD TRADE gate, key reasons, analysis objects,
+  and render slots for shared identity/source-badge visuals.
+- `app/trade-app.tsx` still owns recommendation data construction, ADD TRADE
+  validation, discard persistence, selected `TradeModal`,
+  Supabase/localStorage behavior, execution handoff behavior, and app-wide
+  state/effects.
+
+Safety result:
+
+- No ADD TRADE validation moved.
+- No discard persistence moved.
+- No selected `TradeModal` wiring moved.
+- No Supabase/localStorage behavior moved.
+- No execution handoff behavior moved.
+- No Avanza/browser behavior or trade mutation behavior was added.
+
+Next recommended action:
+
+**Action 356 - Reassess Recommendations Area After Container Extraction**
+
+## Action 356 - Reassess Recommendations Area After Container Extraction
+
+Files added:
+
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+
+Files updated:
+
+- `docs/recommendation-card-container-post-mapper-reassessment.md`
+- `docs/recommendations-area-post-details-modal-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Assessment result:
+
+- Confirmed Recommendations presentation extraction can pause.
+- Extracted Recommendations pieces now cover tab shell, card container, card
+  view, details modal, discard modal, card display mapper, and details display
+  helpers.
+- Confirmed `app/trade-app.tsx` still owns recommendation data construction,
+  ADD TRADE validation, discard persistence, selected `TradeModal`,
+  Supabase/localStorage behavior, execution handoff behavior, and shared
+  identity/source-badge render slots.
+- Recommended Action 357: create a Live Day Trades tab extraction plan.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No ADD TRADE, discard, persistence, selected `TradeModal`, execution,
+  Avanza/browser, Supabase/localStorage, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 357 - Create Live Day Trades Tab Extraction Plan**
+
+## Action 357 - Create Live Day Trades Tab Extraction Plan
+
+Files added:
+
+- `docs/live-day-trades-tab-extraction-plan.md`
+
+Files updated:
+
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Planning result:
+
+- Created the Live Day Trades extraction plan after pausing Recommendations.
+- Inventoried the tab shell, `ActivePositionCard`, `LiveTradeDetailsModal`,
+  `ClosePositionModal`, EOD safety state, current price/PnL/risk display,
+  execution/exit handoff dependencies, and Supabase/localStorage/demo
+  dependencies.
+- Recommended Action 358: extract only the Live Day Trades tab shell.
+- Confirmed `ActivePositionCard`, close/sell handlers, EOD acknowledgement,
+  execution orchestrator calls, sell/exit payload construction,
+  Supabase/localStorage behavior, and close-trade persistence should stay in
+  `app/trade-app.tsx` for the first runtime refactor.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No Avanza/browser, execution, sell/exit, persistence, Supabase/localStorage,
+  or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 358 - Extract Live Day Trades Tab Shell**
+
+## Action 358 - Extract Live Day Trades Tab Shell
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/LiveDayTradesTab.tsx`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the Live Day Trades tab shell into a presentational component.
+- The parent passes the existing statusbar, execution sandbox fixture panel,
+  rendered primary card nodes, and rendered continued card nodes.
+- The shell renders only the wrapper, loading/empty states, card grid, continued
+  card grid, and divider.
+- `app/trade-app.tsx` still owns `ActivePositionCard` rendering, live position
+  data construction, sorting/grouping, current price/PnL/risk calculations, EOD
+  safety logic, target/stop monitoring, close/sell handler implementations,
+  execution handoff creation, close persistence, Supabase/localStorage behavior,
+  and selected trade state.
+
+Safety result:
+
+- No sell/close/exit, monitoring, EOD, target/stop, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 359 - Reassess Live Day Trades Tab After Shell Extraction**
+
+## Action 359 - Reassess Live Day Trades Tab After Shell Extraction
+
+Files changed:
+
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only reassessment after `LiveDayTradesTab` shell extraction.
+- Confirmed the remaining live card boundary is local `ActivePositionCard` in
+  `app/trade-app.tsx`.
+- `ActivePositionCard` currently owns local details modal state, execution
+  preview state, EOD acknowledgement state/persistence, live sell guidance
+  derivation, risk/audit display derivation, and execution orchestrator preview
+  derivation.
+- `ClosePositionModal` remains behavior-heavy and parent-owned for close/sell
+  persistence, broker exit confirmation, payloads, capture review, completion
+  policy, and demo/mock exit helpers.
+- Recommended Action 360: extract pure Live Day Trade display mapping before
+  moving the card boundary.
+
+Safety result:
+
+- Documentation only.
+- No sell/close/exit, monitoring, EOD, PnL/risk, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved or changed.
+
+Verification:
+
+- `git diff --check`
+
+Next recommended action:
+
+**Action 360 - Extract Live Day Trade Display Mapper**
+
+## Action 360 - Extract Live Day Trade Display Mapper
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/live-day-trade-display-mapper.ts`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted pure display mapping used by `ActivePositionCard`.
+- The mapper builds live card metric rows, action/guidance class names, close
+  button label/tone, aria label, guidance fallback strings, partial-close and
+  profit-fade display text, updated-at text, and live trade reality badges.
+- The mapper is hook-free, state-free, browser-free, localStorage-free,
+  Supabase-free, and does not call bridge/client APIs.
+- `ActivePositionCard` still owns local details modal state, execution preview
+  state, EOD acknowledgement state/persistence, sell/close callback wiring, and
+  execution preview wiring.
+- Parent/app code still owns live data construction, monitoring, PnL/risk
+  calculations, EOD safety, target/stop monitoring, persistence,
+  Supabase/localStorage behavior, and execution/exit handoff behavior.
+
+Safety result:
+
+- No close/sell/exit, EOD acknowledgement, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 361 - Reassess ActivePositionCard After Display Mapper Extraction**
+
+## Action 361 - Reassess ActivePositionCard After Display Mapper Extraction
+
+Files changed:
+
+- `docs/active-position-card-post-display-mapper-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only reassessment after Action 360.
+- Confirmed `ActivePositionCard` remains in `app/trade-app.tsx`.
+- Remaining card-owned behavior includes local details modal state, execution
+  preview state, EOD acknowledgement state/persistence, close/sell callback
+  wiring, live sell guidance derivation, and execution preview orchestration.
+- `LiveTradeDetailsModal` is still large; the EOD manual review block is the
+  safest small presentational extraction.
+- `ClosePositionModal` remains behavior-heavy and parent-owned.
+
+Safety result:
+
+- Documentation only.
+- No close/sell/exit, EOD acknowledgement, execution preview, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved or changed.
+
+Verification:
+
+- `git diff --check`
+
+Next recommended action:
+
+**Action 362 - Extract Live Day Trade EOD Safety Panel**
+
+## Action 362 - Extract Live Day Trade EOD Safety Panel
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/LiveDayTradeEodSafetyPanel.tsx`
+- `docs/active-position-card-post-display-mapper-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the EOD manual review display block from `LiveTradeDetailsModal`.
+- The new component renders the existing "EOD Manual Review Required" card,
+  status pill, message, and "Acknowledge EOD Risk" button.
+- The component has no hooks and does not read/write localStorage.
+- `ActivePositionCard` still owns EOD acknowledgement state, local
+  acknowledgement persistence, details modal state, execution preview state,
+  close/sell callback wiring, and execution preview orchestration.
+
+Safety result:
+
+- No EOD calculation, EOD acknowledgement persistence, close/sell/exit,
+  execution preview, persistence, Supabase/localStorage, Avanza/browser,
+  execution, or trade mutation behavior moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 363 - Reassess ActivePositionCard After EOD Panel Extraction**
+
+## Action 363 - Reassess ActivePositionCard After EOD Panel Extraction
+
+Files changed:
+
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/active-position-card-post-display-mapper-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only reassessment after `LiveDayTradeEodSafetyPanel`
+  extraction.
+- Confirmed `ActivePositionCard` remains in `app/trade-app.tsx`.
+- Remaining card-owned behavior includes EOD acknowledgement state/persistence,
+  local details modal state, execution preview state, close/sell callback
+  wiring, and execution preview orchestration.
+- Recommended extracting `LiveExecutionStatusSurface` next because it is the
+  smallest mostly-presentational inline component in the live card path.
+- `LiveTradeDetailsModal`, `ClosePositionModal`, and the full card boundary
+  remain higher-risk follow-ups.
+
+Safety result:
+
+- Documentation only.
+- No close/sell/exit, EOD acknowledgement, execution preview, persistence,
+  Supabase/localStorage, Avanza/browser, execution, or trade mutation behavior
+  moved or changed.
+
+Verification:
+
+- `git diff --check`
+
+Next recommended action:
+
+**Action 364 - Extract LiveExecutionStatusSurface Presentational Component**
+
+## Action 364 - Extract LiveExecutionStatusSurface Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/live-day-trades/LiveExecutionStatusSurface.tsx`
+- `docs/active-position-card-post-eod-panel-reassessment.md`
+- `docs/active-position-card-post-display-mapper-reassessment.md`
+- `docs/live-day-trades-tab-post-shell-reassessment.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the live execution status surface rendering.
+- Preserved visible copy and button text: status label/title/description, mode
+  badge, "Next action:", "Final submit allowed by authority", and "View
+  handoff".
+- Preserved the button `event.stopPropagation()` behavior.
+- `ActivePositionCard` still owns `runExecutionOrchestrator(...)`,
+  `isExecutionPreviewOpen`, `setIsExecutionPreviewOpen(...)`, and
+  `ExecutionHandoffPreviewModal` rendering.
+- The dev-only execution fixture still owns its own execution preview state.
+
+Safety result:
+
+- No orchestrator call, execution preview state, handoff modal wiring,
+  close/sell/exit, EOD acknowledgement, persistence, Supabase/localStorage,
+  Avanza/browser, execution, or trade mutation behavior moved or changed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Next recommended action:
+
+**Action 365 - Reassess ActivePositionCard After Execution Status Surface Extraction**
+
+## Action 349 - Extract Recommendation Details Modal Display Helpers
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/recommendation-details-display-helpers.ts`
+- `docs/recommendations-area-post-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only pure recommendation details display helpers:
+  value/currency/share formatting, tone mapping, and tone class-name
+  derivation.
+- Left `RecommendationDetailsModal` inline.
+- Left JSX render helpers inline because they are presentational components and
+  should move with the details modal or in a dedicated component extraction.
+- Preserved details modal copy, section ordering, class names, tone labels,
+  currency/share formatting, value fallback behavior, Escape close behavior, and
+  backdrop close behavior.
+
+Safety result:
+
+- No ADD TRADE validation moved.
+- No discard persistence moved.
+- No details modal state or behavior moved.
+- No selected `TradeModal` wiring moved.
+- No Supabase/localStorage behavior moved.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, Supabase write behavior, or trade mutation behavior was added.
+
+## Action 350 - Reassess Recommendation Details Modal After Helper Extraction
+
+Files changed:
+
+- `docs/recommendation-details-modal-post-helper-extraction-reassessment.md`
+- `docs/recommendations-area-post-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `RecommendationDetailsModal` after pure display helper extraction.
+- Confirmed the modal is read-only and needs only parent-provided `onClose`.
+- Confirmed the parent still owns details state, ADD TRADE validation, discard
+  persistence, selected `TradeModal`, Supabase/localStorage behavior, data
+  construction, and execution handoff behavior.
+- Documented shared JSX details helper reuse as the main remaining extraction
+  risk.
+- Recommended Action 351: extract `RecommendationDetailsModal` as a
+  presentational component.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No ADD TRADE, discard, details modal, Avanza automation, browser control,
+  execution behavior, persistence behavior, Supabase write behavior, or trade
+  mutation behavior was added or moved.
+
+## Action 347 - Extract Recommendation Details/Discard Modal Components
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/DiscardRecommendationModal.tsx`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-post-shell-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted `DiscardRecommendationModal` into
+  `components/recommendations/DiscardRecommendationModal.tsx`.
+- Preserved modal copy, dialog attributes, class names, button labels, button
+  order, disabled states, Escape close behavior, backdrop close behavior, and
+  stop-propagation behavior.
+- The parent `RecommendationCardContainer` still owns modal visibility,
+  confirming state, and callback wiring.
+- `RecommendationDetailsModal` intentionally remains inline because it is large
+  and depends on a broad cluster of local details display helpers.
+
+Safety result:
+
+- No ADD TRADE validation moved.
+- No discard persistence moved.
+- No details modal state or behavior moved.
+- No selected `TradeModal` wiring moved.
+- No Supabase/localStorage behavior moved.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, Supabase write behavior, or trade mutation behavior was added.
+
+## Action 348 - Reassess Recommendations Area After Modal Extraction
+
+Files changed:
+
+- `docs/recommendations-area-post-modal-extraction-reassessment.md`
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-post-shell-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the Recommendations area after discard modal extraction.
+- Confirmed `RecommendationDetailsModal` remains inline and depends on a broad
+  local helper cluster.
+- Classified helper dependencies as pure display formatting, pure data mapping,
+  UI-only render helpers, and UI-only behavior.
+- Recommended extracting details modal display helpers/mappers first, then
+  reassessing full details modal extraction.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No ADD TRADE, discard, details modal, Avanza automation, browser control,
+  execution behavior, persistence behavior, Supabase write behavior, or trade
+  mutation behavior was added or moved.
+
+## Action 345 - Extract Recommendation Card Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/RecommendationCard.tsx`
+- `docs/recommendations-tab-post-shell-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the visual recommendation card shell into a presentational component.
+- Kept the local `RecommendationCardContainer` in `app/trade-app.tsx` so
+  existing details/discard UI state, modal rendering, computed display props,
+  and parent callback wiring stay in the parent file.
+- Preserved ADD TRADE label selection, disabled states, `stopPropagation`,
+  Discard button behavior, card click/keyboard open behavior, class names,
+  metric labels, and modal slot placement.
+- `app/trade-app.tsx` is approximately 42,010 lines after this extraction.
+
+Safety result:
+
+- No ADD TRADE validation moved.
+- No discard persistence moved.
+- No details modal state or behavior moved.
+- No selected `TradeModal` wiring moved.
+- No Supabase/localStorage behavior moved.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, Supabase write behavior, or trade mutation behavior was added.
+
+## Action 346 - Reassess Recommendation Card After Extraction
+
+Files changed:
+
+- `docs/recommendation-card-post-extraction-reassessment.md`
+- `docs/recommendations-tab-post-shell-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the Recommendations card area after the presentational card shell
+  extraction.
+- Confirmed `RecommendationCard.tsx` is 136 lines and currently small enough to
+  leave as-is.
+- Confirmed `RecommendationCardContainer`, local details/discard UI state,
+  `RecommendationDetailsModal`, and `DiscardRecommendationModal` remain in
+  `app/trade-app.tsx`.
+- Documented that the next safest high-payoff target is recommendation modal
+  extraction, beginning with `DiscardRecommendationModal` and moving
+  `RecommendationDetailsModal` only if its helper dependencies can be preserved
+  without behavior changes.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No ADD TRADE, discard, details modal, Avanza automation, browser control,
+  execution behavior, persistence behavior, Supabase write behavior, or trade
+  mutation behavior was added or moved.
+
+## Action 343 - Extract Recommendations Tab Shell
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/recommendations/RecommendationsTab.tsx`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the primary Recommendations tab shell/layout.
+- The shell owns statusbar placement, learning-mode banner placement, the grid
+  wrapper, loading empty state, and dominant empty-state rendering.
+- `app/trade-app.tsx` still owns data derivation, statusbar construction,
+  `RecommendationCard` construction, ADD TRADE validation, selected
+  recommendation state, `TradeModal`, discard persistence, localStorage/demo
+  behavior, Supabase writes, and cross-tab diagnostics.
+- Recommendation card internals, details modal behavior, ADD TRADE handlers,
+  discard handlers, filtering/sorting, and execution handoff behavior did not
+  move.
+
+Safety result:
+
+- No behavior changed.
+- No button text changed.
+- No tests were removed.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, Supabase write behavior, or trade mutation behavior was added.
+
+## Action 342 - Create Recommendations Tab Extraction Plan
+
+Files changed:
+
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Planned the next app-wide decomposition target after the handoff modal
+  decomposition pause.
+- Inventoried the Recommendations tab render, `RecommendationCard`, details
+  modal, ADD TRADE handler, discard handler, selected recommendation
+  `TradeModal` mount, and local/demo dependencies.
+- Confirmed the primary Recommendations tab has no dedicated filter/sort/search
+  controls today; `dailyRecommendations` stays parent-owned.
+- Recommended keeping data loading, selected recommendation state, ADD TRADE
+  validation, discard persistence, `TradeModal`, Supabase writes,
+  localStorage/demo behavior, and cross-tab diagnostics in `app/trade-app.tsx`
+  initially.
+- Recommended Action 343: extract a presentational Recommendations tab shell.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 336 - Extract Presentational Handoff Modal Shell
+
+Files changed:
+
+- `components/execution/ExecutionHandoffModalShell.tsx`
+- `app/trade-app.tsx`
+- `docs/handoff-modal-shell-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the modal backdrop/dialog/titlebar/close/scroll wrapper into a
+  presentational shell component.
+- Confirmed the parent still owns open/close state, selected handoff data,
+  dry-run request creation, hooks, handlers, bridge calls, readiness state,
+  lifecycle/progress transitions, audit append logic, preparation stubs, and
+  capture stubs.
+- Preserved existing modal title, close button aria label/icon, backdrop
+  click-to-close behavior, propagation guards, ARIA attributes, and layout
+  class names.
+
+Safety result:
+
+- No state ownership moved.
+- No hook, handler, bridge/client, API call, dev-gating, or button text changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 337 - Reassess trade-app.tsx After Modal Shell Extraction
+
+Files changed:
+
+- `docs/trade-app-post-shell-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-shell-extraction-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `app/trade-app.tsx` after Actions 317-336.
+- Recorded the current approximate file size as 42,518 lines.
+- Documented the remaining modal responsibilities: selected handoff/intent
+  wiring, request preview creation, hook composition, lifecycle/preparation
+  state, capture state, preparation/capture handlers, and remaining inline
+  lifecycle/detail/safety/footer rendering.
+- Documented that full modal composition extraction is still too prop-heavy.
+- Recommended Action 338 as a focused extraction of execution lifecycle/status
+  sections.
+
+Safety result:
+
+- Documentation only.
+- No runtime code changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 338 - Extract Execution Lifecycle Status Sections
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/ExecutionLifecycleStatusPanel.tsx`
+- `components/execution/ExecutionBrokerCaptureStubPanel.tsx`
+- `components/execution/ExecutionHandoffStatusReadbacks.tsx`
+- `docs/trade-app-post-shell-extraction-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the Avanza preparation/lifecycle status panel as presentational
+  rendering only.
+- Extracted the bridge-backed diagnostics runner result display as part of the
+  lifecycle status panel.
+- Extracted the broker result capture stub panel and local capture result
+  readback as presentational rendering only.
+- Extracted the final detail grid, blocked reason, intent reason, safety
+  checks, and footer close button into a read-only status readback component.
+- Confirmed the parent still owns lifecycle state, preparation/capture state,
+  all state setters, handler implementations, lifecycle transitions, audit
+  append logic, broker capture result creation, selected handoff/intent wiring,
+  request creation, hook composition, and result chaining.
+
+Safety result:
+
+- No state ownership moved.
+- No hook, handler, lifecycle transition, audit append, bridge/client, API
+  call, persistence, or trade mutation logic moved.
+- No button text, visible copy, dev-gating, status labels, or disabled behavior
+  changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 339 - Reassess Remaining trade-app.tsx Modal/App Boundaries
+
+Files changed:
+
+- `docs/trade-app-modal-app-boundary-reassessment.md`
+- `docs/trade-app-post-shell-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the current `app/trade-app.tsx` boundary after Actions 317-338.
+- Recorded the approximate file size as 42,197 lines.
+- Documented extracted modal components, hooks, and mappers already in place.
+- Documented remaining handoff modal responsibilities: request creation, hook
+  composition, local lifecycle/capture state, agent progress state, panel
+  ordering, and dev-gated composition.
+- Documented remaining app-wide responsibilities: Recommendations, Live Day
+  Trades, History/statistics, trade modals, diagnostics, localStorage effects,
+  Supabase data loading, and refresh orchestration.
+- Recommended Action 340 as a composition-only Handoff Modal container
+  extraction.
+
+Safety result:
+
+- Documentation only.
+- No runtime code changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
 ## Action 317 - Extract Handoff Modal Shared Display Components
 
 Files changed:
@@ -7275,6 +8686,108 @@ Safety result:
 - No Avanza automation, selector, URL, browser control, `Bekrafta`, order
   submission, `BrokerExecutionResult`, execution record, Supabase write, or
   trade mutation was added.
+
+## Action 331 - Extract Avanza Readiness Derived-State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/execution/useAvanzaReadinessState.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only Avanza readiness derived state.
+- Moved overall readiness status, localhost self-check fallback, phase summary
+  strings, readiness row composition, and `AvanzaDryRunReadinessPanel` props
+  assembly into `useAvanzaReadinessState(...)`.
+- The parent modal still owns selected intent/handoff data, dry-run request
+  creation, bridge calls, click handlers, early/middle/late preview state
+  hooks, localhost bridge controls state, lifecycle stubs, and UI rendering.
+- Existing readiness row order, row labels, statuses, copy, safety labels,
+  visible UI, button text elsewhere, and dev gating are preserved.
+- Next recommended action is Action 332: reassess `trade-app.tsx` size and
+  remaining responsibilities.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, real `BrokerExecutionResult`, execution record, Supabase write,
+  or trade mutation was added.
+
+## Action 332 - Reassess trade-app.tsx Size and Remaining Responsibilities
+
+Files changed:
+
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only action.
+- Reassessed `app/trade-app.tsx` after the modal component, mapper, state hook,
+  and readiness derived-state extractions.
+- Recorded the approximate 43,188-line file size and separated remaining
+  handoff modal responsibilities from broader app-wide trade/recommendation
+  responsibilities.
+- Ranked the safest next refactor target as extracting core handoff summary and
+  request preview components.
+
+Safety result:
+
+- No runtime code changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, real `BrokerExecutionResult`, execution record, Supabase write,
+  or trade mutation was added.
+
+## Action 330 - Extract Late Phase Preview State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/execution/useLatePhasePreviewState.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the late phase preview state/handler cluster.
+- Moved state/handlers for broker confirmation capture, BrokerExecutionResult
+  eligibility, BrokerExecutionResult conversion preview, and execution-record
+  eligibility stub previews.
+- The hook owns the late result chain: broker confirmation capture can be
+  passed into BrokerExecutionResult eligibility/conversion, and preview-shaped
+  BrokerExecutionResult output can be converted into the execution-record
+  eligibility candidate.
+- The parent modal still owns selected intent/handoff data, dry-run request
+  creation, readiness row building, summary formatting, early phase state,
+  middle phase state, localhost bridge controls state, and unrelated lifecycle
+  handlers.
+- Manual-confirmation wait still has no separate rendered modal control.
+- Existing request payloads, metadata, messages, loading flags,
+  disabled behavior, visible copy, button text, dev gating, and readiness
+  consumption are preserved.
+- Next recommended action is Action 331: extract the Avanza readiness
+  derived-state hook.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, real `BrokerExecutionResult`, execution record, Supabase write,
+  or trade mutation was added.
 
 ## Action 323 - Handoff Modal ESLint Override Feasibility Check
 
@@ -7542,7 +9055,41 @@ QA notes:
   calls, API calls, loading flags, response state, and result chaining.
 - Existing visible labels/copy, button text, disabled/loading behavior,
   readiness rows, and dev gating are preserved.
-- Next recommended action is Action 326: extract the localhost bridge state
+- At the time, the next recommended decomposition step was the localhost bridge
+  state hook; Action 326 later continued pure mapper extraction first.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 326 - Extract More Handoff Modal Pure Data Mappers
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `lib/handoff-modal-data-mappers.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted additional pure readiness row builders into
+  `lib/handoff-modal-data-mappers.ts`.
+- New extracted helpers cover session detection, search-only, instrument
+  verification, instrument page, order page open, Advanced form fill,
+  review-click, broker confirmation capture, and BrokerExecutionResult
+  eligibility readiness rows.
+- The parent modal still owns all state, hooks, handlers, bridge/client helper
+  calls, API calls, loading flags, response state, and result chaining.
+- Existing visible labels/copy, button text, disabled/loading behavior,
+  readiness rows, row ordering, and dev gating are preserved.
+- Next recommended action is Action 327: extract the localhost bridge state
   hook.
 
 Safety result:
@@ -7552,3 +9099,928 @@ Safety result:
 - No Avanza automation, selector, URL, browser control, `Bekrafta`, order
   submission, `BrokerExecutionResult`, execution record, Supabase write, or
   trade mutation was added.
+
+## Action 327 - Extract Localhost Bridge State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/execution/useLocalhostBridgeControlsState.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the localhost bridge controls cluster state and handlers.
+- Moved state/handlers for bridge echo, localhost runner self-check, dry-run
+  bridge response preview, localhost mock-agent run, and localhost bridge
+  cancel.
+- The parent modal still owns selected intent/handoff data, dry-run request and
+  bridge envelope derivation, session/search/instrument/page/order/form/review
+  preview state, broker/capture/eligibility/preview state, readiness rows, and
+  unrelated lifecycle/preparation/capture handlers.
+- Existing request payloads, local audit events, local agent-run diagnostics,
+  safe-action diagnostics saving, messages, loading flags, disabled behavior,
+  button text, and dev gating are preserved.
+- Next recommended action is Action 328: extract the early phase preview state
+  hook.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 328 - Extract Early Phase Preview State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/execution/useEarlyPhasePreviewState.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the early phase preview state/handler cluster.
+- Moved state/handlers for session-detection, search-only, and
+  instrument-verification stub previews.
+- The hook owns the small early result chain: session-detection metadata can be
+  passed into search-only, and an exact search-only candidate can be passed into
+  instrument verification.
+- The parent modal still owns selected intent/handoff data, dry-run request
+  creation, readiness row building, summary formatting, middle/late phase
+  preview state, localhost bridge controls state, and unrelated lifecycle
+  handlers.
+- Existing request payloads, metadata, messages, loading flags,
+  disabled behavior, visible copy, button text, dev gating, and downstream
+  chaining are preserved.
+- Next recommended action is Action 329: extract the middle phase preview state
+  hook.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 329 - Extract Middle Phase Preview State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/execution/useMiddlePhasePreviewState.ts`
+- `docs/handoff-modal-state-handler-grouping-plan.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the middle phase preview state/handler cluster.
+- Moved state/handlers for instrument-page, order-page-open, Advanced
+  form-fill, and review-click stub previews.
+- The hook owns the middle result chain: verified instrument can be passed into
+  instrument-page, identified page can be passed into order-page-open, opened
+  order page can be passed into Advanced form-fill, and form_filled can be
+  passed into review-click.
+- The parent modal still owns selected intent/handoff data, dry-run request
+  creation, readiness row building, summary formatting, early phase state,
+  late phase state, localhost bridge controls state, and unrelated lifecycle
+  handlers.
+- Existing request payloads, metadata, messages, loading flags,
+  disabled behavior, visible copy, button text, dev gating, and downstream
+  chaining are preserved.
+- Next recommended action is Action 330: extract the late phase preview state
+  hook.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 333 - Extract Core Handoff Summary and Request Preview Components
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/HandoffCoreSummary.tsx`
+- `components/execution/FutureAgentRequestPreview.tsx`
+- `components/execution/AvanzaDryRunRequestPreview.tsx`
+- `components/execution/BridgeRequestEnvelopePreview.tsx`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only presentational rendering for the core handoff summary, future
+  agent request preview, Avanza dry-run request preview, and bridge request
+  envelope preview.
+- The parent modal still owns selected intent/handoff data, dry-run request
+  creation, future-agent request creation, bridge envelope creation, validation
+  status, state hooks, click handlers, bridge/client calls, lifecycle stubs, and
+  QA item assembly.
+- Visible copy, status labels, JSON/details blocks, safety labels, button
+  presence/absence, and dev-gated visibility are preserved.
+- `app/trade-app.tsx` is approximately 42,780 lines after this extraction.
+- Next recommended action is Action 334: extract the Execution Sandbox QA /
+  Audit sections if the move can remain rendering-only.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 334 - Extract Execution Sandbox QA / Audit Sections
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/ExecutionSandboxQaPanel.tsx`
+- `components/execution/AgentProgressStubPanel.tsx`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only presentational rendering for the Execution Sandbox QA panel
+  and the agent-progress audit stub panel.
+- The parent modal still owns sandbox QA item assembly, selected progress event
+  type state, progress event creation, lifecycle transitions, audit event append
+  calls, progress timeline state, messages, errors, and all handler
+  implementations.
+- Visible copy, status labels, select options, button text, timeline rows, and
+  dev-gated visibility are preserved.
+- `app/trade-app.tsx` is approximately 42,562 lines after this extraction.
+- Next recommended action is Action 335: reassess remaining handoff modal shell
+  extraction.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 335 - Reassess Remaining Handoff Modal Shell Extraction
+
+Files changed:
+
+- `docs/handoff-modal-shell-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the remaining Execution Handoff Preview Modal shell after Actions
+  317-334.
+- Recommended only a presentational shell extraction for Action 336.
+- Documented that all hooks, state, request creation, handlers, lifecycle
+  transitions, audit append logic, preparation stubs, and capture stubs should
+  remain in the parent.
+- Documented that a composed modal/container extraction is too prop-heavy and
+  should wait.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 376 - Reassess ClosedPositionCard After Details Modal Extraction
+
+Files changed:
+
+- `docs/closed-position-card-post-details-modal-reassessment.md`
+- `docs/closed-position-card-post-display-mapper-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `ClosedPositionCard` after the Action 375 details modal extraction.
+- Confirmed `ClosedTradeDetailsModal` owns only the modal wrapper/header/body
+  rendering and close event wiring.
+- Confirmed `ClosedPositionCard` still owns local details state, click/keyboard
+  open behavior, PnL/result derivation, plan-vs-actual review construction,
+  hidden review JSON, audit/timeline derivation, detail panel node composition,
+  persistence boundaries, and History state.
+- Recommended Action 377: extract the closed trade plan-adherence panel before
+  moving the full card/container boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No History filtering/sorting, PnL/result calculation,
+  plan-adherence/statistics calculation, audit/timeline derivation, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 381 - Create Statistics/Dashboard Extraction Plan
+
+Files changed:
+
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/closed-position-card-post-audit-timeline-panel-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created the Statistics/Dashboard extraction plan after pausing History.
+- Inventoried the Statistics tab render, `StatisticsDashboardPanel`,
+  recommendation analytics panels, plan-adherence statistics, chart panels,
+  metric card groups, calculation dependencies, and app-wide state dependencies.
+- Confirmed the first runtime extraction should be a presentational Statistics
+  dashboard shell.
+- Confirmed calculations, selected range state, dashboard construction, JSON
+  generation, persistence, localStorage/Supabase behavior, and cross-tab state
+  must remain in `app/trade-app.tsx` initially.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No statistics calculation, PnL/result logic, plan-adherence logic,
+  persistence, localStorage/Supabase, Avanza/browser, execution, or trade
+  mutation behavior moved.
+
+Next recommended action:
+
+**Action 382 — Extract Statistics Dashboard Shell**
+
+## Action 382 - Extract Statistics Dashboard Shell
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/statistics/StatisticsDashboard.tsx`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/closed-position-card-post-audit-timeline-panel-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the Statistics dashboard shell/header/loading wrapper.
+- Confirmed `app/trade-app.tsx` still owns selected range state, dashboard data,
+  calculations, recommendation analytics, JSON generation, persistence, and
+  Statistics body composition.
+- Preserved visible shell copy, range controls, loading copy, range summary,
+  progress status pill, ordering, and classNames.
+
+Safety result:
+
+- No statistics calculation, PnL/result logic, plan-adherence/statistics logic,
+  filtering/time-range logic, persistence, localStorage/Supabase,
+  Avanza/browser, execution, or trade mutation behavior moved.
+
+Next recommended action:
+
+**Action 383 — Reassess Statistics Dashboard After Shell Extraction**
+
+## Action 383 - Reassess Statistics Dashboard After Shell Extraction
+
+Files changed:
+
+- `docs/statistics-dashboard-post-shell-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/closed-position-card-post-audit-timeline-panel-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only action; no runtime code changed.
+- Reassessment inventoried the remaining Statistics metric grids,
+  recommendation analytics, plan-adherence summary, charts, recent/open
+  context, partial-close summary, and period-risk panels.
+- Confirmed statistics calculations, selected range state, PnL/result logic,
+  profit-factor/win-rate logic, plan-adherence logic, filtering, persistence,
+  and cross-tab integration remain in `app/trade-app.tsx`.
+- Recommended Action 384: extract a Statistics metric card presentational
+  component.
+
+Safety result:
+
+- No statistics calculation, PnL/result logic, profit-factor/win-rate logic,
+  plan-adherence logic, filtering/time-range logic, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 384 - Extract Statistics Metric Card Presentational Component
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/statistics/StatisticsMetricCard.tsx`
+- `docs/statistics-dashboard-post-shell-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted reusable metric card rendering into
+  `components/statistics/StatisticsMetricCard.tsx`.
+- Kept `SummaryCard` in `app/trade-app.tsx` as a compatibility wrapper to avoid
+  touching existing metric-card call sites or display value construction.
+- Preserved the exact card wrapper classes, value typography, label typography,
+  and positive/negative/neutral tone behavior.
+- Recommended next action: Action 385 - Reassess Statistics Dashboard After
+  Metric Card Extraction.
+
+Safety result:
+
+- No metric, PnL/result, profit-factor/win-rate, plan-adherence,
+  filtering/time-range, persistence, localStorage/Supabase, Avanza/browser,
+  execution, or trade mutation behavior moved.
+
+## Action 385 - Reassess Statistics Dashboard After Metric Card Extraction
+
+Files changed:
+
+- `docs/statistics-dashboard-post-metric-card-reassessment.md`
+- `docs/statistics-dashboard-post-shell-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only action; no runtime code changed.
+- Reassessed the dashboard after `StatisticsMetricCard` extraction.
+- Confirmed `SummaryCard` remains as a compatibility wrapper and existing
+  metric-card call sites still own formatted display values.
+- Confirmed remaining Statistics grids, analytics panels, plan-adherence
+  summary, charts, recent/open context, partial-close summary, and period-risk
+  panels remain in `app/trade-app.tsx`.
+- Recommended Action 386: extract a Statistics summary grid.
+
+Safety result:
+
+- No metric calculation, PnL/result logic, profit-factor/win-rate logic,
+  plan-adherence logic, filtering/time-range logic, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 387 - Reassess Statistics Dashboard After Summary Grid Extraction
+
+Files changed:
+
+- `docs/statistics-dashboard-post-summary-grid-reassessment.md`
+- `docs/statistics-dashboard-post-metric-card-reassessment.md`
+- `docs/statistics-dashboard-post-shell-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only action; no runtime code changed.
+- Reassessed the Statistics dashboard after `StatisticsSummaryGrid` extraction.
+- Confirmed shell, metric card, and summary-grid extraction are complete enough
+  for the current Statistics phase.
+- Confirmed remaining Statistics panels are calculation-adjacent or readback
+  sensitive and should not be moved without a focused plan.
+- Recommended Action 388: reassess `app/trade-app.tsx` after the major UI
+  extraction work.
+
+Safety result:
+
+- No metric calculation, PnL/result logic, profit-factor/win-rate logic,
+  recommendation analytics logic, plan-adherence logic, filtering/time-range
+  logic, persistence, localStorage/Supabase, Avanza/browser, execution, or trade
+  mutation behavior moved.
+
+## Action 388 - Reassess trade-app.tsx After Major UI Extraction Work
+
+Files changed:
+
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/statistics-dashboard-post-summary-grid-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Documentation-only action; no runtime code changed.
+- Reassessed `app/trade-app.tsx` after the major UI extraction pass.
+- Confirmed the file is approximately 39,692 lines.
+- Confirmed Execution Handoff, Recommendations, Live Day Trades, History, and
+  Statistics are each complete enough to pause.
+- Identified state/effects/localStorage as the next highest-value planning
+  phase, followed by Supabase/persistence and execution boundary work.
+- Recommended Action 389: create an app state/effects extraction plan.
+
+Safety result:
+
+- No state/hook movement, persistence movement, Supabase/localStorage behavior,
+  Avanza/browser behavior, execution behavior, or trade mutation behavior
+  changed.
+
+## Action 386 - Extract Statistics Summary Grid
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/statistics/StatisticsSummaryGrid.tsx`
+- `docs/statistics-dashboard-post-metric-card-reassessment.md`
+- `docs/statistics-dashboard-post-shell-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the presentational Statistics summary grid wrapper.
+- Replaced only the Statistics primary metric grid, recommendation analytics
+  headline grid, and plan-adherence headline grid.
+- Kept every `SummaryCard` child and already-formatted display value in
+  `app/trade-app.tsx`.
+- Preserved five-column and six-column responsive grid variants.
+- Recommended next action: Action 387 - Reassess Statistics Dashboard After
+  Summary Grid Extraction.
+
+Safety result:
+
+- No metric calculation, PnL/result logic, profit-factor/win-rate logic,
+  plan-adherence logic, filtering/time-range logic, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 379 - Extract Closed Trade Audit Timeline Panel
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/history/ClosedTradeAuditTimelinePanel.tsx`
+- `docs/closed-position-card-post-plan-adherence-panel-reassessment.md`
+- `docs/closed-position-card-post-details-modal-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the closed trade audit/timeline disclosure wrapper.
+- Confirmed the existing audit child panels remain composed in
+  `ClosedPositionCard`.
+- Confirmed audit/timeline derivation, plan-vs-actual derivation, PnL/result
+  logic, persistence, and History state remain parent/card-owned.
+- Preserved `Audit details`, disclosure behavior, classNames, child panel order,
+  and the incomplete-data note.
+
+Safety result:
+
+- No History filtering/sorting, PnL/result calculation,
+  plan-adherence/statistics calculation, audit/timeline derivation, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 380 — Reassess ClosedPositionCard After Audit Timeline Panel Extraction**
+
+## Action 380 - Reassess ClosedPositionCard After Audit Timeline Panel Extraction
+
+Files changed:
+
+- `docs/closed-position-card-post-audit-timeline-panel-reassessment.md`
+- `docs/closed-position-card-post-plan-adherence-panel-reassessment.md`
+- `docs/closed-position-card-post-details-modal-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `ClosedPositionCard` after the Action 379 audit/timeline wrapper
+  extraction.
+- Confirmed History extraction is complete enough to pause.
+- Confirmed remaining History card responsibilities are local details state,
+  click/keyboard open behavior, derivation, child-node composition, persistence
+  boundaries, and History state.
+- Recommended Action 381: create a Statistics/Dashboard extraction plan.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No History filtering/sorting, PnL/result calculation,
+  plan-adherence/statistics calculation, audit/timeline derivation, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 377 - Extract Closed Trade Plan-Adherence Panel
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/history/ClosedTradePlanAdherencePanel.tsx`
+- `docs/closed-position-card-post-details-modal-reassessment.md`
+- `docs/closed-position-card-post-display-mapper-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted only the closed trade plan-adherence / plan-vs-actual rendering.
+- Confirmed `ClosedPositionCard` still owns the plan review calculation,
+  review JSON generation, PnL/result derivation, audit/timeline derivation,
+  local details state, persistence boundaries, and History state.
+- Preserved the existing panel copy, status/grade label, metric rows, metric
+  comparison table, warning/deviation rendering, checks details block, hidden
+  agent-readable JSON, and classNames.
+
+Safety result:
+
+- No History filtering/sorting, PnL/result calculation,
+  plan-adherence/statistics calculation, audit/timeline derivation, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+Next recommended action:
+
+**Action 378 — Reassess ClosedPositionCard After Plan-Adherence Panel Extraction**
+
+## Action 378 - Reassess ClosedPositionCard After Plan-Adherence Panel Extraction
+
+Files changed:
+
+- `docs/closed-position-card-post-plan-adherence-panel-reassessment.md`
+- `docs/closed-position-card-post-details-modal-reassessment.md`
+- `docs/closed-position-card-post-display-mapper-reassessment.md`
+- `docs/history-tab-post-shell-reassessment.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `ClosedPositionCard` after the Action 377 plan-adherence panel
+  extraction.
+- Confirmed the extracted plan-adherence panel is presentational while the card
+  still owns review derivation and review JSON generation.
+- Confirmed audit/timeline display is now the safest smaller History extraction
+  target.
+- Recommended Action 379: extract the closed trade audit/timeline disclosure
+  panel while keeping audit reads and derivation card-owned.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No History filtering/sorting, PnL/result calculation,
+  plan-adherence/statistics calculation, audit/timeline derivation, persistence,
+  localStorage/Supabase, Avanza/browser, execution, or trade mutation behavior
+  moved.
+
+## Action 340 - Extract Handoff Modal Composition Container
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `components/execution/ExecutionHandoffModalComposition.tsx`
+- `docs/trade-app-modal-app-boundary-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Extracted the Execution Handoff Preview Modal body composition into a
+  hook-free component.
+- The parent still owns modal shell/open-close, selected handoff/intent, dry-run
+  request creation, hook calls, bridge/client handlers, readiness derivation,
+  lifecycle transitions, audit appends, capture result creation, and app-wide
+  state.
+- The composition component receives grouped typed props and renders the same
+  existing panels in the same order.
+- `app/trade-app.tsx` is approximately 42,074 lines after this extraction.
+- Next recommended action is Action 341: reassess `app/trade-app.tsx` after the
+  composition extraction.
+
+Safety result:
+
+- No runtime behavior changed.
+- No tests were removed.
+- No state, hook, handler, bridge/client, lifecycle, persistence, or trade
+  mutation logic moved.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 341 - Reassess trade-app.tsx After Composition Extraction
+
+Files changed:
+
+- `docs/trade-app-post-composition-extraction-reassessment.md`
+- `docs/trade-app-modal-app-boundary-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/handoff-modal-decomposition-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed `app/trade-app.tsx` after the Action 340 composition extraction.
+- Confirmed the current approximate file size is 42,074 lines.
+- Documented that modal decomposition can pause because shell, composition,
+  request previews, readiness, bridge controls, phase previews, QA/progress,
+  lifecycle/status display, pure mappers, and modal-specific hooks are now
+  extracted.
+- Documented that remaining parent ownership is intentional and limited to
+  selected intent/handoff data, request construction, hook composition,
+  lifecycle/capture/progress state, handlers, audit append calls, capture result
+  creation, and grouped prop assembly.
+- Recommended Action 342: create a Recommendations tab extraction plan.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No Avanza automation, selector, URL, browser control, `Bekrafta`, order
+  submission, `BrokerExecutionResult`, execution record, Supabase write, or
+  trade mutation was added.
+
+## Action 389 - Create App State/Effects Extraction Plan
+
+Files changed:
+
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created a documentation-only plan for app-wide state/effects extraction.
+- Confirmed the current `app/trade-app.tsx` file is approximately 39,692 lines.
+- Documented state/effect clusters: navigation, Recommendations, Live Day
+  Trades, History, Statistics, modal state, local preferences, refresh
+  orchestration, persistence, diagnostics, and execution/handoff state.
+- Ranked first safe candidates as navigation/tab state, then Statistics range
+  state, then modal UI state after further reassessment.
+- Marked persistence/Supabase effects and execution/handoff/orchestrator state
+  as later, high-risk boundaries.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No state/hook movement, localStorage/Supabase movement,
+  execution/orchestrator movement, calculation movement, Avanza/browser
+  behavior, execution behavior, persistence behavior, or trade mutation behavior
+  changed.
+
+Recommended next action:
+
+**Action 390 - Reassess Navigation/Tab State Hook Boundary**
+
+## Action 390 - Reassess Navigation/Tab State Hook Boundary
+
+Files changed:
+
+- `docs/navigation-tab-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed the navigation/tab state boundary without moving runtime code.
+- Confirmed active tab state is currently `activeTab` plus `setActiveTab`.
+- Confirmed tab labels and visible nav structure should remain unchanged for
+  e2e stability.
+- Confirmed refresh effects depend on `activeTab`, but those effects should stay
+  parent-owned during the first hook extraction.
+- Recommended extracting only a tiny `useTradeAppNavigationState` hook next.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No hook movement, state movement, localStorage/Supabase movement,
+  execution/orchestrator movement, calculation movement, Avanza/browser
+  behavior, execution behavior, persistence behavior, or trade mutation behavior
+  changed.
+
+Recommended next action:
+
+**Action 391 - Extract Navigation/Tab State Hook**
+
+## Action 391 - Extract Navigation/Tab State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/trade-app/useTradeAppNavigationState.ts`
+- `docs/navigation-tab-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created `useTradeAppNavigationState` under `hooks/trade-app`.
+- Replaced the inline `useState<Tab>("Recommendations")` with the hook call in
+  the same top-level state area.
+- Preserved the default tab and existing `setActiveTab` call sites.
+- Kept nav rendering, labels, refresh effects, persistence, modals, execution
+  wiring, calculations, and domain state parent-owned.
+
+Safety result:
+
+- No tests were removed.
+- No visible copy/design changed.
+- No localStorage/URL behavior moved or added.
+- No refresh helper/effect, Supabase/localStorage behavior,
+  execution/orchestrator behavior, Avanza/browser behavior, calculation,
+  persistence, or trade mutation behavior moved.
+
+Recommended next action:
+
+**Action 392 - Reassess Navigation/Tab State Hook Extraction**
+
+## Action 392 - Reassess Navigation/Tab State Hook Extraction
+
+Files changed:
+
+- `docs/navigation-tab-state-hook-post-extraction-reassessment.md`
+- `docs/navigation-tab-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Verified the navigation hook stayed tiny after Action 391.
+- Confirmed the default tab and setter call sites are preserved.
+- Confirmed nav rendering, e2e-visible labels, refresh effects, persistence,
+  execution/handoff behavior, data ownership, and calculations stayed in
+  `app/trade-app.tsx`.
+- Confirmed no derived behavior or memoization was added to the hook.
+- Recommended reassessing the Statistics range state boundary next.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No additional hook/state movement, localStorage/Supabase movement,
+  execution/orchestrator movement, calculation movement, Avanza/browser
+  behavior, execution behavior, persistence behavior, or trade mutation behavior
+  changed.
+
+Recommended next action:
+
+**Action 393 - Reassess Statistics Range State Hook Boundary**
+
+## Action 393 - Reassess Statistics Range State Hook Boundary
+
+Files changed:
+
+- `docs/statistics-range-state-hook-boundary-reassessment.md`
+- `docs/navigation-tab-state-hook-post-extraction-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/statistics-dashboard-post-summary-grid-reassessment.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Reassessed Statistics range/filter state without moving runtime code.
+- Confirmed range state is currently `selectedStatisticsRange` plus
+  `setSelectedStatisticsRange`.
+- Confirmed option labels, selected styling, range descriptions, and dashboard
+  rendering remain outside the proposed hook.
+- Confirmed all range-driven calculations and recommendation analytics builders
+  must stay parent-owned.
+- Recommended extracting only a tiny `useStatisticsRangeState` hook next.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No tests were removed.
+- No hook/state movement, statistics calculation movement, time-range/filtering
+  movement, localStorage/Supabase movement, execution/orchestrator movement,
+  Avanza/browser behavior, execution behavior, persistence behavior, or trade
+  mutation behavior changed.
+
+Recommended next action:
+
+**Action 394 - Extract Statistics Range State Hook**
+
+## Action 394 - Extract Statistics Range State Hook
+
+Files changed:
+
+- `app/trade-app.tsx`
+- `hooks/trade-app/useStatisticsRangeState.ts`
+- `docs/statistics-range-state-hook-boundary-reassessment.md`
+- `docs/navigation-tab-state-hook-post-extraction-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+QA notes:
+
+- Created `useStatisticsRangeState` under `hooks/trade-app`.
+- Replaced the inline `useState<StatisticsTimeRange>("today")` with the hook
+  call in the same top-level state area.
+- Preserved the default range and existing `setSelectedStatisticsRange` call
+  sites.
+- Kept range options, labels, active styling, calculations, rendering,
+  persistence, cross-tab data, and execution wiring parent-owned.
+
+Safety result:
+
+- No tests were removed.
+- No visible copy/design changed.
+- No calculation, filtering/time-range logic, localStorage/URL behavior,
+  Supabase/localStorage behavior, execution/orchestrator behavior,
+  Avanza/browser behavior, persistence behavior, or trade mutation behavior
+  moved.
+
+Recommended next action:
+
+**Action 395 - Reassess Statistics Range State Hook Extraction**

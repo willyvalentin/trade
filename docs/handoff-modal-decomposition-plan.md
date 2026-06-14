@@ -536,3 +536,493 @@ Behavior preservation notes:
 Next recommended action:
 
 **Action 326 — Extract Localhost Bridge State Hook**
+
+## Action 326 - More Pure Data Mapper Extraction
+
+Action 326 continued extracting side-effect-free readiness row builders into
+`lib/handoff-modal-data-mappers.ts`.
+
+Additional extracted helpers:
+
+- `buildSessionDetectionReadinessItems(...)`
+- `buildSearchOnlyReadinessItems(...)`
+- `buildInstrumentVerificationReadinessItems(...)`
+- `buildInstrumentPageReadinessItems(...)`
+- `buildOrderPageOpenReadinessItems(...)`
+- `buildAdvancedFormFillReadinessItems(...)`
+- `buildReviewClickReadinessItems(...)`
+- `buildBrokerConfirmationCaptureReadinessItems(...)`
+- `buildBrokerExecutionEligibilityReadinessItems(...)`
+
+Behavior preservation notes:
+
+- The parent modal still owns all state, hooks, handlers, bridge/client calls,
+  loading flags, response objects, endpoint calls, and result chaining.
+- The extracted helpers take explicit inputs and return the same
+  display/readiness rows.
+- No visible copy, button text, readiness labels, row ordering, dev gating,
+  Avanza behavior, execution behavior, persistence, or trade mutation changed.
+
+Next recommended action:
+
+**Action 327 — Extract Localhost Bridge State Hook**
+
+## Action 327 - Localhost Bridge State Hook Extraction
+
+Action 327 added `hooks/execution/useLocalhostBridgeControlsState.ts` and moved
+the localhost bridge controls state/handlers out of `app/trade-app.tsx`.
+
+Moved into the hook:
+
+- bridge echo run result/loading/message and handler
+- localhost runner self-check result/loading/message and handler
+- dry-run bridge response preview result/loading/message and handler
+- localhost mock-agent run result/loading/message and handler
+- localhost bridge cancel result/loading/message and handler
+- the matching bridge-control `canRun`, `canCheck`, `canTest`, and `canCancel`
+  booleans
+
+Stayed in the parent modal:
+
+- selected intent/handoff ownership
+- modal lifecycle and open/close state
+- dry-run request/bridge envelope preview derivation
+- session/search/instrument/page/order/form/review phase state
+- broker confirmation, BrokerExecutionResult, and execution-record phase state
+- readiness rows and result chaining outside the bridge controls cluster
+
+Behavior preservation notes:
+
+- `LocalhostBridgeControls` remains presentational.
+- Existing request payloads, local audit events, local agent-run diagnostics,
+  safe-action diagnostics saving, response messages, loading flags, disabled
+  behavior, button text, and dev gating are preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior was added.
+
+Next recommended action:
+
+**Action 328 — Extract Early Phase Preview State Hook**
+
+## Action 328 - Early Phase Preview State Hook Extraction
+
+Action 328 added `hooks/execution/useEarlyPhasePreviewState.ts` and moved the
+early Avanza phase preview state/handlers out of `app/trade-app.tsx`.
+
+Moved into the hook:
+
+- session-detection result/loading/message state and handler
+- search-only result/loading/message state and handler
+- instrument-verification result/loading/message state and handler
+- session/search/instrument chaining data needed by later phases
+- the matching `canCheck` booleans and derived flags used by the previews and
+  readiness panel
+
+Stayed in the parent modal:
+
+- selected intent/handoff ownership
+- modal lifecycle and open/close state
+- dry-run request creation
+- readiness row construction and summary formatting
+- middle/late phase preview state and handlers
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+
+Behavior preservation notes:
+
+- The three early preview components remain presentational.
+- Existing request payloads, metadata, response messages, loading flags,
+  disabled behavior, button text, result chaining, and dev gating are
+  preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior was added.
+
+Next recommended action:
+
+**Action 329 — Extract Middle Phase Preview State Hook**
+
+## Action 329 - Middle Phase Preview State Hook Extraction
+
+Action 329 added `hooks/execution/useMiddlePhasePreviewState.ts` and moved the
+middle Avanza phase preview state/handlers out of `app/trade-app.tsx`.
+
+Moved into the hook:
+
+- instrument-page result/loading/message state and handler
+- order-page-open result/loading/message state and handler
+- Advanced form-fill result/loading/message state and handler
+- review-click result/loading/message state and handler
+- instrument-page/order-page/form-fill/review-click chaining data needed by
+  later phases
+- the matching `canCheck` booleans and derived flags used by the previews and
+  readiness panel
+
+Stayed in the parent modal:
+
+- selected intent/handoff ownership
+- modal lifecycle and open/close state
+- dry-run request creation
+- readiness row construction and summary formatting
+- early phase preview state in `useEarlyPhasePreviewState(...)`
+- late phase preview state and handlers
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+
+Behavior preservation notes:
+
+- The four middle preview components remain presentational.
+- Existing request payloads, metadata, response messages, loading flags,
+  disabled behavior, button text, result chaining, and dev gating are
+  preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior was added.
+
+Next recommended action:
+
+**Action 330 — Extract Late Phase Preview State Hook**
+
+## Action 330 - Late Phase Preview State Hook Extraction
+
+Action 330 added `hooks/execution/useLatePhasePreviewState.ts` and moved the
+late Avanza phase preview state/handlers out of `app/trade-app.tsx`.
+
+Moved into the hook:
+
+- broker confirmation capture result/loading/message state and handler
+- BrokerExecutionResult eligibility result/loading/message state and handler
+- BrokerExecutionResult conversion preview result/loading/message state and
+  handler
+- execution-record eligibility result/loading/message state and handler
+- broker-capture/result-preview/execution-record chaining data needed by
+  readiness and late preview panels
+- the matching `canCheck` booleans and derived flags used by the previews and
+  readiness panel
+
+Stayed in the parent modal:
+
+- selected intent/handoff ownership
+- modal lifecycle and open/close state
+- dry-run request creation
+- readiness row construction and summary formatting
+- early phase preview state in `useEarlyPhasePreviewState(...)`
+- middle phase preview state in `useMiddlePhasePreviewState(...)`
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+- lifecycle/preparation/capture stubs unrelated to the late preview cluster
+- manual confirmation wait UI, which was not introduced
+
+Behavior preservation notes:
+
+- The late preview components remain presentational.
+- Existing request payloads, metadata, response messages, loading flags,
+  disabled behavior, button text, result chaining, and dev gating are
+  preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior was added.
+- No BrokerExecutionResult, execution record, Supabase write, or trade
+  mutation behavior was added.
+
+Next recommended action:
+
+**Action 331 — Extract Avanza Readiness Derived-State Hook**
+
+## Action 331 - Avanza Readiness Derived-State Hook Extraction
+
+Action 331 added `hooks/execution/useAvanzaReadinessState.ts` and moved the
+Avanza dry-run readiness row/summary assembly out of `app/trade-app.tsx`.
+
+Moved into the hook:
+
+- overall Avanza dry-run readiness status
+- default and explicitly-allowed dry-run capability gate derivation
+- localhost self-check fallback metadata and summary
+- phase summaries for session detection, search-only, instrument verification,
+  instrument page, order page, Advanced form-fill, review click, broker
+  confirmation capture, BrokerExecutionResult eligibility/conversion, and
+  execution-record eligibility
+- readiness row assembly through the existing pure mapper helpers
+- the complete `AvanzaDryRunReadinessPanel` props object
+
+Stayed in the parent modal:
+
+- selected intent/handoff ownership
+- modal lifecycle and open/close state
+- dry-run request creation
+- bridge/client calls and click handlers
+- localhost bridge controls state
+- early/middle/late phase preview state hooks
+- UI rendering and existing dev-gated visibility
+
+Behavior preservation notes:
+
+- `AvanzaDryRunReadinessPanel` remains presentational and receives equivalent
+  props/data.
+- Row order, row labels, statuses, copy, readiness summaries, safety labels,
+  button text elsewhere, and dev gating are preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior was added.
+- No BrokerExecutionResult, execution record, Supabase write, or trade
+  mutation behavior was added.
+
+Next recommended action:
+
+**Action 332 — Reassess trade-app.tsx Size and Remaining Responsibilities**
+
+## Action 333 - Core Handoff Summary and Request Preview Extraction
+
+Action 333 extracted core read-only handoff/request preview rendering from
+`app/trade-app.tsx` into presentational components:
+
+- `components/execution/HandoffCoreSummary.tsx`
+- `components/execution/FutureAgentRequestPreview.tsx`
+- `components/execution/AvanzaDryRunRequestPreview.tsx`
+- `components/execution/BridgeRequestEnvelopePreview.tsx`
+
+Moved out of the parent:
+
+- core handoff header/status display
+- future agent request preview display
+- Avanza dry-run request preview display
+- bridge request envelope preview display
+
+Stayed in the parent:
+
+- modal shell/open-close behavior
+- selected intent/handoff ownership
+- dry-run request creation
+- future-agent request and bridge envelope creation
+- validation status derivation
+- all state hooks and click handlers
+- bridge/client calls
+- execution sandbox QA and lifecycle/status sections
+
+Behavior preservation notes:
+
+- Visible copy, labels, status pills, details/JSON blocks, safety labels,
+  button presence/absence, and dev gating are preserved.
+- No state ownership, hook, handler, bridge/client, API, Avanza/browser,
+  execution, persistence, or trade-mutation behavior changed.
+
+Next recommended action:
+
+**Action 334 — Extract Execution Sandbox QA / Audit Sections**
+
+## Action 334 - Execution Sandbox QA / Audit Rendering Extraction
+
+Action 334 extracted remaining low-risk QA/audit rendering from
+`app/trade-app.tsx` into presentational components:
+
+- `components/execution/ExecutionSandboxQaPanel.tsx`
+- `components/execution/AgentProgressStubPanel.tsx`
+
+Moved out of the parent:
+
+- Execution Sandbox QA checklist rendering
+- agent-progress audit stub display, select/button markup, messages, and
+  timeline row rendering
+
+Stayed in the parent:
+
+- sandbox QA item assembly and overall status/message derivation
+- selected progress event type state
+- agent progress event creation
+- lifecycle transition mapping
+- audit event append calls
+- progress timeline state and messages/errors
+- all state hooks, bridge/client calls, and lifecycle/capture behavior
+
+Behavior preservation notes:
+
+- Visible copy, labels, status pills, button text, select options, timeline
+  rows, and dev gating are preserved.
+- The progress stub component receives callbacks, but the parent still owns the
+  handler implementations and all state.
+- No Avanza/browser/execution/persistence/trade-mutation behavior changed.
+
+Next recommended action:
+
+**Action 335 — Reassess Remaining Handoff Modal Shell Extraction**
+
+## Action 335 - Remaining Handoff Modal Shell Reassessment
+
+Action 335 added
+`docs/handoff-modal-shell-extraction-reassessment.md`.
+
+Assessment result:
+
+- The safest next runtime refactor is a presentational shell extraction only.
+- A future `ExecutionHandoffModalShell` should own only backdrop/dialog/titlebar
+  markup and receive `children`.
+- `app/trade-app.tsx` should keep all hooks, state, handler implementations,
+  request construction, preview composition, lifecycle transitions, audit append
+  logic, preparation stubs, and capture stubs.
+- A larger composed modal/container extraction is not recommended yet because
+  it would create heavy prop drilling and higher hook/state risk.
+
+Next recommended action:
+
+**Action 336 — Extract Presentational Handoff Modal Shell**
+
+## Action 336 - Presentational Handoff Modal Shell Extraction
+
+Action 336 added
+`components/execution/ExecutionHandoffModalShell.tsx`.
+
+Extraction result:
+
+- The Execution Handoff Preview Modal backdrop/dialog/titlebar/close/scroll
+  wrapper moved into a presentational shell component.
+- `app/trade-app.tsx` continues to own modal open/close state, selected
+  intent/handoff, dry-run request creation, all hooks, all handlers, all bridge
+  calls, readiness state, preview composition, lifecycle transitions, audit
+  append logic, preparation stubs, and capture stubs.
+- The shell receives `children` and `onClose`; it does not own business logic,
+  bridge calls, state, or effects.
+- Existing modal title, close button label, ARIA attributes, backdrop
+  click-to-close behavior, event propagation guards, and class names were
+  preserved.
+- No Avanza/browser/execution/persistence/trade-mutation behavior changed.
+
+Next recommended action:
+
+**Action 337 — Reassess trade-app.tsx After Modal Shell Extraction**
+
+## Action 337 - Post-Shell trade-app.tsx Reassessment
+
+Action 337 added
+`docs/trade-app-post-shell-extraction-reassessment.md`.
+
+Assessment result:
+
+- `app/trade-app.tsx` is approximately 42,518 lines after the modal shell
+  extraction.
+- The modal shell and most preview panels are extracted, and bridge/phase
+  state now lives in dedicated hooks.
+- The remaining inline modal sections are mostly lifecycle/preparation
+  diagnostics, broker capture stub rendering, local capture result details,
+  intent/detail readbacks, safety checks, and the footer.
+- Extracting the entire remaining modal composition is still too prop-heavy for
+  the next safe step.
+
+Next recommended action:
+
+**Action 338 — Extract Execution Lifecycle Status Sections**
+
+## Action 338 - Execution Lifecycle Status Section Extraction
+
+Action 338 added presentational components for the remaining inline
+lifecycle/status sections:
+
+- `components/execution/ExecutionLifecycleStatusPanel.tsx`
+- `components/execution/ExecutionBrokerCaptureStubPanel.tsx`
+- `components/execution/ExecutionHandoffStatusReadbacks.tsx`
+
+Extraction result:
+
+- The Avanza preparation/lifecycle status panel, bridge-backed diagnostics
+  runner result display, broker capture stub panel, local capture result
+  details, final read-only handoff details, blocked reason, intent reason,
+  safety checks, and footer close control moved out of `app/trade-app.tsx`.
+- `app/trade-app.tsx` still owns lifecycle state, preparation/capture state,
+  all handlers, lifecycle transitions, audit append logic, broker capture
+  result creation, selected intent/handoff wiring, request creation, hook
+  composition, and result chaining.
+- Visible copy, button text, disabled states, class names, and e2e-visible
+  labels were preserved.
+- `app/trade-app.tsx` is now approximately 42,197 lines.
+
+Next recommended action:
+
+**Action 339 — Reassess Remaining trade-app.tsx Modal/App Boundaries**
+
+## Action 339 - Remaining Modal/App Boundary Reassessment
+
+Action 339 added
+`docs/trade-app-modal-app-boundary-reassessment.md`.
+
+Assessment result:
+
+- `app/trade-app.tsx` remains approximately 42,197 lines.
+- The Execution Handoff Preview Modal is now mostly a coordinator for request
+  previews, extracted hook results, panel ordering, and dev-gated composition.
+- The remaining app-wide domains are still large: Recommendations, Live Day
+  Trades, trade modals, History/statistics, market diagnostics, localStorage
+  effects, Supabase data loading, and refresh orchestration.
+- A composition-only Handoff Modal extraction is the safest next runtime
+  refactor. It should receive grouped props and remain hook-free.
+
+Next recommended action:
+
+**Action 340 — Extract Handoff Modal Composition Container**
+
+## Action 340 - Handoff Modal Composition Container
+
+Action 340 added
+`components/execution/ExecutionHandoffModalComposition.tsx`.
+
+Extraction result:
+
+- The hook-free modal body composition now lives in a dedicated component.
+- The composition component assembles the existing extracted panels and
+  preserves the existing order and dev-gated grouping.
+- `app/trade-app.tsx` still owns `ExecutionHandoffModalShell`, modal
+  open/close, selected handoff/intent data, request construction, all hooks,
+  state, handlers, bridge/client calls, lifecycle transitions, audit append
+  logic, and capture result creation.
+- The new boundary uses grouped typed props rather than moving state ownership.
+- `app/trade-app.tsx` is now approximately 42,074 lines.
+
+Next recommended action:
+
+**Action 341 — Reassess trade-app.tsx After Composition Extraction**
+
+## Action 341 - Post-Composition trade-app.tsx Reassessment
+
+Action 341 added
+`docs/trade-app-post-composition-extraction-reassessment.md`.
+
+Assessment result:
+
+- `app/trade-app.tsx` remains approximately 42,074 lines.
+- Modal rendering, shell, body composition, request previews, readiness,
+  bridge controls, phase previews, QA/progress, lifecycle/status display, pure
+  mappers, and modal-specific state hooks are now extracted.
+- Remaining modal ownership in the parent is intentional: selected
+  intent/handoff, request creation, hook composition, lifecycle/capture/progress
+  state, handlers, audit append calls, capture result creation, and grouped prop
+  assembly.
+- Modal decomposition should pause unless a specific blocker appears.
+- The next safest high-payoff area is the Recommendations tab, starting with a
+  plan rather than immediate runtime extraction.
+
+Next recommended action:
+
+**Action 342 — Create Recommendations Tab Extraction Plan**
+
+## Action 332 - trade-app.tsx Responsibility Reassessment
+
+Action 332 added `docs/trade-app-responsibility-reassessment.md`.
+
+Assessment result:
+
+- `app/trade-app.tsx` is approximately 43,188 lines after the modal
+  decomposition and hook extractions.
+- The handoff modal is much smaller, but the file still owns the modal shell,
+  selected intent/handoff payloads, dry-run request creation, bridge envelope
+  preview creation, lifecycle/status stubs, and execution sandbox QA rendering.
+- App-wide Recommendations, Live Day Trades, Statistics, History, Market, and
+  Settings responsibilities remain broader future decomposition candidates.
+- No runtime code changed for this action.
+
+Recommended next action:
+
+**Action 333 — Extract Core Handoff Summary and Request Preview Components**
+
+## Action 388 - Reassess trade-app.tsx After Major UI Extraction Work
+
+Action 388 added `docs/trade-app-post-major-ui-extraction-reassessment.md`.
+
+Result:
+
+- Confirmed the Execution Handoff Modal remains complete enough to pause after
+  the broader UI extraction pass.
+- Confirmed remaining execution ownership in `app/trade-app.tsx` is
+  state/effects, request construction, orchestrator wiring, audit appends, and
+  persistence-adjacent behavior rather than presentational modal rendering.
+- Recommended app-wide state/effects extraction planning next.
+
+Next recommended action:
+
+**Action 389 - Create App State/Effects Extraction Plan**

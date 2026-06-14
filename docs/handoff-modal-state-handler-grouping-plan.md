@@ -251,11 +251,249 @@ Behavior preservation notes:
 - `app/trade-app.tsx` still owns response state, loading state, result
   chaining, endpoint handlers, and all API/client calls.
 
-## 12. Recommended next action
+## 12. Action 326 mapper extraction result
+
+Action 326 continued the pure mapper extraction in
+`lib/handoff-modal-data-mappers.ts`.
+
+Additional extracted helpers:
+
+- `buildSessionDetectionReadinessItems(...)`
+- `buildSearchOnlyReadinessItems(...)`
+- `buildInstrumentVerificationReadinessItems(...)`
+- `buildInstrumentPageReadinessItems(...)`
+- `buildOrderPageOpenReadinessItems(...)`
+- `buildAdvancedFormFillReadinessItems(...)`
+- `buildReviewClickReadinessItems(...)`
+- `buildBrokerConfirmationCaptureReadinessItems(...)`
+- `buildBrokerExecutionEligibilityReadinessItems(...)`
+
+Behavior preservation notes:
+
+- No modal state moved.
+- No handlers moved.
+- No hooks were created.
+- No bridge/client calls moved.
+- No visible copy, button text, readiness labels, row ordering, or dev gating
+  changed.
+- `app/trade-app.tsx` still owns response state, loading state, result
+  chaining, endpoint handlers, and all API/client calls.
+
+## 13. Action 327 localhost bridge state hook result
+
+Action 327 extracted the localhost bridge controls state and handlers into:
+
+- `hooks/execution/useLocalhostBridgeControlsState.ts`
+
+Moved into the hook:
+
+- localhost bridge echo run state and handler
+- localhost runner self-check state and handler
+- dry-run bridge response preview state and handler
+- localhost mock-agent run state and handler
+- localhost bridge cancel state and handler
+- the matching `canRun` / `canCheck` / `canCancel` booleans for
+  `LocalhostBridgeControls`
+
+Stayed in `app/trade-app.tsx`:
+
+- modal open/close state
+- selected intent/handoff ownership
+- dry-run request and bridge envelope preview derivation
+- session-detection/search-only/instrument/page/order/form/review preview state
+- broker/capture/eligibility/preview state
+- readiness row building
+- unrelated lifecycle/capture/preparation handlers
+
+Behavior preservation notes:
+
+- Request payloads, local audit events, local agent-run diagnostics, safe-action
+  diagnostics saving, messages, loading flags, disabled behavior, and
+  `LocalhostBridgeControls` props are preserved.
+- No bridge/client helper behavior changed.
+- No visible copy, button text, dev gating, Avanza automation, execution
+  behavior, persistence behavior, or trade mutation changed.
+
+## 14. Action 328 early phase preview state hook result
+
+Action 328 extracted the early Avanza phase preview state and handlers into:
+
+- `hooks/execution/useEarlyPhasePreviewState.ts`
+
+Moved into the hook:
+
+- session-detection preview result/loading/message state and handler
+- search-only preview result/loading/message state and handler
+- instrument-verification preview result/loading/message state and handler
+- the early phase result chaining from session detection to search-only and
+  from exact search candidate to instrument verification
+- the matching `canCheck` booleans and derived status flags consumed by the
+  presentational preview components and readiness panel
+
+Stayed in `app/trade-app.tsx`:
+
+- modal open/close state
+- selected intent/handoff ownership
+- dry-run request creation
+- readiness row building and summary formatting
+- instrument page, order page, Advanced form-fill, review-click, broker
+  capture, BrokerExecutionResult, and execution-record preview state
+- localhost bridge controls state, which remains in
+  `useLocalhostBridgeControlsState(...)`
+
+Behavior preservation notes:
+
+- Request payloads, metadata, response messages, loading flags, disabled
+  behavior, result chaining, button text, and dev gating are preserved.
+- No bridge/client helper behavior changed.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, or trade mutation was added.
+
+## 15. Action 329 middle phase preview state hook result
+
+Action 329 extracted the middle Avanza phase preview state and handlers into:
+
+- `hooks/execution/useMiddlePhasePreviewState.ts`
+
+Moved into the hook:
+
+- instrument-page preview result/loading/message state and handler
+- order-page-open preview result/loading/message state and handler
+- Advanced form-fill preview result/loading/message state and handler
+- review-click preview result/loading/message state and handler
+- the middle phase result chaining from verified instrument to instrument page,
+  from identified page to order page, from opened order page to Advanced form
+  fill, and from filled form to review-click readback
+- the matching `canCheck` booleans and derived status flags consumed by the
+  presentational preview components and readiness panel
+
+Stayed in `app/trade-app.tsx`:
+
+- modal open/close state
+- selected intent/handoff ownership
+- dry-run request creation
+- readiness row building and summary formatting
+- early phase preview state in `useEarlyPhasePreviewState(...)`
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+- broker confirmation capture, BrokerExecutionResult, and execution-record
+  preview state/handlers
+
+Behavior preservation notes:
+
+- Request payloads, metadata, response messages, loading flags, disabled
+  behavior, result chaining, button text, and dev gating are preserved.
+- No bridge/client helper behavior changed.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, or trade mutation was added.
+
+## 16. Action 330 late phase preview state hook result
+
+Action 330 extracted the late Avanza phase preview state and handlers into:
+
+- `hooks/execution/useLatePhasePreviewState.ts`
+
+Moved into the hook:
+
+- broker confirmation capture preview result/loading/message state and handler
+- BrokerExecutionResult eligibility preview result/loading/message state and
+  handler
+- BrokerExecutionResult conversion preview result/loading/message state and
+  handler
+- execution-record eligibility preview result/loading/message state and handler
+- the late phase result chaining from broker confirmation capture to
+  BrokerExecutionResult eligibility/conversion and from preview-shaped output
+  to execution-record eligibility
+- the matching `canCheck` booleans and derived status flags consumed by the
+  presentational preview components and readiness panel
+
+Stayed in `app/trade-app.tsx`:
+
+- modal open/close state
+- selected intent/handoff ownership
+- dry-run request creation
+- readiness row building and summary formatting
+- early phase preview state in `useEarlyPhasePreviewState(...)`
+- middle phase preview state in `useMiddlePhasePreviewState(...)`
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+- lifecycle/preparation/capture stubs unrelated to the late preview cluster
+- manual-confirmation wait UI, which still does not exist and was not added
+
+Behavior preservation notes:
+
+- Request payloads, metadata, response messages, loading flags, disabled
+  behavior, result chaining, button text, and dev gating are preserved.
+- No bridge/client helper behavior changed.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, BrokerExecutionResult creation, execution-record creation,
+  Supabase write, or trade mutation was added.
+
+## 17. Action 331 Avanza readiness derived-state hook result
+
+Action 331 extracted the Avanza dry-run readiness derived-state assembly into:
+
+- `hooks/execution/useAvanzaReadinessState.ts`
+
+Moved into the hook:
+
+- Avanza dry-run readiness overall status derivation
+- localhost runner self-check fallback and readiness labels
+- phase summary strings for session detection, search-only, instrument
+  verification, instrument page, order page, Advanced form fill, review click,
+  broker confirmation capture, BrokerExecutionResult eligibility/conversion,
+  and execution-record eligibility
+- readiness row composition using the existing pure mapper helpers
+- the complete props object passed to `AvanzaDryRunReadinessPanel`
+
+Stayed in `app/trade-app.tsx`:
+
+- modal open/close state
+- selected intent/handoff ownership
+- dry-run request creation
+- bridge calls and click handlers
+- localhost bridge controls state in `useLocalhostBridgeControlsState(...)`
+- early/middle/late preview state hooks
+- lifecycle/preparation/capture stubs unrelated to readiness rendering
+- UI rendering and dev-gated visibility
+
+Behavior preservation notes:
+
+- Readiness row ordering, labels, statuses, copy, summary text, safety labels,
+  and dev-gating behavior are preserved.
+- No bridge/client helper behavior changed.
+- No state setters, API calls, localStorage side effects, or diagnostics
+  persistence moved.
+- No Avanza automation, browser control, execution behavior, persistence
+  behavior, BrokerExecutionResult creation, execution-record creation,
+  Supabase write, or trade mutation was added.
+
+## 18. Recommended next action
 
 Recommended:
 
-**Action 326 — Extract Localhost Bridge State Hook**
+**Action 332 — Reassess trade-app.tsx Size and Remaining Responsibilities**
 
-This should move localhost bridge state and handlers only after confirming the
-pure mapper extraction remains stable under lint, TypeScript, and e2e.
+This should review remaining modal responsibilities after the state and
+derived-state extractions, then decide whether to extract core summary/request
+preview components or continue toward smaller state-grouping hooks.
+
+## 19. Action 332 reassessment result
+
+Action 332 added:
+
+- `docs/trade-app-responsibility-reassessment.md`
+
+Key findings:
+
+- `app/trade-app.tsx` remains approximately 43,188 lines.
+- State/handler hooks now cover localhost bridge controls plus early, middle,
+  late, and readiness-derived Avanza modal state.
+- Remaining handoff modal responsibilities are mostly shell ownership, selected
+  intent/handoff ownership, request preview creation, lifecycle/status stubs,
+  core summary rendering, bridge envelope preview rendering, and sandbox QA
+  rendering.
+- Larger app-wide tabs and trade-management behavior remain out of scope for
+  the next handoff-modal refactor.
+
+Recommended next action:
+
+**Action 333 — Extract Core Handoff Summary and Request Preview Components**

@@ -118,12 +118,10 @@ import {
 import {
   buildTradeEligibility,
   type TradeEligibilityResult,
-  type TradeEligibilityStatus,
 } from "@/lib/trade-eligibility";
 import {
   buildRecommendationDecisionStack,
   type RecommendationDecisionStackResult,
-  type RecommendationDecisionStackStatus,
 } from "@/lib/recommendation-decision-stack";
 import {
   buildRecommendationIntakeQualityResult,
@@ -519,8 +517,6 @@ import {
 import {
   buildLiveSellGuidance,
   type LiveSellAction,
-  type LiveSellGuidance,
-  type LiveSellUrgency,
 } from "@/lib/live-sell-guidance";
 import {
   runExecutionOrchestrator,
@@ -564,7 +560,6 @@ import {
   getAvanzaAgentProgressDisplayLabel,
   mapAvanzaAgentProgressToLifecycleEventType,
   validateAvanzaAgentRequest,
-  type AvanzaAgentProgressEvent,
   type AvanzaAgentProgressEventType,
   type AvanzaAgentResult,
 } from "@/lib/avanza-agent-adapter";
@@ -573,26 +568,37 @@ import {
   EmptyState,
   TextBlock,
 } from "@/components/execution/handoff-modal-shared";
-import { AvanzaDryRunReadinessPanel } from "@/components/execution/AvanzaDryRunReadinessPanel";
-import { LocalhostBridgeControls } from "@/components/execution/LocalhostBridgeControls";
-import { InstrumentVerificationPreview } from "@/components/execution/stub-previews/InstrumentVerificationPreview";
-import { AdvancedFormFillPreview } from "@/components/execution/stub-previews/AdvancedFormFillPreview";
-import { BrokerConfirmationCapturePreview } from "@/components/execution/stub-previews/BrokerConfirmationCapturePreview";
-import { BrokerExecutionResultEligibilityPreview } from "@/components/execution/stub-previews/BrokerExecutionResultEligibilityPreview";
-import { BrokerExecutionResultPreview } from "@/components/execution/stub-previews/BrokerExecutionResultPreview";
-import { ExecutionRecordEligibilityPreview } from "@/components/execution/stub-previews/ExecutionRecordEligibilityPreview";
-import { InstrumentPagePreview } from "@/components/execution/stub-previews/InstrumentPagePreview";
-import { OrderPageOpenPreview } from "@/components/execution/stub-previews/OrderPageOpenPreview";
-import { ReviewClickPreview } from "@/components/execution/stub-previews/ReviewClickPreview";
-import { SearchOnlyPreview } from "@/components/execution/stub-previews/SearchOnlyPreview";
-import { SessionDetectionPreview } from "@/components/execution/stub-previews/SessionDetectionPreview";
+import type { AgentProgressStubTimelineItem } from "@/components/execution/AgentProgressStubPanel";
+import { ExecutionHandoffModalComposition } from "@/components/execution/ExecutionHandoffModalComposition";
+import type { ExecutionSandboxQaOverallStatus } from "@/components/execution/ExecutionSandboxQaPanel";
+import { ExecutionHandoffModalShell } from "@/components/execution/ExecutionHandoffModalShell";
+import { ClosedTradeAuditTimelinePanel } from "@/components/history/ClosedTradeAuditTimelinePanel";
+import { ClosedTradeDetailsModal } from "@/components/history/ClosedTradeDetailsModal";
+import { ClosedTradePlanAdherencePanel } from "@/components/history/ClosedTradePlanAdherencePanel";
+import { HistoryTab } from "@/components/history/HistoryTab";
+import { buildClosedTradeDisplayProps } from "@/components/history/closed-trade-display-mapper";
+import { LiveDayTradeCardBody } from "@/components/live-day-trades/LiveDayTradeCardBody";
+import { LiveExecutionStatusSurface } from "@/components/live-day-trades/LiveExecutionStatusSurface";
+import { LiveDayTradesTab } from "@/components/live-day-trades/LiveDayTradesTab";
+import { LiveTradeDetailsModal } from "@/components/live-day-trades/LiveTradeDetailsModal";
+import { buildLiveDayTradeDisplayProps } from "@/components/live-day-trades/live-day-trade-display-mapper";
+import { RecommendationsTab } from "@/components/recommendations/RecommendationsTab";
+import { RecommendationCardContainer } from "@/components/recommendations/RecommendationCardContainer";
+import { RecommendationDetailsPill } from "@/components/recommendations/RecommendationDetailsModal";
 import {
-  getAvanzaDryRunSafetyLabels,
-  summarizeAvanzaDryRunOrderInput,
-} from "@/lib/avanza-dry-run-request-contract";
+  recommendationDetailsCurrency,
+  recommendationDetailsShares,
+  recommendationDetailsValue,
+} from "@/components/recommendations/recommendation-details-display-helpers";
+import {
+  recommendationCardConfidenceLabel,
+  recommendationCardConfidenceTone,
+} from "@/components/recommendations/recommendation-card-display-mapper";
+import { StatisticsDashboard as StatisticsDashboardShell } from "@/components/statistics/StatisticsDashboard";
+import { StatisticsMetricCard } from "@/components/statistics/StatisticsMetricCard";
+import { StatisticsSummaryGrid } from "@/components/statistics/StatisticsSummaryGrid";
 import {
   buildAvanzaDryRunOrderInputFromExecutionIntent,
-  summarizeExecutionIntentToAvanzaDryRunResult,
 } from "@/lib/execution-intent-to-avanza-dry-run";
 import {
   createAvanzaAgentBridgeFromConfig,
@@ -603,52 +609,17 @@ import {
   appendAvanzaAgentRun,
   createStoredAvanzaAgentRun,
 } from "@/lib/avanza-agent-run-store";
-import { appendSafeBrowserActionDiagnostics } from "@/lib/safe-browser-action-diagnostics-store";
+import { type ExecutionSandboxQaItem } from "@/lib/handoff-modal-data-mappers";
+import { useAvanzaReadinessState } from "@/hooks/execution/useAvanzaReadinessState";
+import { useEarlyPhasePreviewState } from "@/hooks/execution/useEarlyPhasePreviewState";
+import { useLatePhasePreviewState } from "@/hooks/execution/useLatePhasePreviewState";
+import { useLocalhostBridgeControlsState } from "@/hooks/execution/useLocalhostBridgeControlsState";
+import { useMiddlePhasePreviewState } from "@/hooks/execution/useMiddlePhasePreviewState";
 import {
-  createAvanzaDryRunBrowserRunnerCapability,
-  summarizeBrowserRunnerCapabilityValidation,
-  validateBrowserRunnerCapability,
-} from "@/lib/browser-runner-capability-gate";
-import { createUnavailableAvanzaDryRunRunnerSelfCheck } from "@/lib/avanza-dry-run-runner-self-check";
-import {
-  cancelLocalhostBridgeRun,
-  checkLocalhostBridgeAdvancedFormFill,
-  checkLocalhostBridgeBrokerConfirmationCapture,
-  checkLocalhostBridgeBrokerExecutionResultEligibility,
-  checkLocalhostBridgeBrokerExecutionResultPreview,
-  checkLocalhostBridgeExecutionRecordEligibility,
-  checkLocalhostBridgeInstrumentPage,
-  checkLocalhostBridgeInstrumentVerification,
-  checkLocalhostBridgeOrderPageOpen,
-  checkLocalhostBridgeReviewClick,
-  checkLocalhostBridgeRunnerSelfCheck,
-  checkLocalhostBridgeSessionDetection,
-  checkLocalhostBridgeSearchOnly,
-  runLocalhostBridgeAvanzaDryRunStub,
-  runLocalhostBridgeDryRun,
-  type LocalhostBridgeClientAvanzaDryRunStubResult,
-  type LocalhostBridgeClientAdvancedFormFillResult,
-  type LocalhostBridgeClientBrokerConfirmationCaptureResult,
-  type LocalhostBridgeClientBrokerExecutionResultEligibilityResult,
-  type LocalhostBridgeClientBrokerExecutionResultPreviewResult,
-  type LocalhostBridgeClientCancelResult,
-  type LocalhostBridgeClientExecutionRecordEligibilityResult,
-  type LocalhostBridgeClientInstrumentPageResult,
-  type LocalhostBridgeClientInstrumentVerificationResult,
-  type LocalhostBridgeClientOrderPageOpenResult,
-  type LocalhostBridgeClientReviewClickResult,
-  type LocalhostBridgeClientRunnerSelfCheckResult,
-  type LocalhostBridgeClientRunResult,
-  type LocalhostBridgeClientSearchOnlyResult,
-  type LocalhostBridgeClientSessionDetectionResult,
-} from "@/lib/avanza-localhost-bridge-client";
-import {
-  buildBrokerExecutionPreviewReadinessItems,
-  buildExecutionRecordEligibilityReadinessItems,
-  type ExecutionSandboxQaItem,
-  type ExecutionSandboxQaStatus,
-} from "@/lib/handoff-modal-data-mappers";
-import type { ExecutionRecordCandidate } from "@/lib/execution-record-eligibility";
+  useTradeAppNavigationState,
+  type TradeAppTab,
+} from "@/hooks/trade-app/useTradeAppNavigationState";
+import { useStatisticsRangeState } from "@/hooks/trade-app/useStatisticsRangeState";
 import {
   buildAvanzaAgentBridgeEnvelope,
   getAvanzaAgentBridgeTransportDisplayLabel,
@@ -722,8 +693,6 @@ import {
 import {
   buildPlanVsActualReview,
   planVsActualReviewJson,
-  type PlanVsActualReview,
-  type PlanVsActualStatus,
 } from "@/lib/plan-vs-actual-review";
 import {
   mapMockFillToBrokerExitConfirmation,
@@ -745,7 +714,6 @@ import {
   type ScanLogRunRow,
 } from "@/lib/scan-logs";
 import {
-  getSetupTypeDescription,
   getSetupTypeLabel,
   normalizeSetupType,
   type SetupType,
@@ -762,13 +730,7 @@ type RecommendationStatus =
   | "rejected"
   | "taken";
 type SessionType = "morning" | "midday";
-type Tab =
-  | "Recommendations"
-  | "Live Day Trades"
-  | "Stats Today"
-  | "Statistics"
-  | "History"
-  | "Market";
+type Tab = TradeAppTab;
 
 type RefreshIslandId =
   | "market_status"
@@ -3331,70 +3293,12 @@ function recommendationStatusLabel(value: RecommendationStatus) {
   return "current";
 }
 
-function positionActionClassName(value: string) {
-  if (value === "REVIEW_REQUIRED") {
-    return "border-amber-300/35 bg-amber-300/10 text-amber-100";
-  }
-
-  if (value === "CLOSE_POSITION") {
-    return "border-rose-300/40 bg-rose-300/15 text-rose-100";
-  }
-
-  if (value === "TAKE_PROFIT" || value === "TAKE_PARTIAL_PROFIT") {
-    return "border-emerald-300/35 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (value === "MOVE_STOP_TO_BREAKEVEN") {
-    return "border-cyan-300/35 bg-cyan-300/10 text-cyan-100";
-  }
-
-  return "border-white/10 bg-white/[0.04] text-zinc-300";
-}
-
-function positionActionPillClassName(value: string) {
-  if (value === "CLOSE_POSITION") return "trade-live-action-pill--close";
-  if (value === "TAKE_PROFIT" || value === "TAKE_PARTIAL_PROFIT") {
-    return "trade-live-action-pill--profit";
-  }
-
-  return "trade-live-action-pill--hold";
-}
-
 function liveSellActionToLegacyAction(action: LiveSellAction) {
   if (action === "take_profit") return "TAKE_PROFIT";
   if (action === "close_position") return "CLOSE_POSITION";
   if (action === "review_required") return "REVIEW_REQUIRED";
   if (action === "watch") return "WATCH";
   return "HOLD";
-}
-
-function liveSellUrgencyTone(
-  urgency: LiveSellUrgency,
-): "positive" | "warning" | "danger" | "neutral" {
-  if (urgency === "critical") return "danger";
-  if (urgency === "high" || urgency === "medium") return "warning";
-  if (urgency === "low") return "positive";
-  return "neutral";
-}
-
-function liveSellGuidanceCardClassName(guidance: LiveSellGuidance) {
-  if (guidance.urgency === "critical") {
-    return "border-rose-300/45 bg-rose-300/[0.075] shadow-[0_0_0_1px_rgba(244,63,94,0.08),0_0_28px_rgba(244,63,94,0.08)]";
-  }
-
-  if (guidance.urgency === "high" || guidance.action === "review_required") {
-    return "border-amber-300/35 bg-amber-300/[0.055]";
-  }
-
-  if (guidance.action === "take_profit") {
-    return "border-emerald-300/35 bg-emerald-300/[0.055]";
-  }
-
-  if (guidance.action === "watch") {
-    return "border-cyan-300/25 bg-cyan-300/[0.04]";
-  }
-
-  return "border-[#00db94]/20 bg-[#00db94]/[0.045]";
 }
 
 function isTakeProfitAction(value: string) {
@@ -3945,19 +3849,6 @@ function getAddTradeGate(
   }
 
   return { confirmation, blocked: false, message: "" };
-}
-
-function intradayConfirmationLabel(status: IntradayConfirmationStatus["status"]) {
-  return status.toUpperCase();
-}
-
-function vwapLabel(indicators: IntradayIndicators | null) {
-  if (!indicators || indicators.isAboveVwap === null) return "Unknown";
-  return indicators.isAboveVwap ? "Above" : "Below";
-}
-
-function titleCaseValue(value: string) {
-  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : "Unknown";
 }
 
 function calculateCurrentR({
@@ -6825,10 +6716,6 @@ function formatIntradayIndicatorValue(value: number | null, suffix = "") {
   return value === null ? "—" : `${formatNumber(value)}${suffix}`;
 }
 
-function isCloseRequiredAction(action: string) {
-  return action === "TAKE_PROFIT" || action === "CLOSE_POSITION";
-}
-
 function logAddTradeValidationEvent(
   recommendation: Recommendation,
   validation: AddTradeValidationResult,
@@ -7978,13 +7865,13 @@ function updateResultToLatestPositionUpdate(
 }
 
 export function TradeApp() {
-  const [activeTab, setActiveTab] = useState<Tab>("Recommendations");
+  const { activeTab, setActiveTab } = useTradeAppNavigationState();
+  const { selectedStatisticsRange, setSelectedStatisticsRange } =
+    useStatisticsRangeState();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
   const [closedPositions, setClosedPositions] = useState<ClosedPosition[]>([]);
-  const [selectedStatisticsRange, setSelectedStatisticsRange] =
-    useState<StatisticsTimeRange>("today");
   const [historyOutcomeFilter, setHistoryOutcomeFilter] =
     useState<HistoryOutcomeFilter>(defaultHistoryFilterState.outcome);
   const [historyDemoFilter, setHistoryDemoFilter] =
@@ -14724,132 +14611,138 @@ export function TradeApp() {
         </nav>
 
         {activeTab === "Recommendations" && (
-          <section className="trade-recommendations-section">
-            <TradePrimaryStatusbar
-              updateLabel="Recommendations updated"
-              updatedAt={recommendationsStatusUpdatedAt}
-              currentTime={currentTime}
-              scanWindowLabel={currentIntradayScanWindowLabel}
-              onRefresh={() => {
-                void refreshIslands(["market_status", "recommendations"], "manual");
-              }}
-              isRefreshing={
-                islandRefreshState.market_status.isRefreshing ||
-                islandRefreshState.recommendations.isRefreshing
-              }
-              isDisabled={isLoading}
-              refreshError={
-                islandRefreshState.recommendations.error ??
-                islandRefreshState.market_status.error
-              }
-            />
+          <RecommendationsTab
+            emptyState={{
+              body: recommendationEmptyStateSummary.body,
+              show: recommendationEmptyStateSummary.show_dominant_empty_state,
+              title: recommendationEmptyStateSummary.title,
+            }}
+            isLoading={isLoading}
+            learningModeEnabled={growMaxLearningModeEnabled}
+            statusbar={
+              <TradePrimaryStatusbar
+                updateLabel="Recommendations updated"
+                updatedAt={recommendationsStatusUpdatedAt}
+                currentTime={currentTime}
+                scanWindowLabel={currentIntradayScanWindowLabel}
+                onRefresh={() => {
+                  void refreshIslands(
+                    ["market_status", "recommendations"],
+                    "manual",
+                  );
+                }}
+                isRefreshing={
+                  islandRefreshState.market_status.isRefreshing ||
+                  islandRefreshState.recommendations.isRefreshing
+                }
+                isDisabled={isLoading}
+                refreshError={
+                  islandRefreshState.recommendations.error ??
+                  islandRefreshState.market_status.error
+                }
+              />
+            }
+          >
+            {dailyRecommendations.map((recommendation) => {
+              const calibrationGuardrails =
+                calibrationGuardrailsByRecommendationId.get(recommendation.id) ??
+                null;
+              const preTradeRiskContext =
+                preTradeRiskContextByRecommendationId.get(recommendation.id) ??
+                null;
+              const tradeEligibility =
+                tradeEligibilityByRecommendationId.get(recommendation.id) ??
+                null;
+              const decisionStack =
+                recommendationDecisionStackByRecommendationId.get(
+                  recommendation.id,
+                ) ?? null;
+              const freshness = getRecommendationFreshness(
+                toFreshnessInput(recommendation),
+              );
+              const addTradeGate = getAddTradeGate(recommendation, freshness);
+              const keyReasons = getRecommendationKeyReasons({
+                recommendation,
+                confirmation: addTradeGate.confirmation,
+                decisionStack,
+                calibrationGuardrails,
+                preTradeRiskContext,
+              });
 
-            {growMaxLearningModeEnabled && (
-              <div className="trade-learning-mode-banner">
-                TESTING / LEARNING ONLY — not for live execution
-              </div>
-            )}
-
-            <div className="trade-recommendation-grid">
-              {isLoading ? (
-                <EmptyState
-                  title="Loading recommendations"
-                  message="Trade is reading your Supabase recommendations table."
-                />
-              ) : recommendationEmptyStateSummary.show_dominant_empty_state ? (
-                <EmptyState
-                  title={recommendationEmptyStateSummary.title}
-                  message={recommendationEmptyStateSummary.body}
-                />
-              ) : dailyRecommendations.map((recommendation) => (
-                <RecommendationCard
+              return (
+                <RecommendationCardContainer
                   key={recommendation.id}
                   recommendation={recommendation}
-                  calibrationGuardrails={
-                    calibrationGuardrailsByRecommendationId.get(
-                      recommendation.id,
-                    ) ?? null
-                  }
-                  preTradeRiskContext={
-                    preTradeRiskContextByRecommendationId.get(
-                      recommendation.id,
-                    ) ?? null
-                  }
-                  tradeEligibility={
-                    tradeEligibilityByRecommendationId.get(recommendation.id) ??
-                    null
-                  }
-                  decisionStack={
-                    recommendationDecisionStackByRecommendationId.get(
-                      recommendation.id,
-                    ) ?? null
-                  }
+                  calibrationGuardrails={calibrationGuardrails}
+                  preTradeRiskContext={preTradeRiskContext}
+                  tradeEligibility={tradeEligibility}
+                  decisionStack={decisionStack}
+                  freshness={freshness}
+                  addTradeGate={addTradeGate}
+                  keyReasons={keyReasons}
                   positionSizing={calculatePositionSizing(
                     recommendation,
                     userSettings,
                   )}
+                  isDemoRecommendation={isDemoRecommendation(recommendation)}
                   isSaving={isSaving}
                   isValidating={validatingRecommendationId === recommendation.id}
                   onTakeTrade={openTradeModal}
                   onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
+                  renderIdentity={(item) => (
+                    <CompanyIdentity
+                      ticker={item.ticker}
+                      companyName={item.companyName}
+                      size="live"
+                    />
+                  )}
+                  renderSourceBadge={(badge) => <DataModePill badge={badge} />}
+                  renderSourceBadges={(badges) => <DataModePillRow badges={badges} />}
                 />
-              ))
-              }
-            </div>
-          </section>
+              );
+            })}
+          </RecommendationsTab>
         )}
 
         {activeTab === "Live Day Trades" && (
-          <section className="trade-live-section">
-            <TradePrimaryStatusbar
-              updateLabel="Trades updated"
-              updatedAt={liveTradesStatusUpdatedAt}
-              currentTime={currentTime}
-              scanWindowLabel={currentIntradayScanWindowLabel}
-              onRefresh={() => {
-                void refreshIslands(["market_status", "live_trades"], "manual");
-              }}
-              isRefreshing={
-                isUpdatingPositions ||
-                islandRefreshState.market_status.isRefreshing ||
-                islandRefreshState.live_trades.isRefreshing
-              }
-              isDisabled={isLoading}
-              refreshError={
-                islandRefreshState.live_trades.error ??
-                islandRefreshState.market_status.error
-              }
-            />
-
-            <ExecutionSandboxFixturePanel
-              executionMode={selectedExecutionMode}
-            />
-
-            {isLoading ? (
-              <div className="trade-live-grid">
-                <EmptyState
-                  title="Loading live day trades"
-                  message="Trade is reading your open Supabase positions."
-                />
-              </div>
-            ) : activePositions.length === 0 ? (
-              <div className="trade-live-grid">
-                <EmptyState
-                  title="No live day trades"
-                  message={
-                    topMarketStatus === "open"
-                      ? "Add a trade from Trade Recommendations when a high-quality intraday setup appears."
-                      : "US stock market is currently closed."
-                  }
-                />
-              </div>
-            ) : (
-              <>
-                <div className="trade-live-grid">
-                  {(takeProfitLivePositionItems.length > 0
-                    ? takeProfitLivePositionItems
-                    : livePositionItems
-                  ).map(({ position, latestUpdate }) => (
+          <LiveDayTradesTab
+            statusbar={
+              <TradePrimaryStatusbar
+                updateLabel="Trades updated"
+                updatedAt={liveTradesStatusUpdatedAt}
+                currentTime={currentTime}
+                scanWindowLabel={currentIntradayScanWindowLabel}
+                onRefresh={() => {
+                  void refreshIslands(["market_status", "live_trades"], "manual");
+                }}
+                isRefreshing={
+                  isUpdatingPositions ||
+                  islandRefreshState.market_status.isRefreshing ||
+                  islandRefreshState.live_trades.isRefreshing
+                }
+                isDisabled={isLoading}
+                refreshError={
+                  islandRefreshState.live_trades.error ??
+                  islandRefreshState.market_status.error
+                }
+              />
+            }
+            fixturePanel={
+              <ExecutionSandboxFixturePanel
+                executionMode={selectedExecutionMode}
+              />
+            }
+            isLoading={isLoading}
+            hasTrades={activePositions.length > 0}
+            emptyMessage={
+              topMarketStatus === "open"
+                ? "Add a trade from Trade Recommendations when a high-quality intraday setup appears."
+                : "US stock market is currently closed."
+            }
+            continuedItems={
+              takeProfitLivePositionItems.length > 0 &&
+              otherLivePositionItems.length > 0
+                ? otherLivePositionItems.map(({ position, latestUpdate }) => (
                     <ActivePositionCard
                       key={`${position.id}:${dailySessionDate}`}
                       position={position}
@@ -14887,62 +14780,53 @@ export function TradeApp() {
                       isSaving={isSaving}
                       onClosePosition={openClosePositionModal}
                     />
-                  ))}
-                </div>
-
-                {takeProfitLivePositionItems.length > 0 &&
-                  otherLivePositionItems.length > 0 && (
-                  <>
-                    <div className="trade-live-divider" aria-hidden="true" />
-                    <div className="trade-live-grid trade-live-grid--continued">
-                      {otherLivePositionItems.map(({ position, latestUpdate }) => (
-                        <ActivePositionCard
-                          key={`${position.id}:${dailySessionDate}`}
-                          position={position}
-                          latestUpdate={latestUpdate}
-                          marketCloseWarning={marketCloseWarning}
-                          eodSafetyStatus={
-                            eodSafetyStatusesByPositionId[position.id]
-                          }
-                          eodSafetyDate={dailySessionDate}
-                          isMarketOpen={topMarketStatus === "open"}
-                          currentTime={currentTime}
-                          executionMode={selectedExecutionMode}
-                          riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
-                            settings: riskControlsSettings,
-                            ticker: position.ticker,
-                            openPositionsCount: activePositions.length,
-                            closedTradesTodayCount: dailyClosedPositions.length,
-                            dailyRealizedPnl,
-                            dailyRealizedR,
-                            currentUnrealizedPnl: calculateUnrealizedPnl({
-                              entryPrice: position.entryPriceValue,
-                              currentPrice: latestUpdate?.currentPriceValue ?? null,
-                              shares: position.positionSizeValue,
-                              direction: position.direction,
-                            }).pnl,
-                            currentR:
-                              latestUpdate?.unrealizedRValue ??
-                              calculateCurrentR({
-                                entryPrice: position.entryPriceValue,
-                                stopLoss: position.stopLossValue,
-                                currentPrice:
-                                  latestUpdate?.currentPriceValue ?? null,
-                                direction: position.direction,
-                              }),
-                            lastLossClosedAt,
-                            now: currentTime,
-                          })}
-                          isSaving={isSaving}
-                          onClosePosition={openClosePositionModal}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </section>
+                  ))
+                : null
+            }
+          >
+            {(takeProfitLivePositionItems.length > 0
+              ? takeProfitLivePositionItems
+              : livePositionItems
+            ).map(({ position, latestUpdate }) => (
+              <ActivePositionCard
+                key={`${position.id}:${dailySessionDate}`}
+                position={position}
+                latestUpdate={latestUpdate}
+                marketCloseWarning={marketCloseWarning}
+                eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
+                eodSafetyDate={dailySessionDate}
+                isMarketOpen={topMarketStatus === "open"}
+                currentTime={currentTime}
+                executionMode={selectedExecutionMode}
+                riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
+                  settings: riskControlsSettings,
+                  ticker: position.ticker,
+                  openPositionsCount: activePositions.length,
+                  closedTradesTodayCount: dailyClosedPositions.length,
+                  dailyRealizedPnl,
+                  dailyRealizedR,
+                  currentUnrealizedPnl: calculateUnrealizedPnl({
+                    entryPrice: position.entryPriceValue,
+                    currentPrice: latestUpdate?.currentPriceValue ?? null,
+                    shares: position.positionSizeValue,
+                    direction: position.direction,
+                  }).pnl,
+                  currentR:
+                    latestUpdate?.unrealizedRValue ??
+                    calculateCurrentR({
+                      entryPrice: position.entryPriceValue,
+                      stopLoss: position.stopLossValue,
+                      currentPrice: latestUpdate?.currentPriceValue ?? null,
+                      direction: position.direction,
+                    }),
+                  lastLossClosedAt,
+                  now: currentTime,
+                })}
+                isSaving={isSaving}
+                onClosePosition={openClosePositionModal}
+              />
+            ))}
+          </LiveDayTradesTab>
         )}
 
         {activeTab === "Stats Today" && (
@@ -15056,136 +14940,134 @@ export function TradeApp() {
         )}
 
         {activeTab === "History" && (
-          <section className="trade-statistics-section space-y-8">
-            <div>
-              <h2 className="font-mono text-2xl font-semibold tracking-normal text-white">
-                History
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Closed trades first. Recommendation history stays available for
-                review when you want to inspect Ture’s learning data.
-              </p>
-            </div>
-
-            <TradePrimaryStatusbar
-              updateLabel="History updated"
-              updatedAt={statisticsStatusUpdatedAt}
-              currentTime={currentTime}
-              scanWindowLabel={currentIntradayScanWindowLabel}
-              onRefresh={() => {
-                void refreshIslands(["history_statistics"], "manual");
-              }}
-              isRefreshing={islandRefreshState.history_statistics.isRefreshing}
-              refreshError={islandRefreshState.history_statistics.error}
-            />
-
-            <DataModeClarityBanner
-              summary={dataModeClaritySummary}
-              surfaceIds={["history_and_statistics", "mock_broker_tools"]}
-              compact
-            />
-
-            {demoTradingFlowEnabled && (
-              <RecommendationOutcomeEvaluationRunnerPanel
-                diagnostics={recommendationOutcomeEvaluationDiagnostics}
-                isRunning={isEvaluatingRecommendationOutcomes}
-                onEvaluate={evaluateRecentRecommendationOutcomes}
+          <HistoryTab
+            statusbar={
+              <TradePrimaryStatusbar
+                updateLabel="History updated"
+                updatedAt={statisticsStatusUpdatedAt}
+                currentTime={currentTime}
+                scanWindowLabel={currentIntradayScanWindowLabel}
+                onRefresh={() => {
+                  void refreshIslands(["history_statistics"], "manual");
+                }}
+                isRefreshing={islandRefreshState.history_statistics.isRefreshing}
+                refreshError={islandRefreshState.history_statistics.error}
               />
-            )}
+            }
+            dataModeBanner={
+              <DataModeClarityBanner
+                summary={dataModeClaritySummary}
+                surfaceIds={["history_and_statistics", "mock_broker_tools"]}
+                compact
+              />
+            }
+            outcomeEvaluationRunner={
+              demoTradingFlowEnabled ? (
+                <RecommendationOutcomeEvaluationRunnerPanel
+                  diagnostics={recommendationOutcomeEvaluationDiagnostics}
+                  isRunning={isEvaluatingRecommendationOutcomes}
+                  onEvaluate={evaluateRecentRecommendationOutcomes}
+                />
+              ) : null
+            }
+            diagnostics={
+              <>
+                <pre
+                  id="trade-recommendation-snapshots-json"
+                  className="sr-only"
+                  data-snapshots-stored-today={
+                    recommendationSnapshotDiagnostics.snapshotsStoredToday
+                  }
+                  data-last-snapshot-timestamp={
+                    recommendationSnapshotDiagnostics.lastSnapshotTimestamp ?? ""
+                  }
+                  data-duplicate-skipped-count={
+                    recommendationSnapshotDiagnostics.duplicateSkippedCount
+                  }
+                  data-persistence-status={
+                    recommendationSnapshotDiagnostics.persistenceStatus
+                  }
+                  data-persistence-mode={
+                    recommendationSnapshotDiagnostics.persistenceMode
+                  }
+                  data-persistence-error={
+                    recommendationSnapshotDiagnostics.lastError ?? ""
+                  }
+                >
+                  {visibleRecommendationSnapshotsJson}
+                </pre>
 
-            <pre
-              id="trade-recommendation-snapshots-json"
-              className="sr-only"
-              data-snapshots-stored-today={
-                recommendationSnapshotDiagnostics.snapshotsStoredToday
-              }
-              data-last-snapshot-timestamp={
-                recommendationSnapshotDiagnostics.lastSnapshotTimestamp ?? ""
-              }
-              data-duplicate-skipped-count={
-                recommendationSnapshotDiagnostics.duplicateSkippedCount
-              }
-              data-persistence-status={
-                recommendationSnapshotDiagnostics.persistenceStatus
-              }
-              data-persistence-mode={
-                recommendationSnapshotDiagnostics.persistenceMode
-              }
-              data-persistence-error={
-                recommendationSnapshotDiagnostics.lastError ?? ""
-              }
-            >
-              {visibleRecommendationSnapshotsJson}
-            </pre>
+                <pre
+                  id="trade-recommendation-outcomes-json"
+                  className="sr-only"
+                  data-tracked-snapshots-count={
+                    recommendationOutcomeDiagnostics.trackedSnapshotsCount
+                  }
+                  data-pending-outcomes={
+                    recommendationOutcomeDiagnostics.pendingOutcomes
+                  }
+                  data-completed-outcomes={
+                    recommendationOutcomeDiagnostics.completedOutcomes
+                  }
+                  data-incomplete-outcomes={
+                    recommendationOutcomeDiagnostics.incompleteOutcomes
+                  }
+                  data-unknown-outcomes={
+                    recommendationOutcomeDiagnostics.unknownOutcomes
+                  }
+                  data-last-outcome-evaluation-timestamp={
+                    recommendationOutcomeDiagnostics.lastOutcomeEvaluationTimestamp ??
+                    ""
+                  }
+                  data-persistence-status={
+                    recommendationOutcomeDiagnostics.persistenceStatus
+                  }
+                  data-persistence-mode={
+                    recommendationOutcomeDiagnostics.persistenceMode
+                  }
+                  data-persistence-error={
+                    recommendationOutcomeDiagnostics.lastError ?? ""
+                  }
+                >
+                  {visibleRecommendationOutcomesJson}
+                </pre>
 
-            <pre
-              id="trade-recommendation-outcomes-json"
-              className="sr-only"
-              data-tracked-snapshots-count={
-                recommendationOutcomeDiagnostics.trackedSnapshotsCount
-              }
-              data-pending-outcomes={
-                recommendationOutcomeDiagnostics.pendingOutcomes
-              }
-              data-completed-outcomes={
-                recommendationOutcomeDiagnostics.completedOutcomes
-              }
-              data-incomplete-outcomes={
-                recommendationOutcomeDiagnostics.incompleteOutcomes
-              }
-              data-unknown-outcomes={
-                recommendationOutcomeDiagnostics.unknownOutcomes
-              }
-              data-last-outcome-evaluation-timestamp={
-                recommendationOutcomeDiagnostics.lastOutcomeEvaluationTimestamp ??
-                ""
-              }
-              data-persistence-status={
-                recommendationOutcomeDiagnostics.persistenceStatus
-              }
-              data-persistence-mode={
-                recommendationOutcomeDiagnostics.persistenceMode
-              }
-              data-persistence-error={
-                recommendationOutcomeDiagnostics.lastError ?? ""
-              }
-            >
-              {visibleRecommendationOutcomesJson}
-            </pre>
-
-            <pre
-              id="trade-recommendation-outcome-evaluation-run-json"
-              className="sr-only"
-              data-run-status={recommendationOutcomeEvaluationDiagnostics.status}
-              data-eligible-snapshots={
-                recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots
-              }
-              data-evaluated-snapshots={
-                recommendationOutcomeEvaluationDiagnostics.evaluatedSnapshots
-              }
-              data-missing-candles={
-                recommendationOutcomeEvaluationDiagnostics.incompleteDueToMissingCandles
-              }
-              data-provider-errors={
-                recommendationOutcomeEvaluationDiagnostics.providerErrors
-              }
-              data-last-run-timestamp={
-                recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp ?? ""
-              }
-              data-horizons-evaluated={
-                recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated.join(",")
-              }
-              data-persistence-mode={
-                recommendationOutcomeEvaluationDiagnostics.persistenceMode
-              }
-              data-snapshot-only={
-                recommendationOutcomeEvaluationDiagnostics.snapshotOnly
-                  ? "true"
-                  : "false"
-              }
-            >
-              {recommendationOutcomeEvaluationRunJsonText}
-            </pre>
+                <pre
+                  id="trade-recommendation-outcome-evaluation-run-json"
+                  className="sr-only"
+                  data-run-status={recommendationOutcomeEvaluationDiagnostics.status}
+                  data-eligible-snapshots={
+                    recommendationOutcomeEvaluationDiagnostics.eligibleSnapshots
+                  }
+                  data-evaluated-snapshots={
+                    recommendationOutcomeEvaluationDiagnostics.evaluatedSnapshots
+                  }
+                  data-missing-candles={
+                    recommendationOutcomeEvaluationDiagnostics.incompleteDueToMissingCandles
+                  }
+                  data-provider-errors={
+                    recommendationOutcomeEvaluationDiagnostics.providerErrors
+                  }
+                  data-last-run-timestamp={
+                    recommendationOutcomeEvaluationDiagnostics.lastRunTimestamp ?? ""
+                  }
+                  data-horizons-evaluated={
+                    recommendationOutcomeEvaluationDiagnostics.horizonsEvaluated.join(",")
+                  }
+                  data-persistence-mode={
+                    recommendationOutcomeEvaluationDiagnostics.persistenceMode
+                  }
+                  data-snapshot-only={
+                    recommendationOutcomeEvaluationDiagnostics.snapshotOnly
+                      ? "true"
+                      : "false"
+                  }
+                >
+                  {recommendationOutcomeEvaluationRunJsonText}
+                </pre>
+              </>
+            }
+          >
 
             <DailySessionSummaryPanel
               summary={dailySessionSummary}
@@ -15391,7 +15273,7 @@ export function TradeApp() {
                 </div>
               </HistorySection>
             )}
-          </section>
+          </HistoryTab>
         )}
 
         {activeTab === "Market" && (
@@ -17657,71 +17539,19 @@ function StatisticsDashboardPanel({
   const hasClosedTrades = metrics.trades > 0;
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-lg border border-white/10 bg-black/25 p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Statistics
-            </p>
-            <h2 className="mt-2 font-mono text-2xl font-semibold tracking-normal text-white">
-              Progress Dashboard
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Realized performance, R curves, daily rhythm, and partial-close
-              context for the selected period. Performance analytics are
-              descriptive, not predictions.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {statisticsTimeRangeOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => onRangeChange(option.value)}
-                className={`min-h-9 rounded-full border px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition ${
-                  selectedRange === option.value
-                    ? "border-[#00db94]/45 bg-[#00db94]/15 text-emerald-100"
-                    : "border-white/10 bg-white/[0.035] text-zinc-500 hover:border-white/20 hover:text-zinc-200"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-3 rounded-md border border-white/10 bg-white/[0.025] p-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-zinc-200">
-              {dashboard.rangeLabel}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
-              {dashboard.rangeDescription}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-zinc-600">
-              Demo trades: {dashboard.periodRiskSummary.demo_trade_count} · Real
-              trades: {dashboard.periodRiskSummary.real_trade_count}
-            </p>
-          </div>
-          <span
-            className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${statisticsProgressTone(
-              dashboard.progressSummary.status,
-            )}`}
-          >
-            {dashboard.progressSummary.title}
-          </span>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <EmptyState
-          title="Loading statistics"
-          message="Trade is calculating progress from manually closed positions."
-        />
-      ) : (
-        <>
+    <StatisticsDashboardShell
+      demoTradeCount={dashboard.periodRiskSummary.demo_trade_count}
+      isLoading={isLoading}
+      onRangeChange={onRangeChange}
+      progressClassName={statisticsProgressTone(dashboard.progressSummary.status)}
+      progressTitle={dashboard.progressSummary.title}
+      rangeDescription={dashboard.rangeDescription}
+      rangeLabel={dashboard.rangeLabel}
+      rangeOptions={statisticsTimeRangeOptions}
+      realTradeCount={dashboard.periodRiskSummary.real_trade_count}
+      selectedRange={selectedRange}
+    >
+      <>
           <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -17745,7 +17575,7 @@ function StatisticsDashboardPanel({
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <StatisticsSummaryGrid>
             <SummaryCard
               label="Realized PnL"
               value={formatSignedCurrency(metrics.realizedPnl)}
@@ -17826,7 +17656,7 @@ function StatisticsDashboardPanel({
               label="Trades / Day"
               value={formatStatisticsCount(metrics.tradeFrequencyPerDay)}
             />
-          </div>
+          </StatisticsSummaryGrid>
 
           <section className="rounded-lg border border-white/10 bg-black/20 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -17852,7 +17682,7 @@ function StatisticsDashboardPanel({
               </button>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <StatisticsSummaryGrid className="mt-4">
               <SummaryCard
                 label="Recommendations"
                 value={String(
@@ -17885,7 +17715,7 @@ function StatisticsDashboardPanel({
                 label="Calibration"
                 value={confidenceCalibrationReadiness.status.replaceAll("_", " ")}
               />
-            </div>
+            </StatisticsSummaryGrid>
 
             <div className="mt-4">
               <RecommendationLearningInsightsPanel
@@ -18003,9 +17833,8 @@ function StatisticsDashboardPanel({
             <PartialCloseStatisticsSummary dashboard={dashboard} />
             <PeriodRiskStatisticsSummary dashboard={dashboard} />
           </div>
-        </>
-      )}
-    </div>
+      </>
+    </StatisticsDashboardShell>
   );
 }
 
@@ -20665,7 +20494,7 @@ function PlanAdherenceStatisticsSummary({
         </span>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatisticsSummaryGrid className="mt-4" columns="six">
         <SummaryCard
           label="Plan Adherence"
           value={formatPercent(summary.followed_plan_rate)}
@@ -20693,7 +20522,7 @@ function PlanAdherenceStatisticsSummary({
           label="Missing Snapshots"
           value={String(summary.trades_missing_planning_snapshot)}
         />
-      </div>
+      </StatisticsSummaryGrid>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
         <PlanAdherenceBreakdown
@@ -21638,23 +21467,7 @@ function SummaryCard({
   value: string;
   tone?: number | null;
 }) {
-  const valueClassName =
-    tone === undefined || tone === null || tone === 0
-      ? "text-white"
-      : tone > 0
-        ? "text-emerald-100"
-        : "text-rose-100";
-
-  return (
-    <div className="bg-surface-subtle rounded-lg border border-white/10 p-4">
-      <div className={`font-mono text-2xl font-semibold ${valueClassName}`}>
-        {value}
-      </div>
-      <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        {label}
-      </div>
-    </div>
-  );
+  return <StatisticsMetricCard label={label} value={value} tone={tone} />;
 }
 
 function SetupPerformanceTable({
@@ -22382,51 +22195,6 @@ function addTradePreflightCheckTone(status: AddTradePreflightCheckStatus) {
   return "border-white/10 bg-white/[0.04] text-zinc-400";
 }
 
-function recommendationConfidenceTier(recommendation: Recommendation) {
-  const score = recommendation.confidenceScore;
-
-  if (score !== null) {
-    if (score >= 85) return "strong";
-    if (score >= 70) return "medium";
-    return "low";
-  }
-
-  if (recommendation.confidenceLabel === "HIGH CONVICTION") return "strong";
-  if (recommendation.confidenceLabel === "GOOD SETUP") return "medium";
-  if (recommendation.confidenceLabel === "LOWER CONFIDENCE") return "low";
-
-  return "medium";
-}
-
-function recommendationConfidenceLabel(recommendation: Recommendation) {
-  const tier = recommendationConfidenceTier(recommendation);
-
-  if (tier === "strong") return "HIGH CONFIDENCE";
-  if (tier === "low") return "LOW CONFIDENCE";
-  return "MEDIUM CONFIDENCE";
-}
-
-function RecommendationMetricGrid({
-  metrics,
-}: {
-  metrics: Array<{ label: string; value: string }>;
-}) {
-  return (
-    <div className="trade-recommendation-metrics">
-      {metrics.map((metric) => (
-        <div key={metric.label} className="trade-recommendation-metric">
-          <div className="trade-recommendation-metric__label">
-            {displayValue(metric.label).toUpperCase()}
-          </div>
-          <div className="trade-recommendation-metric__value">
-            {displayValue(metric.value)}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function dayTradeWindowTargetStatusLabel(
   status: DayTradeWindowRecommendationTargetSummary["status"],
 ) {
@@ -22554,253 +22322,6 @@ function DayTradeWindowRecommendationTargetPanel({
       </pre>
     </section>
   );
-}
-
-function RecommendationCard({
-  recommendation,
-  calibrationGuardrails,
-  preTradeRiskContext,
-  tradeEligibility,
-  decisionStack,
-  positionSizing,
-  isSaving,
-  isValidating,
-  onTakeTrade,
-  onIgnore,
-}: {
-  recommendation: Recommendation;
-  calibrationGuardrails: CalibrationGuardrailResult | null;
-  preTradeRiskContext: PreTradeRiskContextResult | null;
-  tradeEligibility: TradeEligibilityResult | null;
-  decisionStack: RecommendationDecisionStackResult | null;
-  positionSizing: PositionSizing;
-  isSaving: boolean;
-  isValidating: boolean;
-  onTakeTrade: (recommendation: Recommendation) => void | Promise<void>;
-  onIgnore: (recommendation: Recommendation) => void | Promise<void>;
-}) {
-  const freshness = getRecommendationFreshness(toFreshnessInput(recommendation));
-  const isExpired = freshness === "expired";
-  const addTradeGate = getAddTradeGate(recommendation, freshness);
-  const confirmation = addTradeGate.confirmation;
-  const confidenceBreakdownItems: Array<[string, number]> =
-    recommendation.confidenceBreakdown
-      ? [
-          ["Setup", recommendation.confidenceBreakdown.setup_quality],
-          ["Momentum", recommendation.confidenceBreakdown.momentum_confirmation],
-          ["Volume", recommendation.confidenceBreakdown.volume_confirmation],
-          ["R/R", recommendation.confidenceBreakdown.risk_reward_quality],
-          ["Regime", recommendation.confidenceBreakdown.market_regime_alignment],
-          ["Timing", recommendation.confidenceBreakdown.timing_quality],
-        ]
-      : [];
-  const keyReasons = getRecommendationKeyReasons({
-    recommendation,
-    confirmation,
-    decisionStack,
-    calibrationGuardrails,
-    preTradeRiskContext,
-  });
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
-  const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
-  const cardSummary =
-    decisionStack?.primary_warning ||
-    decisionStack?.summary ||
-    keyReasons.positive[0] ||
-    recommendation.thesis;
-  const confidenceTier = recommendationConfidenceTier(recommendation);
-  const recommendationSourceBadge = isDemoRecommendation(recommendation)
-    ? dataModeBadgeForMode("demo")
-    : freshness === "stale" || freshness === "expired"
-      ? dataModeBadgeForMode("stale_market_data")
-      : dataModeBadgeForMode("supabase_record");
-
-  return (
-    <article
-      role="button"
-      tabIndex={0}
-      onClick={() => setIsDetailsOpen(true)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setIsDetailsOpen(true);
-        }
-      }}
-      className="trade-recommendation-card"
-    >
-      <div className="trade-recommendation-card__eyebrow">
-        TRADE RECOMMENDATION
-      </div>
-      <div className="mt-2">
-        <DataModePill badge={recommendationSourceBadge} />
-      </div>
-
-      <div className="trade-recommendation-card__header">
-        <CompanyIdentity
-          ticker={recommendation.ticker}
-          companyName={recommendation.companyName}
-          size="live"
-        />
-        <span
-          className={`trade-recommendation-confidence-pill trade-recommendation-confidence-pill--${confidenceTier}`}
-        >
-          {recommendationConfidenceLabel(recommendation)}
-        </span>
-      </div>
-
-      <RecommendationMetricGrid
-        metrics={[
-          { label: "Entry", value: recommendation.entryZone },
-          { label: "Stop", value: recommendation.stopLoss },
-          { label: "Target", value: recommendation.target1 },
-          { label: "Reward : Risk", value: recommendation.riskReward },
-          {
-            label: "Confidence",
-            value:
-              recommendation.confidenceScore === null
-                ? "—"
-                : `${recommendation.confidenceScore}/100`,
-          },
-        ]}
-      />
-
-      <div className="trade-recommendation-guidance">
-        <p>{displayValue(cardSummary)}</p>
-        <span>Updated {displayValue(recommendation.createdAt)}</span>
-      </div>
-
-      <div className="trade-recommendation-card__footer">
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onTakeTrade(recommendation);
-          }}
-          disabled={isSaving || isExpired || isValidating}
-          className="trade-recommendation-action trade-recommendation-action--primary"
-        >
-          {isValidating
-            ? "Validating Setup"
-            : addTradeGate.blocked && !isExpired
-              ? "Review Setup"
-              : "ADD TRADE"}
-        </button>
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            setIsDiscardConfirmOpen(true);
-          }}
-          disabled={isSaving}
-          className="trade-recommendation-action trade-recommendation-action--secondary"
-        >
-          Discard
-        </button>
-      </div>
-
-      {isDiscardConfirmOpen && (
-        <DiscardRecommendationModal
-          ticker={recommendation.ticker}
-          companyName={recommendation.companyName}
-          isSaving={isSaving || isConfirmingDiscard}
-          onCancel={() => setIsDiscardConfirmOpen(false)}
-          onConfirm={async () => {
-            setIsConfirmingDiscard(true);
-            try {
-              await onIgnore(recommendation);
-              setIsDiscardConfirmOpen(false);
-            } finally {
-              setIsConfirmingDiscard(false);
-            }
-          }}
-        />
-      )}
-
-      {isDetailsOpen && (
-        <RecommendationDetailsModal
-          recommendation={recommendation}
-          calibrationGuardrails={calibrationGuardrails}
-          preTradeRiskContext={preTradeRiskContext}
-          tradeEligibility={tradeEligibility}
-          decisionStack={decisionStack}
-          positionSizing={positionSizing}
-          freshness={freshness}
-          addTradeGateMessage={addTradeGate.message}
-          confirmation={confirmation}
-          confidenceBreakdownItems={confidenceBreakdownItems}
-          keyReasons={keyReasons}
-          onClose={() => setIsDetailsOpen(false)}
-        />
-      )}
-    </article>
-  );
-}
-
-function recommendationDetailsToneFromDecisionStatus(
-  status: RecommendationDecisionStackStatus | null | undefined,
-) {
-  if (status === "strong") return "positive";
-  if (status === "blocked" || status === "weak") return "danger";
-  if (status === "mixed") return "warning";
-  return "neutral";
-}
-
-function recommendationDetailsToneFromEligibility(
-  status: TradeEligibilityStatus | null | undefined,
-) {
-  if (status === "eligible") return "positive";
-  if (status === "not_eligible" || status === "risky") return "danger";
-  if (status === "mixed") return "warning";
-  return "neutral";
-}
-
-function recommendationQuickDecisionToneFromEligibility(
-  status: TradeEligibilityStatus | null | undefined,
-) {
-  if (status === "eligible") return "positive";
-  if (status === "not_eligible") return "danger";
-  if (status === "mixed" || status === "risky") return "warning";
-  return "neutral";
-}
-
-function recommendationDetailsToneFromRiskContext(
-  level: PreTradeRiskContextResult["level"] | null | undefined,
-) {
-  if (level === "clear") return "positive";
-  if (level === "avoid") return "danger";
-  if (level === "caution") return "warning";
-  return "neutral";
-}
-
-function recommendationDetailsToneFromConfirmation(
-  status: IntradayConfirmationStatus["status"] | null | undefined,
-) {
-  if (status === "confirmed") return "positive";
-  if (status === "weak") return "danger";
-  if (status === "mixed") return "warning";
-  return "neutral";
-}
-
-function recommendationDetailsToneFromCalibration(
-  severity: CalibrationGuardrail["severity"] | null | undefined,
-) {
-  if (severity === "warning") return "danger";
-  if (severity === "caution") return "warning";
-  return "neutral";
-}
-
-function recommendationDetailsToneFromConfidence(score: number | null) {
-  if (score === null) return "neutral";
-  if (score >= 85) return "positive";
-  if (score >= 70) return "warning";
-  return "danger";
-}
-
-function recommendationDetailsToneClassName(
-  tone: "positive" | "warning" | "danger" | "neutral",
-) {
-  return `trade-recommendation-details-pill--${tone}`;
 }
 
 function DemoBadge() {
@@ -24523,805 +24044,6 @@ function RecommendationOutcomeEvaluationRunnerPanel({
   );
 }
 
-function recommendationDetailsValue(value: unknown) {
-  const normalized = displayValue(value);
-  return normalized === "Not available" || normalized === "Not set"
-    ? "—"
-    : normalized;
-}
-
-function recommendationDetailsCurrency(value: number | null | undefined) {
-  return recommendationDetailsValue(formatCurrency(value));
-}
-
-function recommendationDetailsShares(value: number | null | undefined) {
-  return recommendationDetailsValue(formatShares(value));
-}
-
-function RecommendationDetailsPill({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "positive" | "warning" | "danger" | "neutral";
-}) {
-  return (
-    <span
-      className={`trade-recommendation-details-pill ${recommendationDetailsToneClassName(
-        tone,
-      )}`}
-    >
-      {recommendationDetailsValue(label)}
-    </span>
-  );
-}
-
-function RecommendationDetailsSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="trade-recommendation-details-section">
-      <div className="trade-recommendation-details-section__title">
-        <span aria-hidden="true" className="trade-recommendation-details-section__icon">
-          <Image
-            src="/trade-assets/chevron-icn.svg"
-            alt=""
-            width={10}
-            height={10}
-          />
-        </span>
-        <h3>{title}</h3>
-      </div>
-      <div className="trade-recommendation-details-section__body">{children}</div>
-    </section>
-  );
-}
-
-function RecommendationDetailsMetricGrid({
-  metrics,
-  variant = "default",
-}: {
-  metrics: Array<{ label: string; value: string; tone?: number | null }>;
-  variant?: "default" | "wide";
-}) {
-  return (
-    <div
-      className={`trade-recommendation-details-metrics ${
-        variant === "wide" ? "trade-recommendation-details-metrics--wide" : ""
-      }`}
-    >
-      {metrics.map((metric) => (
-        <div key={metric.label} className="trade-recommendation-details-metric">
-          <div className="trade-recommendation-details-metric__label">
-            {recommendationDetailsValue(metric.label).toUpperCase()}
-          </div>
-          <div
-            className={`trade-recommendation-details-metric__value ${
-              metric.tone === undefined || metric.tone === null || metric.tone === 0
-                ? ""
-                : metric.tone > 0
-                  ? "trade-recommendation-details-metric__value--positive"
-                  : "trade-recommendation-details-metric__value--negative"
-            }`}
-          >
-            {recommendationDetailsValue(metric.value)}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function RecommendationDetailsTextCard({
-  label,
-  children,
-  pill,
-}: {
-  label: string;
-  children: React.ReactNode;
-  pill?: React.ReactNode;
-}) {
-  return (
-    <div className="trade-recommendation-details-text-card">
-      <div className="trade-recommendation-details-text-card__header">
-        <span className="trade-recommendation-details-text-card__label">
-          {recommendationDetailsValue(label).toUpperCase()}
-        </span>
-        {pill}
-      </div>
-      <div className="trade-recommendation-details-text-card__content">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function recommendationQuickRiskLabel(
-  level: PreTradeRiskContextResult["level"],
-) {
-  if (level === "avoid") return "Risky avoid";
-  if (level === "caution") return "Risky";
-  return `Risk ${level}`;
-}
-
-function RecommendationDetailsTextStack({
-  items,
-  empty,
-  tone = "neutral",
-}: {
-  items: string[];
-  empty: string;
-  tone?: "neutral" | "warning";
-}) {
-  const visibleItems = items.map((item) => recommendationDetailsValue(item)).filter(
-    (item) => item !== "—",
-  );
-
-  if (visibleItems.length === 0) {
-    return <p>{empty}</p>;
-  }
-
-  return (
-    <div
-      className={`trade-recommendation-details-text-stack ${
-        tone === "warning" ? "trade-recommendation-details-text-stack--warning" : ""
-      }`}
-    >
-      {visibleItems.map((item) => (
-        <p key={item}>{item}</p>
-      ))}
-    </div>
-  );
-}
-
-function RecommendationDetailsDecisionItem({
-  label,
-  summary,
-  detail,
-  pill,
-}: {
-  label: string;
-  summary: string;
-  detail?: string;
-  pill?: React.ReactNode;
-}) {
-  return (
-    <div className="trade-recommendation-details-decision-item">
-      <div>
-        <h4>{recommendationDetailsValue(label)}</h4>
-        <p className="trade-recommendation-details-decision-item__copy">
-          {recommendationDetailsValue(summary)}
-        </p>
-        {detail && (
-          <span className="trade-recommendation-details-decision-item__copy">
-            {recommendationDetailsValue(detail)}
-          </span>
-        )}
-      </div>
-      {pill}
-    </div>
-  );
-}
-
-function RecommendationDetailsContextCard({
-  label,
-  pill,
-  children,
-  rows,
-  footer,
-}: {
-  label: string;
-  pill?: React.ReactNode;
-  children: React.ReactNode;
-  rows?: React.ReactNode;
-  footer?: string;
-}) {
-  return (
-    <div className="trade-recommendation-details-context-card">
-      <div className="trade-recommendation-details-context-card__header">
-        <span className="trade-recommendation-details-context-card__label">
-          {recommendationDetailsValue(label).toUpperCase()}
-        </span>
-        {pill}
-      </div>
-      <div className="trade-recommendation-details-context-card__content">
-        {children}
-      </div>
-      {rows ? (
-        <div className="trade-recommendation-details-context-rows">{rows}</div>
-      ) : null}
-      {footer ? (
-        <p className="trade-recommendation-details-context-card__footer">
-          {recommendationDetailsValue(footer)}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function RecommendationDetailsContextRow({
-  label,
-  summary,
-  detail,
-  pill,
-}: {
-  label: string;
-  summary: string;
-  detail?: string;
-  pill?: React.ReactNode;
-}) {
-  return (
-    <div className="trade-recommendation-details-context-row">
-      <div>
-        <h4>{recommendationDetailsValue(label)}</h4>
-        <p className="trade-recommendation-details-context-row__copy">
-          {recommendationDetailsValue(summary)}
-        </p>
-        {detail && (
-          <span className="trade-recommendation-details-context-row__copy">
-            {recommendationDetailsValue(detail)}
-          </span>
-        )}
-      </div>
-      {pill}
-    </div>
-  );
-}
-
-function RecommendationDetailsModal({
-  recommendation,
-  calibrationGuardrails,
-  preTradeRiskContext,
-  tradeEligibility,
-  decisionStack,
-  positionSizing,
-  freshness,
-  addTradeGateMessage,
-  confirmation,
-  confidenceBreakdownItems,
-  keyReasons,
-  onClose,
-}: {
-  recommendation: Recommendation;
-  calibrationGuardrails: CalibrationGuardrailResult | null;
-  preTradeRiskContext: PreTradeRiskContextResult | null;
-  tradeEligibility: TradeEligibilityResult | null;
-  decisionStack: RecommendationDecisionStackResult | null;
-  positionSizing: PositionSizing;
-  freshness: string;
-  addTradeGateMessage: string;
-  confirmation: IntradayConfirmationStatus;
-  confidenceBreakdownItems: Array<[string, number]>;
-  keyReasons: { positive: string[]; warnings: string[] };
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  const quickDecision =
-    decisionStack?.primary_warning ||
-    addTradeGateMessage ||
-    decisionStack?.summary ||
-    keyReasons.positive[0] ||
-    recommendation.thesis ||
-    "Review the trade plan, then use Make Trade for the existing validation flow.";
-  const indicators = recommendation.intradayIndicators;
-  const confidenceScoreLabel =
-    recommendation.confidenceScore === null
-      ? "—"
-      : `${recommendation.confidenceScore}/100`;
-  const calibrationSeverity =
-    calibrationGuardrails?.guardrails.some(
-      (guardrail) => guardrail.severity === "warning",
-    )
-      ? "warning"
-      : calibrationGuardrails?.guardrails.some(
-            (guardrail) => guardrail.severity === "caution",
-          )
-        ? "caution"
-        : "info";
-  const recommendationSourceBadges = [
-    isDemoRecommendation(recommendation)
-      ? dataModeBadgeForMode("demo")
-      : freshness === "stale" || freshness === "expired"
-        ? dataModeBadgeForMode("stale_market_data")
-        : dataModeBadgeForMode("supabase_record"),
-    dataModeBadgeForExecutionReality(
-      isDemoRecommendation(recommendation)
-        ? "demo_only"
-        : "human_confirmed_required",
-    ),
-  ];
-
-  return (
-    <div
-      className="trade-recommendation-details-backdrop"
-      role="presentation"
-      onClick={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-      onMouseDown={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      <section
-        aria-labelledby="trade-recommendation-details-title"
-        aria-modal="true"
-        className="trade-recommendation-details-modal"
-        role="dialog"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="trade-recommendation-details-titlebar">
-          <h2 id="trade-recommendation-details-title">Recommendation Details</h2>
-          <button
-            type="button"
-            aria-label="Close recommendation details"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClose();
-            }}
-            className="trade-recommendation-details-close"
-          >
-            <Image
-              src="/trade-assets/x-icn.svg"
-              alt=""
-              aria-hidden="true"
-              width={29}
-              height={29}
-            />
-          </button>
-        </div>
-
-        <div className="trade-recommendation-details-scroll">
-          <header className="trade-recommendation-details-header">
-            <CompanyIdentity
-              ticker={recommendation.ticker}
-              companyName={recommendation.companyName}
-              size="live"
-            />
-            <div className="flex flex-col items-start gap-2 sm:items-end">
-              <DataModePillRow badges={recommendationSourceBadges} />
-              <span
-                className={`trade-recommendation-confidence-pill trade-recommendation-confidence-pill--${recommendationConfidenceTier(
-                  recommendation,
-                )}`}
-              >
-                {recommendationConfidenceLabel(recommendation)}
-              </span>
-            </div>
-          </header>
-
-          <RecommendationDetailsSection title="Quick Decision">
-            <div className="trade-recommendation-details-quick-decision">
-              <div className="trade-recommendation-details-guidance">
-                <div>
-                  <p>{recommendationDetailsValue(quickDecision)}</p>
-                  <span className="trade-recommendation-details-guidance__timestamp">
-                    Updated {recommendationDetailsValue(recommendation.createdAt)}
-                  </span>
-                </div>
-                <div className="trade-recommendation-details-pill-row trade-recommendation-details-pill-row--quick">
-                  {decisionStack && (
-                    <RecommendationDetailsPill
-                      label={`Stack ${decisionStack.overall_status}`}
-                      tone={recommendationDetailsToneFromDecisionStatus(
-                        decisionStack.overall_status,
-                      )}
-                    />
-                  )}
-                  {tradeEligibility && (
-                    <RecommendationDetailsPill
-                      label={tradeEligibility.status.replaceAll("_", " ")}
-                      tone={recommendationQuickDecisionToneFromEligibility(
-                        tradeEligibility.status,
-                      )}
-                    />
-                  )}
-                  {preTradeRiskContext && (
-                    <RecommendationDetailsPill
-                      label={recommendationQuickRiskLabel(preTradeRiskContext.level)}
-                      tone={recommendationDetailsToneFromRiskContext(
-                        preTradeRiskContext.level,
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="trade-recommendation-details-two-column">
-                <RecommendationDetailsTextCard label="Why This Setup">
-                  <RecommendationDetailsTextStack
-                    items={keyReasons.positive}
-                    empty="No strong positive reasons surfaced."
-                  />
-                </RecommendationDetailsTextCard>
-                <RecommendationDetailsTextCard label="Main Risk / Red Flags">
-                  <RecommendationDetailsTextStack
-                    items={keyReasons.warnings}
-                    empty="No major red flags surfaced from current advisory layers."
-                    tone="warning"
-                  />
-                </RecommendationDetailsTextCard>
-              </div>
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Trade Plan">
-            <div className="trade-recommendation-details-trade-plan">
-              <RecommendationDetailsMetricGrid
-                metrics={[
-                  { label: "Entry", value: recommendation.entryZone },
-                  { label: "Stop", value: recommendation.stopLoss },
-                  { label: "Target", value: recommendation.target1 },
-                  { label: "Reward : Risk", value: recommendation.riskReward },
-                  {
-                    label: "Shares",
-                    value: recommendationDetailsShares(
-                      positionSizing.suggestedShares,
-                    ),
-                  },
-                  {
-                    label: "Position Value",
-                    value: recommendationDetailsCurrency(
-                      positionSizing.suggestedPositionValue,
-                    ),
-                  },
-                  {
-                    label: "Max Loss",
-                    value: recommendationDetailsCurrency(
-                      positionSizing.maxLossAtStop,
-                    ),
-                  },
-                  {
-                    label: "Risk/share",
-                    value: recommendationDetailsCurrency(positionSizing.riskPerShare),
-                  },
-                ]}
-              />
-              <div
-                className="trade-recommendation-details-trade-plan__divider"
-                aria-hidden="true"
-              />
-              <RecommendationDetailsMetricGrid
-                variant="wide"
-                metrics={[
-                  { label: "Direction", value: recommendation.direction },
-                  {
-                    label: "Setup Type",
-                    value: getSetupTypeLabel(recommendation.setupType),
-                  },
-                  { label: "Freshness", value: freshness },
-                  {
-                    label: "Confidence",
-                    value: confidenceScoreLabel,
-                  },
-                ]}
-              />
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Decision Details">
-            <div className="trade-recommendation-details-stack trade-recommendation-details-stack--decision">
-              <RecommendationDetailsTextCard
-                label="Recommendation Decision Stack"
-                pill={
-                  decisionStack ? (
-                    <RecommendationDetailsPill
-                      label={decisionStack.overall_status}
-                      tone={recommendationDetailsToneFromDecisionStatus(
-                        decisionStack.overall_status,
-                      )}
-                    />
-                  ) : undefined
-                }
-              >
-                <p>
-                  {recommendationDetailsValue(
-                    decisionStack?.summary ?? "Decision stack is unavailable.",
-                  )}
-                </p>
-                {decisionStack?.title && <p>{recommendationDetailsValue(decisionStack.title)}</p>}
-              </RecommendationDetailsTextCard>
-
-              {decisionStack?.items.map((item) => (
-                <RecommendationDetailsDecisionItem
-                  key={item.type}
-                  label={item.label}
-                  summary={item.summary}
-                  detail={item.detail}
-                  pill={
-                    <RecommendationDetailsPill
-                      label={item.status}
-                      tone={recommendationDetailsToneFromDecisionStatus(item.status)}
-                    />
-                  }
-                />
-              ))}
-
-              <div
-                className="trade-recommendation-details-dashed-divider"
-                aria-hidden="true"
-              />
-
-              <RecommendationDetailsTextCard
-                label="Intraday Confirmation"
-                pill={
-                  <RecommendationDetailsPill
-                    label={intradayConfirmationLabel(confirmation.status)}
-                    tone={recommendationDetailsToneFromConfirmation(
-                      confirmation.status,
-                    )}
-                  />
-                }
-              >
-                <p>
-                  {indicators
-                    ? `VWAP ${vwapLabel(indicators)}, Price vs VWAP ${formatSignedPercent(
-                        indicators.priceVsVwapPercent,
-                      )}, Momentum ${titleCaseValue(
-                        indicators.momentumDirection,
-                      )}, Volume ${titleCaseValue(indicators.volumeTrend)}`
-                    : "Intraday confirmation unavailable."}
-                </p>
-                {confirmation.reasons.length > 0 && (
-                  <p>{confirmation.reasons.slice(0, 3).join(" ")}</p>
-                )}
-              </RecommendationDetailsTextCard>
-
-              {recommendation.confidenceBreakdown && (
-                <div className="trade-recommendation-details-score-grid">
-                  {confidenceBreakdownItems.map(([label, score]) => (
-                    <div
-                      key={label}
-                      className="trade-recommendation-details-score"
-                    >
-                      <span>{label}</span>
-                      <strong
-                        className={`trade-recommendation-details-score__value trade-recommendation-details-score__value--${recommendationDetailsToneFromConfidence(
-                          score,
-                        )}`}
-                      >
-                        {score}
-                      </strong>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {(recommendation.confidenceReasoning ||
-                recommendation.riskFlags.length > 0) && (
-                <>
-                  <div
-                    className="trade-recommendation-details-dashed-divider"
-                    aria-hidden="true"
-                  />
-                  <div className="trade-recommendation-details-two-column trade-recommendation-details-two-column--flush">
-                    {recommendation.confidenceReasoning && (
-                      <RecommendationDetailsTextCard label="Confidence Reasoning">
-                        <p>
-                          {recommendationDetailsValue(
-                            recommendation.confidenceReasoning,
-                          )}
-                        </p>
-                      </RecommendationDetailsTextCard>
-                    )}
-                    {recommendation.riskFlags.length > 0 && (
-                      <RecommendationDetailsTextCard label="Risk Flags">
-                        <RecommendationDetailsTextStack
-                          items={recommendation.riskFlags}
-                          empty="—"
-                          tone="warning"
-                        />
-                      </RecommendationDetailsTextCard>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="More Trade Context">
-            <div className="trade-recommendation-details-context-stack">
-              {preTradeRiskContext ? (
-                <RecommendationDetailsContextCard
-                  label="Pre-Trade Risk Context"
-                  pill={
-                    <RecommendationDetailsPill
-                      label={preTradeRiskContext.level}
-                      tone={recommendationDetailsToneFromRiskContext(
-                        preTradeRiskContext.level,
-                      )}
-                    />
-                  }
-                  rows={
-                    preTradeRiskContext.signals.length > 0
-                      ? preTradeRiskContext.signals.slice(0, 5).map((signal) => (
-                          <RecommendationDetailsContextRow
-                            key={signal.code}
-                            label={signal.title}
-                            summary={signal.description}
-                            pill={
-                              <RecommendationDetailsPill
-                                label={signal.level}
-                                tone={recommendationDetailsToneFromRiskContext(
-                                  signal.level,
-                                )}
-                              />
-                            }
-                          />
-                        ))
-                      : undefined
-                  }
-                  footer="Advisory only. Making the trade still uses the normal validation gate and this panel does not change scoring, risk settings, or broker flow."
-                >
-                  <p>{recommendationDetailsValue(preTradeRiskContext.title)}</p>
-                  <p>{recommendationDetailsValue(preTradeRiskContext.summary)}</p>
-                  <p>
-                    {recommendationDetailsValue(
-                      preTradeRiskContext.suggested_action,
-                    )}
-                  </p>
-                </RecommendationDetailsContextCard>
-              ) : (
-                <RecommendationDetailsContextCard label="Pre-Trade Risk Context">
-                  <p>—</p>
-                </RecommendationDetailsContextCard>
-              )}
-
-              {tradeEligibility ? (
-                <RecommendationDetailsContextCard
-                  label="Trade Eligibility"
-                  pill={
-                    <RecommendationDetailsPill
-                      label={tradeEligibility.status.replaceAll("_", " ")}
-                      tone={recommendationDetailsToneFromEligibility(
-                        tradeEligibility.status,
-                      )}
-                    />
-                  }
-                  rows={
-                    tradeEligibility.signals.length > 0
-                      ? tradeEligibility.signals.slice(0, 5).map((signal) => (
-                          <RecommendationDetailsContextRow
-                            key={signal.code}
-                            label={signal.label}
-                            summary={signal.description}
-                            pill={
-                              <RecommendationDetailsPill
-                                label={signal.impact}
-                                tone={
-                                  signal.impact === "positive"
-                                    ? "positive"
-                                    : signal.impact === "neutral"
-                                      ? "neutral"
-                                      : signal.impact === "warning"
-                                        ? "warning"
-                                        : "danger"
-                                }
-                              />
-                            }
-                          />
-                        ))
-                      : undefined
-                  }
-                  footer={`${
-                    tradeEligibility.can_attempt_add_trade
-                      ? "Making the trade still runs normal validation."
-                      : "Existing gate/freshness rules prevent ADD TRADE."
-                  } This summary is decision support only and adds no new blocking rules.`}
-                >
-                  <p>{recommendationDetailsValue(tradeEligibility.title)}</p>
-                  <p>{recommendationDetailsValue(tradeEligibility.summary)}</p>
-                  <p>
-                    {tradeEligibility.can_attempt_add_trade
-                      ? "Making the trade still runs normal validation."
-                      : "Existing gate/freshness rules prevent ADD TRADE."}{" "}
-                    This summary is decision support only and adds no new blocking
-                    rules.
-                  </p>
-                </RecommendationDetailsContextCard>
-              ) : (
-                <RecommendationDetailsContextCard label="Trade Eligibility">
-                  <p>—</p>
-                </RecommendationDetailsContextCard>
-              )}
-
-              {calibrationGuardrails && calibrationGuardrails.guardrails.length > 0 ? (
-                <RecommendationDetailsContextCard
-                  label="Calibration Guardrails"
-                  pill={
-                    <RecommendationDetailsPill
-                      label={calibrationSeverity === "info" ? "advisory" : calibrationSeverity}
-                      tone={recommendationDetailsToneFromCalibration(
-                        calibrationSeverity,
-                      )}
-                    />
-                  }
-                  rows={calibrationGuardrails.guardrails
-                    .slice(0, 5)
-                    .map((guardrail) => (
-                      <RecommendationDetailsContextRow
-                        key={`${guardrail.code}-${guardrail.scope}`}
-                        label={guardrail.title}
-                        summary={guardrail.description}
-                        detail={
-                          guardrail.data_points && guardrail.data_points.length > 0
-                            ? guardrail.data_points
-                                .slice(0, 4)
-                                .map((item) => `${item.label}: ${item.value}`)
-                                .join(" · ")
-                            : guardrail.suggested_action
-                        }
-                        pill={
-                          <RecommendationDetailsPill
-                            label={guardrail.severity}
-                            tone={recommendationDetailsToneFromCalibration(
-                              guardrail.severity,
-                            )}
-                          />
-                        }
-                      />
-                    ))}
-                  footer="Calibration guardrails are advisory only. They do not block trades or change recommendation scoring."
-                >
-                  <p>{recommendationDetailsValue(calibrationGuardrails.summary)}</p>
-                </RecommendationDetailsContextCard>
-              ) : (
-                <RecommendationDetailsContextCard label="Calibration Guardrails">
-                  <p>No calibration guardrails active.</p>
-                </RecommendationDetailsContextCard>
-              )}
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Full Rationale">
-            <div className="trade-recommendation-details-rationale-grid">
-              <RecommendationDetailsTextCard label="Setup Type">
-                <p>
-                  {recommendationDetailsValue(
-                    getSetupTypeDescription(recommendation.setupType),
-                  )}
-                </p>
-              </RecommendationDetailsTextCard>
-              <RecommendationDetailsTextCard label="Thesis">
-                <p>{recommendationDetailsValue(recommendation.thesis)}</p>
-              </RecommendationDetailsTextCard>
-              <RecommendationDetailsTextCard label="Invalidation">
-                <p>{recommendationDetailsValue(recommendation.invalidation)}</p>
-              </RecommendationDetailsTextCard>
-              <RecommendationDetailsTextCard label="Reason to Avoid">
-                <p>{recommendationDetailsValue(recommendation.reasonToAvoid)}</p>
-              </RecommendationDetailsTextCard>
-            </div>
-            <div className="trade-recommendation-details-brand-mark" aria-hidden="true">
-              <Image
-                src="/trade-assets/ture-logo-mark.svg"
-                alt=""
-                width={72}
-                height={72}
-              />
-            </div>
-          </RecommendationDetailsSection>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function TradeModal({
   recommendation,
   positionSizing,
@@ -26613,7 +25335,7 @@ function TradeModal({
     });
   }
 
-  const confidenceTier = recommendationConfidenceTier(recommendation);
+  const confidenceTier = recommendationCardConfidenceTone(recommendation);
   const addTradeGuidance =
     validationMessage ||
     addTradeGate.message ||
@@ -26724,7 +25446,7 @@ function TradeModal({
             <span
               className={`trade-recommendation-confidence-pill trade-recommendation-confidence-pill--${confidenceTier}`}
             >
-              {recommendationConfidenceLabel(recommendation)}
+              {recommendationCardConfidenceLabel(recommendation)}
             </span>
           </header>
 
@@ -30325,53 +29047,6 @@ function ClosedTradePlanningSnapshotPanel({
   );
 }
 
-function planVsActualTone(status: PlanVsActualStatus) {
-  if (status === "followed_plan") {
-    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "minor_deviation") {
-    return "border-cyan-300/30 bg-cyan-300/10 text-cyan-100";
-  }
-
-  if (status === "needs_review" || status === "incomplete") {
-    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-  }
-
-  return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-}
-
-function formatPlanVsActualMetricValue(
-  value: number | string | null,
-  unit: PlanVsActualReview["metrics"][number]["unit"],
-) {
-  if (typeof value === "string") {
-    return displayValue(value);
-  }
-
-  if (unit === "shares") {
-    return formatShares(value);
-  }
-
-  if (unit === "currency") {
-    return formatSignedCurrency(value);
-  }
-
-  if (unit === "percent") {
-    return formatPercent(value);
-  }
-
-  if (unit === "r_multiple") {
-    return formatSignedR(value);
-  }
-
-  if (unit === "ratio") {
-    return formatIntradayIndicatorValue(value, "R/R");
-  }
-
-  return displayValue(value);
-}
-
 function ClosedTradePlanVsActualReviewPanel({
   position,
 }: {
@@ -30389,147 +29064,14 @@ function ClosedTradePlanVsActualReviewPanel({
     closeReason: position.exitNotes,
     isDemo: isDemoPosition(position),
   });
-  const visibleDeviations = review.deviations.slice(0, 4);
-  const visibleWarnings = review.warnings.slice(0, 4);
   const reviewJson = planVsActualReviewJson(review);
 
   return (
-    <section className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
-      <div
-        id="trade-plan-vs-actual-review-json"
-        data-agent-readable="true"
-        data-review-id={review.review_id}
-        data-review-status={review.status}
-        data-review-grade={review.grade}
-        data-snapshot-id={review.snapshot_id ?? ""}
-        data-ticker={position.ticker}
-        className="sr-only"
-      >
-        {reviewJson}
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Plan vs Actual Review
-          </p>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {review.process_summary}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500">
-            A losing trade can still follow the plan if the loss stayed within
-            planned risk. This review is descriptive, not predictive.
-          </p>
-        </div>
-        <span
-          className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${planVsActualTone(
-            review.status,
-          )}`}
-        >
-          {formatStatisticsStatusLabel(review.status)} · {review.grade}
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Detail
-          label="Quantity Deviation"
-          value={formatPercent(review.quantity_deviation_percent)}
-        />
-        <Detail
-          label="Risk Deviation"
-          value={formatPercent(review.risk_deviation_percent)}
-        />
-        <Detail
-          label="Reward Capture"
-          value={formatPercent(review.reward_capture_percent)}
-        />
-        <Detail
-          label="Realized vs Planned R"
-          value={formatIntradayIndicatorValue(review.realized_vs_planned_r, "x")}
-        />
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-md border border-white/10 bg-black/20">
-        <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 border-b border-white/10 px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-          <span>Metric</span>
-          <span>Planned</span>
-          <span>Actual</span>
-        </div>
-        <div className="divide-y divide-white/10">
-          {review.metrics.map((metric) => (
-            <div
-              key={metric.metric_id}
-              className="grid grid-cols-[1fr_1fr_1fr] gap-2 px-3 py-2 text-xs leading-5 text-zinc-300"
-            >
-              <span className="font-medium text-zinc-200">{metric.label}</span>
-              <span>
-                {formatPlanVsActualMetricValue(
-                  metric.planned_value,
-                  metric.unit,
-                )}
-              </span>
-              <span>
-                {formatPlanVsActualMetricValue(metric.actual_value, metric.unit)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {(visibleDeviations.length > 0 || visibleWarnings.length > 0) && (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-md border border-rose-300/15 bg-rose-300/[0.035] p-3">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100">
-              Deviations
-            </p>
-            {visibleDeviations.length > 0 ? (
-              <ul className="mt-2 space-y-1 text-xs leading-5 text-rose-50/80">
-                {visibleDeviations.map((item) => (
-                  <li key={item.deviation_id}>{item.message}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-xs leading-5 text-zinc-500">—</p>
-            )}
-          </div>
-          <div className="rounded-md border border-amber-300/15 bg-amber-300/[0.035] p-3">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-              Review Warnings
-            </p>
-            {visibleWarnings.length > 0 ? (
-              <ul className="mt-2 space-y-1 text-xs leading-5 text-amber-50/80">
-                {visibleWarnings.map((item) => (
-                  <li key={item.warning_id}>{item.message}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-xs leading-5 text-zinc-500">—</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-        <summary className="cursor-pointer font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300">
-          View plan-vs-actual checks
-        </summary>
-        <div className="mt-3 space-y-2">
-          {review.checks.map((item) => (
-            <div
-              key={item.check_id}
-              className="rounded-md border border-white/10 bg-black/20 p-3"
-            >
-              <p className="text-sm font-semibold text-zinc-200">
-                {item.label}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-zinc-500">
-                {item.message}
-              </p>
-            </div>
-          ))}
-        </div>
-      </details>
-    </section>
+    <ClosedTradePlanAdherencePanel
+      review={review}
+      reviewJson={reviewJson}
+      ticker={position.ticker}
+    />
   );
 }
 
@@ -30895,770 +29437,6 @@ function ClosedTradeKeyLearnings({
   );
 }
 
-function liveDetailsToneFromAction(
-  action: string,
-): "positive" | "warning" | "danger" | "neutral" {
-  if (isCloseRequiredAction(action)) return "danger";
-  if (isTakeProfitAction(action)) return "positive";
-  if (action === "NO_ACTION" || action === "HOLD") return "neutral";
-  if (action === "REVIEW_REQUIRED" || action === "WATCH") return "warning";
-  return "warning";
-}
-
-function liveDetailsToneFromSeverity(
-  severity: EndOfDaySafetyStatus["severity"] | PositionUpdateUrgency["urgency"],
-): "positive" | "warning" | "danger" | "neutral" {
-  if (severity === "critical") return "danger";
-  if (severity === "warning") return "warning";
-  if (severity === "normal" || severity === "none") return "positive";
-  return "neutral";
-}
-
-function buildLiveTradeRiskFlags({
-  warnings,
-  eodSafetyStatus,
-  latestUpdate,
-  position,
-}: {
-  warnings: string[];
-  eodSafetyStatus: EndOfDaySafetyStatus;
-  latestUpdate?: LatestPositionUpdate;
-  position: ActivePosition;
-}) {
-  const preview = position.executionMetadata?.broker_order_preview;
-  return [
-    eodSafetyStatus.severity !== "none" ? eodSafetyStatus.message : null,
-    ...warnings,
-    latestUpdate?.intradayIndicators?.isAboveVwap === false
-      ? "Price is below VWAP on latest intraday snapshot."
-      : null,
-    preview && preview.warning_type !== "none"
-      ? `Broker preview warning: ${brokerWarningTypeLabel(preview.warning_type)}`
-      : null,
-  ].filter((value): value is string => Boolean(value));
-}
-
-function LiveTradeDetailsModal({
-  position,
-  latestUpdate,
-  currentR,
-  unrealizedPnl,
-  liveSellGuidance,
-  warnings,
-  eodSafetyStatus,
-  positionUrgency,
-  riskControlsEvaluation,
-  showEodManualReview,
-  eodRiskAcknowledged,
-  status,
-  realityBadges,
-  onAcknowledgeEndOfDayRisk,
-  onClose,
-}: {
-  position: ActivePosition;
-  latestUpdate?: LatestPositionUpdate;
-  currentR: number | null;
-  unrealizedPnl: { pnl: number | null; percent: number | null };
-  liveSellGuidance: LiveSellGuidance;
-  warnings: string[];
-  eodSafetyStatus: EndOfDaySafetyStatus;
-  positionUrgency: PositionUpdateUrgency;
-  riskControlsEvaluation: RiskControlsEvaluation;
-  showEodManualReview: boolean;
-  eodRiskAcknowledged: boolean;
-  status: React.ReactNode;
-  realityBadges: DataModeBadge[];
-  onAcknowledgeEndOfDayRisk: () => void;
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  const intradayIndicators = latestUpdate?.intradayIndicators;
-  const riskFlags = buildLiveTradeRiskFlags({
-    warnings,
-    eodSafetyStatus,
-    latestUpdate,
-    position,
-  });
-  const guidance = liveSellGuidance.primary_message;
-  const guidanceAction = liveSellActionToLegacyAction(liveSellGuidance.action);
-  const updatedAt = latestUpdate ? latestUpdate.updatedAt : position.openedAt;
-  const positionValue =
-    position.entryPriceValue !== null && position.positionSizeValue !== null
-      ? formatCurrency(position.entryPriceValue * position.positionSizeValue)
-      : "—";
-  const riskPerShare =
-    position.entryPriceValue !== null && position.stopLossValue !== null
-      ? formatCurrency(Math.abs(position.entryPriceValue - position.stopLossValue))
-      : "—";
-  const maxLoss =
-    position.entryPriceValue !== null &&
-    position.stopLossValue !== null &&
-    position.positionSizeValue !== null
-      ? formatCurrency(
-          Math.abs(position.entryPriceValue - position.stopLossValue) *
-            position.positionSizeValue,
-        )
-      : "—";
-  const currentPercent =
-    latestUpdate?.unrealizedPercentValue !== null &&
-    latestUpdate?.unrealizedPercentValue !== undefined
-      ? formatSignedPercent(latestUpdate.unrealizedPercentValue)
-      : formatSignedPercent(unrealizedPnl.percent);
-  const executionQuality = calculateExecutionQuality(position.executionMetadata);
-  const auditTimeline = buildExecutionTimeline({
-    positionId: position.id,
-    recommendationId: position.recommendationId,
-    ticker: position.ticker,
-    status: "open",
-    openedAt: position.openedAtRaw,
-    executionMetadata: position.executionMetadata,
-    localEvents: readTradeManagementEvents(),
-  });
-  const auditReplay = buildHandoffSessionReplay({
-    executionMetadata: position.executionMetadata,
-    timelineEvents: auditTimeline,
-    openedAt: position.openedAtRaw,
-  });
-  const auditHandoffQuality = calculateHandoffQuality({
-    executionMetadata: position.executionMetadata,
-    executionQualityMetrics: executionQuality,
-    handoffReplay: auditReplay,
-    timelineEvents: auditTimeline,
-    calculatedAt: position.executionMetadata?.handoff_quality?.calculated_at,
-  });
-  const auditSuggestions = buildExecutionImprovementSuggestions({
-    brokerExecutionMetadata: position.executionMetadata,
-    handoffQuality: auditHandoffQuality,
-    executionQualityMetrics: executionQuality,
-    handoffReplay: auditReplay,
-    timelineEvents: auditTimeline,
-    eodSafetyStatus,
-  });
-  const preview = position.executionMetadata?.broker_order_preview;
-  const auditSummary =
-    position.executionMetadata
-      ? `Actual fill ${formatCurrency(
-          position.executionMetadata.actual_fill_price,
-        )}, planned ${formatCurrency(
-          position.executionMetadata.planned_entry_price,
-        )}. Handoff quality ${auditHandoffQuality.label} at ${
-          auditHandoffQuality.score
-        }/100.`
-      : "No broker execution metadata has been recorded for this live trade yet.";
-
-  return (
-    <div
-      className="trade-recommendation-details-backdrop"
-      role="presentation"
-      onClick={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-      onMouseDown={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      <section
-        aria-labelledby="trade-live-details-title"
-        aria-modal="true"
-        className="trade-recommendation-details-modal trade-live-details-modal"
-        role="dialog"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="trade-recommendation-details-titlebar">
-          <h2 id="trade-live-details-title">Live Day Trade Details</h2>
-          <button
-            type="button"
-            aria-label="Close live day trade details"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClose();
-            }}
-            className="trade-recommendation-details-close"
-          >
-            <Image
-              src="/trade-assets/x-icn.svg"
-              alt=""
-              aria-hidden="true"
-              width={29}
-              height={29}
-            />
-          </button>
-        </div>
-
-        <div className="trade-recommendation-details-scroll">
-          <header className="trade-recommendation-details-header">
-            <CompanyIdentity
-              ticker={position.ticker}
-              companyName={position.companyName}
-              size="live"
-            />
-            <div className="flex flex-col items-start gap-2 sm:items-end">
-              <DataModePillRow badges={realityBadges} />
-              {status}
-            </div>
-          </header>
-
-          <DataModeSurfaceNotice
-            surface={{
-              surface_id: "live_day_trades",
-              label: "Live Day Trades",
-              mode: isDemoPosition(position) ? "demo" : "manual_broker_record",
-              source_kind: isDemoPosition(position) ? "local_storage" : "manual_broker",
-              freshness_status: latestUpdate ? "unknown" : "stale",
-              execution_reality: isDemoPosition(position) ? "demo_only" : "manual_only",
-              badges: realityBadges,
-              warnings: [],
-              summary:
-                "This live trade is a Ture record. Broker execution is user-entered or human-confirmed; Ture cannot submit Avanza orders.",
-            }}
-            compact
-          />
-
-          <RecommendationDetailsSection title="Quick Decision">
-            <div className="trade-recommendation-details-quick-decision">
-              <div className="trade-recommendation-details-guidance">
-                <div>
-                  <p>{recommendationDetailsValue(guidance)}</p>
-                  <span className="trade-recommendation-details-guidance__timestamp">
-                    Updated {recommendationDetailsValue(updatedAt)}
-                  </span>
-                </div>
-                <div className="trade-recommendation-details-pill-row trade-recommendation-details-pill-row--quick">
-                  <RecommendationDetailsPill
-                    label={liveSellGuidance.primary_label}
-                    tone={liveDetailsToneFromAction(guidanceAction)}
-                  />
-                  <RecommendationDetailsPill
-                    label={liveSellGuidance.urgency}
-                    tone={liveSellUrgencyTone(liveSellGuidance.urgency)}
-                  />
-                  <RecommendationDetailsPill
-                    label={liveSellGuidance.trigger}
-                    tone={liveSellUrgencyTone(liveSellGuidance.urgency)}
-                  />
-                </div>
-              </div>
-
-              <div className="trade-recommendation-details-two-column">
-                <RecommendationDetailsTextCard label="Live Sell Guidance">
-                  <p>{recommendationDetailsValue(liveSellGuidance.next_step)}</p>
-                  <p>{recommendationDetailsValue(liveSellGuidance.why_now)}</p>
-                  <p>
-                    Guidance is advisory only. Trade cannot submit orders or click
-                    Avanza SÄLJ.
-                  </p>
-                </RecommendationDetailsTextCard>
-                <RecommendationDetailsTextCard label="Watch This">
-                  <RecommendationDetailsTextStack
-                    items={[
-                      ...liveSellGuidance.blockers,
-                      ...liveSellGuidance.warnings,
-                      ...riskFlags,
-                    ].slice(0, 4)}
-                    empty="No major live risk flags surfaced."
-                    tone="warning"
-                  />
-                </RecommendationDetailsTextCard>
-              </div>
-
-              <RecommendationDetailsMetricGrid
-                variant="wide"
-                metrics={[
-                  {
-                    label: "Trigger",
-                    value: liveSellGuidance.trigger,
-                  },
-                  {
-                    label: "Confidence",
-                    value: liveSellGuidance.confidence,
-                  },
-                  {
-                    label: "Distance to Target",
-                    value: formatCurrency(liveSellGuidance.distance_to_target),
-                  },
-                  {
-                    label: "Distance to Stop",
-                    value: formatCurrency(liveSellGuidance.distance_to_stop),
-                  },
-                  {
-                    label: "Current R",
-                    value: formatSignedR(liveSellGuidance.current_r),
-                  },
-                  {
-                    label: "Best Known Price",
-                    value: formatCurrency(liveSellGuidance.best_price),
-                  },
-                  {
-                    label: "Best Known R",
-                    value: formatSignedR(liveSellGuidance.best_r),
-                  },
-                  {
-                    label: "Fade From Best",
-                    value: formatSignedR(liveSellGuidance.profit_fade_from_best),
-                  },
-                  {
-                    label: "Evaluated",
-                    value: formatDate(liveSellGuidance.evaluated_at),
-                  },
-                ]}
-              />
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Trade Plan">
-            <div className="trade-recommendation-details-trade-plan">
-              <RecommendationDetailsMetricGrid
-                metrics={[
-                  {
-                    label: "Current",
-                    value: latestUpdate ? latestUpdate.currentPrice : "—",
-                  },
-                  {
-                    label: "Unrealized",
-                    value: formatSignedCurrency(unrealizedPnl.pnl),
-                    tone: unrealizedPnl.pnl,
-                  },
-                  { label: "PnL %", value: currentPercent },
-                  { label: "Current R", value: formatSignedR(currentR) },
-                  { label: "Entry", value: position.entryPrice },
-                  { label: "Stop", value: position.stopLoss },
-                  { label: "Target", value: position.target1 },
-                  { label: "Shares", value: position.positionSize },
-                ]}
-              />
-              <div
-                className="trade-recommendation-details-trade-plan__divider"
-                aria-hidden="true"
-              />
-              <RecommendationDetailsMetricGrid
-                variant="wide"
-                metrics={[
-                  { label: "Direction", value: position.direction },
-                  {
-                    label: "Setup Type",
-                    value: setupTypeLabelFromActivePosition(position),
-                  },
-                  { label: "Position Value", value: positionValue },
-                  { label: "Max Loss", value: maxLoss },
-                  { label: "Risk/share", value: riskPerShare },
-                  {
-                    label: "Partial Status",
-                    value:
-                      position.executionMetadata?.partial_position_status?.replaceAll(
-                        "_",
-                        " ",
-                      ) ?? "fully open",
-                  },
-                  {
-                    label: "Realized From Exits",
-                    value: formatSignedCurrency(
-                      position.executionMetadata?.realized_pnl_from_exits ?? null,
-                    ),
-                    tone:
-                      position.executionMetadata?.realized_pnl_from_exits ?? null,
-                  },
-                  { label: "Time In Trade", value: formatTimeInTrade(position.openedAtRaw) },
-                ]}
-              />
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Live Trade Context">
-            <div className="trade-recommendation-details-stack">
-              <RiskControlsEvaluationPanel
-                title="Live Risk Controls"
-                evaluation={riskControlsEvaluation}
-              />
-              <div
-                id="trade-risk-controls-live-trade-evaluation-json"
-                data-agent-readable="true"
-                data-evaluation-id={riskControlsEvaluation.evaluation_id}
-                data-evaluation-status={riskControlsEvaluation.status}
-                data-mode={riskControlsEvaluation.mode}
-                className="sr-only"
-              >
-                {riskControlsEvaluationJson(riskControlsEvaluation)}
-              </div>
-
-              {positionUrgency.urgency === "critical" && (
-                <RecommendationDetailsTextCard
-                  label="Critical Manual Action Required"
-                  pill={<RecommendationDetailsPill label="Critical" tone="danger" />}
-                >
-                  <p>{recommendationDetailsValue(guidance)}</p>
-                </RecommendationDetailsTextCard>
-              )}
-
-              {showEodManualReview && (
-                <RecommendationDetailsTextCard
-                  label="EOD Manual Review Required"
-                  pill={
-                    <RecommendationDetailsPill
-                      label={
-                        eodRiskAcknowledged
-                          ? "Acknowledged"
-                          : endOfDaySafetyLabel(eodSafetyStatus.status)
-                      }
-                      tone={
-                        eodRiskAcknowledged
-                          ? "neutral"
-                          : liveDetailsToneFromSeverity(eodSafetyStatus.severity)
-                      }
-                    />
-                  }
-                >
-                  <p>
-                    {recommendationDetailsValue(
-                      `${eodSafetyStatus.message} Close in broker first, then close trade in app.`,
-                    )}
-                  </p>
-                  {!eodRiskAcknowledged && (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onAcknowledgeEndOfDayRisk();
-                      }}
-                      className="trade-live-details-ack-button"
-                    >
-                      Acknowledge EOD Risk
-                    </button>
-                  )}
-                </RecommendationDetailsTextCard>
-              )}
-
-              {(liveSellGuidance.why_now ||
-                liveSellGuidance.protective_action_reason ||
-                liveSellGuidance.is_profit_fading) && (
-                <RecommendationDetailsTextCard
-                  label="Why Now?"
-                  pill={
-                    liveSellGuidance.is_profit_fading ? (
-                      <RecommendationDetailsPill label="Profit Fade" tone="warning" />
-                    ) : undefined
-                  }
-                >
-                  <p>{recommendationDetailsValue(liveSellGuidance.why_now)}</p>
-                  {liveSellGuidance.protective_action_reason && (
-                    <p>
-                      {recommendationDetailsValue(
-                        liveSellGuidance.protective_action_reason,
-                      )}
-                    </p>
-                  )}
-                  {liveSellGuidance.is_profit_fading && (
-                    <p>
-                      Best known R {formatSignedR(liveSellGuidance.best_r)} has
-                      faded by{" "}
-                      {formatSignedR(liveSellGuidance.profit_fade_from_best)}.
-                    </p>
-                  )}
-                </RecommendationDetailsTextCard>
-              )}
-
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Live Trade Details">
-            <div className="trade-recommendation-details-stack">
-              <RecommendationDetailsTextCard
-                label="Intraday Confirmation"
-                pill={
-                  <RecommendationDetailsPill
-                    label={
-                      intradayIndicators?.isAboveVwap === false
-                        ? "Below VWAP"
-                        : intradayIndicators
-                          ? "Live Data"
-                          : "Waiting"
-                    }
-                    tone={
-                      intradayIndicators?.isAboveVwap === false
-                        ? "danger"
-                        : intradayIndicators
-                          ? "positive"
-                          : "neutral"
-                    }
-                  />
-                }
-              >
-                <p>
-                  {intradayIndicators
-                    ? `VWAP ${
-                        intradayIndicators.isAboveVwap === null
-                          ? "Unavailable"
-                          : intradayIndicators.isAboveVwap
-                            ? "Above"
-                            : "Below"
-                      }, Price vs VWAP ${formatIntradayIndicatorValue(
-                        intradayIndicators.priceVsVwapPercent,
-                        "%",
-                      )}, Momentum ${recommendationDetailsValue(
-                        intradayIndicators.momentumDirection,
-                      )}, Volume ${recommendationDetailsValue(
-                        intradayIndicators.volumeTrend,
-                      )}`
-                    : "Intraday indicators are waiting for the next live update."}
-                </p>
-              </RecommendationDetailsTextCard>
-
-              <div className="trade-recommendation-details-two-column trade-recommendation-details-two-column--flush">
-                <RecommendationDetailsTextCard label="Action Reason">
-                  <p>{recommendationDetailsValue(latestUpdate?.reason)}</p>
-                  {latestUpdate?.explanation && (
-                    <p>{recommendationDetailsValue(latestUpdate.explanation)}</p>
-                  )}
-                </RecommendationDetailsTextCard>
-                <RecommendationDetailsTextCard label="Invalidation / Warnings">
-                  <RecommendationDetailsTextStack
-                    items={[
-                      position.invalidation,
-                      ...warnings,
-                      latestUpdate?.newStop && latestUpdate.newStop !== "Not set"
-                        ? `New stop: ${latestUpdate.newStop}`
-                        : null,
-                    ].filter((item): item is string => Boolean(item))}
-                    empty="—"
-                    tone="warning"
-                  />
-                </RecommendationDetailsTextCard>
-              </div>
-            </div>
-          </RecommendationDetailsSection>
-
-          <RecommendationDetailsSection title="Execution Audit">
-            <div className="trade-recommendation-details-stack">
-              <RecommendationDetailsTextCard
-                label="Audit Summary"
-                pill={
-                  <RecommendationDetailsPill
-                    label={
-                      position.executionMetadata
-                        ? getExecutionQualityLabel(executionQuality.quality_rating)
-                        : "Not Recorded"
-                    }
-                    tone={
-                      position.executionMetadata
-                        ? executionQuality.quality_rating === "poor"
-                          ? "danger"
-                          : executionQuality.quality_rating === "acceptable"
-                            ? "warning"
-                            : "positive"
-                        : "neutral"
-                    }
-                  />
-                }
-              >
-                <p>{recommendationDetailsValue(auditSummary)}</p>
-                <p>
-                  Execution audit is analytics only. It does not create orders,
-                  submit broker actions, or control Avanza.
-                </p>
-              </RecommendationDetailsTextCard>
-
-              <RecommendationDetailsMetricGrid
-                variant="wide"
-                metrics={[
-                  {
-                    label: "Broker Status",
-                    value:
-                      position.executionMetadata?.broker_order_status
-                        ? brokerOrderStatusLabel(
-                            position.executionMetadata.broker_order_status,
-                          )
-                        : "—",
-                  },
-                  {
-                    label: "Handoff",
-                    value: `${auditHandoffQuality.label} · ${auditHandoffQuality.score}/100`,
-                  },
-                  {
-                    label: "Replay",
-                    value: auditReplay.overall_status,
-                  },
-                  {
-                    label: "Timeline Events",
-                    value: String(auditTimeline.length),
-                  },
-                  {
-                    label: "Preview Warning",
-                    value: preview
-                      ? brokerWarningTypeLabel(preview.warning_type)
-                      : "—",
-                  },
-                  {
-                    label: "Suggestions",
-                    value: String(auditSuggestions.suggestions.length),
-                  },
-                ]}
-              />
-
-              <div
-                className="trade-recommendation-details-dashed-divider"
-                aria-hidden="true"
-              />
-
-              <RecommendationDetailsContextCard
-                label="Execution Trail"
-                pill={
-                  <RecommendationDetailsPill
-                    label={auditReplay.overall_status}
-                    tone={
-                      auditReplay.overall_status === "complete"
-                        ? "positive"
-                        : auditReplay.overall_status === "failed"
-                          ? "danger"
-                          : auditReplay.overall_status === "partial"
-                            ? "warning"
-                            : "neutral"
-                    }
-                  />
-                }
-                rows={[
-                  <RecommendationDetailsContextRow
-                    key="broker-execution"
-                    label="Broker Execution"
-                    summary={
-                      position.executionMetadata
-                        ? `Actual shares ${formatShares(
-                            position.executionMetadata.actual_shares,
-                          )}, planned ${formatShares(
-                            position.executionMetadata.planned_shares,
-                          )}.`
-                        : "No broker execution metadata recorded."
-                    }
-                    detail={
-                      position.executionMetadata?.broker_confirmed_at
-                        ? `Confirmed ${formatDate(
-                            position.executionMetadata.broker_confirmed_at,
-                          )}`
-                        : undefined
-                    }
-                    pill={
-                      <RecommendationDetailsPill
-                        label={
-                          position.executionMetadata?.broker_order_status
-                            ? brokerOrderStatusLabel(
-                                position.executionMetadata.broker_order_status,
-                              )
-                            : "Unknown"
-                        }
-                        tone={position.executionMetadata ? "positive" : "neutral"}
-                      />
-                    }
-                  />,
-                  <RecommendationDetailsContextRow
-                    key="handoff-quality"
-                    label="Handoff Quality"
-                    summary={auditHandoffQuality.summary}
-                    detail={`Calculated ${formatDate(
-                      auditHandoffQuality.calculated_at,
-                    )}`}
-                    pill={
-                      <RecommendationDetailsPill
-                        label={`${auditHandoffQuality.score}/100`}
-                        tone={
-                          auditHandoffQuality.rating === "poor"
-                            ? "danger"
-                            : auditHandoffQuality.rating === "acceptable"
-                              ? "warning"
-                              : "positive"
-                        }
-                      />
-                    }
-                  />,
-                  <RecommendationDetailsContextRow
-                    key="handoff-replay"
-                    label="Handoff Replay"
-                    summary={auditReplay.summary}
-                    detail={
-                      auditReplay.handoff_session_id
-                        ? `Session ${shortPayloadId(auditReplay.handoff_session_id)}`
-                        : undefined
-                    }
-                    pill={
-                      <RecommendationDetailsPill
-                        label={auditReplay.overall_status}
-                        tone={
-                          auditReplay.overall_status === "complete"
-                            ? "positive"
-                            : auditReplay.overall_status === "failed"
-                              ? "danger"
-                              : auditReplay.overall_status === "partial"
-                                ? "warning"
-                                : "neutral"
-                        }
-                      />
-                    }
-                  />,
-                  <RecommendationDetailsContextRow
-                    key="improvements"
-                    label="Improvement Suggestions"
-                    summary={
-                      auditSuggestions.suggestions[0]?.suggested_action ||
-                      "No execution improvement suggestions surfaced."
-                    }
-                    detail={`Open suggestions: ${auditSuggestions.suggestions.length}`}
-                    pill={
-                      <RecommendationDetailsPill
-                        label={
-                          auditSuggestions.suggestions[0]?.priority || "None"
-                        }
-                        tone={
-                          auditSuggestions.suggestions[0]?.priority === "high"
-                            ? "danger"
-                            : auditSuggestions.suggestions[0]?.priority === "medium"
-                              ? "warning"
-                              : "neutral"
-                        }
-                      />
-                    }
-                  />,
-                ]}
-                footer="Full audit details stay available below for traceability, but they do not affect trading logic or broker flow."
-              >
-                <p>
-                  {recommendationDetailsValue(
-                    auditTimeline[0]?.description ||
-                      "Audit trail is based on available execution metadata and local handoff events.",
-                  )}
-                </p>
-              </RecommendationDetailsContextCard>
-            </div>
-
-            <FullAuditTrail
-              timeline={auditTimeline}
-              replay={auditReplay}
-              suggestions={auditSuggestions}
-            />
-            <div className="trade-recommendation-details-brand-mark" aria-hidden="true">
-              <Image
-                src="/trade-assets/ture-logo-mark.svg"
-                alt=""
-                width={72}
-                height={72}
-              />
-            </div>
-          </RecommendationDetailsSection>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 type ExecutionSandboxFixturePosition = {
   id: string;
   recommendationId: string;
@@ -31710,27 +29488,6 @@ const executionSandboxFixturePositions: readonly ExecutionSandboxFixturePosition
       tone: "success",
     },
   ];
-
-function getLocalhostMockPageBaseUrl(): string | undefined {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  try {
-    const url = new URL(window.location.origin);
-
-    if (
-      (url.protocol === "http:" || url.protocol === "https:") &&
-      ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
-    ) {
-      return url.origin;
-    }
-  } catch {
-    return undefined;
-  }
-
-  return "http://localhost:3000";
-}
 
 function ExecutionSandboxFixturePanel({
   executionMode,
@@ -31957,11 +29714,26 @@ function ActivePositionCard({
   const guidanceAction = liveSellActionToLegacyAction(liveSellGuidance.action);
   const partialPositionStatus =
     position.executionMetadata?.partial_position_status ?? "fully_open";
-  const isPartiallyClosed = partialPositionStatus === "partially_closed";
-  const closeButtonTone =
-    liveSellGuidance.should_prepare_sell_handoff || isTakeProfitAction(action)
-      ? "trade-live-close-button--active"
-      : "trade-live-close-button--neutral";
+  const setupLabel = setupTypeLabelFromActivePosition(position);
+  const liveDayTradeDisplay = buildLiveDayTradeDisplayProps({
+    actionIsTakeProfit: isTakeProfitAction(action),
+    currentPrice: latestUpdate ? latestUpdate.currentPrice : "—",
+    currentR,
+    entryPrice: position.entryPrice,
+    guidanceAction,
+    isDemo: isDemoPosition(position),
+    liveSellGuidance,
+    partialPositionStatus,
+    positionSize: position.positionSize,
+    remainingShares: position.executionMetadata?.remaining_shares,
+    setupLabel,
+    stopLoss: position.stopLoss,
+    target1: position.target1,
+    ticker: position.ticker,
+    timeInTrade: formatTimeInTrade(position.openedAtRaw),
+    unrealizedPnl: unrealizedPnl.pnl,
+    updatedAt: latestUpdate ? latestUpdate.updatedAt : position.openedAt,
+  });
   const showEodManualReview =
     eodSafetyStatus.status === "review_required" ||
     eodSafetyStatus.status === "overnight_risk";
@@ -31970,20 +29742,8 @@ function ActivePositionCard({
   );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isExecutionPreviewOpen, setIsExecutionPreviewOpen] = useState(false);
-  const activePositionRealityBadges = [
-    isDemoPosition(position)
-      ? dataModeBadgeForMode("demo")
-      : dataModeBadgeForMode("manual_broker_record"),
-    dataModeBadgeForExecutionReality(
-      isDemoPosition(position) ? "demo_only" : "manual_only",
-    ),
-  ];
   const liveActionPill = (
-    <span
-      className={`trade-live-action-pill ${positionActionPillClassName(
-        guidanceAction,
-      )} ${positionActionClassName(guidanceAction)}`}
-    >
+    <span className={`trade-live-action-pill ${liveDayTradeDisplay.actionPillClassName}`}>
       {liveSellGuidance.primary_label}
     </span>
   );
@@ -32021,6 +29781,82 @@ function ActivePositionCard({
         liveExecutionOrchestratorResult,
       )
     : null;
+  const liveTradeRiskFlags = [
+    eodSafetyStatus.severity !== "none" ? eodSafetyStatus.message : null,
+    ...warnings,
+    latestUpdate?.intradayIndicators?.isAboveVwap === false
+      ? "Price is below VWAP on latest intraday snapshot."
+      : null,
+    position.executionMetadata?.broker_order_preview &&
+    position.executionMetadata.broker_order_preview.warning_type !== "none"
+      ? `Broker preview warning: ${brokerWarningTypeLabel(
+          position.executionMetadata.broker_order_preview.warning_type,
+        )}`
+      : null,
+  ].filter((value): value is string => Boolean(value));
+  const positionValue =
+    position.entryPriceValue !== null && position.positionSizeValue !== null
+      ? formatCurrency(position.entryPriceValue * position.positionSizeValue)
+      : "—";
+  const riskPerShare =
+    position.entryPriceValue !== null && position.stopLossValue !== null
+      ? formatCurrency(Math.abs(position.entryPriceValue - position.stopLossValue))
+      : "—";
+  const maxLoss =
+    position.entryPriceValue !== null &&
+    position.stopLossValue !== null &&
+    position.positionSizeValue !== null
+      ? formatCurrency(
+          Math.abs(position.entryPriceValue - position.stopLossValue) *
+            position.positionSizeValue,
+        )
+      : "—";
+  const currentPercent =
+    latestUpdate?.unrealizedPercentValue !== null &&
+    latestUpdate?.unrealizedPercentValue !== undefined
+      ? formatSignedPercent(latestUpdate.unrealizedPercentValue)
+      : formatSignedPercent(unrealizedPnl.percent);
+  const executionQuality = calculateExecutionQuality(position.executionMetadata);
+  const auditTimeline = buildExecutionTimeline({
+    positionId: position.id,
+    recommendationId: position.recommendationId,
+    ticker: position.ticker,
+    status: "open",
+    openedAt: position.openedAtRaw,
+    executionMetadata: position.executionMetadata,
+    localEvents: readTradeManagementEvents(),
+  });
+  const auditReplay = buildHandoffSessionReplay({
+    executionMetadata: position.executionMetadata,
+    timelineEvents: auditTimeline,
+    openedAt: position.openedAtRaw,
+  });
+  const auditHandoffQuality = calculateHandoffQuality({
+    executionMetadata: position.executionMetadata,
+    executionQualityMetrics: executionQuality,
+    handoffReplay: auditReplay,
+    timelineEvents: auditTimeline,
+    calculatedAt: position.executionMetadata?.handoff_quality?.calculated_at,
+  });
+  const auditSuggestions = buildExecutionImprovementSuggestions({
+    brokerExecutionMetadata: position.executionMetadata,
+    handoffQuality: auditHandoffQuality,
+    executionQualityMetrics: executionQuality,
+    handoffReplay: auditReplay,
+    timelineEvents: auditTimeline,
+    eodSafetyStatus,
+  });
+  const auditPreview = position.executionMetadata?.broker_order_preview;
+  const auditSummary =
+    position.executionMetadata
+      ? `Actual fill ${formatCurrency(
+          position.executionMetadata.actual_fill_price,
+        )}, planned ${formatCurrency(
+          position.executionMetadata.planned_entry_price,
+        )}. Handoff quality ${auditHandoffQuality.label} at ${
+          auditHandoffQuality.score
+        }/100.`
+      : "No broker execution metadata has been recorded for this live trade yet.";
 
   function acknowledgeEndOfDayRisk() {
     writeEndOfDayAcknowledgement(position.id, eodSafetyDate, true);
@@ -32028,142 +29864,146 @@ function ActivePositionCard({
   }
 
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={`${displayValue(position.ticker)} live day trade, ${displayValue(
-        setupTypeLabelFromActivePosition(position),
-      )}, in trade ${displayValue(formatTimeInTrade(position.openedAtRaw))}`}
-      onClick={() => setIsDetailsOpen(true)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setIsDetailsOpen(true);
-        }
-      }}
-      className={`trade-live-card ${liveSellGuidanceCardClassName(
-        liveSellGuidance,
-      )}`}
-    >
-      <div className="trade-live-card__header">
-        <CompanyIdentity
-          ticker={position.ticker}
-          companyName={position.companyName}
-          size="live"
-        />
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <DataModePillRow badges={activePositionRealityBadges.slice(0, 1)} />
-          {isPartiallyClosed && (
-            <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-              Partially Closed
-            </span>
-          )}
-          <span
-            className={`trade-live-action-pill ${positionActionPillClassName(
-              guidanceAction,
-            )} ${positionActionClassName(guidanceAction)}`}
-          >
-            {liveSellGuidance.primary_label}
-          </span>
-        </div>
-      </div>
-
-      <LiveMetricGrid
-        metrics={[
-          {
-            label: "Current",
-            value: latestUpdate ? latestUpdate.currentPrice : "—",
-          },
-          {
-            label: "Unrealized",
-            value: formatSignedCurrency(unrealizedPnl.pnl),
-            tone: unrealizedPnl.pnl,
-          },
-          { label: "Current R", value: formatSignedR(currentR) },
-          { label: "Shares", value: position.positionSize },
-          { label: "Entry", value: position.entryPrice },
-          { label: "Stop", value: position.stopLoss },
-          { label: "Target", value: position.target1 },
-        ]}
-      />
-
-      <div className="trade-live-guidance">
-        <p>
-          {displayValue(liveSellGuidance.primary_message)}
-          <span className="mt-1 block text-xs leading-5 text-zinc-500">
-            {displayValue(liveSellGuidance.next_step)}
-          </span>
-          {isPartiallyClosed && (
-            <span className="mt-1 block text-xs leading-5 text-cyan-100">
-              Partial close recorded. Remaining shares:{" "}
-              {formatShares(position.executionMetadata?.remaining_shares)}.
-            </span>
-          )}
-          {liveSellGuidance.is_profit_fading && (
-            <span className="mt-1 block text-xs leading-5 text-amber-100">
-              Profit fade: {formatSignedR(liveSellGuidance.profit_fade_from_best)} from best known R.
-            </span>
-          )}
-        </p>
-        <span>
-          Updated{" "}
-          {displayValue(latestUpdate ? latestUpdate.updatedAt : position.openedAt)}
-        </span>
-      </div>
-
-      {liveExecutionStatus?.visible && (
-        <LiveExecutionStatusSurface
-          status={liveExecutionStatus}
-          onViewHandoff={() => setIsExecutionPreviewOpen(true)}
-        />
-      )}
-
-      <div className="trade-live-card__footer">
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onClosePosition(position);
-          }}
-          disabled={isSaving}
-          className={`trade-live-close-button ${closeButtonTone}`}
-        >
-          {liveSellGuidance.should_prepare_sell_handoff
-            ? "Prepare Sell Order"
-            : "Close Trade"}
-        </button>
-      </div>
-
-      {isDetailsOpen && (
-        <LiveTradeDetailsModal
-          position={position}
-          latestUpdate={latestUpdate}
-          currentR={currentR}
-          unrealizedPnl={unrealizedPnl}
-          liveSellGuidance={liveSellGuidance}
-          warnings={warnings}
-          eodSafetyStatus={eodSafetyStatus}
-          positionUrgency={positionUrgency}
-          riskControlsEvaluation={riskControlsEvaluation}
-          showEodManualReview={showEodManualReview}
-          eodRiskAcknowledged={eodRiskAcknowledged}
-          status={liveActionPill}
-          realityBadges={activePositionRealityBadges}
-          onAcknowledgeEndOfDayRisk={acknowledgeEndOfDayRisk}
-          onClose={() => setIsDetailsOpen(false)}
-        />
-      )}
-
-      {isExecutionPreviewOpen &&
+    <LiveDayTradeCardBody
+      actionLabel={liveSellGuidance.primary_label}
+      detailsModal={
+        isDetailsOpen ? (
+          <LiveTradeDetailsModal
+            position={position}
+            latestUpdate={latestUpdate}
+            currentR={currentR}
+            unrealizedPnl={unrealizedPnl}
+            liveSellGuidance={liveSellGuidance}
+            warnings={warnings}
+            eodSafetyStatus={eodSafetyStatus}
+            positionUrgency={positionUrgency}
+            riskControlsEvaluation={riskControlsEvaluation}
+            riskControlsEvaluationJsonText={riskControlsEvaluationJson(
+              riskControlsEvaluation,
+            )}
+            riskControlsPanel={
+              <RiskControlsEvaluationPanel
+                title="Live Risk Controls"
+                evaluation={riskControlsEvaluation}
+              />
+            }
+            dataModeNotice={
+              <DataModeSurfaceNotice
+                surface={{
+                  surface_id: "live_day_trades",
+                  label: "Live Day Trades",
+                  mode: isDemoPosition(position)
+                    ? "demo"
+                    : "manual_broker_record",
+                  source_kind: isDemoPosition(position)
+                    ? "local_storage"
+                    : "manual_broker",
+                  freshness_status: latestUpdate ? "unknown" : "stale",
+                  execution_reality: isDemoPosition(position)
+                    ? "demo_only"
+                    : "manual_only",
+                  badges: liveDayTradeDisplay.realityBadges,
+                  warnings: [],
+                  summary:
+                    "This live trade is a Ture record. Broker execution is user-entered or human-confirmed; Ture cannot submit Avanza orders.",
+                }}
+                compact
+              />
+            }
+            headerIdentity={
+              <CompanyIdentity
+                ticker={position.ticker}
+                companyName={position.companyName}
+                size="live"
+              />
+            }
+            realityBadgeRow={
+              <DataModePillRow badges={liveDayTradeDisplay.realityBadges} />
+            }
+            riskFlags={liveTradeRiskFlags}
+            setupLabel={setupLabel}
+            positionValue={positionValue}
+            riskPerShare={riskPerShare}
+            maxLoss={maxLoss}
+            currentPercent={currentPercent}
+            eodSafetyLabel={endOfDaySafetyLabel(eodSafetyStatus.status)}
+            audit={{
+              auditHandoffQuality,
+              auditReplay,
+              auditSummary,
+              executionQuality: {
+                quality_rating: executionQuality.quality_rating,
+              },
+              executionQualityLabel: getExecutionQualityLabel(
+                executionQuality.quality_rating,
+              ),
+              firstSuggestion: auditSuggestions.suggestions[0],
+              firstTimelineDescription: auditTimeline[0]?.description,
+              fullAuditTrail: (
+                <FullAuditTrail
+                  timeline={auditTimeline}
+                  replay={auditReplay}
+                  suggestions={auditSuggestions}
+                />
+              ),
+              previewWarningLabel: auditPreview
+                ? brokerWarningTypeLabel(auditPreview.warning_type)
+                : "—",
+              suggestionsCount: auditSuggestions.suggestions.length,
+              timelineCount: auditTimeline.length,
+            }}
+            showEodManualReview={showEodManualReview}
+            eodRiskAcknowledged={eodRiskAcknowledged}
+            status={liveActionPill}
+            onAcknowledgeEndOfDayRisk={acknowledgeEndOfDayRisk}
+            onClose={() => setIsDetailsOpen(false)}
+          />
+        ) : null
+      }
+      display={liveDayTradeDisplay}
+      executionPreviewModal={
+        isExecutionPreviewOpen &&
         liveExecutionStatus?.visible &&
-        liveExecutionOrchestratorResult?.selectedIntent && (
+        liveExecutionOrchestratorResult?.selectedIntent ? (
           <ExecutionHandoffPreviewModal
             result={liveExecutionOrchestratorResult}
             status={liveExecutionStatus}
             onClose={() => setIsExecutionPreviewOpen(false)}
           />
-        )}
-    </article>
+        ) : null
+      }
+      identity={
+        <CompanyIdentity
+          ticker={position.ticker}
+          companyName={position.companyName}
+          size="live"
+        />
+      }
+      isCloseDisabled={isSaving}
+      metricGrid={<LiveMetricGrid metrics={liveDayTradeDisplay.metrics} />}
+      onClosePositionClick={(event) => {
+        event.stopPropagation();
+        onClosePosition(position);
+      }}
+      onOpenDetails={() => setIsDetailsOpen(true)}
+      onOpenDetailsKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setIsDetailsOpen(true);
+        }
+      }}
+      realityBadgeRow={
+        <DataModePillRow badges={liveDayTradeDisplay.realityBadges.slice(0, 1)} />
+      }
+      statusSurface={
+        liveExecutionStatus?.visible ? (
+          <LiveExecutionStatusSurface
+            status={liveExecutionStatus}
+            onViewHandoff={() => setIsExecutionPreviewOpen(true)}
+          />
+        ) : null
+      }
+    />
   );
 }
 
@@ -32301,113 +30141,6 @@ function avanzaAgentRequestValidationTone(
   return "border-rose-300/30 bg-rose-300/10 text-rose-100";
 }
 
-function executionSandboxQaTone(status: ExecutionSandboxQaStatus) {
-  if (status === "pass") {
-    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "warn") {
-    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-  }
-
-  if (status === "fail") {
-    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-  }
-
-  return "border-white/10 bg-white/[0.04] text-zinc-400";
-}
-
-function executionSandboxQaOverallTone(
-  status: ExecutionSandboxQaOverallStatus,
-) {
-  if (status === "ready") {
-    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "blocked") {
-    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-  }
-
-  return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-}
-
-function executionModeUiLabel(mode: ExecutionUiStatus["mode"]) {
-  if (mode === "automatic") {
-    return "Automatic";
-  }
-
-  if (mode === "semi_automatic") {
-    return "Semi-auto";
-  }
-
-  return null;
-}
-
-function LiveExecutionStatusSurface({
-  status,
-  onViewHandoff,
-}: {
-  status: ExecutionUiStatus;
-  onViewHandoff?: () => void;
-}) {
-  const modeLabel = executionModeUiLabel(status.mode);
-  const nextAction =
-    status.ctaLabel ??
-    (status.canPrepareOrder ? "Prepare in Avanza" : null);
-
-  return (
-    <div
-      className={`mx-5 mt-4 rounded-md border p-3 ${executionUiStatusPanelClassName(
-        status.severity,
-      )}`}
-      aria-label={`${status.title}: ${status.description}`}
-    >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <span
-            className={`inline-flex rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionUiStatusBadgeClassName(
-              status.badgeTone,
-            )}`}
-          >
-            {status.label}
-          </span>
-          <p className="mt-2 text-sm font-semibold text-zinc-100">
-            {status.title}
-          </p>
-        </div>
-        {modeLabel && (
-          <span className="w-fit rounded-full border border-white/10 bg-black/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
-            {modeLabel}
-          </span>
-        )}
-      </div>
-      <p className="mt-2 text-xs leading-5 text-zinc-300">
-        {status.description}
-      </p>
-      {nextAction && (
-        <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
-          Next action: {nextAction}
-          {status.canSubmitFinalOrder
-            ? " · Final submit allowed by authority"
-            : ""}
-        </p>
-      )}
-      {onViewHandoff && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewHandoff();
-          }}
-          className="mt-3 rounded-md border border-white/15 bg-black/20 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-200 transition hover:border-cyan-300/30 hover:text-cyan-100"
-        >
-          View handoff
-        </button>
-      )}
-    </div>
-  );
-}
-
 function executionSafetyCheckTone(status: "passed" | "warning" | "failed") {
   if (status === "passed") {
     return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
@@ -32436,20 +30169,6 @@ function executionLifecycleStubTone(
   }
 
   return "border-white/10 bg-white/[0.04] text-zinc-300";
-}
-
-function agentProgressLifecycleTone(
-  status: AgentProgressStubTimelineItem["lifecycleTransitionStatus"],
-) {
-  if (status === "applied") {
-    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "invalid") {
-    return "border-rose-300/25 bg-rose-300/10 text-rose-100";
-  }
-
-  return "border-white/10 bg-white/[0.04] text-zinc-400";
 }
 
 function terminalExecutionEventForBrokerStatus(
@@ -32520,17 +30239,6 @@ const agentProgressStubEventTypes: AvanzaAgentProgressEventType[] = [
   "agent_cancelled",
 ];
 
-type AgentProgressStubTimelineItem = {
-  progressEvent: AvanzaAgentProgressEvent;
-  mappedLifecycleEventType:
-    | AvanzaAgentProgressEvent["lifecycleEventType"]
-    | null;
-  lifecycleTransitionStatus: "not_mapped" | "applied" | "invalid";
-  lifecycleNote: string;
-};
-
-type ExecutionSandboxQaOverallStatus = "ready" | "blocked" | "incomplete";
-
 function ExecutionHandoffPreviewModal({
   result,
   status,
@@ -32562,168 +30270,6 @@ function ExecutionHandoffPreviewModal({
     useState<AvanzaAgentResult | null>(null);
   const [agentRunnerError, setAgentRunnerError] = useState("");
   const [agentRunStoreMessage, setAgentRunStoreMessage] = useState("");
-  const [localhostBridgeRunResult, setLocalhostBridgeRunResult] =
-    useState<LocalhostBridgeClientRunResult | null>(null);
-  const [isLocalhostBridgeRunRunning, setIsLocalhostBridgeRunRunning] =
-    useState(false);
-  const [localhostBridgeRunMessage, setLocalhostBridgeRunMessage] =
-    useState("");
-  const [
-    localhostBridgeSelfCheckResult,
-    setLocalhostBridgeSelfCheckResult,
-  ] = useState<LocalhostBridgeClientRunnerSelfCheckResult | null>(null);
-  const [
-    isLocalhostBridgeSelfCheckRunning,
-    setIsLocalhostBridgeSelfCheckRunning,
-  ] = useState(false);
-  const [localhostBridgeSelfCheckMessage, setLocalhostBridgeSelfCheckMessage] =
-    useState("");
-  const [
-    localhostSessionDetectionResult,
-    setLocalhostSessionDetectionResult,
-  ] = useState<LocalhostBridgeClientSessionDetectionResult | null>(null);
-  const [
-    isLocalhostSessionDetectionRunning,
-    setIsLocalhostSessionDetectionRunning,
-  ] = useState(false);
-  const [
-    localhostSessionDetectionMessage,
-    setLocalhostSessionDetectionMessage,
-  ] = useState("");
-  const [
-    localhostSearchOnlyResult,
-    setLocalhostSearchOnlyResult,
-  ] = useState<LocalhostBridgeClientSearchOnlyResult | null>(null);
-  const [
-    isLocalhostSearchOnlyRunning,
-    setIsLocalhostSearchOnlyRunning,
-  ] = useState(false);
-  const [
-    localhostSearchOnlyMessage,
-    setLocalhostSearchOnlyMessage,
-  ] = useState("");
-  const [
-    localhostInstrumentVerificationResult,
-    setLocalhostInstrumentVerificationResult,
-  ] = useState<LocalhostBridgeClientInstrumentVerificationResult | null>(null);
-  const [
-    isLocalhostInstrumentVerificationRunning,
-    setIsLocalhostInstrumentVerificationRunning,
-  ] = useState(false);
-  const [
-    localhostInstrumentVerificationMessage,
-    setLocalhostInstrumentVerificationMessage,
-  ] = useState("");
-  const [
-    localhostInstrumentPageResult,
-    setLocalhostInstrumentPageResult,
-  ] = useState<LocalhostBridgeClientInstrumentPageResult | null>(null);
-  const [
-    isLocalhostInstrumentPageRunning,
-    setIsLocalhostInstrumentPageRunning,
-  ] = useState(false);
-  const [
-    localhostInstrumentPageMessage,
-    setLocalhostInstrumentPageMessage,
-  ] = useState("");
-  const [
-    localhostOrderPageOpenResult,
-    setLocalhostOrderPageOpenResult,
-  ] = useState<LocalhostBridgeClientOrderPageOpenResult | null>(null);
-  const [
-    isLocalhostOrderPageOpenRunning,
-    setIsLocalhostOrderPageOpenRunning,
-  ] = useState(false);
-  const [
-    localhostOrderPageOpenMessage,
-    setLocalhostOrderPageOpenMessage,
-  ] = useState("");
-  const [
-    localhostAdvancedFormFillResult,
-    setLocalhostAdvancedFormFillResult,
-  ] = useState<LocalhostBridgeClientAdvancedFormFillResult | null>(null);
-  const [
-    isLocalhostAdvancedFormFillRunning,
-    setIsLocalhostAdvancedFormFillRunning,
-  ] = useState(false);
-  const [
-    localhostAdvancedFormFillMessage,
-    setLocalhostAdvancedFormFillMessage,
-  ] = useState("");
-  const [localhostReviewClickResult, setLocalhostReviewClickResult] =
-    useState<LocalhostBridgeClientReviewClickResult | null>(null);
-  const [isLocalhostReviewClickRunning, setIsLocalhostReviewClickRunning] =
-    useState(false);
-  const [localhostReviewClickMessage, setLocalhostReviewClickMessage] =
-    useState("");
-  const [
-    localhostBrokerConfirmationCaptureResult,
-    setLocalhostBrokerConfirmationCaptureResult,
-  ] = useState<LocalhostBridgeClientBrokerConfirmationCaptureResult | null>(
-    null,
-  );
-  const [
-    isLocalhostBrokerConfirmationCaptureRunning,
-    setIsLocalhostBrokerConfirmationCaptureRunning,
-  ] = useState(false);
-  const [
-    localhostBrokerConfirmationCaptureMessage,
-    setLocalhostBrokerConfirmationCaptureMessage,
-  ] = useState("");
-  const [
-    localhostBrokerExecutionConversionState,
-    setLocalhostBrokerExecutionConversionState,
-  ] = useState<{
-    eligibilityResult: LocalhostBridgeClientBrokerExecutionResultEligibilityResult | null;
-    isEligibilityRunning: boolean;
-    eligibilityMessage: string;
-    previewResult: LocalhostBridgeClientBrokerExecutionResultPreviewResult | null;
-    isPreviewRunning: boolean;
-    previewMessage: string;
-  }>({
-    eligibilityResult: null,
-    isEligibilityRunning: false,
-    eligibilityMessage: "",
-    previewResult: null,
-    isPreviewRunning: false,
-    previewMessage: "",
-  });
-  const [
-    localhostExecutionRecordEligibilityState,
-    setLocalhostExecutionRecordEligibilityState,
-  ] = useState<{
-    result: LocalhostBridgeClientExecutionRecordEligibilityResult | null;
-    isRunning: boolean;
-    message: string;
-  }>({
-    result: null,
-    isRunning: false,
-    message: "",
-  });
-  const [
-    localhostDryRunBridgeStubResult,
-    setLocalhostDryRunBridgeStubResult,
-  ] = useState<LocalhostBridgeClientAvanzaDryRunStubResult | null>(null);
-  const [
-    isLocalhostDryRunBridgeStubRunning,
-    setIsLocalhostDryRunBridgeStubRunning,
-  ] = useState(false);
-  const [
-    localhostDryRunBridgeStubMessage,
-    setLocalhostDryRunBridgeStubMessage,
-  ] = useState("");
-  const [localhostMockAgentRunResult, setLocalhostMockAgentRunResult] =
-    useState<LocalhostBridgeClientRunResult | null>(null);
-  const [isLocalhostMockAgentRunRunning, setIsLocalhostMockAgentRunRunning] =
-    useState(false);
-  const [localhostMockAgentRunMessage, setLocalhostMockAgentRunMessage] =
-    useState("");
-  const [localhostBridgeCancelResult, setLocalhostBridgeCancelResult] =
-    useState<LocalhostBridgeClientCancelResult | null>(null);
-  const [isLocalhostBridgeCancelRunning, setIsLocalhostBridgeCancelRunning] =
-    useState(false);
-  const [localhostBridgeCancelMessage, setLocalhostBridgeCancelMessage] =
-    useState("");
   const [stubBrokerStatus, setStubBrokerStatus] =
     useState<BrokerExecutionStatus>("submitted");
   const [stubExecutedPrice, setStubExecutedPrice] = useState("");
@@ -32856,6 +30402,258 @@ function ExecutionHandoffPreviewModal({
       },
     });
   }, [result.handoff, result.selectedIntent]);
+  const executionDevToolsEnabled = isExecutionDevToolsEnabled();
+  const avanzaAgentRequest = avanzaAgentRequestPreview.request;
+  const avanzaAgentRequestValidation = avanzaAgentRequestPreview.validation;
+  const avanzaAgentRequestValidationStatus =
+    avanzaAgentRequestValidation?.ok === true
+      ? avanzaAgentRequestValidation.warnings.length > 0
+        ? "warning"
+        : "ok"
+      : "invalid";
+  const avanzaAgentBridgeEnvelope = avanzaAgentBridgeEnvelopePreview.envelope;
+  const avanzaAgentBridgeEnvelopeValidation =
+    avanzaAgentBridgeEnvelopePreview.validation;
+  const avanzaAgentBridgeEnvelopeValidationStatus =
+    avanzaAgentBridgeEnvelopeValidation?.ok === true
+      ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
+        ? "warning"
+        : "ok"
+      : "invalid";
+  const localhostBridgeControlsState = useLocalhostBridgeControlsState({
+    avanzaAgentBridgeEnvelope,
+    avanzaAgentBridgeEnvelopeValidation,
+    avanzaAgentRequest,
+    avanzaAgentRequestValidation,
+    avanzaDryRunRequestPreview,
+    executionDevToolsEnabled,
+    localLifecycle,
+    selectedHandoff: handoff,
+    selectedIntent: intent,
+    setAgentRunStoreMessage,
+  });
+  const {
+    canCancelLocalhostBridgeRun,
+    canCheckLocalhostBridgeSelfCheck,
+    canRunLocalhostBridgeDryRun,
+    canRunLocalhostMockAgent,
+    canTestLocalhostDryRunBridgeStub,
+    cancelLocalhostBridgeEcho,
+    checkLocalhostBridgeSelfCheck,
+    isLocalhostBridgeCancelRunning,
+    isLocalhostBridgeRunRunning,
+    isLocalhostBridgeSelfCheckRunning,
+    isLocalhostDryRunBridgeStubRunning,
+    isLocalhostMockAgentRunRunning,
+    localhostBridgeCancelMessage,
+    localhostBridgeCancelResult,
+    localhostBridgeRunMessage,
+    localhostBridgeRunResult,
+    localhostBridgeSelfCheckMessage,
+    localhostBridgeSelfCheckResult,
+    localhostDryRunBridgeStubMessage,
+    localhostDryRunBridgeStubResult,
+    localhostMockAgentRunMessage,
+    localhostMockAgentRunResult,
+    runLocalhostBridgeEcho,
+    runLocalhostMockAgent,
+    testLocalhostDryRunBridgeStub,
+  } = localhostBridgeControlsState;
+  const earlyPhasePreviewState = useEarlyPhasePreviewState({
+    avanzaDryRunRequestPreview,
+    executionDevToolsEnabled,
+    selectedIntent: intent,
+  });
+  const {
+    avanzaSearchOnlyExpectedInstrumentValid,
+    canCheckLocalhostInstrumentVerification,
+    canCheckLocalhostSearchOnly,
+    canCheckLocalhostSessionDetection,
+    checkLocalhostInstrumentVerificationStub,
+    checkLocalhostSearchOnlyStub,
+    checkLocalhostSessionDetectionStub,
+    isLocalhostInstrumentVerificationRunning,
+    isLocalhostSearchOnlyRunning,
+    isLocalhostSessionDetectionRunning,
+    localhostInstrumentAmbiguous,
+    localhostInstrumentBlocked,
+    localhostInstrumentNoAvanzaTouched,
+    localhostInstrumentNoBrokerSubmission,
+    localhostInstrumentNoBrowserActions,
+    localhostInstrumentNoFormFill,
+    localhostInstrumentNoOrderPageOpened,
+    localhostInstrumentRejected,
+    localhostInstrumentVerification,
+    localhostInstrumentVerificationMessage,
+    localhostInstrumentVerificationResult,
+    localhostInstrumentVerified,
+    localhostSearchOnly,
+    localhostSearchOnlyAmbiguous,
+    localhostSearchOnlyBlocked,
+    localhostSearchOnlyExactMatch,
+    localhostSearchOnlyMessage,
+    localhostSearchOnlyNoAvanzaTouched,
+    localhostSearchOnlyNoBrokerSubmission,
+    localhostSearchOnlyNoBrowserActions,
+    localhostSearchOnlyNoMatch,
+    localhostSearchOnlyNoOrderPageOpened,
+    localhostSearchOnlyResult,
+    localhostSessionDetection,
+    localhostSessionDetectionMessage,
+    localhostSessionDetectionNoAvanzaTouched,
+    localhostSessionDetectionNoBrowserActions,
+    localhostSessionDetectionReadyForSearchOnly,
+    localhostSessionDetectionResult,
+  } = earlyPhasePreviewState;
+  const middlePhasePreviewState = useMiddlePhasePreviewState({
+    avanzaDryRunRequestPreview,
+    executionDevToolsEnabled,
+    localhostInstrumentVerification,
+    localhostInstrumentVerified,
+    selectedIntent: intent,
+  });
+  const {
+    canCheckLocalhostAdvancedFormFill,
+    canCheckLocalhostInstrumentPage,
+    canCheckLocalhostOrderPageOpen,
+    canCheckLocalhostReviewClick,
+    checkLocalhostAdvancedFormFillStub,
+    checkLocalhostInstrumentPageStub,
+    checkLocalhostOrderPageOpenStub,
+    checkLocalhostReviewClickStub,
+    isLocalhostAdvancedFormFillRunning,
+    isLocalhostInstrumentPageRunning,
+    isLocalhostOrderPageOpenRunning,
+    isLocalhostReviewClickRunning,
+    localhostAdvancedFormBlocked,
+    localhostAdvancedFormFieldMismatch,
+    localhostAdvancedFormFill,
+    localhostAdvancedFormFilled,
+    localhostAdvancedFormFillMessage,
+    localhostAdvancedFormFillResult,
+    localhostAdvancedFormNoAvanzaTouched,
+    localhostAdvancedFormNoBrokerSubmission,
+    localhostAdvancedFormNoBrowserActions,
+    localhostAdvancedFormNoFinalConfirmClick,
+    localhostAdvancedFormNoRealFormFieldsFilled,
+    localhostAdvancedFormNoReviewClick,
+    localhostAdvancedFormUnsupportedMode,
+    localhostAdvancedFormValidationError,
+    localhostInstrumentPage,
+    localhostInstrumentPageBlocked,
+    localhostInstrumentPageIdentified,
+    localhostInstrumentPageMessage,
+    localhostInstrumentPageMismatch,
+    localhostInstrumentPageNoAvanzaTouched,
+    localhostInstrumentPageNoBrokerSubmission,
+    localhostInstrumentPageNoBrowserActions,
+    localhostInstrumentPageNoBuySellClick,
+    localhostInstrumentPageNoFormFill,
+    localhostInstrumentPageNoOrderPageOpened,
+    localhostInstrumentPageProhibitedControlsVisible,
+    localhostInstrumentPageResult,
+    localhostOrderPageBlocked,
+    localhostOrderPageMismatch,
+    localhostOrderPageNoAvanzaTouched,
+    localhostOrderPageNoBrokerSubmission,
+    localhostOrderPageNoBrowserActions,
+    localhostOrderPageNoFinalConfirmClick,
+    localhostOrderPageNoFormFill,
+    localhostOrderPageNoRealOrderPageOpened,
+    localhostOrderPageNoReviewClick,
+    localhostOrderPageOpen,
+    localhostOrderPageOpenMessage,
+    localhostOrderPageOpenResult,
+    localhostOrderPageOpened,
+    localhostOrderPageWrongAction,
+    localhostReviewClick,
+    localhostReviewClickBlocked,
+    localhostReviewClickConfirmationMismatch,
+    localhostReviewClickConfirmationReady,
+    localhostReviewClickFinalConfirmBlocked,
+    localhostReviewClickMessage,
+    localhostReviewClickNoAvanzaTouched,
+    localhostReviewClickNoBrokerResult,
+    localhostReviewClickNoBrowserActions,
+    localhostReviewClickNoFinalConfirmClick,
+    localhostReviewClickNoRealReviewClick,
+    localhostReviewClickNoTradeMutation,
+    localhostReviewClickResult,
+    localhostReviewClickValidationError,
+    localhostReviewClickWaitingForManualConfirmation,
+  } = middlePhasePreviewState;
+  const latePhasePreviewState = useLatePhasePreviewState({
+    avanzaDryRunRequestPreview,
+    executionDevToolsEnabled,
+    selectedIntent: intent,
+  });
+  const {
+    canCheckLocalhostBrokerConfirmationCapture,
+    canCheckLocalhostBrokerExecutionEligibility,
+    canCheckLocalhostBrokerExecutionPreview,
+    canCheckLocalhostExecutionRecordEligibility,
+    checkLocalhostBrokerConfirmationCaptureStub,
+    checkLocalhostBrokerExecutionEligibilityStub,
+    checkLocalhostBrokerExecutionPreviewStub,
+    checkLocalhostExecutionRecordEligibilityStub,
+    executionRecordEligibilityCandidate,
+    executionRecordEligibilityCandidateIsPreviewOnly,
+    isLocalhostBrokerConfirmationCaptureRunning,
+    isLocalhostBrokerExecutionEligibilityRunning,
+    isLocalhostBrokerExecutionPreviewRunning,
+    isLocalhostExecutionRecordEligibilityRunning,
+    localhostBrokerConfirmationBlocked,
+    localhostBrokerConfirmationCapture,
+    localhostBrokerConfirmationCaptured,
+    localhostBrokerConfirmationCaptureMessage,
+    localhostBrokerConfirmationCaptureResult,
+    localhostBrokerConfirmationMismatch,
+    localhostBrokerConfirmationNoAvanzaTouched,
+    localhostBrokerConfirmationNoBekrafta,
+    localhostBrokerConfirmationNoBrokerExecutionResult,
+    localhostBrokerConfirmationNoBrowserActions,
+    localhostBrokerConfirmationNoExecutionRecord,
+    localhostBrokerConfirmationNoSupabaseWrite,
+    localhostBrokerConfirmationNoTradeMutation,
+    localhostBrokerConfirmationPartial,
+    localhostBrokerConfirmationRejectedOrCancelled,
+    localhostBrokerExecutionDuplicateRisk,
+    localhostBrokerExecutionEligibility,
+    localhostBrokerExecutionEligibilityBlocked,
+    localhostBrokerExecutionEligibilityFailed,
+    localhostBrokerExecutionEligibilityMessage,
+    localhostBrokerExecutionEligibilityNoBrokerExecutionResult,
+    localhostBrokerExecutionEligibilityNoExecutionRecord,
+    localhostBrokerExecutionEligibilityNoSupabaseWrite,
+    localhostBrokerExecutionEligibilityNoTradeMutation,
+    localhostBrokerExecutionEligibilityResult,
+    localhostBrokerExecutionEligible,
+    localhostBrokerExecutionNotEligible,
+    localhostBrokerExecutionPartialOnly,
+    localhostBrokerExecutionPreviewMessage,
+    localhostBrokerExecutionPreviewNoExecutionRecord,
+    localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
+    localhostBrokerExecutionPreviewNoSupabaseWrite,
+    localhostBrokerExecutionPreviewNoTradeMutation,
+    localhostBrokerExecutionPreviewResult,
+    localhostExecutionRecordEligibilityMessage,
+    localhostExecutionRecordEligibilityResult,
+    localhostExecutionRecordNoBrokerExecutionResult,
+    localhostExecutionRecordNoExecutionRecord,
+    localhostExecutionRecordNoSupabaseWrite,
+    localhostExecutionRecordNoTradeMutation,
+  } = latePhasePreviewState;
+  const avanzaReadinessState = useAvanzaReadinessState({
+    avanzaDryRunRequestPreview,
+    earlyPhasePreviewState,
+    executionDevToolsEnabled,
+    latePhasePreviewState,
+    localhostBridgeControlsState,
+    middlePhasePreviewState,
+    selectedHandoff: handoff,
+    selectedIntent: intent,
+  });
+  const { panelProps: avanzaDryRunReadinessPanelProps } = avanzaReadinessState;
 
   if (!status.visible || !intent || !handoff) {
     return null;
@@ -32864,7 +30662,6 @@ function ExecutionHandoffPreviewModal({
   const selectedIntent = intent;
   const selectedHandoff = handoff;
   const packageSnapshot = selectedIntent.trading_package;
-  const executionDevToolsEnabled = isExecutionDevToolsEnabled();
   const canRunPreparationStub =
     executionDevToolsEnabled &&
     selectedHandoff.status === "ready" &&
@@ -32893,1557 +30690,9 @@ function ExecutionHandoffPreviewModal({
     selectedIntent.mode === "automatic"
       ? "Automatic authority allows final submit when all checks are ready, but no broker connection or order execution is implemented here."
       : "Semi-automatic mode may allow a future agent to prepare the Avanza order, but you must manually press final KÖP or SÄLJ.";
-  const avanzaAgentRequest = avanzaAgentRequestPreview.request;
-  const avanzaAgentRequestValidation = avanzaAgentRequestPreview.validation;
-  const avanzaAgentRequestValidationStatus =
-    avanzaAgentRequestValidation?.ok === true
-      ? avanzaAgentRequestValidation.warnings.length > 0
-        ? "warning"
-        : "ok"
-      : "invalid";
-  const avanzaAgentBridgeEnvelope = avanzaAgentBridgeEnvelopePreview.envelope;
-  const avanzaAgentBridgeEnvelopeValidation =
-    avanzaAgentBridgeEnvelopePreview.validation;
-  const avanzaAgentBridgeEnvelopeValidationStatus =
-    avanzaAgentBridgeEnvelopeValidation?.ok === true
-      ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
-        ? "warning"
-        : "ok"
-      : "invalid";
-  const canRunLocalhostBridgeDryRun =
-    executionDevToolsEnabled &&
-    Boolean(avanzaAgentRequest) &&
-    Boolean(avanzaAgentBridgeEnvelope) &&
-    avanzaAgentRequestValidation?.ok === true &&
-    avanzaAgentBridgeEnvelopeValidation?.ok === true &&
-    !isLocalhostBridgeRunRunning;
-  const canCheckLocalhostBridgeSelfCheck =
-    executionDevToolsEnabled && !isLocalhostBridgeSelfCheckRunning;
-  const canCheckLocalhostSessionDetection =
-    executionDevToolsEnabled && !isLocalhostSessionDetectionRunning;
-  const avanzaSearchOnlyExpectedInstrument =
-    avanzaDryRunRequestPreview?.request?.instrument ?? null;
-  const avanzaSearchOnlyExpectedInstrumentValid = Boolean(
-    avanzaSearchOnlyExpectedInstrument?.ticker,
-  );
-  const canCheckLocalhostSearchOnly =
-    executionDevToolsEnabled &&
-    avanzaSearchOnlyExpectedInstrumentValid &&
-    !isLocalhostSearchOnlyRunning;
-  const canCheckLocalhostInstrumentVerification =
-    executionDevToolsEnabled &&
-    avanzaSearchOnlyExpectedInstrumentValid &&
-    !isLocalhostInstrumentVerificationRunning;
-  const canCheckLocalhostInstrumentPage =
-    executionDevToolsEnabled &&
-    avanzaSearchOnlyExpectedInstrumentValid &&
-    !isLocalhostInstrumentPageRunning;
-  const canCheckLocalhostOrderPageOpen =
-    executionDevToolsEnabled &&
-    avanzaDryRunRequestPreview?.ok === true &&
-    Boolean(avanzaDryRunRequestPreview.request) &&
-    !isLocalhostOrderPageOpenRunning;
-  const canCheckLocalhostAdvancedFormFill =
-    executionDevToolsEnabled &&
-    avanzaDryRunRequestPreview?.ok === true &&
-    Boolean(avanzaDryRunRequestPreview.request) &&
-    !isLocalhostAdvancedFormFillRunning;
-  const canCheckLocalhostReviewClick =
-    executionDevToolsEnabled &&
-    avanzaDryRunRequestPreview?.ok === true &&
-    Boolean(avanzaDryRunRequestPreview.request) &&
-    !isLocalhostReviewClickRunning;
-  const canCheckLocalhostBrokerConfirmationCapture =
-    executionDevToolsEnabled &&
-    avanzaDryRunRequestPreview?.ok === true &&
-    Boolean(avanzaDryRunRequestPreview.request) &&
-    !isLocalhostBrokerConfirmationCaptureRunning;
-  const localhostBrokerExecutionEligibilityResult =
-    localhostBrokerExecutionConversionState.eligibilityResult;
-  const isLocalhostBrokerExecutionEligibilityRunning =
-    localhostBrokerExecutionConversionState.isEligibilityRunning;
-  const localhostBrokerExecutionEligibilityMessage =
-    localhostBrokerExecutionConversionState.eligibilityMessage;
-  const localhostBrokerExecutionPreviewResult =
-    localhostBrokerExecutionConversionState.previewResult;
-  const isLocalhostBrokerExecutionPreviewRunning =
-    localhostBrokerExecutionConversionState.isPreviewRunning;
-  const localhostBrokerExecutionPreviewMessage =
-    localhostBrokerExecutionConversionState.previewMessage;
-  const localhostExecutionRecordEligibilityResult =
-    localhostExecutionRecordEligibilityState.result;
-  const isLocalhostExecutionRecordEligibilityRunning =
-    localhostExecutionRecordEligibilityState.isRunning;
-  const localhostExecutionRecordEligibilityMessage =
-    localhostExecutionRecordEligibilityState.message;
-  const canCheckLocalhostBrokerExecutionEligibility =
-    executionDevToolsEnabled && !isLocalhostBrokerExecutionEligibilityRunning;
-  const canCheckLocalhostBrokerExecutionPreview =
-    executionDevToolsEnabled && !isLocalhostBrokerExecutionPreviewRunning;
-  const canCheckLocalhostExecutionRecordEligibility =
-    executionDevToolsEnabled && !isLocalhostExecutionRecordEligibilityRunning;
-  const canTestLocalhostDryRunBridgeStub =
-    executionDevToolsEnabled &&
-    avanzaDryRunRequestPreview?.ok === true &&
-    Boolean(avanzaDryRunRequestPreview.request) &&
-    !isLocalhostDryRunBridgeStubRunning;
-  const canRunLocalhostMockAgent =
-    executionDevToolsEnabled &&
-    Boolean(avanzaAgentRequest) &&
-    Boolean(avanzaAgentBridgeEnvelope) &&
-    avanzaAgentRequestValidation?.ok === true &&
-    avanzaAgentBridgeEnvelopeValidation?.ok === true &&
-    !isLocalhostBridgeRunRunning &&
-    !isLocalhostMockAgentRunRunning;
-  const localhostBridgeCancelRequestId =
-    localhostBridgeRunResult?.response?.requestId ??
-    localhostBridgeRunResult?.result?.requestId ??
-    avanzaAgentRequest?.requestId ??
-    null;
-  const canCancelLocalhostBridgeRun =
-    executionDevToolsEnabled &&
-    Boolean(localhostBridgeCancelRequestId) &&
-    !isLocalhostBridgeCancelRunning;
   const avanzaAgentBridgeConfig = executionDevToolsEnabled
     ? readAvanzaAgentBridgeConfig()
     : null;
-  const avanzaDryRunCapability = createAvanzaDryRunBrowserRunnerCapability({
-    runnerId: "future_avanza_dry_run_runner_missing",
-    runnerName: "Future Avanza Dry-Run Runner - Not Implemented",
-    createdAt: new Date().toISOString(),
-    metadata: {
-      source: "execution_handoff_preview_modal",
-      runnerImplemented: false,
-      no_browser_runner: true,
-      no_avanza_navigation: true,
-      no_order_submitted: true,
-    },
-  });
-  const avanzaDryRunDefaultGateValidation =
-    validateBrowserRunnerCapability(avanzaDryRunCapability);
-  const avanzaDryRunAllowedGateValidation = validateBrowserRunnerCapability(
-    avanzaDryRunCapability,
-    { allowAvanzaDryRun: true },
-  );
-  const avanzaDryRunRunnerSelfCheck =
-    createUnavailableAvanzaDryRunRunnerSelfCheck({
-      runnerId: "future_avanza_dry_run_runner_missing",
-      runnerName: "Future Avanza Dry-Run Runner - Not Implemented",
-      version: "not-implemented",
-      checkedAt: avanzaDryRunCapability.createdAt,
-      metadata: {
-        source: "execution_handoff_preview_modal",
-        runnerImplemented: false,
-      },
-    });
-  const localhostRunnerSelfCheck =
-    localhostBridgeSelfCheckResult?.response?.selfCheck ??
-    avanzaDryRunRunnerSelfCheck;
-  const localhostRunnerCapability =
-    localhostBridgeSelfCheckResult?.response?.capability;
-  const localhostRunnerSelfCheckHasRun = Boolean(
-    localhostBridgeSelfCheckResult?.response?.selfCheck,
-  );
-  const localhostRunnerCanRunAvanzaDryRun =
-    localhostRunnerSelfCheck.capabilityValidation.canRunAvanzaDryRun;
-  const localhostRunnerCanSubmitBrokerOrder =
-    localhostRunnerSelfCheck.capabilityValidation.canSubmitBrokerOrder;
-  const localhostRunnerCanClickFinalConfirm =
-    localhostRunnerCapability?.supportsFinalConfirmClick === true;
-  const localhostRunnerSelfCheckSummary = localhostRunnerSelfCheckHasRun
-    ? `Latest localhost self-check: ${localhostRunnerSelfCheck.status} at ${formatDate(
-        localhostBridgeSelfCheckResult?.response?.checkedAt ??
-          localhostBridgeSelfCheckResult?.checkedAt,
-      )}.`
-    : "Localhost self-check has not been run in this modal session.";
-  const localhostSessionDetection =
-    localhostSessionDetectionResult?.response?.sessionDetection ?? null;
-  const localhostSessionDetectionHasRun = Boolean(localhostSessionDetection);
-  const localhostSessionDetectionReadyForSearchOnly =
-    localhostSessionDetection?.ok === true &&
-    localhostSessionDetection.status === "ready_for_search_only";
-  const localhostSessionDetectionNoBrowserActions =
-    localhostSessionDetection?.metadata?.noBrowserActions === true ||
-    localhostSessionDetectionResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostSessionDetectionNoAvanzaTouched =
-    localhostSessionDetectionResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostSessionDetectionSummary = localhostSessionDetectionHasRun
-    ? `Latest session-detection status: ${localhostSessionDetection?.status ?? "unknown"} at ${formatDate(
-        localhostSessionDetectionResult?.response?.checkedAt ??
-          localhostSessionDetectionResult?.completedAt,
-      )}.`
-    : "Session-detection stub has not been checked in this modal session.";
-  const localhostSearchOnly =
-    localhostSearchOnlyResult?.response?.searchOnly ?? null;
-  const localhostSearchOnlyHasRun = Boolean(localhostSearchOnly);
-  const localhostSearchOnlyExactMatch =
-    localhostSearchOnly?.ok === true &&
-    localhostSearchOnly.status === "exact_match";
-  const localhostSearchOnlyAmbiguous =
-    localhostSearchOnly?.status === "ambiguous";
-  const localhostSearchOnlyNoMatch =
-    localhostSearchOnly?.status === "no_match";
-  const localhostSearchOnlyBlocked =
-    localhostSearchOnly?.status === "blocked" ||
-    localhostSearchOnly?.status === "failed";
-  const localhostSearchOnlyNoBrowserActions =
-    localhostSearchOnlyResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostSearchOnlyNoAvanzaTouched =
-    localhostSearchOnlyResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostSearchOnlyNoOrderPageOpened =
-    localhostSearchOnlyResult?.response?.metadata
-      ?.no_order_page_opened === true ||
-    localhostSearchOnly?.metadata?.noOrderPage === true;
-  const localhostSearchOnlyNoBrokerSubmission =
-    localhostSearchOnly?.metadata?.noBrokerSubmission === true ||
-    localhostSearchOnlyResult?.response?.metadata?.no_broker_submission === true;
-  const localhostSearchOnlySummary = localhostSearchOnlyHasRun
-    ? `Latest search-only status: ${localhostSearchOnly?.status ?? "unknown"} at ${formatDate(
-        localhostSearchOnlyResult?.response?.completedAt ??
-          localhostSearchOnlyResult?.completedAt,
-      )}.`
-    : "Search-only stub has not been checked in this modal session.";
-  const localhostInstrumentVerification =
-    localhostInstrumentVerificationResult?.response?.instrumentVerification ??
-    null;
-  const localhostInstrumentVerificationHasRun = Boolean(
-    localhostInstrumentVerification,
-  );
-  const localhostInstrumentVerified =
-    localhostInstrumentVerification?.ok === true &&
-    localhostInstrumentVerification.status === "verified";
-  const localhostInstrumentRejected =
-    localhostInstrumentVerification?.status === "rejected";
-  const localhostInstrumentAmbiguous =
-    localhostInstrumentVerification?.status === "ambiguous";
-  const localhostInstrumentBlocked =
-    localhostInstrumentVerification?.status === "blocked" ||
-    localhostInstrumentVerification?.status === "failed";
-  const localhostInstrumentNoBrowserActions =
-    localhostInstrumentVerificationResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostInstrumentNoAvanzaTouched =
-    localhostInstrumentVerificationResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostInstrumentNoOrderPageOpened =
-    localhostInstrumentVerificationResult?.response?.metadata
-      ?.no_order_page_opened === true ||
-    localhostInstrumentVerification?.metadata?.noOrderPage === true;
-  const localhostInstrumentNoBrokerSubmission =
-    localhostInstrumentVerification?.metadata?.noBrokerSubmission === true ||
-    localhostInstrumentVerificationResult?.response?.metadata
-      ?.no_broker_submission === true;
-  const localhostInstrumentNoFormFill =
-    localhostInstrumentVerification?.metadata?.noFormFill === true;
-  const localhostInstrumentVerificationSummary =
-    localhostInstrumentVerificationHasRun
-      ? `Latest instrument-verification status: ${localhostInstrumentVerification?.status ?? "unknown"} at ${formatDate(
-          localhostInstrumentVerificationResult?.response?.completedAt ??
-            localhostInstrumentVerificationResult?.completedAt,
-        )}.`
-      : "Instrument-verification stub has not been checked in this modal session.";
-  const localhostInstrumentPage =
-    localhostInstrumentPageResult?.response?.instrumentPage ?? null;
-  const localhostInstrumentPageHasRun = Boolean(localhostInstrumentPage);
-  const localhostInstrumentPageIdentified =
-    localhostInstrumentPage?.ok === true &&
-    localhostInstrumentPage.status === "page_identified";
-  const localhostInstrumentPageMismatch =
-    localhostInstrumentPage?.status === "page_mismatch";
-  const localhostInstrumentPageBlocked =
-    localhostInstrumentPage?.status === "blocked" ||
-    localhostInstrumentPage?.status === "failed";
-  const localhostInstrumentPageProhibitedControlsVisible =
-    localhostInstrumentPage?.riskFlags.includes(
-      "prohibited_buy_button_visible",
-    ) === true ||
-    localhostInstrumentPage?.riskFlags.includes(
-      "prohibited_sell_button_visible",
-    ) === true ||
-    localhostInstrumentPage?.status === "prohibited_order_controls_detected";
-  const localhostInstrumentPageNoBrowserActions =
-    localhostInstrumentPageResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostInstrumentPageNoAvanzaTouched =
-    localhostInstrumentPageResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostInstrumentPageNoOrderPageOpened =
-    localhostInstrumentPageResult?.response?.metadata
-      ?.no_order_page_opened === true ||
-    localhostInstrumentPage?.metadata?.noOrderPage === true;
-  const localhostInstrumentPageNoBuySellClick =
-    localhostInstrumentPage?.metadata?.noBuySellClick === true ||
-    localhostInstrumentPageResult?.response?.metadata?.no_buy_sell_click ===
-      true;
-  const localhostInstrumentPageNoFormFill =
-    localhostInstrumentPage?.metadata?.noFormFill === true ||
-    localhostInstrumentPageResult?.response?.metadata?.no_form_fill === true;
-  const localhostInstrumentPageNoBrokerSubmission =
-    localhostInstrumentPage?.metadata?.noBrokerSubmission === true ||
-    localhostInstrumentPageResult?.response?.metadata
-      ?.no_broker_submission === true;
-  const localhostInstrumentPageSummary = localhostInstrumentPageHasRun
-    ? `Latest instrument-page status: ${localhostInstrumentPage?.status ?? "unknown"} at ${formatDate(
-        localhostInstrumentPageResult?.response?.completedAt ??
-          localhostInstrumentPageResult?.completedAt,
-      )}.`
-    : "Instrument-page stub has not been checked in this modal session.";
-  const localhostOrderPageOpen =
-    localhostOrderPageOpenResult?.response?.orderPageOpen ?? null;
-  const localhostOrderPageOpenHasRun = Boolean(localhostOrderPageOpen);
-  const localhostOrderPageOpened =
-    localhostOrderPageOpen?.ok === true &&
-    localhostOrderPageOpen.status === "order_page_opened";
-  const localhostOrderPageWrongAction =
-    localhostOrderPageOpen?.status === "wrong_action_opened";
-  const localhostOrderPageMismatch =
-    localhostOrderPageOpen?.status === "order_page_mismatch";
-  const localhostOrderPageBlocked =
-    localhostOrderPageOpen?.status === "blocked" ||
-    localhostOrderPageOpen?.status === "failed" ||
-    localhostOrderPageOpen?.status ===
-      "prohibited_form_interaction_detected";
-  const localhostOrderPageNoBrowserActions =
-    localhostOrderPageOpenResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostOrderPageNoAvanzaTouched =
-    localhostOrderPageOpenResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostOrderPageNoRealOrderPageOpened =
-    localhostOrderPageOpenResult?.response?.metadata
-      ?.no_real_order_page_opened === true ||
-    localhostOrderPageNoAvanzaTouched;
-  const localhostOrderPageNoFormFill =
-    localhostOrderPageOpen?.metadata?.noFormFill === true ||
-    localhostOrderPageOpenResult?.response?.metadata?.no_form_fill === true;
-  const localhostOrderPageNoReviewClick =
-    localhostOrderPageOpen?.metadata?.noReviewClick === true ||
-    localhostOrderPageOpenResult?.response?.metadata?.no_review_click === true;
-  const localhostOrderPageNoFinalConfirmClick =
-    localhostOrderPageOpen?.metadata?.noFinalConfirmClick === true ||
-    localhostOrderPageOpenResult?.response?.metadata
-      ?.no_final_confirm_click === true;
-  const localhostOrderPageNoBrokerSubmission =
-    localhostOrderPageOpen?.metadata?.noBrokerSubmission === true ||
-    localhostOrderPageOpenResult?.response?.metadata
-      ?.no_broker_submission === true;
-  const localhostOrderPageSummary = localhostOrderPageOpenHasRun
-    ? `Latest order-page-open status: ${localhostOrderPageOpen?.status ?? "unknown"} at ${formatDate(
-        localhostOrderPageOpenResult?.response?.completedAt ??
-          localhostOrderPageOpenResult?.completedAt,
-      )}.`
-    : "Order-page-open stub has not been checked in this modal session.";
-  const localhostAdvancedFormFill =
-    localhostAdvancedFormFillResult?.response?.advancedFormFill ?? null;
-  const localhostAdvancedFormFillHasRun = Boolean(localhostAdvancedFormFill);
-  const localhostAdvancedFormFilled =
-    localhostAdvancedFormFill?.ok === true &&
-    localhostAdvancedFormFill.status === "form_filled";
-  const localhostAdvancedFormFieldMismatch =
-    localhostAdvancedFormFill?.status === "field_mismatch";
-  const localhostAdvancedFormValidationError =
-    localhostAdvancedFormFill?.status === "validation_error";
-  const localhostAdvancedFormUnsupportedMode =
-    localhostAdvancedFormFill?.status === "unsupported_order_mode";
-  const localhostAdvancedFormProhibited =
-    localhostAdvancedFormFill?.status === "prohibited_review_detected" ||
-    localhostAdvancedFormFill?.status ===
-      "prohibited_final_confirm_detected";
-  const localhostAdvancedFormBlocked =
-    localhostAdvancedFormFill?.status === "blocked" ||
-    localhostAdvancedFormFill?.status === "failed" ||
-    localhostAdvancedFormProhibited;
-  const localhostAdvancedFormNoBrowserActions =
-    localhostAdvancedFormFillResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostAdvancedFormNoAvanzaTouched =
-    localhostAdvancedFormFillResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostAdvancedFormNoRealFormFieldsFilled =
-    localhostAdvancedFormFillResult?.response?.metadata
-      ?.no_real_form_fields_filled === true;
-  const localhostAdvancedFormNoReviewClick =
-    localhostAdvancedFormFill?.metadata?.noReviewClick === true ||
-    localhostAdvancedFormFillResult?.response?.metadata?.no_review_click ===
-      true;
-  const localhostAdvancedFormNoFinalConfirmClick =
-    localhostAdvancedFormFill?.metadata?.noFinalConfirmClick === true ||
-    localhostAdvancedFormFillResult?.response?.metadata
-      ?.no_final_confirm_click === true;
-  const localhostAdvancedFormNoBrokerSubmission =
-    localhostAdvancedFormFill?.metadata?.noBrokerSubmission === true ||
-    localhostAdvancedFormFillResult?.response?.metadata
-      ?.no_broker_submission === true;
-  const localhostAdvancedFormSummary = localhostAdvancedFormFillHasRun
-    ? `Latest Advanced form-fill status: ${localhostAdvancedFormFill?.status ?? "unknown"} at ${formatDate(
-        localhostAdvancedFormFillResult?.response?.completedAt ??
-          localhostAdvancedFormFillResult?.completedAt,
-      )}.`
-    : "Advanced form-fill stub has not been checked in this modal session.";
-  const localhostReviewClick =
-    localhostReviewClickResult?.response?.reviewClick ?? null;
-  const localhostReviewClickHasRun = Boolean(localhostReviewClick);
-  const localhostReviewClickConfirmationReady =
-    localhostReviewClick?.ok === true &&
-    localhostReviewClick.status === "confirmation_ready";
-  const localhostReviewClickConfirmationMismatch =
-    localhostReviewClick?.status === "confirmation_mismatch";
-  const localhostReviewClickValidationError =
-    localhostReviewClick?.status === "validation_error";
-  const localhostReviewClickFinalConfirmBlocked =
-    localhostReviewClick?.status === "prohibited_final_confirm_detected";
-  const localhostReviewClickBlocked =
-    localhostReviewClick?.status === "blocked" ||
-    localhostReviewClick?.status === "failed" ||
-    localhostReviewClickFinalConfirmBlocked;
-  const localhostReviewClickWaitingForManualConfirmation =
-    localhostReviewClickConfirmationReady &&
-    localhostReviewClick?.metadata?.waitingForManualConfirmation === true;
-  const localhostReviewClickNoBrowserActions =
-    localhostReviewClickResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostReviewClickNoAvanzaTouched =
-    localhostReviewClickResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostReviewClickNoRealReviewClick =
-    localhostReviewClick?.metadata?.noRealReviewClick === true ||
-    localhostReviewClickResult?.response?.metadata
-      ?.no_real_granska_clicked === true ||
-    localhostReviewClickResult?.response?.metadata?.no_review_click === true;
-  const localhostReviewClickNoFinalConfirmClick =
-    localhostReviewClick?.metadata?.noFinalConfirmClick === true ||
-    localhostReviewClickResult?.response?.metadata
-      ?.no_final_confirm_click === true;
-  const localhostReviewClickNoBrokerResult =
-    localhostReviewClick?.metadata?.noBrokerResult === true ||
-    localhostReviewClickResult?.response?.metadata
-      ?.no_broker_result_created === true;
-  const localhostReviewClickNoTradeMutation =
-    localhostReviewClick?.metadata?.noTradeMutation === true ||
-    localhostReviewClickResult?.response?.metadata?.no_trade_mutation === true;
-  const localhostReviewClickSummary = localhostReviewClickHasRun
-    ? `Latest review-click status: ${localhostReviewClick?.status ?? "unknown"} at ${formatDate(
-        localhostReviewClickResult?.response?.completedAt ??
-          localhostReviewClickResult?.completedAt,
-      )}.`
-    : "Review-click stub has not been checked in this modal session.";
-  const localhostBrokerConfirmationCapture =
-    localhostBrokerConfirmationCaptureResult?.response
-      ?.brokerConfirmationCapture ?? null;
-  const localhostBrokerConfirmationCaptureHasRun = Boolean(
-    localhostBrokerConfirmationCapture,
-  );
-  const localhostBrokerConfirmationCaptured =
-    localhostBrokerConfirmationCapture?.ok === true &&
-    localhostBrokerConfirmationCapture.status === "confirmation_captured";
-  const localhostBrokerConfirmationPartial =
-    localhostBrokerConfirmationCapture?.status === "confirmation_partial";
-  const localhostBrokerConfirmationMismatch =
-    localhostBrokerConfirmationCapture?.status === "confirmation_mismatch";
-  const localhostBrokerConfirmationRejectedOrCancelled =
-    localhostBrokerConfirmationCapture?.status ===
-    "confirmation_rejected_or_cancelled";
-  const localhostBrokerConfirmationBlocked =
-    localhostBrokerConfirmationCapture?.status === "blocked" ||
-    localhostBrokerConfirmationCapture?.status === "failed" ||
-    localhostBrokerConfirmationCapture?.status ===
-      "manual_confirmation_not_observed" ||
-    localhostBrokerConfirmationCapture?.status ===
-      "confirmation_page_not_found";
-  const localhostBrokerConfirmationNoBrowserActions =
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_browser_actions_executed === true;
-  const localhostBrokerConfirmationNoAvanzaTouched =
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_avanza_page_touched === true;
-  const localhostBrokerConfirmationNoBekrafta =
-    localhostBrokerConfirmationCapture?.metadata?.noBekraftaByAgent === true ||
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_bekrafta_clicked === true;
-  const localhostBrokerConfirmationNoBrokerExecutionResult =
-    localhostBrokerConfirmationCapture?.metadata
-      ?.noBrokerExecutionResult === true ||
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_broker_execution_result_created === true;
-  const localhostBrokerConfirmationNoExecutionRecord =
-    localhostBrokerConfirmationCapture?.metadata?.noExecutionRecord === true ||
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_execution_record_created === true;
-  const localhostBrokerConfirmationNoSupabaseWrite =
-    localhostBrokerConfirmationCapture?.metadata?.noSupabaseWrite === true ||
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_supabase_write === true;
-  const localhostBrokerConfirmationNoTradeMutation =
-    localhostBrokerConfirmationCapture?.metadata?.noTradeMutation === true ||
-    localhostBrokerConfirmationCaptureResult?.response?.metadata
-      ?.no_trade_mutation === true;
-  const localhostBrokerConfirmationSummary =
-    localhostBrokerConfirmationCaptureHasRun
-      ? `Latest broker-confirmation-capture status: ${localhostBrokerConfirmationCapture?.status ?? "unknown"} at ${formatDate(
-          localhostBrokerConfirmationCaptureResult?.response?.completedAt ??
-            localhostBrokerConfirmationCaptureResult?.completedAt,
-        )}.`
-      : "Broker-confirmation-capture stub has not been checked in this modal session.";
-  const localhostBrokerExecutionEligibility =
-    localhostBrokerExecutionEligibilityResult?.response?.eligibility ?? null;
-  const localhostBrokerExecutionEligibilityHasRun = Boolean(
-    localhostBrokerExecutionEligibility,
-  );
-  const localhostBrokerExecutionEligible =
-    localhostBrokerExecutionEligibility?.ok === true &&
-    localhostBrokerExecutionEligibility.status === "eligible";
-  const localhostBrokerExecutionPartialOnly =
-    localhostBrokerExecutionEligibility?.status === "partial_only";
-  const localhostBrokerExecutionDuplicateRisk =
-    localhostBrokerExecutionEligibility?.status === "duplicate_risk";
-  const localhostBrokerExecutionNotEligible =
-    localhostBrokerExecutionEligibility?.status === "not_eligible";
-  const localhostBrokerExecutionEligibilityBlocked =
-    localhostBrokerExecutionEligibility?.status === "blocked";
-  const localhostBrokerExecutionEligibilityFailed =
-    localhostBrokerExecutionEligibility?.status === "failed";
-  const localhostBrokerExecutionEligibilityNoBrokerExecutionResult =
-    localhostBrokerExecutionEligibility?.metadata
-      ?.noBrokerExecutionResultCreated === true ||
-    localhostBrokerExecutionEligibilityResult?.response?.metadata
-      ?.no_broker_execution_result_created === true;
-  const localhostBrokerExecutionEligibilityNoExecutionRecord =
-    localhostBrokerExecutionEligibility?.metadata?.noExecutionRecordCreated ===
-      true ||
-    localhostBrokerExecutionEligibilityResult?.response?.metadata
-      ?.no_execution_record_created === true;
-  const localhostBrokerExecutionEligibilityNoSupabaseWrite =
-    localhostBrokerExecutionEligibility?.metadata?.noSupabaseWrite === true ||
-    localhostBrokerExecutionEligibilityResult?.response?.metadata
-      ?.no_supabase_write === true;
-  const localhostBrokerExecutionEligibilityNoTradeMutation =
-    localhostBrokerExecutionEligibility?.metadata?.noTradeMutation === true ||
-    localhostBrokerExecutionEligibilityResult?.response?.metadata
-      ?.no_trade_mutation === true;
-  const localhostBrokerExecutionPreview =
-    localhostBrokerExecutionPreviewResult?.response
-      ?.brokerExecutionResultPreview ?? null;
-  const localhostBrokerExecutionPreviewShape =
-    localhostBrokerExecutionPreview?.preview ?? null;
-  const localhostBrokerExecutionPreviewHasRun = Boolean(
-    localhostBrokerExecutionPreview,
-  );
-  const localhostBrokerExecutionPreviewAvailable =
-    localhostBrokerExecutionPreview?.ok === true &&
-    localhostBrokerExecutionPreview.status === "preview_available";
-  const localhostBrokerExecutionPreviewPartialOnly =
-    localhostBrokerExecutionPreview?.status === "partial_only";
-  const localhostBrokerExecutionPreviewDuplicateRisk =
-    localhostBrokerExecutionPreview?.status === "duplicate_risk";
-  const localhostBrokerExecutionPreviewNotEligible =
-    localhostBrokerExecutionPreview?.status === "not_eligible";
-  const localhostBrokerExecutionPreviewBlocked =
-    localhostBrokerExecutionPreview?.status === "blocked";
-  const localhostBrokerExecutionPreviewFailed =
-    localhostBrokerExecutionPreview?.status === "failed";
-  const localhostBrokerExecutionPreviewNoRealBrokerExecutionResult =
-    localhostBrokerExecutionPreview?.metadata?.notBrokerExecutionResult ===
-      true ||
-    localhostBrokerExecutionPreviewShape?.metadata?.notBrokerExecutionResult ===
-      true ||
-    localhostBrokerExecutionPreviewResult?.response?.metadata
-      ?.no_real_broker_execution_result_created === true;
-  const localhostBrokerExecutionPreviewNoExecutionRecord =
-    localhostBrokerExecutionPreview?.metadata?.noExecutionRecord === true ||
-    localhostBrokerExecutionPreviewShape?.metadata?.noExecutionRecord ===
-      true ||
-    localhostBrokerExecutionPreviewResult?.response?.metadata
-      ?.no_execution_record_created === true;
-  const localhostBrokerExecutionPreviewNoSupabaseWrite =
-    localhostBrokerExecutionPreview?.metadata?.noSupabaseWrite === true ||
-    localhostBrokerExecutionPreviewShape?.metadata?.noSupabaseWrite === true ||
-    localhostBrokerExecutionPreviewResult?.response?.metadata
-      ?.no_supabase_write === true;
-  const localhostBrokerExecutionPreviewNoTradeMutation =
-    localhostBrokerExecutionPreview?.metadata?.noTradeMutation === true ||
-    localhostBrokerExecutionPreviewShape?.metadata?.noTradeMutation === true ||
-    localhostBrokerExecutionPreviewResult?.response?.metadata
-      ?.no_trade_mutation === true;
-  const executionRecordEligibilityCandidate: ExecutionRecordCandidate | null =
-    localhostBrokerExecutionPreviewShape
-      ? {
-          action: localhostBrokerExecutionPreviewShape.action,
-          broker: localhostBrokerExecutionPreviewShape.broker,
-          brokerOrderId: localhostBrokerExecutionPreviewShape.brokerOrderId,
-          currency: localhostBrokerExecutionPreviewShape.currency,
-          fees: localhostBrokerExecutionPreviewShape.fees,
-          instrumentName: localhostBrokerExecutionPreviewShape.instrumentName,
-          instrumentType: localhostBrokerExecutionPreviewShape.instrumentType,
-          market: localhostBrokerExecutionPreviewShape.market,
-          metadata: {
-            ...(localhostBrokerExecutionPreviewShape.metadata.metadata ?? {}),
-            noExecutionRecord:
-              localhostBrokerExecutionPreviewShape.metadata.noExecutionRecord,
-            noSupabaseWrite:
-              localhostBrokerExecutionPreviewShape.metadata.noSupabaseWrite,
-            noTradeMutation:
-              localhostBrokerExecutionPreviewShape.metadata.noTradeMutation,
-            notBrokerExecutionResult:
-              localhostBrokerExecutionPreviewShape.metadata
-                .notBrokerExecutionResult,
-            previewOnly:
-              localhostBrokerExecutionPreviewShape.metadata.previewOnly,
-          },
-          price: localhostBrokerExecutionPreviewShape.price,
-          quantity: localhostBrokerExecutionPreviewShape.quantity,
-          sourceBrokerResultFingerprint:
-            localhostBrokerExecutionPreviewShape.sourceCaptureFingerprint,
-          sourceCaptureId:
-            localhostBrokerExecutionPreviewShape.sourceCaptureId,
-          sourceEvidenceFingerprint:
-            localhostBrokerExecutionPreviewShape.sourceCaptureFingerprint,
-          sourceRequestId:
-            localhostBrokerExecutionPreviewShape.sourceRequestId,
-          status: localhostBrokerExecutionPreviewShape.orderStatus,
-          ticker: localhostBrokerExecutionPreviewShape.ticker,
-          timestamp: localhostBrokerExecutionPreviewShape.timestamp,
-          totalAmount: localhostBrokerExecutionPreviewShape.totalAmount,
-          warnings: localhostBrokerExecutionPreviewShape.warnings,
-        }
-      : null;
-  const executionRecordEligibilityCandidateIsPreviewOnly =
-    executionRecordEligibilityCandidate?.metadata?.previewOnly === true ||
-    executionRecordEligibilityCandidate?.metadata?.notBrokerExecutionResult ===
-      true;
-  const localhostExecutionRecordEligibility =
-    localhostExecutionRecordEligibilityResult?.response
-      ?.executionRecordEligibility ?? null;
-  const localhostExecutionRecordEligibilityHasRun = Boolean(
-    localhostExecutionRecordEligibility,
-  );
-  const localhostExecutionRecordEligible =
-    localhostExecutionRecordEligibility?.ok === true &&
-    localhostExecutionRecordEligibility.status === "eligible";
-  const localhostExecutionRecordDuplicateRisk =
-    localhostExecutionRecordEligibility?.status === "duplicate_risk";
-  const localhostExecutionRecordNotEligible =
-    localhostExecutionRecordEligibility?.status === "not_eligible";
-  const localhostExecutionRecordBlocked =
-    localhostExecutionRecordEligibility?.status === "blocked";
-  const localhostExecutionRecordFailed =
-    localhostExecutionRecordEligibility?.status === "failed";
-  const localhostExecutionRecordNoBrokerExecutionResult =
-    localhostExecutionRecordEligibilityResult?.response?.metadata
-      ?.no_broker_execution_result_created === true;
-  const localhostExecutionRecordNoExecutionRecord =
-    localhostExecutionRecordEligibility?.metadata?.noExecutionRecordCreated ===
-      true ||
-    localhostExecutionRecordEligibilityResult?.response?.metadata
-      ?.no_execution_record_created === true;
-  const localhostExecutionRecordNoSupabaseWrite =
-    localhostExecutionRecordEligibility?.metadata?.noSupabaseWrite === true ||
-    localhostExecutionRecordEligibilityResult?.response?.metadata
-      ?.no_supabase_write === true;
-  const localhostExecutionRecordNoTradeMutation =
-    localhostExecutionRecordEligibility?.metadata?.noTradeMutation === true ||
-    localhostExecutionRecordEligibilityResult?.response?.metadata
-      ?.no_trade_mutation === true;
-  const avanzaDryRunReadinessCriticalBlocked =
-    selectedIntent.authority.can_submit_broker_order ||
-    selectedIntent.authority.allowFinalSubmit ||
-    selectedHandoff.canSubmitFinalOrder;
-  const avanzaDryRunReadinessOverall = !avanzaDryRunRequestPreview?.ok
-    ? "Blocked: invalid dry-run request"
-    : selectedIntent.mode === "automatic"
-      ? "Blocked: automatic mode out of scope"
-      : avanzaDryRunReadinessCriticalBlocked
-        ? "Critical blocked: broker submission or final confirm is allowed"
-        : localhostRunnerSelfCheck.status === "available_dry_run_only"
-          ? "Dry-run runner available"
-          : localhostRunnerSelfCheck.status === "available_mock_only"
-            ? "Not ready for Avanza dry-run"
-            : localhostRunnerSelfCheck.status === "blocked"
-              ? "Blocked: runner self-check blocked"
-              : localhostRunnerSelfCheck.status === "failed"
-                ? "Blocked: runner self-check failed"
-                : "Not ready to run";
-  const avanzaDryRunReadinessItems: ExecutionSandboxQaItem[] = [
-    {
-      label: "Dev tools enabled",
-      status: executionDevToolsEnabled ? "pass" : "fail",
-      message: executionDevToolsEnabled
-        ? "Execution dev tools are enabled for this read-only checklist."
-        : "Execution dev tools are disabled; dry-run readiness is hidden.",
-    },
-    {
-      label: "Execution mode is semi_automatic",
-      status: selectedIntent.mode === "semi_automatic" ? "pass" : "fail",
-      message:
-        selectedIntent.mode === "semi_automatic"
-          ? "Semi-automatic mode keeps final confirmation with the user."
-          : "Automatic mode is out of scope for Avanza dry-run.",
-    },
-    {
-      label: "Avanza dry-run request is valid",
-      status: avanzaDryRunRequestPreview?.ok ? "pass" : "fail",
-      message: avanzaDryRunRequestPreview?.ok
-        ? "The read-only dry-run request preview validates."
-        : (avanzaDryRunRequestPreview?.errors[0] ??
-          "Dry-run request preview is invalid or unavailable."),
-    },
-    {
-      label: "Default capability gate",
-      status: avanzaDryRunDefaultGateValidation.blocked ? "pass" : "fail",
-      message: avanzaDryRunDefaultGateValidation.blocked
-        ? "Default gate: blocked. Avanza dry-run is not enabled unless explicitly allowed."
-        : "Default gate unexpectedly allows Avanza dry-run.",
-    },
-    {
-      label: "Dry-run capability classification",
-      status:
-        avanzaDryRunAllowedGateValidation.safetyLevel === "dry_run_only" &&
-        avanzaDryRunAllowedGateValidation.canRunAvanzaDryRun
-          ? "pass"
-          : "fail",
-      message:
-        avanzaDryRunAllowedGateValidation.safetyLevel === "dry_run_only" &&
-        avanzaDryRunAllowedGateValidation.canRunAvanzaDryRun
-          ? "Dry-run classification: dry_run_only when explicitly allowed."
-          : summarizeBrowserRunnerCapabilityValidation(
-              avanzaDryRunAllowedGateValidation,
-            ),
-    },
-    {
-      label: "Broker submission disabled",
-      status: selectedIntent.authority.can_submit_broker_order ? "fail" : "pass",
-      message: selectedIntent.authority.can_submit_broker_order
-        ? "Broker submission is enabled and blocks dry-run."
-        : "Broker submission disabled.",
-    },
-    {
-      label: "Final confirm disabled",
-      status:
-        selectedIntent.authority.allowFinalSubmit ||
-        selectedHandoff.canSubmitFinalOrder
-          ? "fail"
-          : "pass",
-      message:
-        selectedIntent.authority.allowFinalSubmit ||
-        selectedHandoff.canSubmitFinalOrder
-          ? "Final confirm is allowed and blocks dry-run."
-          : "Final confirm disabled.",
-    },
-    {
-      label: "Automatic mode disabled",
-      status: selectedIntent.mode === "automatic" ? "fail" : "pass",
-      message:
-        selectedIntent.mode === "automatic"
-          ? "Automatic mode is out of scope."
-          : "Automatic mode disabled.",
-    },
-    {
-      label: "Avanza runner implementation missing",
-      status:
-        localhostRunnerSelfCheck.status === "unavailable" ? "fail" : "pass",
-      message:
-        localhostRunnerSelfCheck.status === "unavailable"
-          ? (localhostRunnerSelfCheck.blockers[0] ??
-            "No Avanza runner exists yet. This is why the overall status remains Not ready to run.")
-          : "Latest localhost self-check returned a runner capability state.",
-    },
-    {
-      label: "Localhost self-check status",
-      status: localhostRunnerSelfCheckHasRun
-        ? localhostRunnerSelfCheck.status === "available_dry_run_only"
-          ? "pass"
-          : localhostRunnerSelfCheck.status === "available_mock_only"
-            ? "warn"
-            : "fail"
-        : "pending",
-      message: localhostRunnerSelfCheckHasRun
-        ? `Latest localhost self-check status: ${localhostRunnerSelfCheck.status}.`
-        : "No localhost runner self-check has been run in this modal session.",
-    },
-    {
-      label: "Session detection status",
-      status: localhostSessionDetectionHasRun
-        ? localhostSessionDetectionReadyForSearchOnly
-          ? "pass"
-          : localhostSessionDetection?.status === "login_required"
-            ? "warn"
-            : localhostSessionDetection?.status === "blocked" ||
-                localhostSessionDetection?.status === "failed"
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostSessionDetectionHasRun
-        ? `Latest session-detection status: ${localhostSessionDetection?.status ?? "unknown"}.`
-        : "No session-detection stub check has been run in this modal session.",
-    },
-    {
-      label: "Ready for search-only",
-      status: localhostSessionDetectionHasRun
-        ? localhostSessionDetectionReadyForSearchOnly
-          ? "pass"
-          : localhostSessionDetection?.status === "login_required"
-            ? "warn"
-            : "fail"
-        : "pending",
-      message: localhostSessionDetectionReadyForSearchOnly
-        ? "Ready for future search-only phase. This does not enable search or dry-run execution."
-        : localhostSessionDetection?.status === "login_required"
-          ? "Login required before any future search-only phase."
-          : localhostSessionDetection?.blockers[0] ??
-            "Session detection is informational only and has not cleared search-only readiness.",
-    },
-    {
-      label: "Search-only status",
-      status: localhostSearchOnlyHasRun
-        ? localhostSearchOnlyExactMatch
-          ? "pass"
-          : localhostSearchOnlyAmbiguous || localhostSearchOnlyNoMatch
-            ? "warn"
-            : localhostSearchOnlyBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostSearchOnlyHasRun
-        ? `Latest search-only status: ${localhostSearchOnly?.status ?? "unknown"}.`
-        : "No search-only stub check has been run in this modal session.",
-    },
-    {
-      label: "Exact match found",
-      status: localhostSearchOnlyHasRun
-        ? localhostSearchOnlyExactMatch
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostSearchOnlyExactMatch
-        ? "Ready for future instrument-verification phase. This remains informational only."
-        : localhostSearchOnlyAmbiguous
-          ? "Manual review required before any future instrument-verification phase."
-          : localhostSearchOnlyNoMatch
-            ? "No exact match found by the search-only stub."
-            : localhostSearchOnly?.blockers[0] ??
-              "Search-only has not produced an exact match.",
-    },
-    {
-      label: "Ambiguous candidates",
-      status: localhostSearchOnlyHasRun
-        ? localhostSearchOnlyAmbiguous
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostSearchOnlyAmbiguous
-        ? "Manual review required."
-        : localhostSearchOnlyHasRun
-          ? "No ambiguous candidates reported by latest search-only stub."
-          : "No search-only stub response available yet.",
-    },
-    {
-      label: "Search-only no order page opened",
-      status: localhostSearchOnlyHasRun
-        ? localhostSearchOnlyNoOrderPageOpened
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostSearchOnlyNoOrderPageOpened
-        ? "No order page opened."
-        : "No search-only no-order-page metadata is available yet.",
-    },
-    {
-      label: "Instrument verification status",
-      status: localhostInstrumentVerificationHasRun
-        ? localhostInstrumentVerified
-          ? "pass"
-          : localhostInstrumentRejected || localhostInstrumentAmbiguous
-            ? "warn"
-            : localhostInstrumentBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostInstrumentVerificationHasRun
-        ? `Latest instrument-verification status: ${localhostInstrumentVerification?.status ?? "unknown"}.`
-        : "No instrument-verification stub check has been run in this modal session.",
-    },
-    {
-      label: "Instrument verified",
-      status: localhostInstrumentVerificationHasRun
-        ? localhostInstrumentVerified
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostInstrumentVerified
-        ? "Ready for future instrument-page phase. This remains informational only."
-        : localhostInstrumentRejected
-          ? "Rejected: manual review required."
-          : localhostInstrumentAmbiguous
-            ? "Ambiguous: manual review required."
-            : localhostInstrumentVerification?.blockers[0] ??
-              "Instrument verification has not produced a verified result.",
-    },
-    {
-      label: "Instrument rejected",
-      status: localhostInstrumentVerificationHasRun
-        ? localhostInstrumentRejected
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostInstrumentRejected
-        ? "Rejected: manual review required."
-        : localhostInstrumentVerificationHasRun
-          ? "Latest instrument-verification stub did not reject the instrument."
-          : "No instrument-verification stub response available yet.",
-    },
-    {
-      label: "Instrument ambiguous",
-      status: localhostInstrumentVerificationHasRun
-        ? localhostInstrumentAmbiguous
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostInstrumentAmbiguous
-        ? "Ambiguous: manual review required."
-        : localhostInstrumentVerificationHasRun
-          ? "Latest instrument-verification stub did not report ambiguity."
-          : "No instrument-verification stub response available yet.",
-    },
-    {
-      label: "Instrument no order page opened",
-      status: localhostInstrumentVerificationHasRun
-        ? localhostInstrumentNoOrderPageOpened
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostInstrumentNoOrderPageOpened
-        ? "No order page opened."
-        : "No instrument-verification no-order-page metadata is available yet.",
-    },
-    {
-      label: "Instrument page status",
-      status: localhostInstrumentPageHasRun
-        ? localhostInstrumentPageIdentified
-          ? "pass"
-          : localhostInstrumentPageMismatch ||
-              localhostInstrumentPageProhibitedControlsVisible
-            ? "warn"
-            : localhostInstrumentPageBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostInstrumentPageHasRun
-        ? `Latest instrument-page status: ${localhostInstrumentPage?.status ?? "unknown"}.`
-        : "No instrument-page stub check has been run in this modal session.",
-    },
-    {
-      label: "Page identified",
-      status: localhostInstrumentPageHasRun
-        ? localhostInstrumentPageIdentified
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostInstrumentPageIdentified
-        ? "Ready for future order-page-open design. This remains informational only."
-        : localhostInstrumentPageMismatch
-          ? "Page mismatch: manual review required."
-          : localhostInstrumentPage?.blockers[0] ??
-            "Instrument page identity has not been confirmed.",
-    },
-    {
-      label: "Page mismatch",
-      status: localhostInstrumentPageHasRun
-        ? localhostInstrumentPageMismatch
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostInstrumentPageMismatch
-        ? "Page mismatch: manual review required."
-        : localhostInstrumentPageHasRun
-          ? "Latest instrument-page stub did not report a page mismatch."
-          : "No instrument-page stub response available yet.",
-    },
-    {
-      label: "Prohibited controls visible",
-      status: localhostInstrumentPageHasRun
-        ? localhostInstrumentPageProhibitedControlsVisible
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostInstrumentPageProhibitedControlsVisible
-        ? "Buy/sell controls visible - no click allowed."
-        : localhostInstrumentPageHasRun
-          ? "No prohibited buy/sell controls reported by latest instrument-page stub."
-          : "No instrument-page stub response available yet.",
-    },
-    {
-      label: "Instrument page no order page opened",
-      status: localhostInstrumentPageHasRun
-        ? localhostInstrumentPageNoOrderPageOpened
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostInstrumentPageNoOrderPageOpened
-        ? "No order page opened."
-        : "No instrument-page no-order-page metadata is available yet.",
-    },
-    {
-      label: "Order page open status",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageOpened
-          ? "pass"
-          : localhostOrderPageWrongAction || localhostOrderPageMismatch
-            ? "warn"
-            : localhostOrderPageBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostOrderPageOpenHasRun
-        ? `Latest order-page-open status: ${localhostOrderPageOpen?.status ?? "unknown"}.`
-        : "No order-page-open stub check has been run in this modal session.",
-    },
-    {
-      label: "Order page opened",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageOpened
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostOrderPageOpened
-        ? "Ready for future form-fill design. This remains informational only."
-        : localhostOrderPageWrongAction
-          ? "Wrong action opened: manual review required."
-          : localhostOrderPageMismatch
-            ? "Order page mismatch: manual review required."
-            : localhostOrderPageOpen?.blockers[0] ??
-              "Order-page-open has not produced an opened result.",
-    },
-    {
-      label: "Wrong action opened",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageWrongAction
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostOrderPageWrongAction
-        ? "Wrong action opened: manual review required."
-        : localhostOrderPageOpenHasRun
-          ? "Latest order-page-open stub did not report a wrong action."
-          : "No order-page-open stub response available yet.",
-    },
-    {
-      label: "Order page mismatch",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageMismatch
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostOrderPageMismatch
-        ? "Order page mismatch: manual review required."
-        : localhostOrderPageOpenHasRun
-          ? "Latest order-page-open stub did not report a page mismatch."
-          : "No order-page-open stub response available yet.",
-    },
-    {
-      label: "Order page no form fill",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageNoFormFill
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostOrderPageNoFormFill
-        ? "No form fill occurred."
-        : "No order-page-open no-form-fill metadata is available yet.",
-    },
-    {
-      label: "Order page no Granska/Bekräfta",
-      status: localhostOrderPageOpenHasRun
-        ? localhostOrderPageNoReviewClick &&
-          localhostOrderPageNoFinalConfirmClick
-          ? "pass"
-          : "fail"
-        : "pending",
-      message:
-        localhostOrderPageNoReviewClick && localhostOrderPageNoFinalConfirmClick
-          ? "No Granska or Bekrafta click occurred."
-          : "No order-page-open review/final-confirm metadata is available yet.",
-    },
-    {
-      label: "Advanced form-fill status",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormFilled
-          ? "pass"
-          : localhostAdvancedFormFieldMismatch ||
-              localhostAdvancedFormValidationError ||
-              localhostAdvancedFormUnsupportedMode
-            ? "warn"
-            : localhostAdvancedFormBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostAdvancedFormFillHasRun
-        ? `Latest Advanced form-fill status: ${localhostAdvancedFormFill?.status ?? "unknown"}.`
-        : "No Advanced form-fill stub check has been run in this modal session.",
-    },
-    {
-      label: "Advanced form filled",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormFilled
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostAdvancedFormFilled
-        ? "Ready for future review-click design. This remains informational only."
-        : localhostAdvancedFormFieldMismatch
-          ? "Field mismatch: manual review required."
-          : localhostAdvancedFormValidationError
-            ? "Validation error: manual review required."
-            : localhostAdvancedFormFill?.blockers[0] ??
-              "Advanced form-fill has not produced a filled result.",
-    },
-    {
-      label: "Advanced field mismatch",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormFieldMismatch
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostAdvancedFormFieldMismatch
-        ? "Field mismatch: manual review required."
-        : localhostAdvancedFormFillHasRun
-          ? "Latest Advanced form-fill stub did not report a field mismatch."
-          : "No Advanced form-fill stub response available yet.",
-    },
-    {
-      label: "Advanced validation error",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormValidationError
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostAdvancedFormValidationError
-        ? "Validation error: manual review required."
-        : localhostAdvancedFormFillHasRun
-          ? "Latest Advanced form-fill stub did not report validation errors."
-          : "No Advanced form-fill stub response available yet.",
-    },
-    {
-      label: "Advanced no Granska/Bekräfta",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormNoReviewClick &&
-          localhostAdvancedFormNoFinalConfirmClick
-          ? "pass"
-          : "fail"
-        : "pending",
-      message:
-        localhostAdvancedFormNoReviewClick &&
-        localhostAdvancedFormNoFinalConfirmClick
-          ? "No Granska or Bekrafta click occurred."
-          : "No Advanced form-fill review/final-confirm metadata is available yet.",
-    },
-    {
-      label: "Advanced no order submission",
-      status: localhostAdvancedFormFillHasRun
-        ? localhostAdvancedFormNoBrokerSubmission
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostAdvancedFormNoBrokerSubmission
-        ? "No order submission occurred."
-        : "No Advanced form-fill no-submission metadata is available yet.",
-    },
-    {
-      label: "Review click status",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickConfirmationReady
-          ? "pass"
-          : localhostReviewClickConfirmationMismatch ||
-              localhostReviewClickValidationError
-            ? "warn"
-            : localhostReviewClickBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostReviewClickHasRun
-        ? `Latest review-click status: ${localhostReviewClick?.status ?? "unknown"}.`
-        : "No review-click stub check has been run in this modal session.",
-    },
-    {
-      label: "Confirmation ready",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickConfirmationReady
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostReviewClickConfirmationReady
-        ? "Ready for future manual-confirmation wait design. This remains informational only."
-        : localhostReviewClickConfirmationMismatch
-          ? "Confirmation mismatch: manual review required."
-          : localhostReviewClickValidationError
-            ? "Validation error: manual review required."
-            : localhostReviewClick?.blockers[0] ??
-              "Review-click has not produced a confirmation-ready result.",
-    },
-    {
-      label: "Confirmation mismatch",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickConfirmationMismatch
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostReviewClickConfirmationMismatch
-        ? "Confirmation mismatch: manual review required."
-        : localhostReviewClickHasRun
-          ? "Latest review-click stub did not report a confirmation mismatch."
-          : "No review-click stub response available yet.",
-    },
-    {
-      label: "Waiting for manual confirmation",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickWaitingForManualConfirmation
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostReviewClickWaitingForManualConfirmation
-        ? "Waiting for manual confirmation. No Bekrafta click is available in Ture."
-        : "Review-click stub has not reported a manual-confirmation wait state.",
-    },
-    {
-      label: "Review click no Bekräfta",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickNoFinalConfirmClick
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostReviewClickNoFinalConfirmClick
-        ? "No Bekrafta click occurred."
-        : "No review-click final-confirm metadata is available yet.",
-    },
-    {
-      label: "Review click no broker result",
-      status: localhostReviewClickHasRun
-        ? localhostReviewClickNoBrokerResult
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostReviewClickNoBrokerResult
-        ? "No broker result was created."
-        : "No review-click broker-result metadata is available yet.",
-    },
-    {
-      label: "Broker confirmation capture status",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationCaptured
-          ? "pass"
-          : localhostBrokerConfirmationPartial ||
-              localhostBrokerConfirmationMismatch ||
-              localhostBrokerConfirmationRejectedOrCancelled
-            ? "warn"
-            : localhostBrokerConfirmationBlocked
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostBrokerConfirmationCaptureHasRun
-        ? `Latest broker-confirmation-capture status: ${localhostBrokerConfirmationCapture?.status ?? "unknown"}.`
-        : "No broker-confirmation-capture stub check has been run in this modal session.",
-    },
-    {
-      label: "Broker confirmation captured",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationCaptured
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostBrokerConfirmationCaptured
-        ? "Ready for future BrokerExecutionResult conversion design. This remains informational only."
-        : localhostBrokerConfirmationPartial
-          ? "Partial confirmation: manual review required."
-          : localhostBrokerConfirmationMismatch
-            ? "Confirmation mismatch: manual review required."
-            : localhostBrokerConfirmationRejectedOrCancelled
-              ? "Rejected/cancelled: no execution result."
-              : (localhostBrokerConfirmationCapture?.blockers[0] ??
-                "Broker confirmation capture has not produced a captured result."),
-    },
-    {
-      label: "Broker confirmation partial",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationPartial
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostBrokerConfirmationPartial
-        ? "Partial confirmation: manual review required."
-        : localhostBrokerConfirmationCaptureHasRun
-          ? "Latest broker-confirmation-capture stub did not report a partial confirmation."
-          : "No broker-confirmation-capture stub response available yet.",
-    },
-    {
-      label: "Broker confirmation mismatch",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationMismatch
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostBrokerConfirmationMismatch
-        ? "Confirmation mismatch: manual review required."
-        : localhostBrokerConfirmationCaptureHasRun
-          ? "Latest broker-confirmation-capture stub did not report a mismatch."
-          : "No broker-confirmation-capture stub response available yet.",
-    },
-    {
-      label: "Broker confirmation rejected/cancelled",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationRejectedOrCancelled
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostBrokerConfirmationRejectedOrCancelled
-        ? "Rejected/cancelled: no execution result."
-        : localhostBrokerConfirmationCaptureHasRun
-          ? "Latest broker-confirmation-capture stub did not report rejected/cancelled."
-          : "No broker-confirmation-capture stub response available yet.",
-    },
-    {
-      label: "Broker capture no BrokerExecutionResult",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationNoBrokerExecutionResult
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerConfirmationNoBrokerExecutionResult
-        ? "No BrokerExecutionResult was created."
-        : "No broker-confirmation no-BrokerExecutionResult metadata is available yet.",
-    },
-    {
-      label: "Broker capture no execution record",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationNoExecutionRecord
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerConfirmationNoExecutionRecord
-        ? "No execution record was created."
-        : "No broker-confirmation no-execution-record metadata is available yet.",
-    },
-    {
-      label: "Broker capture no trade mutation",
-      status: localhostBrokerConfirmationCaptureHasRun
-        ? localhostBrokerConfirmationNoTradeMutation
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerConfirmationNoTradeMutation
-        ? "No trade mutation occurred."
-        : "No broker-confirmation no-trade-mutation metadata is available yet.",
-    },
-    {
-      label: "BrokerExecutionResult eligibility status",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligible
-          ? "pass"
-          : localhostBrokerExecutionPartialOnly ||
-              localhostBrokerExecutionDuplicateRisk ||
-              localhostBrokerExecutionNotEligible
-            ? "warn"
-            : localhostBrokerExecutionEligibilityBlocked ||
-                localhostBrokerExecutionEligibilityFailed
-              ? "fail"
-              : "pending"
-        : "pending",
-      message: localhostBrokerExecutionEligibilityHasRun
-        ? `Latest BrokerExecutionResult eligibility status: ${localhostBrokerExecutionEligibility?.status ?? "unknown"}.`
-        : "No BrokerExecutionResult eligibility stub check has been run in this modal session.",
-    },
-    {
-      label: "BrokerExecutionResult eligible",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligible
-          ? "pass"
-          : "warn"
-        : "pending",
-      message: localhostBrokerExecutionEligible
-        ? "Ready for future BrokerExecutionResult conversion preview design."
-        : localhostBrokerExecutionPartialOnly
-          ? "Partial only: conversion blocked until separate policy."
-          : localhostBrokerExecutionDuplicateRisk
-            ? "Duplicate risk: conversion blocked/idempotency review required."
-            : localhostBrokerExecutionEligibilityBlocked
-              ? (localhostBrokerExecutionEligibility?.blockers[0] ??
-                "Blocked: not eligible.")
-              : "BrokerExecutionResult eligibility has not produced an eligible result.",
-    },
-    {
-      label: "BrokerExecutionResult partial only",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionPartialOnly
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostBrokerExecutionPartialOnly
-        ? "Partial only: conversion blocked until separate policy."
-        : localhostBrokerExecutionEligibilityHasRun
-          ? "Latest eligibility check did not report partial-only evidence."
-          : "No BrokerExecutionResult eligibility response available yet.",
-    },
-    {
-      label: "BrokerExecutionResult duplicate risk",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionDuplicateRisk
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: localhostBrokerExecutionDuplicateRisk
-        ? "Duplicate risk: conversion blocked/idempotency review required."
-        : localhostBrokerExecutionEligibilityHasRun
-          ? "Latest eligibility check did not report duplicate risk."
-          : "No BrokerExecutionResult eligibility response available yet.",
-    },
-    {
-      label: "Eligibility no BrokerExecutionResult",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligibilityNoBrokerExecutionResult
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerExecutionEligibilityNoBrokerExecutionResult
-        ? "No BrokerExecutionResult was created."
-        : "No eligibility no-BrokerExecutionResult metadata is available yet.",
-    },
-    {
-      label: "Eligibility no execution record",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligibilityNoExecutionRecord
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerExecutionEligibilityNoExecutionRecord
-        ? "No execution record was created."
-        : "No eligibility no-execution-record metadata is available yet.",
-    },
-    {
-      label: "Eligibility no Supabase write",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligibilityNoSupabaseWrite
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerExecutionEligibilityNoSupabaseWrite
-        ? "No Supabase write occurred."
-        : "No eligibility no-Supabase-write metadata is available yet.",
-    },
-    {
-      label: "Eligibility no trade mutation",
-      status: localhostBrokerExecutionEligibilityHasRun
-        ? localhostBrokerExecutionEligibilityNoTradeMutation
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostBrokerExecutionEligibilityNoTradeMutation
-        ? "No trade mutation occurred."
-        : "No eligibility no-trade-mutation metadata is available yet.",
-    },
-    ...buildBrokerExecutionPreviewReadinessItems({
-      blocked: localhostBrokerExecutionPreviewBlocked,
-      duplicateRisk: localhostBrokerExecutionPreviewDuplicateRisk,
-      failed: localhostBrokerExecutionPreviewFailed,
-      hasRun: localhostBrokerExecutionPreviewHasRun,
-      noExecutionRecord: localhostBrokerExecutionPreviewNoExecutionRecord,
-      noRealBrokerExecutionResult:
-        localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
-      noSupabaseWrite: localhostBrokerExecutionPreviewNoSupabaseWrite,
-      noTradeMutation: localhostBrokerExecutionPreviewNoTradeMutation,
-      notEligible: localhostBrokerExecutionPreviewNotEligible,
-      partialOnly: localhostBrokerExecutionPreviewPartialOnly,
-      previewAvailable: localhostBrokerExecutionPreviewAvailable,
-      previewResult: localhostBrokerExecutionPreview,
-    }),
-    ...buildExecutionRecordEligibilityReadinessItems({
-      blocked: localhostExecutionRecordBlocked,
-      duplicateRisk: localhostExecutionRecordDuplicateRisk,
-      eligible: localhostExecutionRecordEligible,
-      failed: localhostExecutionRecordFailed,
-      hasRun: localhostExecutionRecordEligibilityHasRun,
-      noBrokerExecutionResult: localhostExecutionRecordNoBrokerExecutionResult,
-      noExecutionRecord: localhostExecutionRecordNoExecutionRecord,
-      noSupabaseWrite: localhostExecutionRecordNoSupabaseWrite,
-      noTradeMutation: localhostExecutionRecordNoTradeMutation,
-      notEligible: localhostExecutionRecordNotEligible,
-      result: localhostExecutionRecordEligibility,
-    }),
-    {
-      label: "Session detection no browser actions",
-      status: localhostSessionDetectionHasRun
-        ? localhostSessionDetectionNoBrowserActions
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostSessionDetectionNoBrowserActions
-        ? "No browser actions were executed by the session-detection stub."
-        : "No session-detection stub metadata is available yet.",
-    },
-    {
-      label: "Session detection no Avanza page touched",
-      status: localhostSessionDetectionHasRun
-        ? localhostSessionDetectionNoAvanzaTouched
-          ? "pass"
-          : "fail"
-        : "pending",
-      message: localhostSessionDetectionNoAvanzaTouched
-        ? "No Avanza page was touched by the session-detection stub."
-        : "No session-detection stub metadata is available yet.",
-    },
-    {
-      label: "Runner capability",
-      status:
-        localhostRunnerSelfCheck.status === "available_dry_run_only"
-          ? "pass"
-          : localhostRunnerSelfCheck.status === "available_mock_only"
-            ? "warn"
-            : "fail",
-      message:
-        localhostRunnerSelfCheck.status === "available_dry_run_only"
-          ? "Runner self-check passed for Avanza dry-run only. This still does not enable submission."
-          : localhostRunnerSelfCheck.status === "available_mock_only"
-            ? "Mock-only runner detected. It cannot run Avanza dry-run."
-            : (localhostRunnerSelfCheck.blockers[0] ??
-              "No Avanza runner exists yet. This is why the overall status remains Not ready to run."),
-    },
-    {
-      label: "Runner Avanza dry-run capable",
-      status: localhostRunnerCanRunAvanzaDryRun ? "pass" : "fail",
-      message: localhostRunnerCanRunAvanzaDryRun
-        ? "Latest self-check says the runner can run Avanza dry-run only."
-        : "Latest self-check does not allow Avanza dry-run.",
-    },
-    {
-      label: "Runner can submit broker order",
-      status: localhostRunnerCanSubmitBrokerOrder ? "fail" : "pass",
-      message: localhostRunnerCanSubmitBrokerOrder
-        ? "Runner reports broker submission capability and is blocked."
-        : "Runner cannot submit broker orders.",
-    },
-    {
-      label: "Runner can click final confirm",
-      status: localhostRunnerCanClickFinalConfirm ? "fail" : "pass",
-      message: localhostRunnerCanClickFinalConfirm
-        ? "Runner reports final-confirm click capability and is blocked."
-        : "Runner cannot click final confirmation.",
-    },
-    {
-      label: "Avanza selectors/URLs missing intentionally",
-      status: "pass",
-      message:
-        "No Avanza selectors or URLs are present in runtime code for this dry-run preview.",
-    },
-    {
-      label: "User manual final confirmation required",
-      status: selectedIntent.authority.requires_human_final_confirmation
-        ? "pass"
-        : "fail",
-      message: selectedIntent.authority.requires_human_final_confirmation
-        ? "User manual final confirmation required."
-        : "Human final confirmation is not required and dry-run is blocked.",
-    },
-  ];
   const avanzaAgentBridgeFactoryResult = executionDevToolsEnabled
     ? createAvanzaAgentBridgeFromConfig({
         selectedTransport: avanzaAgentBridgeConfig?.selectedTransport,
@@ -34831,1258 +31080,6 @@ function ExecutionHandoffPreviewModal({
     setAgentProgressStubMessage(
       "Progress event added locally and its mapped lifecycle transition was applied.",
     );
-  }
-
-  async function checkLocalhostBridgeSelfCheck() {
-    setLocalhostBridgeSelfCheckMessage("");
-    setLocalhostBridgeSelfCheckResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBridgeSelfCheckMessage(
-        "Localhost runner self-check is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    setIsLocalhostBridgeSelfCheckRunning(true);
-
-    try {
-      const selfCheckResult = await checkLocalhostBridgeRunnerSelfCheck();
-
-      setLocalhostBridgeSelfCheckResult(selfCheckResult);
-      setLocalhostBridgeSelfCheckMessage(
-        selfCheckResult.ok
-          ? "Localhost runner self-check completed. This is readiness metadata only; no browser or Avanza action occurred."
-          : "Localhost runner self-check finished safely with errors. No browser or Avanza action occurred.",
-      );
-    } catch (error) {
-      setLocalhostBridgeSelfCheckMessage(
-        error instanceof Error
-          ? `Localhost runner self-check failed safely: ${error.message}`
-          : "Localhost runner self-check failed safely. No browser or Avanza action occurred.",
-      );
-    } finally {
-      setIsLocalhostBridgeSelfCheckRunning(false);
-    }
-  }
-
-  async function checkLocalhostSessionDetectionStub() {
-    setLocalhostSessionDetectionMessage("");
-    setLocalhostSessionDetectionResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostSessionDetectionMessage(
-        "Session-detection preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    setIsLocalhostSessionDetectionRunning(true);
-
-    try {
-      const sessionDetectionResult =
-        await checkLocalhostBridgeSessionDetection();
-
-      setLocalhostSessionDetectionResult(sessionDetectionResult);
-      setLocalhostSessionDetectionMessage(
-        sessionDetectionResult.ok
-          ? "Session-detection stub returned readiness metadata. No browser control or Avanza page touch occurred."
-          : "Session-detection stub finished safely with blockers or errors. No browser control or Avanza page touch occurred.",
-      );
-    } catch (error) {
-      setLocalhostSessionDetectionMessage(
-        error instanceof Error
-          ? `Session-detection stub check failed safely: ${error.message}`
-          : "Session-detection stub check failed safely. No browser control or Avanza page touch occurred.",
-      );
-    } finally {
-      setIsLocalhostSessionDetectionRunning(false);
-    }
-  }
-
-  async function checkLocalhostSearchOnlyStub() {
-    setLocalhostSearchOnlyMessage("");
-    setLocalhostSearchOnlyResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostSearchOnlyMessage(
-        "Search-only preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    const expectedInstrument =
-      avanzaDryRunRequestPreview?.request?.instrument ?? null;
-
-    if (!expectedInstrument?.ticker) {
-      setLocalhostSearchOnlyMessage(
-        "Unavailable: invalid expected instrument.",
-      );
-      return;
-    }
-
-    setIsLocalhostSearchOnlyRunning(true);
-
-    try {
-      const searchOnlyResult = await checkLocalhostBridgeSearchOnly({
-        expectedInstrument: {
-          ticker: expectedInstrument.ticker,
-          name: expectedInstrument.name,
-          market: expectedInstrument.market,
-          currency: expectedInstrument.currency,
-          instrumentType: expectedInstrument.instrumentType,
-        },
-        requestId: `localhost_search_only_stub_${selectedIntent.intent_id}`,
-        sessionDetection: localhostSessionDetection ?? undefined,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          read_only_response_preview: true,
-          stub_only: true,
-          no_browser_actions_requested: true,
-          no_avanza_session: true,
-          no_order_page: true,
-          no_buy_sell_click: true,
-          no_broker_submission: true,
-          no_broker_result_created: true,
-          no_trade_mutation: true,
-        },
-      });
-
-      setLocalhostSearchOnlyResult(searchOnlyResult);
-      setLocalhostSearchOnlyMessage(
-        searchOnlyResult.ok
-          ? "Search-only stub response normalized. No browser control, Avanza page touch, order page, or broker submission occurred."
-          : "Search-only stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostSearchOnlyMessage(
-        error instanceof Error
-          ? `Search-only stub check failed safely: ${error.message}`
-          : "Search-only stub check failed safely. No browser control, Avanza page touch, order page, or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostSearchOnlyRunning(false);
-    }
-  }
-
-  async function checkLocalhostInstrumentVerificationStub() {
-    setLocalhostInstrumentVerificationMessage("");
-    setLocalhostInstrumentVerificationResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostInstrumentVerificationMessage(
-        "Instrument verification preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    const expectedInstrument =
-      avanzaDryRunRequestPreview?.request?.instrument ?? null;
-
-    if (!expectedInstrument?.ticker) {
-      setLocalhostInstrumentVerificationMessage(
-        "Unavailable: invalid expected instrument.",
-      );
-      return;
-    }
-
-    setIsLocalhostInstrumentVerificationRunning(true);
-
-    try {
-      const hasExactSearchCandidate =
-        localhostSearchOnlyExactMatch &&
-        Boolean(localhostSearchOnly?.selectedCandidate);
-      const instrumentVerificationResult =
-        await checkLocalhostBridgeInstrumentVerification({
-          expectedInstrument: {
-            ticker: expectedInstrument.ticker,
-            name: expectedInstrument.name,
-            market: expectedInstrument.market,
-            currency: expectedInstrument.currency,
-            instrumentType: expectedInstrument.instrumentType,
-          },
-          requestId: `localhost_instrument_verification_stub_${selectedIntent.intent_id}`,
-          searchOnlyResult: hasExactSearchCandidate
-            ? localhostSearchOnly
-            : undefined,
-          selectedCandidate: hasExactSearchCandidate
-            ? localhostSearchOnly?.selectedCandidate
-            : undefined,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            search_only_exact_candidate_available: hasExactSearchCandidate,
-            real_verification_requires_exact_search_only_candidate:
-              !hasExactSearchCandidate,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_order_page: true,
-            no_buy_sell_click: true,
-            no_form_fill: true,
-            no_broker_submission: true,
-            no_broker_result_created: true,
-            no_trade_mutation: true,
-          },
-        });
-
-      setLocalhostInstrumentVerificationResult(instrumentVerificationResult);
-      setLocalhostInstrumentVerificationMessage(
-        instrumentVerificationResult.ok
-          ? "Instrument-verification stub response normalized. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred."
-          : "Instrument-verification stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostInstrumentVerificationMessage(
-        error instanceof Error
-          ? `Instrument-verification stub check failed safely: ${error.message}`
-          : "Instrument-verification stub check failed safely. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostInstrumentVerificationRunning(false);
-    }
-  }
-
-  async function checkLocalhostInstrumentPageStub() {
-    setLocalhostInstrumentPageMessage("");
-    setLocalhostInstrumentPageResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostInstrumentPageMessage(
-        "Instrument page preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    const expectedInstrument =
-      avanzaDryRunRequestPreview?.request?.instrument ?? null;
-
-    if (!expectedInstrument?.ticker) {
-      setLocalhostInstrumentPageMessage(
-        "Unavailable: invalid expected instrument.",
-      );
-      return;
-    }
-
-    setIsLocalhostInstrumentPageRunning(true);
-
-    try {
-      const hasVerifiedInstrument =
-        localhostInstrumentVerified && Boolean(localhostInstrumentVerification);
-      const instrumentPageResult = await checkLocalhostBridgeInstrumentPage({
-        expectedInstrument: {
-          ticker: expectedInstrument.ticker,
-          name: expectedInstrument.name,
-          market: expectedInstrument.market,
-          currency: expectedInstrument.currency,
-          instrumentType: expectedInstrument.instrumentType,
-        },
-        requestId: `localhost_instrument_page_stub_${selectedIntent.intent_id}`,
-        instrumentVerificationResult: hasVerifiedInstrument
-          ? localhostInstrumentVerification
-          : undefined,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          read_only_response_preview: true,
-          stub_only: true,
-          verified_instrument_available: hasVerifiedInstrument,
-          real_instrument_page_phase_requires_verified_instrument:
-            !hasVerifiedInstrument,
-          no_browser_actions_requested: true,
-          no_avanza_session: true,
-          no_order_page: true,
-          no_buy_sell_click: true,
-          no_form_fill: true,
-          no_broker_submission: true,
-          no_broker_result_created: true,
-          no_trade_mutation: true,
-        },
-      });
-
-      setLocalhostInstrumentPageResult(instrumentPageResult);
-      setLocalhostInstrumentPageMessage(
-        instrumentPageResult.ok
-          ? "Instrument-page stub response normalized. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred."
-          : "Instrument-page stub finished safely with blockers or errors. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostInstrumentPageMessage(
-        error instanceof Error
-          ? `Instrument-page stub check failed safely: ${error.message}`
-          : "Instrument-page stub check failed safely. No browser control, Avanza page touch, order page, buy/sell click, form fill, or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostInstrumentPageRunning(false);
-    }
-  }
-
-  async function checkLocalhostOrderPageOpenStub() {
-    setLocalhostOrderPageOpenMessage("");
-    setLocalhostOrderPageOpenResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostOrderPageOpenMessage(
-        "Order page open preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
-      setLocalhostOrderPageOpenMessage(
-        "Unavailable: invalid dry-run request.",
-      );
-      return;
-    }
-
-    setIsLocalhostOrderPageOpenRunning(true);
-
-    try {
-      const hasIdentifiedInstrumentPage =
-        localhostInstrumentPageIdentified && Boolean(localhostInstrumentPage);
-      const orderPageOpenResult = await checkLocalhostBridgeOrderPageOpen({
-        dryRunOrderInput: avanzaDryRunRequestPreview.request,
-        requestId: `localhost_order_page_open_stub_${selectedIntent.intent_id}`,
-        instrumentPageResult: hasIdentifiedInstrumentPage
-          ? localhostInstrumentPage
-          : undefined,
-        attemptedAction: avanzaDryRunRequestPreview.request.action,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          read_only_response_preview: true,
-          stub_only: true,
-          identified_instrument_page_available: hasIdentifiedInstrumentPage,
-          real_order_page_open_phase_requires_identified_instrument_page:
-            !hasIdentifiedInstrumentPage,
-          no_browser_actions_requested: true,
-          no_avanza_session: true,
-          no_real_order_page_opened: true,
-          no_form_fill: true,
-          no_review_click: true,
-          no_final_confirm_click: true,
-          no_broker_submission: true,
-          no_broker_result_created: true,
-          no_trade_mutation: true,
-        },
-      });
-
-      setLocalhostOrderPageOpenResult(orderPageOpenResult);
-      setLocalhostOrderPageOpenMessage(
-        orderPageOpenResult.ok
-          ? "Order-page-open stub response normalized. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred."
-          : "Order-page-open stub finished safely with blockers or errors. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostOrderPageOpenMessage(
-        error instanceof Error
-          ? `Order-page-open stub check failed safely: ${error.message}`
-          : "Order-page-open stub check failed safely. No browser control, Avanza page touch, real order page, form fill, Granska, Bekrafta, or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostOrderPageOpenRunning(false);
-    }
-  }
-
-  async function checkLocalhostAdvancedFormFillStub() {
-    setLocalhostAdvancedFormFillMessage("");
-    setLocalhostAdvancedFormFillResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostAdvancedFormFillMessage(
-        "Advanced form-fill preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
-      setLocalhostAdvancedFormFillMessage(
-        "Unavailable: invalid dry-run request.",
-      );
-      return;
-    }
-
-    setIsLocalhostAdvancedFormFillRunning(true);
-
-    try {
-      const hasOpenedOrderPage =
-        localhostOrderPageOpened && Boolean(localhostOrderPageOpen);
-      const advancedFormFillResult =
-        await checkLocalhostBridgeAdvancedFormFill({
-          dryRunOrderInput: avanzaDryRunRequestPreview.request,
-          requestId: `localhost_advanced_form_fill_stub_${selectedIntent.intent_id}`,
-          orderPageOpenResult: hasOpenedOrderPage
-            ? localhostOrderPageOpen
-            : undefined,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            opened_order_page_available: hasOpenedOrderPage,
-            real_advanced_form_fill_phase_requires_order_page_open:
-              !hasOpenedOrderPage,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_avanza_page_touched: true,
-            no_real_form_fields_filled: true,
-            no_review_click: true,
-            no_final_confirm_click: true,
-            no_broker_submission: true,
-            no_broker_result_created: true,
-            no_supabase_write: true,
-            no_trade_mutation: true,
-          },
-        });
-
-      setLocalhostAdvancedFormFillResult(advancedFormFillResult);
-      setLocalhostAdvancedFormFillMessage(
-        advancedFormFillResult.ok
-          ? "Advanced form-fill stub response normalized. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred."
-          : "Advanced form-fill stub finished safely with blockers or errors. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostAdvancedFormFillMessage(
-        error instanceof Error
-          ? `Advanced form-fill stub check failed safely: ${error.message}`
-          : "Advanced form-fill stub check failed safely. No browser control, Avanza page touch, real form fields, Granska, Bekrafta, or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostAdvancedFormFillRunning(false);
-    }
-  }
-
-  async function checkLocalhostReviewClickStub() {
-    setLocalhostReviewClickMessage("");
-    setLocalhostReviewClickResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostReviewClickMessage(
-        "Review-click preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
-      setLocalhostReviewClickMessage("Unavailable: invalid dry-run request.");
-      return;
-    }
-
-    setIsLocalhostReviewClickRunning(true);
-
-    try {
-      const hasFilledAdvancedForm =
-        localhostAdvancedFormFilled && Boolean(localhostAdvancedFormFill);
-      const reviewClickResult = await checkLocalhostBridgeReviewClick({
-        dryRunOrderInput: avanzaDryRunRequestPreview.request,
-        requestId: `localhost_review_click_stub_${selectedIntent.intent_id}`,
-        advancedFormFillResult: hasFilledAdvancedForm
-          ? localhostAdvancedFormFill
-          : undefined,
-        reviewClickAttempted: true,
-        reviewLabel:
-          avanzaDryRunRequestPreview.request.action === "sell"
-            ? "Granska sälj"
-            : "Granska köp",
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          read_only_response_preview: true,
-          stub_only: true,
-          advanced_form_fill_available: hasFilledAdvancedForm,
-          real_review_click_phase_requires_form_filled:
-            !hasFilledAdvancedForm,
-          no_browser_actions_requested: true,
-          no_avanza_session: true,
-          no_avanza_page_touched: true,
-          no_real_granska_clicked: true,
-          no_bekrafta_clicked: true,
-          no_final_confirm_click: true,
-          no_broker_submission: true,
-          no_broker_result_created: true,
-          no_supabase_write: true,
-          no_trade_mutation: true,
-        },
-      });
-
-      setLocalhostReviewClickResult(reviewClickResult);
-      setLocalhostReviewClickMessage(
-        reviewClickResult.ok
-          ? "Review-click stub response normalized. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred."
-          : "Review-click stub finished safely with blockers or errors. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred.",
-      );
-    } catch (error) {
-      setLocalhostReviewClickMessage(
-        error instanceof Error
-          ? `Review-click stub check failed safely: ${error.message}`
-          : "Review-click stub check failed safely. No browser control, Avanza page touch, real Granska, Bekrafta, broker result, or trade mutation occurred.",
-      );
-    } finally {
-      setIsLocalhostReviewClickRunning(false);
-    }
-  }
-
-  async function checkLocalhostBrokerConfirmationCaptureStub() {
-    setLocalhostBrokerConfirmationCaptureMessage("");
-    setLocalhostBrokerConfirmationCaptureResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBrokerConfirmationCaptureMessage(
-        "Broker confirmation capture preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
-      setLocalhostBrokerConfirmationCaptureMessage(
-        "Unavailable: invalid dry-run request.",
-      );
-      return;
-    }
-
-    setIsLocalhostBrokerConfirmationCaptureRunning(true);
-
-    try {
-      const brokerConfirmationCaptureResult =
-        await checkLocalhostBridgeBrokerConfirmationCapture({
-          dryRunOrderInput: avanzaDryRunRequestPreview.request,
-          requestId: `localhost_broker_confirmation_capture_stub_${selectedIntent.intent_id}`,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            real_broker_confirmation_capture_requires_user_confirmed_unverified:
-              true,
-            manual_confirmation_wait_preview_available: false,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_avanza_page_touched: true,
-            no_bekrafta_clicked: true,
-            no_order_submission: true,
-            no_broker_execution_result_created: true,
-            no_execution_record_created: true,
-            no_supabase_write: true,
-            no_trade_mutation: true,
-            sanitized_evidence_only: true,
-          },
-        });
-
-      setLocalhostBrokerConfirmationCaptureResult(
-        brokerConfirmationCaptureResult,
-      );
-      setLocalhostBrokerConfirmationCaptureMessage(
-        brokerConfirmationCaptureResult.ok
-          ? "Broker-confirmation-capture stub response normalized. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
-          : "Broker-confirmation-capture stub finished safely with blockers or errors. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
-      );
-    } catch (error) {
-      setLocalhostBrokerConfirmationCaptureMessage(
-        error instanceof Error
-          ? `Broker-confirmation-capture stub check failed safely: ${error.message}`
-          : "Broker-confirmation-capture stub check failed safely. No browser control, Avanza page touch, Bekrafta click, BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
-      );
-    } finally {
-      setIsLocalhostBrokerConfirmationCaptureRunning(false);
-    }
-  }
-
-  async function checkLocalhostBrokerExecutionEligibilityStub() {
-    setLocalhostBrokerExecutionConversionState((current) => ({
-      ...current,
-      eligibilityResult: null,
-      eligibilityMessage: "",
-    }));
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        eligibilityMessage:
-          "BrokerExecutionResult eligibility preview is hidden unless execution dev tools are enabled.",
-      }));
-      return;
-    }
-
-    let preflightMessage = "";
-    if (!localhostBrokerConfirmationCapture) {
-      preflightMessage =
-        "Real eligibility requires broker confirmation capture evidence. This stub check may still return synthetic local metadata; no BrokerExecutionResult, execution record, Supabase write, or trade mutation will occur.";
-    }
-
-    setLocalhostBrokerExecutionConversionState((current) => ({
-      ...current,
-      eligibilityResult: null,
-      isEligibilityRunning: true,
-      eligibilityMessage: preflightMessage,
-    }));
-
-    try {
-      const eligibilityResult =
-        await checkLocalhostBridgeBrokerExecutionResultEligibility({
-          captureResult: localhostBrokerConfirmationCapture ?? undefined,
-          requestId: `localhost_broker_execution_result_eligibility_stub_${selectedIntent.intent_id}`,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            real_eligibility_requires_broker_confirmation_capture:
-              !localhostBrokerConfirmationCapture,
-            eligibility_check_only: true,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_avanza_page_touched: true,
-            no_broker_execution_result_created: true,
-            no_execution_record_created: true,
-            no_supabase_write: true,
-            no_trade_mutation: true,
-          },
-        });
-
-      const normalizedMessage = eligibilityResult.ok
-        ? "BrokerExecutionResult eligibility stub response normalized. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
-        : "BrokerExecutionResult eligibility stub finished safely with blockers or errors. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
-
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        eligibilityResult,
-        isEligibilityRunning: false,
-        eligibilityMessage: preflightMessage
-          ? `${preflightMessage} ${normalizedMessage}`
-          : normalizedMessage,
-      }));
-    } catch (error) {
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        eligibilityResult: null,
-        isEligibilityRunning: false,
-        eligibilityMessage:
-          error instanceof Error
-            ? `BrokerExecutionResult eligibility stub check failed safely: ${error.message}`
-            : "BrokerExecutionResult eligibility stub check failed safely. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
-      }));
-    }
-  }
-
-  async function checkLocalhostBrokerExecutionPreviewStub() {
-    setLocalhostBrokerExecutionConversionState((current) => ({
-      ...current,
-      previewResult: null,
-      previewMessage: "",
-    }));
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        previewMessage:
-          "BrokerExecutionResult conversion preview is hidden unless execution dev tools are enabled.",
-      }));
-      return;
-    }
-
-    let preflightMessage = "";
-    if (
-      !localhostBrokerConfirmationCapture &&
-      !localhostBrokerExecutionEligibility
-    ) {
-      preflightMessage =
-        "Real preview conversion requires eligible broker confirmation capture evidence. This stub check may still return synthetic local metadata; no real BrokerExecutionResult, execution record, Supabase write, or trade mutation will occur.";
-    }
-
-    setLocalhostBrokerExecutionConversionState((current) => ({
-      ...current,
-      previewResult: null,
-      isPreviewRunning: true,
-      previewMessage: preflightMessage,
-    }));
-
-    try {
-      const previewResult =
-        await checkLocalhostBridgeBrokerExecutionResultPreview({
-          captureResult: localhostBrokerConfirmationCapture ?? undefined,
-          eligibilityResult:
-            localhostBrokerExecutionEligibility ?? undefined,
-          requestId: `localhost_broker_execution_result_preview_stub_${selectedIntent.intent_id}`,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            preview_only: true,
-            real_preview_requires_eligible_broker_confirmation_capture:
-              !localhostBrokerConfirmationCapture ||
-              !localhostBrokerExecutionEligible,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_avanza_page_touched: true,
-            no_real_broker_execution_result_created: true,
-            no_execution_record_created: true,
-            no_supabase_write: true,
-            no_trade_mutation: true,
-          },
-        });
-
-      const normalizedMessage = previewResult.ok
-        ? "BrokerExecutionResult preview stub response normalized. Preview only; no real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
-        : "BrokerExecutionResult preview stub finished safely with blockers or errors. No real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
-
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        previewResult,
-        isPreviewRunning: false,
-        previewMessage: preflightMessage
-          ? `${preflightMessage} ${normalizedMessage}`
-          : normalizedMessage,
-      }));
-    } catch (error) {
-      setLocalhostBrokerExecutionConversionState((current) => ({
-        ...current,
-        previewResult: null,
-        isPreviewRunning: false,
-        previewMessage:
-          error instanceof Error
-            ? `BrokerExecutionResult preview stub check failed safely: ${error.message}`
-            : "BrokerExecutionResult preview stub check failed safely. No real BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
-      }));
-    }
-  }
-
-  async function checkLocalhostExecutionRecordEligibilityStub() {
-    setLocalhostExecutionRecordEligibilityState({
-      result: null,
-      isRunning: false,
-      message: "",
-    });
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostExecutionRecordEligibilityState({
-        result: null,
-        isRunning: false,
-        message:
-          "Execution record eligibility preview is hidden unless execution dev tools are enabled.",
-      });
-      return;
-    }
-
-    const preflightMessages: string[] = [];
-
-    if (!executionRecordEligibilityCandidate) {
-      preflightMessages.push(
-        "Real execution-record eligibility requires a non-preview BrokerExecutionResult candidate. This stub check may still return synthetic local metadata.",
-      );
-    } else if (executionRecordEligibilityCandidateIsPreviewOnly) {
-      preflightMessages.push(
-        "Latest BrokerExecutionResult-shaped candidate is preview-only; default eligibility should block it unless the stub synthesizes a safe eligible response.",
-      );
-    }
-
-    setLocalhostExecutionRecordEligibilityState({
-      result: null,
-      isRunning: true,
-      message: preflightMessages.join(" "),
-    });
-
-    try {
-      const eligibilityResult =
-        await checkLocalhostBridgeExecutionRecordEligibility({
-          candidate: executionRecordEligibilityCandidate ?? undefined,
-          requestId: `localhost_execution_record_eligibility_stub_${selectedIntent.intent_id}`,
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            read_only_response_preview: true,
-            stub_only: true,
-            execution_record_eligibility_check_only: true,
-            real_eligibility_requires_non_preview_broker_result_candidate:
-              !executionRecordEligibilityCandidate ||
-              executionRecordEligibilityCandidateIsPreviewOnly,
-            no_browser_actions_requested: true,
-            no_avanza_session: true,
-            no_avanza_page_touched: true,
-            no_broker_execution_result_created: true,
-            no_execution_record_created: true,
-            no_supabase_write: true,
-            no_trade_mutation: true,
-          },
-        });
-
-      const normalizedMessage = eligibilityResult.ok
-        ? "Execution record eligibility stub response normalized. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred."
-        : "Execution record eligibility stub finished safely with blockers or errors. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.";
-
-      setLocalhostExecutionRecordEligibilityState({
-        result: eligibilityResult,
-        isRunning: false,
-        message: preflightMessages.length
-          ? `${preflightMessages.join(" ")} ${normalizedMessage}`
-          : normalizedMessage,
-      });
-    } catch (error) {
-      setLocalhostExecutionRecordEligibilityState({
-        result: null,
-        isRunning: false,
-        message:
-          error instanceof Error
-            ? `Execution record eligibility stub check failed safely: ${error.message}`
-            : "Execution record eligibility stub check failed safely. No BrokerExecutionResult, execution record, Supabase write, or trade mutation occurred.",
-      });
-    }
-  }
-
-  async function testLocalhostDryRunBridgeStub() {
-    setLocalhostDryRunBridgeStubMessage("");
-    setLocalhostDryRunBridgeStubResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostDryRunBridgeStubMessage(
-        "Dry-run bridge response preview is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaDryRunRequestPreview?.ok || !avanzaDryRunRequestPreview.request) {
-      setLocalhostDryRunBridgeStubMessage(
-        "Unavailable: invalid dry-run request.",
-      );
-      return;
-    }
-
-    setIsLocalhostDryRunBridgeStubRunning(true);
-
-    try {
-      const stubResult = await runLocalhostBridgeAvanzaDryRunStub({
-        dryRunOrderInput: avanzaDryRunRequestPreview.request,
-        requestId: `localhost_dry_run_bridge_stub_${selectedIntent.intent_id}`,
-        capabilityValidationOptions: {
-          allowAvanzaDryRun: true,
-          allowBrokerSubmission: false,
-          allowAutomaticMode: false,
-        },
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          read_only_response_preview: true,
-          stub_only: true,
-          no_browser_actions_requested: true,
-          no_avanza_session: true,
-          no_broker_submission: true,
-          no_broker_result_created: true,
-          no_trade_mutation: true,
-        },
-      });
-
-      setLocalhostDryRunBridgeStubResult(stubResult);
-      setLocalhostDryRunBridgeStubMessage(
-        stubResult.ok
-          ? "Dry-run bridge stub response normalized. No browser actions or broker submission occurred."
-          : "Dry-run bridge stub response finished safely with errors or blockers. No browser actions or broker submission occurred.",
-      );
-    } catch (error) {
-      setLocalhostDryRunBridgeStubMessage(
-        error instanceof Error
-          ? `Dry-run bridge stub check failed safely: ${error.message}`
-          : "Dry-run bridge stub check failed safely. No browser actions or broker submission occurred.",
-      );
-    } finally {
-      setIsLocalhostDryRunBridgeStubRunning(false);
-    }
-  }
-
-  async function runLocalhostBridgeEcho() {
-    setLocalhostBridgeRunMessage("");
-    setLocalhostBridgeRunResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBridgeRunMessage(
-        "Localhost bridge echo is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaAgentRequest || !avanzaAgentBridgeEnvelope) {
-      setLocalhostBridgeRunMessage(
-        "Localhost bridge echo requires a ready future-agent request and bridge envelope.",
-      );
-      return;
-    }
-
-    if (
-      avanzaAgentRequestValidation?.ok !== true ||
-      avanzaAgentBridgeEnvelopeValidation?.ok !== true
-    ) {
-      setLocalhostBridgeRunMessage(
-        "Localhost bridge echo is blocked until request and envelope validation pass.",
-      );
-      return;
-    }
-
-    setIsLocalhostBridgeRunRunning(true);
-
-    try {
-      const bridgeConfig = readAvanzaAgentBridgeConfig();
-      const factoryResult = createAvanzaAgentBridgeFromConfig({
-        selectedTransport: bridgeConfig.selectedTransport,
-        metadata: {
-          source: "localhost_bridge_echo_button",
-          runner_path: "localhost_bridge_stub",
-          dry_run: true,
-          local_diagnostics_only: true,
-          no_browser_automation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-      const runResult = await runLocalhostBridgeDryRun({
-        envelope: avanzaAgentBridgeEnvelope,
-        request: avanzaAgentRequest,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          runner_path: "localhost_bridge_stub",
-          selected_transport: factoryResult.selectedTransport,
-          resolved_transport: factoryResult.resolvedTransport,
-          dry_run: true,
-          local_diagnostics_only: true,
-          no_avanza_session: true,
-          no_browser_automation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-
-      setLocalhostBridgeRunResult(runResult);
-
-      appendExecutionAuditEvents([
-        createExecutionAuditEvent({
-          type: "localhost_bridge_run_stub",
-          createdAt: runResult.completedAt,
-          lifecycleId: localLifecycle.lifecycleId,
-          intentId: selectedIntent.intent_id,
-          recommendationId: selectedIntent.trading_package.recommendation_id,
-          positionId: selectedIntent.trading_package.live_position_id,
-          ticker: selectedIntent.trading_package.ticker,
-          action: selectedIntent.action,
-          mode: selectedIntent.mode,
-          triggerType: selectedIntent.trigger_type,
-          broker: "avanza",
-          handoffVersion: selectedHandoff.version,
-          handoffStatus: selectedHandoff.status,
-          message:
-            "Dev-only localhost bridge echo run completed locally. No Avanza session opened, no browser automation ran, no order was prepared or submitted, and no broker result was created.",
-          metadata: {
-            stub_only: true,
-            localhost_bridge_stub: true,
-            dry_run: true,
-            reachable: runResult.reachable,
-            ok: runResult.ok,
-            status_code: runResult.statusCode,
-            accepted: runResult.response?.accepted ?? false,
-            base_url: runResult.baseUrl,
-            selected_transport: factoryResult.selectedTransport,
-            resolved_transport: factoryResult.resolvedTransport,
-            broker_result_present: Boolean(runResult.result?.brokerResult),
-            progress_event_count: runResult.result?.progressEvents.length ?? 0,
-            no_avanza_session: true,
-            no_browser_automation: true,
-            no_order_prepared: true,
-            no_order_submitted: true,
-            no_broker_result_created: true,
-          },
-        }),
-      ]);
-
-      if (runResult.result) {
-        const storedRun = createStoredAvanzaAgentRun({
-          request: avanzaAgentRequest,
-          result: runResult.result,
-          runner: {
-            runnerId: "localhost_bridge_stub",
-            name: "Localhost Bridge Stub",
-            version: "avanza_localhost_bridge_v1",
-            supportsRealBrokerAutomation: false,
-          },
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            runner_path: "localhost_bridge_stub",
-            selected_transport: factoryResult.selectedTransport,
-            resolved_transport: factoryResult.resolvedTransport,
-            dry_run: true,
-            local_diagnostics_only: true,
-            no_avanza_session: true,
-            no_browser_automation: true,
-            no_order_prepared: true,
-            no_order_submitted: true,
-            no_broker_result_created: true,
-          },
-        });
-        const stored = appendAvanzaAgentRun(storedRun);
-
-        setAgentRunStoreMessage(
-          stored
-            ? "Localhost bridge echo run saved as local agent-run diagnostics. It is not a broker confirmation."
-            : "Localhost bridge echo returned a result, but the local diagnostics run could not be saved.",
-        );
-      }
-
-      setLocalhostBridgeRunMessage(
-        runResult.ok
-          ? "Localhost bridge echo completed. No Avanza session opened and no broker result was created."
-          : "Localhost bridge echo finished safely with errors. No broker action occurred.",
-      );
-    } catch (error) {
-      setLocalhostBridgeRunMessage(
-        error instanceof Error
-          ? `Localhost bridge echo failed safely: ${error.message}`
-          : "Localhost bridge echo failed safely. No broker action occurred.",
-      );
-    } finally {
-      setIsLocalhostBridgeRunRunning(false);
-    }
-  }
-
-  async function runLocalhostMockAgent() {
-    setLocalhostMockAgentRunMessage("");
-    setLocalhostMockAgentRunResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostMockAgentRunMessage(
-        "Localhost mock agent is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!avanzaAgentRequest || !avanzaAgentBridgeEnvelope) {
-      setLocalhostMockAgentRunMessage(
-        "Localhost mock agent requires a ready future-agent request and bridge envelope.",
-      );
-      return;
-    }
-
-    if (
-      avanzaAgentRequestValidation?.ok !== true ||
-      avanzaAgentBridgeEnvelopeValidation?.ok !== true
-    ) {
-      setLocalhostMockAgentRunMessage(
-        "Localhost mock agent is blocked until request and envelope validation pass.",
-      );
-      return;
-    }
-
-    setIsLocalhostMockAgentRunRunning(true);
-
-    try {
-      const bridgeConfig = readAvanzaAgentBridgeConfig();
-      const factoryResult = createAvanzaAgentBridgeFromConfig({
-        selectedTransport: bridgeConfig.selectedTransport,
-        metadata: {
-          source: "localhost_mock_agent_button",
-          runner_path: "localhost_mock_agent_run",
-          dry_run: true,
-          local_diagnostics_only: true,
-          local_mock_page_review_only: true,
-          no_avanza_session: true,
-          no_real_broker_automation: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-      const runResult = await runLocalhostBridgeDryRun({
-        envelope: avanzaAgentBridgeEnvelope,
-        request: avanzaAgentRequest,
-        enableMockAgentRun: true,
-        mockPageBaseUrl: getLocalhostMockPageBaseUrl(),
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          runner_path: "localhost_mock_agent_run",
-          selected_transport: factoryResult.selectedTransport,
-          resolved_transport: factoryResult.resolvedTransport,
-          dry_run: true,
-          local_diagnostics_only: true,
-          local_mock_page_review_only: true,
-          no_avanza_session: true,
-          no_real_broker_automation: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-
-      setLocalhostMockAgentRunResult(runResult);
-      const safeActionDiagnosticsStored =
-        runResult.response?.safeActionDiagnostics
-          ? appendSafeBrowserActionDiagnostics(
-              runResult.response.safeActionDiagnostics,
-            )
-          : false;
-
-      appendExecutionAuditEvents([
-        createExecutionAuditEvent({
-          type: "localhost_mock_agent_run_stub",
-          createdAt: runResult.completedAt,
-          lifecycleId: localLifecycle.lifecycleId,
-          intentId: selectedIntent.intent_id,
-          recommendationId: selectedIntent.trading_package.recommendation_id,
-          positionId: selectedIntent.trading_package.live_position_id,
-          ticker: selectedIntent.trading_package.ticker,
-          action: selectedIntent.action,
-          mode: selectedIntent.mode,
-          triggerType: selectedIntent.trigger_type,
-          broker: "avanza",
-          handoffVersion: selectedHandoff.version,
-          handoffStatus: selectedHandoff.status,
-          message:
-            "Dev-only localhost mock agent run completed against the local mock broker page only. No Avanza session opened, no real broker page was automated, no submit was clicked, and no broker result was created.",
-          metadata: {
-            stub_only: true,
-            localhost_bridge_stub: true,
-            path: "localhost_mock_agent_run",
-            dry_run: true,
-            reachable: runResult.reachable,
-            ok: runResult.ok,
-            status_code: runResult.statusCode,
-            accepted: runResult.response?.accepted ?? false,
-            base_url: runResult.baseUrl,
-            selected_transport: factoryResult.selectedTransport,
-            resolved_transport: factoryResult.resolvedTransport,
-            mockAgentRunAttempted:
-              runResult.response?.mockAgentRunAttempted ?? false,
-            mockAgentRunOk: runResult.response?.mockAgentRunOk ?? false,
-            mockAgentRunErrors: runResult.response?.mockAgentRunErrors ?? [],
-            brokerResultPresent: Boolean(runResult.result?.brokerResult),
-            progress_event_count: runResult.result?.progressEvents.length ?? 0,
-            no_avanza_session: true,
-            no_real_broker_automation: true,
-            no_order_submitted: true,
-            no_broker_result_created: true,
-          },
-        }),
-      ]);
-
-      if (runResult.result) {
-        const storedRun = createStoredAvanzaAgentRun({
-          request: avanzaAgentRequest,
-          result: runResult.result,
-          runner: {
-            runnerId: "localhost_mock_agent_run",
-            name: "Localhost Mock Agent Run",
-            version: "avanza_localhost_bridge_v1",
-            supportsRealBrokerAutomation: false,
-          },
-          metadata: {
-            source: "execution_handoff_preview_modal",
-            path: "localhost_mock_agent_run",
-            selected_transport: factoryResult.selectedTransport,
-            resolved_transport: factoryResult.resolvedTransport,
-            dry_run: true,
-            local_diagnostics_only: true,
-            local_mock_page_review_only: true,
-            mockAgentRunAttempted:
-              runResult.response?.mockAgentRunAttempted ?? false,
-            mockAgentRunOk: runResult.response?.mockAgentRunOk ?? false,
-            mockAgentRunErrors: runResult.response?.mockAgentRunErrors ?? [],
-            brokerResultPresent: Boolean(runResult.result.brokerResult),
-            no_avanza_session: true,
-            no_real_broker_automation: true,
-            no_order_submitted: true,
-            no_broker_result_created: true,
-          },
-        });
-        const stored = appendAvanzaAgentRun(storedRun);
-
-        setAgentRunStoreMessage(
-          stored
-            ? "Localhost mock agent run saved as local agent-run diagnostics. It is not a broker confirmation."
-            : "Localhost mock agent returned a result, but the local diagnostics run could not be saved.",
-        );
-      }
-
-      setLocalhostMockAgentRunMessage(
-        runResult.ok
-          ? safeActionDiagnosticsStored
-            ? "Localhost mock agent completed. It reviewed only the local mock page, saved safe action diagnostics locally, and did not create a broker result."
-            : "Localhost mock agent completed. It reviewed only the local mock page and did not create a broker result."
-          : safeActionDiagnosticsStored
-            ? "Localhost mock agent finished safely with errors. Safe action diagnostics were saved locally. No broker action occurred."
-            : "Localhost mock agent finished safely with errors. No broker action occurred.",
-      );
-    } catch (error) {
-      setLocalhostMockAgentRunMessage(
-        error instanceof Error
-          ? `Localhost mock agent failed safely: ${error.message}`
-          : "Localhost mock agent failed safely. No broker action occurred.",
-      );
-    } finally {
-      setIsLocalhostMockAgentRunRunning(false);
-    }
-  }
-
-  async function cancelLocalhostBridgeEcho() {
-    setLocalhostBridgeCancelMessage("");
-    setLocalhostBridgeCancelResult(null);
-
-    if (!executionDevToolsEnabled) {
-      setLocalhostBridgeCancelMessage(
-        "Localhost bridge cancel is hidden unless execution dev tools are enabled.",
-      );
-      return;
-    }
-
-    if (!localhostBridgeCancelRequestId) {
-      setLocalhostBridgeCancelMessage(
-        "No localhost bridge request id is available to cancel.",
-      );
-      return;
-    }
-
-    setIsLocalhostBridgeCancelRunning(true);
-
-    try {
-      const cancelResult = await cancelLocalhostBridgeRun({
-        requestId: localhostBridgeCancelRequestId,
-        reason:
-          "Manual dev-only cancel contract test from Execution Handoff Preview Modal.",
-      });
-
-      setLocalhostBridgeCancelResult(cancelResult);
-      appendExecutionAuditEvents([
-        createExecutionAuditEvent({
-          type: "localhost_bridge_cancel_stub",
-          createdAt: cancelResult.completedAt,
-          lifecycleId: localLifecycle.lifecycleId,
-          intentId: selectedIntent.intent_id,
-          recommendationId: selectedIntent.trading_package.recommendation_id,
-          positionId: selectedIntent.trading_package.live_position_id,
-          ticker: selectedIntent.trading_package.ticker,
-          action: selectedIntent.action,
-          mode: selectedIntent.mode,
-          triggerType: selectedIntent.trigger_type,
-          broker: "avanza",
-          handoffVersion: selectedHandoff.version,
-          handoffStatus: selectedHandoff.status,
-          message:
-            "Dev-only localhost bridge cancel acknowledged locally. No Avanza session, browser automation, broker action, broker order, or trade state was cancelled.",
-          metadata: {
-            stub_only: true,
-            localhost_bridge_stub: true,
-            request_id: localhostBridgeCancelRequestId,
-            reachable: cancelResult.reachable,
-            ok: cancelResult.ok,
-            status_code: cancelResult.statusCode,
-            cancelled: cancelResult.cancelled ?? false,
-            base_url: cancelResult.baseUrl,
-            no_avanza_session: true,
-            no_browser_automation: true,
-            no_order_cancelled: true,
-            no_broker_result_created: true,
-          },
-        }),
-      ]);
-
-      setLocalhostBridgeCancelMessage(
-        cancelResult.ok
-          ? "Localhost bridge cancel acknowledged by the stub. No broker or Avanza action was cancelled."
-          : "Localhost bridge cancel finished safely with errors. No broker action occurred.",
-      );
-    } catch (error) {
-      setLocalhostBridgeCancelMessage(
-        error instanceof Error
-          ? `Localhost bridge cancel failed safely: ${error.message}`
-          : "Localhost bridge cancel failed safely. No broker action occurred.",
-      );
-    } finally {
-      setIsLocalhostBridgeCancelRunning(false);
-    }
   }
 
   async function runPreparationStub() {
@@ -36632,1618 +31629,483 @@ function ExecutionHandoffPreviewModal({
   }
 
   return (
-    <div
-      className="trade-recommendation-details-backdrop"
-      role="presentation"
-      onClick={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onClose();
+    <ExecutionHandoffModalShell onClose={onClose}>
+      <ExecutionHandoffModalComposition
+        advancedFormFillPreviewProps={{
+          blocked: localhostAdvancedFormBlocked,
+          canCheck: canCheckLocalhostAdvancedFormFill,
+          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
+          fieldMismatch: localhostAdvancedFormFieldMismatch,
+          filled: localhostAdvancedFormFilled,
+          formFill: localhostAdvancedFormFill,
+          isRunning: isLocalhostAdvancedFormFillRunning,
+          message: localhostAdvancedFormFillMessage,
+          noAvanzaTouched: localhostAdvancedFormNoAvanzaTouched,
+          noBrokerSubmission: localhostAdvancedFormNoBrokerSubmission,
+          noBrowserActions: localhostAdvancedFormNoBrowserActions,
+          noFinalConfirmClick: localhostAdvancedFormNoFinalConfirmClick,
+          noRealFormFieldsFilled: localhostAdvancedFormNoRealFormFieldsFilled,
+          noReviewClick: localhostAdvancedFormNoReviewClick,
+          onCheck: () => void checkLocalhostAdvancedFormFillStub(),
+          orderPageOpened: localhostOrderPageOpened,
+          result: localhostAdvancedFormFillResult,
+          unsupportedMode: localhostAdvancedFormUnsupportedMode,
+          validationError: localhostAdvancedFormValidationError,
+        }}
+        agentProgressStubPanelProps={
+          avanzaAgentRequest
+            ? {
+                agentCommandValue,
+                currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
+                  localLifecycle.currentState,
+                ),
+                currentLifecycleToneClassName: executionLifecycleStubTone(
+                  localLifecycle.currentState,
+                ),
+                error: agentProgressStubError,
+                eventTypes: agentProgressStubEventTypes,
+                formatDate,
+                getProgressDisplayLabel: getAvanzaAgentProgressDisplayLabel,
+                message: agentProgressStubMessage,
+                onAddProgressEvent: addAgentProgressStubEvent,
+                onProgressTypeChange: setSelectedAgentProgressType,
+                requestId: avanzaAgentRequest.requestId,
+                selectedType: selectedAgentProgressType,
+                shortPayloadId,
+                timeline: agentProgressTimeline,
+              }
+            : null
         }
-      }}
-      onMouseDown={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      <section
-        aria-labelledby="trade-execution-handoff-preview-title"
-        aria-modal="true"
-        className="trade-recommendation-details-modal trade-live-details-modal"
-        role="dialog"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="trade-recommendation-details-titlebar">
-          <h2 id="trade-execution-handoff-preview-title">
-            Execution Handoff Preview
-          </h2>
-          <button
-            type="button"
-            aria-label="Close execution handoff preview"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClose();
-            }}
-            className="trade-recommendation-details-close"
-          >
-            <Image
-              src="/trade-assets/x-icn.svg"
-              alt=""
-              aria-hidden="true"
-              width={29}
-              height={29}
-            />
-          </button>
-        </div>
-
-        <div className="trade-recommendation-details-scroll">
-          <header className="trade-recommendation-details-header">
+        avanzaDryRunReadinessPanelProps={avanzaDryRunReadinessPanelProps}
+        avanzaDryRunRequestPreviewProps={
+          avanzaDryRunRequestPreview
+            ? {
+                agentCommandValue,
+                formatCurrency,
+                formatShares,
+                preview: avanzaDryRunRequestPreview,
+                requestValidationTone: avanzaAgentRequestValidationTone,
+                shortPayloadId,
+              }
+            : null
+        }
+        bridgeRequestEnvelopePreviewProps={
+          avanzaAgentRequest
+            ? {
+                agentCommandValue,
+                envelope: avanzaAgentBridgeEnvelope,
+                envelopeValidation: avanzaAgentBridgeEnvelopeValidation,
+                envelopeValidationStatus:
+                  avanzaAgentBridgeEnvelopeValidationStatus,
+                getTransportDisplayLabel:
+                  getAvanzaAgentBridgeTransportDisplayLabel,
+                previewError: avanzaAgentBridgeEnvelopePreview.error,
+                request: avanzaAgentRequest,
+                requestValidationTone: avanzaAgentRequestValidationTone,
+                shortPayloadId,
+                ticker: packageSnapshot.ticker,
+              }
+            : null
+        }
+        brokerConfirmationCapturePreviewProps={{
+          blocked: localhostBrokerConfirmationBlocked,
+          canCheck: canCheckLocalhostBrokerConfirmationCapture,
+          capture: localhostBrokerConfirmationCapture,
+          captured: localhostBrokerConfirmationCaptured,
+          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
+          isRunning: isLocalhostBrokerConfirmationCaptureRunning,
+          message: localhostBrokerConfirmationCaptureMessage,
+          mismatch: localhostBrokerConfirmationMismatch,
+          noAvanzaTouched: localhostBrokerConfirmationNoAvanzaTouched,
+          noBekrafta: localhostBrokerConfirmationNoBekrafta,
+          noBrokerExecutionResult:
+            localhostBrokerConfirmationNoBrokerExecutionResult,
+          noBrowserActions: localhostBrokerConfirmationNoBrowserActions,
+          noExecutionRecord: localhostBrokerConfirmationNoExecutionRecord,
+          noSupabaseWrite: localhostBrokerConfirmationNoSupabaseWrite,
+          noTradeMutation: localhostBrokerConfirmationNoTradeMutation,
+          onCheck: () => void checkLocalhostBrokerConfirmationCaptureStub(),
+          partial: localhostBrokerConfirmationPartial,
+          rejectedOrCancelled: localhostBrokerConfirmationRejectedOrCancelled,
+          result: localhostBrokerConfirmationCaptureResult,
+        }}
+        brokerExecutionResultEligibilityPreviewProps={{
+          blocked: localhostBrokerExecutionEligibilityBlocked,
+          canCheck: canCheckLocalhostBrokerExecutionEligibility,
+          duplicateRisk: localhostBrokerExecutionDuplicateRisk,
+          eligible: localhostBrokerExecutionEligible,
+          eligibility: localhostBrokerExecutionEligibility,
+          failed: localhostBrokerExecutionEligibilityFailed,
+          hasCaptureEvidence: Boolean(localhostBrokerConfirmationCapture),
+          isRunning: isLocalhostBrokerExecutionEligibilityRunning,
+          message: localhostBrokerExecutionEligibilityMessage,
+          noBrokerExecutionResult:
+            localhostBrokerExecutionEligibilityNoBrokerExecutionResult,
+          noExecutionRecord: localhostBrokerExecutionEligibilityNoExecutionRecord,
+          noSupabaseWrite: localhostBrokerExecutionEligibilityNoSupabaseWrite,
+          noTradeMutation: localhostBrokerExecutionEligibilityNoTradeMutation,
+          notEligible: localhostBrokerExecutionNotEligible,
+          onCheck: () =>
+            void checkLocalhostBrokerExecutionEligibilityStub(),
+          partialOnly: localhostBrokerExecutionPartialOnly,
+          result: localhostBrokerExecutionEligibilityResult,
+        }}
+        brokerExecutionResultPreviewProps={{
+          canCheck: canCheckLocalhostBrokerExecutionPreview,
+          formatTimestamp: formatDate,
+          hasCaptureOrEligibilityEvidence: Boolean(
+            localhostBrokerConfirmationCapture ||
+              localhostBrokerExecutionEligibility,
+          ),
+          isRunning: isLocalhostBrokerExecutionPreviewRunning,
+          message: localhostBrokerExecutionPreviewMessage,
+          noExecutionRecord: localhostBrokerExecutionPreviewNoExecutionRecord,
+          noRealBrokerExecutionResult:
+            localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
+          noSupabaseWrite: localhostBrokerExecutionPreviewNoSupabaseWrite,
+          noTradeMutation: localhostBrokerExecutionPreviewNoTradeMutation,
+          onCheck: () => void checkLocalhostBrokerExecutionPreviewStub(),
+          result: localhostBrokerExecutionPreviewResult,
+        }}
+        coreSummaryProps={{
+          authorityMessage,
+          handoffStatusLabel: "Handoff " + agentCommandValue(handoff.status),
+          handoffStatusToneClassName: executionHandoffStatusTone(
+            handoff.status,
+          ),
+          identity: (
             <CompanyIdentity
               ticker={packageSnapshot.ticker}
               companyName={status.ticker ?? packageSnapshot.ticker}
               size="live"
             />
-            <div className="flex flex-col items-start gap-2 sm:items-end">
-              <span
-                className={`inline-flex rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionUiStatusBadgeClassName(
-                  status.badgeTone,
-                )}`}
-              >
-                {status.label}
-              </span>
-              <span
-                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionHandoffStatusTone(
-                  handoff.status,
-                )}`}
-              >
-                Handoff {agentCommandValue(handoff.status)}
-              </span>
-            </div>
-          </header>
-
-          <div
-            className={`rounded-md border p-4 ${executionUiStatusPanelClassName(
-              status.severity,
-            )}`}
-          >
-            <p className="text-sm font-semibold text-zinc-100">{status.title}</p>
-            <p className="mt-2 text-sm leading-6 text-zinc-300">
-              {status.description}
-            </p>
-            <p className="mt-3 text-xs leading-5 text-zinc-400">
-              {authorityMessage}
-            </p>
-          </div>
-
-          <div className="rounded-md border border-cyan-300/15 bg-cyan-300/[0.045] p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">
-                  Future agent request
-                </p>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">
-                  Preview of the typed payload Ture would send to a future
-                  Avanza browser agent. No broker agent is connected in this
-                  build, and this preview is not a live order.
-                </p>
-              </div>
-              <span
-                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
-                  avanzaAgentRequestValidationStatus,
-                )}`}
-              >
-                {avanzaAgentRequestValidationStatus === "ok"
-                  ? "Valid"
-                  : avanzaAgentRequestValidationStatus === "warning"
-                    ? "Warnings"
-                    : "Unavailable"}
-              </span>
-            </div>
-
-            {avanzaAgentRequest ? (
-              <>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <Detail label="Version" value={avanzaAgentRequest.version} />
-                  <Detail
-                    label="Request"
-                    value={shortPayloadId(avanzaAgentRequest.requestId)}
-                  />
-                  <Detail
-                    label="Broker"
-                    value={agentCommandValue(avanzaAgentRequest.broker)}
-                  />
-                  <Detail
-                    label="Mode"
-                    value={agentCommandValue(avanzaAgentRequest.mode)}
-                  />
-                  <Detail
-                    label="Action"
-                    value={agentCommandValue(avanzaAgentRequest.action)}
-                  />
-                  <Detail label="Ticker" value={packageSnapshot.ticker} />
-                  <Detail
-                    label="Quantity"
-                    value={formatShares(packageSnapshot.quantity)}
-                  />
-                  <Detail
-                    label="Manual Final"
-                    value={agentCommandValue(
-                      avanzaAgentRequest.requireManualFinalConfirmation,
-                    )}
-                  />
-                  <Detail
-                    label="Auto Submit"
-                    value={agentCommandValue(
-                      avanzaAgentRequest.allowAutomaticFinalSubmit,
-                    )}
-                  />
-                </div>
-
-                <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                  {avanzaAgentRequest.mode === "automatic"
-                    ? "Automatic final submit authority is enabled only when handoff safety checks pass. No broker agent is connected in this build."
-                    : "Manual final confirmation required. A future agent may fill the order form, but you must press final KÖP/SÄLJ."}
-                </p>
-
-                {avanzaAgentRequestValidation &&
-                  (avanzaAgentRequestValidation.errors.length > 0 ||
-                    avanzaAgentRequestValidation.warnings.length > 0) && (
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      {avanzaAgentRequestValidation.errors.length > 0 && (
-                        <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
-                            Errors
-                          </p>
-                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                            {avanzaAgentRequestValidation.errors.map((error) => (
-                              <li key={error}>{error}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {avanzaAgentRequestValidation.warnings.length > 0 && (
-                        <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                            Warnings
-                          </p>
-                          <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                            {avanzaAgentRequestValidation.warnings.map(
-                              (warning) => (
-                                <li key={warning}>{warning}</li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                {executionDevToolsEnabled && (
-                  <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-                    <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                      Request JSON - future-agent payload only
-                    </summary>
-                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-                      {JSON.stringify(avanzaAgentRequest, null, 2)}
-                    </pre>
-                  </details>
-                )}
-              </>
-            ) : (
-              <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
-                {avanzaAgentRequestPreview.error ??
-                  "Future agent request preview is unavailable for this handoff."}
-              </p>
-            )}
-          </div>
-
-          {executionDevToolsEnabled && avanzaDryRunRequestPreview && (
-            <div className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.04] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
-                      DEV ONLY
-                    </span>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
-                      Avanza dry-run request preview
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    Read-only preview. No Avanza runner exists. No broker
-                    submission.
-                  </p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
-                    avanzaDryRunRequestPreview.ok
-                      ? avanzaDryRunRequestPreview.warnings.length > 0
-                        ? "warning"
-                        : "ok"
-                      : "invalid",
-                  )}`}
-                >
-                  {avanzaDryRunRequestPreview.ok
-                    ? avanzaDryRunRequestPreview.warnings.length > 0
-                      ? "Warnings"
-                      : "Valid"
-                    : "Unavailable"}
-                </span>
-              </div>
-
-              {avanzaDryRunRequestPreview.request ? (
-                <>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    <Detail
-                      label="Action"
-                      value={agentCommandValue(
-                        avanzaDryRunRequestPreview.request.action,
-                      )}
-                    />
-                    <Detail
-                      label="Ticker"
-                      value={
-                        avanzaDryRunRequestPreview.request.instrument.ticker
-                      }
-                    />
-                    <Detail
-                      label="Instrument"
-                      value={
-                        avanzaDryRunRequestPreview.request.instrument.name ??
-                        "—"
-                      }
-                    />
-                    <Detail
-                      label="Quantity"
-                      value={formatShares(
-                        avanzaDryRunRequestPreview.request.quantity,
-                      )}
-                    />
-                    <Detail
-                      label="Price"
-                      value={formatCurrency(
-                        avanzaDryRunRequestPreview.request.price,
-                      )}
-                    />
-                    <Detail
-                      label="Order Mode"
-                      value={agentCommandValue(
-                        avanzaDryRunRequestPreview.request.orderMode,
-                      )}
-                    />
-                    <Detail
-                      label="Account Policy"
-                      value={agentCommandValue(
-                        avanzaDryRunRequestPreview.request.accountPolicy,
-                      )}
-                    />
-                    <Detail
-                      label="Stop Policy"
-                      value={agentCommandValue(
-                        avanzaDryRunRequestPreview.request.stopPolicy,
-                      )}
-                    />
-                    <Detail
-                      label="Source Recommendation"
-                      value={shortPayloadId(
-                        avanzaDryRunRequestPreview.request
-                          .sourceRecommendationId ?? null,
-                      )}
-                    />
-                    <Detail
-                      label="Execution Intent"
-                      value={shortPayloadId(
-                        avanzaDryRunRequestPreview.request.executionIntentId ??
-                          null,
-                      )}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {getAvanzaDryRunSafetyLabels(
-                      avanzaDryRunRequestPreview.request,
-                    ).map((label) => (
-                      <span
-                        className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100"
-                        key={label}
-                      >
-                        {label}
-                      </span>
-                    ))}
-                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
-                      Final confirm disabled
-                    </span>
-                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
-                      Manual account review
-                    </span>
-                  </div>
-
-                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
-                    {summarizeAvanzaDryRunOrderInput(
-                      avanzaDryRunRequestPreview.request,
-                    )}
-                    . This preview does not create a browser runner, navigate
-                    to Avanza, submit orders, create broker results, write
-                    Supabase, or mutate trades.
-                  </p>
-                </>
-              ) : (
-                <div className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                    Dry-run request unavailable
-                  </p>
-                  <p className="mt-2 text-xs leading-5 text-zinc-300">
-                    {summarizeExecutionIntentToAvanzaDryRunResult(
-                      avanzaDryRunRequestPreview,
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {(avanzaDryRunRequestPreview.errors.length > 0 ||
-                avanzaDryRunRequestPreview.warnings.length > 0) && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {avanzaDryRunRequestPreview.errors.length > 0 && (
-                    <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
-                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
-                        Dry-run errors
-                      </p>
-                      <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                        {avanzaDryRunRequestPreview.errors.map((error) => (
-                          <li key={error}>{error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {avanzaDryRunRequestPreview.warnings.length > 0 && (
-                    <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                        Dry-run warnings
-                      </p>
-                      <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                        {avanzaDryRunRequestPreview.warnings.map((warning) => (
-                          <li key={warning}>{warning}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {executionDevToolsEnabled && (
-            <>
-              <SessionDetectionPreview
-                canCheck={canCheckLocalhostSessionDetection}
-                isRunning={isLocalhostSessionDetectionRunning}
-                message={localhostSessionDetectionMessage}
-                noAvanzaTouched={localhostSessionDetectionNoAvanzaTouched}
-                noBrowserActions={localhostSessionDetectionNoBrowserActions}
-                onCheck={() => void checkLocalhostSessionDetectionStub()}
-                readyForSearchOnly={
-                  localhostSessionDetectionReadyForSearchOnly
-                }
-                result={localhostSessionDetectionResult}
-                sessionDetection={localhostSessionDetection}
-              />
-
-              <SearchOnlyPreview
-                ambiguous={localhostSearchOnlyAmbiguous}
-                blocked={localhostSearchOnlyBlocked}
-                canCheck={canCheckLocalhostSearchOnly}
-                exactMatch={localhostSearchOnlyExactMatch}
-                expectedInstrumentValid={
-                  avanzaSearchOnlyExpectedInstrumentValid
-                }
-                isRunning={isLocalhostSearchOnlyRunning}
-                message={localhostSearchOnlyMessage}
-                noAvanzaTouched={localhostSearchOnlyNoAvanzaTouched}
-                noBrokerSubmission={localhostSearchOnlyNoBrokerSubmission}
-                noBrowserActions={localhostSearchOnlyNoBrowserActions}
-                noMatch={localhostSearchOnlyNoMatch}
-                noOrderPageOpened={localhostSearchOnlyNoOrderPageOpened}
-                onCheck={() => void checkLocalhostSearchOnlyStub()}
-                result={localhostSearchOnlyResult}
-                searchOnly={localhostSearchOnly}
-              />
-
-              <InstrumentVerificationPreview
-                ambiguous={localhostInstrumentAmbiguous}
-                blocked={localhostInstrumentBlocked}
-                canCheck={canCheckLocalhostInstrumentVerification}
-                expectedInstrumentValid={
-                  avanzaSearchOnlyExpectedInstrumentValid
-                }
-                isRunning={isLocalhostInstrumentVerificationRunning}
-                message={localhostInstrumentVerificationMessage}
-                noAvanzaTouched={localhostInstrumentNoAvanzaTouched}
-                noBrokerSubmission={localhostInstrumentNoBrokerSubmission}
-                noBrowserActions={localhostInstrumentNoBrowserActions}
-                noFormFill={localhostInstrumentNoFormFill}
-                noOrderPageOpened={localhostInstrumentNoOrderPageOpened}
-                onCheck={() =>
-                  void checkLocalhostInstrumentVerificationStub()
-                }
-                rejected={localhostInstrumentRejected}
-                result={localhostInstrumentVerificationResult}
-                searchOnlyExactMatch={localhostSearchOnlyExactMatch}
-                verification={localhostInstrumentVerification}
-                verified={localhostInstrumentVerified}
-              />
-            </>
-          )}
-
-          {executionDevToolsEnabled && (
-            <>
-              <InstrumentPagePreview
-                blocked={localhostInstrumentPageBlocked}
-                canCheck={canCheckLocalhostInstrumentPage}
-                expectedInstrumentValid={avanzaSearchOnlyExpectedInstrumentValid}
-                identified={localhostInstrumentPageIdentified}
-                instrumentVerified={localhostInstrumentVerified}
-                isRunning={isLocalhostInstrumentPageRunning}
-                message={localhostInstrumentPageMessage}
-                mismatch={localhostInstrumentPageMismatch}
-                noAvanzaTouched={localhostInstrumentPageNoAvanzaTouched}
-                noBrokerSubmission={localhostInstrumentPageNoBrokerSubmission}
-                noBrowserActions={localhostInstrumentPageNoBrowserActions}
-                noBuySellClick={localhostInstrumentPageNoBuySellClick}
-                noFormFill={localhostInstrumentPageNoFormFill}
-                noOrderPageOpened={localhostInstrumentPageNoOrderPageOpened}
-                onCheck={() => void checkLocalhostInstrumentPageStub()}
-                page={localhostInstrumentPage}
-                prohibitedControlsVisible={
-                  localhostInstrumentPageProhibitedControlsVisible
-                }
-                result={localhostInstrumentPageResult}
-              />
-
-              <OrderPageOpenPreview
-                blocked={localhostOrderPageBlocked}
-                canCheck={canCheckLocalhostOrderPageOpen}
-                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
-                instrumentPageIdentified={localhostInstrumentPageIdentified}
-                isRunning={isLocalhostOrderPageOpenRunning}
-                message={localhostOrderPageOpenMessage}
-                mismatch={localhostOrderPageMismatch}
-                noAvanzaTouched={localhostOrderPageNoAvanzaTouched}
-                noBrokerSubmission={localhostOrderPageNoBrokerSubmission}
-                noBrowserActions={localhostOrderPageNoBrowserActions}
-                noFinalConfirmClick={localhostOrderPageNoFinalConfirmClick}
-                noFormFill={localhostOrderPageNoFormFill}
-                noRealOrderPageOpened={localhostOrderPageNoRealOrderPageOpened}
-                noReviewClick={localhostOrderPageNoReviewClick}
-                onCheck={() => void checkLocalhostOrderPageOpenStub()}
-                opened={localhostOrderPageOpened}
-                orderPage={localhostOrderPageOpen}
-                result={localhostOrderPageOpenResult}
-                wrongAction={localhostOrderPageWrongAction}
-              />
-
-              <AdvancedFormFillPreview
-                blocked={localhostAdvancedFormBlocked}
-                canCheck={canCheckLocalhostAdvancedFormFill}
-                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
-                fieldMismatch={localhostAdvancedFormFieldMismatch}
-                filled={localhostAdvancedFormFilled}
-                formFill={localhostAdvancedFormFill}
-                isRunning={isLocalhostAdvancedFormFillRunning}
-                message={localhostAdvancedFormFillMessage}
-                noAvanzaTouched={localhostAdvancedFormNoAvanzaTouched}
-                noBrokerSubmission={localhostAdvancedFormNoBrokerSubmission}
-                noBrowserActions={localhostAdvancedFormNoBrowserActions}
-                noFinalConfirmClick={localhostAdvancedFormNoFinalConfirmClick}
-                noRealFormFieldsFilled={
-                  localhostAdvancedFormNoRealFormFieldsFilled
-                }
-                noReviewClick={localhostAdvancedFormNoReviewClick}
-                onCheck={() => void checkLocalhostAdvancedFormFillStub()}
-                orderPageOpened={localhostOrderPageOpened}
-                result={localhostAdvancedFormFillResult}
-                unsupportedMode={localhostAdvancedFormUnsupportedMode}
-                validationError={localhostAdvancedFormValidationError}
-              />
-
-              <ReviewClickPreview
-                advancedFormFilled={localhostAdvancedFormFilled}
-                blocked={localhostReviewClickBlocked}
-                canCheck={canCheckLocalhostReviewClick}
-                confirmationMismatch={localhostReviewClickConfirmationMismatch}
-                confirmationReady={localhostReviewClickConfirmationReady}
-                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
-                finalConfirmBlocked={localhostReviewClickFinalConfirmBlocked}
-                isRunning={isLocalhostReviewClickRunning}
-                message={localhostReviewClickMessage}
-                noAvanzaTouched={localhostReviewClickNoAvanzaTouched}
-                noBrokerResult={localhostReviewClickNoBrokerResult}
-                noBrowserActions={localhostReviewClickNoBrowserActions}
-                noFinalConfirmClick={localhostReviewClickNoFinalConfirmClick}
-                noRealReviewClick={localhostReviewClickNoRealReviewClick}
-                noTradeMutation={localhostReviewClickNoTradeMutation}
-                onCheck={() => void checkLocalhostReviewClickStub()}
-                result={localhostReviewClickResult}
-                reviewClick={localhostReviewClick}
-                validationError={localhostReviewClickValidationError}
-                waitingForManualConfirmation={
-                  localhostReviewClickWaitingForManualConfirmation
-                }
-              />
-            </>
-          )}
-
-          {executionDevToolsEnabled && (
-            <>
-              <BrokerConfirmationCapturePreview
-                blocked={localhostBrokerConfirmationBlocked}
-                canCheck={canCheckLocalhostBrokerConfirmationCapture}
-                capture={localhostBrokerConfirmationCapture}
-                captured={localhostBrokerConfirmationCaptured}
-                dryRunRequestValid={Boolean(avanzaDryRunRequestPreview?.ok)}
-                isRunning={isLocalhostBrokerConfirmationCaptureRunning}
-                message={localhostBrokerConfirmationCaptureMessage}
-                mismatch={localhostBrokerConfirmationMismatch}
-                noAvanzaTouched={localhostBrokerConfirmationNoAvanzaTouched}
-                noBekrafta={localhostBrokerConfirmationNoBekrafta}
-                noBrokerExecutionResult={
-                  localhostBrokerConfirmationNoBrokerExecutionResult
-                }
-                noBrowserActions={localhostBrokerConfirmationNoBrowserActions}
-                noExecutionRecord={localhostBrokerConfirmationNoExecutionRecord}
-                noSupabaseWrite={localhostBrokerConfirmationNoSupabaseWrite}
-                noTradeMutation={localhostBrokerConfirmationNoTradeMutation}
-                onCheck={() => void checkLocalhostBrokerConfirmationCaptureStub()}
-                partial={localhostBrokerConfirmationPartial}
-                rejectedOrCancelled={
-                  localhostBrokerConfirmationRejectedOrCancelled
-                }
-                result={localhostBrokerConfirmationCaptureResult}
-              />
-
-              <BrokerExecutionResultEligibilityPreview
-                blocked={localhostBrokerExecutionEligibilityBlocked}
-                canCheck={canCheckLocalhostBrokerExecutionEligibility}
-                duplicateRisk={localhostBrokerExecutionDuplicateRisk}
-                eligible={localhostBrokerExecutionEligible}
-                eligibility={localhostBrokerExecutionEligibility}
-                failed={localhostBrokerExecutionEligibilityFailed}
-                hasCaptureEvidence={Boolean(localhostBrokerConfirmationCapture)}
-                isRunning={isLocalhostBrokerExecutionEligibilityRunning}
-                message={localhostBrokerExecutionEligibilityMessage}
-                noBrokerExecutionResult={
-                  localhostBrokerExecutionEligibilityNoBrokerExecutionResult
-                }
-                noExecutionRecord={
-                  localhostBrokerExecutionEligibilityNoExecutionRecord
-                }
-                noSupabaseWrite={
-                  localhostBrokerExecutionEligibilityNoSupabaseWrite
-                }
-                noTradeMutation={
-                  localhostBrokerExecutionEligibilityNoTradeMutation
-                }
-                notEligible={localhostBrokerExecutionNotEligible}
-                onCheck={() =>
-                  void checkLocalhostBrokerExecutionEligibilityStub()
-                }
-                partialOnly={localhostBrokerExecutionPartialOnly}
-                result={localhostBrokerExecutionEligibilityResult}
-              />
-            </>
-          )}
-
-          {executionDevToolsEnabled && (
-            <BrokerExecutionResultPreview
-              canCheck={canCheckLocalhostBrokerExecutionPreview}
-              formatTimestamp={formatDate}
-              hasCaptureOrEligibilityEvidence={Boolean(
-                localhostBrokerConfirmationCapture ||
-                  localhostBrokerExecutionEligibility,
-              )}
-              isRunning={isLocalhostBrokerExecutionPreviewRunning}
-              message={localhostBrokerExecutionPreviewMessage}
-              noExecutionRecord={
-                localhostBrokerExecutionPreviewNoExecutionRecord
-              }
-              noRealBrokerExecutionResult={
-                localhostBrokerExecutionPreviewNoRealBrokerExecutionResult
-              }
-              noSupabaseWrite={localhostBrokerExecutionPreviewNoSupabaseWrite}
-              noTradeMutation={localhostBrokerExecutionPreviewNoTradeMutation}
-              onCheck={() => void checkLocalhostBrokerExecutionPreviewStub()}
-              result={localhostBrokerExecutionPreviewResult}
-            />
-          )}
-
-          {executionDevToolsEnabled && (
-            <ExecutionRecordEligibilityPreview
-              canCheck={canCheckLocalhostExecutionRecordEligibility}
-              candidateIsPreviewOnly={
-                executionRecordEligibilityCandidateIsPreviewOnly
-              }
-              hasPreviewCandidate={Boolean(executionRecordEligibilityCandidate)}
-              isRunning={isLocalhostExecutionRecordEligibilityRunning}
-              message={localhostExecutionRecordEligibilityMessage}
-              noBrokerExecutionResult={
-                localhostExecutionRecordNoBrokerExecutionResult
-              }
-              noExecutionRecord={localhostExecutionRecordNoExecutionRecord}
-              noSupabaseWrite={localhostExecutionRecordNoSupabaseWrite}
-              noTradeMutation={localhostExecutionRecordNoTradeMutation}
-              onCheck={() =>
-                void checkLocalhostExecutionRecordEligibilityStub()
-              }
-              result={localhostExecutionRecordEligibilityResult}
-            />
-          )}
-
-          <LocalhostBridgeControls
-            canCancelLocalhostBridgeRun={canCancelLocalhostBridgeRun}
-            canCheckLocalhostBridgeSelfCheck={
-              canCheckLocalhostBridgeSelfCheck
-            }
-            canRunLocalhostBridgeDryRun={canRunLocalhostBridgeDryRun}
-            canRunLocalhostMockAgent={canRunLocalhostMockAgent}
-            canTestLocalhostDryRunBridgeStub={
-              canTestLocalhostDryRunBridgeStub
-            }
-            dryRunRequestValid={avanzaDryRunRequestPreview?.ok === true}
-            isLocalhostBridgeCancelRunning={isLocalhostBridgeCancelRunning}
-            isLocalhostBridgeRunRunning={isLocalhostBridgeRunRunning}
-            isLocalhostBridgeSelfCheckRunning={
-              isLocalhostBridgeSelfCheckRunning
-            }
-            isLocalhostDryRunBridgeStubRunning={
-              isLocalhostDryRunBridgeStubRunning
-            }
-            isLocalhostMockAgentRunRunning={isLocalhostMockAgentRunRunning}
-            localhostBridgeCancelMessage={localhostBridgeCancelMessage}
-            localhostBridgeCancelResult={localhostBridgeCancelResult}
-            localhostBridgeRunMessage={localhostBridgeRunMessage}
-            localhostBridgeRunResult={localhostBridgeRunResult}
-            localhostBridgeSelfCheckMessage={localhostBridgeSelfCheckMessage}
-            localhostBridgeSelfCheckResult={localhostBridgeSelfCheckResult}
-            localhostDryRunBridgeStubMessage={
-              localhostDryRunBridgeStubMessage
-            }
-            localhostDryRunBridgeStubResult={localhostDryRunBridgeStubResult}
-            localhostMockAgentRunMessage={localhostMockAgentRunMessage}
-            localhostMockAgentRunResult={localhostMockAgentRunResult}
-            onCancelLocalhostBridgeEcho={() => void cancelLocalhostBridgeEcho()}
-            onCheckLocalhostBridgeSelfCheck={() =>
-              void checkLocalhostBridgeSelfCheck()
-            }
-            onRunLocalhostBridgeEcho={() => void runLocalhostBridgeEcho()}
-            onRunLocalhostMockAgent={() => void runLocalhostMockAgent()}
-            onTestLocalhostDryRunBridgeStub={() =>
-              void testLocalhostDryRunBridgeStub()
-            }
-            showDryRunBridgePreview={executionDevToolsEnabled}
-            showLocalhostBridgeEchoControls={false}
-          />
-
-          {executionDevToolsEnabled && (
-            <AvanzaDryRunReadinessPanel
-              advancedForm={{
-                blocked: localhostAdvancedFormBlocked,
-                blockerMessage:
-                  localhostAdvancedFormFill?.blockers[0] ??
-                  localhostAdvancedFormFill?.errors[0] ??
-                  "Advanced form-fill cannot proceed safely.",
-                fieldMismatch: localhostAdvancedFormFieldMismatch,
-                filled: localhostAdvancedFormFilled,
-                labels: localhostAdvancedFormFill?.labels,
-                summary: localhostAdvancedFormSummary,
-                validationError: localhostAdvancedFormValidationError,
-              }}
-              allowedSafetyLevel={
-                avanzaDryRunAllowedGateValidation.safetyLevel
-              }
-              brokerConfirmation={{
-                blocked: localhostBrokerConfirmationBlocked,
-                blockerMessage:
-                  localhostBrokerConfirmationCapture?.blockers[0] ??
-                  localhostBrokerConfirmationCapture?.errors[0] ??
-                  "broker-confirmation-capture cannot proceed safely.",
-                captured: localhostBrokerConfirmationCaptured,
-                labels: localhostBrokerConfirmationCapture?.labels,
-                mismatch: localhostBrokerConfirmationMismatch,
-                partial: localhostBrokerConfirmationPartial,
-                rejectedOrCancelled:
-                  localhostBrokerConfirmationRejectedOrCancelled,
-                summary: localhostBrokerConfirmationSummary,
-              }}
-              defaultGateBlocked={avanzaDryRunDefaultGateValidation.blocked}
-              instrumentPage={{
-                blocked: localhostInstrumentPageBlocked,
-                blockerMessage:
-                  localhostInstrumentPage?.blockers[0] ??
-                  localhostInstrumentPage?.errors[0] ??
-                  "instrument-page identity cannot proceed safely.",
-                identified: localhostInstrumentPageIdentified,
-                labels: localhostInstrumentPage?.labels,
-                mismatch: localhostInstrumentPageMismatch,
-                prohibitedControlsVisible:
-                  localhostInstrumentPageProhibitedControlsVisible,
-                summary: localhostInstrumentPageSummary,
-              }}
-              instrumentVerification={{
-                ambiguous: localhostInstrumentAmbiguous,
-                labels: localhostInstrumentVerification?.labels,
-                rejected: localhostInstrumentRejected,
-                summary: localhostInstrumentVerificationSummary,
-                verified: localhostInstrumentVerified,
-              }}
-              items={avanzaDryRunReadinessItems}
-              localhostRunnerSelfCheckLabels={
-                localhostRunnerSelfCheck.readinessLabels
-              }
-              localhostRunnerSelfCheckSummary={
-                localhostRunnerSelfCheckSummary
-              }
-              orderPage={{
-                blocked: localhostOrderPageBlocked,
-                blockerMessage:
-                  localhostOrderPageOpen?.blockers[0] ??
-                  localhostOrderPageOpen?.errors[0] ??
-                  "order-page-open cannot proceed safely.",
-                labels: localhostOrderPageOpen?.labels,
-                mismatch: localhostOrderPageMismatch,
-                opened: localhostOrderPageOpened,
-                summary: localhostOrderPageSummary,
-                wrongAction: localhostOrderPageWrongAction,
-              }}
-              overall={avanzaDryRunReadinessOverall}
-              reviewClick={{
-                blocked: localhostReviewClickBlocked,
-                blockerMessage:
-                  localhostReviewClick?.blockers[0] ??
-                  localhostReviewClick?.errors[0] ??
-                  "Review-click cannot proceed safely.",
-                confirmationMismatch: localhostReviewClickConfirmationMismatch,
-                confirmationReady: localhostReviewClickConfirmationReady,
-                finalConfirmBlocked: localhostReviewClickFinalConfirmBlocked,
-                labels: localhostReviewClick?.labels,
-                summary: localhostReviewClickSummary,
-                validationError: localhostReviewClickValidationError,
-              }}
-              searchOnly={{
-                ambiguous: localhostSearchOnlyAmbiguous,
-                exactMatch: localhostSearchOnlyExactMatch,
-                labels: localhostSearchOnly?.labels,
-                summary: localhostSearchOnlySummary,
-              }}
-              sessionDetection={{
-                labels: localhostSessionDetection?.labels,
-                readyForSearchOnly:
-                  localhostSessionDetectionReadyForSearchOnly,
-                summary: localhostSessionDetectionSummary,
-              }}
-            />
-          )}
-          {executionDevToolsEnabled && avanzaAgentRequest && (
-            <div className="rounded-md border border-violet-300/15 bg-violet-300/[0.045] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-violet-100">
-                      DEV ONLY
-                    </span>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-violet-100">
-                      Bridge request envelope
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    Local boundary payload a future external Avanza agent bridge
-                    would receive. No transport is connected, the envelope is
-                    not sent anywhere, and this is not a live order.
-                  </p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${avanzaAgentRequestValidationTone(
-                    avanzaAgentBridgeEnvelopeValidationStatus,
-                  )}`}
-                >
-                  {avanzaAgentBridgeEnvelopeValidationStatus === "ok"
-                    ? "Valid"
-                    : avanzaAgentBridgeEnvelopeValidationStatus === "warning"
-                      ? "Warnings"
-                      : "Unavailable"}
-                </span>
-              </div>
-
-              {avanzaAgentBridgeEnvelope ? (
-                <>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    <Detail
-                      label="Envelope Version"
-                      value={avanzaAgentBridgeEnvelope.version}
-                    />
-                    <Detail
-                      label="Envelope"
-                      value={shortPayloadId(
-                        avanzaAgentBridgeEnvelope.envelopeId,
-                      )}
-                    />
-                    <Detail
-                      label="Type"
-                      value={agentCommandValue(avanzaAgentBridgeEnvelope.type)}
-                    />
-                    <Detail
-                      label="Transport"
-                      value={getAvanzaAgentBridgeTransportDisplayLabel(
-                        avanzaAgentBridgeEnvelope.transport,
-                      )}
-                    />
-                    <Detail
-                      label="Request"
-                      value={shortPayloadId(
-                        avanzaAgentBridgeEnvelope.requestId ?? null,
-                      )}
-                    />
-                    <Detail
-                      label="Payload Version"
-                      value={avanzaAgentRequest.version}
-                    />
-                    <Detail
-                      label="Payload Mode"
-                      value={agentCommandValue(avanzaAgentRequest.mode)}
-                    />
-                    <Detail
-                      label="Payload Action"
-                      value={agentCommandValue(avanzaAgentRequest.action)}
-                    />
-                    <Detail label="Payload Ticker" value={packageSnapshot.ticker} />
-                  </div>
-
-                  <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
-                    Transport is{" "}
-                    {getAvanzaAgentBridgeTransportDisplayLabel(
-                      avanzaAgentBridgeEnvelope.transport,
-                    )}
-                    . This preview does not call bridge.sendRequest, create
-                    progress events, write diagnostics, or contact Avanza.
-                  </p>
-
-                  {avanzaAgentBridgeEnvelopeValidation &&
-                    (avanzaAgentBridgeEnvelopeValidation.errors.length > 0 ||
-                      avanzaAgentBridgeEnvelopeValidation.warnings.length > 0) && (
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {avanzaAgentBridgeEnvelopeValidation.errors.length > 0 && (
-                          <div className="rounded-md border border-rose-300/20 bg-rose-300/[0.06] p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-rose-100">
-                              Envelope errors
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {avanzaAgentBridgeEnvelopeValidation.errors.map(
-                                (error) => (
-                                  <li key={error}>{error}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        {avanzaAgentBridgeEnvelopeValidation.warnings.length >
-                          0 && (
-                          <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                              Envelope warnings
-                            </p>
-                            <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
-                              {avanzaAgentBridgeEnvelopeValidation.warnings.map(
-                                (warning) => (
-                                  <li key={warning}>{warning}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                  <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-                    <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                      Envelope JSON - diagnostics only
-                    </summary>
-                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-                      {JSON.stringify(avanzaAgentBridgeEnvelope, null, 2)}
-                    </pre>
-                  </details>
-                </>
-              ) : (
-                <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
-                  {avanzaAgentBridgeEnvelopePreview.error ??
-                    "Bridge request envelope preview is unavailable."}
-                </p>
-              )}
-            </div>
-          )}
-
-          <LocalhostBridgeControls
-            canCancelLocalhostBridgeRun={canCancelLocalhostBridgeRun}
-            canCheckLocalhostBridgeSelfCheck={
-              canCheckLocalhostBridgeSelfCheck
-            }
-            canRunLocalhostBridgeDryRun={canRunLocalhostBridgeDryRun}
-            canRunLocalhostMockAgent={canRunLocalhostMockAgent}
-            canTestLocalhostDryRunBridgeStub={
-              canTestLocalhostDryRunBridgeStub
-            }
-            dryRunRequestValid={avanzaDryRunRequestPreview?.ok === true}
-            isLocalhostBridgeCancelRunning={isLocalhostBridgeCancelRunning}
-            isLocalhostBridgeRunRunning={isLocalhostBridgeRunRunning}
-            isLocalhostBridgeSelfCheckRunning={
-              isLocalhostBridgeSelfCheckRunning
-            }
-            isLocalhostDryRunBridgeStubRunning={
-              isLocalhostDryRunBridgeStubRunning
-            }
-            isLocalhostMockAgentRunRunning={isLocalhostMockAgentRunRunning}
-            localhostBridgeCancelMessage={localhostBridgeCancelMessage}
-            localhostBridgeCancelResult={localhostBridgeCancelResult}
-            localhostBridgeRunMessage={localhostBridgeRunMessage}
-            localhostBridgeRunResult={localhostBridgeRunResult}
-            localhostBridgeSelfCheckMessage={localhostBridgeSelfCheckMessage}
-            localhostBridgeSelfCheckResult={localhostBridgeSelfCheckResult}
-            localhostDryRunBridgeStubMessage={
-              localhostDryRunBridgeStubMessage
-            }
-            localhostDryRunBridgeStubResult={localhostDryRunBridgeStubResult}
-            localhostMockAgentRunMessage={localhostMockAgentRunMessage}
-            localhostMockAgentRunResult={localhostMockAgentRunResult}
-            onCancelLocalhostBridgeEcho={() => void cancelLocalhostBridgeEcho()}
-            onCheckLocalhostBridgeSelfCheck={() =>
-              void checkLocalhostBridgeSelfCheck()
-            }
-            onRunLocalhostBridgeEcho={() => void runLocalhostBridgeEcho()}
-            onRunLocalhostMockAgent={() => void runLocalhostMockAgent()}
-            onTestLocalhostDryRunBridgeStub={() =>
-              void testLocalhostDryRunBridgeStub()
-            }
-            showDryRunBridgePreview={false}
-            showLocalhostBridgeEchoControls={
-              executionDevToolsEnabled &&
-              Boolean(avanzaAgentRequest && avanzaAgentBridgeEnvelope)
-            }
-          />
-
-          {executionDevToolsEnabled && (
-            <div className="rounded-md border border-lime-300/15 bg-lime-300/[0.04] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-lime-300/30 bg-lime-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-lime-100">
-                      DEV ONLY
-                    </span>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-lime-100">
-                      Execution Sandbox QA
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    Local checklist for the typed execution sandbox chain. No
-                    external bridge is connected, no Avanza session will open,
-                    and no broker order can be created from this panel.
-                  </p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionSandboxQaOverallTone(
-                    sandboxOverallStatus,
-                  )}`}
-                >
-                  {agentCommandLabel(sandboxOverallStatus)}
-                </span>
-              </div>
-
-              <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                {sandboxOverallMessage}
-              </p>
-
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {executionSandboxQaItems.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-md border border-white/10 bg-black/25 p-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                        {item.label}
-                      </p>
-                      <span
-                        className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${executionSandboxQaTone(
-                          item.status,
-                        )}`}
-                      >
-                        {agentCommandLabel(item.status)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs leading-5 text-zinc-300">
-                      {item.message}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-3 text-xs leading-5 text-zinc-500">
-                QA status is derived in memory from this modal only. It is not
-                persisted, logged, sent to a bridge, or used to change trade
-                state.
-              </p>
-            </div>
-          )}
-
-          {executionDevToolsEnabled && avanzaAgentRequest && (
-            <div className="rounded-md border border-sky-300/15 bg-sky-300/[0.045] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100">
-                      DEV ONLY
-                    </span>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-sky-100">
-                      Agent progress stub
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    Test the future agent-progress pipeline locally. Events are
-                    audit-log stubs only; no Avanza browser agent is connected,
-                    no broker result is created, and no trade state changes.
-                  </p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
-                    localLifecycle.currentState,
-                  )}`}
-                >
-                  {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                <label className="block">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Progress event type
-                  </span>
-                  <select
-                    value={selectedAgentProgressType}
-                    onChange={(event) =>
-                      setSelectedAgentProgressType(
-                        event.target.value as AvanzaAgentProgressEventType,
-                      )
-                    }
-                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-sky-300"
-                  >
-                    {agentProgressStubEventTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {getAvanzaAgentProgressDisplayLabel(type)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    addAgentProgressStubEvent();
-                  }}
-                  className="min-h-10 rounded-md border border-sky-300/25 bg-sky-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100 transition hover:border-sky-200/50 hover:bg-sky-300/15"
-                >
-                  Add progress event
-                </button>
-              </div>
-
-              <p className="mt-3 text-xs leading-5 text-zinc-500">
-                Request {shortPayloadId(avanzaAgentRequest.requestId)} · mapped
-                lifecycle transitions are attempted only when the current modal
-                state allows them.
-              </p>
-
-              {agentProgressStubMessage && (
-                <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
-                  {agentProgressStubMessage}
-                </p>
-              )}
-
-              {agentProgressStubError && (
-                <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
-                  {agentProgressStubError}
-                </p>
-              )}
-
-              {agentProgressTimeline.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {agentProgressTimeline.map((item) => (
-                    <div
-                      key={item.progressEvent.eventId}
-                      className="rounded-md border border-white/10 bg-black/25 p-3"
-                    >
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-300">
-                            {getAvanzaAgentProgressDisplayLabel(
-                              item.progressEvent.type,
-                            )}
-                          </p>
-                          <p className="mt-1 text-xs leading-5 text-zinc-500">
-                            {formatDate(item.progressEvent.createdAt)} · event{" "}
-                            {shortPayloadId(item.progressEvent.eventId)}
-                          </p>
-                        </div>
-                        <span
-                          className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${agentProgressLifecycleTone(
-                            item.lifecycleTransitionStatus,
-                          )}`}
-                        >
-                          {item.lifecycleTransitionStatus === "applied"
-                            ? "Mapped"
-                            : item.lifecycleTransitionStatus === "invalid"
-                              ? "Invalid transition"
-                              : "No mapping"}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-zinc-300">
-                        {item.progressEvent.message}
-                      </p>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <Detail
-                          label="Lifecycle Event"
-                          value={
-                            item.mappedLifecycleEventType
-                              ? agentCommandValue(item.mappedLifecycleEventType)
-                              : "—"
-                          }
-                        />
-                        <Detail
-                          label="Lifecycle Note"
-                          value={item.lifecycleNote}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
-                  Avanza preparation stub
-                </p>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">
-                  {executionDevToolsEnabled
-                    ? "This button only advances local preview state. It does not open Avanza, prepare a real order, submit KÖP/SÄLJ, or save anything."
-                    : "Avanza preparation is not connected in this build."}
-                </p>
-              </div>
-              <span
-                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
+          ),
+          statusBadgeClassName: executionUiStatusBadgeClassName(
+            status.badgeTone,
+          ),
+          statusDescription: status.description,
+          statusLabel: status.label,
+          statusPanelClassName: executionUiStatusPanelClassName(
+            status.severity,
+          ),
+          statusTitle: status.title,
+        }}
+        executionBrokerCaptureStubPanelProps={
+          devCaptureStubVisible
+            ? {
+                agentCommandValue,
+                brokerStatus: stubBrokerStatus,
+                brokerTimestamp: stubBrokerTimestamp,
+                canRunCaptureStub,
+                captureResult: stubCaptureResult,
+                currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
                   localLifecycle.currentState,
-                )}`}
-              >
-                {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
-              </span>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-5 text-zinc-500">
-                {handoff.status === "ready"
-                  ? executionDevToolsEnabled
-                    ? "Ready handoff. The bridge-backed diagnostics runner tests where a future Avanza agent bridge would begin without opening Avanza."
-                    : "Ready handoff. Avanza preparation is disabled because execution dev tools are off."
-                  : "Preparation is disabled until the handoff is ready."}
-              </p>
-              <button
-                type="button"
-                disabled={!canRunPreparationStub}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  runPreparationStub();
-                }}
-                className="min-h-10 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/50 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-              >
-                {isAgentRunnerRunning
-                  ? "Running bridge diagnostics"
-                  : preparationStubReached
-                    ? "Stub reached"
-                    : executionDevToolsEnabled
-                      ? "Prepare in Avanza"
-                      : "Not connected"}
-              </button>
-            </div>
-
-            {!executionDevToolsEnabled && (
-              <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-400">
-                Execution dev tools are disabled in this build. The future
-                Avanza bridge is not connected, and no local bridge-backed
-                diagnostics runner will run from this modal.
-              </p>
-            )}
-
-            {preparationStubMessage && (
-              <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
-                {preparationStubMessage}
-              </p>
-            )}
-
-            {preparationStubError && (
-              <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
-                {preparationStubError}
-              </p>
-            )}
-
-            {executionDevToolsEnabled && agentRunnerError && (
-              <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
-                {agentRunnerError}
-              </p>
-            )}
-
-            {executionDevToolsEnabled && agentRunStoreMessage && (
-              <p className="mt-3 rounded-md border border-sky-300/20 bg-sky-300/[0.06] p-3 text-sm leading-6 text-sky-100">
-                {agentRunStoreMessage}
-              </p>
-            )}
-
-            {executionDevToolsEnabled && agentRunnerResult && (
-              <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-                      Bridge-backed diagnostics runner result
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">
-                      {agentRunnerResult.error ??
-                        agentRunnerResult.rawSummary ??
-                        "Bridge-backed diagnostics runner finished without broker action."}
-                    </p>
-                  </div>
-                  <span className="w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-                    {agentCommandValue(agentRunnerResult.status)}
-                  </span>
-                </div>
-
-                <p className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.06] p-3 text-xs leading-5 text-cyan-100">
-                  Bridge-backed diagnostics runner only. Echo bridge and no-op
-                  bridge are local protocol tools only. Avanza was not opened,
-                  no order was prepared or submitted, and no broker result was
-                  created.
-                </p>
-
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <Detail
-                    label="Request"
-                    value={shortPayloadId(agentRunnerResult.requestId)}
-                  />
-                  <Detail
-                    label="Progress Events"
-                    value={String(agentRunnerResult.progressEvents.length)}
-                  />
-                  <Detail
-                    label="Broker Result"
-                    value={
-                      agentRunnerResult.brokerResult
-                        ? "Unexpected result present"
-                        : "Absent"
-                    }
-                  />
-                  <Detail
-                    label="Raw Summary"
-                    value={agentRunnerResult.rawSummary ?? "—"}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {devCaptureStubVisible && (
-            <div className="rounded-md border border-fuchsia-300/20 bg-fuchsia-300/[0.045] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100">
-                      DEV ONLY
-                    </span>
-                    <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-100">
-                      Broker result capture stub
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
-                    Test Ture&apos;s capture pipeline without Avanza. This does
-                    not confirm a real KÖP/SÄLJ, update the trade, close the
-                    position, or write to Supabase.
-                  </p>
-                </div>
-                <span
-                  className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionLifecycleStubTone(
-                    localLifecycle.currentState,
-                  )}`}
-                >
-                  {getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Broker status
-                  </span>
-                  <select
-                    value={stubBrokerStatus}
-                    disabled={!canRunCaptureStub}
-                    onChange={(event) =>
-                      setStubBrokerStatus(
-                        event.target.value as BrokerExecutionStatus,
-                      )
-                    }
-                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
-                  >
-                    <option value="submitted">Submitted</option>
-                    <option value="filled">Filled</option>
-                    <option value="partially_filled">Partially filled</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="unknown">Unknown</option>
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Executed price
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={stubExecutedPrice}
-                    disabled={!canRunCaptureStub}
-                    onChange={(event) => setStubExecutedPrice(event.target.value)}
-                    placeholder="Optional"
-                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Order id
-                  </span>
-                  <input
-                    value={stubOrderId}
-                    disabled={!canRunCaptureStub}
-                    onChange={(event) => setStubOrderId(event.target.value)}
-                    placeholder="Optional local stub id"
-                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Broker timestamp
-                  </span>
-                  <input
-                    value={stubBrokerTimestamp}
-                    disabled={!canRunCaptureStub}
-                    onChange={(event) =>
-                      setStubBrokerTimestamp(event.target.value)
-                    }
-                    placeholder="Optional, defaults to now"
-                    className="mt-2 min-h-10 w-full rounded-md border border-white/10 bg-black/30 px-3 font-mono text-sm text-white outline-none placeholder:text-zinc-600 transition focus:border-fuchsia-300 disabled:cursor-not-allowed disabled:text-zinc-600"
-                  />
-                </label>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs leading-5 text-zinc-500">
-                  Capturing creates a modal-local execution record and a local
-                  audit event only. It is not production broker evidence.
-                </p>
-                <button
-                  type="button"
-                  disabled={!canRunCaptureStub}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    captureStubBrokerResult();
-                  }}
-                  className="min-h-10 rounded-md border border-fuchsia-300/25 bg-fuchsia-300/10 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100 transition hover:border-fuchsia-200/50 hover:bg-fuchsia-300/15 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-                >
-                  Capture stub broker result
-                </button>
-              </div>
-
-              {stubCaptureMessage && (
-                <p className="mt-3 rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] p-3 text-sm leading-6 text-cyan-100">
-                  {stubCaptureMessage}
-                </p>
-              )}
-
-              {stubCaptureError && (
-                <p className="mt-3 rounded-md border border-rose-300/25 bg-rose-300/[0.08] p-3 text-sm leading-6 text-rose-100">
-                  {stubCaptureError}
-                </p>
-              )}
-
-              {stubCaptureResult && (
-                <div className="mt-4 rounded-md border border-white/10 bg-black/25 p-3">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-                        Local capture result
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-zinc-400">
-                        {stubCaptureResult.reason}
-                      </p>
-                    </div>
-                    <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                      {stubCaptureResult.captureStatus}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    <Detail
-                      label="Record"
-                      value={shortPayloadId(stubCaptureResult.record.recordId)}
-                    />
-                    <Detail
-                      label="Broker Status"
-                      value={agentCommandValue(
-                        stubCaptureResult.record.brokerStatus,
-                      )}
-                    />
-                    <Detail
-                      label="Ticker"
-                      value={stubCaptureResult.record.ticker ?? "—"}
-                    />
-                    <Detail
-                      label="Quantity"
-                      value={formatShares(stubCaptureResult.record.quantity)}
-                    />
-                    <Detail
-                      label="Requested Price"
-                      value={formatCurrency(
-                        stubCaptureResult.record.requestedPrice,
-                      )}
-                    />
-                    <Detail
-                      label="Executed Price"
-                      value={formatCurrency(
-                        stubCaptureResult.record.executedPrice,
-                      )}
-                    />
-                    <Detail
-                      label="Order Id"
-                      value={stubCaptureResult.record.orderId ?? "—"}
-                    />
-                    <Detail
-                      label="Lifecycle"
-                      value={getExecutionLifecycleDisplayLabel(
-                        localLifecycle.currentState,
-                      )}
-                    />
-                    <Detail
-                      label="Reason"
-                      value={stubCaptureResult.record.reason}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <Detail label="Action" value={intent.action.toUpperCase()} />
-            <Detail label="Ticker" value={packageSnapshot.ticker} />
-            <Detail label="Quantity" value={formatShares(packageSnapshot.quantity)} />
-            <Detail
-              label="Intended Price"
-              value={formatCurrency(executionIntentIntendedPrice(intent))}
-            />
-            <Detail
-              label="Target"
-              value={formatCurrency(packageSnapshot.target_price)}
-            />
-            <Detail
-              label="Stop Loss"
-              value={formatCurrency(packageSnapshot.stop_loss)}
-            />
-            <Detail
-              label="Trigger"
-              value={agentCommandValue(intent.trigger_type)}
-            />
-            <Detail label="Mode" value={agentCommandValue(intent.mode)} />
-            <Detail label="Broker" value="Avanza" />
-            <Detail
-              label="Can Prepare"
-              value={agentCommandValue(handoff.canPrepareOrder)}
-            />
-            <Detail
-              label="Can Submit Final"
-              value={agentCommandValue(handoff.canSubmitFinalOrder)}
-            />
-            <Detail
-              label="Intent"
-              value={shortPayloadId(intent.intent_id)}
-            />
-          </div>
-
-          {handoff.blockedReason && (
-            <div className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-                Blocked reason
-              </p>
-              <p className="mt-2 text-sm leading-6 text-zinc-300">
-                {handoff.blockedReason}
-              </p>
-            </div>
-          )}
-
-          <div className="rounded-md border border-white/10 bg-black/20 p-4">
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-              Intent reason
-            </p>
-            <p className="mt-2 text-sm leading-6 text-zinc-300">
-              {executionIntentReason(intent)}
-            </p>
-          </div>
-
-          <div className="rounded-md border border-white/10 bg-black/20 p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-zinc-300">
-                  Safety checks
-                </p>
-                <p className="mt-2 text-sm leading-6 text-zinc-400">
-                  Read-only checks for the future Avanza execution handoff.
-                </p>
-              </div>
-              <span
-                className={`w-fit rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${executionHandoffStatusTone(
-                  handoff.status,
-                )}`}
-              >
-                {agentCommandValue(handoff.status)}
-              </span>
-            </div>
-
-            <div className="mt-3 space-y-2">
-              {handoff.safetyChecks.map((check) => (
-                <div
-                  key={check.id}
-                  className="rounded-md border border-white/10 bg-white/[0.025] p-3"
-                >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <p className="text-sm font-semibold text-zinc-200">
-                      {agentCommandValue(check.id)}
-                    </p>
-                    <span
-                      className={`w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] ${executionSafetyCheckTone(
-                        check.status,
-                      )}`}
-                    >
-                      {check.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {check.message}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="trade-add-modal__footer">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onClose();
-              }}
-              className="trade-discard-modal__button trade-discard-modal__button--neutral"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </section>
-    </div>
+                ),
+                currentLifecycleToneClassName: executionLifecycleStubTone(
+                  localLifecycle.currentState,
+                ),
+                error: stubCaptureError,
+                executedPrice: stubExecutedPrice,
+                formatCurrency,
+                formatShares,
+                message: stubCaptureMessage,
+                onBrokerStatusChange: setStubBrokerStatus,
+                onBrokerTimestampChange: setStubBrokerTimestamp,
+                onCaptureStubBrokerResult: captureStubBrokerResult,
+                onExecutedPriceChange: setStubExecutedPrice,
+                onOrderIdChange: setStubOrderId,
+                orderId: stubOrderId,
+                shortPayloadId,
+              }
+            : null
+        }
+        executionDevToolsEnabled={executionDevToolsEnabled}
+        executionLifecycleStatusPanelProps={{
+          agentCommandValue,
+          agentRunStoreMessage,
+          agentRunnerError,
+          agentRunnerResult,
+          canRunPreparationStub,
+          currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
+            localLifecycle.currentState,
+          ),
+          currentLifecycleToneClassName: executionLifecycleStubTone(
+            localLifecycle.currentState,
+          ),
+          executionDevToolsEnabled,
+          onRunPreparationStub: runPreparationStub,
+          preparationButtonLabel: isAgentRunnerRunning
+            ? "Running bridge diagnostics"
+            : preparationStubReached
+              ? "Stub reached"
+              : executionDevToolsEnabled
+                ? "Prepare in Avanza"
+                : "Not connected",
+          preparationStatusMessage:
+            handoff.status === "ready"
+              ? executionDevToolsEnabled
+                ? "Ready handoff. The bridge-backed diagnostics runner tests where a future Avanza agent bridge would begin without opening Avanza."
+                : "Ready handoff. Avanza preparation is disabled because execution dev tools are off."
+              : "Preparation is disabled until the handoff is ready.",
+          preparationStubError,
+          preparationStubMessage,
+          shortPayloadId,
+        }}
+        executionRecordEligibilityPreviewProps={{
+          canCheck: canCheckLocalhostExecutionRecordEligibility,
+          candidateIsPreviewOnly: executionRecordEligibilityCandidateIsPreviewOnly,
+          hasPreviewCandidate: Boolean(executionRecordEligibilityCandidate),
+          isRunning: isLocalhostExecutionRecordEligibilityRunning,
+          message: localhostExecutionRecordEligibilityMessage,
+          noBrokerExecutionResult: localhostExecutionRecordNoBrokerExecutionResult,
+          noExecutionRecord: localhostExecutionRecordNoExecutionRecord,
+          noSupabaseWrite: localhostExecutionRecordNoSupabaseWrite,
+          noTradeMutation: localhostExecutionRecordNoTradeMutation,
+          onCheck: () => void checkLocalhostExecutionRecordEligibilityStub(),
+          result: localhostExecutionRecordEligibilityResult,
+        }}
+        executionSandboxQaPanelProps={{
+          items: executionSandboxQaItems,
+          overallMessage: sandboxOverallMessage,
+          overallStatus: sandboxOverallStatus,
+        }}
+        futureAgentRequestPreviewProps={{
+          agentCommandValue,
+          executionDevToolsEnabled,
+          formatShares,
+          previewError: avanzaAgentRequestPreview.error,
+          quantity: packageSnapshot.quantity,
+          request: avanzaAgentRequest,
+          requestValidation: avanzaAgentRequestValidation,
+          requestValidationStatus: avanzaAgentRequestValidationStatus,
+          requestValidationTone: avanzaAgentRequestValidationTone,
+          shortPayloadId,
+          ticker: packageSnapshot.ticker,
+        }}
+        instrumentPagePreviewProps={{
+          blocked: localhostInstrumentPageBlocked,
+          canCheck: canCheckLocalhostInstrumentPage,
+          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
+          identified: localhostInstrumentPageIdentified,
+          instrumentVerified: localhostInstrumentVerified,
+          isRunning: isLocalhostInstrumentPageRunning,
+          message: localhostInstrumentPageMessage,
+          mismatch: localhostInstrumentPageMismatch,
+          noAvanzaTouched: localhostInstrumentPageNoAvanzaTouched,
+          noBrokerSubmission: localhostInstrumentPageNoBrokerSubmission,
+          noBrowserActions: localhostInstrumentPageNoBrowserActions,
+          noBuySellClick: localhostInstrumentPageNoBuySellClick,
+          noFormFill: localhostInstrumentPageNoFormFill,
+          noOrderPageOpened: localhostInstrumentPageNoOrderPageOpened,
+          onCheck: () => void checkLocalhostInstrumentPageStub(),
+          page: localhostInstrumentPage,
+          prohibitedControlsVisible:
+            localhostInstrumentPageProhibitedControlsVisible,
+          result: localhostInstrumentPageResult,
+        }}
+        instrumentVerificationPreviewProps={{
+          ambiguous: localhostInstrumentAmbiguous,
+          blocked: localhostInstrumentBlocked,
+          canCheck: canCheckLocalhostInstrumentVerification,
+          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
+          isRunning: isLocalhostInstrumentVerificationRunning,
+          message: localhostInstrumentVerificationMessage,
+          noAvanzaTouched: localhostInstrumentNoAvanzaTouched,
+          noBrokerSubmission: localhostInstrumentNoBrokerSubmission,
+          noBrowserActions: localhostInstrumentNoBrowserActions,
+          noFormFill: localhostInstrumentNoFormFill,
+          noOrderPageOpened: localhostInstrumentNoOrderPageOpened,
+          onCheck: () => void checkLocalhostInstrumentVerificationStub(),
+          rejected: localhostInstrumentRejected,
+          result: localhostInstrumentVerificationResult,
+          searchOnlyExactMatch: localhostSearchOnlyExactMatch,
+          verification: localhostInstrumentVerification,
+          verified: localhostInstrumentVerified,
+        }}
+        orderPageOpenPreviewProps={{
+          blocked: localhostOrderPageBlocked,
+          canCheck: canCheckLocalhostOrderPageOpen,
+          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
+          instrumentPageIdentified: localhostInstrumentPageIdentified,
+          isRunning: isLocalhostOrderPageOpenRunning,
+          message: localhostOrderPageOpenMessage,
+          mismatch: localhostOrderPageMismatch,
+          noAvanzaTouched: localhostOrderPageNoAvanzaTouched,
+          noBrokerSubmission: localhostOrderPageNoBrokerSubmission,
+          noBrowserActions: localhostOrderPageNoBrowserActions,
+          noFinalConfirmClick: localhostOrderPageNoFinalConfirmClick,
+          noFormFill: localhostOrderPageNoFormFill,
+          noRealOrderPageOpened: localhostOrderPageNoRealOrderPageOpened,
+          noReviewClick: localhostOrderPageNoReviewClick,
+          onCheck: () => void checkLocalhostOrderPageOpenStub(),
+          opened: localhostOrderPageOpened,
+          orderPage: localhostOrderPageOpen,
+          result: localhostOrderPageOpenResult,
+          wrongAction: localhostOrderPageWrongAction,
+        }}
+        primaryLocalhostBridgeControlsProps={{
+          canCancelLocalhostBridgeRun,
+          canCheckLocalhostBridgeSelfCheck,
+          canRunLocalhostBridgeDryRun,
+          canRunLocalhostMockAgent,
+          canTestLocalhostDryRunBridgeStub,
+          dryRunRequestValid: avanzaDryRunRequestPreview?.ok === true,
+          isLocalhostBridgeCancelRunning,
+          isLocalhostBridgeRunRunning,
+          isLocalhostBridgeSelfCheckRunning,
+          isLocalhostDryRunBridgeStubRunning,
+          isLocalhostMockAgentRunRunning,
+          localhostBridgeCancelMessage,
+          localhostBridgeCancelResult,
+          localhostBridgeRunMessage,
+          localhostBridgeRunResult,
+          localhostBridgeSelfCheckMessage,
+          localhostBridgeSelfCheckResult,
+          localhostDryRunBridgeStubMessage,
+          localhostDryRunBridgeStubResult,
+          localhostMockAgentRunMessage,
+          localhostMockAgentRunResult,
+          onCancelLocalhostBridgeEcho: () => void cancelLocalhostBridgeEcho(),
+          onCheckLocalhostBridgeSelfCheck: () =>
+            void checkLocalhostBridgeSelfCheck(),
+          onRunLocalhostBridgeEcho: () => void runLocalhostBridgeEcho(),
+          onRunLocalhostMockAgent: () => void runLocalhostMockAgent(),
+          onTestLocalhostDryRunBridgeStub: () =>
+            void testLocalhostDryRunBridgeStub(),
+          showDryRunBridgePreview: executionDevToolsEnabled,
+          showLocalhostBridgeEchoControls: false,
+        }}
+        reviewClickPreviewProps={{
+          advancedFormFilled: localhostAdvancedFormFilled,
+          blocked: localhostReviewClickBlocked,
+          canCheck: canCheckLocalhostReviewClick,
+          confirmationMismatch: localhostReviewClickConfirmationMismatch,
+          confirmationReady: localhostReviewClickConfirmationReady,
+          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
+          finalConfirmBlocked: localhostReviewClickFinalConfirmBlocked,
+          isRunning: isLocalhostReviewClickRunning,
+          message: localhostReviewClickMessage,
+          noAvanzaTouched: localhostReviewClickNoAvanzaTouched,
+          noBrokerResult: localhostReviewClickNoBrokerResult,
+          noBrowserActions: localhostReviewClickNoBrowserActions,
+          noFinalConfirmClick: localhostReviewClickNoFinalConfirmClick,
+          noRealReviewClick: localhostReviewClickNoRealReviewClick,
+          noTradeMutation: localhostReviewClickNoTradeMutation,
+          onCheck: () => void checkLocalhostReviewClickStub(),
+          result: localhostReviewClickResult,
+          reviewClick: localhostReviewClick,
+          validationError: localhostReviewClickValidationError,
+          waitingForManualConfirmation:
+            localhostReviewClickWaitingForManualConfirmation,
+        }}
+        searchOnlyPreviewProps={{
+          ambiguous: localhostSearchOnlyAmbiguous,
+          blocked: localhostSearchOnlyBlocked,
+          canCheck: canCheckLocalhostSearchOnly,
+          exactMatch: localhostSearchOnlyExactMatch,
+          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
+          isRunning: isLocalhostSearchOnlyRunning,
+          message: localhostSearchOnlyMessage,
+          noAvanzaTouched: localhostSearchOnlyNoAvanzaTouched,
+          noBrokerSubmission: localhostSearchOnlyNoBrokerSubmission,
+          noBrowserActions: localhostSearchOnlyNoBrowserActions,
+          noMatch: localhostSearchOnlyNoMatch,
+          noOrderPageOpened: localhostSearchOnlyNoOrderPageOpened,
+          onCheck: () => void checkLocalhostSearchOnlyStub(),
+          result: localhostSearchOnlyResult,
+          searchOnly: localhostSearchOnly,
+        }}
+        secondaryLocalhostBridgeControlsProps={{
+          canCancelLocalhostBridgeRun,
+          canCheckLocalhostBridgeSelfCheck,
+          canRunLocalhostBridgeDryRun,
+          canRunLocalhostMockAgent,
+          canTestLocalhostDryRunBridgeStub,
+          dryRunRequestValid: avanzaDryRunRequestPreview?.ok === true,
+          isLocalhostBridgeCancelRunning,
+          isLocalhostBridgeRunRunning,
+          isLocalhostBridgeSelfCheckRunning,
+          isLocalhostDryRunBridgeStubRunning,
+          isLocalhostMockAgentRunRunning,
+          localhostBridgeCancelMessage,
+          localhostBridgeCancelResult,
+          localhostBridgeRunMessage,
+          localhostBridgeRunResult,
+          localhostBridgeSelfCheckMessage,
+          localhostBridgeSelfCheckResult,
+          localhostDryRunBridgeStubMessage,
+          localhostDryRunBridgeStubResult,
+          localhostMockAgentRunMessage,
+          localhostMockAgentRunResult,
+          onCancelLocalhostBridgeEcho: () => void cancelLocalhostBridgeEcho(),
+          onCheckLocalhostBridgeSelfCheck: () =>
+            void checkLocalhostBridgeSelfCheck(),
+          onRunLocalhostBridgeEcho: () => void runLocalhostBridgeEcho(),
+          onRunLocalhostMockAgent: () => void runLocalhostMockAgent(),
+          onTestLocalhostDryRunBridgeStub: () =>
+            void testLocalhostDryRunBridgeStub(),
+          showDryRunBridgePreview: false,
+          showLocalhostBridgeEchoControls:
+            executionDevToolsEnabled &&
+            Boolean(avanzaAgentRequest && avanzaAgentBridgeEnvelope),
+        }}
+        sessionDetectionPreviewProps={{
+          canCheck: canCheckLocalhostSessionDetection,
+          isRunning: isLocalhostSessionDetectionRunning,
+          message: localhostSessionDetectionMessage,
+          noAvanzaTouched: localhostSessionDetectionNoAvanzaTouched,
+          noBrowserActions: localhostSessionDetectionNoBrowserActions,
+          onCheck: () => void checkLocalhostSessionDetectionStub(),
+          readyForSearchOnly: localhostSessionDetectionReadyForSearchOnly,
+          result: localhostSessionDetectionResult,
+          sessionDetection: localhostSessionDetection,
+        }}
+        statusReadbacksProps={{
+          blockedReason: handoff.blockedReason,
+          details: [
+            { label: "Action", value: intent.action.toUpperCase() },
+            { label: "Ticker", value: packageSnapshot.ticker },
+            { label: "Quantity", value: formatShares(packageSnapshot.quantity) },
+            {
+              label: "Intended Price",
+              value: formatCurrency(executionIntentIntendedPrice(intent)),
+            },
+            {
+              label: "Target",
+              value: formatCurrency(packageSnapshot.target_price),
+            },
+            {
+              label: "Stop Loss",
+              value: formatCurrency(packageSnapshot.stop_loss),
+            },
+            { label: "Trigger", value: agentCommandValue(intent.trigger_type) },
+            { label: "Mode", value: agentCommandValue(intent.mode) },
+            { label: "Broker", value: "Avanza" },
+            {
+              label: "Can Prepare",
+              value: agentCommandValue(handoff.canPrepareOrder),
+            },
+            {
+              label: "Can Submit Final",
+              value: agentCommandValue(handoff.canSubmitFinalOrder),
+            },
+            { label: "Intent", value: shortPayloadId(intent.intent_id) },
+          ],
+          handoffStatusLabel: agentCommandValue(handoff.status),
+          handoffStatusToneClassName: executionHandoffStatusTone(
+            handoff.status,
+          ),
+          intentReason: executionIntentReason(intent),
+          onClose,
+          safetyChecks: handoff.safetyChecks.map((check) => ({
+            id: agentCommandValue(check.id),
+            message: check.message,
+            status: check.status,
+            toneClassName: executionSafetyCheckTone(check.status),
+          })),
+        }}
+      />
+    </ExecutionHandoffModalShell>
   );
 }
 
@@ -41058,9 +34920,6 @@ function ClosedPositionCard({
   position: ClosedPosition;
   historySummary: HistoryTradeSummary;
 }) {
-  const pnlValue = historySummary.effective_pnl ?? parseNumber(position.pnl);
-  const pnlClassName =
-    pnlValue !== null && pnlValue < 0 ? "text-rose-100" : "text-emerald-100";
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const localEvents = readTradeManagementEvents();
   const timeline = buildExecutionTimeline({
@@ -41108,36 +34967,26 @@ function ClosedPositionCard({
     handoff_quality: handoffQuality,
     improvement_suggestions: improvementSuggestions.suggestions,
   });
+  const closedTradeDisplay = buildClosedTradeDisplayProps({
+    firstLearningFallback:
+      outcomeExplanation.what_to_watch_next_time[0] ||
+      improvementSuggestions.suggestions[0]?.suggested_action ||
+      "History explanations are based on available structured data and may be incomplete.",
+    isDemo: isDemoPosition(position),
+    position: {
+      direction: position.direction,
+      executionMetadata: position.executionMetadata,
+      pnl: position.pnl,
+    },
+    summary: historySummary,
+  });
   const outcomePill = (
     <span
-      className={`w-fit rounded-full border px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${historyOutcomeTone(
-        historySummary.outcome,
-      )}`}
+      className={`w-fit rounded-full border px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${closedTradeDisplay.outcomePillClassName}`}
     >
-      {historyOutcomeLabel(historySummary.outcome)}
+      {closedTradeDisplay.outcomeLabel}
     </span>
   );
-  const firstLearning =
-    outcomeExplanation.what_to_watch_next_time[0] ||
-    improvementSuggestions.suggestions[0]?.suggested_action ||
-    "History explanations are based on available structured data and may be incomplete.";
-  const closedTradeRealityMode = isDemoPosition(position)
-    ? "demo"
-    : historySummary.execution_quality.broker_or_mock_source === "mock"
-      ? "mock_broker"
-      : position.executionMetadata
-        ? "manual_broker_record"
-        : "supabase_record";
-  const closedTradeRealityBadges = [
-    dataModeBadgeForMode(closedTradeRealityMode),
-    dataModeBadgeForExecutionReality(
-      isDemoPosition(position)
-        ? "demo_only"
-        : historySummary.execution_quality.broker_or_mock_source === "mock"
-          ? "mock_only"
-          : "manual_only",
-    ),
-  ];
 
   return (
     <article
@@ -41160,7 +35009,7 @@ function ClosedPositionCard({
               companyName={position.companyName}
             />
             <div className="flex flex-col items-start gap-2 sm:items-end">
-              <DataModePillRow badges={closedTradeRealityBadges.slice(0, 1)} />
+              <DataModePillRow badges={closedTradeDisplay.realityBadges.slice(0, 1)} />
               {outcomePill}
             </div>
           </div>
@@ -41169,43 +35018,23 @@ function ClosedPositionCard({
             Closed {position.closedAt} · Opened {position.openedAt}
           </p>
         </div>
-        <div className={`text-right font-mono text-sm font-semibold ${pnlClassName}`}>
-          {formatSignedCurrency(historySummary.effective_pnl)}
+        <div className={`text-right font-mono text-sm font-semibold ${closedTradeDisplay.pnlClassName}`}>
+          {closedTradeDisplay.pnlDisplay}
           <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-zinc-500">
-            {formatSignedR(historySummary.effective_r)}
+            {closedTradeDisplay.rDisplay}
           </div>
         </div>
       </div>
 
       <MiniMetricGrid
-        metrics={[
-          { label: "PnL", value: formatSignedCurrency(historySummary.effective_pnl) },
-          { label: "R", value: formatSignedR(historySummary.effective_r) },
-          { label: "Entry", value: formatCurrency(historySummary.entry_price) },
-          { label: "Exit", value: formatCurrency(historySummary.exit_price) },
-          { label: "Shares", value: formatShares(historySummary.shares) },
-          {
-            label: "Partial Status",
-            value: historySummary.partial.had_partial_exits
-              ? "FULLY CLOSED AFTER PARTIAL"
-              : formatStatisticsStatusLabel(historySummary.partial.status),
-          },
-          {
-            label: "Hold Time",
-            value: formatStatisticsDurationMinutes(historySummary.holding_minutes),
-          },
-          {
-            label: "Source",
-            value: historySummary.execution_quality.broker_or_mock_source.toUpperCase(),
-          },
-        ]}
+        metrics={closedTradeDisplay.metrics}
       />
 
       <p className="mt-4 line-clamp-2 text-sm leading-6 text-zinc-300">
         {outcomeExplanation.simple_explanation}
       </p>
       <p className="mt-2 line-clamp-1 text-xs leading-5 text-zinc-500">
-        Journal note: {historySummary.learning_insights[0]?.detail ?? firstLearning}
+        Journal note: {closedTradeDisplay.firstLearning}
       </p>
 
       <div className="mt-5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
@@ -41213,44 +35042,19 @@ function ClosedPositionCard({
       </div>
 
       {isDetailsOpen && (
-        <TradingDetailsModal
-          kind="Closed Trade"
-          ticker={position.ticker}
-          companyName={position.companyName}
+        <ClosedTradeDetailsModal
+          identity={
+            <CompanyIdentity
+              ticker={position.ticker}
+              companyName={position.companyName}
+            />
+          }
           status={outcomePill}
           onClose={() => setIsDetailsOpen(false)}
         >
           <div className="space-y-4">
             <DataModeSurfaceNotice
-              surface={{
-                surface_id: "history_and_statistics",
-                label: "History / Statistics",
-                mode: closedTradeRealityMode,
-                source_kind: isDemoPosition(position)
-                  ? "local_storage"
-                  : "supabase",
-                freshness_status: "not_applicable",
-                execution_reality: isDemoPosition(position)
-                  ? "demo_only"
-                  : historySummary.execution_quality.broker_or_mock_source === "mock"
-                    ? "mock_only"
-                    : "manual_only",
-                badges: closedTradeRealityBadges,
-                warnings:
-                  historySummary.execution_quality.broker_or_mock_source === "mock"
-                    ? [
-                        {
-                          surface_id: "history_and_statistics",
-                          warning_id: "mock_history_record",
-                          label: "Mock record",
-                          message: "This history item includes mock broker test data.",
-                          severity: "warning",
-                        },
-                      ]
-                    : [],
-                summary:
-                  "History and Statistics summarize stored Ture records. They do not prove that Ture controlled Avanza or sent an order.",
-              }}
+              surface={closedTradeDisplay.surfaceNotice}
               compact
             />
             <ClosedTradeResultStrip
@@ -41280,52 +35084,43 @@ function ClosedPositionCard({
               suggestions={improvementSuggestions}
             />
 
-            <details className="rounded-md border border-white/10 bg-black/20 p-4">
-              <summary className="cursor-pointer font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300">
-                Audit details
-              </summary>
-              <div className="mt-4 space-y-4">
-                <BrokerExecutionMetadataPanel
-                  metadata={position.executionMetadata}
-                  compact
-                />
-                <BrokerOrderPreviewPanel
-                  metadata={position.executionMetadata}
-                  compact
-                />
-                <ExecutionQualityPanel
-                  metadata={position.executionMetadata}
-                  compact
-                />
-                <HandoffQualityPanel
-                  position={position}
-                  closedAt={position.closedAtRaw}
-                />
-                <ExecutionImprovementSuggestionsPanel
-                  position={position}
-                  closedAt={position.closedAtRaw}
-                />
-                <TradeOutcomeExplainerPanel position={position} />
-                <HandoffSessionReplayPanel
-                  position={position}
-                  closedAt={position.closedAtRaw}
-                />
-                <ExecutionTimelinePanel
-                  position={position}
-                  closedAt={position.closedAtRaw}
-                />
-              </div>
-              <p className="mt-3 text-xs leading-5 text-zinc-500">
-                History explanations are based on available structured data and may
-                be incomplete.
-              </p>
-            </details>
+            <ClosedTradeAuditTimelinePanel>
+              <BrokerExecutionMetadataPanel
+                metadata={position.executionMetadata}
+                compact
+              />
+              <BrokerOrderPreviewPanel
+                metadata={position.executionMetadata}
+                compact
+              />
+              <ExecutionQualityPanel
+                metadata={position.executionMetadata}
+                compact
+              />
+              <HandoffQualityPanel
+                position={position}
+                closedAt={position.closedAtRaw}
+              />
+              <ExecutionImprovementSuggestionsPanel
+                position={position}
+                closedAt={position.closedAtRaw}
+              />
+              <TradeOutcomeExplainerPanel position={position} />
+              <HandoffSessionReplayPanel
+                position={position}
+                closedAt={position.closedAtRaw}
+              />
+              <ExecutionTimelinePanel
+                position={position}
+                closedAt={position.closedAtRaw}
+              />
+            </ClosedTradeAuditTimelinePanel>
 
             {position.exitNotes && (
               <TextBlock label="Exit Notes" value={position.exitNotes} />
             )}
           </div>
-        </TradingDetailsModal>
+        </ClosedTradeDetailsModal>
       )}
     </article>
   );
@@ -45550,161 +39345,6 @@ function DismissibleWarning({
       >
         {actionLabel}
       </button>
-    </div>
-  );
-}
-
-function TradingDetailsModal({
-  kind,
-  ticker,
-  companyName,
-  status,
-  onClose,
-  children,
-}: {
-  kind: "Recommendation" | "Live Day Trade" | "Closed Trade";
-  ticker: string;
-  companyName?: string | null;
-  status?: React.ReactNode;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-5"
-      onMouseDown={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-      onClick={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-white/10 bg-[#0b0c0c] p-5 shadow-2xl"
-        onMouseDown={(event) => event.stopPropagation()}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="min-w-0">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-              {kind} details
-            </p>
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <CompanyIdentity ticker={ticker} companyName={companyName} />
-              {status && <div className="shrink-0">{status}</div>}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClose();
-            }}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] text-zinc-400 transition hover:border-white/20 hover:text-white"
-          >
-            X
-          </button>
-        </div>
-        <div className="mt-5">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function DiscardRecommendationModal({
-  ticker,
-  companyName,
-  isSaving,
-  onCancel,
-  onConfirm,
-}: {
-  ticker: string;
-  companyName?: string | null;
-  isSaving: boolean;
-  onCancel: () => void;
-  onConfirm: () => void | Promise<void>;
-}) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onCancel();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
-
-  return (
-    <div
-      className="trade-discard-modal-backdrop"
-      role="presentation"
-      onClick={(event) => {
-        event.stopPropagation();
-        if (event.target === event.currentTarget) {
-          onCancel();
-        }
-      }}
-      onMouseDown={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      <section
-        aria-describedby="trade-discard-modal-description"
-        aria-labelledby="trade-discard-modal-title"
-        aria-modal="true"
-        className="trade-discard-modal"
-        role="dialog"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <h2 id="trade-discard-modal-title">Discard Recommendation</h2>
-        <p id="trade-discard-modal-description">
-          Are you sure about discarding this trade recommendation?
-        </p>
-        <div className="trade-discard-modal__divider" />
-        <div className="trade-discard-modal__actions">
-          <button
-            type="button"
-            className="trade-discard-modal__button trade-discard-modal__button--danger"
-            disabled={isSaving}
-            onClick={async (event) => {
-              event.stopPropagation();
-              await onConfirm();
-            }}
-            title={`Discard ${displayValue(ticker)} ${displayValue(companyName)}`}
-          >
-            Discard
-          </button>
-          <button
-            type="button"
-            className="trade-discard-modal__button trade-discard-modal__button--neutral"
-            disabled={isSaving}
-            onClick={(event) => {
-              event.stopPropagation();
-              onCancel();
-            }}
-          >
-            No
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
