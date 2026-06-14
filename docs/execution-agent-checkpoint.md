@@ -4023,3 +4023,630 @@ Safety result:
 Next recommended action:
 
 **Action 395 — Reassess Statistics Range State Hook Extraction**
+
+## Action 395 - Reassess Statistics Range State Hook Extraction
+
+Files changed:
+
+- `docs/statistics-range-state-hook-post-extraction-reassessment.md`
+- `docs/statistics-range-state-hook-boundary-reassessment.md`
+- `docs/navigation-tab-state-hook-post-extraction-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/statistics-dashboard-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Reassessed the Action 394 Statistics range hook extraction.
+- Confirmed the hook exports only `useStatisticsRangeState` and owns only
+  `selectedStatisticsRange` plus its setter.
+- Confirmed the `"today"` default range and existing setter call path are
+  preserved.
+- Confirmed range options, labels, calculations, dashboard rendering,
+  persistence, cross-tab data construction, and execution/handoff behavior
+  remain parent-owned.
+- Recommended Action 396: reassess modal UI state hook boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No additional hook/state movement, calculation movement, filtering/data
+  construction movement, localStorage/Supabase movement, execution/orchestrator
+  movement, Avanza/browser behavior, execution behavior, or trade mutation
+  behavior changed.
+
+Next recommended action:
+
+**Action 396 — Reassess Modal UI State Hook Boundary**
+
+## Action 396 - Reassess Modal UI State Hook Boundary
+
+Files changed:
+
+- `docs/modal-ui-state-hook-boundary-reassessment.md`
+- `docs/statistics-range-state-hook-post-extraction-reassessment.md`
+- `docs/navigation-tab-state-hook-post-extraction-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Reassessed current modal UI state clusters.
+- Confirmed Recommendation details/discard state is already local to
+  `RecommendationCardContainer`.
+- Confirmed app-owned `selectedRecommendation`, `selectedPosition`, add-trade
+  form state, close-position form state, and validation state are coupled to
+  behavior and should remain parent-owned.
+- Confirmed execution preview, handoff, close/sell, broker/result, and Avanza
+  preview states are safety- or persistence-adjacent and should not move.
+- Recommended Action 397: reassess Recommendation UI state hook boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No hook/state movement, selected trade/recommendation movement,
+  ADD TRADE/discard/close/sell logic movement, execution/orchestrator movement,
+  localStorage/Supabase movement, Avanza/browser behavior, execution behavior,
+  or trade mutation behavior changed.
+
+Next recommended action:
+
+**Action 397 — Reassess Recommendation UI State Hook Boundary**
+
+## Action 397 - Reassess Recommendation UI State Hook Boundary
+
+Files changed:
+
+- `docs/recommendation-ui-state-hook-boundary-reassessment.md`
+- `docs/modal-ui-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/recommendations-area-post-container-extraction-reassessment.md`
+- `docs/recommendations-tab-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Reassessed current Recommendation UI state boundaries after modal state was
+  found too coupled for a generic hook.
+- Confirmed `RecommendationCardContainer` already owns card-local details,
+  discard confirmation, and confirm-in-progress UI state.
+- Confirmed parent-owned Recommendation state remains coupled to data
+  construction, Recommendation history filters, ADD TRADE validation, selected
+  TradeModal state, discard persistence, Supabase/localStorage behavior,
+  diagnostics, and execution handoff entry points.
+- Recommended Action 398: reassess History UI state hook boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No hook/state movement, Recommendation data construction/filtering movement,
+  ADD TRADE validation/openTradeModal movement, discard persistence movement,
+  selected TradeModal movement, localStorage/Supabase movement,
+  execution/handoff movement, Avanza/browser behavior, execution behavior, or
+  trade mutation behavior changed.
+
+Next recommended action:
+
+**Action 398 — Reassess History UI State Hook Boundary**
+
+## Action 398 - Reassess History UI State Hook Boundary
+
+Files changed:
+
+- `docs/history-ui-state-hook-boundary-reassessment.md`
+- `docs/recommendation-ui-state-hook-boundary-reassessment.md`
+- `docs/modal-ui-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/history-tab-extraction-plan.md`
+- `docs/closed-position-card-post-audit-timeline-panel-reassessment.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Reassessed current History UI state boundaries.
+- Confirmed `ClosedPositionCard` already owns card-local details-open state.
+- Confirmed History filter/sort state is UI-like but remains coupled to
+  `buildHistoryDashboard`, visible counts, filtered card ordering, empty
+  states, and e2e-visible labels.
+- Confirmed PnL/result derivation, plan-vs-actual derivation, audit/timeline
+  derivation, persistence, Statistics integration, and execution/audit
+  integration remain parent/card-owned.
+- Recommended Action 399: reassess Live Day Trade UI state hook boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No hook/state movement, History data construction/filtering movement,
+  PnL/result calculation movement, plan-adherence/audit derivation movement,
+  localStorage/Supabase movement, execution/audit integration movement,
+  Avanza/browser behavior, execution behavior, or trade mutation behavior
+  changed.
+
+Next recommended action:
+
+**Action 399 — Reassess Live Day Trade UI State Hook Boundary**
+
+## Action 399 - Reassess Live Day Trade UI State Hook Boundary
+
+Files changed:
+
+- `docs/live-day-trade-ui-state-hook-boundary-reassessment.md`
+- `docs/history-ui-state-hook-boundary-reassessment.md`
+- `docs/recommendation-ui-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/live-day-trades-tab-extraction-plan.md`
+- `docs/active-position-card-post-details-modal-reassessment.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Reassessed Live Day Trade UI state boundaries.
+- Confirmed `ActivePositionCard` owns card-local details-open,
+  execution-preview-open, and EOD acknowledgement state.
+- Confirmed details/preview booleans are low-payoff extraction targets, EOD
+  acknowledgement is localStorage-coupled, execution preview is
+  orchestrator/handoff-coupled, and close/sell state is mutation- and
+  persistence-coupled.
+- Confirmed close/sell handlers, selected close-position state, active position
+  monitoring, Supabase/localStorage behavior, and trade mutation flows remain
+  parent/card-owned.
+- Recommended Action 400: create a persistence boundary plan.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No hook/state movement, close/sell/exit logic movement, EOD acknowledgement
+  persistence movement, execution/orchestrator movement, localStorage/Supabase
+  movement, trade mutation movement, Avanza/browser behavior, or execution
+  behavior changed.
+
+Next recommended action:
+
+**Action 400 — Create Persistence Boundary Plan**
+
+## Action 400 - Create Persistence Boundary Plan
+
+Files changed:
+
+- `docs/persistence-boundary-plan.md`
+- `docs/live-day-trade-ui-state-hook-boundary-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only persistence boundary plan.
+- Inventoried localStorage keys, demo/local fallback flows, Supabase reads and
+  writes, recommendation learning persistence helpers, trade mutation flows,
+  EOD acknowledgement persistence, audit/event logs, execution metadata, and
+  execution audit persistence modules.
+- Classified persistence risk from low-risk key constants/preferences through
+  high-risk trade mutations, Supabase writes, execution metadata, audit records,
+  and idempotency-sensitive flows.
+- Recommended Action 401: reassess localStorage key constants boundary.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No persistence movement, localStorage/Supabase movement, trade mutation
+  movement, execution/orchestrator movement, Avanza/browser behavior, execution
+  behavior, or data writes changed.
+
+Next recommended action:
+
+**Action 401 — Reassess localStorage Key Constants Boundary**
+
+## Action 401 - Reassess localStorage Key Constants Boundary
+
+Files changed:
+
+- `docs/local-storage-key-constants-boundary-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment of localStorage key constants.
+- Inventoried app-inline static keys, dynamic EOD acknowledgement keys,
+  repeated audit/event literals, helper-module keys, recommendation-learning
+  keys, execution/audit stores, diagnostics keys, and demo storage keys.
+- Confirmed constants-only centralization is safe if exact strings are
+  preserved.
+- Confirmed read/write helpers, migrations, dynamic key generation, Supabase
+  persistence, trade mutations, recommendation-learning writes, and execution
+  persistence should not move in the next action.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No localStorage key names, reads, writes, deletes, migrations, Supabase
+  behavior, trade mutations, execution/orchestrator behavior, Avanza/browser
+  behavior, or persistence behavior changed.
+
+Next recommended action:
+
+**Action 402 — Extract localStorage Key Constants**
+
+## Action 402 - Extract localStorage Key Constants
+
+Files changed:
+
+- `lib/persistence/local-storage-keys.ts`
+- `app/trade-app.tsx`
+- `lib/execution-timeline.ts`
+- `docs/local-storage-key-constants-boundary-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a constants-only localStorage key module.
+- Centralized exact static key strings for demo storage, mock broker latest
+  fill, warning dismissals, live market trial runbook, provider plan mode, dev
+  preview visibility, and trade management events.
+- Replaced eligible static literals in `app/trade-app.tsx` and
+  `lib/execution-timeline.ts`.
+- Left dynamic EOD key generation, localStorage read/write helpers, migrations,
+  Supabase behavior, trade mutations, recommendation-learning persistence, and
+  execution/orchestrator persistence untouched.
+
+Safety result:
+
+- No localStorage key strings changed.
+- No persistence behavior changed.
+- No Avanza/browser behavior, execution behavior, Supabase behavior, trade
+  mutation behavior, migration behavior, or dynamic key behavior changed.
+
+Next recommended action:
+
+**Action 403 — Reassess localStorage Key Constants Extraction**
+
+## Action 403 - Reassess localStorage Key Constants Extraction
+
+Files changed:
+
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/local-storage-key-constants-boundary-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment after the constants extraction.
+- Verified `lib/persistence/local-storage-keys.ts` exports exact static
+  constants only.
+- Confirmed no read/write helpers, dynamic EOD key builder, migrations,
+  defaults, Supabase behavior, trade mutations, recommendation-learning
+  persistence, or execution/orchestrator persistence moved.
+- Recorded the Action 402 test status, including the sandbox-limited e2e run.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No additional key movement, localStorage read/write movement, dynamic key
+  builder movement, Supabase movement, trade mutation movement,
+  execution/orchestrator movement, Avanza/browser behavior, or execution
+  behavior changed.
+
+Next recommended action:
+
+**Action 404 — Reassess EOD Acknowledgement Persistence Wrapper**
+
+## Action 404 - Reassess EOD Acknowledgement Persistence Wrapper
+
+Files changed:
+
+- `docs/eod-acknowledgement-persistence-wrapper-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/local-storage-key-constants-boundary-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment of EOD acknowledgement
+  persistence.
+- Inventoried dynamic key generation, read/write helpers, defaults,
+  localStorage guards, error handling, and `ActivePositionCard` call sites.
+- Concluded the wrapper can be extracted safely next if the exact key format
+  and behavior are preserved.
+- Confirmed EOD safety calculation, UI state, close/sell behavior, Supabase
+  behavior, and execution/orchestrator behavior should not move.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No localStorage read/write movement, dynamic key builder movement,
+  persistence helper extraction, Supabase movement, close/sell/EOD UX movement,
+  execution/orchestrator movement, Avanza/browser behavior, or execution
+  behavior changed.
+
+Next recommended action:
+
+**Action 405 — Extract EOD Acknowledgement Persistence Wrapper**
+
+## Action 405 - Extract EOD Acknowledgement Persistence Wrapper
+
+Files changed:
+
+- `lib/persistence/eod-acknowledgement-persistence.ts`
+- `app/trade-app.tsx`
+- `docs/eod-acknowledgement-persistence-wrapper-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Extracted EOD acknowledgement localStorage persistence into a tiny wrapper.
+- Preserved exact key format, stored value, read fallback, server no-op
+  behavior, remove-on-false behavior, and swallowed localStorage errors.
+- Updated `app/trade-app.tsx` to use the wrapper for EOD acknowledgement
+  read/write.
+- Left EOD safety calculation, UI state, close/sell behavior, Supabase
+  behavior, trade mutations, and execution/orchestrator behavior untouched.
+
+Safety result:
+
+- No key format changed.
+- No default behavior changed.
+- No migration, Supabase behavior, EOD safety calculation movement, UI state
+  movement, close/sell behavior movement, execution/orchestrator movement,
+  trade mutation movement, Avanza/browser behavior, or execution behavior
+  changed.
+
+Next recommended action:
+
+**Action 406 — Reassess EOD Acknowledgement Persistence Wrapper Extraction**
+
+## Action 406 - Reassess EOD Acknowledgement Persistence Wrapper Extraction
+
+Files changed:
+
+- `docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`
+- `docs/eod-acknowledgement-persistence-wrapper-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment after EOD acknowledgement wrapper
+  extraction.
+- Verified the wrapper preserves exact key format, read/write semantics,
+  fallbacks, server behavior, remove-on-false behavior, and swallowed errors.
+- Confirmed no EOD UI state, EOD safety calculation, close/sell behavior,
+  Supabase/trade behavior, or execution/orchestrator behavior moved.
+- Recorded the Action 405 test status and e2e sandbox limitation.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No additional persistence movement, localStorage key changes, Supabase
+  movement, trade mutation movement, EOD UI/state movement,
+  execution/orchestrator movement, Avanza/browser behavior, or execution
+  behavior changed.
+
+Next recommended action:
+
+**Action 407 — Reassess Recommendation Discard Persistence Wrapper**
+
+## Action 407 - Reassess Recommendation Discard Persistence Wrapper
+
+Files changed:
+
+- `docs/recommendation-discard-persistence-wrapper-reassessment.md`
+- `docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment of recommendation discard
+  persistence.
+- Confirmed the discard confirm UI state is already local to
+  `RecommendationCardContainer`.
+- Confirmed the persistence path remains Supabase/status/metadata coupled in
+  `app/trade-app.tsx`, not a localStorage read/write wrapper.
+- Confirmed recommendation-learning localStorage persistence is adjacent but
+  not the confirm-discard persistence path.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No localStorage read/write movement, key movement, Supabase movement, trade
+  mutation movement, ADD TRADE movement, discard persistence movement, or
+  execution/orchestrator movement.
+
+Next recommended action:
+
+**Action 408 — Reassess Dev/Diagnostics localStorage Wrapper**
+
+## Action 408 - Reassess Dev/Diagnostics localStorage Wrapper
+
+Files changed:
+
+- `docs/dev-diagnostics-local-storage-wrapper-reassessment.md`
+- `docs/recommendation-discard-persistence-wrapper-reassessment.md`
+- `docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment of dev/diagnostics localStorage
+  wrappers.
+- Confirmed several diagnostics stores already have dedicated modules and
+  should stay module-owned.
+- Identified app-local dev/preference localStorage helpers as the safest next
+  wrapper target.
+- Confirmed execution audit/event stores and execution record/result stores
+  should wait for separate reassessment.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No localStorage read/write movement, diagnostics persistence movement,
+  Supabase movement, trade mutation movement, execution/orchestrator movement,
+  Avanza/browser behavior, or execution behavior changed.
+
+Next recommended action:
+
+**Action 409 — Extract Dev/Diagnostics localStorage Wrapper**
+
+## Action 409 - Extract Dev/Diagnostics localStorage Wrapper
+
+Files changed:
+
+- `lib/persistence/dev-diagnostics-local-storage.ts`
+- `app/trade-app.tsx`
+- `docs/dev-diagnostics-local-storage-wrapper-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Extracted app-local dev/preference localStorage helpers into
+  `lib/persistence/dev-diagnostics-local-storage.ts`.
+- Moved provider plan mode, dev-preview hidden flag, dismissed warnings, and
+  latest mock broker fill raw read/remove helpers.
+- Left live market trial runbook persistence inline.
+- Left diagnostics stores and execution audit/record stores module-owned.
+
+Safety result:
+
+- No key strings changed.
+- No data shape, default, migration, Supabase behavior, trade mutation
+  behavior, execution/orchestrator behavior, Avanza/browser behavior, or
+  execution behavior changed.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- default sandbox `npm run test:e2e` was blocked before app test logic by
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Next recommended action:
+
+**Action 410 — Reassess Dev/Diagnostics localStorage Wrapper Extraction**
+
+## Action 410 - Reassess Dev/Diagnostics localStorage Wrapper Extraction
+
+Files changed:
+
+- `docs/dev-diagnostics-local-storage-post-extraction-reassessment.md`
+- `docs/dev-diagnostics-local-storage-wrapper-reassessment.md`
+- `docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`
+- `docs/local-storage-key-constants-post-extraction-reassessment.md`
+- `docs/persistence-boundary-plan.md`
+- `docs/app-state-effects-extraction-plan.md`
+- `docs/trade-app-post-major-ui-extraction-reassessment.md`
+- `docs/trade-app-responsibility-reassessment.md`
+- `docs/execution-agent-checkpoint.md`
+- `docs/execution-agent-qa-notes.md`
+
+Result:
+
+- Created a documentation-only reassessment after the dev/diagnostics
+  localStorage wrapper extraction.
+- Verified the wrapper remains limited to app-local dev/preference helpers.
+- Confirmed key strings, data shapes, defaults/fallbacks, no-window behavior,
+  and error handling were preserved.
+- Confirmed diagnostics stores, execution audit/event stores, execution record
+  stores, live market trial runbook persistence, Supabase behavior, trade
+  mutations, and execution/orchestrator behavior remain untouched.
+
+Action 409 checks recorded:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- default sandbox `npm run test:e2e` was blocked by
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Safety result:
+
+- Documentation only.
+- No runtime behavior changed.
+- No additional persistence movement, localStorage key changes,
+  diagnostics/audit/record store movement, Supabase movement, trade mutation
+  movement, execution/orchestrator movement, Avanza/browser behavior, or
+  execution behavior changed.
+
+Next recommended action:
+
+**Action 411 — Reassess Live Market Trial Runbook Persistence Wrapper**

@@ -1,4 +1,5 @@
 import type { BrokerExecutionMetadata } from "@/lib/broker-execution-metadata";
+import { TRADE_MANAGEMENT_EVENTS_STORAGE_KEY } from "@/lib/persistence/local-storage-keys";
 
 export type ExecutionTimelineEventType =
   | "add_trade_validation"
@@ -263,7 +264,7 @@ export function readTradeManagementEvents(): unknown[] {
 
   try {
     const parsed = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     );
     return Array.isArray(parsed) ? parsed : [];
   } catch {

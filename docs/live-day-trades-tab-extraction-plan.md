@@ -676,3 +676,23 @@ Result:
 Next recommended action:
 
 **Action 390 - Reassess Navigation/Tab State Hook Boundary**
+
+## 27. Action 399 Result
+
+Action 399 added
+`docs/live-day-trade-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed Live Day Trade UI state after the initial tiny app-state hooks and
+  other UI-state boundary reassessments.
+- Confirmed `ActivePositionCard` details/preview state remains card-local and
+  EOD acknowledgement remains card-owned because it persists to localStorage.
+- Confirmed close/sell handlers, selected close-position state, orchestrator
+  calls, `ExecutionHandoffPreviewModal` wiring, monitoring, persistence, and
+  trade mutation behavior stay in `app/trade-app.tsx` / `ActivePositionCard`.
+- Recommended persistence boundary planning next.
+
+Next recommended action:
+
+**Action 400 - Create Persistence Boundary Plan**

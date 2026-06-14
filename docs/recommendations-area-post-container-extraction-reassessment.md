@@ -377,3 +377,24 @@ Current History extraction status:
 Next recommended action:
 
 **Action 373 - Extract Closed Trade Display Mapper**
+
+## 15. Action 397 Update
+
+Action 397 added
+`docs/recommendation-ui-state-hook-boundary-reassessment.md`.
+
+Current Recommendation state boundary status:
+
+- Recommendations presentation extraction remains complete enough to pause.
+- `RecommendationCardContainer` already owns card-local details/discard UI
+  state.
+- The remaining Recommendation state in `app/trade-app.tsx` is intentionally
+  parent-owned because it drives data construction, Recommendation history
+  filters, ADD TRADE validation, selected TradeModal state, discard persistence,
+  Supabase/localStorage behavior, diagnostics, and execution handoff entry
+  points.
+- No Recommendation UI state hook should be extracted next.
+
+Next recommended action:
+
+**Action 398 - Reassess History UI State Hook Boundary**

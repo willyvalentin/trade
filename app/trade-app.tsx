@@ -174,6 +174,26 @@ import {
   type PaperSessionProtocolSummary,
 } from "@/lib/paper-session-protocol";
 import {
+  readEndOfDayAcknowledgement,
+  writeEndOfDayAcknowledgement,
+} from "@/lib/persistence/eod-acknowledgement-persistence";
+import {
+  normalizeProviderPlanMode,
+  readDevPreviewRecommendationsHidden,
+  readDismissedWarnings,
+  readLatestMockBrokerFillRaw,
+  readProviderPlanModeHint,
+  removeLatestMockBrokerFill,
+  writeDevPreviewRecommendationsHidden,
+  writeDismissedWarning,
+  writeProviderPlanModeHint,
+} from "@/lib/persistence/dev-diagnostics-local-storage";
+import {
+  TRADE_DEMO_STORAGE_KEYS,
+  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY,
+  TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
+} from "@/lib/persistence/local-storage-keys";
+import {
   buildRecommendationSnapshot,
   markRecommendationSnapshotTaken,
   persistRecommendationSnapshot,
@@ -265,6 +285,7 @@ import {
   type DayTradeWindowRecommendationTargetItem,
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
+import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
 import {
   buildRecommendationTierPerformanceSummary,
   recommendationTierPerformanceSummaryJson,
@@ -1489,13 +1510,7 @@ const shouldUseDevPreviewData =
 const demoTradingFlowEnabled =
   process.env.NODE_ENV === "development" ||
   process.env.NEXT_PUBLIC_ENABLE_DEMO_TRADING_FLOW === "true";
-const demoStorageKeys = {
-  recommendations: "trade-demo-recommendations-v1",
-  activePositions: "trade-demo-active-positions-v1",
-  closedPositions: "trade-demo-closed-positions-v1",
-  lastAction: "trade-demo-last-action-v1",
-};
-const latestMockBrokerFillStorageKey = "trade-mock-broker-latest-fill";
+const demoStorageKeys = TRADE_DEMO_STORAGE_KEYS;
 const demoIdPrefix = "demo-";
 const confidenceMetadataPrefix = "\n\n[confidence_meta:";
 const discardMetadataPrefix = "\n\n[discard_meta:";
@@ -1640,11 +1655,8 @@ function buildDevPreviewRecommendations(now = new Date()): Recommendation[] {
     },
   ];
 }
-const dismissedWarningsStorageKey = "trade-dismissed-warnings";
-const liveMarketTrialRunbookStorageKey = "trade-live-market-trial-runbook-v1";
-const providerPlanModeStorageKey = "trade-provider-plan-mode-v1";
-const devPreviewRecommendationsHiddenStorageKey =
-  "trade-dev-preview-recommendations-hidden-v1";
+const liveMarketTrialRunbookStorageKey =
+  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY;
 const liveTradesAutoRefreshIntervalMs = 5 * 60 * 1000;
 const liveTradesNearCloseAutoRefreshIntervalMs = 2 * 60 * 1000;
 
@@ -1751,49 +1763,6 @@ function readLiveMarketTrialRunbookState(): LiveMarketTrialRunbookLocalState {
       : createDefaultLiveMarketTrialRunbookState();
   } catch {
     return createDefaultLiveMarketTrialRunbookState();
-  }
-}
-
-function normalizeProviderPlanMode(value: unknown): ProviderBudgetPlanMode {
-  if (
-    value === "free" ||
-    value === "grow" ||
-    value === "pro" ||
-    value === "custom" ||
-    value === "unknown"
-  ) {
-    return value;
-  }
-
-  return "unknown";
-}
-
-function readProviderPlanModeHint(): ProviderBudgetPlanMode {
-  if (typeof window === "undefined") {
-    return "unknown";
-  }
-
-  try {
-    return normalizeProviderPlanMode(
-      window.localStorage.getItem(providerPlanModeStorageKey),
-    );
-  } catch {
-    return "unknown";
-  }
-}
-
-function readDevPreviewRecommendationsHidden() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  try {
-    return (
-      window.localStorage.getItem(devPreviewRecommendationsHiddenStorageKey) ===
-      "true"
-    );
-  } catch {
-    return false;
   }
 }
 
@@ -1974,7 +1943,7 @@ function clearStoredDemoTradeData() {
     window.localStorage.removeItem(demoStorageKeys.activePositions);
     window.localStorage.removeItem(demoStorageKeys.closedPositions);
     window.localStorage.removeItem(demoStorageKeys.lastAction);
-    window.localStorage.removeItem(latestMockBrokerFillStorageKey);
+    removeLatestMockBrokerFill();
   } catch {
     // Demo clear must never affect normal app behavior.
   }
@@ -2132,43 +2101,6 @@ function warningDismissKey(parts: Array<string | number | null | undefined>) {
     .join(":");
 
   return normalized || "unknown-warning";
-}
-
-function readDismissedWarnings() {
-  if (typeof window === "undefined") {
-    return new Set<string>();
-  }
-
-  try {
-    const parsed = JSON.parse(
-      window.localStorage.getItem(dismissedWarningsStorageKey) ?? "[]",
-    );
-
-    return new Set(
-      Array.isArray(parsed)
-        ? parsed.filter((item): item is string => typeof item === "string")
-        : [],
-    );
-  } catch {
-    return new Set<string>();
-  }
-}
-
-function writeDismissedWarning(key: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    const dismissedWarnings = readDismissedWarnings();
-    dismissedWarnings.add(key);
-    window.localStorage.setItem(
-      dismissedWarningsStorageKey,
-      JSON.stringify(Array.from(dismissedWarnings).slice(-250)),
-    );
-  } catch {
-    // Local UI dismiss only; if storage is unavailable the warning simply stays visible.
-  }
 }
 
 function playNotificationSound(type: NotificationSoundType) {
@@ -2578,46 +2510,6 @@ function endOfDaySafetyLabel(status: EndOfDaySafetyStatus["status"]) {
   if (status === "review_required") return "REVIEW REQUIRED";
   if (status === "overnight_risk") return "OVERNIGHT RISK";
   return "OK";
-}
-
-function getEndOfDayAcknowledgementKey(positionId: string, date: string) {
-  return `eod_acknowledged_${positionId}_${date}`;
-}
-
-function readEndOfDayAcknowledgement(positionId: string, date: string) {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  try {
-    return window.localStorage.getItem(
-      getEndOfDayAcknowledgementKey(positionId, date),
-    ) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function writeEndOfDayAcknowledgement(
-  positionId: string,
-  date: string,
-  acknowledged: boolean,
-) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    const key = getEndOfDayAcknowledgementKey(positionId, date);
-
-    if (acknowledged) {
-      window.localStorage.setItem(key, "true");
-    } else {
-      window.localStorage.removeItem(key);
-    }
-  } catch {
-    // Local acknowledgement is optional and must never hide the EOD risk.
-  }
 }
 
 function getLiveTradesAutoRefreshIntervalMs(
@@ -3041,6 +2933,18 @@ function tierFromSnapshotPayload(
       recommendation?.tier ??
       contract?.tier,
   );
+}
+
+function planPriceFreshnessFromSnapshotPayload(
+  snapshot: RecommendationSnapshot | null | undefined,
+): PlanPriceFreshnessDiagnostics | null {
+  const diagnostics = snapshot?.payload_json.plan_price_freshness;
+
+  return diagnostics !== null &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as PlanPriceFreshnessDiagnostics)
+    : null;
 }
 
 function stripInlineMetadata(value: string) {
@@ -4271,6 +4175,15 @@ function buildVisibleRecommendationSnapshotInput({
             intake_status: windowTarget.intake_status,
             has_complete_plan: windowTarget.has_complete_plan,
             reasons: windowTarget.reasons,
+            strong_candidate_considered:
+              windowTarget.strong_candidate_considered,
+            strong_ineligible_reason: windowTarget.strong_ineligible_reason,
+            plan_freshness_classification:
+              windowTarget.plan_freshness_classification,
+            entry_distance_from_first_candle_close_pct:
+              windowTarget.entry_distance_from_first_candle_close_pct,
+            reference_price_source: windowTarget.reference_price_source,
+            reference_price_timestamp: windowTarget.reference_price_timestamp,
           }
         : null,
       market_session: marketSession,
@@ -6734,10 +6647,10 @@ function logAddTradeValidationEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6787,10 +6700,10 @@ function logExecutionPayloadEvent(
         : {}),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6831,10 +6744,10 @@ function logTradePlanningSnapshotCapturedEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6874,10 +6787,10 @@ function logAgentDryRunCompletedEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6928,10 +6841,10 @@ function logMockBrokerFillImportEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6964,10 +6877,10 @@ function logAgentHandoffCommandEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -6998,10 +6911,10 @@ function logAgentHardStopContractEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7051,10 +6964,10 @@ function logAgentFormMappingPreviewEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7088,10 +7001,10 @@ function logBuyOrderHandoffProgressEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7121,10 +7034,10 @@ function logSellExecutionPayloadEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7156,10 +7069,10 @@ function logSellAgentHandoffCommandEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7191,10 +7104,10 @@ function logSellHardStopContractEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7230,10 +7143,10 @@ function logSellFormMappingPreviewEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7273,10 +7186,10 @@ function logBrokerFillCaptureAgentSpecEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7318,10 +7231,10 @@ function logTureFillAutofillContractEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7371,10 +7284,10 @@ function logAvanzaFieldVerificationEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7483,10 +7396,10 @@ function logRiskControlsEvaluationEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7533,10 +7446,10 @@ function logFillCaptureReviewEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7583,10 +7496,10 @@ function logTureAgentCompletionPolicyEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7628,10 +7541,10 @@ function logHandoffIntegrityEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7689,10 +7602,10 @@ function logLiveDayTradeCreatedAfterBrokerConfirmation(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7723,10 +7636,10 @@ function logBrokerOrderPreviewCaptured(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7765,10 +7678,10 @@ function logTradeClosedEvent({
       r_multiple: rMultiple,
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -7806,10 +7719,10 @@ function logBrokerExitConfirmationEvent(
       timestamp: new Date().toISOString(),
     };
     const existing = JSON.parse(
-      window.localStorage.getItem("trade-management-events") ?? "[]",
+      window.localStorage.getItem(TRADE_MANAGEMENT_EVENTS_STORAGE_KEY) ?? "[]",
     ) as unknown[];
     window.localStorage.setItem(
-      "trade-management-events",
+      TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
       JSON.stringify([event, ...existing].slice(0, 200)),
     );
   } catch {
@@ -8962,7 +8875,7 @@ export function TradeApp() {
     }
 
     try {
-      window.localStorage.setItem(providerPlanModeStorageKey, providerPlanModeHint);
+      writeProviderPlanModeHint(providerPlanModeHint);
     } catch {
       // Local provider plan hint is diagnostics-only.
     }
@@ -8973,14 +8886,7 @@ export function TradeApp() {
       return;
     }
 
-    try {
-      window.localStorage.setItem(
-        devPreviewRecommendationsHiddenStorageKey,
-        devPreviewRecommendationsHidden ? "true" : "false",
-      );
-    } catch {
-      // Local dev-preview preference should never block the app.
-    }
+    writeDevPreviewRecommendationsHidden(devPreviewRecommendationsHidden);
   }, [devPreviewRecommendationsHidden]);
 
   useEffect(() => {
@@ -11891,23 +11797,34 @@ export function TradeApp() {
   });
   const dayTradeWindowRecommendationTargetSummary =
     buildDayTradeWindowRecommendationTargetSummary({
-      recommendations: dailyRecommendations.map((recommendation) => ({
-        id: recommendation.id,
-        ticker: recommendation.ticker,
-        scan_window: recommendation.scanWindow ?? currentIntradayScanWindow,
-        confidence_score: recommendation.confidenceScore,
-        entry: getRecommendationEntryFallback(recommendation),
-        entry_low: recommendation.entryLowValue,
-        entry_high: recommendation.entryHighValue,
-        stop: recommendation.stopLossValue,
-        target: getPrimaryTargetPrice(recommendation),
-        freshness: getRecommendationFreshness(toFreshnessInput(recommendation)),
-        data_mode: getRecommendationSnapshotDataMode(
-          recommendation,
-          dataModeClaritySummary,
-        ),
-        source_mode: getRecommendationSnapshotSource(recommendation),
-      })),
+      recommendations: dailyRecommendations.map((recommendation) => {
+        const officialSnapshot =
+          latestOfficialBatchSnapshotByRecommendationId.get(recommendation.id);
+
+        return {
+          id: recommendation.id,
+          ticker: recommendation.ticker,
+          scan_window: recommendation.scanWindow ?? currentIntradayScanWindow,
+          confidence_score: recommendation.confidenceScore,
+          entry: getRecommendationEntryFallback(recommendation),
+          entry_low: recommendation.entryLowValue,
+          entry_high: recommendation.entryHighValue,
+          stop: recommendation.stopLossValue,
+          target: getPrimaryTargetPrice(recommendation),
+          risk_reward: recommendation.riskReward,
+          side: recommendation.direction,
+          setup_quality:
+            recommendation.confidenceBreakdown?.setup_quality ?? null,
+          plan_price_freshness:
+            planPriceFreshnessFromSnapshotPayload(officialSnapshot),
+          freshness: getRecommendationFreshness(toFreshnessInput(recommendation)),
+          data_mode: getRecommendationSnapshotDataMode(
+            recommendation,
+            dataModeClaritySummary,
+          ),
+          source_mode: getRecommendationSnapshotSource(recommendation),
+        };
+      }),
       intake_results: recommendationIntakeQualityResults,
       scan_observability: scanPipelineObservabilitySummary,
       current_window: currentIntradayScanWindow,
@@ -25091,7 +25008,7 @@ function TradeModal({
 
   function loadLatestMockBuyFill() {
     try {
-      const stored = window.localStorage.getItem(latestMockBrokerFillStorageKey);
+      const stored = readLatestMockBrokerFillRaw();
       if (!stored) {
         setCopyStatus("No latest mock broker fill found in localStorage.");
         return;
@@ -33155,7 +33072,7 @@ function ClosePositionModal({
 
   function loadLatestMockSellFill() {
     try {
-      const stored = window.localStorage.getItem(latestMockBrokerFillStorageKey);
+      const stored = readLatestMockBrokerFillRaw();
       if (!stored) {
         setExitConfirmationMessage(
           "No latest mock broker fill found in localStorage.",

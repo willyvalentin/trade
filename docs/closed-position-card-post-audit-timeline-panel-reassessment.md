@@ -274,3 +274,19 @@ filtering, persistence, and dashboard body panels remain parent-owned in
 Recommended next action:
 
 **Action 384 - Extract Statistics Metric Card Presentational Component**
+
+## 12. Action 398 Result
+
+Action 398 added `docs/history-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Confirmed History extraction remains complete enough to pause.
+- Confirmed no History UI state hook should be extracted next.
+- `ClosedPositionCard` detail state is already local, while History
+  filter/sort state is dashboard- and e2e-visible-order-coupled.
+- Recommended reassessing Live Day Trade UI state next.
+
+Next recommended action:
+
+**Action 399 - Reassess Live Day Trade UI State Hook Boundary**

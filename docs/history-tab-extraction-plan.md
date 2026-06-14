@@ -566,3 +566,23 @@ Result:
 Next recommended action:
 
 **Action 390 - Reassess Navigation/Tab State Hook Boundary**
+
+## 25. Action 398 Result
+
+Action 398 added `docs/history-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed History UI state after the first app-state hook work.
+- Confirmed `ClosedPositionCard` still appropriately owns local details-open
+  state.
+- Confirmed History filter/sort state remains parent-owned because it feeds
+  dashboard construction, visible counts, filtered card ordering, and empty
+  states.
+- Confirmed PnL/result derivation, plan-vs-actual review, audit/timeline
+  derivation, persistence, and Statistics integration stay in
+  `app/trade-app.tsx`.
+
+Next recommended action:
+
+**Action 399 - Reassess Live Day Trade UI State Hook Boundary**

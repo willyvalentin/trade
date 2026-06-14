@@ -307,3 +307,24 @@ Result:
 Next recommended action:
 
 **Action 373 - Extract Closed Trade Display Mapper**
+
+## 12. Action 399 Result
+
+Action 399 added
+`docs/live-day-trade-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed ActivePositionCard state as a hook boundary after the larger UI
+  extraction and app-state hook work.
+- Confirmed details-open and execution-preview-open state should remain
+  card-local.
+- Confirmed EOD acknowledgement should remain card-owned because it reads/writes
+  localStorage.
+- Confirmed close/sell handlers, orchestrator calls, handoff preview wiring,
+  monitoring, persistence, and trade mutation behavior must stay parent/card
+  owned.
+
+Next recommended action:
+
+**Action 400 - Create Persistence Boundary Plan**

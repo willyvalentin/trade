@@ -225,6 +225,38 @@ Next recommended action:
 
 **Action 395 - Reassess Statistics Range State Hook Extraction**
 
+## Action 395 Result
+
+Action 395 added
+`docs/statistics-range-state-hook-post-extraction-reassessment.md`.
+
+Result:
+
+- Reassessed the second tiny app-state hook extraction.
+- Confirmed Statistics range state is correctly scoped to state plus setter.
+- Confirmed calculations and range rendering stayed parent-owned.
+- Identified modal UI state as the next reassessment target.
+
+Next recommended action:
+
+**Action 396 - Reassess Modal UI State Hook Boundary**
+
+## Action 396 Result
+
+Action 396 added `docs/modal-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed modal UI state and found no low-risk generic modal hook boundary.
+- Confirmed selected recommendation/position modal state should stay
+  parent-owned because it is tied to validation, saving, persistence, and trade
+  mutation behavior.
+- Recommended reassessing Recommendation UI-only state next.
+
+Next recommended action:
+
+**Action 397 - Reassess Recommendation UI State Hook Boundary**
+
 Why:
 
 - it is the smallest remaining obvious UI-state boundary.

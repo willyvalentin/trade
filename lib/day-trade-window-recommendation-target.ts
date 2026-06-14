@@ -3,6 +3,10 @@ import type {
   RecommendationIntakeQualityStatus,
 } from "@/lib/recommendation-intake-quality";
 import type {
+  PlanPriceFreshnessClassification,
+  PlanPriceFreshnessDiagnostics,
+} from "@/lib/plan-price-freshness";
+import type {
   ScanPipelineObservabilityStatus,
   ScanPipelineObservabilitySummary,
 } from "@/lib/scan-pipeline-observability";
@@ -60,6 +64,27 @@ export type DayTradeWindowRecommendationWarning = {
   message: string;
 };
 
+export type StrongCandidateGateBlockReason =
+  | "stale_plan"
+  | "entry_distance_too_large"
+  | "invalid_risk_geometry"
+  | "missing_provider_reference"
+  | "setup_quality_below_minimum";
+
+export type StrongCandidateGateSummary = {
+  candidates_considered_for_strong: number;
+  candidates_blocked_from_strong: number;
+  top_blocking_reasons: Array<{
+    reason: StrongCandidateGateBlockReason;
+    count: number;
+  }>;
+  blocked_by_stale_plan_count: number;
+  blocked_by_entry_distance_too_large_count: number;
+  blocked_by_invalid_risk_geometry_count: number;
+  blocked_by_missing_provider_reference_count: number;
+  blocked_by_setup_quality_below_minimum_count: number;
+};
+
 export type DayTradeWindowRecommendationTargetItem = {
   recommendation_id: string | null;
   ticker: string | null;
@@ -69,6 +94,12 @@ export type DayTradeWindowRecommendationTargetItem = {
   intake_status: RecommendationIntakeQualityStatus | "unknown";
   has_complete_plan: boolean;
   reasons: string[];
+  strong_candidate_considered: boolean;
+  strong_ineligible_reason: StrongCandidateGateBlockReason | null;
+  plan_freshness_classification: PlanPriceFreshnessClassification | null;
+  entry_distance_from_first_candle_close_pct: number | null;
+  reference_price_source: string | null;
+  reference_price_timestamp: string | null;
 };
 
 export type DayTradeWindowRecommendationTargetSummary = {
@@ -91,6 +122,7 @@ export type DayTradeWindowRecommendationTargetSummary = {
   enough_learning_samples: boolean;
   scan_status: ScanPipelineObservabilityStatus | "unknown";
   warnings: DayTradeWindowRecommendationWarning[];
+  strong_candidate_gate: StrongCandidateGateSummary;
   items: DayTradeWindowRecommendationTargetItem[];
   copy: {
     purpose: string;
@@ -110,6 +142,10 @@ export type DayTradeWindowRecommendationTargetInput = {
     entry_high?: number | null;
     stop?: number | null;
     target?: number | null;
+    risk_reward?: number | string | null;
+    side?: string | null;
+    setup_quality?: number | null;
+    plan_price_freshness?: PlanPriceFreshnessDiagnostics | null;
     freshness?: string | null;
     data_mode?: string | null;
     source_mode?: string | null;
@@ -142,6 +178,35 @@ function toDate(value: Date | string | null | undefined) {
 
 function finiteNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function numericValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function normalizeSide(value: string | null | undefined) {
+  return typeof value === "string" && value.toLowerCase() === "short"
+    ? "short"
+    : "long";
+}
+
+function entryPrice(
+  input: DayTradeWindowRecommendationTargetInput["recommendations"][number],
+) {
+  return (
+    finiteNumber(input.entry) ??
+    finiteNumber(input.entry_high) ??
+    finiteNumber(input.entry_low)
+  );
 }
 
 function normalizeWindow(
@@ -179,14 +244,106 @@ function targetStatus(count: number): DayTradeWindowRecommendationTargetStatus {
 }
 
 function hasCompletePlan(input: DayTradeWindowRecommendationTargetInput["recommendations"][number]) {
-  const entry =
-    finiteNumber(input.entry) ??
-    finiteNumber(input.entry_high) ??
-    finiteNumber(input.entry_low);
+  const entry = entryPrice(input);
   const stop = finiteNumber(input.stop);
   const target = finiteNumber(input.target);
 
   return entry !== null && stop !== null && target !== null;
+}
+
+function hasValidRiskGeometry(
+  input: DayTradeWindowRecommendationTargetInput["recommendations"][number],
+) {
+  const entry = entryPrice(input);
+  const stop = finiteNumber(input.stop);
+  const target = finiteNumber(input.target);
+  const riskReward = numericValue(input.risk_reward);
+
+  if (
+    entry === null ||
+    stop === null ||
+    target === null ||
+    riskReward === null ||
+    riskReward <= 0
+  ) {
+    return false;
+  }
+
+  const side = normalizeSide(input.side);
+
+  if (side === "short") {
+    return stop > entry && target < entry;
+  }
+
+  return stop < entry && target > entry;
+}
+
+function strongCandidateGateBlockReason(
+  recommendation: DayTradeWindowRecommendationTargetInput["recommendations"][number],
+): StrongCandidateGateBlockReason | null {
+  const planFreshness = recommendation.plan_price_freshness ?? null;
+  const classification = planFreshness?.classification ?? null;
+
+  if (
+    planFreshness === null ||
+    classification === "missing_reference_price" ||
+    classification === "missing_reference_timestamp" ||
+    classification === "provider_price_unavailable" ||
+    planFreshness?.reference_price_used_for_plan === null ||
+    planFreshness?.reference_price_used_for_plan === undefined ||
+    planFreshness?.reference_price_timestamp === null ||
+    planFreshness?.reference_price_timestamp === undefined ||
+    planFreshness?.latest_provider_price_if_available === null ||
+    planFreshness?.latest_provider_price_if_available === undefined
+  ) {
+    return "missing_provider_reference";
+  }
+
+  if (
+    classification === "stale_plan" ||
+    classification === "severely_stale_plan"
+  ) {
+    return "stale_plan";
+  }
+
+  const entryDistance =
+    planFreshness?.entry_distance_from_first_candle_close_pct ?? null;
+  if (entryDistance === null || entryDistance > 3) {
+    return "entry_distance_too_large";
+  }
+
+  if (!hasValidRiskGeometry(recommendation)) {
+    return "invalid_risk_geometry";
+  }
+
+  const setupQuality = finiteNumber(recommendation.setup_quality);
+  if (setupQuality === null || setupQuality < 70) {
+    return "setup_quality_below_minimum";
+  }
+
+  return null;
+}
+
+function strongCandidateGateReasonText(
+  reason: StrongCandidateGateBlockReason,
+) {
+  if (reason === "stale_plan") {
+    return "Strong blocked: plan price freshness is stale or severely stale.";
+  }
+
+  if (reason === "entry_distance_too_large") {
+    return "Strong blocked: entry is more than 3% from first available candle close.";
+  }
+
+  if (reason === "invalid_risk_geometry") {
+    return "Strong blocked: stop/target geometry or risk/reward is invalid.";
+  }
+
+  if (reason === "missing_provider_reference") {
+    return "Strong blocked: provider reference price or timestamp is unavailable.";
+  }
+
+  return "Strong blocked: setup quality is below the minimum Strong gate.";
 }
 
 function warning(
@@ -211,6 +368,8 @@ function classifyTier({
   tier: DayTradeWindowRecommendationTier;
   reasons: string[];
   has_complete_plan: boolean;
+  strong_candidate_considered: boolean;
+  strong_ineligible_reason: StrongCandidateGateBlockReason | null;
 } {
   const confidence = finiteNumber(recommendation.confidence_score);
   const completePlan = hasCompletePlan(recommendation);
@@ -222,36 +381,80 @@ function classifyTier({
 
   if (!completePlan) {
     reasons.push("Missing entry, stop, or target.");
-    return { tier: "incomplete", reasons, has_complete_plan: false };
+    return {
+      tier: "incomplete",
+      reasons,
+      has_complete_plan: false,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (intakeStatus === "rejected" || hasBlockers) {
     reasons.push("Intake quality rejected or contains critical blockers.");
-    return { tier: "rejected", reasons, has_complete_plan: true };
+    return {
+      tier: "rejected",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (intakeStatus === "incomplete") {
     reasons.push("Intake quality is incomplete.");
-    return { tier: "incomplete", reasons, has_complete_plan: true };
+    return {
+      tier: "incomplete",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (confidence === null && intakeStatus === "unknown") {
     reasons.push("Confidence and intake quality are unavailable.");
-    return { tier: "unknown", reasons, has_complete_plan: true };
+    return {
+      tier: "unknown",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (hasStaleFreshness) {
     reasons.push("Market data freshness is degraded.");
   }
 
-  if (
+  const strongCandidateConsidered =
     intakeStatus === "accepted" &&
     confidence !== null &&
     confidence >= 80 &&
-    !hasStaleFreshness
-  ) {
+    !hasStaleFreshness;
+
+  if (strongCandidateConsidered) {
+    const strongGateBlockReason = strongCandidateGateBlockReason(recommendation);
+
+    if (strongGateBlockReason !== null) {
+      reasons.push(strongCandidateGateReasonText(strongGateBlockReason));
+      return {
+        tier: "valid",
+        reasons,
+        has_complete_plan: true,
+        strong_candidate_considered: true,
+        strong_ineligible_reason: strongGateBlockReason,
+      };
+    }
+
     reasons.push("Accepted intake, high confidence, and complete price plan.");
-    return { tier: "strong", reasons, has_complete_plan: true };
+    return {
+      tier: "strong",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: true,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (
@@ -260,16 +463,34 @@ function classifyTier({
     !hasBlockers
   ) {
     reasons.push("Usable recommendation with medium-or-better confidence.");
-    return { tier: "valid", reasons, has_complete_plan: true };
+    return {
+      tier: "valid",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   if (intakeStatus === "needs_review" || (confidence !== null && confidence < 60)) {
     reasons.push("Lower-confidence learning candidate.");
-    return { tier: "experimental", reasons, has_complete_plan: true };
+    return {
+      tier: "experimental",
+      reasons,
+      has_complete_plan: true,
+      strong_candidate_considered: false,
+      strong_ineligible_reason: null,
+    };
   }
 
   reasons.push("Insufficient tier classification data.");
-  return { tier: "unknown", reasons, has_complete_plan: true };
+  return {
+    tier: "unknown",
+    reasons,
+    has_complete_plan: true,
+    strong_candidate_considered: false,
+    strong_ineligible_reason: null,
+  };
 }
 
 function emptyCount(window: DayTradeWindowRecommendationWindow): DayTradeWindowRecommendationCount {
@@ -309,6 +530,49 @@ function buildCount(
   };
 }
 
+function buildStrongCandidateGateSummary(
+  items: DayTradeWindowRecommendationTargetItem[],
+): StrongCandidateGateSummary {
+  const blocked = items.filter(
+    (item) =>
+      item.strong_candidate_considered &&
+      item.strong_ineligible_reason !== null,
+  );
+  const reasonCounts = new Map<StrongCandidateGateBlockReason, number>();
+
+  for (const item of blocked) {
+    if (item.strong_ineligible_reason === null) continue;
+    reasonCounts.set(
+      item.strong_ineligible_reason,
+      (reasonCounts.get(item.strong_ineligible_reason) ?? 0) + 1,
+    );
+  }
+
+  const countFor = (reason: StrongCandidateGateBlockReason) =>
+    reasonCounts.get(reason) ?? 0;
+
+  return {
+    candidates_considered_for_strong: items.filter(
+      (item) => item.strong_candidate_considered,
+    ).length,
+    candidates_blocked_from_strong: blocked.length,
+    top_blocking_reasons: Array.from(reasonCounts.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((first, second) => second.count - first.count),
+    blocked_by_stale_plan_count: countFor("stale_plan"),
+    blocked_by_entry_distance_too_large_count: countFor(
+      "entry_distance_too_large",
+    ),
+    blocked_by_invalid_risk_geometry_count: countFor("invalid_risk_geometry"),
+    blocked_by_missing_provider_reference_count: countFor(
+      "missing_provider_reference",
+    ),
+    blocked_by_setup_quality_below_minimum_count: countFor(
+      "setup_quality_below_minimum",
+    ),
+  };
+}
+
 export function buildDayTradeWindowRecommendationTargetSummary(
   input: DayTradeWindowRecommendationTargetInput,
 ): DayTradeWindowRecommendationTargetSummary {
@@ -339,8 +603,20 @@ export function buildDayTradeWindowRecommendationTargetSummary(
       intake_status: intakeStatus,
       has_complete_plan: classification.has_complete_plan,
       reasons: classification.reasons,
+      strong_candidate_considered: classification.strong_candidate_considered,
+      strong_ineligible_reason: classification.strong_ineligible_reason,
+      plan_freshness_classification:
+        recommendation.plan_price_freshness?.classification ?? null,
+      entry_distance_from_first_candle_close_pct:
+        recommendation.plan_price_freshness
+          ?.entry_distance_from_first_candle_close_pct ?? null,
+      reference_price_source:
+        recommendation.plan_price_freshness?.reference_price_source ?? null,
+      reference_price_timestamp:
+        recommendation.plan_price_freshness?.reference_price_timestamp ?? null,
     };
   });
+  const strongCandidateGate = buildStrongCandidateGateSummary(items);
   const windows: DayTradeWindowRecommendationWindow[] = [
     "morning",
     "midday",
@@ -472,6 +748,7 @@ export function buildDayTradeWindowRecommendationTargetSummary(
     enough_learning_samples: enoughLearningSamples,
     scan_status: input.scan_observability?.status ?? "unknown",
     warnings,
+    strong_candidate_gate: strongCandidateGate,
     items,
     copy: {
       purpose:

@@ -637,3 +637,22 @@ Result:
 Next recommended action:
 
 **Action 390 - Reassess Navigation/Tab State Hook Boundary**
+
+## 26. Action 397 Result
+
+Action 397 added
+`docs/recommendation-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Revisited Recommendation UI state after the first app-state hooks and modal
+  boundary reassessment.
+- Confirmed details/discard UI state already lives in
+  `RecommendationCardContainer`.
+- Confirmed remaining Recommendation state is domain-, persistence-, modal-, or
+  execution-coupled and should remain in `app/trade-app.tsx`.
+- Recommended moving to History UI state boundary reassessment.
+
+Next recommended action:
+
+**Action 398 - Reassess History UI State Hook Boundary**

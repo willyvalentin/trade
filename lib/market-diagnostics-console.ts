@@ -1460,6 +1460,7 @@ function buildSections(
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
+  const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -3642,6 +3643,67 @@ function buildSections(
           planFreshnessSummary?.reference_price_source_counts ?? {},
         ),
         warning: planFreshnessSummary?.warning ?? null,
+      },
+    }),
+    section({
+      section_id: "strong_candidate_gate",
+      title: "Strong Candidate Gate",
+      severity:
+        strongCandidateGate.candidates_blocked_from_strong > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Candidates considered for Strong",
+          strongCandidateGate.candidates_considered_for_strong,
+        ),
+        lineValue(
+          "Candidates blocked from Strong",
+          strongCandidateGate.candidates_blocked_from_strong,
+        ),
+        lineValue(
+          "Top blocking reasons",
+          strongCandidateGate.top_blocking_reasons.length > 0
+            ? strongCandidateGate.top_blocking_reasons
+                .map((item) => `${item.reason}=${item.count}`)
+                .join(", ")
+            : "none",
+        ),
+        lineValue(
+          "Blocked by stale_plan",
+          strongCandidateGate.blocked_by_stale_plan_count,
+        ),
+        lineValue(
+          "Blocked by entry_distance_too_large",
+          strongCandidateGate.blocked_by_entry_distance_too_large_count,
+        ),
+        lineValue(
+          "Blocked by invalid_risk_geometry",
+          strongCandidateGate.blocked_by_invalid_risk_geometry_count,
+        ),
+        lineValue(
+          "Blocked by missing_provider_reference",
+          strongCandidateGate.blocked_by_missing_provider_reference_count,
+        ),
+      ],
+      metrics: {
+        candidates_considered_for_strong:
+          strongCandidateGate.candidates_considered_for_strong,
+        candidates_blocked_from_strong:
+          strongCandidateGate.candidates_blocked_from_strong,
+        top_blocking_reasons: JSON.stringify(
+          strongCandidateGate.top_blocking_reasons,
+        ),
+        blocked_by_stale_plan_count:
+          strongCandidateGate.blocked_by_stale_plan_count,
+        blocked_by_entry_distance_too_large_count:
+          strongCandidateGate.blocked_by_entry_distance_too_large_count,
+        blocked_by_invalid_risk_geometry_count:
+          strongCandidateGate.blocked_by_invalid_risk_geometry_count,
+        blocked_by_missing_provider_reference_count:
+          strongCandidateGate.blocked_by_missing_provider_reference_count,
+        blocked_by_setup_quality_below_minimum_count:
+          strongCandidateGate.blocked_by_setup_quality_below_minimum_count,
       },
     }),
     section({

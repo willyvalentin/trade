@@ -438,3 +438,282 @@ Result:
 Next recommended action:
 
 **Action 395 - Reassess Statistics Range State Hook Extraction**
+
+## Action 395 Result
+
+Action 395 added
+`docs/statistics-range-state-hook-post-extraction-reassessment.md`.
+
+Result:
+
+- Reassessed the Statistics range hook extraction after Action 394.
+- Confirmed the hook boundary is correct and no calculations/effects/rendering
+  moved.
+- Recommended the next state/effects planning target: modal UI state boundary.
+
+Next recommended action:
+
+**Action 396 - Reassess Modal UI State Hook Boundary**
+
+## Action 396 Result
+
+Action 396 added `docs/modal-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed app and local modal state clusters.
+- Confirmed app-owned modal state is too coupled to ADD TRADE, close/sell,
+  persistence, and execution behavior for safe extraction now.
+- Confirmed local card details/discard modals are already owned locally.
+- Recommended moving to a Recommendation UI-only state boundary reassessment.
+
+Next recommended action:
+
+**Action 397 - Reassess Recommendation UI State Hook Boundary**
+
+## Action 397 Result
+
+Action 397 added
+`docs/recommendation-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed Recommendation UI state after modal state was found too coupled.
+- Confirmed no safe Recommendation UI hook should be extracted now.
+- Confirmed card-local details/discard state is already local, while remaining
+  Recommendation state is tied to data construction, filters, selected
+  TradeModal state, ADD TRADE validation, discard persistence, and execution
+  entry points.
+- Recommended History UI state as the next reassessment target.
+
+Next recommended action:
+
+**Action 398 - Reassess History UI State Hook Boundary**
+
+## Action 398 Result
+
+Action 398 added `docs/history-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed History UI state after Recommendation UI state was deferred.
+- Confirmed no safe broad History UI hook should be extracted now.
+- Confirmed details-open state remains local to `ClosedPositionCard`, while
+  History filters/sorting stay parent-owned because they feed dashboard
+  construction, filtered card ordering, visible counts, and e2e-visible empty
+  states.
+- Recommended Live Day Trade UI state as the next reassessment target.
+
+Next recommended action:
+
+**Action 399 - Reassess Live Day Trade UI State Hook Boundary**
+
+## Action 399 Result
+
+Action 399 added
+`docs/live-day-trade-ui-state-hook-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed Live Day Trade UI state after the other UI-state boundaries were
+  deferred.
+- Confirmed no safe Live Day Trade UI hook should be extracted now.
+- Confirmed card-local details/preview state remains low payoff to move, EOD
+  acknowledgement remains localStorage-coupled, and close/sell/execution
+  preview/monitoring behavior remains parent/card-owned.
+- Recommended persistence boundary planning next.
+
+Next recommended action:
+
+**Action 400 - Create Persistence Boundary Plan**
+
+## Action 400 Result
+
+Action 400 added `docs/persistence-boundary-plan.md`.
+
+Result:
+
+- Created the persistence boundary plan after UI and initial state extraction
+  work paused.
+- Ranked persistence domains by risk, with localStorage key constants as the
+  safest first boundary and trade/Supabase/execution persistence deferred.
+- Confirmed no persistence behavior should move before contracts and
+  idempotency are documented.
+
+Next recommended action:
+
+**Action 401 - Reassess localStorage Key Constants Boundary**
+
+## Action 401 Result
+
+Action 401 added
+`docs/local-storage-key-constants-boundary-reassessment.md`.
+
+Result:
+
+- Inventoried localStorage key constants and literals remaining after major UI
+  extraction and early state hook extraction.
+- Confirmed the next safe persistence step is constants-only centralization.
+- Confirmed key names, read/write sites, migrations, Supabase behavior,
+  trade mutations, execution persistence, and dynamic EOD acknowledgement logic
+  must remain unchanged.
+
+Next recommended action:
+
+**Action 402 - Extract localStorage Key Constants**
+
+## Action 402 Result
+
+Action 402 created `lib/persistence/local-storage-keys.ts`.
+
+Result:
+
+- Moved eligible static key strings out of `app/trade-app.tsx` and into a
+  constants-only persistence module.
+- Replaced the repeated `trade-management-events` literal with the same shared
+  exact key constant in both `app/trade-app.tsx` and
+  `lib/execution-timeline.ts`.
+- Preserved all localStorage helper behavior, dynamic EOD key generation,
+  Supabase behavior, trade mutations, and execution persistence.
+
+Next recommended action:
+
+**Action 403 - Reassess localStorage Key Constants Extraction**
+
+## Action 403 Result
+
+Action 403 added
+`docs/local-storage-key-constants-post-extraction-reassessment.md`.
+
+Result:
+
+- Reassessed the first persistence-adjacent runtime extraction.
+- Confirmed only static key constants moved and all localStorage helper
+  behavior stayed in `app/trade-app.tsx` or existing modules.
+- Confirmed Action 402 e2e was environment-limited by sandbox/Chromium
+  permissions, with no app regression observed from available checks.
+
+Next recommended action:
+
+**Action 404 - Reassess EOD Acknowledgement Persistence Wrapper**
+
+## Action 404 Result
+
+Action 404 added
+`docs/eod-acknowledgement-persistence-wrapper-reassessment.md`.
+
+Result:
+
+- Reassessed EOD acknowledgement persistence after localStorage key constants
+  extraction.
+- Confirmed a tiny wrapper is safe if it preserves the existing dynamic key and
+  localStorage semantics exactly.
+- Confirmed Live Day Trades UI state, EOD safety calculation, close/sell flows,
+  Supabase behavior, and execution behavior remain in `app/trade-app.tsx`.
+
+Next recommended action:
+
+**Action 405 - Extract EOD Acknowledgement Persistence Wrapper**
+
+## Action 405 Result
+
+Action 405 created
+`lib/persistence/eod-acknowledgement-persistence.ts`.
+
+Result:
+
+- Moved EOD acknowledgement persistence helpers out of `app/trade-app.tsx`.
+- Preserved dynamic key/value/default/error behavior exactly.
+- Kept Live Day Trades UI state, EOD safety calculations, close/sell behavior,
+  active position monitoring, Supabase behavior, and execution behavior in
+  `app/trade-app.tsx`.
+
+Next recommended action:
+
+**Action 406 - Reassess EOD Acknowledgement Persistence Wrapper Extraction**
+
+## Action 406 Result
+
+Action 406 added
+`docs/eod-acknowledgement-persistence-post-extraction-reassessment.md`.
+
+Result:
+
+- Verified the EOD acknowledgement persistence wrapper stayed narrow.
+- Confirmed available checks passed in Action 405 and e2e remained blocked by
+  sandbox/Chromium permissions before app logic.
+- Recommended reassessing recommendation discard persistence next.
+
+Next recommended action:
+
+**Action 407 - Reassess Recommendation Discard Persistence Wrapper**
+
+## Action 407 Result
+
+Action 407 created
+`docs/recommendation-discard-persistence-wrapper-reassessment.md`.
+
+Current finding:
+
+- Recommendation discard persistence remains one of the app-owned,
+  behavior-coupled responsibilities in `app/trade-app.tsx`.
+- It is not a localStorage wrapper candidate because the active path writes
+  Supabase `recommendations`, embeds discard metadata, and updates local
+  recommendation state.
+- Dev/diagnostics localStorage wrappers are the safer next persistence
+  reassessment target.
+
+Next recommended action:
+
+**Action 408 - Reassess Dev/Diagnostics localStorage Wrapper**
+
+## Action 408 Result
+
+Action 408 created
+`docs/dev-diagnostics-local-storage-wrapper-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` still owns app-local dev/preference localStorage helpers.
+- Existing diagnostics stores are already module-owned or too
+  execution/audit-adjacent to consolidate now.
+- The next safe runtime extraction should move only exact helper behavior and
+  keep UI state/effects and production trade behavior unchanged.
+
+Next recommended action:
+
+**Action 409 - Extract Dev/Diagnostics localStorage Wrapper**
+
+## Action 409 Result
+
+Action 409 created
+`lib/persistence/dev-diagnostics-local-storage.ts`.
+
+Current finding:
+
+- `app/trade-app.tsx` now imports exact helper functions for several
+  app-local dev/preference storage paths.
+- Remaining app-owned persistence includes live market trial runbook state,
+  demo trade data, Supabase trade/recommendation mutations, execution
+  orchestration, and audit/event persistence.
+
+Next recommended action:
+
+**Action 410 - Reassess Dev/Diagnostics localStorage Wrapper Extraction**
+
+## Action 410 Result
+
+Action 410 created
+`docs/dev-diagnostics-local-storage-post-extraction-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` still owns live market trial runbook persistence and
+  domain-shaped normalization.
+- dev/diagnostics helper extraction is verified and complete enough to pause.
+- execution audit/event and Supabase/trade persistence remain higher-risk
+  later phases.
+
+Next recommended action:
+
+**Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**

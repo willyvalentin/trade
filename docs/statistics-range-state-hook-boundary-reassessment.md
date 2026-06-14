@@ -242,3 +242,22 @@ Result:
 Next recommended action:
 
 **Action 395 - Reassess Statistics Range State Hook Extraction**
+
+## Action 395 Result
+
+Action 395 added
+`docs/statistics-range-state-hook-post-extraction-reassessment.md`.
+
+Result:
+
+- Confirmed `useStatisticsRangeState` stayed tiny: selected range state and
+  setter only.
+- Confirmed the default range remains `"today"`.
+- Confirmed range options, labels, calculations, rendering, persistence,
+  cross-tab data construction, and execution/handoff behavior remain
+  parent-owned.
+- Recommended reassessing modal UI state before any additional extraction.
+
+Next recommended action:
+
+**Action 396 - Reassess Modal UI State Hook Boundary**
