@@ -51,6 +51,12 @@ export type ScannerCandidate = {
   intraday_indicator_source?: "cache" | "fresh" | "unavailable";
   intraday_indicator_cached_at?: string | null;
   intraday_indicator_stale?: boolean;
+  reference_price_used_for_plan?: number | null;
+  reference_price_source?: string | null;
+  reference_price_timestamp?: string | null;
+  reference_price_symbol?: string | null;
+  reference_price_provider?: string | null;
+  reference_price_read_path?: string | null;
 };
 
 type ScannerCacheRow = {
@@ -104,6 +110,9 @@ type ScannerValues = {
   latest_range_percent: number;
   range_expansion_ratio: number;
   intraday_indicators: IntradayIndicators | null;
+  reference_price_timestamp: string | null;
+  reference_price_provider: string | null;
+  reference_price_read_path: string | null;
 };
 
 export type ScannerSource = "manual" | "scheduled";
@@ -140,6 +149,19 @@ function roundInt(value: number) {
 function parseNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isoFromTimestampSeconds(value: unknown) {
+  const timestamp = parseNumber(value);
+  if (timestamp === null) return null;
+  const date = new Date(timestamp * 1000);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function isoStringOrNull(value: unknown) {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function average(values: number[]) {
@@ -303,6 +325,15 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
     latest_range_percent: parseNumber(rawValues.latest_range_percent) ?? 2,
     range_expansion_ratio: parseNumber(rawValues.range_expansion_ratio) ?? 1,
     intraday_indicators: parseIntradayIndicators(rawValues.intraday_indicators),
+    reference_price_timestamp:
+      isoStringOrNull(rawValues.reference_price_timestamp) ??
+      isoStringOrNull(row.updated_at),
+    reference_price_provider:
+      typeof rawValues.reference_price_provider === "string" &&
+      rawValues.reference_price_provider.trim()
+        ? rawValues.reference_price_provider.trim()
+        : "scanner_cache",
+    reference_price_read_path: "scanner_cache.latest_close",
   };
 }
 
@@ -455,6 +486,9 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
     latest_range_percent: latestRangePercent,
     range_expansion_ratio: rangeExpansionRatio,
     intraday_indicators: null,
+    reference_price_timestamp: isoFromTimestampSeconds(latestCandle.timestamp),
+    reference_price_provider: "twelve_data",
+    reference_price_read_path: "twelve_data.time_series.1day.values[-1].close",
   };
 }
 
@@ -501,6 +535,12 @@ function buildCandidate(
     latest_range_percent: scannerValues.latest_range_percent,
     range_expansion_ratio: scannerValues.range_expansion_ratio,
     intraday_indicators: scannerValues.intraday_indicators,
+    reference_price_used_for_plan: scannerValues.latest_close,
+    reference_price_source: "fallback_last_price",
+    reference_price_timestamp: scannerValues.reference_price_timestamp,
+    reference_price_symbol: baseCandidate.ticker,
+    reference_price_provider: scannerValues.reference_price_provider,
+    reference_price_read_path: scannerValues.reference_price_read_path,
   };
 }
 

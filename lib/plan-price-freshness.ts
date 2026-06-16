@@ -11,6 +11,9 @@ export type PlanPriceFreshnessDiagnostics = {
   reference_price_used_for_plan: number | null;
   reference_price_source: string | null;
   reference_price_timestamp: string | null;
+  reference_price_symbol: string | null;
+  reference_price_provider: string | null;
+  reference_price_read_path: string | null;
   first_available_candle_close: number | null;
   first_available_candle_timestamp: string | null;
   latest_provider_price_if_available: number | null;
@@ -72,6 +75,9 @@ export type PlanPriceFreshnessCandleLike = {
 type ReferencePriceCandidate = {
   value: unknown;
   source: string;
+  readPath: string;
+  provider?: unknown;
+  symbol?: unknown;
 };
 
 type ReferenceTimestampCandidate = {
@@ -106,6 +112,10 @@ function toIso(value: unknown): string | null {
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
 function roundPct(value: number | null): number | null {
   return value === null ? null : Math.round(value * 1000) / 1000;
 }
@@ -127,10 +137,22 @@ function firstReferencePrice(candidates: ReferencePriceCandidate[]) {
   for (const candidate of candidates) {
     const value = finiteNumber(candidate.value);
     if (value !== null && value > 0) {
-      return { value, source: candidate.source };
+      return {
+        value,
+        source: candidate.source,
+        readPath: candidate.readPath,
+        provider: textOrNull(candidate.provider),
+        symbol: textOrNull(candidate.symbol),
+      };
     }
   }
-  return { value: null, source: null };
+  return {
+    value: null,
+    source: "unknown",
+    readPath: null,
+    provider: null,
+    symbol: null,
+  };
 }
 
 function firstReferenceTimestamp(candidates: ReferenceTimestampCandidate[]) {
@@ -153,30 +175,170 @@ function extractReferencePrice(snapshot: PlanPriceFreshnessSnapshotLike | null) 
     getNestedObject(payload, "provider_quote");
   const tradePlan = getNestedObject(payload, "trade_plan");
   const recommendation = getNestedObject(payload, "recommendation");
+  const planReference = getNestedObject(payload, "plan_reference_price");
 
   return firstReferencePrice([
-    { value: payload?.reference_price, source: "snapshot.payload_json.reference_price" },
-    { value: payload?.referencePrice, source: "snapshot.payload_json.referencePrice" },
-    { value: payload?.quote_price, source: "snapshot.payload_json.quote_price" },
-    { value: payload?.quotePrice, source: "snapshot.payload_json.quotePrice" },
-    { value: tradePlan?.reference_price, source: "snapshot.payload_json.trade_plan.reference_price" },
-    { value: tradePlan?.referencePrice, source: "snapshot.payload_json.trade_plan.referencePrice" },
-    { value: recommendation?.reference_price, source: "snapshot.payload_json.recommendation.reference_price" },
-    { value: snapshot?.quote_price, source: "snapshot.quote_price" },
-    { value: marketData?.reference_price, source: "snapshot.market_data_snapshot.reference_price" },
-    { value: marketData?.price, source: "snapshot.market_data_snapshot.price" },
-    { value: marketData?.latest_price, source: "snapshot.market_data_snapshot.latest_price" },
-    { value: marketData?.last_price, source: "snapshot.market_data_snapshot.last_price" },
-    { value: marketData?.lastPrice, source: "snapshot.market_data_snapshot.lastPrice" },
-    { value: marketData?.current_price, source: "snapshot.market_data_snapshot.current_price" },
-    { value: marketData?.close, source: "snapshot.market_data_snapshot.close" },
-    { value: payloadMarketData?.reference_price, source: "snapshot.payload_json.market_data.reference_price" },
-    { value: payloadMarketData?.price, source: "snapshot.payload_json.market_data.price" },
-    { value: payloadMarketData?.latest_price, source: "snapshot.payload_json.market_data.latest_price" },
-    { value: payloadMarketData?.last_price, source: "snapshot.payload_json.market_data.last_price" },
-    { value: payloadMarketData?.lastPrice, source: "snapshot.payload_json.market_data.lastPrice" },
-    { value: payloadMarketData?.current_price, source: "snapshot.payload_json.market_data.current_price" },
-    { value: payloadMarketData?.close, source: "snapshot.payload_json.market_data.close" },
+    {
+      value: payload?.reference_price_used_for_plan,
+      source: textOrNull(payload?.reference_price_source) ?? "unknown",
+      readPath: "snapshot.payload_json.reference_price_used_for_plan",
+      provider: payload?.reference_price_provider,
+      symbol: payload?.reference_price_symbol ?? snapshot?.ticker,
+    },
+    {
+      value: planReference?.reference_price_used_for_plan,
+      source: textOrNull(planReference?.reference_price_source) ?? "unknown",
+      readPath: "snapshot.payload_json.plan_reference_price.reference_price_used_for_plan",
+      provider: planReference?.reference_price_provider,
+      symbol: planReference?.reference_price_symbol ?? snapshot?.ticker,
+    },
+    {
+      value: tradePlan?.reference_price_used_for_plan,
+      source: textOrNull(tradePlan?.reference_price_source) ?? "unknown",
+      readPath: "snapshot.payload_json.trade_plan.reference_price_used_for_plan",
+      provider: tradePlan?.reference_price_provider,
+      symbol: tradePlan?.reference_price_symbol ?? snapshot?.ticker,
+    },
+    {
+      value: recommendation?.reference_price_used_for_plan,
+      source: textOrNull(recommendation?.reference_price_source) ?? "unknown",
+      readPath:
+        "snapshot.payload_json.recommendation.reference_price_used_for_plan",
+      provider: recommendation?.reference_price_provider,
+      symbol: recommendation?.reference_price_symbol ?? snapshot?.ticker,
+    },
+    {
+      value: payload?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.reference_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payload?.referencePrice,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.referencePrice",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payload?.quote_price,
+      source: "provider_quote_price",
+      readPath: "snapshot.payload_json.quote_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payload?.quotePrice,
+      source: "provider_quote_price",
+      readPath: "snapshot.payload_json.quotePrice",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: tradePlan?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.trade_plan.reference_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: tradePlan?.referencePrice,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.trade_plan.referencePrice",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: recommendation?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.recommendation.reference_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: snapshot?.quote_price,
+      source: "provider_quote_price",
+      readPath: "snapshot.quote_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.market_data_snapshot.reference_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.market_data_snapshot.price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.latest_price,
+      source: "latest_intraday_candle_close",
+      readPath: "snapshot.market_data_snapshot.latest_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.last_price,
+      source: "fallback_last_price",
+      readPath: "snapshot.market_data_snapshot.last_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.lastPrice,
+      source: "fallback_last_price",
+      readPath: "snapshot.market_data_snapshot.lastPrice",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.current_price,
+      source: "current_price",
+      readPath: "snapshot.market_data_snapshot.current_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: marketData?.close,
+      source: "latest_intraday_candle_close",
+      readPath: "snapshot.market_data_snapshot.close",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.market_data.reference_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.market_data.price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.latest_price,
+      source: "latest_intraday_candle_close",
+      readPath: "snapshot.payload_json.market_data.latest_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.last_price,
+      source: "fallback_last_price",
+      readPath: "snapshot.payload_json.market_data.last_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.lastPrice,
+      source: "fallback_last_price",
+      readPath: "snapshot.payload_json.market_data.lastPrice",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.current_price,
+      source: "current_price",
+      readPath: "snapshot.payload_json.market_data.current_price",
+      symbol: snapshot?.ticker,
+    },
+    {
+      value: payloadMarketData?.close,
+      source: "latest_intraday_candle_close",
+      readPath: "snapshot.payload_json.market_data.close",
+      symbol: snapshot?.ticker,
+    },
   ]);
 }
 
@@ -190,17 +352,30 @@ function extractReferenceTimestamp(snapshot: PlanPriceFreshnessSnapshotLike | nu
     getNestedObject(payload, "provider_quote");
   const tradePlan = getNestedObject(payload, "trade_plan");
   const recommendation = getNestedObject(payload, "recommendation");
+  const planReference = getNestedObject(payload, "plan_reference_price");
 
   return firstReferenceTimestamp([
     {
       value: payload?.reference_price_timestamp,
       source: "snapshot.payload_json.reference_price_timestamp",
     },
+    {
+      value: planReference?.reference_price_timestamp,
+      source:
+        "snapshot.payload_json.plan_reference_price.reference_price_timestamp",
+    },
+    {
+      value: tradePlan?.reference_price_timestamp,
+      source: "snapshot.payload_json.trade_plan.reference_price_timestamp",
+    },
+    {
+      value: recommendation?.reference_price_timestamp,
+      source:
+        "snapshot.payload_json.recommendation.reference_price_timestamp",
+    },
     { value: payload?.referencePriceTimestamp, source: "snapshot.payload_json.referencePriceTimestamp" },
     { value: payload?.quote_timestamp, source: "snapshot.payload_json.quote_timestamp" },
     { value: payload?.market_data_timestamp, source: "snapshot.payload_json.market_data_timestamp" },
-    { value: tradePlan?.reference_price_timestamp, source: "snapshot.payload_json.trade_plan.reference_price_timestamp" },
-    { value: recommendation?.reference_price_timestamp, source: "snapshot.payload_json.recommendation.reference_price_timestamp" },
     { value: marketData?.timestamp, source: "snapshot.market_data_snapshot.timestamp" },
     { value: marketData?.updated_at, source: "snapshot.market_data_snapshot.updated_at" },
     { value: marketData?.as_of, source: "snapshot.market_data_snapshot.as_of" },
@@ -304,6 +479,9 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     reference_price_used_for_plan: reference.value,
     reference_price_source: reference.source,
     reference_price_timestamp: referenceTimestamp.value,
+    reference_price_symbol: reference.symbol,
+    reference_price_provider: reference.provider,
+    reference_price_read_path: reference.readPath,
     first_available_candle_close: first.close,
     first_available_candle_timestamp: first.timestamp,
     latest_provider_price_if_available: latestPrice,

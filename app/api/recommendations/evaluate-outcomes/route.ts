@@ -26,6 +26,10 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
+import {
+  buildBatchCandidateAuditSummary,
+  type BatchCandidateAuditSummary,
+} from "@/lib/batch-candidate-audit";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -72,6 +76,12 @@ type OutcomeEligibilityDiagnostics = {
   visible_grid_count: number;
   grid_cards: number;
   expected_outcome_rows_from_eligible_snapshots: number;
+  batch_candidate_audit: BatchCandidateAuditSummary | null;
+  expected_snapshot_count_from_scan: number;
+  actual_snapshot_count_for_batch: number;
+  missing_snapshot_count: number;
+  missing_snapshot_reasons: Record<string, number>;
+  strict_batch_filter_excluded_count: number;
   batch_health: string;
 };
 
@@ -760,6 +770,192 @@ function hasSnapshotBatchMembership({
   );
 }
 
+function nestedObject(
+  root: Record<string, unknown> | null,
+  key: string,
+): Record<string, unknown> | null {
+  return objectOrNull(root?.[key]);
+}
+
+function nestedNumber(root: Record<string, unknown> | null, path: string[]) {
+  let current: unknown = root;
+
+  for (const key of path) {
+    if (!current || typeof current !== "object" || Array.isArray(current)) {
+      return null;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+
+  return finiteNumber(current);
+}
+
+function buildSnapshotLineageItem({
+  batch,
+  recommendationBuildPath,
+  snapshot,
+  eligibilityStatus,
+}: {
+  batch: Record<string, unknown> | null;
+  recommendationBuildPath: string | null;
+  snapshot: RecommendationSnapshot;
+  eligibilityStatus: string;
+}) {
+  const payload = snapshot.payload_json;
+  const recommendation = objectOrNull(payload.recommendation);
+  const source = objectOrNull(payload.source);
+  const target = objectOrNull(payload.day_trade_window_recommendation_target);
+
+  return {
+    scan_run_fingerprint:
+      snapshot.scan_run_id ??
+      stringOrNull(payload.scan_run_fingerprint) ??
+      stringOrNull(batch?.scan_run_fingerprint),
+    batch_fingerprint:
+      stringOrNull(payload.batch_fingerprint) ??
+      stringOrNull(batch?.batch_fingerprint),
+    recommendation_id: snapshot.recommendation_id,
+    snapshot_fingerprint: snapshot.snapshot_fingerprint,
+    ticker: snapshot.ticker,
+    candidate_source: stringOrNull(source?.source_mode) ?? snapshot.source_mode,
+    universe_source:
+      stringOrNull(payload.universe_source) ??
+      stringOrNull(payload.automation_source) ??
+      null,
+    recommendation_build_path: recommendationBuildPath,
+    publish_decision:
+      snapshot.is_visible === false || snapshot.status === "hidden"
+        ? "hidden"
+        : "published",
+    publish_tier:
+      stringOrNull(recommendation?.tier) ??
+      stringOrNull(target?.tier) ??
+      stringOrNull(target?.recommendation_tier),
+    visibility_status:
+      snapshot.is_visible === false ? "hidden" : snapshot.status ?? "visible",
+    archive_status:
+      snapshot.status === "expired" || snapshot.status === "hidden"
+        ? snapshot.status
+        : "active",
+    outcome_eligibility_status: eligibilityStatus,
+  };
+}
+
+function buildOutcomeBatchCandidateAudit({
+  batch,
+  diagnostics,
+  missingSnapshotFingerprints,
+  snapshots,
+  eligibleSnapshots,
+}: {
+  batch: Record<string, unknown> | null;
+  diagnostics: Pick<
+    OutcomeEligibilityDiagnostics,
+    | "total_recommendation_rows_loaded_for_batch"
+    | "raw_snapshot_rows"
+    | "unique_snapshot_fingerprints_count"
+    | "visible_grid_count"
+    | "eligible_learning_snapshot_count"
+    | "eligible_research_only_snapshot_count"
+    | "ineligible_snapshot_count"
+    | "ineligible_reasons"
+  >;
+  missingSnapshotFingerprints: string[];
+  snapshots: RecommendationSnapshot[];
+  eligibleSnapshots: RecommendationSnapshot[];
+}) {
+  const payload = objectOrNull(batch?.payload_json) ?? {};
+  const scanRun = nestedObject(payload, "scan_run");
+  const ranking = nestedObject(payload, "scanner_candidate_ranking");
+  const trace = nestedObject(payload, "active_scan_trace");
+  const traceRaw = nestedObject(trace, "raw_candidates");
+  const traceRanking = nestedObject(trace, "ranking");
+  const traceFinal = nestedObject(trace, "final");
+  const expectedSnapshotFingerprints = arrayOfStrings(
+    payload.recommendation_snapshot_fingerprints,
+  );
+  const published =
+    nestedNumber(traceFinal, ["recommendations_published_count"]) ??
+    finiteNumber(scanRun?.recommendations_published_count) ??
+    expectedSnapshotFingerprints.length;
+  const recommendationBuildPath =
+    stringOrNull(traceFinal?.recommendation_build_path) ??
+    stringOrNull(payload.recommendation_build_path);
+  const eligibleFingerprints = new Set(
+    eligibleSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  );
+  const ineligibleByFingerprint = new Map<string, string>();
+
+  for (const snapshot of snapshots) {
+    ineligibleByFingerprint.set(
+      snapshot.snapshot_fingerprint,
+      eligibleFingerprints.has(snapshot.snapshot_fingerprint)
+        ? "eligible"
+        : "ineligible",
+    );
+  }
+
+  return buildBatchCandidateAuditSummary({
+    scanRunFingerprint:
+      stringOrNull(batch?.scan_run_fingerprint) ??
+      stringOrNull(scanRun?.run_fingerprint) ??
+      stringOrNull(traceFinal?.scan_run_fingerprint),
+    batchFingerprint:
+      stringOrNull(batch?.batch_fingerprint) ??
+      stringOrNull(traceFinal?.batch_fingerprint),
+    rawCandidatesCount:
+      nestedNumber(traceRaw, ["raw_candidate_count"]) ??
+      finiteNumber(scanRun?.raw_candidate_count),
+    rankedCandidatesCount:
+      nestedNumber(traceRanking, ["ranked_count"]) ??
+      finiteNumber(ranking?.candidates_ranked),
+    selectedCandidatesCount:
+      nestedNumber(traceRanking, ["selected_count"]) ??
+      finiteNumber(ranking?.selected_count),
+    builtRecommendationsCount:
+      nestedNumber(traceFinal, ["recommendations_built_count"]) ?? published,
+    publishedRecommendationsCount: published,
+    persistedRecommendationRowsCount:
+      diagnostics.total_recommendation_rows_loaded_for_batch,
+    persistedSnapshotRowsCount: diagnostics.raw_snapshot_rows,
+    uniqueSnapshotFingerprintsCount: diagnostics.unique_snapshot_fingerprints_count,
+    visibleGridCardsCount: diagnostics.visible_grid_count,
+    hiddenArchivedCount: Math.max(
+      0,
+      diagnostics.unique_snapshot_fingerprints_count -
+        diagnostics.visible_grid_count -
+        diagnostics.eligible_learning_snapshot_count -
+        diagnostics.eligible_research_only_snapshot_count,
+    ),
+    outcomeEligibleSnapshotCount: eligibleSnapshots.length,
+    outcomeIneligibleSnapshotCount: diagnostics.ineligible_snapshot_count,
+    expectedSnapshotCountFromScan: expectedSnapshotFingerprints.length || published,
+    actualSnapshotCountForBatch: snapshots.length,
+    strictBatchFilterExcludedCount:
+      diagnostics.ineligible_reasons.missing_batch_membership ?? 0,
+    incompletePricePlanCount:
+      nestedNumber(traceRaw, ["invalid_price_plan_count"]) ?? 0,
+    missingSnapshotReasons: {
+      ...diagnostics.ineligible_reasons,
+      ...(missingSnapshotFingerprints.length > 0
+        ? { persistence_failed: missingSnapshotFingerprints.length }
+        : {}),
+      ...(!stringOrNull(batch?.batch_fingerprint)
+        ? { missing_batch_fingerprint: 1 }
+        : {}),
+    },
+    lineage: snapshots.slice(0, 25).map((snapshot) =>
+      buildSnapshotLineageItem({
+        batch,
+        recommendationBuildPath,
+        snapshot,
+        eligibilityStatus:
+          ineligibleByFingerprint.get(snapshot.snapshot_fingerprint) ?? "unknown",
+      }),
+    ),
+  });
+}
+
 function buildOutcomeEligibility({
   batch,
   growMaxLearningModeEnabled,
@@ -915,7 +1111,15 @@ function buildOutcomeEligibility({
           ? "eligible"
           : "no_eligible_snapshots";
 
-  const diagnostics: OutcomeEligibilityDiagnostics = {
+  const diagnosticsBase: Omit<
+    OutcomeEligibilityDiagnostics,
+    | "batch_candidate_audit"
+    | "expected_snapshot_count_from_scan"
+    | "actual_snapshot_count_for_batch"
+    | "missing_snapshot_count"
+    | "missing_snapshot_reasons"
+    | "strict_batch_filter_excluded_count"
+  > = {
     total_snapshots_loaded_for_batch: snapshots.length,
     raw_snapshot_rows: snapshots.length,
     total_recommendation_rows_loaded_for_batch: recommendationRowsLoadedCount,
@@ -940,6 +1144,25 @@ function buildOutcomeEligibility({
     expected_outcome_rows_from_eligible_snapshots:
       eligibleSnapshots.length * horizons.length,
     batch_health: batchHealth,
+  };
+  const batchCandidateAudit = buildOutcomeBatchCandidateAudit({
+    batch,
+    diagnostics: diagnosticsBase,
+    missingSnapshotFingerprints: [],
+    snapshots,
+    eligibleSnapshots,
+  });
+  const diagnostics: OutcomeEligibilityDiagnostics = {
+    ...diagnosticsBase,
+    batch_candidate_audit: batchCandidateAudit,
+    expected_snapshot_count_from_scan:
+      batchCandidateAudit.expected_snapshot_count_from_scan,
+    actual_snapshot_count_for_batch:
+      batchCandidateAudit.actual_snapshot_count_for_batch,
+    missing_snapshot_count: batchCandidateAudit.missing_snapshot_count,
+    missing_snapshot_reasons: batchCandidateAudit.missing_snapshot_reasons,
+    strict_batch_filter_excluded_count:
+      batchCandidateAudit.strict_batch_filter_excluded_count,
   };
 
   return {
@@ -1203,6 +1426,26 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? eligibility.eligibleSnapshots
       : snapshots;
+  const batchCandidateAudit = buildOutcomeBatchCandidateAudit({
+    batch: officialSnapshotLoad?.batch ?? null,
+    diagnostics: eligibility.diagnostics,
+    missingSnapshotFingerprints:
+      officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
+    snapshots,
+    eligibleSnapshots,
+  });
+  const eligibilityDiagnostics: OutcomeEligibilityDiagnostics = {
+    ...eligibility.diagnostics,
+    batch_candidate_audit: batchCandidateAudit,
+    expected_snapshot_count_from_scan:
+      batchCandidateAudit.expected_snapshot_count_from_scan,
+    actual_snapshot_count_for_batch:
+      batchCandidateAudit.actual_snapshot_count_for_batch,
+    missing_snapshot_count: batchCandidateAudit.missing_snapshot_count,
+    missing_snapshot_reasons: batchCandidateAudit.missing_snapshot_reasons,
+    strict_batch_filter_excluded_count:
+      batchCandidateAudit.strict_batch_filter_excluded_count,
+  };
   const shadowSnapshotSummary =
     summarizeRecommendationSnapshotShadowEntryTrialMetadata(eligibleSnapshots);
   const supabaseOutcomes =
@@ -1273,7 +1516,7 @@ export async function POST(request: Request) {
         providerPlanProfile.profile_outcome_candle_requests_per_run,
       override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
       effective_budget_limit: providerBudgetLimit,
-      ...eligibility.diagnostics,
+      ...eligibilityDiagnostics,
       candle_requests_planned: 0,
       candle_requests_executed: 0,
       candle_requests_saved_by_reuse: 0,
@@ -1481,7 +1724,7 @@ export async function POST(request: Request) {
       providerPlanProfile.profile_outcome_candle_requests_per_run,
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
-    ...eligibility.diagnostics,
+    ...eligibilityDiagnostics,
     candle_requests_planned: run.candle_requests_planned,
     candle_requests_executed: run.candle_requests_executed,
     candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,
