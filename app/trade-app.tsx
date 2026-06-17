@@ -291,6 +291,7 @@ import {
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
 import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
 import type { BatchCandidateAuditSummary } from "@/lib/batch-candidate-audit";
 import {
   buildRecommendationTierPerformanceSummary,
@@ -1268,6 +1269,7 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   missingSnapshotReasons: Record<string, number>;
   strictBatchFilterExcludedCount: number;
   entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
+  planReferenceMetadataTrace: PlanReferenceMetadataTraceSummary | null;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
   outcomesCreated: number;
@@ -8121,6 +8123,7 @@ export function TradeApp() {
     missingSnapshotReasons: {},
     strictBatchFilterExcludedCount: 0,
     entryTypeTriggerSummary: null,
+    planReferenceMetadataTrace: null,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
     outcomesCreated: 0,
@@ -13643,6 +13646,10 @@ export function TradeApp() {
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
           recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
+        plan_reference_metadata_trace:
+          recommendationOutcomeEvaluationDiagnostics.planReferenceMetadataTrace ??
+          recommendationOutcomeEvaluationRun?.plan_reference_metadata_trace ??
+          null,
         entry_type_trigger_summary:
           recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
           recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
@@ -14399,6 +14406,12 @@ export function TradeApp() {
           !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
             ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
             : run.entry_type_trigger_summary ?? null,
+        planReferenceMetadataTrace:
+          typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
+          routeDiagnostics.plan_reference_metadata_trace !== null &&
+          !Array.isArray(routeDiagnostics.plan_reference_metadata_trace)
+            ? (routeDiagnostics.plan_reference_metadata_trace as PlanReferenceMetadataTraceSummary)
+            : run.plan_reference_metadata_trace ?? null,
         batchHealth:
           typeof routeDiagnostics.batch_health === "string"
             ? routeDiagnostics.batch_health

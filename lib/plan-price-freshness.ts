@@ -1,3 +1,8 @@
+import {
+  planReferenceMetadataDiagnostics,
+  type PlanReferenceMetadataStatus,
+} from "@/lib/recommendation-inline-metadata";
+
 export type PlanPriceFreshnessClassification =
   | "fresh_plan"
   | "slightly_stale_plan"
@@ -14,6 +19,8 @@ export type PlanPriceFreshnessDiagnostics = {
   reference_price_symbol: string | null;
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
+  plan_reference_metadata_status: PlanReferenceMetadataStatus;
+  plan_reference_metadata_missing_reason: string | null;
   first_available_candle_close: number | null;
   first_available_candle_timestamp: string | null;
   latest_provider_price_if_available: number | null;
@@ -35,6 +42,8 @@ export type PlanPriceFreshnessSummaryTicker = {
   reference_price_source: string | null;
   reference_price_used_for_plan: number | null;
   first_available_candle_close: number | null;
+  plan_reference_metadata_status: PlanReferenceMetadataStatus;
+  plan_reference_metadata_missing_reason: string | null;
 };
 
 export type PlanPriceFreshnessSummary = {
@@ -52,6 +61,10 @@ export type PlanPriceFreshnessSummary = {
   stale_or_severely_stale_ratio: number;
   largest_distance_tickers: PlanPriceFreshnessSummaryTicker[];
   reference_price_source_counts: Record<string, number>;
+  reference_metadata_present_count: number;
+  reference_metadata_missing_but_plan_prices_present_count: number;
+  reference_metadata_missing_no_plan_prices_count: number;
+  top_tickers_missing_reference_metadata: PlanPriceFreshnessSummaryTicker[];
   warning: string | null;
 };
 
@@ -114,6 +127,16 @@ function toIso(value: unknown): string | null {
 
 function textOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function planReferenceMetadataStatusOrNull(
+  value: unknown,
+): PlanReferenceMetadataStatus | null {
+  return value === "present" ||
+    value === "missing_but_plan_prices_present" ||
+    value === "missing_no_plan_prices"
+    ? value
+    : null;
 }
 
 function roundPct(value: number | null): number | null {
@@ -449,6 +472,20 @@ export function computePlanPriceFreshnessDiagnostics(input: {
   const stop = finiteNumber(input.stop) ?? finiteNumber(snapshot?.stop);
   const target = finiteNumber(input.target) ?? finiteNumber(snapshot?.target);
   const reference = extractReferencePrice(snapshot);
+  const payload = objectOrNull(snapshot?.payload_json);
+  const computedMetadataDiagnostics = planReferenceMetadataDiagnostics({
+    referencePrice: reference.value,
+    entry,
+    stop,
+    target,
+  });
+  const metadataStatus =
+    planReferenceMetadataStatusOrNull(
+      payload?.plan_reference_metadata_status,
+    ) ?? computedMetadataDiagnostics.plan_reference_metadata_status;
+  const metadataMissingReason =
+    textOrNull(payload?.plan_reference_metadata_missing_reason) ??
+    computedMetadataDiagnostics.plan_reference_metadata_missing_reason;
   const referenceTimestamp = extractReferenceTimestamp(snapshot);
   const first = firstCandle(input.candles);
   const latestPrice = latestProviderPrice(input.candles, input.latestProviderPrice);
@@ -482,6 +519,8 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     reference_price_symbol: reference.symbol,
     reference_price_provider: reference.provider,
     reference_price_read_path: reference.readPath,
+    plan_reference_metadata_status: metadataStatus,
+    plan_reference_metadata_missing_reason: metadataMissingReason,
     first_available_candle_close: first.close,
     first_available_candle_timestamp: first.timestamp,
     latest_provider_price_if_available: latestPrice,
@@ -516,13 +555,44 @@ export function summarizePlanPriceFreshness(
   const referenceSourceCounts: Record<string, number> = {};
   const distances: number[] = [];
   const tickerDistances: PlanPriceFreshnessSummaryTicker[] = [];
+  const missingReferenceMetadataTickers: PlanPriceFreshnessSummaryTicker[] = [];
+  let referenceMetadataPresentCount = 0;
+  let referenceMetadataMissingButPlanPricesPresentCount = 0;
+  let referenceMetadataMissingNoPlanPricesCount = 0;
 
   for (const item of diagnosticsItems) {
     const diagnostics = item.diagnostics;
     if (!diagnostics) continue;
     counts[diagnostics.classification] += 1;
+    if (diagnostics.plan_reference_metadata_status === "present") {
+      referenceMetadataPresentCount += 1;
+    } else if (
+      diagnostics.plan_reference_metadata_status ===
+      "missing_but_plan_prices_present"
+    ) {
+      referenceMetadataMissingButPlanPricesPresentCount += 1;
+    } else {
+      referenceMetadataMissingNoPlanPricesCount += 1;
+    }
     const source = diagnostics.reference_price_source ?? "unknown";
     referenceSourceCounts[source] = (referenceSourceCounts[source] ?? 0) + 1;
+    if (diagnostics.plan_reference_metadata_status !== "present") {
+      missingReferenceMetadataTickers.push({
+        ticker: item.ticker ?? null,
+        snapshot_fingerprint: item.snapshot_fingerprint ?? null,
+        horizon: item.horizon ?? null,
+        entry_distance_from_first_candle_close_pct:
+          diagnostics.entry_distance_from_first_candle_close_pct,
+        classification: diagnostics.classification,
+        reference_price_source: diagnostics.reference_price_source,
+        reference_price_used_for_plan: diagnostics.reference_price_used_for_plan,
+        first_available_candle_close: diagnostics.first_available_candle_close,
+        plan_reference_metadata_status:
+          diagnostics.plan_reference_metadata_status,
+        plan_reference_metadata_missing_reason:
+          diagnostics.plan_reference_metadata_missing_reason,
+      });
+    }
     const distance = diagnostics.entry_distance_from_first_candle_close_pct;
     if (distance !== null) {
       distances.push(distance);
@@ -535,6 +605,10 @@ export function summarizePlanPriceFreshness(
         reference_price_source: diagnostics.reference_price_source,
         reference_price_used_for_plan: diagnostics.reference_price_used_for_plan,
         first_available_candle_close: diagnostics.first_available_candle_close,
+        plan_reference_metadata_status:
+          diagnostics.plan_reference_metadata_status,
+        plan_reference_metadata_missing_reason:
+          diagnostics.plan_reference_metadata_missing_reason,
       });
     }
   }
@@ -569,6 +643,15 @@ export function summarizePlanPriceFreshness(
       )
       .slice(0, 10),
     reference_price_source_counts: referenceSourceCounts,
+    reference_metadata_present_count: referenceMetadataPresentCount,
+    reference_metadata_missing_but_plan_prices_present_count:
+      referenceMetadataMissingButPlanPricesPresentCount,
+    reference_metadata_missing_no_plan_prices_count:
+      referenceMetadataMissingNoPlanPricesCount,
+    top_tickers_missing_reference_metadata: missingReferenceMetadataTickers.slice(
+      0,
+      10,
+    ),
     warning: staleRatio > 0.3 ? stalePlanWarning : null,
   };
 }

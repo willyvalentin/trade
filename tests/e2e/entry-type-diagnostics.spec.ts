@@ -5,6 +5,9 @@ import {
   inferRecommendationEntryTypeMetadata,
   summarizeEntryTypeTriggerDiagnostics,
 } from "../../lib/recommendation-entry-type";
+import { recommendationConfidenceMetadataPrefix } from "../../lib/recommendation-inline-metadata";
+import { computePlanPriceFreshnessDiagnostics } from "../../lib/plan-price-freshness";
+import { buildPlanReferenceMetadataTrace } from "../../lib/plan-reference-metadata-trace";
 import { runRecommendationOutcomeEvaluation } from "../../lib/recommendation-outcome-evaluation-runner";
 import { computeRecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
@@ -212,6 +215,9 @@ test("entry type reads completed retained candles without provider refetch", asy
   expect(run.entry_type_trigger_summary?.tickers_with_disagreements).toEqual([
     "JPM",
   ]);
+  expect(run.plan_reference_metadata_trace.total_traced_items).toBe(1);
+  expect(run.plan_reference_metadata_trace.missing_reference_price_count).toBe(0);
+  expect(run.candidates[0]?.plan_reference_metadata_trace?.ticker).toBe("JPM");
   expect(run.candidates[0]?.status).toBe("skipped");
   expect(run.candidates[0]?.entry_type).toBe("pullback_limit");
   expect(run.candidates[0]?.entry_type_aware_entry_triggered).toBe(true);
@@ -220,4 +226,171 @@ test("entry type reads completed retained candles without provider refetch", asy
     "long_low_touches_entry_differs_from_official_range_touch",
   );
   expect(run.candidates[0]?.outcome_status).toBe(existingOutcome.status);
+});
+
+test("entry type reads reference metadata promoted from recommendation inline metadata", () => {
+  const inlineMetadata = {
+    plan_reference_price: {
+      reference_price_used_for_plan: 100,
+      reference_price_source: "candidate_close_price",
+      reference_price_timestamp: "2026-06-17T14:25:00.000Z",
+      reference_price_symbol: "JPM",
+      reference_price_provider: "twelve_data",
+      reference_price_read_path: "candidate.latest_close",
+    },
+    reference_price_used_for_plan: 100,
+    reference_price_source: "candidate_close_price",
+    reference_price_timestamp: "2026-06-17T14:25:00.000Z",
+    reference_price_symbol: "JPM",
+    reference_price_provider: "twelve_data",
+    reference_price_read_path: "candidate.latest_close",
+    plan_reference_metadata_status: "present",
+    plan_reference_metadata_missing_reason: null,
+  };
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_jpm_inline",
+    ticker: "JPM",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 99,
+    stop: 97,
+    target: 103,
+    side: "long",
+    payload: {
+      recommendation: {
+        reason_to_avoid: `Avoid only if momentum fails.${recommendationConfidenceMetadataPrefix}${JSON.stringify(inlineMetadata)}]`,
+      },
+    },
+  });
+
+  expect(snapshot.payload_json.reference_price_used_for_plan).toBe(100);
+  expect(snapshot.payload_json.reference_price_source).toBe(
+    "candidate_close_price",
+  );
+  expect(snapshot.payload_json.plan_reference_metadata_status).toBe("present");
+  expect(snapshot.payload_json.entry_type).toBe("pullback_limit");
+
+  const freshness = computePlanPriceFreshnessDiagnostics({
+    snapshot,
+    candles: [
+      {
+        timestamp: "2026-06-17T14:30:00.000Z",
+        close: 100,
+      },
+    ],
+  });
+
+  expect(freshness.reference_price_used_for_plan).toBe(100);
+  expect(freshness.reference_price_source).toBe("candidate_close_price");
+  expect(freshness.plan_reference_metadata_status).toBe("present");
+
+  const trace = buildPlanReferenceMetadataTrace({ snapshots: [snapshot] });
+  expect(trace.complete_reference_metadata_count).toBe(1);
+  expect(trace.missing_reference_price_count).toBe(0);
+  expect(
+    trace.sample_traces[0]?.reference_price_candidate_values_found.some(
+      (value) =>
+        value.read_path.includes("confidence_meta") &&
+        value.parse_status === "present_numeric",
+    ),
+  ).toBe(true);
+});
+
+test("plan reference trace accepts numeric string inline reference price", () => {
+  const inlineMetadata = {
+    plan_reference_price: {
+      reference_price_used_for_plan: "100.25",
+      reference_price_source: "candidate_close_price",
+      reference_price_timestamp: "2026-06-17T14:25:00.000Z",
+      reference_price_symbol: "AAPL",
+      reference_price_provider: "twelve_data",
+      reference_price_read_path: "candidate.latest_close",
+    },
+  };
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_aapl_inline_string",
+    ticker: "AAPL",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 99,
+    stop: 97,
+    target: 103,
+    side: "long",
+    payload: {
+      recommendation: {
+        reason_to_avoid: `Avoid only if momentum fails.${recommendationConfidenceMetadataPrefix}${JSON.stringify(inlineMetadata)}]`,
+      },
+    },
+  });
+
+  const trace = buildPlanReferenceMetadataTrace({ snapshots: [snapshot] });
+
+  expect(trace.complete_reference_metadata_count).toBe(1);
+  expect(
+    trace.sample_traces[0]?.reference_price_candidate_values_found.some(
+      (value) => value.parse_status === "present_numeric_string",
+    ),
+  ).toBe(true);
+});
+
+test("plan reference trace reports malformed inline metadata", () => {
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_crm_malformed_inline",
+    ticker: "CRM",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 250,
+    stop: 245,
+    target: 260,
+    side: "long",
+    payload: {
+      recommendation: {
+        reason_to_avoid: `Avoid only if momentum fails.${recommendationConfidenceMetadataPrefix}{bad-json]`,
+      },
+    },
+  });
+
+  const trace = buildPlanReferenceMetadataTrace({ snapshots: [snapshot] });
+
+  expect(trace.malformed_inline_metadata_count).toBe(1);
+  expect(trace.top_malformed_inline_metadata_tickers).toEqual(["CRM"]);
+  expect(trace.sample_traces[0]?.parse_status).toBe("malformed_inline_metadata");
+  expect(trace.sample_traces[0]?.classification).toBe("malformed_inline_metadata");
+});
+
+test("entry type marks missing reference metadata when plan prices exist", () => {
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_missing_ref",
+    ticker: "CAT",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 300,
+    stop: 294,
+    target: 312,
+    side: "long",
+    payload: {
+      recommendation: {
+        reason_to_avoid: "Avoid if momentum fails.",
+      },
+    },
+  });
+
+  expect(snapshot.payload_json.reference_price_used_for_plan).toBeUndefined();
+  expect(snapshot.payload_json.plan_reference_metadata_status).toBe(
+    "missing_but_plan_prices_present",
+  );
+  expect(snapshot.payload_json.plan_reference_metadata_missing_reason).toBe(
+    "entry_stop_or_target_present_without_reference_price",
+  );
+  expect(snapshot.payload_json.entry_type).toBe("unknown");
+  expect(snapshot.payload_json.entry_type_warnings).toContain(
+    "reference_price_unavailable",
+  );
+
+  const trace = buildPlanReferenceMetadataTrace({ snapshots: [snapshot] });
+  expect(trace.missing_reference_price_count).toBe(1);
+  expect(trace.top_missing_reference_tickers).toEqual(["CAT"]);
+  expect(trace.sample_traces[0]?.first_missing_stage).toBe(
+    "generated_recommendation_object_before_persistence",
+  );
 });
