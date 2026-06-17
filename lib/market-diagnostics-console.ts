@@ -17,6 +17,7 @@ import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-p
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
+import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
 import type { EntryTypeTriggerSummary } from "@/lib/recommendation-entry-type";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
@@ -324,6 +325,7 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
     plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
+    plan_reference_metadata_trace?: PlanReferenceMetadataTraceSummary | null;
     entry_type_trigger_summary?: EntryTypeTriggerSummary | null;
     batch_candidate_audit?: BatchCandidateAuditSummary | null;
     expected_snapshot_count_from_scan?: number | null;
@@ -1575,6 +1577,8 @@ function buildSections(
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
+  const planReferenceMetadataTrace =
+    input.outcome_evaluation?.plan_reference_metadata_trace ?? null;
   const entryTypeTriggerSummary =
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
@@ -3837,6 +3841,9 @@ function buildSections(
           input.outcome_evaluation?.tickers_evaluated ?? []
         ).join(","),
         plan_price_freshness_summary: JSON.stringify(planFreshnessSummary ?? null),
+        plan_reference_metadata_trace: JSON.stringify(
+          planReferenceMetadataTrace ?? null,
+        ),
         entry_type_trigger_summary: JSON.stringify(
           entryTypeTriggerSummary ?? null,
         ),
@@ -3858,6 +3865,14 @@ function buildSections(
         lineValue(
           "Reference metadata present/missing-with-plan/missing-no-plan",
           `${planFreshnessSummary?.reference_metadata_present_count ?? 0}/${planFreshnessSummary?.reference_metadata_missing_but_plan_prices_present_count ?? 0}/${planFreshnessSummary?.reference_metadata_missing_no_plan_prices_count ?? 0}`,
+        ),
+        lineValue(
+          "Reference metadata present/missing",
+          `${planFreshnessSummary?.reference_metadata_present_count ?? 0}/${Math.max(
+            0,
+            (planFreshnessSummary?.evaluated_snapshots ?? 0) -
+              (planFreshnessSummary?.reference_metadata_present_count ?? 0),
+          )}`,
         ),
         lineValue(
           "Average entry distance",
@@ -3952,6 +3967,108 @@ function buildSections(
           planFreshnessSummary?.top_tickers_missing_reference_metadata ?? [],
         ),
         warning: planFreshnessSummary?.warning ?? null,
+      },
+    }),
+    section({
+      section_id: "plan_reference_metadata_trace",
+      title: "Plan Reference Metadata Trace",
+      severity:
+        (planReferenceMetadataTrace?.missing_reference_price_count ?? 0) > 0 ||
+        (planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Complete reference metadata",
+          `${planReferenceMetadataTrace?.complete_reference_metadata_count ?? 0} / ${planReferenceMetadataTrace?.total_traced_items ?? 0}`,
+        ),
+        lineValue(
+          "Missing reference price",
+          planReferenceMetadataTrace?.missing_reference_price_count ?? 0,
+        ),
+        lineValue(
+          "Missing reference timestamp",
+          planReferenceMetadataTrace?.missing_reference_timestamp_count ?? 0,
+        ),
+        lineValue(
+          "Missing reference source",
+          planReferenceMetadataTrace?.missing_reference_source_count ?? 0,
+        ),
+        lineValue(
+          "Malformed inline metadata",
+          planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0,
+        ),
+        lineValue(
+          "First missing stage counts",
+          topReasonText(planReferenceMetadataTrace?.first_missing_stage_counts),
+        ),
+        lineValue(
+          "Price read paths",
+          topReasonText(planReferenceMetadataTrace?.reference_price_read_path_counts),
+        ),
+        lineValue(
+          "Timestamp read paths",
+          topReasonText(
+            planReferenceMetadataTrace?.reference_timestamp_read_path_counts,
+          ),
+        ),
+        lineValue(
+          "Source read paths",
+          topReasonText(planReferenceMetadataTrace?.reference_source_read_path_counts),
+        ),
+        lineValue(
+          "Top missing tickers",
+          (planReferenceMetadataTrace?.top_missing_reference_tickers ?? []).join(
+            ", ",
+          ) || "none",
+        ),
+        lineValue(
+          "Sample traces",
+          (planReferenceMetadataTrace?.sample_traces ?? [])
+            .slice(0, 5)
+            .map(
+              (trace) =>
+                `${trace.ticker ?? "unknown"} ${trace.classification} @ ${trace.first_missing_stage ?? "none"}`,
+            )
+            .join("; ") || "none",
+        ),
+      ],
+      metrics: {
+        total_traced_items: planReferenceMetadataTrace?.total_traced_items ?? 0,
+        complete_reference_metadata_count:
+          planReferenceMetadataTrace?.complete_reference_metadata_count ?? 0,
+        missing_reference_price_count:
+          planReferenceMetadataTrace?.missing_reference_price_count ?? 0,
+        missing_reference_timestamp_count:
+          planReferenceMetadataTrace?.missing_reference_timestamp_count ?? 0,
+        missing_reference_source_count:
+          planReferenceMetadataTrace?.missing_reference_source_count ?? 0,
+        malformed_inline_metadata_count:
+          planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0,
+        traced_by_ticker: JSON.stringify(
+          planReferenceMetadataTrace?.traced_by_ticker ?? {},
+        ),
+        first_missing_stage_counts: JSON.stringify(
+          planReferenceMetadataTrace?.first_missing_stage_counts ?? {},
+        ),
+        reference_price_read_path_counts: JSON.stringify(
+          planReferenceMetadataTrace?.reference_price_read_path_counts ?? {},
+        ),
+        reference_timestamp_read_path_counts: JSON.stringify(
+          planReferenceMetadataTrace?.reference_timestamp_read_path_counts ?? {},
+        ),
+        reference_source_read_path_counts: JSON.stringify(
+          planReferenceMetadataTrace?.reference_source_read_path_counts ?? {},
+        ),
+        top_missing_reference_tickers: JSON.stringify(
+          planReferenceMetadataTrace?.top_missing_reference_tickers ?? [],
+        ),
+        top_malformed_inline_metadata_tickers: JSON.stringify(
+          planReferenceMetadataTrace?.top_malformed_inline_metadata_tickers ?? [],
+        ),
+        sample_traces: JSON.stringify(
+          planReferenceMetadataTrace?.sample_traces ?? [],
+        ),
       },
     }),
     section({

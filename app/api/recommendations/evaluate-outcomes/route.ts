@@ -17,6 +17,7 @@ import {
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
+import { buildPlanReferenceMetadataTrace } from "@/lib/plan-reference-metadata-trace";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
   recommendationSnapshotFromPersistenceRow,
@@ -1481,6 +1482,17 @@ export async function POST(request: Request) {
     (mode === "official_live_today" || mode === "enrich_completed_outcomes") &&
     (officialSnapshotLoad?.status !== "ready" || eligibleSnapshots.length === 0)
   ) {
+    const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
+      snapshots,
+      candidates: [],
+      outcomes: existingOutcomes,
+      batchFingerprint:
+        stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
+        batchFingerprint,
+      scanRunFingerprint: stringOrNull(
+        officialSnapshotLoad?.batch?.scan_run_fingerprint,
+      ),
+    });
     const diagnostics = {
       route_version: outcomeEvaluationRouteVersion,
       mode,
@@ -1553,6 +1565,7 @@ export async function POST(request: Request) {
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
+      plan_reference_metadata_trace: planReferenceMetadataTrace,
     };
 
     return NextResponse.json({
@@ -1790,6 +1803,7 @@ export async function POST(request: Request) {
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
     entry_type_trigger_summary: run.entry_type_trigger_summary,
+    plan_reference_metadata_trace: run.plan_reference_metadata_trace,
   };
 
   return NextResponse.json({
