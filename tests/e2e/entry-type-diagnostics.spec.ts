@@ -5,9 +5,13 @@ import {
   inferRecommendationEntryTypeMetadata,
   summarizeEntryTypeTriggerDiagnostics,
 } from "../../lib/recommendation-entry-type";
-import { recommendationConfidenceMetadataPrefix } from "../../lib/recommendation-inline-metadata";
+import {
+  parseRecommendationConfidenceMetadata,
+  recommendationConfidenceMetadataPrefix,
+} from "../../lib/recommendation-inline-metadata";
 import { computePlanPriceFreshnessDiagnostics } from "../../lib/plan-price-freshness";
 import { buildPlanReferenceMetadataTrace } from "../../lib/plan-reference-metadata-trace";
+import { resolveDeterministicFallbackPlanReference } from "../../lib/deterministic-fallback-plan-reference";
 import { runRecommendationOutcomeEvaluation } from "../../lib/recommendation-outcome-evaluation-runner";
 import { computeRecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
@@ -294,6 +298,123 @@ test("entry type reads reference metadata promoted from recommendation inline me
         value.parse_status === "present_numeric",
     ),
   ).toBe(true);
+});
+
+test("deterministic fallback plan reference captures latest close base price", () => {
+  const planReference = resolveDeterministicFallbackPlanReference({
+    candidate: {
+      ticker: "SMCI",
+      latest_close: 29.11,
+      intraday_indicator_cached_at: "2026-06-17T14:25:00.000Z",
+      intraday_indicator_source: "cache",
+      intraday_indicator_stale: true,
+    },
+    entry: 47.25,
+    stop: 45,
+    target: 51,
+  });
+
+  expect(planReference.reference_price_used_for_plan).toBe(29.11);
+  expect(planReference.reference_price_source).toBe("fallback_last_price");
+  expect(planReference.reference_price_read_path).toBe("candidate.latest_close");
+  expect(planReference.reference_price_timestamp).toBe(
+    "2026-06-17T14:25:00.000Z",
+  );
+  expect(planReference.reference_price_provider).toBe("twelve_data");
+  expect(planReference.reference_price_staleness_hint).toBe("stale");
+  expect(planReference.plan_reference_metadata_status).toBe("present");
+  expect(planReference.recommendation_build_path).toBe(
+    "deterministic_fallback",
+  );
+});
+
+test("plan reference deterministic fallback inline metadata remains parseable and reaches snapshot diagnostics", () => {
+  const planReference = resolveDeterministicFallbackPlanReference({
+    candidate: {
+      ticker: "AMD",
+      latest_close: "120.5",
+      intraday_indicator_cached_at: "2026-06-17T14:25:00.000Z",
+      intraday_indicator_source: "fresh",
+    },
+    entry: 119,
+    stop: 116,
+    target: 125,
+  });
+  const inlineJson = {
+    plan_reference_price: planReference,
+    ...planReference,
+    entry_type: "pullback_limit",
+    entry_trigger_semantics: "long_low_touches_entry",
+    entry_type_source: "deterministic_plan_builder",
+    entry_type_confidence: "medium",
+    entry_type_warnings: [],
+  };
+  const reasonToAvoid = `Avoid if momentum fails.${recommendationConfidenceMetadataPrefix}${JSON.stringify(inlineJson)}]`;
+
+  const parsed = parseRecommendationConfidenceMetadata(reasonToAvoid);
+  expect(parsed?.plan_reference_price).toEqual(planReference);
+  expect(parsed?.reference_price_used_for_plan).toBe(120.5);
+
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_amd_deterministic",
+    ticker: "AMD",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 119,
+    stop: 116,
+    target: 125,
+    side: "long",
+    payload: {
+      recommendation: {
+        reason_to_avoid: reasonToAvoid,
+      },
+    },
+  });
+
+  expect(snapshot.payload_json.reference_price_used_for_plan).toBe(120.5);
+  expect(snapshot.payload_json.reference_price_source).toBe("fallback_last_price");
+  expect(snapshot.payload_json.reference_price_staleness_hint).toBe("fresh");
+  expect(snapshot.payload_json.recommendation_build_path).toBe(
+    "deterministic_fallback",
+  );
+  expect(snapshot.payload_json.plan_price_freshness).toMatchObject({
+    reference_price_used_for_plan: 120.5,
+    reference_price_source: "fallback_last_price",
+    reference_price_timestamp: "2026-06-17T14:25:00.000Z",
+    reference_price_read_path: "snapshot.payload_json.reference_price_used_for_plan",
+    plan_reference_metadata_status: "present",
+  });
+  expect(snapshot.payload_json.entry_type).toBe("pullback_limit");
+
+  const freshness = computePlanPriceFreshnessDiagnostics({ snapshot });
+  expect(freshness.reference_price_used_for_plan).toBe(120.5);
+  expect(freshness.plan_reference_metadata_status).toBe("present");
+
+  const trace = buildPlanReferenceMetadataTrace({ snapshots: [snapshot] });
+  expect(trace.complete_reference_metadata_count).toBe(1);
+  expect(trace.reference_price_read_path_counts).toMatchObject({
+    "recommendation.reason_to_avoid.confidence_meta.plan_reference_price.reference_price_used_for_plan":
+      1,
+  });
+});
+
+test("plan reference deterministic fallback missing base price records metadata gap", () => {
+  const planReference = resolveDeterministicFallbackPlanReference({
+    candidate: { ticker: "COIN" },
+    entry: 170,
+    stop: 164,
+    target: 182,
+  });
+
+  expect(planReference.reference_price_used_for_plan).toBeNull();
+  expect(planReference.reference_price_source).toBe("unknown");
+  expect(planReference.reference_price_read_path).toBeNull();
+  expect(planReference.plan_reference_metadata_status).toBe(
+    "missing_but_plan_prices_present",
+  );
+  expect(planReference.plan_reference_metadata_missing_reason).toBe(
+    "entry_stop_or_target_present_without_reference_price",
+  );
 });
 
 test("plan reference trace accepts numeric string inline reference price", () => {
