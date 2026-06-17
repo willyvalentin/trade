@@ -5,6 +5,9 @@ import {
   inferRecommendationEntryTypeMetadata,
   summarizeEntryTypeTriggerDiagnostics,
 } from "../../lib/recommendation-entry-type";
+import { runRecommendationOutcomeEvaluation } from "../../lib/recommendation-outcome-evaluation-runner";
+import { computeRecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
+import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
 
 test("entry type infers trigger semantics conservatively", () => {
   const longPullback = inferRecommendationEntryTypeMetadata({
@@ -140,4 +143,81 @@ test("entry type summarizes trigger disagreements", () => {
   expect(summary.by_entry_type.breakout_stop).toBe(1);
   expect(summary.disagreement_count).toBe(1);
   expect(summary.disagreement_tickers).toEqual(["JPM"]);
+});
+
+test("entry type reads completed retained candles without provider refetch", async () => {
+  const snapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_jpm",
+    ticker: "JPM",
+    company_name: "JPMorgan Chase",
+    recommended_at: "2026-06-17T14:25:00.000Z",
+    app_timestamp: "2026-06-17T14:25:00.000Z",
+    entry: 99,
+    stop: 97,
+    target: 103,
+    side: "long",
+    quote_price: 100,
+    payload: {
+      reference_price_used_for_plan: 100,
+      reference_price_source: "provider_quote_price",
+      reference_price_read_path: "payload.reference_price_used_for_plan",
+    },
+  });
+  const retainedCandles = [
+    {
+      timestamp: "2026-06-17T14:30:00.000Z",
+      open: 99.5,
+      high: 98.8,
+      low: 98,
+      close: 98.4,
+      volume: 1000,
+    },
+  ];
+  const existingOutcome = computeRecommendationOutcome({
+    snapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-17T14:40:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: retainedCandles,
+  }).outcome;
+  const completedOutcomeWithRetainedCandles = {
+    ...existingOutcome,
+    payload_json: {
+      ...existingOutcome.payload_json,
+      counterfactual_candles: retainedCandles,
+      retained_candles_available: true,
+      counterfactual_ready: true,
+    },
+  };
+  let fetchCalls = 0;
+
+  const run = await runRecommendationOutcomeEvaluation({
+    snapshots: [snapshot],
+    existingOutcomes: [completedOutcomeWithRetainedCandles],
+    horizons: ["15m"],
+    enrichCompletedOutcomes: true,
+    fetchCandles: async () => {
+      fetchCalls += 1;
+      throw new Error("Provider should not be called for retained-candle readback.");
+    },
+  });
+
+  expect(fetchCalls).toBe(0);
+  expect(run.completed_outcomes_seen_count).toBe(1);
+  expect(run.completed_outcomes_skipped_already_enriched_count).toBe(1);
+  expect(run.candle_requests_executed).toBe(0);
+  expect(run.entry_type_trigger_summary?.total_outcomes).toBe(1);
+  expect(run.entry_type_trigger_summary?.disagreement_count).toBe(1);
+  expect(run.entry_type_trigger_summary?.tickers_with_disagreements).toEqual([
+    "JPM",
+  ]);
+  expect(run.candidates[0]?.status).toBe("skipped");
+  expect(run.candidates[0]?.entry_type).toBe("pullback_limit");
+  expect(run.candidates[0]?.entry_type_aware_entry_triggered).toBe(true);
+  expect(run.candidates[0]?.entry_type_trigger_disagreement).toBe(true);
+  expect(run.candidates[0]?.entry_type_trigger_disagreement_reason).toBe(
+    "long_low_touches_entry_differs_from_official_range_touch",
+  );
+  expect(run.candidates[0]?.outcome_status).toBe(existingOutcome.status);
 });

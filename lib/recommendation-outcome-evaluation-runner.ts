@@ -102,6 +102,18 @@ export type RecommendationOutcomeEvaluationCandidate = {
   plan_price_freshness?: PlanPriceFreshnessDiagnostics | null;
   entry_type_metadata?: RecommendationEntryTypeMetadata | null;
   entry_type_aware_trigger?: EntryTypeAwareTriggerDiagnostics | null;
+  entry_type?: RecommendationEntryTypeMetadata["entry_type"] | null;
+  entry_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
+  entry_type_source?: RecommendationEntryTypeMetadata["entry_type_source"] | null;
+  entry_type_confidence?: RecommendationEntryTypeMetadata["entry_type_confidence"] | null;
+  entry_type_warnings?: string[];
+  official_trigger_semantics_used?: "current_candle_range_touches_entry";
+  entry_type_aware_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
+  entry_type_aware_entry_triggered?: boolean | null;
+  entry_type_aware_entry_triggered_at?: string | null;
+  entry_type_aware_status_if_applied?: RecommendationOutcome["status"] | null;
+  entry_type_trigger_disagreement?: boolean | null;
+  entry_type_trigger_disagreement_reason?: string | null;
   warnings: string[];
   error: string | null;
 };
@@ -351,6 +363,78 @@ function entryTypeDiagnosticPayload(input: {
     entry_type_metadata: metadata,
     entry_type_aware_trigger: trigger,
     ...metadata,
+  };
+}
+
+function retainedCandlesFromOutcome(
+  outcome: RecommendationOutcome | null | undefined,
+): RecommendationOutcomeCandle[] {
+  const rawCandles = outcome?.payload_json.counterfactual_candles;
+  if (!Array.isArray(rawCandles)) {
+    return [];
+  }
+
+  return rawCandles
+    .map((raw): RecommendationOutcomeCandle | null => {
+      if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+        return null;
+      }
+
+      const record = raw as Record<string, unknown>;
+      const timestamp = record.timestamp ?? record.time;
+      if (
+        typeof timestamp !== "string" &&
+        typeof timestamp !== "number" &&
+        !(timestamp instanceof Date)
+      ) {
+        return null;
+      }
+
+      const numberOrNull = (value: unknown) =>
+        typeof value === "number" && Number.isFinite(value) ? value : null;
+
+      return {
+        timestamp,
+        open: numberOrNull(record.open),
+        high: numberOrNull(record.high),
+        low: numberOrNull(record.low),
+        close: numberOrNull(record.close),
+        volume: numberOrNull(record.volume),
+      };
+    })
+    .filter((candle): candle is RecommendationOutcomeCandle => candle !== null);
+}
+
+function entryTypeCandidateFields(input: {
+  metadata?: RecommendationEntryTypeMetadata | null;
+  trigger?: EntryTypeAwareTriggerDiagnostics | null;
+}) {
+  const metadata = input.metadata ?? null;
+  const trigger = input.trigger ?? null;
+
+  return {
+    entry_type: metadata?.entry_type ?? trigger?.entry_type ?? null,
+    entry_trigger_semantics:
+      metadata?.entry_trigger_semantics ?? trigger?.entry_trigger_semantics ?? null,
+    entry_type_source:
+      metadata?.entry_type_source ?? trigger?.entry_type_source ?? null,
+    entry_type_confidence:
+      metadata?.entry_type_confidence ?? trigger?.entry_type_confidence ?? null,
+    entry_type_warnings: metadata?.entry_type_warnings ?? [],
+    official_trigger_semantics_used:
+      "current_candle_range_touches_entry" as const,
+    entry_type_aware_trigger_semantics:
+      trigger?.entry_trigger_semantics ??
+      metadata?.entry_trigger_semantics ??
+      null,
+    entry_type_aware_entry_triggered:
+      trigger?.entry_type_aware_triggered ?? null,
+    entry_type_aware_entry_triggered_at:
+      trigger?.entry_type_aware_triggered_at ?? null,
+    entry_type_aware_status_if_applied:
+      trigger?.status_if_entry_type_applied ?? null,
+    entry_type_trigger_disagreement: trigger?.trigger_disagreement ?? null,
+    entry_type_trigger_disagreement_reason: trigger?.disagreement_reason ?? null,
   };
 }
 
@@ -798,7 +882,19 @@ export async function runRecommendationOutcomeEvaluation(
         const existingEntryTypeMetadata =
           entryTypeMetadataFromOutcome(existingOutcome) ??
           entryTypeMetadataForSnapshot(snapshot);
-        const existingEntryTypeTrigger = entryTypeTriggerFromOutcome(existingOutcome);
+        const retainedCandles = retainedCandlesFromOutcome(existingOutcome);
+        const existingEntryTypeTrigger =
+          entryTypeTriggerFromOutcome(existingOutcome) ??
+          (retainedCandles.length > 0 && existingOutcome
+            ? evaluateEntryTypeAwareTrigger({
+                metadata: existingEntryTypeMetadata,
+                candles: retainedCandles,
+                entry: existingOutcome.entry,
+                officialTriggered: existingOutcome.entry_triggered,
+                officialTriggeredAt: existingOutcome.entry_triggered_at,
+                officialStatus: existingOutcome.status,
+              })
+            : null);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -815,6 +911,10 @@ export async function runRecommendationOutcomeEvaluation(
           plan_price_freshness: planPriceFreshnessFromOutcome(existingOutcome),
           entry_type_metadata: existingEntryTypeMetadata,
           entry_type_aware_trigger: existingEntryTypeTrigger,
+          ...entryTypeCandidateFields({
+            metadata: existingEntryTypeMetadata,
+            trigger: existingEntryTypeTrigger,
+          }),
           warnings: [
             enrichmentMode && !existingOutcomeNeedsEnrichment
               ? "Outcome already has retained candles for counterfactual simulation."
@@ -1252,14 +1352,20 @@ export async function runRecommendationOutcomeEvaluation(
     const outcome = candidate.outcome_id
       ? outcomesById.get(candidate.outcome_id)
       : null;
+    const entryTypeMetadata =
+      candidate.entry_type_metadata ?? entryTypeMetadataFromOutcome(outcome);
+    const entryTypeTrigger =
+      candidate.entry_type_aware_trigger ?? entryTypeTriggerFromOutcome(outcome);
     return {
       ...candidate,
       plan_price_freshness:
         candidate.plan_price_freshness ?? planPriceFreshnessFromOutcome(outcome),
-      entry_type_metadata:
-        candidate.entry_type_metadata ?? entryTypeMetadataFromOutcome(outcome),
-      entry_type_aware_trigger:
-        candidate.entry_type_aware_trigger ?? entryTypeTriggerFromOutcome(outcome),
+      entry_type_metadata: entryTypeMetadata,
+      entry_type_aware_trigger: entryTypeTrigger,
+      ...entryTypeCandidateFields({
+        metadata: entryTypeMetadata,
+        trigger: entryTypeTrigger,
+      }),
     };
   });
   const planPriceFreshnessSummary = summarizePlanPriceFreshness(

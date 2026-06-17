@@ -77,6 +77,7 @@ export type EntryTypeAwareTriggerDiagnostics = {
 };
 
 export type EntryTypeTriggerSummary = {
+  total_outcomes: number;
   total_candidates: number;
   known_entry_type_count: number;
   unknown_entry_type_count: number;
@@ -84,11 +85,15 @@ export type EntryTypeTriggerSummary = {
   by_entry_type: Record<string, number>;
   by_trigger_semantics: Record<string, number>;
   by_source: Record<string, number>;
+  current_route_triggered_count: number;
   official_triggered_count: number;
+  entry_type_triggered_count: number;
   entry_type_aware_triggered_count: number;
   disagreement_count: number;
   disagreement_rate: number;
+  top_disagreement_reasons: Array<{ reason: string; count: number }>;
   disagreement_reasons: Record<string, number>;
+  tickers_with_disagreements: string[];
   disagreement_tickers: string[];
 };
 
@@ -496,6 +501,7 @@ export function summarizeEntryTypeTriggerDiagnostics(
   }
 
   return {
+    total_outcomes: candidates.length,
     total_candidates: candidates.length,
     known_entry_type_count: knownEntryTypeCount,
     unknown_entry_type_count: Math.max(0, candidates.length - knownEntryTypeCount),
@@ -503,12 +509,19 @@ export function summarizeEntryTypeTriggerDiagnostics(
     by_entry_type: byEntryType,
     by_trigger_semantics: byTriggerSemantics,
     by_source: bySource,
+    current_route_triggered_count: officialTriggeredCount,
     official_triggered_count: officialTriggeredCount,
+    entry_type_triggered_count: entryTypeAwareTriggeredCount,
     entry_type_aware_triggered_count: entryTypeAwareTriggeredCount,
     disagreement_count: disagreementCount,
     disagreement_rate:
       candidates.length === 0 ? 0 : Number((disagreementCount / candidates.length).toFixed(3)),
+    top_disagreement_reasons: Object.entries(disagreementReasons)
+      .sort((first, second) => second[1] - first[1])
+      .slice(0, 5)
+      .map(([reason, count]) => ({ reason, count })),
     disagreement_reasons: disagreementReasons,
+    tickers_with_disagreements: Array.from(disagreementTickers).sort(),
     disagreement_tickers: Array.from(disagreementTickers).sort(),
   };
 }
