@@ -1,6 +1,7 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -536,6 +537,14 @@ export function buildRecommendationSnapshot(
       action: side === "short" ? "sell" : side === "long" ? "buy" : null,
     },
   };
+  const payloadJsonRecord = payloadJson as Record<string, unknown>;
+  const entryTypeMetadata = entryTypeMetadataForSnapshot({
+    ticker: textOrNull(input.ticker)?.toUpperCase() ?? null,
+    entry,
+    side,
+    quote_price: finiteNumber(input.quote_price),
+    payload_json: payloadJsonRecord,
+  });
   const planPriceFreshness = computePlanPriceFreshnessDiagnostics({
     snapshot: {
       snapshot_fingerprint: snapshotFingerprint,
@@ -546,9 +555,27 @@ export function buildRecommendationSnapshot(
       target,
       quote_price: finiteNumber(input.quote_price),
       market_data_snapshot: input.market_data_snapshot ?? null,
-      payload_json: payloadJson,
+      payload_json: payloadJsonRecord,
     },
   });
+  const payloadJsonWithDiagnostics = {
+    ...payloadJsonRecord,
+    ...entryTypeMetadata,
+    entry_type_metadata: entryTypeMetadata,
+    trade_plan: {
+      ...(objectOrNull(payloadJsonRecord.trade_plan) ?? {}),
+      ...entryTypeMetadata,
+    },
+    ...(objectOrNull(payloadJsonRecord.recommendation)
+      ? {
+          recommendation: {
+            ...(objectOrNull(payloadJsonRecord.recommendation) ?? {}),
+            ...entryTypeMetadata,
+          },
+        }
+      : {}),
+    plan_price_freshness: planPriceFreshness,
+  };
 
   return {
     id: snapshotFingerprint,
@@ -599,10 +626,7 @@ export function buildRecommendationSnapshot(
     scan_observability_json: quality?.scan_observability_summary ?? null,
     empty_state_json: quality?.empty_state_summary ?? null,
     quality_json: quality,
-    payload_json: {
-      ...payloadJson,
-      plan_price_freshness: planPriceFreshness,
-    },
+    payload_json: payloadJsonWithDiagnostics,
     was_taken: input.was_taken === true,
     linked_position_id: textOrNull(input.linked_position_id),
     created_at: createdAt,

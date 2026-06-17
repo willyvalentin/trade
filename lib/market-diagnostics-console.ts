@@ -17,12 +17,17 @@ import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-p
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
+import type { EntryTypeTriggerSummary } from "@/lib/recommendation-entry-type";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
 import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-readiness";
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import {
+  buildBatchCandidateAuditSummary,
+  type BatchCandidateAuditSummary,
+} from "@/lib/batch-candidate-audit";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -319,6 +324,13 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
     plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
+    entry_type_trigger_summary?: EntryTypeTriggerSummary | null;
+    batch_candidate_audit?: BatchCandidateAuditSummary | null;
+    expected_snapshot_count_from_scan?: number | null;
+    actual_snapshot_count_for_batch?: number | null;
+    missing_snapshot_count?: number | null;
+    missing_snapshot_reasons?: Record<string, number>;
+    strict_batch_filter_excluded_count?: number | null;
   } | null;
   outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
   entry_tuning_proposal?: EntryTuningProposal | null;
@@ -1441,6 +1453,106 @@ function lineValue(label: string, value: string | number | boolean | null) {
   return `${label}: ${value === null ? "unknown" : String(value)}`;
 }
 
+function topReasonText(reasons: Record<string, number> | null | undefined) {
+  const entries = Object.entries(reasons ?? {})
+    .filter(([, value]) => value > 0)
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 4);
+
+  return entries.length > 0
+    ? entries.map(([key, value]) => `${words(key)} ${value}`).join(" / ")
+    : "none";
+}
+
+function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
+  const existing = input.outcome_evaluation?.batch_candidate_audit;
+
+  if (existing) {
+    return existing;
+  }
+
+  return buildBatchCandidateAuditSummary({
+    scanRunFingerprint:
+      input.scan_readback?.latest_official_scan_run_fingerprint ??
+      input.active_scan_trace?.final.scan_run_fingerprint ??
+      null,
+    batchFingerprint:
+      input.outcome_evaluation?.current_batch_fingerprint ??
+      input.scan_readback?.current_batch_fingerprint ??
+      input.active_scan_trace?.final.batch_fingerprint ??
+      null,
+    rawCandidatesCount:
+      input.active_scan_trace?.raw_candidates.raw_candidate_count ??
+      input.scanner_ranking?.candidates_ranked ??
+      input.scan_readback?.provider_budget_used_for_scan ??
+      null,
+    rankedCandidatesCount:
+      input.active_scan_trace?.ranking.ranked_count ??
+      input.scanner_ranking?.candidates_ranked ??
+      null,
+    selectedCandidatesCount:
+      input.active_scan_trace?.ranking.selected_count ??
+      input.scanner_ranking?.selected_count ??
+      null,
+    builtRecommendationsCount:
+      input.active_scan_trace?.final.recommendations_built_count ??
+      input.scan_readback?.active_trace_published_count ??
+      null,
+    publishedRecommendationsCount:
+      input.active_scan_trace?.final.recommendations_published_count ??
+      input.scan_readback?.active_trace_published_count ??
+      input.scan_readback?.current_batch_recommendation_count ??
+      null,
+    persistedRecommendationRowsCount:
+      input.outcome_evaluation?.total_recommendation_rows_loaded_for_batch ??
+      input.scan_readback?.recommendation_rows_found_count ??
+      input.scan_readback?.current_batch_recommendation_count ??
+      null,
+    persistedSnapshotRowsCount:
+      input.outcome_evaluation?.raw_snapshot_rows ??
+      input.scan_readback?.current_batch_raw_snapshot_rows ??
+      input.scan_readback?.current_batch_snapshot_count ??
+      null,
+    uniqueSnapshotFingerprintsCount:
+      input.outcome_evaluation?.unique_snapshot_fingerprints_count ??
+      input.scan_readback?.current_batch_unique_snapshot_fingerprints ??
+      null,
+    visibleGridCardsCount:
+      input.outcome_evaluation?.visible_grid_count ??
+      input.scan_readback?.current_batch_visible_grid_count ??
+      null,
+    hiddenArchivedCount:
+      input.scan_readback?.hidden_archived_members_today ?? null,
+    outcomeEligibleSnapshotCount:
+      input.outcome_evaluation?.outcome_eligible_snapshot_count ??
+      input.outcome_evaluation?.eligible_visible_snapshot_count ??
+      null,
+    outcomeIneligibleSnapshotCount:
+      input.outcome_evaluation?.outcome_ineligible_snapshot_count ??
+      input.outcome_evaluation?.ineligible_snapshot_count ??
+      null,
+    expectedSnapshotCountFromScan:
+      input.outcome_evaluation?.expected_snapshot_count_from_scan ??
+      input.scan_readback?.batch_expected_count ??
+      null,
+    actualSnapshotCountForBatch:
+      input.outcome_evaluation?.actual_snapshot_count_for_batch ??
+      input.scan_readback?.current_batch_snapshot_count ??
+      null,
+    strictBatchFilterExcludedCount:
+      input.outcome_evaluation?.strict_batch_filter_excluded_count ??
+      input.outcome_evaluation?.ineligible_reasons?.missing_batch_membership ??
+      null,
+    incompletePricePlanCount:
+      input.active_scan_trace?.raw_candidates.invalid_price_plan_count ?? null,
+    missingSnapshotReasons:
+      input.outcome_evaluation?.missing_snapshot_reasons ??
+      input.outcome_evaluation?.ineligible_reasons ??
+      null,
+    dropOffReasons: input.outcome_evaluation?.ineligible_reasons ?? null,
+  });
+}
+
 function pctValue(value: number | null | undefined) {
   return typeof value === "number" && Number.isFinite(value)
     ? `${value.toFixed(3)}%`
@@ -1458,10 +1570,13 @@ function buildSections(
   const providerPlanProfile = providerPlanProfileMetrics(input);
   const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
   const headline = diagnosticsHeadline(input);
+  const batchCandidateAudit = getBatchCandidateAudit(input);
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
+  const entryTypeTriggerSummary =
+    input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
   const hasSuccessfulLiveReadback =
@@ -2432,6 +2547,101 @@ function buildSections(
           input.active_scan_trace?.final.publishable_threshold ?? null,
         deterministic_fallback_used:
           input.active_scan_trace?.final.deterministic_fallback_used ?? null,
+      },
+    }),
+    section({
+      section_id: "batch_candidate_audit",
+      title: "Batch Candidate Audit",
+      severity:
+        batchCandidateAudit.batch_completeness === "sparse" ||
+        batchCandidateAudit.batch_completeness === "empty"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Batch",
+          compact(batchCandidateAudit.batch_fingerprint, "not observed"),
+        ),
+        lineValue(
+          "Scan run",
+          compact(batchCandidateAudit.scan_run_fingerprint, "not observed"),
+        ),
+        lineValue(
+          "Candidate funnel",
+          `${batchCandidateAudit.raw_candidates_count} raw -> ${batchCandidateAudit.ranked_candidates_count} ranked -> ${batchCandidateAudit.selected_candidates_count} selected`,
+        ),
+        lineValue(
+          "Recommendation funnel",
+          `${batchCandidateAudit.built_recommendations_count} built -> ${batchCandidateAudit.published_recommendations_count} published -> ${batchCandidateAudit.persisted_recommendation_rows_count} persisted rows`,
+        ),
+        lineValue(
+          "Snapshot funnel",
+          `${batchCandidateAudit.persisted_snapshot_rows_count} rows -> ${batchCandidateAudit.unique_snapshot_fingerprints_count} unique -> ${batchCandidateAudit.visible_grid_cards_count} visible cards -> ${batchCandidateAudit.outcome_eligible_snapshot_count} eligible`,
+        ),
+        lineValue(
+          "Missing snapshots",
+          `${batchCandidateAudit.missing_snapshot_count} / expected ${batchCandidateAudit.expected_snapshot_count_from_scan}`,
+        ),
+        lineValue(
+          "Strict batch excluded",
+          batchCandidateAudit.strict_batch_filter_excluded_count,
+        ),
+        lineValue(
+          "Hidden/archived",
+          batchCandidateAudit.hidden_archived_count,
+        ),
+        lineValue(
+          "Largest drop-off",
+          batchCandidateAudit.largest_drop_off_stage
+            ? `${words(batchCandidateAudit.largest_drop_off_stage)} (${batchCandidateAudit.largest_drop_off_count})`
+            : "none",
+        ),
+        lineValue(
+          "Top drop-off reasons",
+          topReasonText(batchCandidateAudit.drop_off_reasons),
+        ),
+        lineValue(
+          "Batch completeness",
+          words(batchCandidateAudit.batch_completeness),
+        ),
+      ],
+      metrics: {
+        batch_fingerprint: batchCandidateAudit.batch_fingerprint,
+        scan_run_fingerprint: batchCandidateAudit.scan_run_fingerprint,
+        raw_candidates_count: batchCandidateAudit.raw_candidates_count,
+        ranked_candidates_count: batchCandidateAudit.ranked_candidates_count,
+        selected_candidates_count: batchCandidateAudit.selected_candidates_count,
+        built_recommendations_count:
+          batchCandidateAudit.built_recommendations_count,
+        published_recommendations_count:
+          batchCandidateAudit.published_recommendations_count,
+        persisted_recommendation_rows_count:
+          batchCandidateAudit.persisted_recommendation_rows_count,
+        persisted_snapshot_rows_count:
+          batchCandidateAudit.persisted_snapshot_rows_count,
+        unique_snapshot_fingerprints_count:
+          batchCandidateAudit.unique_snapshot_fingerprints_count,
+        visible_grid_cards_count: batchCandidateAudit.visible_grid_cards_count,
+        hidden_archived_count: batchCandidateAudit.hidden_archived_count,
+        outcome_eligible_snapshot_count:
+          batchCandidateAudit.outcome_eligible_snapshot_count,
+        outcome_ineligible_snapshot_count:
+          batchCandidateAudit.outcome_ineligible_snapshot_count,
+        expected_snapshot_count_from_scan:
+          batchCandidateAudit.expected_snapshot_count_from_scan,
+        actual_snapshot_count_for_batch:
+          batchCandidateAudit.actual_snapshot_count_for_batch,
+        missing_snapshot_count: batchCandidateAudit.missing_snapshot_count,
+        missing_snapshot_reasons: JSON.stringify(
+          batchCandidateAudit.missing_snapshot_reasons,
+        ),
+        strict_batch_filter_excluded_count:
+          batchCandidateAudit.strict_batch_filter_excluded_count,
+        drop_off_reasons: JSON.stringify(batchCandidateAudit.drop_off_reasons),
+        largest_drop_off_stage: batchCandidateAudit.largest_drop_off_stage,
+        largest_drop_off_count: batchCandidateAudit.largest_drop_off_count,
+        batch_completeness: batchCandidateAudit.batch_completeness,
+        lineage_sample_count: batchCandidateAudit.lineage.length,
       },
     }),
     section({
@@ -3627,6 +3837,9 @@ function buildSections(
           input.outcome_evaluation?.tickers_evaluated ?? []
         ).join(","),
         plan_price_freshness_summary: JSON.stringify(planFreshnessSummary ?? null),
+        entry_type_trigger_summary: JSON.stringify(
+          entryTypeTriggerSummary ?? null,
+        ),
       },
     }),
     section({
@@ -3714,6 +3927,90 @@ function buildSections(
           planFreshnessSummary?.reference_price_source_counts ?? {},
         ),
         warning: planFreshnessSummary?.warning ?? null,
+      },
+    }),
+    section({
+      section_id: "entry_type_trigger_diagnostics",
+      title: "Entry Type Trigger Diagnostics",
+      severity:
+        (entryTypeTriggerSummary?.disagreement_count ?? 0) > 0 ||
+        (entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Known/unknown entry types",
+          `${entryTypeTriggerSummary?.known_entry_type_count ?? 0}/${entryTypeTriggerSummary?.unknown_entry_type_count ?? 0}`,
+        ),
+        lineValue(
+          "Missing reference impact",
+          String(entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0),
+        ),
+        lineValue(
+          "Official vs entry-type-aware triggered",
+          `${entryTypeTriggerSummary?.official_triggered_count ?? 0}/${entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0}`,
+        ),
+        lineValue(
+          "Disagreement count/rate",
+          `${entryTypeTriggerSummary?.disagreement_count ?? 0}/${pctValue((entryTypeTriggerSummary?.disagreement_rate ?? 0) * 100)}`,
+        ),
+        lineValue(
+          "Entry types",
+          Object.entries(entryTypeTriggerSummary?.by_entry_type ?? {})
+            .map(([entryType, countValue]) => `${entryType}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Trigger semantics",
+          Object.entries(entryTypeTriggerSummary?.by_trigger_semantics ?? {})
+            .map(([semantics, countValue]) => `${semantics}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Sources",
+          Object.entries(entryTypeTriggerSummary?.by_source ?? {})
+            .map(([source, countValue]) => `${source}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Top disagreement reasons",
+          Object.entries(entryTypeTriggerSummary?.disagreement_reasons ?? {})
+            .sort((first, second) => second[1] - first[1])
+            .slice(0, 5)
+            .map(([reason, countValue]) => `${reason}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Disagreement tickers",
+          (entryTypeTriggerSummary?.disagreement_tickers ?? []).slice(0, 10).join(", ") ||
+            "none",
+        ),
+      ],
+      metrics: {
+        total_candidates: entryTypeTriggerSummary?.total_candidates ?? 0,
+        known_entry_type_count:
+          entryTypeTriggerSummary?.known_entry_type_count ?? 0,
+        unknown_entry_type_count:
+          entryTypeTriggerSummary?.unknown_entry_type_count ?? 0,
+        unknown_due_to_missing_reference_count:
+          entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0,
+        official_triggered_count:
+          entryTypeTriggerSummary?.official_triggered_count ?? 0,
+        entry_type_aware_triggered_count:
+          entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0,
+        disagreement_count: entryTypeTriggerSummary?.disagreement_count ?? 0,
+        disagreement_rate: entryTypeTriggerSummary?.disagreement_rate ?? 0,
+        by_entry_type: JSON.stringify(entryTypeTriggerSummary?.by_entry_type ?? {}),
+        by_trigger_semantics: JSON.stringify(
+          entryTypeTriggerSummary?.by_trigger_semantics ?? {},
+        ),
+        by_source: JSON.stringify(entryTypeTriggerSummary?.by_source ?? {}),
+        disagreement_reasons: JSON.stringify(
+          entryTypeTriggerSummary?.disagreement_reasons ?? {},
+        ),
+        disagreement_tickers: JSON.stringify(
+          entryTypeTriggerSummary?.disagreement_tickers ?? [],
+        ),
       },
     }),
     section({

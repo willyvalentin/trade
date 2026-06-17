@@ -17,6 +17,14 @@ import {
   type PlanPriceFreshnessDiagnostics,
   type PlanPriceFreshnessSummary,
 } from "@/lib/plan-price-freshness";
+import {
+  entryTypeMetadataForSnapshot,
+  evaluateEntryTypeAwareTrigger,
+  summarizeEntryTypeTriggerDiagnostics,
+  type EntryTypeAwareTriggerDiagnostics,
+  type EntryTypeTriggerSummary,
+  type RecommendationEntryTypeMetadata,
+} from "@/lib/recommendation-entry-type";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -92,6 +100,20 @@ export type RecommendationOutcomeEvaluationCandidate = {
   outcome_status: RecommendationOutcome["status"] | null;
   persistence_mode: RecommendationOutcomePersistenceResult["mode"] | "unknown";
   plan_price_freshness?: PlanPriceFreshnessDiagnostics | null;
+  entry_type_metadata?: RecommendationEntryTypeMetadata | null;
+  entry_type_aware_trigger?: EntryTypeAwareTriggerDiagnostics | null;
+  entry_type?: RecommendationEntryTypeMetadata["entry_type"] | null;
+  entry_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
+  entry_type_source?: RecommendationEntryTypeMetadata["entry_type_source"] | null;
+  entry_type_confidence?: RecommendationEntryTypeMetadata["entry_type_confidence"] | null;
+  entry_type_warnings?: string[];
+  official_trigger_semantics_used?: "current_candle_range_touches_entry";
+  entry_type_aware_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
+  entry_type_aware_entry_triggered?: boolean | null;
+  entry_type_aware_entry_triggered_at?: string | null;
+  entry_type_aware_status_if_applied?: RecommendationOutcome["status"] | null;
+  entry_type_trigger_disagreement?: boolean | null;
+  entry_type_trigger_disagreement_reason?: string | null;
   warnings: string[];
   error: string | null;
 };
@@ -136,6 +158,7 @@ export type RecommendationOutcomeEvaluationRun = {
   shadow_entry_trial_count: number;
   shadow_entry_triggered_count: number;
   plan_price_freshness_summary: PlanPriceFreshnessSummary | null;
+  entry_type_trigger_summary: EntryTypeTriggerSummary | null;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
@@ -289,6 +312,130 @@ function planPriceFreshnessFromOutcome(
     return null;
   }
   return value as PlanPriceFreshnessDiagnostics;
+}
+
+function entryTypeMetadataFromOutcome(
+  outcome: RecommendationOutcome | null | undefined,
+): RecommendationEntryTypeMetadata | null {
+  const value = outcome?.payload_json.entry_type_metadata;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const entryType = (value as Record<string, unknown>).entry_type;
+  if (typeof entryType !== "string") {
+    return null;
+  }
+  return value as RecommendationEntryTypeMetadata;
+}
+
+function entryTypeTriggerFromOutcome(
+  outcome: RecommendationOutcome | null | undefined,
+): EntryTypeAwareTriggerDiagnostics | null {
+  const value = outcome?.payload_json.entry_type_aware_trigger;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const entryType = (value as Record<string, unknown>).entry_type;
+  if (typeof entryType !== "string") {
+    return null;
+  }
+  return value as EntryTypeAwareTriggerDiagnostics;
+}
+
+function entryTypeDiagnosticPayload(input: {
+  snapshot: RecommendationSnapshot;
+  outcome: RecommendationOutcome;
+  candles: RecommendationOutcomeCandle[];
+}) {
+  const metadata =
+    entryTypeMetadataFromOutcome(input.outcome) ??
+    entryTypeMetadataForSnapshot(input.snapshot);
+  const trigger = evaluateEntryTypeAwareTrigger({
+    metadata,
+    candles: input.candles,
+    entry: input.outcome.entry,
+    officialTriggered: input.outcome.entry_triggered,
+    officialTriggeredAt: input.outcome.entry_triggered_at,
+    officialStatus: input.outcome.status,
+  });
+
+  return {
+    entry_type_metadata: metadata,
+    entry_type_aware_trigger: trigger,
+    ...metadata,
+  };
+}
+
+function retainedCandlesFromOutcome(
+  outcome: RecommendationOutcome | null | undefined,
+): RecommendationOutcomeCandle[] {
+  const rawCandles = outcome?.payload_json.counterfactual_candles;
+  if (!Array.isArray(rawCandles)) {
+    return [];
+  }
+
+  return rawCandles
+    .map((raw): RecommendationOutcomeCandle | null => {
+      if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+        return null;
+      }
+
+      const record = raw as Record<string, unknown>;
+      const timestamp = record.timestamp ?? record.time;
+      if (
+        typeof timestamp !== "string" &&
+        typeof timestamp !== "number" &&
+        !(timestamp instanceof Date)
+      ) {
+        return null;
+      }
+
+      const numberOrNull = (value: unknown) =>
+        typeof value === "number" && Number.isFinite(value) ? value : null;
+
+      return {
+        timestamp,
+        open: numberOrNull(record.open),
+        high: numberOrNull(record.high),
+        low: numberOrNull(record.low),
+        close: numberOrNull(record.close),
+        volume: numberOrNull(record.volume),
+      };
+    })
+    .filter((candle): candle is RecommendationOutcomeCandle => candle !== null);
+}
+
+function entryTypeCandidateFields(input: {
+  metadata?: RecommendationEntryTypeMetadata | null;
+  trigger?: EntryTypeAwareTriggerDiagnostics | null;
+}) {
+  const metadata = input.metadata ?? null;
+  const trigger = input.trigger ?? null;
+
+  return {
+    entry_type: metadata?.entry_type ?? trigger?.entry_type ?? null,
+    entry_trigger_semantics:
+      metadata?.entry_trigger_semantics ?? trigger?.entry_trigger_semantics ?? null,
+    entry_type_source:
+      metadata?.entry_type_source ?? trigger?.entry_type_source ?? null,
+    entry_type_confidence:
+      metadata?.entry_type_confidence ?? trigger?.entry_type_confidence ?? null,
+    entry_type_warnings: metadata?.entry_type_warnings ?? [],
+    official_trigger_semantics_used:
+      "current_candle_range_touches_entry" as const,
+    entry_type_aware_trigger_semantics:
+      trigger?.entry_trigger_semantics ??
+      metadata?.entry_trigger_semantics ??
+      null,
+    entry_type_aware_entry_triggered:
+      trigger?.entry_type_aware_triggered ?? null,
+    entry_type_aware_entry_triggered_at:
+      trigger?.entry_type_aware_triggered_at ?? null,
+    entry_type_aware_status_if_applied:
+      trigger?.status_if_entry_type_applied ?? null,
+    entry_type_trigger_disagreement: trigger?.trigger_disagreement ?? null,
+    entry_type_trigger_disagreement_reason: trigger?.disagreement_reason ?? null,
+  };
 }
 
 function compactOutcomeCandles(candles: RecommendationOutcomeCandle[]) {
@@ -664,6 +811,7 @@ export async function runRecommendationOutcomeEvaluation(
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       plan_price_freshness_summary: null,
+      entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
       candle_request_debug_sample: [],
       candidates,
       outcomes,
@@ -731,6 +879,22 @@ export async function runRecommendationOutcomeEvaluation(
         existingOutcomeCompleted &&
         (!enrichmentMode || !existingOutcomeNeedsEnrichment)
       ) {
+        const existingEntryTypeMetadata =
+          entryTypeMetadataFromOutcome(existingOutcome) ??
+          entryTypeMetadataForSnapshot(snapshot);
+        const retainedCandles = retainedCandlesFromOutcome(existingOutcome);
+        const existingEntryTypeTrigger =
+          entryTypeTriggerFromOutcome(existingOutcome) ??
+          (retainedCandles.length > 0 && existingOutcome
+            ? evaluateEntryTypeAwareTrigger({
+                metadata: existingEntryTypeMetadata,
+                candles: retainedCandles,
+                entry: existingOutcome.entry,
+                officialTriggered: existingOutcome.entry_triggered,
+                officialTriggeredAt: existingOutcome.entry_triggered_at,
+                officialStatus: existingOutcome.status,
+              })
+            : null);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -744,6 +908,13 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: existingOutcome?.id ?? null,
           outcome_status: existingOutcome?.status ?? null,
           persistence_mode: "unknown",
+          plan_price_freshness: planPriceFreshnessFromOutcome(existingOutcome),
+          entry_type_metadata: existingEntryTypeMetadata,
+          entry_type_aware_trigger: existingEntryTypeTrigger,
+          ...entryTypeCandidateFields({
+            metadata: existingEntryTypeMetadata,
+            trigger: existingEntryTypeTrigger,
+          }),
           warnings: [
             enrichmentMode && !existingOutcomeNeedsEnrichment
               ? "Outcome already has retained candles for counterfactual simulation."
@@ -763,11 +934,19 @@ export async function runRecommendationOutcomeEvaluation(
           data_completeness: "none",
           warnings: ["Required snapshot fields are missing."],
         });
+        const outcome = annotateOutcome(
+          result.outcome,
+          entryTypeDiagnosticPayload({
+            snapshot,
+            outcome: result.outcome,
+            candles: [],
+          }),
+        );
         const persistence = options.persistOutcome
-          ? await options.persistOutcome(result.outcome)
+          ? await options.persistOutcome(outcome)
           : null;
 
-        outcomes.push(result.outcome);
+        outcomes.push(outcome);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -778,11 +957,14 @@ export async function runRecommendationOutcomeEvaluation(
           status: "missing_snapshot_fields",
           candle_request: null,
           candle_count: 0,
-          outcome_id: result.outcome.id,
-          outcome_status: result.outcome.status,
+          outcome_id: outcome.id,
+          outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          warnings: result.outcome.warnings,
-          error: result.outcome.blockers[0] ?? null,
+          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
+          entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
+          entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
+          warnings: outcome.warnings,
+          error: outcome.blockers[0] ?? null,
         });
         warnings.push(
           warning(
@@ -813,11 +995,19 @@ export async function runRecommendationOutcomeEvaluation(
           data_completeness: "none",
           warnings: [reason],
         });
+        const outcome = annotateOutcome(
+          result.outcome,
+          entryTypeDiagnosticPayload({
+            snapshot,
+            outcome: result.outcome,
+            candles: [],
+          }),
+        );
         const persistence = options.persistOutcome
-          ? await options.persistOutcome(result.outcome)
+          ? await options.persistOutcome(outcome)
           : null;
 
-        outcomes.push(result.outcome);
+        outcomes.push(outcome);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -828,10 +1018,13 @@ export async function runRecommendationOutcomeEvaluation(
           status: !options.fetchCandles ? "provider_error" : "missing_candles",
           candle_request: request,
           candle_count: 0,
-          outcome_id: result.outcome.id,
-          outcome_status: result.outcome.status,
+          outcome_id: outcome.id,
+          outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          warnings: result.outcome.warnings,
+          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
+          entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
+          entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
+          warnings: outcome.warnings,
           error: reason,
         });
         warnings.push(
@@ -878,6 +1071,11 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: work.existingOutcome?.id ?? null,
           outcome_status: work.existingOutcome?.status ?? "pending",
           persistence_mode: "unknown",
+          plan_price_freshness: planPriceFreshnessFromOutcome(work.existingOutcome),
+          entry_type_metadata:
+            entryTypeMetadataFromOutcome(work.existingOutcome) ??
+            entryTypeMetadataForSnapshot(snapshot),
+          entry_type_aware_trigger: entryTypeTriggerFromOutcome(work.existingOutcome),
           warnings: [reason],
           error: null,
         });
@@ -947,6 +1145,11 @@ export async function runRecommendationOutcomeEvaluation(
           warnings: [reason, ...candleResult.warnings],
         });
         const outcome = annotateOutcome(result.outcome, {
+          ...entryTypeDiagnosticPayload({
+            snapshot,
+            outcome: result.outcome,
+            candles: horizonCandles,
+          }),
           retryable: true,
           pending_reason:
             candleResult.status === "provider_error"
@@ -991,6 +1194,9 @@ export async function runRecommendationOutcomeEvaluation(
             ? work.existingOutcome?.status ?? outcome.status
             : outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
+          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
+          entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
+          entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
           warnings: shouldRetainExistingCompleted
             ? [
                 "Completed outcome retained unchanged; enrichment candles were unavailable.",
@@ -1023,6 +1229,11 @@ export async function runRecommendationOutcomeEvaluation(
         warnings: candleResult.warnings,
       });
       const outcome = annotateOutcome(result.outcome, {
+        ...entryTypeDiagnosticPayload({
+          snapshot,
+          outcome: result.outcome,
+          candles: horizonCandles,
+        }),
         ...horizonFilterDiagnostics,
         ...retainedCandlePayload(horizonCandles),
         ...shadowEntryTrialPayload({
@@ -1075,6 +1286,9 @@ export async function runRecommendationOutcomeEvaluation(
         outcome_id: outcome.id,
         outcome_status: outcome.status,
         persistence_mode: persistence?.mode ?? "unknown",
+        plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
+        entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
+        entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
         warnings: outcome.warnings,
         error: persistence?.error ?? null,
       });
@@ -1134,22 +1348,36 @@ export async function runRecommendationOutcomeEvaluation(
             ? "failed"
             : "partial";
   const outcomesById = new Map(outcomes.map((outcome) => [outcome.id, outcome]));
-  const candidatesWithPlanFreshness = candidates.map((candidate) => ({
-    ...candidate,
-    plan_price_freshness:
-      candidate.plan_price_freshness ??
-      planPriceFreshnessFromOutcome(
-        candidate.outcome_id ? outcomesById.get(candidate.outcome_id) : null,
-      ),
-  }));
+  const candidatesWithDiagnostics = candidates.map((candidate) => {
+    const outcome = candidate.outcome_id
+      ? outcomesById.get(candidate.outcome_id)
+      : null;
+    const entryTypeMetadata =
+      candidate.entry_type_metadata ?? entryTypeMetadataFromOutcome(outcome);
+    const entryTypeTrigger =
+      candidate.entry_type_aware_trigger ?? entryTypeTriggerFromOutcome(outcome);
+    return {
+      ...candidate,
+      plan_price_freshness:
+        candidate.plan_price_freshness ?? planPriceFreshnessFromOutcome(outcome),
+      entry_type_metadata: entryTypeMetadata,
+      entry_type_aware_trigger: entryTypeTrigger,
+      ...entryTypeCandidateFields({
+        metadata: entryTypeMetadata,
+        trigger: entryTypeTrigger,
+      }),
+    };
+  });
   const planPriceFreshnessSummary = summarizePlanPriceFreshness(
-    candidatesWithPlanFreshness.map((candidate) => ({
+    candidatesWithDiagnostics.map((candidate) => ({
       ticker: candidate.ticker,
       snapshot_fingerprint: candidate.snapshot_fingerprint,
       horizon: candidate.horizon,
       diagnostics: candidate.plan_price_freshness ?? null,
     })),
   );
+  const entryTypeTriggerSummary =
+    summarizeEntryTypeTriggerDiagnostics(candidatesWithDiagnostics);
   const completedRun = {
     run_id: createRunId(startedAt),
     run_version: "1.0" as const,
@@ -1188,8 +1416,9 @@ export async function runRecommendationOutcomeEvaluation(
     shadow_entry_trial_count: shadowEntryTrialCount,
     shadow_entry_triggered_count: shadowEntryTriggeredCount,
     plan_price_freshness_summary: planPriceFreshnessSummary,
+    entry_type_trigger_summary: entryTypeTriggerSummary,
     candle_request_debug_sample: candleRequestDebugSample,
-    candidates: candidatesWithPlanFreshness,
+    candidates: candidatesWithDiagnostics,
     outcomes,
     warnings,
   };

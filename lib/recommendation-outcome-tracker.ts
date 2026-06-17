@@ -1,6 +1,7 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 
 export type RecommendationOutcomeStatus =
   | "pending"
@@ -662,6 +663,13 @@ export function computeRecommendationOutcome(
     candles,
     latestProviderPrice: currentPrice ?? eodPrice,
   });
+  const entryTypeMetadata = entryTypeMetadataForSnapshot({
+    ticker,
+    entry,
+    side,
+    quote_price: snapshot?.quote_price ?? null,
+    payload_json: snapshot?.payload_json ?? null,
+  });
 
   const outcome: RecommendationOutcome = {
     id: outcomeId(snapshotFingerprint, horizon),
@@ -712,6 +720,8 @@ export function computeRecommendationOutcome(
       side_read_source: sideResolution.source,
       side_inferred: sideResolution.inferred,
       plan_price_freshness: planPriceFreshness,
+      entry_type_metadata: entryTypeMetadata,
+      ...entryTypeMetadata,
     },
     created_at: toIso(input.created_at) ?? evaluatedAt,
     updated_at: toIso(input.updated_at) ?? evaluatedAt,

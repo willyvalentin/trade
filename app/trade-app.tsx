@@ -265,6 +265,11 @@ import {
   type RecommendationOutcomeEvaluationRunStatus,
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import {
+  inferRecommendationEntryTypeMetadata,
+  type EntryTypeTriggerSummary,
+  type RecommendationEntryTypeMetadata,
+} from "@/lib/recommendation-entry-type";
+import {
   buildRecommendationPerformanceStatistics,
   recommendationPerformanceStatisticsJson,
   type RecommendationPerformanceBucket,
@@ -286,6 +291,7 @@ import {
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
 import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import type { BatchCandidateAuditSummary } from "@/lib/batch-candidate-audit";
 import {
   buildRecommendationTierPerformanceSummary,
   recommendationTierPerformanceSummaryJson,
@@ -1081,6 +1087,17 @@ type TradeOutcomeSummary = {
   mostCommonNegativeDriver: string | null;
 };
 
+type PlanReferencePriceMetadata = {
+  reference_price_used_for_plan: number | null;
+  reference_price_source: string;
+  reference_price_timestamp: string | null;
+  reference_price_symbol: string | null;
+  reference_price_provider: string | null;
+  reference_price_read_path: string | null;
+};
+
+type EntryTypeMetadata = RecommendationEntryTypeMetadata;
+
 type Recommendation = {
   id: string;
   sessionType: SessionType;
@@ -1106,6 +1123,8 @@ type Recommendation = {
   riskFlags: string[];
   intradayIndicators: IntradayIndicators | null;
   outputEnrichment?: RecommendationOutputEnrichmentMetadata | null;
+  planReferencePrice?: PlanReferencePriceMetadata | null;
+  entryTypeMetadata?: EntryTypeMetadata | null;
   discardedAtRaw: string | null;
   discardReviewStatus: DiscardReviewStatus | null;
   discardReviewedAtRaw: string | null;
@@ -1242,6 +1261,13 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   gridCards: number;
   expectedOutcomeRowsFromEligibleSnapshots: number;
   batchHealth: string | null;
+  batchCandidateAudit: BatchCandidateAuditSummary | null;
+  expectedSnapshotCountFromScan: number;
+  actualSnapshotCountForBatch: number;
+  missingSnapshotCount: number;
+  missingSnapshotReasons: Record<string, number>;
+  strictBatchFilterExcludedCount: number;
+  entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
   outcomesCreated: number;
@@ -2960,6 +2986,72 @@ function stripInlineMetadata(value: string) {
   return value.slice(0, Math.min(...metadataStarts)).trim();
 }
 
+function parsePlanReferencePriceMetadata(
+  parsed: Record<string, unknown> | null,
+): PlanReferencePriceMetadata | null {
+  const nested =
+    typeof parsed?.plan_reference_price === "object" &&
+    parsed.plan_reference_price !== null &&
+    !Array.isArray(parsed.plan_reference_price)
+      ? (parsed.plan_reference_price as Record<string, unknown>)
+      : null;
+  const source = nested ?? parsed;
+  const referencePrice = parseNumber(source?.reference_price_used_for_plan);
+
+  if (referencePrice === null && typeof source?.reference_price_source !== "string") {
+    return null;
+  }
+
+  return {
+    reference_price_used_for_plan: referencePrice,
+    reference_price_source:
+      typeof source?.reference_price_source === "string" &&
+      source.reference_price_source.trim()
+        ? source.reference_price_source.trim()
+        : "unknown",
+    reference_price_timestamp:
+      typeof source?.reference_price_timestamp === "string" &&
+      source.reference_price_timestamp.trim()
+        ? source.reference_price_timestamp.trim()
+        : null,
+    reference_price_symbol:
+      typeof source?.reference_price_symbol === "string" &&
+      source.reference_price_symbol.trim()
+        ? source.reference_price_symbol.trim()
+        : null,
+    reference_price_provider:
+      typeof source?.reference_price_provider === "string" &&
+      source.reference_price_provider.trim()
+        ? source.reference_price_provider.trim()
+        : null,
+    reference_price_read_path:
+      typeof source?.reference_price_read_path === "string" &&
+      source.reference_price_read_path.trim()
+        ? source.reference_price_read_path.trim()
+        : null,
+  };
+}
+
+function parseEntryTypeMetadata(
+  parsed: Record<string, unknown> | null,
+): EntryTypeMetadata | null {
+  const nested =
+    typeof parsed?.entry_type_metadata === "object" &&
+    parsed.entry_type_metadata !== null &&
+    !Array.isArray(parsed.entry_type_metadata)
+      ? (parsed.entry_type_metadata as Record<string, unknown>)
+      : null;
+  const source = nested ?? parsed;
+
+  if (typeof source?.entry_type !== "string") {
+    return null;
+  }
+
+  return inferRecommendationEntryTypeMetadata({
+    existingMetadata: source,
+  });
+}
+
 function parseConfidenceMetadata(reasonToAvoid: string) {
   const parsed = parseInlineMetadata(reasonToAvoid, confidenceMetadataPrefix);
   const score = parseNumber(parsed?.confidence_score);
@@ -2983,6 +3075,8 @@ function parseConfidenceMetadata(reasonToAvoid: string) {
       parsed?.intraday_indicators as Partial<IntradayIndicators> | null,
     ),
     outputEnrichment: parseOutputEnrichmentMetadata(parsed?.output_enrichment),
+    planReferencePrice: parsePlanReferencePriceMetadata(parsed),
+    entryTypeMetadata: parseEntryTypeMetadata(parsed),
     setupType: normalizeSetupType(parsed?.setup_type),
     tier: tierFromConfidenceMetadata(parsed),
   };
@@ -3145,6 +3239,10 @@ function buildConfidenceMetadata(recommendation: Recommendation) {
     risk_flags: recommendation.riskFlags,
     intraday_indicators: recommendation.intradayIndicators,
     output_enrichment: recommendation.outputEnrichment,
+    plan_reference_price: recommendation.planReferencePrice ?? null,
+    ...(recommendation.planReferencePrice ?? {}),
+    entry_type_metadata: recommendation.entryTypeMetadata ?? null,
+    ...(recommendation.entryTypeMetadata ?? {}),
     setup_type: recommendation.setupType,
   })}]`;
 }
@@ -4003,6 +4101,25 @@ function buildVisibleRecommendationSnapshotInput({
     outputEnrichment?.quote_timestamp ??
     recommendation.outputEnrichment?.quote_timestamp ??
     null;
+  const planReferencePrice: PlanReferencePriceMetadata =
+    recommendation.planReferencePrice ?? {
+      reference_price_used_for_plan: null,
+      reference_price_source: "unknown",
+      reference_price_timestamp: null,
+      reference_price_symbol: recommendation.ticker,
+      reference_price_provider: null,
+      reference_price_read_path: null,
+    };
+  const entryTypeMetadata =
+    recommendation.entryTypeMetadata ??
+    inferRecommendationEntryTypeMetadata({
+      side,
+      entry,
+      referencePrice: planReferencePrice.reference_price_used_for_plan,
+      referencePriceSource: planReferencePrice.reference_price_source,
+      referencePriceReadPath: planReferencePrice.reference_price_read_path,
+      source: "fallback_inference",
+    });
   const batchFingerprint =
     outputEnrichment?.batch_fingerprint ??
     recommendation.outputEnrichment?.batch_fingerprint ??
@@ -4116,6 +4233,9 @@ function buildVisibleRecommendationSnapshotInput({
         outputEnrichment?.provider_plan_profile_mode ??
         recommendation.outputEnrichment?.provider_plan_profile_mode ??
         null,
+      ...planReferencePrice,
+      ...entryTypeMetadata,
+      entry_type_metadata: entryTypeMetadata,
       build_marker:
         outputEnrichment?.build_marker ??
         recommendation.outputEnrichment?.build_marker ??
@@ -4137,6 +4257,8 @@ function buildVisibleRecommendationSnapshotInput({
         entry,
         stop,
         target,
+        ...planReferencePrice,
+        ...entryTypeMetadata,
       },
       recommendation: {
         id: recommendation.id,
@@ -4162,6 +4284,8 @@ function buildVisibleRecommendationSnapshotInput({
         scan_window: recommendation.scanWindow,
         expires_at: recommendation.expiresAtRaw,
         created_at: recommendation.createdAtRaw,
+        ...planReferencePrice,
+        ...entryTypeMetadata,
       },
       day_trade_window_recommendation_target: windowTarget
         ? {
@@ -4295,6 +4419,8 @@ function toRecommendation(row: RecommendationRow): Recommendation {
       : confidenceMetadata.riskFlags,
     intradayIndicators: confidenceMetadata.intradayIndicators,
     outputEnrichment: confidenceMetadata.outputEnrichment,
+    planReferencePrice: confidenceMetadata.planReferencePrice,
+    entryTypeMetadata: confidenceMetadata.entryTypeMetadata,
     discardedAtRaw: row.discarded_at ?? discardMetadata.discardedAt,
     discardReviewStatus:
       parseDiscardReviewStatus(row.discard_review_status) ??
@@ -7988,6 +8114,13 @@ export function TradeApp() {
     gridCards: 0,
     expectedOutcomeRowsFromEligibleSnapshots: 0,
     batchHealth: null,
+    batchCandidateAudit: null,
+    expectedSnapshotCountFromScan: 0,
+    actualSnapshotCountForBatch: 0,
+    missingSnapshotCount: 0,
+    missingSnapshotReasons: {},
+    strictBatchFilterExcludedCount: 0,
+    entryTypeTriggerSummary: null,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
     outcomesCreated: 0,
@@ -13341,6 +13474,18 @@ export function TradeApp() {
             : growMaxLearningModeEnabled
               ? outcomeDiagnosticsExpectedOutcomeCount
               : 0,
+        batch_candidate_audit:
+          recommendationOutcomeEvaluationDiagnostics.batchCandidateAudit,
+        expected_snapshot_count_from_scan:
+          recommendationOutcomeEvaluationDiagnostics.expectedSnapshotCountFromScan,
+        actual_snapshot_count_for_batch:
+          recommendationOutcomeEvaluationDiagnostics.actualSnapshotCountForBatch,
+        missing_snapshot_count:
+          recommendationOutcomeEvaluationDiagnostics.missingSnapshotCount,
+        missing_snapshot_reasons:
+          recommendationOutcomeEvaluationDiagnostics.missingSnapshotReasons,
+        strict_batch_filter_excluded_count:
+          recommendationOutcomeEvaluationDiagnostics.strictBatchFilterExcludedCount,
         expected_outcome_count:
           outcomeDiagnosticsExpectedOutcomeCount,
         batch_health:
@@ -13498,6 +13643,10 @@ export function TradeApp() {
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
           recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
+        entry_type_trigger_summary:
+          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
+          recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
+          null,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,
@@ -14216,6 +14365,40 @@ export function TradeApp() {
         expectedOutcomeRowsFromEligibleSnapshots: Number(
           routeDiagnostics.expected_outcome_rows_from_eligible_snapshots ?? 0,
         ),
+        batchCandidateAudit:
+          typeof routeDiagnostics.batch_candidate_audit === "object" &&
+          routeDiagnostics.batch_candidate_audit !== null &&
+          !Array.isArray(routeDiagnostics.batch_candidate_audit)
+            ? (routeDiagnostics.batch_candidate_audit as BatchCandidateAuditSummary)
+            : null,
+        expectedSnapshotCountFromScan: Number(
+          routeDiagnostics.expected_snapshot_count_from_scan ?? 0,
+        ),
+        actualSnapshotCountForBatch: Number(
+          routeDiagnostics.actual_snapshot_count_for_batch ?? 0,
+        ),
+        missingSnapshotCount: Number(
+          routeDiagnostics.missing_snapshot_count ?? 0,
+        ),
+        missingSnapshotReasons:
+          typeof routeDiagnostics.missing_snapshot_reasons === "object" &&
+          routeDiagnostics.missing_snapshot_reasons !== null &&
+          !Array.isArray(routeDiagnostics.missing_snapshot_reasons)
+            ? Object.fromEntries(
+                Object.entries(routeDiagnostics.missing_snapshot_reasons).map(
+                  ([reason, countValue]) => [reason, Number(countValue ?? 0)],
+                ),
+              )
+            : {},
+        strictBatchFilterExcludedCount: Number(
+          routeDiagnostics.strict_batch_filter_excluded_count ?? 0,
+        ),
+        entryTypeTriggerSummary:
+          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
+          routeDiagnostics.entry_type_trigger_summary !== null &&
+          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
+            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
+            : run.entry_type_trigger_summary ?? null,
         batchHealth:
           typeof routeDiagnostics.batch_health === "string"
             ? routeDiagnostics.batch_health

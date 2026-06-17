@@ -62,6 +62,14 @@ import {
   getServerSupabaseClient,
   getServerSupabaseReadClient,
 } from "@/lib/supabase-server";
+import {
+  inferRecommendationEntryTypeMetadata,
+  type RecommendationEntryTriggerSemantics,
+  type RecommendationEntryType,
+  type RecommendationEntryTypeConfidence,
+  type RecommendationEntryTypeMetadata,
+  type RecommendationEntryTypeSource,
+} from "@/lib/recommendation-entry-type";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -79,6 +87,17 @@ type ConfidenceBreakdown = {
   market_regime_alignment: number;
   timing_quality: number;
 };
+
+type PlanReferencePriceMetadata = {
+  reference_price_used_for_plan: number | null;
+  reference_price_source: string;
+  reference_price_timestamp: string | null;
+  reference_price_symbol: string | null;
+  reference_price_provider: string | null;
+  reference_price_read_path: string | null;
+};
+
+type EntryTypeMetadata = RecommendationEntryTypeMetadata;
 
 export type GenerateRecommendationsInput = {
   sessionType: SessionType;
@@ -163,6 +182,17 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   batch_window: string;
   batch_type: string;
   batch_status: string;
+  reference_price_used_for_plan?: number | null;
+  reference_price_source?: string | null;
+  reference_price_timestamp?: string | null;
+  reference_price_symbol?: string | null;
+  reference_price_provider?: string | null;
+  reference_price_read_path?: string | null;
+  entry_type?: RecommendationEntryType | null;
+  entry_trigger_semantics?: RecommendationEntryTriggerSemantics | null;
+  entry_type_source?: RecommendationEntryTypeSource | null;
+  entry_type_confidence?: RecommendationEntryTypeConfidence | null;
+  entry_type_warnings?: string[] | null;
 };
 
 type AiNoTradeDecision = {
@@ -1831,6 +1861,109 @@ function nullableNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function buildPlanReferencePriceMetadata(
+  candidate: MockCandidate,
+): PlanReferencePriceMetadata {
+  const scannerReferencePrice = nullableNumber(
+    candidate.reference_price_used_for_plan,
+  );
+  if (scannerReferencePrice !== null && scannerReferencePrice > 0) {
+    return {
+      reference_price_used_for_plan: scannerReferencePrice,
+      reference_price_source:
+        nullableString(candidate.reference_price_source) ?? "fallback_last_price",
+      reference_price_timestamp:
+        nullableString(candidate.reference_price_timestamp) ?? null,
+      reference_price_symbol:
+        nullableString(candidate.reference_price_symbol) ??
+        normalizeTicker(candidate.ticker) ??
+        null,
+      reference_price_provider:
+        nullableString(candidate.reference_price_provider) ?? null,
+      reference_price_read_path:
+        nullableString(candidate.reference_price_read_path) ??
+        "candidate.reference_price_used_for_plan",
+    };
+  }
+
+  const latestClose = nullableNumber(candidate.latest_close);
+  if (latestClose !== null && latestClose > 0) {
+    return {
+      reference_price_used_for_plan: latestClose,
+      reference_price_source: "fallback_last_price",
+      reference_price_timestamp: null,
+      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
+      reference_price_provider: null,
+      reference_price_read_path: "candidate.latest_close",
+    };
+  }
+
+  const intradayLatestPrice = nullableNumber(
+    candidate.intraday_indicators?.latestPrice,
+  );
+  if (intradayLatestPrice !== null && intradayLatestPrice > 0) {
+    return {
+      reference_price_used_for_plan: intradayLatestPrice,
+      reference_price_source: "latest_intraday_candle_close",
+      reference_price_timestamp:
+        nullableString(candidate.intraday_indicator_cached_at) ?? null,
+      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
+      reference_price_provider:
+        candidate.intraday_indicator_source === "fresh" ||
+        candidate.intraday_indicator_source === "cache"
+          ? "twelve_data"
+          : null,
+      reference_price_read_path: "candidate.intraday_indicators.latestPrice",
+    };
+  }
+
+  const mockCurrentPrice = nullableNumber(candidate.mock_current_price);
+  if (mockCurrentPrice !== null && mockCurrentPrice > 0) {
+    return {
+      reference_price_used_for_plan: mockCurrentPrice,
+      reference_price_source: "current_price",
+      reference_price_timestamp: null,
+      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
+      reference_price_provider: "mock",
+      reference_price_read_path: "candidate.mock_current_price",
+    };
+  }
+
+  return {
+    reference_price_used_for_plan: null,
+    reference_price_source: "unknown",
+    reference_price_timestamp: null,
+    reference_price_symbol: normalizeTicker(candidate.ticker) || null,
+    reference_price_provider: null,
+    reference_price_read_path: null,
+  };
+}
+
+function midpoint(low: number | null, high: number | null) {
+  if (low === null && high === null) return null;
+  if (low === null) return high;
+  if (high === null) return low;
+  return (low + high) / 2;
+}
+
+function buildPlanEntryTypeMetadata(input: {
+  side: "long" | "short";
+  entry: number | null;
+  planReferencePrice: PlanReferencePriceMetadata;
+  source: RecommendationEntryTypeSource;
+  existingMetadata?: Record<string, unknown> | null;
+}): EntryTypeMetadata {
+  return inferRecommendationEntryTypeMetadata({
+    side: input.side,
+    entry: input.entry,
+    referencePrice: input.planReferencePrice.reference_price_used_for_plan,
+    referencePriceSource: input.planReferencePrice.reference_price_source,
+    referencePriceReadPath: input.planReferencePrice.reference_price_read_path,
+    source: input.source,
+    existingMetadata: input.existingMetadata ?? null,
+  });
+}
+
 function buildOpenAiBatchContext(input: {
   scanWindow: IntradayScanWindow;
   source: RecommendationGenerationSource;
@@ -2031,6 +2164,16 @@ function buildDeterministicLearningRecommendations({
     const reasons = candidate.local_score_reasons.slice(0, 3);
     const setupType = normalizeSetupType(candidate.setup_type);
     const setupLabel = getSetupTypeLabel(setupType);
+    const planReferencePrice = buildPlanReferencePriceMetadata(candidate);
+    const entryTypeMetadata = buildPlanEntryTypeMetadata({
+      side: "long",
+      entry: midpoint(
+        nullableNumber(candidate.proposed_entry_low),
+        nullableNumber(candidate.proposed_entry_high),
+      ),
+      planReferencePrice,
+      source: "deterministic_plan_builder",
+    });
     const confidenceBreakdown: ConfidenceBreakdown = {
       setup_quality: candidate.local_score_breakdown.trend,
       momentum_confirmation: candidate.local_score_breakdown.momentum,
@@ -2105,6 +2248,9 @@ function buildDeterministicLearningRecommendations({
       batch_status: powerHourTrial
         ? "observation_learning"
         : "learning_candidate",
+      entry_type_metadata: entryTypeMetadata,
+      ...entryTypeMetadata,
+      ...planReferencePrice,
     };
   });
 }
@@ -2363,6 +2509,39 @@ function sanitizeRecommendations(
           ...(powerHourTrial ? POWER_HOUR_TRIAL_WARNINGS : []),
         ]),
       );
+      const candidatePlanReferencePrice = buildPlanReferencePriceMetadata(candidate);
+      const planReferencePrice: PlanReferencePriceMetadata = {
+        reference_price_used_for_plan:
+          nullableNumber(recommendation.reference_price_used_for_plan) ??
+          candidatePlanReferencePrice.reference_price_used_for_plan,
+        reference_price_source:
+          nullableString(recommendation.reference_price_source) ??
+          candidatePlanReferencePrice.reference_price_source ??
+          "unknown",
+        reference_price_timestamp:
+          nullableString(recommendation.reference_price_timestamp) ??
+          candidatePlanReferencePrice.reference_price_timestamp,
+        reference_price_symbol:
+          nullableString(recommendation.reference_price_symbol) ??
+          candidatePlanReferencePrice.reference_price_symbol,
+        reference_price_provider:
+          nullableString(recommendation.reference_price_provider) ??
+          candidatePlanReferencePrice.reference_price_provider,
+        reference_price_read_path:
+          nullableString(recommendation.reference_price_read_path) ??
+          candidatePlanReferencePrice.reference_price_read_path,
+      };
+      const entryTypeMetadata = buildPlanEntryTypeMetadata({
+        side: "long",
+        entry: midpoint(entryLow, entryHigh),
+        planReferencePrice,
+        source:
+          nullableString(recommendation.entry_type_source) ===
+          "deterministic_plan_builder"
+            ? "deterministic_plan_builder"
+            : "metadata_inference",
+        existingMetadata: recommendation as Record<string, unknown>,
+      });
 
       seenTickers.add(ticker);
       const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
@@ -2371,6 +2550,10 @@ function sanitizeRecommendations(
         confidence_breakdown: recommendation.confidence_breakdown,
         confidence_reasoning: recommendation.confidence_reasoning,
         risk_flags: riskFlags,
+        plan_reference_price: planReferencePrice,
+        ...planReferencePrice,
+        entry_type_metadata: entryTypeMetadata,
+        ...entryTypeMetadata,
         power_hour_trial: powerHourTrial,
         eod_risk: powerHourTrial ? "high" : null,
         recommendation_intent: powerHourTrial
