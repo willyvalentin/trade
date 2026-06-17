@@ -1,6 +1,10 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import {
+  parseRecommendationConfidenceMetadata,
+  planReferenceMetadataDiagnostics,
+} from "@/lib/recommendation-inline-metadata";
 import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 
 export type RecommendationSnapshotStatus =
@@ -519,8 +523,35 @@ export function buildRecommendationSnapshot(
     calculateRiskReward(riskPerShare, rewardPerShare);
   const snapshotFingerprint = buildRecommendationSnapshotFingerprint(input);
   const quality = input.quality ?? null;
+  const inputPayload = input.payload ?? {};
+  const payloadRecommendation = objectOrNull(inputPayload.recommendation);
+  const inlineMetadata = parseRecommendationConfidenceMetadata(
+    typeof payloadRecommendation?.reason_to_avoid === "string"
+      ? payloadRecommendation.reason_to_avoid
+      : null,
+  );
+  const planReferenceMetadata =
+    objectOrNull(inlineMetadata?.plan_reference_price) ?? inlineMetadata;
+  const hasInlineReferencePrice =
+    finiteNumber(planReferenceMetadata?.reference_price_used_for_plan) !== null;
+  const planReferenceStatus = planReferenceMetadataDiagnostics({
+    referencePrice:
+      planReferenceMetadata?.reference_price_used_for_plan ??
+      inputPayload.reference_price_used_for_plan,
+    entry,
+    stop,
+    target,
+  });
   const payloadJson = {
-    ...(input.payload ?? {}),
+    ...inputPayload,
+    ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
+    plan_reference_price: hasInlineReferencePrice
+      ? {
+          ...(objectOrNull(inputPayload.plan_reference_price) ?? {}),
+          ...planReferenceMetadata,
+        }
+      : objectOrNull(inputPayload.plan_reference_price) ?? null,
+    ...planReferenceStatus,
     ...shadowEntryTrialPayload(input),
     side,
     direction: side,
@@ -535,6 +566,8 @@ export function buildRecommendationSnapshot(
       side,
       direction: side,
       action: side === "short" ? "sell" : side === "long" ? "buy" : null,
+      ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
+      ...planReferenceStatus,
     },
   };
   const payloadJsonRecord = payloadJson as Record<string, unknown>;
@@ -570,6 +603,8 @@ export function buildRecommendationSnapshot(
       ? {
           recommendation: {
             ...(objectOrNull(payloadJsonRecord.recommendation) ?? {}),
+            ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
+            ...planReferenceStatus,
             ...entryTypeMetadata,
           },
         }

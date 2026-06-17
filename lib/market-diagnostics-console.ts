@@ -3856,6 +3856,10 @@ function buildSections(
           `${planFreshnessSummary?.missing_reference_price_count ?? 0}/${planFreshnessSummary?.missing_reference_timestamp_count ?? 0}/${planFreshnessSummary?.provider_price_unavailable_count ?? 0}`,
         ),
         lineValue(
+          "Reference metadata present/missing-with-plan/missing-no-plan",
+          `${planFreshnessSummary?.reference_metadata_present_count ?? 0}/${planFreshnessSummary?.reference_metadata_missing_but_plan_prices_present_count ?? 0}/${planFreshnessSummary?.reference_metadata_missing_no_plan_prices_count ?? 0}`,
+        ),
+        lineValue(
           "Average entry distance",
           pctValue(
             planFreshnessSummary?.average_entry_distance_from_first_candle_close_pct,
@@ -3893,6 +3897,16 @@ function buildSections(
             .map(([source, countValue]) => `${source}=${countValue}`)
             .join(", ") || "none",
         ),
+        lineValue(
+          "Top missing reference metadata tickers",
+          (planFreshnessSummary?.top_tickers_missing_reference_metadata ?? [])
+            .slice(0, 5)
+            .map(
+              (item) =>
+                `${item.ticker ?? "unknown"} ${item.plan_reference_metadata_status}`,
+            )
+            .join("; ") || "none",
+        ),
         ...(planFreshnessSummary?.warning
           ? [lineValue("Warning", planFreshnessSummary.warning)]
           : []),
@@ -3912,6 +3926,14 @@ function buildSections(
           planFreshnessSummary?.missing_reference_timestamp_count ?? 0,
         provider_price_unavailable_count:
           planFreshnessSummary?.provider_price_unavailable_count ?? 0,
+        reference_metadata_present_count:
+          planFreshnessSummary?.reference_metadata_present_count ?? 0,
+        reference_metadata_missing_but_plan_prices_present_count:
+          planFreshnessSummary
+            ?.reference_metadata_missing_but_plan_prices_present_count ?? 0,
+        reference_metadata_missing_no_plan_prices_count:
+          planFreshnessSummary?.reference_metadata_missing_no_plan_prices_count ??
+          0,
         average_entry_distance_from_first_candle_close_pct:
           planFreshnessSummary
             ?.average_entry_distance_from_first_candle_close_pct ?? null,
@@ -3925,6 +3947,9 @@ function buildSections(
         ),
         reference_price_source_counts: JSON.stringify(
           planFreshnessSummary?.reference_price_source_counts ?? {},
+        ),
+        top_tickers_missing_reference_metadata: JSON.stringify(
+          planFreshnessSummary?.top_tickers_missing_reference_metadata ?? [],
         ),
         warning: planFreshnessSummary?.warning ?? null,
       },

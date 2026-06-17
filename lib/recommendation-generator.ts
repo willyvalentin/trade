@@ -63,6 +63,10 @@ import {
   getServerSupabaseReadClient,
 } from "@/lib/supabase-server";
 import {
+  planReferenceMetadataDiagnostics,
+  recommendationConfidenceMetadataPrefix,
+} from "@/lib/recommendation-inline-metadata";
+import {
   inferRecommendationEntryTypeMetadata,
   type RecommendationEntryTriggerSemantics,
   type RecommendationEntryType,
@@ -359,7 +363,7 @@ const POWER_HOUR_TRIAL_COPY = [
   "This does not enable broker automation.",
 ];
 const MINIMUM_OPENAI_CONFIDENCE_SCORE = 55;
-const confidenceMetadataPrefix = "\n\n[confidence_meta:";
+const confidenceMetadataPrefix = recommendationConfidenceMetadataPrefix;
 const SETUP_TYPE_OPTIONS_FOR_PROMPT = SETUP_TYPE_OPTIONS.map((option) => ({
   setup_type: option.value,
   label: option.label,
@@ -1858,7 +1862,12 @@ function nullableString(value: unknown) {
 }
 
 function nullableNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function buildPlanReferencePriceMetadata(
@@ -2174,6 +2183,15 @@ function buildDeterministicLearningRecommendations({
       planReferencePrice,
       source: "deterministic_plan_builder",
     });
+    const planReferenceStatus = planReferenceMetadataDiagnostics({
+      referencePrice: planReferencePrice.reference_price_used_for_plan,
+      entry: midpoint(
+        nullableNumber(candidate.proposed_entry_low),
+        nullableNumber(candidate.proposed_entry_high),
+      ),
+      stop: candidate.proposed_stop_loss,
+      target: candidate.proposed_target_1,
+    });
     const confidenceBreakdown: ConfidenceBreakdown = {
       setup_quality: candidate.local_score_breakdown.trend,
       momentum_confirmation: candidate.local_score_breakdown.momentum,
@@ -2248,6 +2266,7 @@ function buildDeterministicLearningRecommendations({
       batch_status: powerHourTrial
         ? "observation_learning"
         : "learning_candidate",
+      ...planReferenceStatus,
       entry_type_metadata: entryTypeMetadata,
       ...entryTypeMetadata,
       ...planReferencePrice,
@@ -2542,6 +2561,12 @@ function sanitizeRecommendations(
             : "metadata_inference",
         existingMetadata: recommendation as Record<string, unknown>,
       });
+      const planReferenceStatus = planReferenceMetadataDiagnostics({
+        referencePrice: planReferencePrice.reference_price_used_for_plan,
+        entry: midpoint(entryLow, entryHigh),
+        stop: stopLoss,
+        target: target1,
+      });
 
       seenTickers.add(ticker);
       const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
@@ -2552,6 +2577,7 @@ function sanitizeRecommendations(
         risk_flags: riskFlags,
         plan_reference_price: planReferencePrice,
         ...planReferencePrice,
+        ...planReferenceStatus,
         entry_type_metadata: entryTypeMetadata,
         ...entryTypeMetadata,
         power_hour_trial: powerHourTrial,
