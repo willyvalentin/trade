@@ -265,6 +265,11 @@ import {
   type RecommendationOutcomeEvaluationRunStatus,
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import {
+  inferRecommendationEntryTypeMetadata,
+  type EntryTypeTriggerSummary,
+  type RecommendationEntryTypeMetadata,
+} from "@/lib/recommendation-entry-type";
+import {
   buildRecommendationPerformanceStatistics,
   recommendationPerformanceStatisticsJson,
   type RecommendationPerformanceBucket,
@@ -1091,6 +1096,8 @@ type PlanReferencePriceMetadata = {
   reference_price_read_path: string | null;
 };
 
+type EntryTypeMetadata = RecommendationEntryTypeMetadata;
+
 type Recommendation = {
   id: string;
   sessionType: SessionType;
@@ -1117,6 +1124,7 @@ type Recommendation = {
   intradayIndicators: IntradayIndicators | null;
   outputEnrichment?: RecommendationOutputEnrichmentMetadata | null;
   planReferencePrice?: PlanReferencePriceMetadata | null;
+  entryTypeMetadata?: EntryTypeMetadata | null;
   discardedAtRaw: string | null;
   discardReviewStatus: DiscardReviewStatus | null;
   discardReviewedAtRaw: string | null;
@@ -1259,6 +1267,7 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   missingSnapshotCount: number;
   missingSnapshotReasons: Record<string, number>;
   strictBatchFilterExcludedCount: number;
+  entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   incompleteDueToMissingCandles: number;
   providerErrors: number;
   outcomesCreated: number;
@@ -3023,6 +3032,26 @@ function parsePlanReferencePriceMetadata(
   };
 }
 
+function parseEntryTypeMetadata(
+  parsed: Record<string, unknown> | null,
+): EntryTypeMetadata | null {
+  const nested =
+    typeof parsed?.entry_type_metadata === "object" &&
+    parsed.entry_type_metadata !== null &&
+    !Array.isArray(parsed.entry_type_metadata)
+      ? (parsed.entry_type_metadata as Record<string, unknown>)
+      : null;
+  const source = nested ?? parsed;
+
+  if (typeof source?.entry_type !== "string") {
+    return null;
+  }
+
+  return inferRecommendationEntryTypeMetadata({
+    existingMetadata: source,
+  });
+}
+
 function parseConfidenceMetadata(reasonToAvoid: string) {
   const parsed = parseInlineMetadata(reasonToAvoid, confidenceMetadataPrefix);
   const score = parseNumber(parsed?.confidence_score);
@@ -3047,6 +3076,7 @@ function parseConfidenceMetadata(reasonToAvoid: string) {
     ),
     outputEnrichment: parseOutputEnrichmentMetadata(parsed?.output_enrichment),
     planReferencePrice: parsePlanReferencePriceMetadata(parsed),
+    entryTypeMetadata: parseEntryTypeMetadata(parsed),
     setupType: normalizeSetupType(parsed?.setup_type),
     tier: tierFromConfidenceMetadata(parsed),
   };
@@ -3211,6 +3241,8 @@ function buildConfidenceMetadata(recommendation: Recommendation) {
     output_enrichment: recommendation.outputEnrichment,
     plan_reference_price: recommendation.planReferencePrice ?? null,
     ...(recommendation.planReferencePrice ?? {}),
+    entry_type_metadata: recommendation.entryTypeMetadata ?? null,
+    ...(recommendation.entryTypeMetadata ?? {}),
     setup_type: recommendation.setupType,
   })}]`;
 }
@@ -4078,6 +4110,16 @@ function buildVisibleRecommendationSnapshotInput({
       reference_price_provider: null,
       reference_price_read_path: null,
     };
+  const entryTypeMetadata =
+    recommendation.entryTypeMetadata ??
+    inferRecommendationEntryTypeMetadata({
+      side,
+      entry,
+      referencePrice: planReferencePrice.reference_price_used_for_plan,
+      referencePriceSource: planReferencePrice.reference_price_source,
+      referencePriceReadPath: planReferencePrice.reference_price_read_path,
+      source: "fallback_inference",
+    });
   const batchFingerprint =
     outputEnrichment?.batch_fingerprint ??
     recommendation.outputEnrichment?.batch_fingerprint ??
@@ -4192,6 +4234,8 @@ function buildVisibleRecommendationSnapshotInput({
         recommendation.outputEnrichment?.provider_plan_profile_mode ??
         null,
       ...planReferencePrice,
+      ...entryTypeMetadata,
+      entry_type_metadata: entryTypeMetadata,
       build_marker:
         outputEnrichment?.build_marker ??
         recommendation.outputEnrichment?.build_marker ??
@@ -4214,6 +4258,7 @@ function buildVisibleRecommendationSnapshotInput({
         stop,
         target,
         ...planReferencePrice,
+        ...entryTypeMetadata,
       },
       recommendation: {
         id: recommendation.id,
@@ -4240,6 +4285,7 @@ function buildVisibleRecommendationSnapshotInput({
         expires_at: recommendation.expiresAtRaw,
         created_at: recommendation.createdAtRaw,
         ...planReferencePrice,
+        ...entryTypeMetadata,
       },
       day_trade_window_recommendation_target: windowTarget
         ? {
@@ -4374,6 +4420,7 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     intradayIndicators: confidenceMetadata.intradayIndicators,
     outputEnrichment: confidenceMetadata.outputEnrichment,
     planReferencePrice: confidenceMetadata.planReferencePrice,
+    entryTypeMetadata: confidenceMetadata.entryTypeMetadata,
     discardedAtRaw: row.discarded_at ?? discardMetadata.discardedAt,
     discardReviewStatus:
       parseDiscardReviewStatus(row.discard_review_status) ??
@@ -8073,6 +8120,7 @@ export function TradeApp() {
     missingSnapshotCount: 0,
     missingSnapshotReasons: {},
     strictBatchFilterExcludedCount: 0,
+    entryTypeTriggerSummary: null,
     incompleteDueToMissingCandles: 0,
     providerErrors: 0,
     outcomesCreated: 0,
@@ -13595,6 +13643,10 @@ export function TradeApp() {
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
           recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
+        entry_type_trigger_summary:
+          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
+          recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
+          null,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,
@@ -14341,6 +14393,12 @@ export function TradeApp() {
         strictBatchFilterExcludedCount: Number(
           routeDiagnostics.strict_batch_filter_excluded_count ?? 0,
         ),
+        entryTypeTriggerSummary:
+          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
+          routeDiagnostics.entry_type_trigger_summary !== null &&
+          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
+            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
+            : run.entry_type_trigger_summary ?? null,
         batchHealth:
           typeof routeDiagnostics.batch_health === "string"
             ? routeDiagnostics.batch_health

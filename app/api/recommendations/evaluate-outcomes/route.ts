@@ -16,6 +16,7 @@ import {
   type RecommendationOutcomeCandleRequest,
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
+import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
   recommendationSnapshotFromPersistenceRow,
@@ -1551,6 +1552,7 @@ export async function POST(request: Request) {
         shadowSnapshotSummary.shadow_snapshot_metadata_missing_count,
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
+      entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
     };
 
     return NextResponse.json({
@@ -1787,6 +1789,7 @@ export async function POST(request: Request) {
       shadowSnapshotSummary.shadow_snapshot_metadata_missing_count,
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
+    entry_type_trigger_summary: run.entry_type_trigger_summary,
   };
 
   return NextResponse.json({

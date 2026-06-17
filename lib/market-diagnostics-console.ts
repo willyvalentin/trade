@@ -17,6 +17,7 @@ import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-p
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
+import type { EntryTypeTriggerSummary } from "@/lib/recommendation-entry-type";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
@@ -323,6 +324,7 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
     plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
+    entry_type_trigger_summary?: EntryTypeTriggerSummary | null;
     batch_candidate_audit?: BatchCandidateAuditSummary | null;
     expected_snapshot_count_from_scan?: number | null;
     actual_snapshot_count_for_batch?: number | null;
@@ -1573,6 +1575,8 @@ function buildSections(
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
+  const entryTypeTriggerSummary =
+    input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
   const hasSuccessfulLiveReadback =
@@ -3833,6 +3837,9 @@ function buildSections(
           input.outcome_evaluation?.tickers_evaluated ?? []
         ).join(","),
         plan_price_freshness_summary: JSON.stringify(planFreshnessSummary ?? null),
+        entry_type_trigger_summary: JSON.stringify(
+          entryTypeTriggerSummary ?? null,
+        ),
       },
     }),
     section({
@@ -3920,6 +3927,90 @@ function buildSections(
           planFreshnessSummary?.reference_price_source_counts ?? {},
         ),
         warning: planFreshnessSummary?.warning ?? null,
+      },
+    }),
+    section({
+      section_id: "entry_type_trigger_diagnostics",
+      title: "Entry Type Trigger Diagnostics",
+      severity:
+        (entryTypeTriggerSummary?.disagreement_count ?? 0) > 0 ||
+        (entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Known/unknown entry types",
+          `${entryTypeTriggerSummary?.known_entry_type_count ?? 0}/${entryTypeTriggerSummary?.unknown_entry_type_count ?? 0}`,
+        ),
+        lineValue(
+          "Missing reference impact",
+          String(entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0),
+        ),
+        lineValue(
+          "Official vs entry-type-aware triggered",
+          `${entryTypeTriggerSummary?.official_triggered_count ?? 0}/${entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0}`,
+        ),
+        lineValue(
+          "Disagreement count/rate",
+          `${entryTypeTriggerSummary?.disagreement_count ?? 0}/${pctValue((entryTypeTriggerSummary?.disagreement_rate ?? 0) * 100)}`,
+        ),
+        lineValue(
+          "Entry types",
+          Object.entries(entryTypeTriggerSummary?.by_entry_type ?? {})
+            .map(([entryType, countValue]) => `${entryType}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Trigger semantics",
+          Object.entries(entryTypeTriggerSummary?.by_trigger_semantics ?? {})
+            .map(([semantics, countValue]) => `${semantics}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Sources",
+          Object.entries(entryTypeTriggerSummary?.by_source ?? {})
+            .map(([source, countValue]) => `${source}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Top disagreement reasons",
+          Object.entries(entryTypeTriggerSummary?.disagreement_reasons ?? {})
+            .sort((first, second) => second[1] - first[1])
+            .slice(0, 5)
+            .map(([reason, countValue]) => `${reason}=${countValue}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Disagreement tickers",
+          (entryTypeTriggerSummary?.disagreement_tickers ?? []).slice(0, 10).join(", ") ||
+            "none",
+        ),
+      ],
+      metrics: {
+        total_candidates: entryTypeTriggerSummary?.total_candidates ?? 0,
+        known_entry_type_count:
+          entryTypeTriggerSummary?.known_entry_type_count ?? 0,
+        unknown_entry_type_count:
+          entryTypeTriggerSummary?.unknown_entry_type_count ?? 0,
+        unknown_due_to_missing_reference_count:
+          entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0,
+        official_triggered_count:
+          entryTypeTriggerSummary?.official_triggered_count ?? 0,
+        entry_type_aware_triggered_count:
+          entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0,
+        disagreement_count: entryTypeTriggerSummary?.disagreement_count ?? 0,
+        disagreement_rate: entryTypeTriggerSummary?.disagreement_rate ?? 0,
+        by_entry_type: JSON.stringify(entryTypeTriggerSummary?.by_entry_type ?? {}),
+        by_trigger_semantics: JSON.stringify(
+          entryTypeTriggerSummary?.by_trigger_semantics ?? {},
+        ),
+        by_source: JSON.stringify(entryTypeTriggerSummary?.by_source ?? {}),
+        disagreement_reasons: JSON.stringify(
+          entryTypeTriggerSummary?.disagreement_reasons ?? {},
+        ),
+        disagreement_tickers: JSON.stringify(
+          entryTypeTriggerSummary?.disagreement_tickers ?? [],
+        ),
       },
     }),
     section({

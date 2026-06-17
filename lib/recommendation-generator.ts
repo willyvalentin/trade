@@ -62,6 +62,14 @@ import {
   getServerSupabaseClient,
   getServerSupabaseReadClient,
 } from "@/lib/supabase-server";
+import {
+  inferRecommendationEntryTypeMetadata,
+  type RecommendationEntryTriggerSemantics,
+  type RecommendationEntryType,
+  type RecommendationEntryTypeConfidence,
+  type RecommendationEntryTypeMetadata,
+  type RecommendationEntryTypeSource,
+} from "@/lib/recommendation-entry-type";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -88,6 +96,8 @@ type PlanReferencePriceMetadata = {
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
 };
+
+type EntryTypeMetadata = RecommendationEntryTypeMetadata;
 
 export type GenerateRecommendationsInput = {
   sessionType: SessionType;
@@ -178,6 +188,11 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   reference_price_symbol?: string | null;
   reference_price_provider?: string | null;
   reference_price_read_path?: string | null;
+  entry_type?: RecommendationEntryType | null;
+  entry_trigger_semantics?: RecommendationEntryTriggerSemantics | null;
+  entry_type_source?: RecommendationEntryTypeSource | null;
+  entry_type_confidence?: RecommendationEntryTypeConfidence | null;
+  entry_type_warnings?: string[] | null;
 };
 
 type AiNoTradeDecision = {
@@ -1924,6 +1939,31 @@ function buildPlanReferencePriceMetadata(
   };
 }
 
+function midpoint(low: number | null, high: number | null) {
+  if (low === null && high === null) return null;
+  if (low === null) return high;
+  if (high === null) return low;
+  return (low + high) / 2;
+}
+
+function buildPlanEntryTypeMetadata(input: {
+  side: "long" | "short";
+  entry: number | null;
+  planReferencePrice: PlanReferencePriceMetadata;
+  source: RecommendationEntryTypeSource;
+  existingMetadata?: Record<string, unknown> | null;
+}): EntryTypeMetadata {
+  return inferRecommendationEntryTypeMetadata({
+    side: input.side,
+    entry: input.entry,
+    referencePrice: input.planReferencePrice.reference_price_used_for_plan,
+    referencePriceSource: input.planReferencePrice.reference_price_source,
+    referencePriceReadPath: input.planReferencePrice.reference_price_read_path,
+    source: input.source,
+    existingMetadata: input.existingMetadata ?? null,
+  });
+}
+
 function buildOpenAiBatchContext(input: {
   scanWindow: IntradayScanWindow;
   source: RecommendationGenerationSource;
@@ -2125,6 +2165,15 @@ function buildDeterministicLearningRecommendations({
     const setupType = normalizeSetupType(candidate.setup_type);
     const setupLabel = getSetupTypeLabel(setupType);
     const planReferencePrice = buildPlanReferencePriceMetadata(candidate);
+    const entryTypeMetadata = buildPlanEntryTypeMetadata({
+      side: "long",
+      entry: midpoint(
+        nullableNumber(candidate.proposed_entry_low),
+        nullableNumber(candidate.proposed_entry_high),
+      ),
+      planReferencePrice,
+      source: "deterministic_plan_builder",
+    });
     const confidenceBreakdown: ConfidenceBreakdown = {
       setup_quality: candidate.local_score_breakdown.trend,
       momentum_confirmation: candidate.local_score_breakdown.momentum,
@@ -2199,6 +2248,8 @@ function buildDeterministicLearningRecommendations({
       batch_status: powerHourTrial
         ? "observation_learning"
         : "learning_candidate",
+      entry_type_metadata: entryTypeMetadata,
+      ...entryTypeMetadata,
       ...planReferencePrice,
     };
   });
@@ -2480,6 +2531,17 @@ function sanitizeRecommendations(
           nullableString(recommendation.reference_price_read_path) ??
           candidatePlanReferencePrice.reference_price_read_path,
       };
+      const entryTypeMetadata = buildPlanEntryTypeMetadata({
+        side: "long",
+        entry: midpoint(entryLow, entryHigh),
+        planReferencePrice,
+        source:
+          nullableString(recommendation.entry_type_source) ===
+          "deterministic_plan_builder"
+            ? "deterministic_plan_builder"
+            : "metadata_inference",
+        existingMetadata: recommendation as Record<string, unknown>,
+      });
 
       seenTickers.add(ticker);
       const confidenceMetadata = `${confidenceMetadataPrefix}${JSON.stringify({
@@ -2490,6 +2552,8 @@ function sanitizeRecommendations(
         risk_flags: riskFlags,
         plan_reference_price: planReferencePrice,
         ...planReferencePrice,
+        entry_type_metadata: entryTypeMetadata,
+        ...entryTypeMetadata,
         power_hour_trial: powerHourTrial,
         eod_risk: powerHourTrial ? "high" : null,
         recommendation_intent: powerHourTrial
