@@ -32,6 +32,7 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -1565,7 +1566,6 @@ export async function POST(request: Request) {
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
-      plan_reference_metadata_trace: planReferenceMetadataTrace,
     };
 
     return NextResponse.json({
@@ -1803,7 +1803,6 @@ export async function POST(request: Request) {
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
     entry_type_trigger_summary: run.entry_type_trigger_summary,
-    plan_reference_metadata_trace: run.plan_reference_metadata_trace,
   };
 
   return NextResponse.json({

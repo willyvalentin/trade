@@ -1,10 +1,6 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
-import {
-  parseRecommendationConfidenceMetadata,
-  planReferenceMetadataDiagnostics,
-} from "@/lib/recommendation-inline-metadata";
 import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 
 export type RecommendationSnapshotStatus =
@@ -592,23 +588,22 @@ export function buildRecommendationSnapshot(
     },
   });
   const payloadJsonWithDiagnostics = {
-    ...payloadJsonRecord,
+    ...payloadJson,
     ...entryTypeMetadata,
     entry_type_metadata: entryTypeMetadata,
     trade_plan: {
       ...(objectOrNull(payloadJsonRecord.trade_plan) ?? {}),
       ...entryTypeMetadata,
     },
-    ...(objectOrNull(payloadJsonRecord.recommendation)
-      ? {
-          recommendation: {
-            ...(objectOrNull(payloadJsonRecord.recommendation) ?? {}),
-            ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
-            ...planReferenceStatus,
+    recommendation:
+      payloadJsonRecord.recommendation &&
+      typeof payloadJsonRecord.recommendation === "object" &&
+      !Array.isArray(payloadJsonRecord.recommendation)
+        ? {
+            ...(payloadJsonRecord.recommendation as Record<string, unknown>),
             ...entryTypeMetadata,
-          },
-        }
-      : {}),
+          }
+        : payloadJsonRecord.recommendation,
     plan_price_freshness: planPriceFreshness,
   };
 

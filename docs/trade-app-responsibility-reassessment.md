@@ -1778,3 +1778,111 @@ Dev/diagnostics wrapper post-extraction result:
 Recommended next action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## 87. Action 411 result
+
+Action 411 created
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Live market trial runbook persistence reassessment result:
+
+- inventoried the runbook storage key, typed state shape, default behavior,
+  normalization behavior, read/write behavior, error handling, and call sites.
+- confirmed the key remains `trade-live-market-trial-runbook-v1`.
+- confirmed wrapper extraction is safe next only if it preserves the exact
+  typed/default, normalization, server/no-window fallback, swallowed-error, and
+  JSON write behavior.
+- confirmed runbook UI state, hydration/write-effect guards, live market
+  workflow, provider/data behavior, Supabase behavior, trade mutations, and
+  execution/orchestrator behavior remain app-owned.
+
+Recommended next action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## 88. Action 412 result
+
+Action 412 created
+`lib/persistence/live-market-trial-runbook-persistence.ts`.
+
+Live market trial runbook wrapper extraction result:
+
+- moved the exact default builder, mode/outcome normalizers, state normalizer,
+  read helper, and write helper out of `app/trade-app.tsx`.
+- preserved the `trade-live-market-trial-runbook-v1` key, typed state shape,
+  defaults, normalization, read fallback behavior, write behavior,
+  server/no-window behavior, and swallowed localStorage errors.
+- kept runbook UI state, hydration/write-effect guards, UI callbacks, live
+  market workflow, provider/data behavior, Supabase behavior, trade mutations,
+  and execution/orchestrator behavior app-owned.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- escalated `npm run test:e2e` passed: 64 tests after the default sandbox run
+  was blocked on port binding.
+
+Recommended next action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## 89. Action 413 result
+
+Action 413 created
+`docs/live-market-trial-runbook-persistence-post-extraction-reassessment.md`.
+
+Live market trial runbook post-extraction result:
+
+- verified the extracted wrapper preserves key, type shape, defaults,
+  normalization, read fallback, JSON write behavior, no-window behavior, and
+  swallowed localStorage errors.
+- confirmed `app/trade-app.tsx` still owns runbook UI state,
+  hydration/write-effect guards, callbacks, live market workflow,
+  provider/data behavior, Supabase behavior, trade mutations, and
+  execution/orchestrator behavior.
+- documented Action 412 checks, including escalated e2e success.
+
+Recommended next action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
+
+## 90. Action 414 result
+
+Action 414 created
+`docs/execution-audit-event-log-persistence-boundary-reassessment.md`.
+
+Execution audit/event log persistence reassessment result:
+
+- inventoried legacy `trade-management-events` appends, timeline readback,
+  typed execution event log storage, and execution audit persistence
+  contract/route/writer/Supabase modules.
+- concluded audit/event wrapper extraction should wait.
+- confirmed append behavior, event shape, timeline derivation, History audit
+  display, Supabase audit writes, execution metadata writes, broker/result
+  persistence, execution record persistence, and trade mutations should not
+  move yet.
+
+Recommended next action:
+
+**Action 415 - Reassess Execution Record Creation Boundary**
+
+## 91. Action 415 result
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Execution record creation reassessment result:
+
+- inventoried current broker-result eligibility/preview, execution-record
+  eligibility, local/dev execution-record store, mock/stub local creation
+  paths, server capture stubs, and audit/event modules.
+- clarified that local/dev `TureExecutionRecord` creation exists, but no
+  production-safe real execution record creation boundary exists yet.
+- identified missing canonical contract, idempotency rules, persistence target,
+  Supabase schema assumptions, duplicate protection, audit append strategy,
+  rollback/error behavior, UI confirmation/readback behavior, and tests.
+
+Recommended next action:
+
+**Action 416 - Create Execution Record Creation Contract Design**

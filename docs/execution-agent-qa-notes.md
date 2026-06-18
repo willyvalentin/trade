@@ -10673,3 +10673,6867 @@ Safety result:
 Recommended next action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper
+
+QA notes:
+
+- Inspected live market trial runbook persistence in `app/trade-app.tsx` and
+  related types in `lib/live-market-trial-runbook.ts`.
+- Confirmed the storage key is
+  `trade-live-market-trial-runbook-v1` via
+  `TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY`.
+- Confirmed current read behavior returns a typed default on server/no-window,
+  missing storage, malformed JSON, invalid value shapes, or localStorage
+  errors.
+- Confirmed normalization preserves selected mode and trial outcome fallback
+  rules, checklist completion coercion, notes truncation, trial date fallback,
+  and ended-at text/null behavior.
+- Confirmed current write behavior serializes the typed state after the
+  hydration guard and swallows localStorage errors.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- No localStorage read/write movement, key changes, Supabase behavior, trade
+  mutation behavior, Avanza/browser behavior, or execution behavior changed.
+
+Recommended next action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## Action 412 - Extract Live Market Trial Runbook Persistence Wrapper
+
+QA notes:
+
+- Inspected the extracted
+  `lib/persistence/live-market-trial-runbook-persistence.ts` wrapper and the
+  updated `app/trade-app.tsx` call sites.
+- Confirmed the wrapper uses the existing
+  `TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY` constant with the exact
+  `trade-live-market-trial-runbook-v1` key.
+- Confirmed the wrapper preserves default state creation, mode/outcome
+  fallback behavior, state normalization, checklist coercion, notes truncation,
+  ended-at text/null normalization, read fallback behavior, JSON write
+  behavior, server/no-window behavior, and swallowed localStorage errors.
+- Confirmed `app/trade-app.tsx` still owns runbook state,
+  hydration/write-effect guards, UI callbacks, live market workflow,
+  provider/data behavior, Supabase behavior, trade mutation behavior, and
+  execution/orchestrator behavior.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- default sandbox `npm run test:e2e` was blocked before app test logic by
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Recommended next action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction
+
+QA notes:
+
+- Inspected `lib/persistence/live-market-trial-runbook-persistence.ts`.
+- Inspected the current `app/trade-app.tsx` call sites for default state
+  creation, initial hydration, guarded writes, summary composition, panel
+  state props, and reset behavior.
+- Confirmed exact key, type shape, defaults, normalization, read fallback,
+  JSON write behavior, server/no-window behavior, and swallowed localStorage
+  errors are preserved.
+- Confirmed runbook UI state, hydration/write-effect guards, callbacks, live
+  market workflow, provider/data behavior, Supabase behavior, trade mutation
+  behavior, and execution/orchestrator behavior remain parent/module-owned.
+
+Action 412 checks recorded:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- default `npm run test:e2e` was blocked before app test logic by sandbox port
+  binding on `0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- No additional persistence movement, localStorage key changes, Supabase
+  behavior, trade mutation behavior, Avanza/browser behavior, or execution
+  behavior changed.
+
+Recommended next action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
+
+## Action 414 - Reassess Execution Audit/Event Log Persistence Boundary
+
+QA notes:
+
+- Inspected `app/trade-app.tsx` audit/event append helpers using
+  `TRADE_MANAGEMENT_EVENTS_STORAGE_KEY`.
+- Inspected `lib/execution-timeline.ts` readback and timeline construction.
+- Inspected `lib/execution-event-log.ts` typed local execution audit event
+  store.
+- Inspected execution audit persistence contract, route handler, no-op writer,
+  and Supabase writer modules.
+- Confirmed current audit/event behavior spans legacy local event arrays,
+  typed local audit events, timeline/replay derivation, route validation, and
+  flag-gated Supabase writer drafts.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- No persistence movement, localStorage/Supabase movement, audit/event log
+  movement, execution metadata movement, trade mutation movement,
+  Avanza/browser behavior, or execution behavior changed.
+
+Recommended next action:
+
+**Action 415 - Reassess Execution Record Creation Boundary**
+
+## Action 415 - Reassess Execution Record Creation Boundary
+
+QA notes:
+
+- Inspected broker execution result eligibility and preview modules.
+- Inspected execution-record eligibility and local execution-record store
+  modules.
+- Inspected `buildTureExecutionRecord(...)` and the existing local/dev
+  creation call sites in `app/trade-app.tsx` and `app/settings/page.tsx`.
+- Inspected server capture contract docs and audit/event persistence modules.
+- Confirmed current runtime has local/dev diagnostics record creation, but no
+  production-safe real execution record creation contract or Supabase
+  execution-record write path.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- No execution record creation, BrokerExecutionResult creation, Supabase write,
+  trade mutation, audit/event persistence movement, Avanza/browser behavior, or
+  execution behavior changed.
+
+Recommended next action:
+
+**Action 416 - Create Execution Record Creation Contract Design**
+
+## Action 416 - Create Execution Record Creation Contract Design
+
+QA notes:
+
+- Created `docs/execution-record-creation-contract-design.md`.
+- Verified the document defines input/output contracts, canonical record fields,
+  validation rules, rejection reason codes, idempotency requirements, audit
+  requirements, safety/non-goals, and future implementation sequence.
+- Confirmed the design explicitly keeps Supabase writes, localStorage writes,
+  trade mutation, broker result creation, audit/event persistence movement,
+  Avanza/browser behavior, and automatic mode out of scope.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- No execution record creation, BrokerExecutionResult creation, Supabase write,
+  trade mutation, audit/event persistence movement, Avanza/browser behavior, or
+  execution behavior changed.
+
+Recommended next action:
+
+**Action 417 - Create Execution Record Creation Contract Types**
+
+## Action 417 - Create Execution Record Creation Contract Types
+
+QA notes:
+
+- Created `lib/execution-record-creation-contract.ts`.
+- Verified the module is pure TypeScript contract surface only: literal
+  status/rejection/warning constants and exported types/interfaces.
+- Confirmed the Action 416 rejection reasons are explicitly modeled,
+  including missing broker result, preview-only result, missing idempotency,
+  missing order id, unsupported broker, invalid quantity/price,
+  side/instrument mismatch, ambiguous association, synthetic result rejection,
+  and missing confirmation timestamp.
+- Confirmed no validator, candidate builder, Supabase write, localStorage
+  write, audit/event persistence, trade mutation, BrokerExecutionResult
+  creation, browser automation, Avanza behavior, or execution behavior was
+  added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 64 tests.
+
+Recommended next action:
+
+**Action 418 - Create Execution Record Creation Pure Validator**
+
+## Action 418 - Create Execution Record Creation Pure Validator
+
+QA notes:
+
+- Created `lib/execution-record-creation-validator.ts`.
+- Refined `lib/execution-record-creation-contract.ts` so validator-only
+  eligible results can omit `recordCandidate` and keep `safeToPersist=false`
+  until a later candidate builder runs.
+- Added focused coverage in `tests/e2e/execution-sandbox.spec.ts` for an
+  eligible-for-builder input and a blocked unsafe input.
+- Verified the validator returns typed `ExecutionRecordCreationResult`
+  metadata only.
+- Confirmed hard safety failures produce explicit rejection reason codes for
+  preview-only, synthetic/dev/mock, missing idempotency/source fingerprint,
+  missing broker reference, missing timestamp, unsupported broker/mode/phase,
+  automatic mode, non-filled status, side/instrument mismatch, invalid
+  quantity/price, ambiguous or missing associations, sensitive/raw flags, and
+  Supabase/trade mutation attempt flags.
+- Confirmed no candidate builder, Supabase write, localStorage write,
+  audit/event append, trade mutation, BrokerExecutionResult creation, UI/bridge
+  wiring, browser automation, Avanza behavior, or execution behavior was
+  added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 65 tests.
+
+Recommended next action:
+
+**Action 419 - Create Execution Record Candidate Builder**
+
+## Action 419 - Create Execution Record Candidate Builder
+
+QA notes:
+
+- Created `lib/execution-record-candidate-builder.ts`.
+- Verified the builder calls `validateExecutionRecordCreationInput(...)`
+  before candidate mapping.
+- Verified rejected or needs-review validation results return without
+  `recordCandidate`.
+- Verified eligible input maps canonical broker, side, ticker/instrument,
+  quantity, price, currency, broker order/confirmation/reference fields,
+  recommendation/position references, execution mode, execution phase,
+  confirmation timestamp, idempotency/fingerprint fields, planning snapshot
+  references, safety metadata, audit metadata, and non-sensitive provenance
+  metadata.
+- Confirmed `safeToPersist` remains false because no persistence boundary
+  exists.
+- Added focused execution-sandbox coverage for valid candidate building,
+  preview-only rejection, invalid quantity/price rejection,
+  idempotency/fingerprint preservation, and no persistence/trade mutation
+  metadata.
+- Confirmed no Supabase write, localStorage write, audit/event append, trade
+  mutation, BrokerExecutionResult creation, UI/bridge wiring, browser
+  automation, Avanza behavior, or execution behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 66 tests.
+
+Recommended next action:
+
+**Action 420 - Create Read-Only Execution Record Creation Preview UI**
+
+## Action 420 - Create Read-Only Execution Record Creation Preview UI
+
+QA notes:
+
+- Created `components/execution/ExecutionRecordCreationPreview.tsx`.
+- Added the panel to `ExecutionHandoffModalComposition` behind the existing
+  execution dev-tools gating.
+- Derived a read-only creation preview result in `useLatePhasePreviewState`
+  from existing broker-result preview data and the pure
+  `buildExecutionRecordCandidate(...)` helper.
+- Verified the panel displays status, rejection reasons, warnings,
+  idempotency/fingerprint metadata, `safeToPersist`, no-Supabase/no-trade
+  mutation metadata, and candidate fields when present.
+- Added focused handoff modal e2e assertions that the panel renders after the
+  broker-result preview stub and shows preview-only rejection plus
+  `safeToPersist`.
+- Confirmed no persist button, Supabase write, localStorage write, audit/event
+  append, trade mutation, execution record storage, BrokerExecutionResult
+  creation, bridge automation, browser automation, Avanza behavior,
+  automatic-mode behavior, or execution behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 66 tests.
+
+Recommended next action:
+
+**Action 421 - Reassess Execution Record Creation Preview UI**
+
+## Action 421 - Reassess Execution Record Creation Preview UI
+
+QA notes:
+
+- Inspected `components/execution/ExecutionRecordCreationPreview.tsx`.
+- Inspected `components/execution/ExecutionHandoffModalComposition.tsx`.
+- Inspected `hooks/execution/useLatePhasePreviewState.ts`.
+- Inspected the Action 420 e2e assertions in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Confirmed the preview component has no buttons and only renders a supplied
+  `ExecutionRecordCreationResult`.
+- Confirmed the composition renders the panel only inside the existing
+  `executionDevToolsEnabled` branch.
+- Confirmed the hook derives a read-only preview result from existing
+  broker-result preview-shaped data and `buildExecutionRecordCandidate(...)`.
+- Confirmed preview-only sources remain blocked/rejected by the
+  validator/builder path.
+- Confirmed no persist button, Supabase write, localStorage write, audit/event
+  append, trade mutation, execution record storage, BrokerExecutionResult
+  creation, bridge automation, browser automation, Avanza behavior,
+  automatic-mode behavior, or execution behavior exists in the preview path.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Recommended next action:
+
+**Action 422 - Create Execution Record Creation Result Fixture/Dev Input**
+
+## Action 422 - Create Execution Record Creation Result Fixture/Dev Input
+
+QA notes:
+
+- Created `lib/execution-record-creation-dev-fixture.ts`.
+- Verified the fixture builder creates a controlled
+  `ExecutionRecordCreationInput` with `sourceEnvironment: "local_dev"`,
+  `createdBy: "dev_stub"`, deterministic fixture ids/fingerprints, and
+  fixture-only source metadata.
+- Wired the fixture through `useLatePhasePreviewState` only when execution dev
+  tools are enabled and no broker-result preview shape exists.
+- Updated `ExecutionRecordCreationPreview` to show the result source label and
+  source description.
+- Confirmed the preview labels fixture output as `Dev fixture candidate`.
+- Confirmed broker-result preview diagnostics still show
+  `Broker-result preview diagnostics` and blocked/rejected preview-only
+  metadata when present.
+- Added focused e2e coverage for fixture candidate display, `safeToPersist`,
+  no persistence/no mutation copy, and continued preview-only rejection.
+- Confirmed no persist button, Supabase write, localStorage write, audit/event
+  append, trade mutation, execution record storage, BrokerExecutionResult
+  creation, bridge automation, browser automation, Avanza behavior,
+  automatic-mode behavior, or execution behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 66 tests.
+
+Recommended next action:
+
+**Action 423 - Reassess Execution Record Creation Dev Fixture**
+
+## Action 423 - Reassess Execution Record Creation Dev Fixture
+
+QA notes:
+
+- Inspected `lib/execution-record-creation-dev-fixture.ts`.
+- Inspected `hooks/execution/useLatePhasePreviewState.ts`.
+- Inspected `components/execution/ExecutionRecordCreationPreview.tsx`.
+- Inspected the relevant Action 422 coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Confirmed the fixture builder returns only
+  `ExecutionRecordCreationInput` and has no persistence, storage, route call,
+  or mutation behavior.
+- Confirmed the fixture is explicit local/dev data with
+  `sourceEnvironment: "local_dev"`, `createdBy: "dev_stub"`, deterministic
+  fixture ids/fingerprints, and fixture-only source metadata.
+- Confirmed the preview labels fixture output as `Dev fixture candidate` and
+  states that it is not broker evidence.
+- Confirmed broker-result preview diagnostics still override the fixture and
+  remain blocked/rejected when preview-only.
+- Confirmed `safeToPersist=false` remains visible and unchanged.
+- Confirmed no persist button, Supabase write, localStorage write, audit/event
+  append, trade mutation, execution record storage, BrokerExecutionResult
+  creation, bridge automation, browser automation, Avanza behavior,
+  automatic-mode behavior, or execution behavior was added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 424 - Create Execution Record Persistence Boundary Plan**
+
+## Action 424 - Create Execution Record Persistence Boundary Plan
+
+QA notes:
+
+- Created `docs/execution-record-persistence-boundary-plan.md`.
+- Confirmed this action is documentation-only.
+- Confirmed no runtime code, hooks, UI, routes, stores, persistence helpers, or
+  tests were changed.
+- Documented that current execution-record creation remains pre-persistence:
+  contract, validator, builder, read-only preview, dev fixture, and
+  `safeToPersist=false`.
+- Documented future persistence prerequisites: real confirmed broker result
+  path, production-safe broker conversion, canonical candidate, idempotency,
+  duplicate detection, Supabase schema, audit strategy, error/rollback policy,
+  association metadata, RLS/security, and tests.
+- Documented future safety gates blocking preview-only, dev fixture,
+  synthetic/mock, ambiguous, missing-idempotency, automatic-mode, and
+  `safeToPersist=false` candidates.
+- Confirmed no Supabase write, localStorage write, execution record storage,
+  audit/event append, trade mutation, BrokerExecutionResult creation, bridge
+  automation, browser automation, Avanza behavior, automatic-mode behavior, or
+  execution behavior was added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 425 - Reassess Supabase Execution Record Schema Boundary**
+
+## Action 425 - Reassess Supabase Execution Record Schema Boundary
+
+QA notes:
+
+- Inspected `supabase/migrations`.
+- Inspected `lib/supabase.ts` and `lib/supabase-server.ts`.
+- Inspected `lib/execution-audit-supabase-writer.ts` and
+  `app/api/execution/audit/server-db.ts`.
+- Inspected prior execution persistence schema proposal/review docs.
+- Confirmed existing migrations include recommendation-learning tables,
+  `positions.execution_metadata`, and draft execution audit tables.
+- Confirmed no `execution_records` table exists in the current migration set.
+- Confirmed no execution-record Supabase write path exists.
+- Confirmed this action added only
+  `docs/supabase-execution-record-schema-boundary-reassessment.md` and doc
+  references.
+- Confirmed no migration, Supabase write, Supabase client change, execution
+  record storage, audit/event append, trade mutation, BrokerExecutionResult
+  creation, bridge automation, browser automation, Avanza behavior,
+  automatic-mode behavior, or runtime behavior was added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 426 - Create Supabase Execution Record Schema Plan**
+
+## Action 426 - Create Supabase Execution Record Schema Plan
+
+QA notes:
+
+- Created `docs/supabase-execution-record-schema-plan.md`.
+- Used Action 425's boundary reassessment and existing migration conventions as
+  the source of truth.
+- Confirmed the plan is documentation-only and no SQL migration file was
+  created.
+- Confirmed the plan proposes `public.execution_records`, columns,
+  constraints, indexes, RLS/security posture, idempotency, audit relationship,
+  trade mutation separation, migration sequencing, and open questions.
+- Confirmed no database migration, Supabase write, Supabase client change,
+  execution record storage, audit/event append, trade mutation,
+  BrokerExecutionResult creation, bridge automation, browser automation,
+  Avanza behavior, automatic-mode behavior, or runtime behavior was added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 427 - Create Execution Record Persistence Contract Types**
+
+## Action 427 - Create Execution Record Persistence Contract Types
+
+QA notes:
+
+- Created `lib/execution-record-persistence-contract.ts`.
+- Confirmed the module exports only TypeScript types and constant arrays.
+- Confirmed the module uses type-only imports from
+  `lib/execution-record-creation-contract.ts`.
+- Confirmed rejection reason codes include safety gates for invalid/not-safe
+  candidates, missing idempotency/user/RLS/broker confirmation, preview-only
+  candidates, dev fixture candidates, duplicates, ambiguous associations,
+  schema gaps, unsupported broker/mode/phase, and trade mutation separation.
+- Confirmed duplicate match metadata and persisted record reference metadata
+  are modeled.
+- Confirmed no persistence logic, Supabase client code, database migration,
+  audit/event append, trade mutation, execution record storage,
+  BrokerExecutionResult creation, bridge automation, browser automation,
+  Avanza behavior, automatic-mode behavior, or runtime wiring was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 66 tests.
+
+Recommended next action:
+
+**Action 428 - Create Execution Record Persistence Eligibility Validator**
+
+## Action 428 - Create Execution Record Persistence Eligibility Validator
+
+QA notes:
+
+- Created `lib/execution-record-persistence-validator.ts`.
+- Refined `lib/execution-record-persistence-contract.ts` with an `eligible`
+  result status and explicit duplicate match input support.
+- Confirmed the validator is pure and deterministic.
+- Confirmed the validator imports only type/constant contracts and does not
+  import Supabase, localStorage, routes, UI, bridge, Avanza, or trade mutation
+  modules.
+- Added focused coverage in `tests/e2e/execution-sandbox.spec.ts` for:
+  eligible persistence input, `candidateSafeToPersist=false`, dev fixture
+  rejection, missing idempotency, missing user context, duplicate match, and
+  schema unavailable.
+- Confirmed no persistence logic, Supabase client code, database migration,
+  audit/event append, trade mutation, execution record storage,
+  BrokerExecutionResult creation, bridge automation, browser automation,
+  Avanza behavior, automatic-mode behavior, UI wiring, or runtime persistence
+  behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 67 tests.
+
+Recommended next action:
+
+**Action 429 - Reassess Execution Record Persistence Validator**
+
+## Action 429 - Reassess Execution Record Persistence Validator
+
+QA notes:
+
+- Inspected `lib/execution-record-persistence-validator.ts`.
+- Inspected `lib/execution-record-persistence-contract.ts`.
+- Inspected the Action 428 focused coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Confirmed the validator is pure and deterministic.
+- Confirmed the validator does not import Supabase clients, localStorage,
+  routes, UI, audit append, trade mutation, broker result creation, bridge,
+  Avanza, or browser modules.
+- Confirmed duplicate metadata can return `duplicate` without writes.
+- Confirmed schema unavailable rejects before any persistence boundary exists.
+- Confirmed current tests cover eligible, unsafe candidate, dev fixture,
+  missing idempotency, missing user context, duplicate, and schema unavailable
+  paths.
+- Confirmed no runtime code changes, Supabase write, Supabase client code,
+  migration, audit/event append, trade mutation, record storage,
+  BrokerExecutionResult creation, UI wiring, bridge automation, browser
+  automation, Avanza behavior, automatic-mode behavior, or runtime behavior was
+  added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 430 - Create Supabase Execution Record Migration Draft**
+
+## Action 430 - Create Supabase Execution Record Migration Draft
+
+QA notes:
+
+- Created
+  `supabase/migrations/20260614000000_create_execution_records.sql`.
+- Confirmed this action created a draft migration only.
+- Confirmed the migration was not run or applied.
+- Confirmed no Supabase client types were generated.
+- Confirmed no app runtime code, route handler, persistence helper, audit
+  append, trade mutation, broker result creation, UI wiring, bridge automation,
+  browser automation, Avanza behavior, automatic-mode behavior, or runtime
+  behavior was added.
+- The draft includes the future `public.execution_records` table, constraints,
+  unique idempotency/fingerprint indexes, nullable-aware broker uniqueness,
+  query indexes, JSONB metadata, comments, and RLS TODO comments.
+- No SQL lint/check script exists in `package.json`; only `git diff --check`
+  was required and run.
+
+Safety result:
+
+- Migration draft only.
+- No tests were removed.
+- No runtime behavior changed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 431 - Reassess Supabase Execution Record Migration Draft**
+
+## Action 431 - Reassess Supabase Execution Record Migration Draft
+
+QA notes:
+
+- Inspected
+  `supabase/migrations/20260614000000_create_execution_records.sql`.
+- Inspected `docs/supabase-execution-record-schema-plan.md`.
+- Inspected existing Supabase migration naming/style.
+- Confirmed the migration draft is schema-only and has not been applied.
+- Confirmed no Supabase commands were run.
+- Confirmed no runtime code, Supabase client change, generated types, route
+  handler, persistence helper, write path, read path, audit append, trade
+  mutation, broker result creation, UI wiring, bridge automation, browser
+  automation, Avanza behavior, automatic-mode behavior, or runtime behavior was
+  added.
+- Confirmed the draft aligns with the schema plan for table name, columns,
+  constraints, indexes, idempotency/fingerprint uniqueness, nullable-aware
+  broker uniqueness, JSONB metadata, timestamps, ownership fields, and
+  conservative RLS comments.
+- Documented remaining ownership/RLS, partial-fill uniqueness, rollback,
+  generated-types, and application-process questions.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 432 - Create Execution Record Persistence Insert Contract/Plan**
+
+## Action 432 - Create Execution Record Persistence Insert Contract/Plan
+
+QA notes:
+
+- Created
+  `docs/execution-record-persistence-insert-contract-plan.md`.
+- Confirmed this action is documentation-only.
+- Confirmed no Supabase command was run and the execution-record migration
+  draft was not applied.
+- Confirmed no runtime app code, route handler, Supabase client, generated
+  types, write path, read path, persistence helper, audit append, trade
+  mutation, broker result creation, UI wiring, bridge automation, browser
+  automation, Avanza behavior, automatic-mode behavior, or runtime behavior was
+  added.
+- Documented future input/output semantics, server-only posture,
+  validation-before-insert order, duplicate/idempotency handling, conflict
+  behavior, error handling, audit relationship, trade mutation separation, and
+  implementation preconditions.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 433 - Reassess Execution Record Persistence Insert Contract Plan**
+
+## Action 433 - Reassess Execution Record Persistence Insert Contract Plan
+
+QA notes:
+
+- Created
+  `docs/execution-record-persistence-insert-contract-plan-reassessment.md`.
+- Inspected `docs/execution-record-persistence-insert-contract-plan.md`.
+- Inspected `lib/execution-record-persistence-contract.ts`.
+- Inspected `lib/execution-record-persistence-validator.ts`.
+- Inspected the migration draft reassessment.
+- Confirmed the insert plan remains server-only and contains no direct client
+  write posture.
+- Confirmed the initial insert plan still excludes audit append and trade
+  mutation.
+- Confirmed validation gates, duplicate/idempotency handling, error handling,
+  and preconditions are explicit.
+- Confirmed migration application remains out of scope.
+- Confirmed no runtime app code, route handler, Supabase client, generated
+  types, write path, read path, persistence helper, audit append, trade
+  mutation, broker result creation, UI wiring, bridge automation, browser
+  automation, Avanza behavior, automatic-mode behavior, or runtime behavior was
+  added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 434 - Create Execution Record Insert Server Route Design**
+
+## Action 434 - Create Execution Record Insert Server Route Design
+
+QA notes:
+
+- Created `docs/execution-record-insert-server-route-design.md`.
+- Inspected the insert contract plan and reassessment.
+- Inspected existing `app/api/execution/...` route patterns for naming
+  context only.
+- Proposed a future `POST /api/execution/records/insert` path without
+  creating it.
+- Confirmed the design defines route scope, request/response contract,
+  auth/security posture, validation sequence, idempotency/duplicate handling,
+  error handling, audit relationship, trade mutation separation, and
+  preconditions.
+- Confirmed no runtime app code, route handler, Supabase client, generated
+  types, write path, read path, persistence helper, audit append, trade
+  mutation, broker result creation, UI wiring, bridge automation, browser
+  automation, Avanza behavior, automatic-mode behavior, or runtime behavior was
+  added.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 435 - Reassess Execution Record Insert Server Route Design**
+
+## Action 435 - Reassess Execution Record Insert Server Route Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-server-route-design-reassessment.md`.
+- Inspected `docs/execution-record-insert-server-route-design.md`.
+- Inspected `lib/execution-record-persistence-contract.ts`.
+- Inspected `lib/execution-record-persistence-validator.ts`.
+- Inspected the schema plan and migration draft reassessment.
+- Confirmed the route design remains server-only, future-only, and write-free.
+- Confirmed no direct client write posture exists.
+- Confirmed the validation sequence uses the pure persistence validator.
+- Confirmed audit append, trade mutation, migration application, broker result
+  creation, Avanza/browser behavior, and route implementation remain absent.
+- Recommended type-only route contracts as the next safe step.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 436 - Create Execution Record Insert Route Contract Types**
+
+## Action 436 - Create Execution Record Insert Route Contract Types
+
+QA notes:
+
+- Created `lib/execution-record-insert-route-contract.ts`.
+- Confirmed the module contains TypeScript types/constants only.
+- Confirmed the module uses type-only imports from the execution-record
+  persistence and creation contracts.
+- Confirmed no route/API implementation, client helper, Supabase client,
+  Supabase write/read, migration application, audit append, trade mutation,
+  broker result creation, UI wiring, bridge automation, browser automation,
+  Avanza behavior, automatic-mode behavior, or runtime behavior was added.
+- Route contract types model request, response, status, error code,
+  validation error, duplicate payload, dry-run metadata, server context, and
+  explicit no-trade-mutation/no-audit-append safety metadata.
+
+Safety result:
+
+- Type/contract only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 67 tests.
+
+Recommended next action:
+
+**Action 437 - Reassess Execution Record Insert Route Contract Types**
+
+## Action 437 - Reassess Execution Record Insert Route Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-route-contract-types-reassessment.md`.
+- Inspected `lib/execution-record-insert-route-contract.ts`.
+- Inspected persistence contract types, the pure persistence validator, and the
+  insert route design docs.
+- Confirmed the route contract module is type-only/constants-only.
+- Confirmed no route/API implementation, client helper, Supabase client,
+  Supabase read/write, migration application, audit append, trade mutation,
+  broker result creation, UI wiring, bridge automation, browser automation,
+  Avanza behavior, automatic-mode behavior, or runtime behavior was added.
+- Confirmed dry-run metadata explicitly models no insert, no Supabase write,
+  no audit append, and no trade mutation.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 438 - Create Execution Record Insert Route Dry-Run Stub Design**
+
+## Action 438 - Create Execution Record Insert Route Dry-Run Stub Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-route-dry-run-stub-design.md`.
+- Updated surrounding route, persistence, Supabase schema, checkpoint, and QA
+  docs to reference the dry-run design.
+- Confirmed the design is documentation-only and keeps the future route
+  write-free: no route/API implementation, client helper, Supabase read/write,
+  migration application, audit append, trade mutation, broker result creation,
+  UI wiring, bridge automation, Avanza/browser behavior, automatic-mode
+  behavior, or runtime behavior was added.
+- Confirmed duplicate handling is simulation-only in the dry-run plan and
+  real duplicate lookup remains blocked.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 439 - Reassess Insert Route Dry-Run Stub Design**
+
+## Action 439 - Reassess Insert Route Dry-Run Stub Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-route-dry-run-stub-design-reassessment.md`.
+- Inspected the dry-run design, insert route contract types, pure persistence
+  validator, server route design, and persistence insert plans.
+- Verified the dry-run design remains no-write, no-Supabase-read,
+  no-route-implementation-yet, no-client-helper, no-migration-application,
+  no-audit-append, no-trade-mutation, no-broker-result-creation, and
+  no-Avanza/browser behavior.
+- Confirmed duplicate handling remains fake/simulated only and should not
+  query Supabase or claim a real persisted row.
+- Recommended the next runtime step only as a narrow dry-run route stub.
+
+Safety result:
+
+- Documentation only.
+- No tests were removed.
+- No runtime behavior changed.
+- Migration was not applied.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 440 - Implement Execution Record Insert Route Dry-Run Stub**
+
+## Action 440 - Implement Execution Record Insert Route Dry-Run Stub
+
+QA notes:
+
+- Created `app/api/execution/records/insert/route.ts`.
+- Added focused coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Verified route behavior:
+  - malformed JSON returns rejected response with dry-run/no-write metadata.
+  - missing/non-dry-run mode is rejected.
+  - eligible input returns `status: "dry_run"`.
+  - duplicate simulation returns `status: "duplicate"` without persisted
+    record metadata.
+  - unsafe candidate input is rejected with persistence rejection metadata.
+- Verified the route imports no Supabase client and performs no Supabase
+  read/write, localStorage access, audit append, trade mutation, execution
+  record storage, broker result creation, bridge automation, Avanza/browser
+  behavior, or automatic-mode behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 70 tests.
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 441 - Reassess Execution Record Insert Route Dry-Run Stub**
+
+## Action 441 - Reassess Execution Record Insert Route Dry-Run Stub
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-route-dry-run-stub-reassessment.md`.
+- Inspected `app/api/execution/records/insert/route.ts`,
+  `lib/execution-record-insert-route-contract.ts`,
+  `lib/execution-record-persistence-validator.ts`, and focused route tests in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Verified the route requires `mode: "dry_run"` and `dryRun: true`.
+- Verified malformed JSON and non-dry-run requests are rejected with no-write
+  metadata.
+- Verified eligible inputs return dry-run, duplicate inputs are simulation-only,
+  and unsafe candidates are rejected by the pure validator.
+- Verified no Supabase import/use, localStorage, audit append, trade mutation,
+  execution record storage, migration application, broker result creation,
+  Avanza/browser behavior, or automatic-mode behavior exists in the route.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 442 - Create Dry-Run Route Client Helper**
+
+## Action 442 - Create Dry-Run Route Client Helper
+
+QA notes:
+
+- Created `lib/execution-record-insert-dry-run-client.ts`.
+- Added focused helper coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Verified helper behavior:
+  - successful dry-run request posts to `/api/execution/records/insert`.
+  - helper sends `mode: "dry_run"` and `dryRun: true` payloads unchanged.
+  - non-dry-run requests are rejected before `fetch`.
+  - invalid JSON and invalid response shapes return typed error responses.
+  - all fallback responses preserve no-write/no-mutation safety metadata.
+- Confirmed no UI wiring, production insert helper, Supabase read/write,
+  localStorage, audit append, trade mutation, execution record storage,
+  migration application, broker result creation, Avanza/browser behavior, or
+  automatic-mode behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- Default `npm run test:e2e` was blocked by sandbox port binding on
+  `0.0.0.0:3010` before app test logic.
+- Escalated `npm run test:e2e` passed: 73 tests.
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 443 - Reassess Dry-Run Route Client Helper**
+
+## Action 444 - Create Read-Only Dry-Run Route UI Preview Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-dry-run-ui-preview-design.md`.
+- Inspected the dry-run client reassessment, existing
+  `ExecutionRecordCreationPreview`, and late-phase preview state.
+- Recommended future placement in the execution handoff modal late-phase
+  preview area, as a separate dev-gated/collapsible section after the existing
+  creation preview.
+- Defined future UI copy including `Dry-run only`, `No Supabase write`,
+  `No trade mutation`, `No audit append`, `No record persisted`, and
+  `Dev fixture / sandbox only`.
+- Confirmed this action added no UI wiring, route/client invocation from UI,
+  Supabase behavior, localStorage, audit append, trade mutation, storage,
+  broker result creation, Avanza/browser behavior, or automatic-mode behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 445 - Implement Read-Only Dry-Run Route UI Preview**
+
+## Action 445 - Implement Read-Only Dry-Run Route UI Preview
+
+QA notes:
+
+- Created `components/execution/ExecutionRecordInsertDryRunPreview.tsx`.
+- Added the preview as a separate dev-gated section after the existing
+  execution-record creation preview in the execution handoff modal.
+- Wired the UI to the dry-run route client helper through
+  `useLatePhasePreviewState`.
+- Added visible safety labels for `Dry-run only`, `No Supabase write`, `No
+  trade mutation`, `No audit append`, and `No record persisted`.
+- Added focused e2e coverage for the preview section, safe button copy,
+  no-persist/save/create controls, and no-write route response metadata.
+
+Safety verification:
+
+- The UI exposes only `Run dry-run preview`.
+- No persist/save/create button was added.
+- No Supabase read/write, localStorage, audit append, trade mutation, execution
+  record storage, migration application, broker result creation,
+  Avanza/browser behavior, or automatic-mode behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010`
+  before app test logic.
+- Escalated `npm run test:e2e` passed: 73 tests.
+
+Recommended next action:
+
+**Action 446 - Reassess Read-Only Dry-Run Route UI Preview**
+
+## Action 446 - Reassess Read-Only Dry-Run Route UI Preview
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-dry-run-ui-preview-reassessment.md`.
+- Inspected `ExecutionRecordInsertDryRunPreview`,
+  `useLatePhasePreviewState`, `ExecutionHandoffModalComposition`,
+  `requestExecutionRecordInsertDryRun(...)`, and the focused e2e coverage.
+- Verified the preview is guarded by `executionDevToolsEnabled`.
+- Verified the only action is `Run dry-run preview`.
+- Verified e2e coverage asserts no persist/save/create button exists inside
+  the dry-run preview panel.
+- Verified visible safety metadata includes no Supabase write, no trade
+  mutation, no audit append, and no record persisted.
+- Confirmed no Supabase read/write, localStorage write, audit append, trade
+  mutation, execution record storage, broker result creation, Avanza/browser
+  behavior, or production insert behavior was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 447 - Create Supabase Migration Application Checklist**
+
+## Action 447 - Create Supabase Migration Application Checklist
+
+QA notes:
+
+- Created
+  `docs/supabase-execution-record-migration-application-checklist.md`.
+- Inspected the draft migration
+  `supabase/migrations/20260614000000_create_execution_records.sql`, the
+  migration draft reassessment, the schema plan, and the dry-run UI
+  reassessment.
+- Documented local-first migration application, staging verification, explicit
+  production approval, backup/rollback requirements, generated types timing,
+  and RLS/security review.
+- Added no-write guardrails confirming migration application must not enable
+  real insert behavior, Supabase writes, audit append, trade mutation, broker
+  result creation, Avanza/browser behavior, or automatic mode.
+
+Safety verification:
+
+- Documentation/checklist only.
+- Migration was not applied.
+- No generated types were updated.
+- No route/API, Supabase client, persistence write, audit append, trade
+  mutation, broker result creation, or Avanza/browser behavior was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 448 - Reassess BrokerExecutionResult Confirmation Path**
+
+## Action 448 - Reassess BrokerExecutionResult Confirmation Path
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-confirmation-path-reassessment.md`.
+- Inspected broker confirmation capture contract/design, BrokerExecutionResult
+  eligibility, BrokerExecutionResult preview/conversion mapping,
+  execution-record creation validator/builder, dev fixture, dry-run route
+  helper/UI docs, and Avanza confirmation capture design.
+- Verified current BrokerExecutionResult eligibility is an eligibility check
+  only and marks `noBrokerExecutionResultCreated`.
+- Verified current BrokerExecutionResult preview metadata marks
+  `previewOnly` and `notBrokerExecutionResult`.
+- Verified execution-record creation validation blocks preview-only,
+  not-broker-result, synthetic, dev/mock, placed-only, partial-fill, attempted
+  Supabase write, attempted trade mutation, and automatic-mode sources.
+- Verified candidate builder still returns `safeToPersist=false`.
+- Confirmed no current source is production-safe for persistence or trade
+  mutation.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime behavior changed.
+- No BrokerExecutionResult creation, broker confirmation capture change,
+  Avanza/browser behavior, Supabase change, persistence/write behavior, audit
+  append, or trade mutation was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 449 - Create BrokerExecutionResult Confirmation Requirements Spec**
+
+## Action 449 - Create BrokerExecutionResult Confirmation Requirements Spec
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-confirmation-requirements-spec.md`.
+- Inspected the Action 448 confirmation path reassessment, Avanza broker
+  confirmation capture design, BrokerExecutionResult conversion boundary and
+  mapping docs, and execution-record creation reason codes.
+- Defined source classifications for preview-only, dev fixture, mock broker,
+  dry-run, local diagnostics, broker-confirmed, and production-safe candidate
+  sources.
+- Documented required broker evidence, Avanza-specific expectations, field
+  validation rules, anti-spoofing/provenance requirements, execution-record
+  creation relationship, trade mutation relationship, and rejection mapping.
+- Recommended contract-only source classification types as the next safe step.
+
+Safety verification:
+
+- Documentation/spec only.
+- No runtime behavior changed.
+- No BrokerExecutionResult creation, broker confirmation capture changes,
+  Avanza/browser behavior, Supabase change, persistence/write behavior, audit
+  append, or trade mutation was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 450 - Create Broker Result Source Classification Types**
+
+## Action 450 - Create Broker Result Source Classification Types
+
+QA notes:
+
+- Created `lib/broker-result-source-classification.ts`.
+- Added contract-only classifications:
+  - `preview_only`
+  - `dev_fixture`
+  - `mock_broker`
+  - `dry_run`
+  - `local_diagnostics`
+  - `broker_confirmed`
+  - `production_safe_candidate`
+- Added pure policy metadata for candidate preview, execution-record creation,
+  persistence, and trade mutation capabilities.
+- Confirmed preview/dev/mock/dry-run/local diagnostics are marked
+  persistence-blocked and trade-mutation-blocked.
+- Confirmed `broker_confirmed` is not persistence-capable by itself.
+- Confirmed `production_safe_candidate` is the only persistence-capable class,
+  while trade mutation remains false for all classes.
+
+Safety verification:
+
+- Type/contract-only.
+- No validator implementation.
+- No conversion logic.
+- No BrokerExecutionResult creation.
+- No broker confirmation capture behavior.
+- No Supabase behavior.
+- No persistence/write behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010`
+  before app test logic.
+- Escalated `npm run test:e2e` passed: 73 tests.
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 451 - Reassess Broker Result Source Classification Types**
+
+## Action 451 - Reassess Broker Result Source Classification Types
+
+QA notes:
+
+- Created
+  `docs/broker-result-source-classification-types-reassessment.md`.
+- Inspected `lib/broker-result-source-classification.ts`, the Action 449
+  requirements spec, and relevant capture/conversion docs.
+- Verified the module exports only types/constants and policy metadata.
+- Verified source classes match the requirements spec.
+- Verified preview/dev/mock/dry-run/local diagnostics are marked blocked for
+  persistence and trade mutation.
+- Verified `broker_confirmed` is not persistence-capable by itself.
+- Verified `allowsTradeMutation` is false for every class.
+- Documented gaps around future validator enforcement, provenance requirements,
+  and `production_safe_candidate` assignment.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime behavior changed.
+- No validator implementation.
+- No conversion/capture changes.
+- No Supabase behavior.
+- No persistence/write behavior.
+- No audit append.
+- No trade mutation.
+- No broker/browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 452 - Create Broker Result Source Classification Validator**
+
+## Action 452 - Create Broker Result Source Classification Validator
+
+QA notes:
+
+- Created `lib/broker-result-source-classification-validator.ts`.
+- Added `validateBrokerResultSourceForUsage(...)`.
+- Added focused e2e pure-helper coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Covered:
+  - preview/dev/mock/dry-run/local diagnostics rejected for persistence.
+  - trade mutation rejected for every current source class.
+  - `broker_confirmed` rejected for persistence.
+  - `production_safe_candidate` allowed for persistence policy only and warned
+    that writes are not enabled.
+  - unsupported source classification rejected conservatively.
+
+Safety verification:
+
+- Pure validator only.
+- No runtime wiring.
+- No conversion/capture changes.
+- No BrokerExecutionResult creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010`
+  before app test logic.
+- Escalated `npm run test:e2e` passed: 74 tests.
+
+Recommended next action:
+
+**Action 453 - Reassess Broker Result Source Classification Validator**
+
+## Action 443 - Reassess Dry-Run Route Client Helper
+
+QA notes:
+
+- Created
+  `docs/execution-record-insert-dry-run-client-reassessment.md`.
+- Inspected `lib/execution-record-insert-dry-run-client.ts`,
+  `lib/execution-record-insert-route-contract.ts`,
+  `app/api/execution/records/insert/route.ts`, and the focused helper tests.
+- Verified helper behavior:
+  - targets `/api/execution/records/insert`.
+  - accepts typed `ExecutionRecordInsertRouteRequest` values.
+  - refuses non-dry-run requests before network activity.
+  - returns typed `ExecutionRecordInsertRouteResponse` values.
+  - preserves no-write/no-mutation safety metadata in fallback responses.
+- Confirmed no UI wiring, production insert helper, Supabase read/write,
+  localStorage, audit append, trade mutation, execution record storage,
+  broker result creation, Avanza/browser behavior, or automatic-mode behavior
+  was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 444 - Create Read-Only Dry-Run Route UI Preview Design**
+
+## Action 453 - Reassess Broker Result Source Classification Validator
+
+QA notes:
+
+- Created
+  `docs/broker-result-source-classification-validator-reassessment.md`.
+- Inspected `lib/broker-result-source-classification-validator.ts`,
+  `lib/broker-result-source-classification.ts`, the focused e2e pure-helper
+  coverage, and broker confirmation docs.
+- Verified the validator:
+  - is pure and deterministic.
+  - enforces source classification policy only.
+  - rejects unsafe sources for persistence.
+  - rejects trade mutation for every current source class.
+  - keeps `broker_confirmed` persistence-blocked.
+  - treats `production_safe_candidate` as policy metadata only, not write
+    permission.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime wiring.
+- No BrokerExecutionResult creation.
+- No conversion/capture behavior.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 454 - Create Avanza Broker Confirmation Evidence Contract**
+
+## Action 454 - Create Avanza Broker Confirmation Evidence Contract
+
+QA notes:
+
+- Created
+  `docs/avanza-broker-confirmation-evidence-contract.md`.
+- Inspected broker confirmation requirements, capture-phase design, source
+  classification validator reassessment, conversion designs, and execution
+  record boundary docs.
+- Documented:
+  - allowed/disallowed evidence source types.
+  - required and optional Avanza confirmation evidence fields.
+  - provenance metadata.
+  - validation prerequisites.
+  - partial-fill handling.
+  - rejection/uncertainty flags.
+  - security/privacy constraints.
+  - relationship to future BrokerExecutionResult conversion.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No BrokerExecutionResult creation.
+- No conversion/capture implementation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 455 - Create Avanza Broker Confirmation Evidence Types**
+
+## Action 455 - Create Avanza Broker Confirmation Evidence Types
+
+QA notes:
+
+- Created `lib/avanza-broker-confirmation-evidence-contract.ts`.
+- Added type/constant-only contracts for:
+  - evidence contract version.
+  - evidence source types and allowed/disallowed source categories.
+  - capture methods, modes, page identities, sides, price field types, and
+    order statuses.
+  - rejection reasons and warnings.
+  - field confidence and raw field maps.
+  - privacy metadata.
+  - provenance metadata.
+  - instrument, broker reference, price, account context, partial-fill, and
+    full evidence shapes.
+
+Safety verification:
+
+- Type/contract-only.
+- No capture implementation.
+- No OCR/browser extraction.
+- No validation implementation.
+- No BrokerExecutionResult conversion.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010`
+  before app test logic.
+- Escalated `npm run test:e2e` passed: 74 tests.
+
+Recommended next action:
+
+**Action 456 - Reassess Avanza Broker Confirmation Evidence Types**
+
+## Action 456 - Reassess Avanza Broker Confirmation Evidence Types
+
+QA notes:
+
+- Created
+  `docs/avanza-broker-confirmation-evidence-types-reassessment.md`.
+- Inspected `lib/avanza-broker-confirmation-evidence-contract.ts`,
+  `docs/avanza-broker-confirmation-evidence-contract.md`, broker
+  confirmation requirements docs, capture-phase design, and conversion docs.
+- Verified:
+  - module is type/constant-only.
+  - source types match the evidence contract.
+  - required/optional fields are modeled.
+  - provenance and privacy metadata are modeled.
+  - partial-fill evidence is modeled.
+  - rejection/uncertainty flags are modeled.
+  - no runtime capture, validation, conversion, persistence, Supabase, audit,
+    trade mutation, browser, or Avanza behavior exists.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime behavior changed.
+- No capture implementation.
+- No OCR/browser extraction.
+- No validation implementation.
+- No BrokerExecutionResult conversion.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 457 - Create Avanza Broker Confirmation Evidence Validator**
+
+## Action 457 - Create Avanza Broker Confirmation Evidence Validator
+
+QA notes:
+
+- Created `lib/avanza-broker-confirmation-evidence-validator.ts`.
+- Added `validateAvanzaConfirmationEvidence(...)`.
+- Added focused pure-helper e2e coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Covered:
+  - valid final confirmation evidence returns `valid`.
+  - order preview source rejects.
+  - missing broker order/confirmation reference rejects.
+  - missing provenance rejects.
+  - invalid quantity and price reject.
+  - ambiguous partial fill returns `needs_review`.
+  - low confidence returns `needs_review`.
+
+Safety verification:
+
+- Pure validator only.
+- No runtime wiring.
+- No capture implementation.
+- No OCR/browser extraction.
+- No BrokerExecutionResult conversion.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010`
+  before app test logic.
+- Escalated `npm run test:e2e` passed: 75 tests.
+
+Recommended next action:
+
+**Action 458 - Reassess Avanza Broker Confirmation Evidence Validator**
+
+## Action 458 - Reassess Avanza Broker Confirmation Evidence Validator
+
+QA notes:
+
+- Created
+  `docs/avanza-broker-confirmation-evidence-validator-reassessment.md`.
+- Inspected `lib/avanza-broker-confirmation-evidence-validator.ts`,
+  `lib/avanza-broker-confirmation-evidence-contract.ts`,
+  `lib/broker-result-source-classification-validator.ts`, focused e2e
+  coverage, and related capture/conversion docs.
+- Verified the validator:
+  - is pure and deterministic.
+  - validates evidence completeness/provenance/field sanity only.
+  - does not capture or extract evidence.
+  - does not convert to BrokerExecutionResult.
+  - does not persist, append audit, mutate trades, use Supabase/localStorage,
+    automate browsers, or touch Avanza.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 459 - Create Evidence-to-BrokerExecutionResult Mapping Design**
+
+## Action 459 - Create Evidence-to-BrokerExecutionResult Mapping Design
+
+QA notes:
+
+- Created
+  `docs/avanza-evidence-to-broker-execution-result-mapping-design.md`.
+- Inspected evidence validator reassessment, evidence contract,
+  confirmation requirements, conversion boundary/mapping docs, capture design,
+  and execution-record boundaries.
+- Documented:
+  - mapping preconditions.
+  - field-level evidence-to-result mapping.
+  - future BrokerExecutionResult status model.
+  - partial-fill mapping policy.
+  - idempotency/fingerprint mapping.
+  - provenance mapping.
+  - rejection and needs-review behavior.
+  - relationship to execution records and trade mutation.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No mapping implementation.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 460 - Create BrokerExecutionResult Confirmation Validator Design**
+
+## Action 460 - Create BrokerExecutionResult Confirmation Validator Design
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-confirmation-validator-design.md`.
+- Inspected evidence-to-result mapping design, evidence validator
+  reassessment, evidence contract, confirmation requirements, conversion
+  boundary/mapping docs, capture design, and execution-record boundaries.
+- Documented:
+  - validator inputs.
+  - validator outputs.
+  - layered validation checks.
+  - rejection reasons.
+  - needs-review behavior.
+  - partial-fill handling.
+  - idempotency/fingerprint requirements.
+  - relationships to mapper, execution records, and trade mutation.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No validator implementation.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 461 - Create BrokerExecutionResult Confirmation Validator Contract Types**
+
+## Action 461 - Create BrokerExecutionResult Confirmation Validator Contract Types
+
+QA notes:
+
+- Created
+  `lib/broker-execution-result-confirmation-validator-contract.ts`.
+- Added type/constant-only contracts for:
+  - validator input.
+  - validation status.
+  - rejection reasons.
+  - warnings.
+  - policy snapshot.
+  - evidence snapshot reference.
+  - fingerprint input summary.
+  - no-write/no-mutation safety output.
+- Updated the broker confirmation, evidence mapping, execution-record, and
+  persistence docs to reference the new contract boundary.
+
+Safety verification:
+
+- Type/constant-only module.
+- No runtime validator implementation.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 75 tests.
+
+Recommended next action:
+
+**Action 462 - Reassess BrokerExecutionResult Confirmation Validator Contract Types**
+
+## Action 462 - Reassess BrokerExecutionResult Confirmation Validator Contract Types
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-confirmation-validator-contract-reassessment.md`.
+- Inspected
+  `lib/broker-execution-result-confirmation-validator-contract.ts`, the
+  confirmation validator design, the evidence-to-result mapping design, and
+  evidence/source-classification reassessment context.
+- Documented:
+  - current contract inventory.
+  - boundary verification.
+  - alignment with validator design.
+  - safety policy verification.
+  - remaining gaps before runtime validator.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No validator implementation.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 463 - Create BrokerExecutionResult Confirmation Validator**
+
+## Action 463 - Create BrokerExecutionResult Confirmation Validator
+
+QA notes:
+
+- Created
+  `lib/broker-execution-result-confirmation-validator.ts`.
+- Refined
+  `lib/broker-execution-result-confirmation-validator-contract.ts` so
+  automatic-mode input can be represented and rejected.
+- Added focused e2e coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- The validator checks:
+  - upstream evidence validation status.
+  - source classification policy.
+  - production-safe source requirement.
+  - handoff payload fingerprint.
+  - broker references.
+  - side, instrument, quantity, price, timestamp, and provenance.
+  - partial-fill ambiguity.
+  - automatic-mode rejection.
+
+Safety verification:
+
+- Pure deterministic validator.
+- No BrokerExecutionResult mapper.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 76 tests.
+
+Recommended next action:
+
+**Action 464 - Reassess BrokerExecutionResult Confirmation Validator**
+
+## Action 464 - Reassess BrokerExecutionResult Confirmation Validator
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-confirmation-validator-reassessment.md`.
+- Inspected:
+  - `lib/broker-execution-result-confirmation-validator.ts`
+  - `lib/broker-execution-result-confirmation-validator-contract.ts`
+  - upstream Avanza evidence validation.
+  - source classification validation.
+  - focused e2e coverage.
+  - related confirmation/evidence/mapping docs.
+- Documented:
+  - validator inventory.
+  - boundary verification.
+  - confirmation policy behavior.
+  - safety flag behavior.
+  - remaining gaps before conversion.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 465 - Create Evidence-to-BrokerExecutionResult Mapper Contract Types**
+
+## Action 465 - Create Evidence-to-BrokerExecutionResult Mapper Contract Types
+
+QA notes:
+
+- Created
+  `lib/evidence-to-broker-execution-result-mapper-contract.ts`.
+- Added type/constant-only contracts for:
+  - mapper input.
+  - mapper result/status.
+  - rejection reasons.
+  - warnings.
+  - field mapping snapshots.
+  - provenance snapshots.
+  - fingerprint contribution summaries.
+  - partial-fill mapping summaries.
+  - future draft candidate metadata.
+- Updated confirmation, mapping, execution-record, persistence, checkpoint, and
+  QA docs.
+
+Safety verification:
+
+- Contract-only module.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No capture/OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 76 tests.
+
+Recommended next action:
+
+**Action 466 - Reassess Evidence-to-BrokerExecutionResult Mapper Contract Types**
+
+## Action 466 - Reassess Evidence-to-BrokerExecutionResult Mapper Contract Types
+
+QA notes:
+
+- Created
+  `docs/evidence-to-broker-execution-result-mapper-contract-reassessment.md`.
+- Inspected the mapper contract, mapping design, confirmation validator
+  reassessment, and related confirmation/evidence docs.
+- Documented:
+  - current contract inventory.
+  - boundary verification.
+  - alignment with mapping design.
+  - safety policy verification.
+  - remaining gaps before runtime mapper.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No mapper implementation.
+- No conversion implementation.
+- No BrokerExecutionResult creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 467 - Create BrokerExecutionResult Candidate Type/Shape Reassessment**
+
+## Action 467 - Create BrokerExecutionResult Candidate Type/Shape Reassessment
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-candidate-shape-reassessment.md`.
+- Inspected existing BrokerExecutionResult, Avanza preview, dev mock
+  conversion, execution-record creation, execution-record candidate, mapper
+  contract, and confirmation validator shapes.
+- Documented:
+  - current candidate/record/result shape inventory.
+  - suitability assessment for each existing shape.
+  - required future mapper target fields.
+  - separation from execution-record creation, persistence, audit append, and
+    trade mutation.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No TypeScript contract additions.
+- No mapper implementation.
+- No BrokerExecutionResult creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 468 - Create BrokerExecutionResult Candidate Contract Types**
+
+## Action 468 - Create BrokerExecutionResult Candidate Contract Types
+
+QA notes:
+
+- Created
+  `lib/broker-execution-result-candidate-contract.ts`.
+- Added type/constant-only contracts for:
+  - candidate status and broker/source classification.
+  - instrument, execution, price, broker reference, account context, and
+    partial-fill fields.
+  - provenance, field mapping, fingerprint input, warning, review flag, and
+    safety policy metadata.
+- Updated broker confirmation, mapping, execution-record, persistence,
+  checkpoint, and QA docs.
+
+Safety verification:
+
+- Contract-only module.
+- No mapper implementation.
+- No conversion implementation.
+- No BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+- `safeToPersist=false` and `safeToMutateTrade=false` remain explicit.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 76 tests.
+
+Recommended next action:
+
+**Action 469 - Reassess BrokerExecutionResult Candidate Contract Types**
+
+## Action 469 - Reassess BrokerExecutionResult Candidate Contract Types
+
+QA notes:
+
+- Created
+  `docs/broker-execution-result-candidate-contract-reassessment.md`.
+- Inspected:
+  - `lib/broker-execution-result-candidate-contract.ts`.
+  - `lib/evidence-to-broker-execution-result-mapper-contract.ts`.
+  - candidate shape reassessment and mapping design docs.
+  - related confirmation validator and execution-record docs.
+- Documented:
+  - current contract inventory.
+  - boundary verification.
+  - alignment verification.
+  - safety policy verification.
+  - remaining gaps before mapper implementation.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No mapper implementation.
+- No conversion implementation.
+- No BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 470 - Create Evidence-to-BrokerExecutionResult Mapper**
+
+## Action 470 - Create Evidence-to-BrokerExecutionResult Mapper
+
+QA notes:
+
+- Created
+  `lib/evidence-to-broker-execution-result-mapper.ts`.
+- Refined mapper result contracts to carry
+  `BrokerExecutionResultCandidate` output and indicate the mapper ran.
+- Added focused coverage in `tests/e2e/execution-sandbox.spec.ts` for:
+  - valid evidence plus confirmed candidate mapping.
+  - non-confirmed confirmation rejection.
+  - `safeToConvert=false` rejection.
+  - rejected evidence.
+  - missing handoff fingerprint.
+  - missing required quantity/price fields.
+  - ambiguous partial-fill review.
+- Updated mapper, candidate, confirmation, execution-record, persistence,
+  checkpoint, and QA docs.
+
+Safety verification:
+
+- Pure deterministic mapper.
+- No side effects.
+- No runtime BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase behavior.
+- No localStorage behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+- `safeToPersist=false` and `safeToMutateTrade=false` remain explicit.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 77 tests.
+
+Recommended next action:
+
+**Action 471 - Reassess Evidence-to-BrokerExecutionResult Mapper**
+
+## Action 471 - Reassess Evidence-to-BrokerExecutionResult Mapper
+
+QA notes:
+
+- Created
+  `docs/evidence-to-broker-execution-result-mapper-reassessment.md`.
+- Inspected:
+  - `lib/evidence-to-broker-execution-result-mapper.ts`.
+  - mapper and candidate contracts.
+  - confirmation and evidence validators.
+  - focused e2e coverage.
+  - related mapping/candidate/confirmation docs.
+- Documented:
+  - mapper inventory.
+  - boundary verification.
+  - mapping policy verification.
+  - candidate content verification.
+  - remaining gaps before preview or persistence.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No mapper changes.
+- No runtime BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage behavior.
+- No audit append.
+- No trade mutation.
+- No UI wiring.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 472 - Create Mapped BrokerExecutionResult Candidate Preview Design**
+
+## Action 472 - Create Mapped BrokerExecutionResult Candidate Preview Design
+
+QA notes:
+
+- Created
+  `docs/mapped-broker-execution-result-candidate-preview-design.md`.
+- Inspected the mapper reassessment, existing execution-record preview design,
+  execution-record preview reassessment, and current handoff modal composition.
+- Documented:
+  - scope.
+  - placement options and recommended first placement.
+  - preview content.
+  - required safety labels.
+  - state/data dependencies.
+  - interaction model.
+  - error/review display.
+  - relationship to execution-record creation.
+  - relationship to trade mutation.
+  - risks and next action.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No UI implementation.
+- No mapper wiring.
+- No runtime BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage behavior.
+- No audit append.
+- No trade mutation.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 473 - Create Mapped BrokerExecutionResult Candidate Dev Preview**
+
+## Action 473 - Create Mapped BrokerExecutionResult Candidate Dev Preview
+
+QA notes:
+
+- Created
+  `components/execution/MappedBrokerExecutionResultCandidatePreview.tsx`.
+- Created
+  `lib/mapped-broker-execution-result-candidate-dev-fixture.ts`.
+- Wired the preview through `useLatePhasePreviewState`,
+  `ExecutionHandoffModalComposition`, and `app/trade-app.tsx`.
+- Added focused e2e coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Updated mapper, candidate, mapping, execution-record, persistence,
+  checkpoint, and QA docs.
+
+Safety verification:
+
+- Dev-gated preview only.
+- Controlled fixture data only.
+- Explicit trigger only.
+- Read-only display.
+- No live broker data.
+- No runtime BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage write behavior.
+- No audit append.
+- No trade mutation.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+- No persist/save/create/mutate/send buttons.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Default `npm run test:e2e` was sandbox-blocked on
+  `0.0.0.0:3010` before app logic.
+- Escalated `npm run test:e2e` passed: 77 tests.
+
+Recommended next action:
+
+**Action 474 - Reassess Mapped BrokerExecutionResult Candidate Dev Preview**
+
+## Action 474 - Reassess Mapped BrokerExecutionResult Candidate Dev Preview
+
+QA notes:
+
+- Created
+  `docs/mapped-broker-execution-result-candidate-dev-preview-reassessment.md`.
+- Updated mapped candidate preview, mapper, candidate contract, mapper
+  contract, Avanza mapping, execution-record creation, persistence,
+  checkpoint, and QA docs.
+- Inspected the preview component, controlled fixture, late-phase preview hook,
+  modal composition, app call site, and e2e coverage.
+
+Safety verification:
+
+- Dev-gated preview only.
+- Controlled fixture data only.
+- Explicit trigger only.
+- Read-only display.
+- Calls only pure validators and the pure mapper.
+- No live broker data.
+- No runtime BrokerExecutionResult creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage write behavior.
+- No audit append.
+- No trade mutation.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+- No persist/save/create/mutate/send buttons.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 475 - Reassess Avanza Broker Confirmation Capture Readiness**
+
+## Action 475 - Reassess Avanza Broker Confirmation Capture Readiness
+
+QA notes:
+
+- Created
+  `docs/avanza-broker-confirmation-capture-readiness-reassessment.md`.
+- Updated mapped candidate, Avanza capture, evidence contract, evidence
+  validator, mapping, confirmation validator, mapper, execution-record,
+  persistence, checkpoint, and QA docs.
+- Inspected Avanza evidence contracts/types, pure validators, pure mapper,
+  mapped candidate preview, capture phase docs, and existing Avanza/readback
+  references.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 476 - Create Avanza Confirmation Capture Manual QA Checklist**
+
+## Action 476 - Create Avanza Confirmation Capture Manual QA Checklist
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-manual-qa-checklist.md`.
+- Updated Avanza capture readiness, capture phase, evidence contract,
+  evidence validator, mapping, confirmation validator, mapper, mapped preview,
+  execution-record, persistence, checkpoint, and QA docs.
+- Checklist includes safety prerequisites, manual QA preparation, order
+  form/preview/final/history observations, buy/sell comparison, partial-fill
+  checks, evidence contract gap mapping, readiness outcome, and reusable
+  templates.
+
+Safety verification:
+
+- Documentation/checklist only.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 477 - Reassess Manual QA Findings**
+
+## Action 477 - Reassess Manual QA Findings
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-manual-qa-findings-reassessment.md`.
+- Updated Avanza manual QA checklist, capture readiness, capture phase,
+  evidence contract, evidence validator, mapping, confirmation validator,
+  mapper, mapped preview, execution-record, persistence, checkpoint, and QA
+  docs.
+- Searched existing Avanza docs for actual final confirmation/readback,
+  account/order-history, screenshot, and findings references.
+
+Findings status:
+
+- Partial pre-submit Avanza UI research exists.
+- Actual post-submit final confirmation/readback findings were not found.
+- Actual account/order-history findings were not found.
+- Capture/readback remains blocked until real manual findings are recorded.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 478 - Create Manual QA Findings Template**
+
+## Action 478 - Create Manual QA Findings Template
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-manual-qa-findings-template.md`.
+- Updated manual findings reassessment, manual checklist, capture readiness,
+  capture phase, evidence contract, evidence validator, mapping, confirmation
+  validator, mapper, mapped preview, execution-record, persistence,
+  checkpoint, and QA docs.
+- Template is intentionally blank and does not assert actual Avanza final
+  confirmation or order-history fields.
+
+Safety verification:
+
+- Documentation/template only.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 479 - Fill Manual QA Findings Template**
+
+## Action 479 - Fill Manual QA Findings Template
+
+QA notes:
+
+- Filled
+  `docs/avanza-confirmation-capture-manual-qa-findings-template.md`.
+- Used only documented existing repo findings from Avanza UI research and
+  manual selector notes.
+- Did not invent final confirmation/readback or account/order-history fields.
+
+Findings status:
+
+- Pre-submit order form, review, and confirmation modal findings are partial.
+- Post-submit final confirmation/readback findings are not available.
+- Account/order-history findings are not available.
+- Capture/readback remains blocked.
+
+Safety verification:
+
+- Documentation-only action.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 480 - Record Real Avanza Manual QA Observations**
+
+## Action 480 - Record Real Avanza Manual QA Observations
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-manual-qa-observation-log.md`.
+- Updated the findings template, findings reassessment, manual QA checklist,
+  capture readiness reassessment, evidence contract, capture phase design,
+  checkpoint, and QA docs.
+- The observation log is blank for real final confirmation/readback and
+  account/order-history findings.
+
+Current observation status:
+
+- Current real post-submit final confirmation observations: none recorded.
+- Current real account/order-history observations: none recorded.
+- Capture/readback readiness: blocked.
+
+Safety verification:
+
+- Documentation/log only.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 481 - Reassess Real Avanza Manual QA Observations**
+
+## Action 481 - Reassess Real Avanza Manual QA Observations
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-real-manual-qa-observations-reassessment.md`.
+- Updated the observation log, findings template, findings reassessment,
+  manual QA checklist, capture readiness reassessment, evidence contract,
+  capture phase design, checkpoint, and QA docs.
+
+Observation status:
+
+- Real post-submit final confirmation/readback observations: none recorded.
+- Real account/order-history observations: none recorded.
+- Production-safe broker confirmation source: unavailable.
+- Capture/readback readiness: blocked.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 482 - Create User Manual QA Runbook**
+
+## Action 482 - Create User Manual QA Runbook
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-user-manual-qa-runbook.md`.
+- Updated real observation reassessment, observation log, findings template,
+  checklist, capture readiness, evidence contract, capture phase design,
+  checkpoint, and QA docs.
+
+Runbook status:
+
+- User-facing process only.
+- No real observations added.
+- Current real final confirmation/readback observations remain none recorded.
+- Current real account/order-history observations remain none recorded.
+- Capture/readback remains blocked.
+
+Safety verification:
+
+- Documentation/runbook only.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 483 - Reassess User-Recorded Avanza Manual QA Observations**
+
+## Action 483 - Reassess User-Recorded Avanza Manual QA Observations
+
+QA notes:
+
+- Created
+  `docs/avanza-confirmation-capture-user-recorded-observations-reassessment.md`.
+- Updated the user manual QA runbook, observation log, findings template, real
+  observations reassessment, checklist, capture readiness reassessment,
+  evidence contract, capture phase design, checkpoint, and QA docs.
+
+Observation status:
+
+- User-recorded post-submit final confirmation/readback observations: none
+  recorded.
+- User-recorded account/order-history observations: none recorded.
+- Production-safe broker confirmation source: unavailable.
+- Capture/readback readiness: blocked.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 484 - Record Real Avanza Manual QA Observations**
+
+## Action 485 - Design Two-Stage Broker Evidence Flow
+
+QA notes:
+
+- Created
+  `docs/two-stage-broker-evidence-flow-design.md`.
+- Updated user-recorded observations, real observations, manual QA runbook,
+  observation log, capture readiness, evidence contract, capture phase,
+  evidence mapping, confirmation validator, mapper, execution-record creation,
+  persistence boundary, checkpoint, and QA docs.
+
+Design summary:
+
+- Immediate Broker Readback is the post-manual-confirmation broker readback
+  stage.
+- Immediate readback may prove the broker event exists, but it can be missing
+  amount/cost fields and must be marked provisional/final-note-pending.
+- Final Broker Settlement Note is the later official source, likely from
+  transaction history/notor or `avrakningsnota`/PDF.
+- Finalization requires conservative matching between provisional readback and
+  final note.
+- Partial matches, mismatches, duplicate final-note candidates, and missing
+  final notes require review or block finalization.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No Avanza/browser automation.
+- No OCR/browser extraction.
+- No capture implementation.
+- No live broker data ingestion.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 486 - Create Two-Stage Broker Evidence Contract Types**
+
+## Action 486 - Create Two-Stage Broker Evidence Contract Types
+
+QA notes:
+
+- Created `lib/two-stage-broker-evidence-contract.ts`.
+- Updated the two-stage flow design, Avanza evidence contract, observation log,
+  capture readiness reassessment, mapper reassessment, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Contract summary:
+
+- `BrokerEvidenceStage` models `immediate_readback` and
+  `final_settlement_note`.
+- `ImmediateBrokerReadbackEvidence` models provisional broker readback after
+  manual Avanza confirmation.
+- `FinalBrokerSettlementNoteEvidence` models later official settlement-note
+  data from transaction history/notor or `avrakningsnota`/PDF.
+- Matching and finalization concepts are modeled as status/reason types only.
+- The default safety policy keeps persistence, trade mutation, finalization,
+  automatic mode, capture implementation, matching implementation, audit append,
+  execution-record creation, browser automation, and Avanza behavior disabled.
+
+Safety verification:
+
+- Type/contract-only action.
+- No runtime behavior changed.
+- No capture implementation.
+- No matching implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` failed first inside the sandbox before app test logic
+  with `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Reran `npm run test:e2e` with port permission; result: 77 passed.
+
+Recommended next action:
+
+**Action 487 - Reassess Two-Stage Broker Evidence Contract Types**
+
+## Action 487 - Reassess Two-Stage Broker Evidence Contract Types
+
+QA notes:
+
+- Created
+  `docs/two-stage-broker-evidence-contract-reassessment.md`.
+- Updated the two-stage flow design, Avanza evidence contract, observation log,
+  capture readiness reassessment, mapper reassessment, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Reassessment summary:
+
+- `lib/two-stage-broker-evidence-contract.ts` remains type/constant-only.
+- Immediate readback remains provisional and final-note-pending.
+- Final settlement-note evidence remains an official final source candidate
+  only after future matching/validation.
+- Matching and finalization are represented as types/statuses only, with no
+  implementation.
+- Safety policy keeps persistence, trade mutation, finalization, automatic
+  mode, capture, matching implementation, execution-record creation, audit
+  append, and browser automation disabled.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No capture implementation.
+- No matching implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 488 - Create Final Settlement Note Matching Design**
+
+## Action 488 - Create Final Settlement Note Matching Design
+
+QA notes:
+
+- Created `docs/final-settlement-note-matching-design.md`.
+- Updated the two-stage contract reassessment, two-stage flow design, Avanza
+  evidence contract, observation log, capture readiness reassessment, mapper
+  reassessment, execution-record creation design, persistence boundary plan,
+  checkpoint, and QA notes.
+
+Design summary:
+
+- Matching compares final Avanza settlement note / `avrakningsnota` evidence
+  against provisional immediate readback/provisional trade context.
+- Hard gates include same broker, same side, compatible instrument identity,
+  compatible quantity or explicit partial-fill model, compatible trade/business
+  date, non-contradictory account/category, final note source identity, and
+  provenance.
+- Soft signals include price tolerance, time proximity, currency, order type,
+  market/venue, amount/commission consistency, FX consistency, handoff
+  fingerprint linkage, and note/reference uniqueness.
+- Confidence levels include exact, strong, partial, ambiguous, mismatch,
+  duplicate candidates, and insufficient data.
+- Matching does not finalize, persist, create execution records, append audit,
+  or mutate trades.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No matching implementation.
+- No finalization implementation.
+- No capture implementation.
+- No browser/Avanza automation.
+- No OCR/browser extraction.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 489 - Create Final Settlement Note Matching Contract Types**
+
+## Action 489 - Create Final Settlement Note Matching Contract Types
+
+QA notes:
+
+- Created `lib/final-settlement-note-matching-contract.ts`.
+- Updated final settlement note matching design, two-stage contract
+  reassessment, two-stage flow design, Avanza evidence contract, observation
+  log, capture readiness reassessment, mapper reassessment, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Contract summary:
+
+- `FinalSettlementNoteMatchingInput` can reference provisional immediate
+  readback evidence, provisional trade context, handoff payload fingerprint,
+  final settlement note evidence, masked account/category context, broker/source
+  metadata, optional `BrokerExecutionResultCandidate`, and optional
+  `ExecutionRecordCandidate` metadata.
+- `FinalSettlementNoteMatchingResult` models confidence/status, matched flag,
+  hard gates, soft signals, mismatch reasons, duplicate reasons, partial-fill
+  status, lifecycle transition suggestion, review flags, warnings, policy
+  snapshot, and safety policy.
+- Safety policy keeps finalization, persistence, and trade mutation disabled.
+
+Safety verification:
+
+- Type/contract-only action.
+- No runtime behavior changed.
+- No matching implementation.
+- No finalization implementation.
+- No capture implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` failed first inside the sandbox before app test logic
+  with `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Reran `npm run test:e2e` with port permission; result: 77 passed.
+
+Recommended next action:
+
+**Action 490 - Reassess Final Settlement Note Matching Contract Types**
+
+## Action 490 - Reassess Final Settlement Note Matching Contract Types
+
+QA notes:
+
+- Created
+  `docs/final-settlement-note-matching-contract-reassessment.md`.
+- Updated final settlement note matching design, two-stage contract
+  reassessment, two-stage flow design, Avanza evidence contract, observation
+  log, capture readiness reassessment, mapper reassessment, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Reassessment summary:
+
+- `lib/final-settlement-note-matching-contract.ts` remains
+  type/constant-only.
+- Matching input/output represent the Action 488 matching design.
+- Confidence/status values, hard gates, soft signals, mismatch reasons,
+  duplicate reasons, partial-fill statuses, lifecycle suggestions, policy
+  snapshots, and safety policy are represented.
+- `safeToFinalize=false`, `safeToPersist=false`, and
+  `safeToMutateTrade=false` remain explicit.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No matching implementation.
+- No finalization implementation.
+- No capture implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 491 - Create Final Settlement Note Matching Validator**
+
+## Action 491 - Create Final Settlement Note Matching Validator
+
+QA notes:
+
+- Created `lib/final-settlement-note-matching-validator.ts`.
+- Refined `lib/final-settlement-note-matching-contract.ts` so the pure
+  validator can report `matchingImplementationEnabled=true` while all write,
+  finalization, mutation, capture, audit, execution-record, browser, and Avanza
+  capabilities remain disabled.
+- Added focused coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Updated matching design/reassessment, two-stage evidence docs, Avanza
+  evidence notes, mapper reassessment, execution-record creation design,
+  persistence boundary plan, checkpoint, and QA notes.
+
+Validator summary:
+
+- `validateFinalSettlementNoteMatch(input)` returns a typed
+  `FinalSettlementNoteMatchingResult`.
+- Hard gates cover broker, side, instrument identity, quantity/partial-fill
+  model, trade/business date, account/category contradictions, final note
+  source identity, and provenance.
+- Soft signals cover price tolerance, time proximity, currency, order type,
+  venue, amount/commission, FX, handoff fingerprint, and note-reference
+  uniqueness.
+- Duplicate, insufficient-data, mismatch, partial-fill review, and soft-signal
+  review outcomes are conservative.
+
+Safety verification:
+
+- Pure deterministic validator only.
+- No capture, finalization, persistence/write behavior,
+  Supabase/localStorage behavior, audit append, execution-record creation,
+  trade mutation, UI wiring, browser automation, or Avanza behavior.
+- Match results keep `safeToFinalize=false`, `safeToPersist=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission passed: 78 tests passed.
+
+Recommended next action:
+
+**Action 492 - Reassess Final Settlement Note Matching Validator**
+
+## Action 492 - Reassess Final Settlement Note Matching Validator
+
+QA notes:
+
+- Created
+  `docs/final-settlement-note-matching-validator-reassessment.md`.
+- Updated matching design/reassessment, two-stage evidence docs, Avanza
+  evidence notes, mapper reassessment, execution-record creation design,
+  persistence boundary plan, checkpoint, and QA notes.
+
+Reassessment summary:
+
+- `validateFinalSettlementNoteMatch` is pure, deterministic, conservative, and
+  matching-only.
+- It returns matching metadata only and does not finalize, persist, mutate
+  trades, create execution records, capture evidence, append audit, wire UI,
+  automate browser actions, or change Avanza behavior.
+- Hard gate failures, duplicates, partial-fill ambiguity, and insufficient
+  data remain conservative.
+- Soft signals remain confidence/review metadata.
+- `matchingImplementationEnabled=true` is scoped to pure matching logic and
+  does not enable write/finalization behavior.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No validator changes.
+- No finalization implementation.
+- No capture implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 493 - Create Final Settlement Note Match Dev Preview Design**
+
+## Action 493 - Create Final Settlement Note Match Dev Preview Design
+
+QA notes:
+
+- Created `docs/final-settlement-note-match-dev-preview-design.md`.
+- Updated final settlement note matching validator reassessment, matching
+  contract reassessment, matching design, two-stage evidence docs, mapper
+  reassessment, mapped candidate preview reassessment, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Design summary:
+
+- Future preview should be dev-gated, read-only, fixture/dry-run-first, and
+  explicit-trigger-only.
+- Recommended placement is near the mapped BrokerExecutionResult candidate
+  preview, but visually separate and labelled `Match Preview Only`.
+- Preview content should show status/confidence, lifecycle suggestion, hard
+  gates, soft signals, mismatch/duplicate reasons, partial-fill status,
+  missing data, provisional/final evidence summaries, provenance/source
+  comparison, and safety policy.
+- Required labels include `Not finalization`, `Not persistence approval`,
+  `Not an execution record`, `Does not mutate trade state`,
+  `safeToFinalize=false`, `safeToPersist=false`, and
+  `safeToMutateTrade=false`.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No UI implementation.
+- No preview implementation.
+- No matching changes.
+- No finalization implementation.
+- No capture implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 494 - Create Final Settlement Note Match Dev Preview**
+
+## Action 494 - Create Final Settlement Note Match Dev Preview
+
+QA notes:
+
+- Created `components/execution/FinalSettlementNoteMatchPreview.tsx`.
+- Created `lib/final-settlement-note-match-dev-fixture.ts`.
+- Wired the preview through `useLatePhasePreviewState`,
+  `ExecutionHandoffModalComposition`, and `app/trade-app.tsx`.
+- Added e2e coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Updated final note match preview design, validator reassessment, matching
+  contract/design docs, two-stage evidence docs, mapper/mapped preview docs,
+  execution-record creation design, persistence boundary plan, checkpoint, and
+  QA notes.
+
+Preview summary:
+
+- Dev-gated in the execution handoff modal late-phase area.
+- Read-only.
+- Controlled fixture only.
+- Explicit `Run final note match preview` trigger only.
+- Calls only pure `validateFinalSettlementNoteMatch(...)`.
+- Displays status/confidence, lifecycle suggestion, hard gates, soft signals,
+  mismatch/duplicate reasons, partial-fill status, missing data, evidence
+  comparison, provenance/source comparison, and safety policy.
+
+Safety verification:
+
+- No live Avanza data.
+- No capture/OCR/browser extraction.
+- No finalization.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission passed: 78 tests passed.
+
+Recommended next action:
+
+**Action 495 - Reassess Final Settlement Note Match Dev Preview**
+
+## Action 495 - Reassess Final Settlement Note Match Dev Preview
+
+QA notes:
+
+- Created
+  `docs/final-settlement-note-match-dev-preview-reassessment.md`.
+- Updated final note match preview design, matching validator reassessment,
+  matching contract/design docs, two-stage evidence docs, mapper/mapped preview
+  docs, execution-record creation design, persistence boundary plan,
+  checkpoint, and QA notes.
+
+Reassessment summary:
+
+- Preview remains dev-gated, fixture-only, explicit-trigger-only, read-only,
+  and pure-validator-only.
+- Preview uses controlled fixture data and calls only
+  `validateFinalSettlementNoteMatch(...)`.
+- Preview displays required safety labels and exposes no forbidden action
+  buttons.
+- Exact/strong fixture match remains non-finalizing, non-persistent, and
+  non-mutating.
+- Lifecycle transition suggestion is metadata only.
+
+Safety verification:
+
+- Documentation-only reassessment.
+- No runtime code changes.
+- No UI changes.
+- No fixture changes.
+- No matching validator changes.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No trade mutation.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 496 - Create Finalization Candidate Contract Types**
+
+## Action 496 - Create Finalization Candidate Contract Types
+
+QA notes:
+
+- Created `lib/finalization-candidate-contract.ts`.
+- Updated final note match preview reassessment/design, matching validator
+  reassessment, matching contract reassessment, two-stage evidence flow design,
+  execution-record creation design, persistence boundary plan, checkpoint, and
+  QA notes.
+
+Contract summary:
+
+- `FinalizationCandidate` models type-only candidacy after final settlement
+  note matching.
+- It includes status/source constants, evidence summary, match summary,
+  settlement summary, fee summary, FX summary, PnL adjustment summary, optional
+  execution-record metadata, review flags, warnings, rejection reasons, and
+  safety policy.
+- It can reference provisional immediate readback evidence, final settlement
+  note evidence, matching result, BrokerExecutionResult candidate metadata,
+  optional execution-record candidate metadata, handoff fingerprint, masked
+  account/category context, and optional provisional/live trade identifiers.
+
+Safety verification:
+
+- Type/contract-only.
+- A candidate is not finalization approval.
+- A candidate is not persistence approval.
+- A candidate is not execution-record creation approval.
+- A candidate is not stats/PnL update approval.
+- A candidate is not trade mutation approval.
+- No runtime finalization, persistence, execution-record creation, stats
+  update, trade mutation, UI, capture/browser, or Avanza behavior was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission passed: 78 tests passed.
+
+Recommended next action:
+
+**Action 497 - Reassess Finalization Candidate Contract Types**
+
+## Action 497 - Reassess Finalization Candidate Contract Types
+
+QA notes:
+
+- Created
+  `docs/finalization-candidate-contract-reassessment.md`.
+- Updated final note match preview reassessment/design, matching validator
+  reassessment, matching contract reassessment, two-stage evidence flow design,
+  execution-record creation design, persistence boundary plan, checkpoint, and
+  QA notes.
+
+Reassessment summary:
+
+- `lib/finalization-candidate-contract.ts` is type-only/constants-only.
+- The contract represents statuses, sources, evidence summary, match summary,
+  settlement summary, fee summary, FX summary, preview-only PnL adjustment
+  summary, execution-record metadata, review flags, warnings, rejection
+  reasons, safety policy, and status metadata.
+- A finalization candidate is downstream of matched final settlement note
+  evidence.
+- A finalization candidate is not finalization approval, persistence approval,
+  execution-record creation approval, stats/PnL update approval, or trade
+  mutation approval.
+
+Safety verification:
+
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToMutateTrade=false`.
+- `safeToUpdateStats=false`.
+- `safeToCreateExecutionRecord=false`.
+- No runtime finalization, persistence, execution-record creation, stats
+  update, trade mutation, UI, capture/browser, or Avanza behavior was added.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 498 - Create Finalization Candidate Builder Design**
+
+## Action 498 - Create Finalization Candidate Builder Design
+
+QA notes:
+
+- Created `docs/finalization-candidate-builder-design.md`.
+- Updated finalization candidate contract reassessment, final settlement note
+  match preview reassessment, matching validator reassessment, matching
+  contract reassessment, two-stage evidence flow design, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Design summary:
+
+- Future builder should combine validated provisional immediate readback
+  evidence, final settlement note evidence, final settlement note matching
+  result, `BrokerExecutionResultCandidate`, optional provisional/live trade
+  context, handoff fingerprint, masked account/category context, optional
+  execution-record candidate metadata, and optional statistics/trade summary.
+- Future output should shape a `FinalizationCandidate` with status, source,
+  evidence summary, match summary, settlement summary, fee summary, FX summary,
+  preview-only PnL adjustment summary, review flags, warnings, rejection
+  reasons, and safety policy.
+- Candidate statuses are design-scoped as `candidate_ready`, `needs_review`,
+  `blocked`, `partial_fill_review`, `duplicate_review`, and `unsupported`.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No builder implementation.
+- No finalization validator.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI, capture/browser, or Avanza behavior.
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToCreateExecutionRecord=false`.
+- `safeToUpdateStats=false`.
+- `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 499 - Create Finalization Candidate Builder Contract Types**
+
+## Action 499 - Create Finalization Candidate Builder Contract Types
+
+QA notes:
+
+- Created `lib/finalization-candidate-builder-contract.ts`.
+- Updated finalization candidate builder design, finalization candidate
+  contract reassessment, final settlement note match preview reassessment,
+  matching validator reassessment, two-stage evidence flow design,
+  execution-record creation design, persistence boundary plan, checkpoint, and
+  QA notes.
+
+Contract summary:
+
+- Type-only builder contract module.
+- Models builder input/result/status/precondition/reason/warning/policy/summary
+  concepts.
+- Result can carry optional `FinalizationCandidate`.
+- Input can reference provisional immediate readback evidence, final settlement
+  note evidence, final settlement note matching result,
+  `BrokerExecutionResultCandidate`, optional trade context, handoff payload
+  fingerprint, masked account/category context, optional execution-record
+  candidate metadata, and optional stats/trade summary.
+
+Safety verification:
+
+- No builder implementation.
+- No finalization validator.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update implementation.
+- No trade mutation.
+- No UI, capture/browser, or Avanza behavior.
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToCreateExecutionRecord=false`.
+- `safeToUpdateStats=false`.
+- `safeToMutateTrade=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission passed: 80 tests passed.
+
+Recommended next action:
+
+**Action 500 - Reassess Finalization Candidate Builder Contract Types**
+
+## Action 500 - Reassess Finalization Candidate Builder Contract Types
+
+QA notes:
+
+- Created `docs/finalization-candidate-builder-contract-reassessment.md`.
+- Updated builder design, finalization candidate contract reassessment, final
+  note match preview reassessment, matching validator reassessment, two-stage
+  evidence flow design, execution-record creation design, persistence boundary
+  plan, checkpoint, and QA notes.
+
+Reassessment summary:
+
+- `lib/finalization-candidate-builder-contract.ts` is
+  type-only/constants-only.
+- It models builder input/result/status/precondition/reason/warning/policy and
+  summary concepts.
+- Builder result can carry optional `FinalizationCandidate`.
+- It remains downstream of matched final note evidence and does not implement a
+  builder or validator.
+- It is not finalization approval, persistence approval, execution-record
+  creation approval, stats/PnL update approval, or trade mutation approval.
+
+Safety verification:
+
+- No runtime code changes.
+- No builder implementation.
+- No validator.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI, capture/browser, or Avanza behavior.
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToCreateExecutionRecord=false`.
+- `safeToUpdateStats=false`.
+- `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 501 - Create Finalization Candidate Builder**
+
+## Action 501 - Create Finalization Candidate Builder
+
+QA notes:
+
+- Created `lib/finalization-candidate-builder.ts`.
+- Added focused e2e sandbox coverage for clean, blocked, review, duplicate,
+  partial-fill, missing fee/FX, unsupported source, and false safety flag
+  paths.
+- Updated builder contract reassessment, builder design, finalization candidate
+  contract reassessment, final note match preview reassessment, matching
+  validator reassessment, two-stage evidence flow design, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Builder summary:
+
+- `buildFinalizationCandidate(...)` is pure and deterministic.
+- It evaluates builder contract preconditions.
+- It returns typed `FinalizationCandidateBuilderResult` output.
+- It can shape `FinalizationCandidate` metadata for clean/review paths.
+- It blocks critical missing source/provenance/matching failures.
+- It never finalizes, persists, creates execution records, updates stats/PnL,
+  mutates trades, wires UI, captures evidence, drives browser automation, or
+  interacts with Avanza.
+
+Safety verification:
+
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToCreateExecutionRecord=false`.
+- `safeToUpdateStats=false`.
+- `safeToMutateTrade=false`.
+- `finalizationAttempted=false`.
+- `persistenceAttempted=false`.
+- `executionRecordCreationAttempted=false`.
+- `statsUpdateAttempted=false`.
+- `tradeMutationAttempted=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission passed: 81 tests passed.
+
+Recommended next action:
+
+**Action 502 - Reassess Finalization Candidate Builder**
+
+## Action 502 - Reassess Finalization Candidate Builder
+
+QA notes:
+
+- Created `docs/finalization-candidate-builder-reassessment.md`.
+- Updated builder contract reassessment, builder design, finalization candidate
+  contract reassessment, final note match preview reassessment, matching
+  validator reassessment, two-stage evidence flow design, execution-record
+  creation design, persistence boundary plan, checkpoint, and QA notes.
+
+Reassessment summary:
+
+- `buildFinalizationCandidate(...)` remains pure and deterministic.
+- Builder output is candidate metadata only.
+- Clean exact/strong final-note matches can shape a candidate.
+- Review/block/unsupported paths remain conservative.
+- Missing fee/FX data creates review warnings, not authority.
+- Builder result and candidate safety flags remain false.
+
+Safety verification:
+
+- No runtime code changes.
+- No builder changes.
+- No finalization validator.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- `safeToFinalize=false`.
+- `safeToPersist=false`.
+- `safeToCreateExecutionRecord=false`.
+- `safeToUpdateStats=false`.
+- `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 503 - Create Finalization Candidate Dev Preview Design**
+
+## Action 503 - Create Finalization Candidate Dev Preview Design
+
+QA notes:
+
+- Created `docs/finalization-candidate-dev-preview-design.md`.
+- Updated builder reassessment, builder contract reassessment, builder design,
+  finalization candidate contract reassessment, final note match preview
+  reassessment, matching validator reassessment, two-stage evidence flow
+  design, execution-record creation design, persistence boundary plan,
+  checkpoint, and QA notes.
+
+Design summary:
+
+- Future preview should be dev-gated, read-only, and visually separate.
+- Future preview should appear near the final settlement note match preview as
+  `Finalization Candidate Preview`.
+- Future preview should show builder/candidate status, summaries, review
+  flags, warnings, rejection reasons, precondition results, policy snapshot,
+  and safety policy.
+- Future preview should visibly state that candidate output is not approval for
+  finalization, persistence, execution-record creation, stats/PnL update, or
+  trade mutation.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No UI implementation.
+- No preview implementation.
+- No builder changes.
+- No finalization validator.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 504 - Create Finalization Candidate Dev Preview**
+
+## Action 504 - Create Finalization Candidate Dev Preview
+
+QA notes:
+
+- Created `components/execution/FinalizationCandidatePreview.tsx`.
+- Created `lib/finalization-candidate-dev-fixture.ts`.
+- Updated `lib/finalization-candidate-builder.ts` to use a browser-safe
+  deterministic candidate-id hash helper instead of Node-only `node:crypto`.
+- Updated late-phase preview state, handoff modal composition, app wiring, e2e
+  sandbox coverage, design docs, boundary docs, checkpoint, and QA notes.
+
+Preview summary:
+
+- Dev-gated.
+- Read-only.
+- Fixture-only.
+- Explicit-trigger-only.
+- Calls pure `buildFinalizationCandidate(...)`.
+- Displays builder/candidate status, summaries, preconditions, review flags,
+  warnings, rejection reasons, policy snapshot, and safety policy.
+- Shows required safety labels and false safety flags.
+- Keeps builder behavior pure and deterministic while making the candidate-id
+  helper safe for the client dev preview.
+
+Safety verification:
+
+- No live Avanza data.
+- No capture.
+- No browser/Avanza automation.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No finalization.
+- No stats/PnL update.
+- No trade mutation.
+- No production runtime behavior.
+- No builder side effects were added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially hit sandbox port binding `EPERM` on
+  `0.0.0.0:3010`; rerun with port permission exposed a client bundle issue
+  from `node:crypto`, which was fixed with a browser-safe deterministic hash
+  helper; final rerun passed: 81 tests passed.
+
+Recommended next action:
+
+**Action 505 - Reassess Finalization Candidate Dev Preview**
+
+## Action 505 - Reassess Finalization Candidate Dev Preview
+
+QA notes:
+
+- Created `docs/finalization-candidate-dev-preview-reassessment.md`.
+- Updated finalization candidate, final settlement note match, two-stage broker
+  evidence, execution-record, checkpoint, and QA docs with Action 505
+  references.
+- Confirmed the preview inventory: component, controlled fixture, modal
+  placement, explicit trigger, displayed sections, deterministic candidate-id
+  helper, and e2e coverage.
+
+Safety verification:
+
+- Dev-gated.
+- Fixture-only.
+- Explicit-trigger-only.
+- Read-only.
+- Pure builder only.
+- No live broker/Avanza data.
+- No finalization.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No capture/OCR/browser extraction.
+- No browser/Avanza behavior.
+- No production runtime behavior.
+
+Forbidden action verification:
+
+- No save action.
+- No finalize action.
+- No persist action.
+- No create execution record action.
+- No update stats action.
+- No update PnL action.
+- No mark trade finalized action.
+- No mutate trade action.
+- No broker-send action.
+- No Avanza browser action.
+- No automatic mode action.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 506 - Create Finalization Validator Design**
+
+## Action 506 - Create Finalization Validator Design
+
+QA notes:
+
+- Created `docs/finalization-validator-design.md`.
+- Updated finalization candidate, execution-record, two-stage broker evidence,
+  checkpoint, and QA docs with Action 506 references.
+- Design defines validator inputs, outputs, hard gates, review gates, blocked
+  paths, safety policy validation, manual review semantics, and relationships
+  to finalization action, execution records, stats/PnL, and trade mutation.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No validator implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 507 - Create Finalization Validator Contract Types**
+
+## Action 507 - Create Finalization Validator Contract Types
+
+QA notes:
+
+- Created `lib/finalization-validator-contract.ts`.
+- Updated finalization validator, finalization candidate, execution-record,
+  two-stage broker evidence, checkpoint, and QA docs with Action 507
+  references.
+- Contract defines statuses, gates, blocked reasons, warnings, policy snapshot,
+  safety policy, readiness summary, validator input/result, and manual review
+  context.
+
+Safety verification:
+
+- Type/contract only.
+- Type-only imports from existing contracts.
+- No validator implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 81 tests passed.
+
+Recommended next action:
+
+**Action 508 - Reassess Finalization Validator Contract Types**
+
+## Action 508 - Reassess Finalization Validator Contract Types
+
+QA notes:
+
+- Created `docs/finalization-validator-contract-reassessment.md`.
+- Updated finalization validator, finalization candidate, execution-record,
+  two-stage broker evidence, checkpoint, and QA docs with Action 508
+  references.
+- Verified the Action 507 contract remains type-only/constants-only and
+  conservative.
+- Verified alignment with the finalization validator design, finalization
+  candidate pipeline, execution-record boundary, persistence boundary, and
+  two-stage broker evidence flow.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No validator implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 509 - Create Finalization Validator**
+
+## Action 509 - Create Finalization Validator
+
+QA notes:
+
+- Created `lib/finalization-validator.ts`.
+- Added focused validator coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Updated finalization validator, finalization candidate, execution-record,
+  two-stage broker evidence, checkpoint, and QA docs with Action 509
+  references.
+- Validator output is typed as `FinalizationValidationResult`.
+
+Safety verification:
+
+- Pure deterministic validator only.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- All authority flags remain false.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 82 tests passed.
+
+Recommended next action:
+
+**Action 510 - Reassess Finalization Validator**
+
+## Action 510 - Reassess Finalization Validator
+
+QA notes:
+
+- Created `docs/finalization-validator-reassessment.md`.
+- Updated finalization validator, finalization candidate, execution-record,
+  two-stage broker evidence, checkpoint, and QA docs with Action 510
+  references.
+- Verified the implemented validator remains pure, deterministic,
+  conservative, validation-only, and disconnected from runtime writes or
+  browser/broker behavior.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No validator changes.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 511 - Create Finalization State Transition Design**
+
+## Action 511 - Create Finalization State Transition Design
+
+QA notes:
+
+- Created `docs/finalization-state-transition-design.md`.
+- Updated finalization validator, finalization candidate, execution-record,
+  persistence, two-stage broker evidence, checkpoint, and QA docs with Action
+  511 references.
+- Design defines future source states, target concepts, prerequisites,
+  transition decision table, approval boundary, write boundary separation,
+  audit/correction requirements, and next action.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 512 - Create Finalization State Transition Contract Types**
+
+## Action 512 - Create Finalization State Transition Contract Types
+
+QA notes:
+
+- Created `lib/finalization-state-transition-contract.ts`.
+- Updated finalization state transition, finalization validator,
+  finalization candidate, execution-record, persistence, two-stage broker
+  evidence, checkpoint, and QA docs with Action 512 references.
+- Contract defines source states, target concepts, transition input/result,
+  statuses, prerequisites, decisions, blocked reasons, warnings,
+  audit/correction requirements, approval/audit contexts, and safety policy.
+
+Safety verification:
+
+- Type/contract only.
+- Type-only imports from existing contracts.
+- No transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 82 tests passed.
+
+Recommended next action:
+
+**Action 513 - Reassess Finalization State Transition Contract Types**
+
+## Action 513 - Reassess Finalization State Transition Contract Types
+
+QA notes:
+
+- Created `docs/finalization-state-transition-contract-reassessment.md`.
+- Updated finalization state transition, finalization validator,
+  finalization candidate, execution-record, persistence, two-stage broker
+  evidence, checkpoint, and QA docs with Action 513 references.
+- Verified the transition contract remains type-only/constants-only and
+  conservative.
+- Verified source states, target concepts, transition input/result/statuses,
+  prerequisites, decisions, blocked reasons, warnings, audit/correction
+  requirements, approval/audit contexts, boundary metadata, and safety policy.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToTransition=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`, and
+  `automaticModeAllowed=false` remain confirmed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 514 - Create Finalization State Transition Validator Design**
+
+## Action 514 - Create Finalization State Transition Validator Design
+
+QA notes:
+
+- Created `docs/finalization-state-transition-validator-design.md`.
+- Updated finalization state transition, transition contract reassessment,
+  finalization validator, finalization candidate, execution-record,
+  persistence, two-stage broker evidence, checkpoint, and QA docs with Action
+  514 references.
+- Defined the future validator as a transition-candidate validator only.
+- Documented inputs, outputs, source/target compatibility, prerequisites,
+  boundary readiness, audit/correction readiness, blocked paths, manual
+  approval semantics, and next action.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No transition validator implementation.
+- No state transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- Future validator output must keep `safeToTransition=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 515 - Create Finalization State Transition Validator Contract Types**
+
+## Action 515 - Create Finalization State Transition Validator Contract Types
+
+QA notes:
+
+- Created `lib/finalization-state-transition-validator-contract.ts`.
+- Updated finalization state transition validator, transition contract
+  reassessment, finalization validator, execution-record, persistence,
+  two-stage broker evidence, checkpoint, and QA docs with Action 515
+  references.
+- Contract defines validator input/result/status, source-target
+  compatibility, prerequisites, boundary readiness, audit/correction
+  readiness, blocked reasons, warnings, decision recommendation, and safety
+  policy.
+
+Safety verification:
+
+- Type/contract only.
+- Type-only imports from existing contracts.
+- No transition validator implementation.
+- No state transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToApplyTransition=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`, and
+  `automaticModeAllowed=false` remain confirmed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 82 tests passed.
+
+Recommended next action:
+
+**Action 516 - Reassess Finalization State Transition Validator Contract Types**
+
+## Action 516 - Reassess Finalization State Transition Validator Contract Types
+
+QA notes:
+
+- Created
+  `docs/finalization-state-transition-validator-contract-reassessment.md`.
+- Updated finalization state transition validator, transition contract,
+  finalization validator, execution-record, persistence, two-stage broker
+  evidence, checkpoint, and QA docs with Action 516 references.
+- Verified the Action 515 validator contract remains type-only/constants-only,
+  conservative, and aligned with the Action 514 design.
+- Verified transition validation output remains diagnostic/review metadata
+  only.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No validator implementation.
+- No transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToApplyTransition=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`, and
+  `automaticModeAllowed=false` remain confirmed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 517 - Create Finalization State Transition Validator**
+
+## Action 517 - Create Finalization State Transition Validator
+
+QA notes:
+
+- Created `lib/finalization-state-transition-validator.ts`.
+- Added e2e coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Updated finalization state transition validator, transition contract,
+  finalization validator, execution-record, persistence, two-stage broker
+  evidence, checkpoint, and QA docs with Action 517 references.
+- Validator handles source-target compatibility, prerequisites, boundary
+  readiness metadata, audit/correction readiness, blocked/review paths,
+  warnings, decision recommendation, and false safety/attempt flags.
+
+Safety verification:
+
+- Pure deterministic validator only.
+- No transition application.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- Result keeps `safeToApplyTransition=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`, and
+  `automaticModeAllowed=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Targeted `npm run test:e2e -- -g "validates finalization state transition"`
+  initially failed before app test logic because the sandbox blocked binding
+  `0.0.0.0:3010` with `EPERM`; rerun with web-server bind permission passed:
+  1 test passed.
+- Full `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 83 tests passed.
+
+Recommended next action:
+
+**Action 518 - Reassess Finalization State Transition Validator**
+
+## Action 518 - Reassess Finalization State Transition Validator
+
+QA notes:
+
+- Created `docs/finalization-state-transition-validator-reassessment.md`.
+- Updated finalization state transition validator, transition contract,
+  finalization validator, execution-record, persistence, two-stage broker
+  evidence, checkpoint, and QA docs with Action 518 references.
+- Verified the implemented validator remains pure, deterministic,
+  validation-only, and disconnected from runtime writes or browser/broker
+  behavior.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No validator changes.
+- No transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 519 - Create Finalization Action Contract Types**
+
+## Action 519 - Create Finalization Action Contract Types
+
+QA notes:
+
+- Created `lib/finalization-action-contract.ts`.
+- Updated finalization state transition validator, finalization validator,
+  execution-record, persistence, two-stage broker evidence, checkpoint, and QA
+  docs with Action 519 references.
+- Contract defines finalization action input/result/status/mode/authority,
+  preconditions, write boundaries, audit/correction requirements, blocked
+  reasons, warnings, and safety policy.
+- Contract is not a finalization action implementation.
+
+Safety verification:
+
+- Type/contract only.
+- Type-only imports from existing contracts.
+- No finalization action implementation.
+- No transition implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToRunFinalizationAction=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `automaticModeAllowed=false` remain confirmed.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Full `npm run test:e2e` initially failed before app test logic because the
+  sandbox blocked binding `0.0.0.0:3010` with `EPERM`; rerun with web-server
+  bind permission passed: 83 tests passed.
+
+Recommended next action:
+
+**Action 520 - Reassess Finalization Action Contract Types**
+
+## Action 520 - Reassess Finalization Action Contract Types
+
+QA notes:
+
+- Created `docs/finalization-action-contract-reassessment.md`.
+- Updated finalization state transition validator, finalization validator,
+  execution-record, persistence, two-stage broker evidence, checkpoint, and QA
+  docs with Action 520 references.
+- Verified `lib/finalization-action-contract.ts` is type-only/constants-only.
+- Verified action input/result/status/mode/authority, preconditions, write
+  boundaries, audit/correction requirements, blocked reasons, warnings, and
+  safety policy are represented.
+- Verified the action contract remains downstream of finalization validation
+  and transition validation while not executing any action.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No action implementation.
+- No finalization implementation.
+- No transition implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToRunFinalizationAction=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `automaticModeAllowed=false` remain confirmed.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 521 - Create Finalization Action Validator Design**
+
+## Action 521 - Create Finalization Action Validator Design
+
+QA notes:
+
+- Created `docs/finalization-action-validator-design.md`.
+- Updated finalization action, transition validator, finalization validator,
+  execution-record, persistence, two-stage broker evidence, checkpoint, and QA
+  docs with Action 521 references.
+- Design defines a future review-only validator for finalization action
+  candidates.
+- Design covers authority validation, preconditions, write boundaries,
+  audit/correction validation, manual approval semantics, blocked paths,
+  output statuses, false safety flags, and separation from action execution.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator implementation.
+- No action implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToRunFinalizationAction=false`, `safeToFinalize=false`,
+  `safeToPersist=false`, `safeToCreateExecutionRecord=false`,
+  `safeToUpdateStats=false`, `safeToMutateTrade=false`,
+  `safeToAppendAudit=false`, and `safeToRollback=false` remain required.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 522 - Create Finalization Action Validator Contract Types**
+
+## Action 522 - Create Finalization Action Validator Contract Types
+
+QA notes:
+
+- Created `lib/finalization-action-validator-contract.ts`.
+- Added validator contract statuses, authority validation keys,
+  preconditions, write boundaries, audit/correction requirements, blocked
+  reasons, warnings, decision recommendation, input/result types, and default
+  safety policy.
+- Updated finalization action validator, finalization action, transition
+  validator, transition design, finalization validator, execution-record,
+  persistence, two-stage broker evidence, checkpoint, and QA docs with Action
+  522 references.
+- The contract is not a validator implementation and does not wire runtime
+  flows.
+
+Safety verification:
+
+- Contract/types/constants only.
+- No validator implementation.
+- No action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToValidateOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 83 passed.
+
+Recommended next action:
+
+**Action 523 - Reassess Finalization Action Validator Contract Types**
+
+## Action 523 - Reassess Finalization Action Validator Contract Types
+
+QA notes:
+
+- Created `docs/finalization-action-validator-contract-reassessment.md`.
+- Reassessed `lib/finalization-action-validator-contract.ts` as
+  type-only/constants-only.
+- Verified validator input/result/status, authority validation, precondition
+  validation, write boundary validation, audit/correction validation, blocked
+  reasons, warnings, decision recommendation, and safety policy are represented.
+- Verified the contract remains downstream of finalization validation,
+  transition validation, finalization action contract metadata,
+  execution-record metadata, persistence boundaries, and two-stage broker
+  evidence flow.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator implementation.
+- No action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToValidateOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 524 - Create Finalization Action Validator**
+
+## Action 524 - Create Finalization Action Validator
+
+QA notes:
+
+- Created `lib/finalization-action-validator.ts`.
+- Added focused e2e coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- The validator inspects supplied metadata only and returns typed diagnostics.
+- It validates authority, finalization candidate presence, finalization
+  validation, transition validation, manual approval context, duplicate/review
+  blockers, source/broker support, write boundary metadata, and
+  audit/correction metadata.
+
+Safety verification:
+
+- Pure validator only.
+- No action execution.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToValidateOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Targeted escalated `npm run test:e2e -- -g "finalization action"` passed:
+  1 passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 84 passed.
+
+Recommended next action:
+
+**Action 525 - Reassess Finalization Action Validator**
+
+## Action 525 - Reassess Finalization Action Validator
+
+QA notes:
+
+- Created `docs/finalization-action-validator-reassessment.md`.
+- Reassessed `lib/finalization-action-validator.ts` after implementation.
+- Verified the validator remains pure, deterministic, validation-only, and
+  conservative.
+- Verified validation policy for valid dry-run/manual-review candidates,
+  unsafe authority, automatic mode, missing candidate, missing finalization
+  validation, missing transition validation, missing manual approval, missing
+  audit/correction metadata, missing write boundary metadata, unsupported
+  source/broker, and decision recommendations.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator changes.
+- No action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `safeToValidateOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 526 - Create Finalization Action Dry-run Design**
+
+## Action 526 - Create Finalization Action Dry-run Design
+
+QA notes:
+
+- Created `docs/finalization-action-dry-run-design.md`.
+- Documented future dry-run simulation scope, inputs, outputs, statuses,
+  proposed impacts, safety policy, review/block behavior, validator
+  relationship, write-boundary relationships, UI relationship, risks, and next
+  actions.
+- Confirmed proposed impacts are descriptive only.
+- Confirmed dry-run design adds no runtime behavior.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No dry-run implementation.
+- No finalization action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 527 - Create Finalization Action Dry-run Contract Types**
+
+## Action 527 - Create Finalization Action Dry-run Contract Types
+
+QA notes:
+
+- Created `lib/finalization-action-dry-run-contract.ts`.
+- Added dry-run statuses, proposed impact kinds/dispositions, blocked reasons,
+  warnings, safety policy, validation summary, proposed impact summaries,
+  input/result types, and status metadata.
+- Updated dry-run design, validator, action, transition, execution-record,
+  persistence, two-stage broker evidence, checkpoint, and QA docs with Action
+  527 references.
+- The contract is not a dry-run implementation and does not wire runtime flows.
+
+Safety verification:
+
+- Contract/types/constants only.
+- No dry-run implementation.
+- No finalization action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `dryRunOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 84 passed.
+
+Recommended next action:
+
+**Action 528 - Reassess Finalization Action Dry-run Contract Types**
+
+## Action 528 - Reassess Finalization Action Dry-run Contract Types
+
+QA notes:
+
+- Created `docs/finalization-action-dry-run-contract-reassessment.md`.
+- Reassessed `lib/finalization-action-dry-run-contract.ts` as
+  type-only/constants-only.
+- Verified dry-run input/result/status, validation summary, proposed impact
+  summaries, blocked reasons, warnings, status metadata, and safety policy are
+  represented.
+- Verified proposed impacts remain descriptive only and do not authorize
+  writes.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No dry-run implementation.
+- No action implementation.
+- No finalization implementation.
+- No transition application.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `dryRunOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`, and
+  `safeToMutateTrade=false`.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 529 - Create Finalization Action Dry-run**
+
+## Action 529 - Create Finalization Action Dry-run
+
+QA notes:
+
+- Created `lib/finalization-action-dry-run.ts`.
+- Added focused e2e coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Verified the dry-run returns proposed impact summaries only.
+- Verified ready, blocked, needs-review, unsupported, missing-candidate, and
+  missing-transition paths.
+- Verified trade mutation impact remains out of scope.
+- Verified proposed impacts do not carry write authority.
+
+Safety verification:
+
+- Pure deterministic dry-run only.
+- No action execution.
+- No finalization.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No production runtime behavior.
+- `dryRunOnly=true`; `safeToRunFinalizationAction=false`,
+  `safeToFinalize=false`, `safeToPersist=false`,
+  `safeToCreateExecutionRecord=false`, `safeToUpdateStats=false`,
+  `safeToAppendAudit=false`, `safeToRollback=false`,
+  `safeToMutateTrade=false`, and attempted flags remain false.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 85 passed.
+
+Recommended next action:
+
+**Action 530 - Reassess Finalization Action Dry-run**
+
+## Action 530 - Reassess Finalization Action Dry-run
+
+QA notes:
+
+- Created `docs/finalization-action-dry-run-reassessment.md`.
+- Reassessed `lib/finalization-action-dry-run.ts`.
+- Reassessed `lib/finalization-action-dry-run-contract.ts`.
+- Reassessed `lib/finalization-action-validator.ts`.
+- Reassessed the dry-run e2e coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+- Verified dry-run output is descriptive-only and non-writing.
+- Verified trade mutation remains out of scope.
+- Verified Action 531 should be a dev preview design before any route or write
+  integration.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No dry-run changes.
+- No finalization action implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No order execution.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 531 - Create Finalization Action Dev Preview Design**
+
+## Action 531 - Create Finalization Action Dev Preview Design
+
+QA notes:
+
+- Created `docs/finalization-action-dev-preview-design.md`.
+- Designed a future dev-gated, read-only Finalization Action Dry-run Preview.
+- Confirmed initial placement should be near the finalization candidate preview
+  but visually separate.
+- Defined required safety labels and forbidden controls.
+- Confirmed future preview must use controlled fixture or explicit trigger
+  first.
+- Confirmed no live Avanza data, browser automation, broker calls, order
+  execution, writes, finalization, execution-record creation, stats/PnL update,
+  audit append, rollback/correction, or trade mutation should be added by the
+  design.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No UI implementation.
+- No preview implementation.
+- No dry-run changes.
+- No finalization action implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+- No broker behavior.
+- No order execution.
+- No production UI.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 532 - Create Finalization Action Dev Preview**
+
+## Action 532 - Create Finalization Action Dev Preview
+
+QA notes:
+
+- Created `components/execution/FinalizationActionPreview.tsx`.
+- Created `lib/finalization-action-dev-fixture.ts`.
+- Wired preview state through `useLatePhasePreviewState(...)`.
+- Rendered the preview in the dev-gated execution handoff modal composition
+  near the finalization candidate preview.
+- Added e2e assertions for safety labels, explicit trigger, dry-run status,
+  validation summary, proposed impact sections, trade mutation out-of-scope
+  display, and absence of forbidden action buttons.
+
+Safety verification:
+
+- Fixture-only.
+- Explicit-trigger-only.
+- Read-only.
+- Uses pure `validateFinalizationAction(...)`.
+- Uses pure `runFinalizationActionDryRun(...)`.
+- No live Avanza data.
+- No capture/browser/Avanza automation.
+- No Supabase/localStorage writes.
+- No audit append.
+- No execution-record creation.
+- No finalization.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 85 passed.
+
+Recommended next action:
+
+**Action 533 - Reassess Finalization Action Dev Preview**
+
+## Action 533 - Reassess Finalization Action Dev Preview
+
+QA notes:
+
+- Created `docs/finalization-action-dev-preview-reassessment.md`.
+- Reassessed `components/execution/FinalizationActionPreview.tsx`.
+- Reassessed `lib/finalization-action-dev-fixture.ts`.
+- Reassessed late-phase preview state, modal composition, app prop plumbing,
+  and e2e coverage.
+- Verified dev-gated/fixture-only/explicit-trigger-only/read-only boundaries.
+- Verified safety labels and no forbidden action buttons.
+- Verified Action 534 should reassess execution-record integration before any
+  future write boundary.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No UI changes.
+- No fixture changes.
+- No dry-run changes.
+- No validator changes.
+- No action implementation.
+- No finalization implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 534 - Create Execution Record Integration Reassessment**
+
+## Action 534 - Create Execution Record Integration Reassessment
+
+QA notes:
+
+- Created `docs/execution-record-integration-reassessment.md`.
+- Reassessed future integration between the finalization pipeline and
+  execution-record creation/persistence.
+- Confirmed current finalization dry-run proposed execution-record impact is
+  descriptive-only and not record creation approval.
+- Confirmed no existing bridge maps finalization candidate/action dry-run
+  metadata into `ExecutionRecordCreationInput`.
+- Confirmed a future bridge must preserve independent execution-record
+  candidate validation and independent persistence validation.
+- Confirmed migration application, generated types, RLS/security, duplicate
+  constraints, audit/correction, and server-only write posture remain
+  prerequisites before any production insert path.
+- Recommended Action 535 as Create Finalization-to-ExecutionRecord Bridge
+  Design.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No execution-record integration implementation.
+- No finalization action implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No execution-record creation.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 535 - Create Finalization-to-ExecutionRecord Bridge Design**
+
+## Action 535 - Create Finalization-to-ExecutionRecord Bridge Design
+
+QA notes:
+
+- Created `docs/finalization-to-execution-record-bridge-design.md`.
+- Designed the future bridge as mapping-only and candidate-only.
+- Confirmed bridge output should feed the execution-record candidate builder
+  later, not bypass it.
+- Confirmed the execution-record creation validator and persistence validator
+  remain independent gates.
+- Confirmed finalization action dry-run proposed execution-record impact can
+  inform bridge mapping but cannot become write authority.
+- Confirmed `dry_run_ready`, `action_candidate_valid`,
+  `transition_candidate_valid`, and `ready_for_finalization_review` remain
+  non-writing statuses.
+- Confirmed source fingerprints, final settlement note match identity,
+  handoff payload fingerprint, finalization candidate fingerprint, broker
+  execution candidate fingerprint, and execution-record candidate fingerprint
+  need explicit idempotency mapping before any implementation.
+- Recommended Action 536 as Create Finalization-to-ExecutionRecord Bridge
+  Contract Types.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No bridge contract implementation.
+- No bridge implementation.
+- No execution-record creation.
+- No finalization action implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 536 - Create Finalization-to-ExecutionRecord Bridge Contract Types**
+
+## Action 536 - Create Finalization-to-ExecutionRecord Bridge Contract Types
+
+QA notes:
+
+- Created `lib/finalization-to-execution-record-bridge-contract.ts`.
+- Confirmed the module is pure TypeScript types/constants only.
+- Confirmed the module uses type-only imports from the existing finalization,
+  settlement-note matching, broker execution candidate, two-stage evidence,
+  and execution-record creation contracts.
+- Confirmed the contract models bridge source input, target candidate-input
+  summary, field mapping, idempotency, audit/correction, validation handoff,
+  blocked reasons, warnings, review items, and default safety policy.
+- Confirmed bridge output is mapping-only and candidate-only.
+- Confirmed all action/write/finalization/persistence authority flags remain
+  false.
+- Recommended Action 537 as Reassess Finalization-to-ExecutionRecord Bridge
+  Contract Types.
+
+Safety verification:
+
+- Contract types/constants only.
+- No behavior changes.
+- No bridge implementation.
+- No mapper implementation.
+- No validator implementation.
+- No execution-record creation.
+- No finalization action implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Initial sandboxed `npm run test:e2e` failed before app test logic because
+  Playwright could not bind `0.0.0.0:3010` (`EPERM`).
+- Escalated `npm run test:e2e` passed: 85 passed.
+
+Recommended next action:
+
+**Action 537 - Reassess Finalization-to-ExecutionRecord Bridge Contract Types**
+
+## Action 537 - Reassess Finalization-to-ExecutionRecord Bridge Contract Types
+
+QA notes:
+
+- Created `docs/finalization-to-execution-record-bridge-contract-reassessment.md`.
+- Reassessed `lib/finalization-to-execution-record-bridge-contract.ts`.
+- Confirmed the module exports type-only imports, constants, type aliases, and
+  contract object metadata only.
+- Confirmed no bridge mapper, bridge validator, builder, route, persistence
+  adapter, writer, UI component, browser runner, Avanza helper, broker helper,
+  or order behavior exists.
+- Confirmed `bridge_candidate_ready` is not execution-record creation,
+  persistence, finalization, audit append, stats/PnL update, rollback,
+  trade mutation, broker action, Avanza/browser automation, or automatic-mode
+  approval.
+- Recommended Action 538 as Create Finalization-to-ExecutionRecord Bridge
+  Mapper Design.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No bridge implementation.
+- No mapper implementation.
+- No validator implementation.
+- No execution-record creation.
+- No finalization action implementation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 538 - Create Finalization-to-ExecutionRecord Bridge Mapper Design**
+
+## Action 538 - Create Finalization-to-ExecutionRecord Bridge Mapper Design
+
+QA notes:
+
+- Created `docs/finalization-to-execution-record-bridge-mapper-design.md`.
+- Confirmed the mapper design is documentation-only.
+- Confirmed future mapper output should be a candidate-only bridge result, not
+  an `ExecutionRecordCandidate` and not persistence input.
+- Confirmed final note overrides must be explicit field mapping metadata and
+  conflicts must route to review/block states.
+- Confirmed dry-run proposed execution-record impact may shape mapper output
+  but remains descriptive-only.
+- Confirmed candidate builder, creation validator, persistence validator,
+  insert route, audit append, stats/PnL update, rollback/correction, and trade
+  mutation remain separate future gates.
+- Recommended Action 539 as Create Finalization-to-ExecutionRecord Bridge
+  Mapper.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No mapper implementation.
+- No bridge implementation.
+- No validator implementation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 539 - Create Finalization-to-ExecutionRecord Bridge Mapper**
+
+## Action 539 - Create Finalization-to-ExecutionRecord Bridge Mapper
+
+QA notes:
+
+- Created `lib/finalization-to-execution-record-bridge-mapper.ts`.
+- Confirmed the mapper is pure and deterministic.
+- Confirmed it returns typed `FinalizationToExecutionRecordBridgeResult`
+  values from `FinalizationToExecutionRecordBridgeInput`.
+- Confirmed ready output includes source evidence, target, mapping,
+  idempotency, audit/correction, validation handoff, warnings, review items,
+  blocked reasons, and safety policy summaries.
+- Confirmed conservative blocked/review/unsupported behavior for missing
+  candidate, missing validation, missing dry-run, unsupported source/broker,
+  ambiguous settlement match, mismatched values, missing idempotency metadata,
+  and missing audit/correction metadata.
+- Confirmed mapper output remains candidate-only and mapping-only.
+- Confirmed all write/action authority flags remain false.
+- Added focused e2e/unit-style coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+
+Safety verification:
+
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior change.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Sandboxed `npm run test:e2e` failed before app test logic with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Escalated `npm run test:e2e` passed: 86 tests.
+
+Recommended next action:
+
+**Action 540 - Reassess Finalization-to-ExecutionRecord Bridge Mapper**
+
+## Action 540 - Reassess Finalization-to-ExecutionRecord Bridge Mapper
+
+QA notes:
+
+- Created
+  `docs/finalization-to-execution-record-bridge-mapper-reassessment.md`.
+- Reassessed `lib/finalization-to-execution-record-bridge-mapper.ts`.
+- Confirmed the mapper is pure and deterministic.
+- Confirmed mapper output is candidate-only and mapping-only.
+- Confirmed ready/review/blocked/unsupported paths remain conservative.
+- Confirmed idempotency metadata is metadata only.
+- Confirmed audit/correction metadata is metadata only.
+- Confirmed all write/action authority flags remain false.
+- Recommended Action 541 as Create Execution Record Finalization Bridge
+  Validator Design.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No mapper changes.
+- No bridge validator implementation.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 541 - Create Execution Record Finalization Bridge Validator Design**
+
+## Action 541 - Create Execution Record Finalization Bridge Validator Design
+
+QA notes:
+
+- Created `docs/execution-record-finalization-bridge-validator-design.md`.
+- Confirmed this is a documentation-only design.
+- Defined validator inputs, outputs, statuses, validation rules, idempotency
+  rules, field consistency rules, audit/correction rules, safety policy,
+  relationships, failure/review states, risks, and next action.
+- Confirmed the validator design is validation-only and not write approval.
+- Recommended Action 542 as Create Execution Record Finalization Bridge
+  Validator Contract Types.
+
+Safety verification:
+
+- Documentation/design only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator contract implementation.
+- No validator implementation.
+- No bridge mapper changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 542 - Create Execution Record Finalization Bridge Validator Contract Types**
+
+## Action 542 - Create Execution Record Finalization Bridge Validator Contract Types
+
+QA notes:
+
+- Created `lib/execution-record-finalization-bridge-validator-contract.ts`.
+- Confirmed the module is contract-only and contains no validator
+  implementation.
+- Confirmed the contract models validation input/result/status/decision
+  recommendation/validated field/idempotency/audit-correction/safety policy
+  summaries.
+- Confirmed authority flags keep validation-only true and write/action
+  authority false.
+- Recommended Action 543 as Reassess Execution Record Finalization Bridge
+  Validator Contract Types.
+
+Safety verification:
+
+- No validator implementation.
+- No bridge mapper changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Sandboxed `npm run test:e2e` failed before app test logic with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Escalated `npm run test:e2e` passed: 86 tests.
+
+Recommended next action:
+
+**Action 543 - Reassess Execution Record Finalization Bridge Validator Contract Types**
+
+## Action 543 - Reassess Execution Record Finalization Bridge Validator Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-finalization-bridge-validator-contract-reassessment.md`.
+- Reassessed `lib/execution-record-finalization-bridge-validator-contract.ts`.
+- Confirmed the contract is type-only/constants-only.
+- Confirmed the contract is validation-only.
+- Confirmed statuses, decision recommendations, blocked reasons, warnings,
+  review items, field summaries, idempotency summaries, audit/correction
+  summaries, safety summaries, and false authority flags align with the
+  validator design.
+- Recommended Action 544 as Create Execution Record Finalization Bridge
+  Validator.
+
+Safety verification:
+
+- Documentation/reassessment only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator implementation.
+- No bridge mapper changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 544 - Create Execution Record Finalization Bridge Validator**
+
+## Action 544 - Create Execution Record Finalization Bridge Validator
+
+QA notes:
+
+- Created `lib/execution-record-finalization-bridge-validator.ts`.
+- Confirmed the validator is pure and deterministic.
+- Confirmed it returns typed
+  `ExecutionRecordFinalizationBridgeValidationResult` values from
+  `ExecutionRecordFinalizationBridgeValidationInput`.
+- Confirmed valid/review/blocked/unsupported/invalid paths are conservative.
+- Confirmed validator output remains validation-only and all authority flags
+  remain false.
+- Added focused e2e/unit-style coverage in
+  `tests/e2e/execution-sandbox.spec.ts`.
+
+Safety verification:
+
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction behavior.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Targeted sandboxed `npm run test:e2e -- -g "validates finalization bridge"`
+  failed before app test logic with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Targeted escalated `npm run test:e2e -- -g "validates finalization bridge"`
+  passed: 1 test.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Sandboxed `npm run test:e2e` failed before app test logic with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Escalated `npm run test:e2e` passed: 87 tests.
+
+Recommended next action:
+
+**Action 545 - Reassess Execution Record Finalization Bridge Validator**
+
+## Action 545 - Reassess Execution Record Finalization Bridge Validator
+
+QA notes:
+
+- Created
+  `docs/execution-record-finalization-bridge-validator-reassessment.md`.
+- Confirmed the reassessment covers validator inventory, API, input contract,
+  output contract, valid/review/blocked/unsupported/invalid paths, summary
+  behavior, safety policy, e2e coverage, remaining gaps, risks, and next
+  actions.
+- Confirmed the reassessment keeps the validator as validation-only metadata.
+- Confirmed no official execution-record, finalization, persistence, audit,
+  stats/PnL, rollback/correction, trade, broker, Avanza, browser, or order
+  behavior was changed.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No validator behavior changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 546 - Create Finalization-to-ExecutionRecord Bridge Dev Preview Design**
+
+## Action 546 - Create Finalization-to-ExecutionRecord Bridge Dev Preview Design
+
+QA notes:
+
+- Created
+  `docs/finalization-to-execution-record-bridge-dev-preview-design.md`.
+- Confirmed the design covers purpose, scope, placement options, data
+  dependencies, preview content, safety labels, interaction model, state display
+  rules, relationships to candidate builder and finalization dry-run preview,
+  candidate next actions, recommended Action 547, risks, and verification.
+- Confirmed the design states that `bridge_candidate_ready` is candidate-ready
+  only and `bridge_validation_valid` is validation-valid only.
+- Confirmed the design requires visible false authority flags and read-only
+  safety labels.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No UI implementation.
+- No mapper changes.
+- No validator changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 547 - Create Finalization-to-ExecutionRecord Bridge Dev Preview**
+
+## Action 547 - Create Finalization-to-ExecutionRecord Bridge Dev Preview
+
+QA notes:
+
+- Created
+  `components/execution/FinalizationExecutionRecordBridgePreview.tsx`.
+- Created
+  `lib/finalization-execution-record-bridge-dev-fixture.ts`.
+- Confirmed the preview is dev-gated in the late-phase modal composition.
+- Confirmed the preview uses an explicit trigger and controlled fixture data.
+- Confirmed the fixture calls pure `mapFinalizationToExecutionRecordBridge(...)`
+  and pure `validateExecutionRecordFinalizationBridge(...)`.
+- Confirmed the preview displays mapper status, mapper summaries, validator
+  status, validator summaries, reasons, warnings, review items, safety policy,
+  and authority flags.
+- Added focused tests for fixture safety and modal rendering.
+
+Safety verification:
+
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No live Avanza data.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- No production runtime behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Sandboxed `npm run test:e2e` failed before app test logic with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- Escalated `npm run test:e2e` passed: 88 tests.
+
+Recommended next action:
+
+**Action 548 - Reassess Finalization-to-ExecutionRecord Bridge Dev Preview**
+
+## Action 548 - Reassess Finalization-to-ExecutionRecord Bridge Dev Preview
+
+QA notes:
+
+- Created
+  `docs/finalization-to-execution-record-bridge-dev-preview-reassessment.md`.
+- Confirmed the reassessment covers preview inventory, boundary verification,
+  safety labels, forbidden interactions, mapper/validator display, remaining
+  gaps, next actions, risks, and verification.
+- Confirmed Action 548 is documentation-only.
+
+Safety verification:
+
+- No runtime code changes.
+- No UI changes.
+- No fixture changes.
+- No mapper changes.
+- No validator changes.
+- No execution-record candidate builder integration.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 549 - Reassess Supabase Execution Records Migration/Application Status**
+
+## Action 549 - Reassess Supabase Execution Records Migration/Application Status
+
+QA notes:
+
+- Created
+  `docs/supabase-execution-records-migration-application-reassessment.md`.
+- Confirmed the reassessment inventories migration files, generated types,
+  persistence boundary, dry-run insert route/client/preview status,
+  contract/schema alignment, idempotency and duplicate prevention,
+  audit/correction readiness, security/RLS readiness, no-write status, risks,
+  and next action.
+- Confirmed Action 549 is documentation-only.
+- Confirmed no target database was inspected or modified beyond repository
+  file inspection.
+
+Safety verification:
+
+- No runtime code changes.
+- No migration applied.
+- No schema modified.
+- No generated types produced.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 550 - Create Supabase Execution Records Migration Application Plan**
+
+## Action 550 - Create Supabase Execution Records Migration Application Plan
+
+QA notes:
+
+- Created
+  `docs/supabase-execution-records-migration-application-plan.md`.
+- Confirmed the plan covers current known state, preconditions, migration
+  inspection, future/manual application steps, generated types, post-application
+  validation, rollback/correction, write-boundary gates, no-write verification,
+  risks, and next action.
+- Confirmed Action 550 is documentation-only.
+
+Safety verification:
+
+- No runtime code changes.
+- No migration applied.
+- No schema changed.
+- No generated types produced.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 551 - Create Supabase Execution Records Generated Types Plan**
+
+## Action 551 - Create Supabase Execution Records Generated Types Plan
+
+QA notes:
+
+- Created `docs/supabase-execution-records-generated-types-plan.md`.
+- Confirmed the plan covers current known state, preconditions, destination,
+  future/manual generation steps, type verification, drift handling,
+  integration gates, no-write verification, risks, and next action.
+- Confirmed Action 551 is documentation-only.
+
+Safety verification:
+
+- No runtime code changes.
+- No migration applied.
+- No schema changed.
+- No types generated.
+- No generated type files modified.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 552 - Create Execution Record Candidate Builder Integration Design**
+
+## Action 552 - Create Execution Record Candidate Builder Integration Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-design.md`.
+- Confirmed the design covers current components, proposed data flow, handoff
+  requirements, builder input shaping, independent validation gates,
+  idempotency preservation, audit/correction preservation, generated
+  types/schema readiness, safety policy, risks, and next action.
+- Confirmed Action 552 is documentation-only.
+
+Safety verification:
+
+- No runtime code changes.
+- No integration implementation.
+- No candidate builder changes.
+- No bridge mapper changes.
+- No bridge validator changes.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 553 - Create Execution Record Candidate Builder Integration Contract Types**
+
+## Action 553 - Create Execution Record Candidate Builder Integration Contract Types
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-integration-contract.ts`.
+- Confirmed the new module is types/constants only and does not add runtime
+  behavior or implementation functions.
+- Confirmed the contract wires review-only references for bridge result,
+  bridge validation, bridge mapper result, original bridge input, finalization
+  candidate, candidate-builder input shape, manual approval, idempotency,
+  audit/correction, and schema readiness metadata.
+- Confirmed all safety flags remain false for candidate-builder calls,
+  execution-record creation, persistence, finalization, stats/PnL, audit
+  append, rollback, trade mutation, broker actions, and automatic mode.
+
+Safety verification:
+
+- No candidate builder call.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- `npm run test:e2e` rerun with escalation passed: 88 tests.
+
+Recommended next action:
+
+**Action 554 - Reassess Execution Record Candidate Builder Integration Contract Types**
+
+## Action 554 - Reassess Execution Record Candidate Builder Integration Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-contract-reassessment.md`.
+- Confirmed the reassessment covers current contract inventory, boundary
+  verification, alignment verification, safety policy verification, remaining
+  gaps, next action candidates, recommendation, and risks.
+- Confirmed `builder_integration_ready` is still not builder invocation,
+  execution-record creation, persistence, finalization, audit append, stats/PnL
+  update, trade mutation, broker action, or automatic-mode approval.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No candidate builder call.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 555 - Reassess Execution Record Candidate Builder Current Contract**
+
+## Action 555 - Reassess Execution Record Candidate Builder Current Contract
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-current-contract-reassessment.md`.
+- Inspected the current builder, creation contract, creation validator,
+  persistence contract, insert route/client contracts, bridge mapper output, and
+  focused e2e coverage.
+- Confirmed the current builder is candidate-only, no-write, and no-mutation.
+- Confirmed bridge outputs need a future adapter to become
+  `ExecutionRecordCreationInput`; bridge validation must not be treated as
+  builder validation or persistence approval.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No candidate builder call changes.
+- No candidate builder implementation changes.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 556 - Create Execution Record Candidate Builder Integration Adapter Design**
+
+## Action 556 - Create Execution Record Candidate Builder Integration Adapter Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-adapter-design.md`.
+- Confirmed the design covers adapter inputs, output, field mapping,
+  preconditions, statuses, safety policy, relationship to the builder,
+  generated type/schema readiness, failure states, candidate next actions,
+  recommended next action, and risks.
+- Confirmed the adapter is specified as pure, candidate-input-shaping-only, and
+  not allowed to invoke `buildExecutionRecordCandidate(...)`.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No adapter implementation.
+- No candidate builder invocation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 557 - Create Execution Record Candidate Builder Integration Adapter Contract Types**
+
+## Action 557 - Create Execution Record Candidate Builder Integration Adapter Contract Types
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-integration-adapter-contract.ts`.
+- Confirmed the module is pure TypeScript types/constants with type-only
+  imports.
+- Confirmed it models adapter input/result/status/decision/proposed input
+  summary/field mapping/preconditions/schema readiness/idempotency/audit
+  provenance/safety policy/blocked reasons/warnings/review items.
+- Confirmed safety policy keeps candidate builder invocation, candidate
+  creation, execution-record creation, persistence, finalization, stats update,
+  audit append, rollback, trade mutation, broker action, and automatic mode
+  disabled.
+
+Safety verification:
+
+- No adapter implementation.
+- No candidate builder invocation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- `npm run test:e2e` rerun with escalation passed: 88 tests.
+
+Recommended next action:
+
+**Action 558 - Reassess Execution Record Candidate Builder Integration Adapter Contract Types**
+
+## Action 558 - Reassess Execution Record Candidate Builder Integration Adapter Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-adapter-contract-reassessment.md`.
+- Confirmed the reassessment covers current adapter contract inventory,
+  boundary verification, alignment verification, safety policy verification,
+  remaining gaps, next action candidates, recommendation, risks, and
+  verification.
+- Confirmed `adapter_input_ready` is not adapter execution, candidate builder
+  invocation, candidate creation, execution-record creation, persistence,
+  finalization, audit append, stats/PnL update, trade mutation, broker action,
+  or automatic-mode approval.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No adapter implementation.
+- No candidate builder invocation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 559 - Create Execution Record Candidate Builder Integration Adapter**
+
+## Action 559 - Create Execution Record Candidate Builder Integration Adapter
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-integration-adapter.ts`.
+- Added focused sandbox coverage in `tests/e2e/execution-sandbox.spec.ts`.
+- Updated the execution-record adapter, integration, bridge, schema readiness,
+  persistence boundary, checkpoint, and QA docs.
+- Verified the adapter shapes proposed `ExecutionRecordCreationInput` metadata
+  only.
+- Verified adapter results keep all builder invocation, candidate creation,
+  execution-record creation, persistence, audit append, stats/PnL update,
+  rollback, trade mutation, broker action, browser automation, and Avanza
+  automation flags false.
+
+Safety verification:
+
+- No candidate builder invocation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- Focused adapter e2e first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`; rerun with escalation
+  passed: 1 test.
+- `npm run test:e2e` first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`; rerun with escalation
+  passed: 89 tests.
+
+Recommended next action:
+
+**Action 560 - Reassess Execution Record Candidate Builder Integration Adapter**
+
+## Action 560 - Reassess Execution Record Candidate Builder Integration Adapter
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-adapter-reassessment.md`.
+- Updated the adapter design, adapter contract reassessment, builder contract,
+  integration contract/design, schema readiness plans, migration plans, bridge
+  docs, creation/persistence docs, checkpoint, and QA notes.
+- Confirmed the adapter remains pure, deterministic, adapter-only, and
+  proposed-input-only.
+- Confirmed no runtime code changes were made for Action 560.
+- Confirmed no candidate builder invocation, candidate creation,
+  execution-record creation, persistence/write behavior, audit append,
+  stats/PnL update, rollback, trade mutation, UI wiring, browser/Avanza
+  behavior, broker behavior, or order behavior was added.
+
+Safety verification:
+
+- `adapter_input_ready` is not adapter execution approval.
+- `adapter_input_ready` is not candidate builder invocation approval.
+- `adapter_input_ready` is not execution-record candidate creation approval.
+- `adapter_input_ready` is not execution-record creation approval.
+- `adapter_input_ready` is not persistence approval.
+- `adapter_input_ready` is not audit append approval.
+- `adapter_input_ready` is not stats/PnL update approval.
+- `adapter_input_ready` is not trade mutation approval.
+- All builder/create/write/action authority remains false.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 561 - Create Execution Record Candidate Builder Integration Validator Design**
+
+## Action 561 - Create Execution Record Candidate Builder Integration Validator Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-validator-design.md`.
+- Updated the adapter reassessment, adapter design, adapter contract
+  reassessment, builder contract reassessment, integration contract/design,
+  schema readiness plans, migration plans, bridge docs, creation/persistence
+  docs, checkpoint, and QA notes.
+- Confirmed Action 561 is documentation-only.
+- Confirmed no runtime code changes were made.
+- Confirmed no validator contract or validator implementation was added.
+- Confirmed no adapter changes, candidate builder invocation, candidate
+  creation, execution-record creation, persistence/write behavior, audit append,
+  stats/PnL update, rollback, trade mutation, UI wiring, browser/Avanza
+  behavior, broker behavior, or order behavior was added.
+
+Safety verification:
+
+- Validator design is validation-only.
+- Validator design is adapter-output-only.
+- Validator design requires all builder/create/write/action authority to remain
+  false.
+- Even future `adapter_validation_valid` status would not approve builder
+  invocation, candidate creation, execution-record creation, persistence, audit
+  append, stats/PnL update, rollback, trade mutation, broker action, or
+  automatic mode.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 562 - Create Execution Record Candidate Builder Integration Validator Contract Types**
+
+## Action 562 - Create Execution Record Candidate Builder Integration Validator Contract Types
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-integration-validator-contract.ts`.
+- Updated validator design, adapter reassessment/design/contract docs, builder
+  and integration docs, schema readiness plans, migration plans, bridge docs,
+  creation/persistence docs, checkpoint, and QA notes.
+- Confirmed the new module is type-only/constants-only.
+- Confirmed no validator implementation was added.
+- Confirmed no adapter changes, candidate builder invocation, candidate
+  creation, execution-record creation, persistence/write behavior, audit append,
+  stats/PnL update, rollback, trade mutation, UI wiring, browser/Avanza
+  behavior, broker behavior, or order behavior was added.
+
+Safety verification:
+
+- Validator contract is validation-only.
+- Authority flags keep all builder/create/write/action permissions false.
+- `adapter_validation_valid` is not builder invocation approval.
+- `adapter_validation_valid` is not candidate creation approval.
+- `adapter_validation_valid` is not execution-record creation approval.
+- `adapter_validation_valid` is not persistence approval.
+- `adapter_validation_valid` is not audit append, stats/PnL update, rollback,
+  trade mutation, broker action, or automatic-mode approval.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`; rerun with escalation
+  passed: 89 tests.
+
+Recommended next action:
+
+**Action 563 - Reassess Execution Record Candidate Builder Integration Validator Contract Types**
+
+## Action 563 - Reassess Execution Record Candidate Builder Integration Validator Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-validator-contract-reassessment.md`.
+- Updated validator design, adapter reassessment/design/contract docs, builder
+  and integration docs, schema readiness plans, migration plans, bridge docs,
+  creation/persistence docs, checkpoint, and QA notes.
+- Confirmed Action 563 is documentation-only.
+- Confirmed no runtime code changes were made.
+- Confirmed no validator implementation, adapter change, builder invocation,
+  candidate creation, execution-record creation, persistence/write behavior,
+  audit append, stats/PnL update, rollback, trade mutation, UI wiring,
+  browser/Avanza behavior, broker behavior, or order behavior was added.
+
+Safety verification:
+
+- Validator contract remains type-only/constants-only.
+- Validator contract remains validation-only.
+- `adapter_validation_valid` is not builder invocation approval.
+- `adapter_validation_valid` is not candidate creation approval.
+- `adapter_validation_valid` is not execution-record creation approval.
+- `adapter_validation_valid` is not persistence approval.
+- `adapter_validation_valid` is not audit append, stats/PnL update, rollback,
+  trade mutation, broker action, or automatic-mode approval.
+- All builder/create/write/action authority remains false.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 564 - Create Execution Record Candidate Builder Integration Validator**
+
+## Action 564 - Create Execution Record Candidate Builder Integration Validator
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-integration-validator.ts`.
+- Exported
+  `validateExecutionRecordCandidateBuilderIntegration(...)`.
+- Added validation-only checks for adapter status, proposed input shape,
+  schema readiness, idempotency/fingerprints, audit/provenance, safety policy,
+  and authority flags.
+- Added focused sandbox coverage for valid, review, blocked, unsupported, and
+  invalid validator paths.
+- Updated validator, adapter, builder, integration, schema readiness,
+  migration, bridge, creation, persistence, evidence-flow, checkpoint, and QA
+  docs.
+
+Safety verification:
+
+- The validator is pure and deterministic.
+- The validator does not invoke `buildExecutionRecordCandidate(...)`.
+- The validator does not create execution-record candidates.
+- The validator does not create execution records.
+- The validator does not persist or write Supabase/localStorage.
+- The validator does not append audit, update stats/PnL, rollback/correct,
+  mutate trades, wire UI, automate browser/Avanza behavior, run broker
+  behavior, or run order behavior.
+- All builder/create/write/action authority remains false.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- `git diff --check` passed.
+- `npm run test:e2e` first failed in the sandbox with
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- `npm run test:e2e` rerun with escalation passed: 89 tests.
+
+Recommended next action:
+
+**Action 565 - Reassess Execution Record Candidate Builder Integration Validator**
+
+## Action 565 - Reassess Execution Record Candidate Builder Integration Validator
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-validator-reassessment.md`.
+- Updated validator, adapter, builder, integration, schema readiness,
+  migration, bridge, creation, persistence, evidence-flow, checkpoint, and QA
+  docs.
+- Confirmed the implemented validator remains pure, deterministic,
+  validation-only, conservative, and disconnected from candidate builder
+  invocation.
+- Confirmed valid, review, blocked, unsupported, invalid, schema readiness,
+  idempotency, audit/provenance, manual approval, and authority violation
+  behavior are documented.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No validator implementation changes.
+- No adapter changes.
+- No builder changes.
+- No bridge mapper/validator changes.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 566 - Create Execution Record Candidate Builder Integration Dev Preview Design**
+
+## Action 566 - Create Execution Record Candidate Builder Integration Dev Preview Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-dev-preview-design.md`.
+- Updated validator, adapter, builder, integration, schema readiness,
+  migration, bridge, creation, persistence, evidence-flow, checkpoint, and QA
+  docs.
+- Confirmed the design is dev-gated, read-only, controlled-fixture-first, and
+  documentation-only.
+- Confirmed the design explicitly forbids candidate builder invocation,
+  execution-record candidate creation, execution-record creation,
+  persistence/write behavior, audit append, stats/PnL update,
+  rollback/correction, trade mutation, browser/Avanza behavior, broker
+  behavior, and order behavior.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No UI implementation.
+- No dev preview implementation.
+- No adapter changes.
+- No adapter validator changes.
+- No builder changes.
+- No candidate builder invocation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check` passed.
+
+Recommended next action:
+
+**Action 567 - Create Execution Record Candidate Builder Integration Dev Preview**
+
+## Action 567 - Create Execution Record Candidate Builder Integration Dev Preview
+
+QA notes:
+
+- Created
+  `components/execution/ExecutionRecordCandidateBuilderIntegrationPreview.tsx`.
+- Created
+  `lib/execution-record-candidate-builder-integration-dev-fixture.ts`.
+- Wired the preview into the existing late-phase execution handoff modal area,
+  near but visually separate from the Execution Record Bridge Preview.
+- Added an explicit "Run candidate builder integration preview" button.
+- Added fixture-only adapter and validator readback using
+  `shapeExecutionRecordCandidateBuilderInput(...)` and
+  `validateExecutionRecordCandidateBuilderIntegration(...)`.
+- Added modal coverage for dev-preview labels, safety labels, adapter status,
+  proposed input summary, mapping/precondition/schema/idempotency/audit
+  sections, validator summaries, authority flags, and absent forbidden action
+  buttons.
+- Added fixture coverage confirming `adapter_input_ready` and
+  `adapter_validation_valid` do not expose builder/create/write/action
+  authority.
+- Updated the Action 567 documentation trail.
+
+Safety verification:
+
+- Dev preview only.
+- Controlled fixture only.
+- Explicit trigger only.
+- Proposed input only.
+- Validation-only.
+- Does not call `buildExecutionRecordCandidate(...)`.
+- Does not create execution-record candidates.
+- Does not create execution records.
+- Does not persist/write.
+- Does not write Supabase/localStorage.
+- Does not append audit.
+- Does not update stats/PnL.
+- Does not rollback/correct.
+- Does not mutate trade state.
+- Does not use live Avanza data.
+- Does not run capture/browser/Avanza behavior.
+- Does not run broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Recommended next action:
+
+**Action 568 - Reassess Execution Record Candidate Builder Integration Dev Preview**
+
+## Action 568 - Reassess Execution Record Candidate Builder Integration Dev Preview
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-integration-dev-preview-reassessment.md`.
+- Reassessed
+  `components/execution/ExecutionRecordCandidateBuilderIntegrationPreview.tsx`.
+- Reassessed
+  `lib/execution-record-candidate-builder-integration-dev-fixture.ts`.
+- Reassessed the late-phase modal composition, app wiring, hook runner, and
+  e2e coverage.
+- Confirmed the preview is dev-gated, controlled-fixture-only,
+  explicit-trigger-only, read-only, and limited to the pure adapter and pure
+  adapter-validator.
+- Confirmed the preview does not call
+  `buildExecutionRecordCandidate(...)`.
+- Confirmed the preview creates no execution-record candidate and no execution
+  record.
+- Confirmed the preview performs no persistence/write behavior, no
+  Supabase/localStorage write, no audit append, no stats/PnL update, no
+  rollback/correction, no trade mutation, no live Avanza data, no
+  capture/browser automation, and no broker/order behavior.
+- Confirmed safety labels and forbidden-action absence are covered by Action
+  567 e2e assertions.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No UI changes.
+- No fixture changes.
+- No adapter changes.
+- No adapter validator changes.
+- No builder changes.
+- No candidate builder invocation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction.
+- No stats/PnL update.
+- No trade mutation.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 569 - Create Execution Record Candidate Builder Invocation Design**
+
+## Action 569 - Create Execution Record Candidate Builder Invocation Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-design.md`.
+- Updated the candidate-builder integration dev preview, adapter, validator,
+  builder, schema readiness, migration readiness, bridge, creation,
+  persistence, evidence-flow, checkpoint, and QA docs.
+- Confirmed the design is documentation-only and defines future
+  `buildExecutionRecordCandidate(...)` invocation after adapter and
+  adapter-validator gates.
+- Confirmed future invocation input must come only from validated
+  adapter-shaped proposed `ExecutionRecordCreationInput`.
+- Confirmed future invocation remains candidate-only and no-write.
+- Confirmed builder output must remain separate from execution-record creation,
+  persistence/write behavior, audit append, stats/PnL update,
+  rollback/correction, trade mutation, UI, Avanza/browser behavior, and
+  broker/order behavior.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No builder invocation implementation.
+- No adapter changes.
+- No adapter validator changes.
+- No builder changes.
+- No execution-record candidate creation from bridge.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 570 - Create Execution Record Candidate Builder Invocation Contract Types**
+
+## Action 570 - Create Execution Record Candidate Builder Invocation Contract Types
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-invocation-contract.ts`.
+- Added contract-only statuses, decision recommendations, blocked reasons,
+  warnings, review items, summaries, input/result types, and safety policy for
+  a future candidate-builder invocation boundary.
+- Confirmed the module is types/constants only.
+- Confirmed the module does not import or call
+  `buildExecutionRecordCandidate(...)`.
+- Confirmed the contract can reference adapter result, adapter validation
+  result, proposed `ExecutionRecordCreationInput`, integration data, bridge
+  validation/mapper result, finalization candidate, idempotency metadata,
+  audit/provenance metadata, manual approval metadata, and schema readiness
+  metadata.
+- Confirmed all builder/create/write/finalization/audit/stats/rollback/trade/
+  broker/browser authority flags remain false.
+- Updated the Action 570 documentation trail.
+
+Safety verification:
+
+- No behavior changes.
+- No invocation implementation.
+- No candidate builder call.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Recommended next action:
+
+**Action 571 - Reassess Execution Record Candidate Builder Invocation Contract Types**
+
+## Action 571 - Reassess Execution Record Candidate Builder Invocation Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-contract-reassessment.md`.
+- Reassessed
+  `lib/execution-record-candidate-builder-invocation-contract.ts`.
+- Confirmed the contract remains type-only/constants-only and
+  invocation-boundary-only.
+- Confirmed the contract does not implement invocation logic.
+- Confirmed the contract does not import or call
+  `buildExecutionRecordCandidate(...)`.
+- Confirmed the contract does not create execution-record candidates, create
+  execution records, persist/write, append audit, update stats/PnL,
+  rollback/correct, mutate trades, wire UI, use browser/Avanza behavior, or run
+  broker/order behavior.
+- Confirmed `builder_invocation_ready` is not builder-call, candidate-creation,
+  record-creation, persistence, finalization, audit, stats, or trade-mutation
+  approval.
+- Updated the Action 571 documentation trail.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No invocation implementation.
+- No candidate builder call.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No rollback/correction.
+- No stats/PnL update.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 572 - Create Execution Record Candidate Builder Invocation Validator Design**
+
+## Action 572 - Create Execution Record Candidate Builder Invocation Validator Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-validator-design.md`.
+- Updated invocation contract, invocation design, adapter, adapter-validator,
+  integration, builder, schema readiness, migration readiness, bridge,
+  creation, persistence, evidence-flow, checkpoint, and QA docs.
+- Confirmed the design is documentation-only.
+- Confirmed the future validator is validation-only.
+- Confirmed validator output is not builder invocation approval.
+- Confirmed validator output is not execution-record candidate creation,
+  execution-record creation, persistence, audit append, stats/PnL update,
+  rollback/correction, trade mutation, UI, browser/Avanza, broker, or order
+  approval.
+- Recommended invocation validator contract types next.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No refactor.
+- No behavior changes.
+- No validator contract implementation.
+- No validator implementation.
+- No builder invocation implementation.
+- No call to `buildExecutionRecordCandidate(...)`.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 573 - Create Execution Record Candidate Builder Invocation Validator Contract Types**
+
+## Action 573 - Create Execution Record Candidate Builder Invocation Validator Contract Types
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-invocation-validator-contract.ts`.
+- Added validation-only contract types for the future invocation validator
+  boundary.
+- Covered validation input/result, statuses, decision recommendations,
+  prerequisite/input-source/proposed-input/idempotency/audit-provenance/schema-
+  readiness/safety-policy summaries, authority flags, blocked reasons,
+  warnings, and review items.
+- Confirmed these are contract types only, not a validator implementation.
+- Confirmed no call to `buildExecutionRecordCandidate(...)` is introduced.
+- Confirmed no candidate/record creation, persistence/write behavior, audit
+  append, stats/PnL update, rollback/correction, trade mutation, UI wiring,
+  browser/Avanza behavior, broker action, or order behavior is introduced.
+
+Safety verification:
+
+- Type-only/constants-only.
+- No runtime behavior changes.
+- No builder invocation implementation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Recommended next action:
+
+**Action 574 - Reassess Execution Record Candidate Builder Invocation Validator Contract Types**
+
+## Action 574 - Reassess Execution Record Candidate Builder Invocation Validator Contract Types
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-validator-contract-reassessment.md`.
+- Reassessed the Action 573 invocation validator contract types.
+- Confirmed the contract remains type-only/constants-only, validation-only, and
+  conservative.
+- Confirmed the contract is not a validator implementation and does not call
+  `buildExecutionRecordCandidate(...)`.
+- Confirmed `builder_invocation_validation_valid` is not builder call,
+  execution-record candidate creation, execution-record creation, persistence,
+  finalization, audit append, stats/PnL update, trade mutation, broker/order, or
+  automatic-mode approval.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No validator implementation.
+- No builder invocation implementation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 575 - Create Execution Record Candidate Builder Invocation Validator**
+
+## Action 575 - Create Execution Record Candidate Builder Invocation Validator
+
+QA notes:
+
+- Created
+  `lib/execution-record-candidate-builder-invocation-validator.ts`.
+- Exported
+  `validateExecutionRecordCandidateBuilderInvocation(...)`.
+- Added pure validation for invocation result status, adapter validation,
+  proposed input, schema readiness, idempotency/fingerprints,
+  audit/provenance, manual approval, safety policy, and authority flags.
+- Added focused sandbox coverage for valid, blocked, unsupported,
+  needs-review, invalid, missing-data, schema, idempotency, audit, manual
+  approval, and authority-violation paths.
+- Confirmed validator output is validation-only and not builder invocation
+  approval.
+- Confirmed no call to `buildExecutionRecordCandidate(...)` is introduced.
+- Confirmed no execution-record candidate creation, execution-record creation,
+  persistence/write behavior, audit append, stats/PnL update,
+  rollback/correction, trade mutation, UI wiring, browser/Avanza behavior,
+  broker action, or order behavior is introduced.
+
+Safety verification:
+
+- Pure and deterministic.
+- Validation-only.
+- No builder invocation.
+- No candidate or record creation.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+- All builder/create/write/action authority remains false.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run lint`
+- `git diff --check`
+- `npm run test:e2e`
+
+Recommended next action:
+
+**Action 576 - Reassess Execution Record Candidate Builder Invocation Validator**
+
+## Action 576 - Reassess Execution Record Candidate Builder Invocation Validator
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-validator-reassessment.md`.
+- Reassessed
+  `lib/execution-record-candidate-builder-invocation-validator.ts`.
+- Confirmed the validator remains pure, deterministic, validation-only,
+  conservative, and no-write.
+- Confirmed the validator does not call `buildExecutionRecordCandidate(...)`.
+- Confirmed valid, review, blocked, unsupported, invalid, schema readiness,
+  idempotency, audit/provenance, manual approval, and authority-violation
+  behavior are documented.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No validator changes.
+- No builder invocation implementation.
+- No execution-record candidate creation.
+- No execution-record creation.
+- No persistence/write behavior.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No UI wiring.
+- No capture/browser/Avanza behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 577 - Create Execution Record Candidate Builder Invocation Dev Preview Design**
+
+## Action 577 - Create Execution Record Candidate Builder Invocation Dev Preview Design
+
+QA notes:
+
+- Created
+  `docs/execution-record-candidate-builder-invocation-dev-preview-design.md`.
+- Defined a future dev-gated, read-only preview for invocation contract/result
+  metadata and invocation-validator output.
+- Documented placement, data dependencies, preview content, safety labels,
+  interaction model, state display rules, relationship to candidate builder,
+  relationship to integration preview, risks, and next action.
+- Confirmed the design explicitly forbids builder calls, candidate/record
+  creation, persistence/write behavior, audit append, stats/PnL update,
+  rollback/correction, trade mutation, browser/Avanza behavior, broker/order
+  behavior, and production UI.
+
+Safety verification:
+
+- Documentation-only.
+- No runtime code changes.
+- No UI implementation.
+- No dev preview implementation.
+- No invocation implementation.
+- No builder call.
+- No candidate or record creation.
+- No Supabase/localStorage writes.
+- No audit append.
+- No stats/PnL update.
+- No rollback/correction.
+- No trade mutation.
+- No Avanza/browser behavior.
+- No broker/order behavior.
+
+Verification:
+
+- `git diff --check`
+
+Recommended next action:
+
+**Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**

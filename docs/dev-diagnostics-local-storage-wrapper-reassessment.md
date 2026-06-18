@@ -368,3 +368,24 @@ Result:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Follow-Up
+
+Action 411 created
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Result:
+
+- Confirmed live market trial runbook persistence is more locally
+  typed/default-coupled than the Action 409 helpers.
+- Inventoried exact key, default state, normalization, read/write behavior,
+  error handling, and call sites.
+- Concluded the next wrapper is safe only if the exact default,
+  normalization, read, and write behavior moves together.
+- Confirmed diagnostics stores, execution audit/event stores, execution record
+  stores, Supabase behavior, trade mutations, and execution/orchestrator
+  behavior remain untouched.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**

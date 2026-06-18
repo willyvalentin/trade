@@ -57,6 +57,15 @@ import {
   validateSafeBrowserAction,
 } from "../../lib/safe-browser-action-contract";
 import {
+  evaluateEntryTypeAwareTrigger,
+  inferRecommendationEntryTypeMetadata,
+  summarizeEntryTypeTriggerDiagnostics,
+} from "../../lib/recommendation-entry-type";
+import {
+  markPlanReferenceRetained,
+  resolvePlanReferencePriceMetadata,
+} from "../../lib/recommendation-plan-reference";
+import {
   hasFinalConfirmBlocked,
   summarizeSafeBrowserActionExecutionDiagnostics,
 } from "../../lib/safe-browser-action-diagnostics";
@@ -244,6 +253,193 @@ import {
   summarizeExecutionRecordEligibility,
   type ExecutionRecordCandidate,
 } from "../../lib/execution-record-eligibility";
+import {
+  validateExecutionRecordCreationInput,
+} from "../../lib/execution-record-creation-validator";
+import {
+  buildExecutionRecordCandidate,
+} from "../../lib/execution-record-candidate-builder";
+import {
+  buildExecutionRecordCreationDevFixtureInput,
+} from "../../lib/execution-record-creation-dev-fixture";
+import {
+  BROKER_RESULT_SOURCE_CLASSIFICATIONS,
+  type BrokerResultSourceClassification,
+} from "../../lib/broker-result-source-classification";
+import {
+  validateBrokerResultSourceForUsage,
+} from "../../lib/broker-result-source-classification-validator";
+import {
+  AVANZA_BROKER_CONFIRMATION_EVIDENCE_CONTRACT_VERSION,
+  type AvanzaConfirmationEvidence,
+} from "../../lib/avanza-broker-confirmation-evidence-contract";
+import {
+  validateAvanzaConfirmationEvidence,
+} from "../../lib/avanza-broker-confirmation-evidence-validator";
+import {
+  validateBrokerExecutionResultConfirmation,
+} from "../../lib/broker-execution-result-confirmation-validator";
+import {
+  BROKER_EXECUTION_RESULT_CONFIRMATION_VALIDATOR_CONTRACT_VERSION,
+  type BrokerExecutionResultConfirmationValidatorInput,
+} from "../../lib/broker-execution-result-confirmation-validator-contract";
+import {
+  mapEvidenceToBrokerExecutionResultCandidate,
+} from "../../lib/evidence-to-broker-execution-result-mapper";
+import {
+  BROKER_EXECUTION_RESULT_CANDIDATE_CONTRACT_VERSION,
+  BROKER_EXECUTION_RESULT_CANDIDATE_DEFAULT_SAFETY_POLICY,
+  type BrokerExecutionResultCandidate,
+} from "../../lib/broker-execution-result-candidate-contract";
+import {
+  EVIDENCE_TO_BROKER_EXECUTION_RESULT_MAPPER_CONTRACT_VERSION,
+  type EvidenceToBrokerExecutionResultMapperInput,
+} from "../../lib/evidence-to-broker-execution-result-mapper-contract";
+import {
+  buildFinalizationCandidate,
+} from "../../lib/finalization-candidate-builder";
+import {
+  buildFinalizationCandidateDevFixtureResult,
+} from "../../lib/finalization-candidate-dev-fixture";
+import type { FinalizationCandidate } from "../../lib/finalization-candidate-contract";
+import {
+  FINALIZATION_CANDIDATE_BUILDER_CONTRACT_VERSION,
+  type FinalizationCandidateBuilderInput,
+} from "../../lib/finalization-candidate-builder-contract";
+import {
+  validateFinalizationCandidate,
+} from "../../lib/finalization-validator";
+import {
+  FINALIZATION_VALIDATOR_CONTRACT_VERSION,
+  type FinalizationValidationResult,
+  type FinalizationValidatorInput,
+} from "../../lib/finalization-validator-contract";
+import {
+  FINALIZATION_STATE_TRANSITION_CONTRACT_VERSION,
+  type FinalizationTransitionBoundaryStatus,
+  type FinalizationTransitionInput,
+} from "../../lib/finalization-state-transition-contract";
+import {
+  validateFinalizationStateTransition,
+} from "../../lib/finalization-state-transition-validator";
+import {
+  FINALIZATION_STATE_TRANSITION_VALIDATOR_CONTRACT_VERSION,
+  type FinalizationStateTransitionValidatorInput,
+} from "../../lib/finalization-state-transition-validator-contract";
+import {
+  validateFinalizationAction,
+} from "../../lib/finalization-action-validator";
+import {
+  runFinalizationActionDryRun,
+} from "../../lib/finalization-action-dry-run";
+import {
+  buildFinalizationActionDevFixtureResult,
+} from "../../lib/finalization-action-dev-fixture";
+import {
+  buildFinalizationExecutionRecordBridgeDevFixtureResult,
+} from "../../lib/finalization-execution-record-bridge-dev-fixture";
+import {
+  buildExecutionRecordCandidateBuilderIntegrationDevFixtureResult,
+} from "../../lib/execution-record-candidate-builder-integration-dev-fixture";
+import {
+  shapeExecutionRecordCandidateBuilderInput,
+} from "../../lib/execution-record-candidate-builder-integration-adapter";
+import {
+  validateExecutionRecordCandidateBuilderIntegration,
+} from "../../lib/execution-record-candidate-builder-integration-validator";
+import {
+  validateExecutionRecordCandidateBuilderInvocation,
+} from "../../lib/execution-record-candidate-builder-invocation-validator";
+import {
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_ADAPTER_CONTRACT_VERSION,
+  type ExecutionRecordCandidateBuilderIntegrationAdapterInput,
+  type ExecutionRecordCandidateBuilderIntegrationAdapterResult,
+} from "../../lib/execution-record-candidate-builder-integration-adapter-contract";
+import {
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordCandidateBuilderIntegrationValidationResult,
+} from "../../lib/execution-record-candidate-builder-integration-validator-contract";
+import {
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_CONTRACT_VERSION,
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordCandidateBuilderIntegrationResult,
+  type ExecutionRecordCandidateBuilderIntegrationSchemaReadinessSummary,
+} from "../../lib/execution-record-candidate-builder-integration-contract";
+import {
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_CONTRACT_VERSION,
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordCandidateBuilderInvocationResult,
+} from "../../lib/execution-record-candidate-builder-invocation-contract";
+import {
+  EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordCandidateBuilderInvocationValidationResult,
+} from "../../lib/execution-record-candidate-builder-invocation-validator-contract";
+import {
+  mapFinalizationToExecutionRecordBridge,
+} from "../../lib/finalization-to-execution-record-bridge-mapper";
+import {
+  validateExecutionRecordFinalizationBridge,
+} from "../../lib/execution-record-finalization-bridge-validator";
+import {
+  EXECUTION_RECORD_FINALIZATION_BRIDGE_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordFinalizationBridgeValidationInput,
+  type ExecutionRecordFinalizationBridgeValidationResult,
+} from "../../lib/execution-record-finalization-bridge-validator-contract";
+import {
+  FINALIZATION_TO_EXECUTION_RECORD_BRIDGE_CONTRACT_VERSION,
+  type FinalizationToExecutionRecordBridgeInput,
+  type FinalizationToExecutionRecordBridgeResult,
+} from "../../lib/finalization-to-execution-record-bridge-contract";
+import {
+  FINALIZATION_ACTION_CONTRACT_VERSION,
+  FINALIZATION_ACTION_DEFAULT_AUTHORITY,
+  type FinalizationActionInput,
+} from "../../lib/finalization-action-contract";
+import {
+  FINALIZATION_ACTION_VALIDATOR_CONTRACT_VERSION,
+  type FinalizationActionValidationResult,
+  type FinalizationActionValidatorInput,
+} from "../../lib/finalization-action-validator-contract";
+import {
+  FINALIZATION_ACTION_DRY_RUN_CONTRACT_VERSION,
+  type FinalizationActionDryRunInput,
+} from "../../lib/finalization-action-dry-run-contract";
+import {
+  FINAL_SETTLEMENT_NOTE_MATCHING_CONTRACT_VERSION,
+  FINAL_SETTLEMENT_NOTE_MATCHING_DEFAULT_POLICY_SNAPSHOT,
+  type FinalSettlementNoteMatchingInput,
+  type FinalSettlementNoteMatchingResult,
+} from "../../lib/final-settlement-note-matching-contract";
+import {
+  validateFinalSettlementNoteMatch,
+} from "../../lib/final-settlement-note-matching-validator";
+import {
+  TWO_STAGE_BROKER_EVIDENCE_CONTRACT_VERSION,
+  TWO_STAGE_BROKER_EVIDENCE_DEFAULT_SAFETY_POLICY,
+  type BrokerEvidenceMaskedAccountContext,
+  type BrokerEvidenceSourceReference,
+  type FinalBrokerSettlementNoteEvidence,
+  type ImmediateBrokerReadbackEvidence,
+} from "../../lib/two-stage-broker-evidence-contract";
+import {
+  EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+  type ExecutionRecordCreationInput,
+} from "../../lib/execution-record-creation-contract";
+import {
+  EXECUTION_RECORD_PERSISTENCE_CONTRACT_VERSION,
+  type ExecutionRecordPersistenceInput,
+} from "../../lib/execution-record-persistence-contract";
+import {
+  validateExecutionRecordPersistenceInput,
+} from "../../lib/execution-record-persistence-validator";
+import {
+  EXECUTION_RECORD_INSERT_ROUTE_CONTRACT_VERSION,
+  type ExecutionRecordInsertRouteRequest,
+  type ExecutionRecordInsertRouteResponse,
+} from "../../lib/execution-record-insert-route-contract";
+import {
+  requestExecutionRecordInsertDryRun,
+} from "../../lib/execution-record-insert-dry-run-client";
 import {
   createAvanzaDryRunOrderInput,
   getAvanzaDryRunSafetyLabels,
@@ -585,6 +781,247 @@ function createFakeExecutionAuditDb(
     }),
   };
 }
+
+test("infers entry type trigger semantics conservatively", () => {
+  const longPullback = inferRecommendationEntryTypeMetadata({
+    side: "long",
+    entry: 99,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  expect(longPullback.entry_type).toBe("pullback_limit");
+  expect(longPullback.entry_trigger_semantics).toBe("long_low_touches_entry");
+  expect(
+    evaluateEntryTypeAwareTrigger({
+      metadata: longPullback,
+      side: "long",
+      entry: 99,
+      stop: 97,
+      target: 103,
+      candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101, low: 98.9 }],
+      officialEntryTriggered: true,
+      officialStatus: "entry_triggered",
+    }).entry_type_aware_entry_triggered,
+  ).toBe(true);
+
+  const longBreakout = inferRecommendationEntryTypeMetadata({
+    side: "long",
+    entry: 101,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  const longBreakoutTrigger = evaluateEntryTypeAwareTrigger({
+    metadata: longBreakout,
+    side: "long",
+    entry: 101,
+    stop: 99,
+    target: 104,
+    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.2, low: 100.4 }],
+    officialEntryTriggered: false,
+    officialStatus: "entry_not_triggered",
+  });
+  expect(longBreakout.entry_type).toBe("breakout_stop");
+  expect(longBreakout.entry_trigger_semantics).toBe("long_high_crosses_entry");
+  expect(longBreakoutTrigger.entry_type_aware_entry_triggered).toBe(true);
+  expect(longBreakoutTrigger.entry_type_trigger_disagreement).toBe(true);
+  expect(longBreakoutTrigger.entry_type_trigger_disagreement_reason).toBe(
+    "long_breakout_high_crossed_but_current_route_not_triggered",
+  );
+
+  const longMarketReference = inferRecommendationEntryTypeMetadata({
+    side: "long",
+    entry: 100.2,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  expect(longMarketReference.entry_type).toBe("market_reference");
+  expect(
+    evaluateEntryTypeAwareTrigger({
+      metadata: longMarketReference,
+      side: "long",
+      entry: 100.2,
+      stop: 98,
+      target: 104,
+      candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 100.1, low: 99.8 }],
+      officialEntryTriggered: false,
+      officialStatus: "entry_not_triggered",
+    }).entry_type_aware_entry_triggered,
+  ).toBe(true);
+
+  const shortPullback = inferRecommendationEntryTypeMetadata({
+    side: "short",
+    entry: 101,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  expect(shortPullback.entry_type).toBe("pullback_limit");
+  expect(shortPullback.entry_trigger_semantics).toBe("short_high_touches_entry");
+
+  const shortBreakout = inferRecommendationEntryTypeMetadata({
+    side: "short",
+    entry: 99,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  expect(shortBreakout.entry_type).toBe("breakout_stop");
+  expect(shortBreakout.entry_trigger_semantics).toBe("short_low_crosses_entry");
+
+  const unknown = inferRecommendationEntryTypeMetadata({
+    side: "long",
+    entry: 100,
+    referencePrice: null,
+    source: "fallback_inference",
+  });
+  expect(unknown.entry_type).toBe("unknown");
+  expect(unknown.unknown_due_to_missing_reference).toBe(true);
+  expect(unknown.reference_price_missing_for_entry_type).toBe(true);
+});
+
+test("resolves plan reference metadata from scanner candidate shapes", () => {
+  expect(
+    resolvePlanReferencePriceMetadata({
+      ticker: "AAPL",
+      latest_close: 201.25,
+      reference_price_timestamp: "2026-06-17T20:00:00.000Z",
+      reference_price_provider: "twelve_data",
+    }),
+  ).toMatchObject({
+    reference_price_used_for_plan: 201.25,
+    reference_price_source: "fallback_last_price",
+    reference_price_timestamp: "2026-06-17T20:00:00.000Z",
+    reference_price_symbol: "AAPL",
+    reference_price_provider: "twelve_data",
+    reference_price_read_path: "candidate.latest_close",
+    plan_reference_metadata_status: "complete",
+  });
+
+  expect(
+    resolvePlanReferencePriceMetadata({
+      ticker: "AMD",
+      latestClose: 162.4,
+    }),
+  ).toMatchObject({
+    reference_price_used_for_plan: 162.4,
+    reference_price_read_path: "candidate.latestClose",
+    plan_reference_metadata_status: "price_missing_timestamp",
+  });
+
+  expect(
+    resolvePlanReferencePriceMetadata({
+      ticker: "BAC",
+      latest_candle: {
+        close: 44.12,
+        timestamp: "2026-06-17T20:00:00.000Z",
+      },
+    }),
+  ).toMatchObject({
+    reference_price_used_for_plan: 44.12,
+    reference_price_source: "latest_intraday_candle_close",
+    reference_price_timestamp: "2026-06-17T20:00:00.000Z",
+    reference_price_read_path: "candidate.latest_candle.close",
+    plan_reference_metadata_status: "complete",
+  });
+
+  expect(
+    resolvePlanReferencePriceMetadata({
+      ticker: "CAT",
+      latestCandle: {
+        close: 389.33,
+        time: "2026-06-17T20:00:00.000Z",
+      },
+    }),
+  ).toMatchObject({
+    reference_price_used_for_plan: 389.33,
+    reference_price_source: "latest_intraday_candle_close",
+    reference_price_timestamp: "2026-06-17T20:00:00.000Z",
+    reference_price_read_path: "candidate.latestCandle.close",
+    plan_reference_metadata_status: "complete",
+  });
+
+  expect(
+    resolvePlanReferencePriceMetadata({
+      ticker: "COIN",
+      reference_price_used_for_plan: 171.32,
+      reference_price_source: "provider_quote_price",
+      reference_price_timestamp: "2026-06-17T13:30:00.000Z",
+      reference_price_read_path: "candidate.reference_price_used_for_plan",
+    }),
+  ).toMatchObject({
+    reference_price_used_for_plan: 171.32,
+    reference_price_source: "provider_quote_price",
+    reference_price_read_path: "candidate.reference_price_used_for_plan",
+    plan_reference_metadata_status: "complete",
+  });
+
+  const priceOnly = resolvePlanReferencePriceMetadata({
+    ticker: "SMCI",
+    price: 49.5,
+  });
+
+  expect(priceOnly).toMatchObject({
+    reference_price_used_for_plan: 49.5,
+    reference_price_source: "current_price",
+    reference_price_timestamp: null,
+    reference_price_read_path: "candidate.price",
+    plan_reference_metadata_status: "price_missing_timestamp",
+  });
+  expect(
+    priceOnly.plan_reference_metadata_trace
+      .candidate_price_available_before_generation,
+  ).toBe(true);
+});
+
+test("marks generated recommendation plan reference metadata as retained", () => {
+  const metadata = resolvePlanReferencePriceMetadata({
+    ticker: "JPM",
+    latest_close: 290.11,
+  });
+  const retained = markPlanReferenceRetained(metadata);
+
+  expect(retained.reference_price_used_for_plan).toBe(290.11);
+  expect(
+    retained.plan_reference_metadata_trace
+      .candidate_price_available_before_generation,
+  ).toBe(true);
+  expect(
+    retained.plan_reference_metadata_trace
+      .generated_recommendation_retained_reference_price,
+  ).toBe(true);
+});
+
+test("summarizes entry type trigger disagreements", () => {
+  const metadata = inferRecommendationEntryTypeMetadata({
+    side: "long",
+    entry: 101,
+    referencePrice: 100,
+    source: "deterministic_plan_builder",
+  });
+  const trigger = evaluateEntryTypeAwareTrigger({
+    metadata,
+    side: "long",
+    entry: 101,
+    stop: 99,
+    target: 104,
+    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.1, low: 100.5 }],
+    officialEntryTriggered: false,
+    officialStatus: "entry_not_triggered",
+  });
+  const summary = summarizeEntryTypeTriggerDiagnostics([
+    {
+      ticker: "JPM",
+      entryType: metadata,
+      trigger,
+      currentRouteTriggered: false,
+    },
+  ]);
+
+  expect(summary.total_outcomes).toBe(1);
+  expect(summary.by_entry_type.breakout_stop).toBe(1);
+  expect(summary.entry_type_triggered_count).toBe(1);
+  expect(summary.current_route_triggered_count).toBe(0);
+  expect(summary.disagreement_count).toBe(1);
+  expect(summary.tickers_with_disagreements).toEqual(["JPM"]);
+});
 
 test.beforeEach(async ({ baseURL, context }) => {
   if (!baseURL) {
@@ -5149,6 +5586,6515 @@ test("evaluates execution record eligibility without creating records", () => {
   expect(duplicateBrokerReference.reasons).toEqual(
     expect.arrayContaining(["duplicate_broker_reference"]),
   );
+});
+
+test("validates execution record creation inputs without creating records", () => {
+  const buildInput = (
+    overrides: Partial<ExecutionRecordCreationInput> = {},
+  ): ExecutionRecordCreationInput => ({
+    contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T16:30:00.000Z",
+    sourceEnvironment: "production",
+    executionMode: "semi_automatic",
+    executionPhase: "entry",
+    expectedAction: "buy",
+    expectedInstrument: {
+      ticker: "ERIC B",
+      name: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+    },
+    expectedQuantity: 12,
+    recommendationId: "recommendation-execution-record-001",
+    sourceBrokerExecutionResult: {
+      broker: "avanza",
+      status: "filled",
+      side: "buy",
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+      filledQuantity: 12,
+      averageFillPrice: 84.25,
+      grossAmount: 1011,
+      netAmount: 1012.5,
+      fees: 1.5,
+      brokerOrderId: "AVZ-CREATION-001",
+      confirmationTimestamp: "2026-06-11T16:29:30.000Z",
+      metadata: {
+        noSupabaseWrite: true,
+        noTradeMutation: true,
+      },
+    },
+    brokerMetadata: {
+      broker: "avanza",
+      brokerOrderId: "AVZ-CREATION-001",
+      confirmationTimestamp: "2026-06-11T16:29:30.000Z",
+    },
+    idempotency: {
+      idempotencyKey: "execution-record-create-idempotency-001",
+      sourceEvidenceFingerprint: "source-evidence-create-001",
+      brokerResultFingerprint: "broker-result-create-001",
+      handoffPayloadFingerprint: "handoff-payload-create-001",
+    },
+    auditContext: {
+      createdBy: "manual_user_confirmation",
+      sourceEventIds: ["event-create-001"],
+    },
+    planningSnapshotRef: {
+      snapshotId: "planning-snapshot-001",
+      snapshotVersion: "v1",
+    },
+    ...overrides,
+  });
+
+  const eligible = validateExecutionRecordCreationInput(buildInput());
+  expect(eligible).toEqual(
+    expect.objectContaining({
+      status: "eligible",
+      eligible: true,
+      safeToPersist: false,
+      rejectionReasons: [],
+      idempotencyKey: "execution-record-create-idempotency-001",
+      recordFingerprint: "broker-result-create-001",
+    }),
+  );
+  expect(eligible.recordCandidate).toBeUndefined();
+  expect(eligible.auditMetadata).toEqual(
+    expect.objectContaining({
+      noSupabaseWrite: true,
+      noTradeMutation: true,
+      noBrokerExecution: true,
+      noAvanzaAutomation: true,
+      creationAttempted: false,
+      persistenceAttempted: false,
+      tradeMutationAttempted: false,
+    }),
+  );
+
+  const blocked = validateExecutionRecordCreationInput(
+    buildInput({
+      executionMode: "automatic",
+      expectedAction: "sell",
+      sourceBrokerExecutionResult: {
+        broker: "avanza",
+        status: "submitted",
+        side: "buy",
+        ticker: "MSFT",
+        filledQuantity: 0,
+        averageFillPrice: 0,
+        metadata: {
+          previewOnly: true,
+          isSynthetic: true,
+          noSupabaseWrite: false,
+          noTradeMutation: false,
+        },
+      },
+      brokerMetadata: {
+        broker: "avanza",
+        confirmationTimestamp: "",
+      },
+      idempotency: {
+        idempotencyKey: "",
+        sourceEvidenceFingerprint: "",
+      },
+      planningSnapshotRef: null,
+    }),
+  );
+
+  expect(blocked.status).toBe("rejected");
+  expect(blocked.safeToPersist).toBe(false);
+  expect(blocked.rejectionReasons).toEqual(
+    expect.arrayContaining([
+      "preview_only_result",
+      "synthetic_result_not_allowed",
+      "supabase_write_attempted",
+      "trade_mutation_attempted",
+      "missing_idempotency_key",
+      "missing_source_fingerprint",
+      "missing_order_id",
+      "missing_confirmation_timestamp",
+      "automatic_mode_not_supported",
+      "placed_or_accepted_not_filled",
+      "side_mismatch",
+      "instrument_mismatch",
+      "quantity_invalid",
+      "price_invalid",
+    ]),
+  );
+  expect(blocked.recordCandidate).toBeUndefined();
+});
+
+test("builds execution record candidates without persistence or trade mutation", () => {
+  const buildInput = (
+    overrides: Partial<ExecutionRecordCreationInput> = {},
+  ): ExecutionRecordCreationInput => ({
+    contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T16:35:00.000Z",
+    sourceEnvironment: "production",
+    executionMode: "semi_automatic",
+    executionPhase: "exit",
+    expectedAction: "sell",
+    expectedInstrument: {
+      ticker: "ERIC B",
+      name: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+    },
+    expectedQuantity: 12,
+    expectedPositionId: "position-execution-record-001",
+    positionId: "position-execution-record-001",
+    sourceBrokerExecutionResult: {
+      broker: "avanza",
+      status: "filled",
+      side: "sell",
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+      filledQuantity: 12,
+      averageFillPrice: 85.5,
+      grossAmount: 1026,
+      netAmount: 1024.5,
+      fees: 1.5,
+      brokerOrderId: "AVZ-CANDIDATE-001",
+      brokerConfirmationId: "AVZ-CONFIRM-CANDIDATE-001",
+      confirmationTimestamp: "2026-06-11T16:34:30.000Z",
+      metadata: {
+        noSupabaseWrite: true,
+        noTradeMutation: true,
+      },
+    },
+    brokerMetadata: {
+      broker: "avanza",
+      brokerOrderId: "AVZ-CANDIDATE-001",
+      brokerConfirmationId: "AVZ-CONFIRM-CANDIDATE-001",
+      confirmationTimestamp: "2026-06-11T16:34:30.000Z",
+    },
+    idempotency: {
+      idempotencyKey: "execution-record-candidate-idempotency-001",
+      sourceEvidenceFingerprint: "source-evidence-candidate-001",
+      brokerResultFingerprint: "broker-result-candidate-001",
+      handoffPayloadFingerprint: "handoff-payload-candidate-001",
+      captureId: "capture-candidate-001",
+      requestId: "request-candidate-001",
+    },
+    auditContext: {
+      handoffSessionId: "handoff-session-candidate-001",
+      payloadId: "payload-candidate-001",
+      createdBy: "manual_user_confirmation",
+      sourceEventIds: ["event-candidate-001"],
+      sourceCaptureStatus: "captured",
+      sourceOrderStatus: "filled",
+    },
+    planningSnapshotRef: {
+      snapshotId: "planning-snapshot-candidate-001",
+      snapshotVersion: "v1",
+    },
+    ...overrides,
+  });
+
+  const built = buildExecutionRecordCandidate(buildInput());
+  expect(built).toEqual(
+    expect.objectContaining({
+      status: "eligible",
+      eligible: true,
+      safeToPersist: false,
+      idempotencyKey: "execution-record-candidate-idempotency-001",
+      recordFingerprint: "broker-result-candidate-001",
+      rejectionReasons: [],
+    }),
+  );
+  expect(built.recordCandidate).toEqual(
+    expect.objectContaining({
+      recordId:
+        "execution_record_execution-record-candidate-idempotency-001",
+      recordFingerprint: "broker-result-candidate-001",
+      idempotencyKey: "execution-record-candidate-idempotency-001",
+      broker: "avanza",
+      side: "sell",
+      ticker: "ERIC B",
+      quantity: 12,
+      price: 85.5,
+      currency: "SEK",
+      brokerStatus: "filled",
+      confirmationTimestamp: "2026-06-11T16:34:30.000Z",
+      sourceEvidenceFingerprint: "source-evidence-candidate-001",
+      sourceEnvironment: "production",
+      executionMode: "semi_automatic",
+      executionPhase: "exit",
+      brokerOrderId: "AVZ-CANDIDATE-001",
+      brokerConfirmationId: "AVZ-CONFIRM-CANDIDATE-001",
+      positionId: "position-execution-record-001",
+      handoffSessionId: "handoff-session-candidate-001",
+      payloadId: "payload-candidate-001",
+      captureId: "capture-candidate-001",
+      requestId: "request-candidate-001",
+      brokerResultFingerprint: "broker-result-candidate-001",
+      handoffPayloadFingerprint: "handoff-payload-candidate-001",
+    }),
+  );
+  expect(built.recordCandidate?.auditMetadata).toEqual(
+    expect.objectContaining({
+      noSupabaseWrite: true,
+      noTradeMutation: true,
+      noBrokerExecution: true,
+      noAvanzaAutomation: true,
+      creationAttempted: false,
+      persistenceAttempted: false,
+      tradeMutationAttempted: false,
+    }),
+  );
+
+  const previewOnly = buildExecutionRecordCandidate(
+    buildInput({
+      sourceBrokerExecutionResult: {
+        ...buildInput().sourceBrokerExecutionResult,
+        metadata: {
+          previewOnly: true,
+          noSupabaseWrite: true,
+          noTradeMutation: true,
+        },
+      },
+    }),
+  );
+  expect(previewOnly.status).toBe("rejected");
+  expect(previewOnly.recordCandidate).toBeUndefined();
+  expect(previewOnly.rejectionReasons).toEqual(
+    expect.arrayContaining(["preview_only_result"]),
+  );
+
+  const invalidQuantityAndPrice = buildExecutionRecordCandidate(
+    buildInput({
+      sourceBrokerExecutionResult: {
+        ...buildInput().sourceBrokerExecutionResult,
+        filledQuantity: 0,
+        averageFillPrice: 0,
+      },
+    }),
+  );
+  expect(invalidQuantityAndPrice.status).toBe("rejected");
+  expect(invalidQuantityAndPrice.recordCandidate).toBeUndefined();
+  expect(invalidQuantityAndPrice.rejectionReasons).toEqual(
+    expect.arrayContaining(["quantity_invalid", "price_invalid"]),
+  );
+
+  const devFixture = buildExecutionRecordCandidate(
+    buildExecutionRecordCreationDevFixtureInput({
+      action: "sell",
+      executionMode: "semi_automatic",
+      handoffSessionId: "dev-fixture-handoff-001",
+      livePositionId: "dev-fixture-position-001",
+      market: "Stockholm",
+      payloadFingerprint: "dev-fixture-payload-fingerprint-001",
+      payloadId: "dev-fixture-payload-001",
+      quantity: 3,
+      recommendationId: "dev-fixture-recommendation-001",
+      ticker: "ERIC B",
+    }),
+  );
+
+  expect(devFixture.status).toBe("eligible");
+  expect(devFixture.safeToPersist).toBe(false);
+  expect(devFixture.recordCandidate).toEqual(
+    expect.objectContaining({
+      broker: "avanza",
+      side: "sell",
+      ticker: "ERIC B",
+      quantity: 3,
+      price: 100,
+      positionId: "dev-fixture-position-001",
+      recommendationId: "dev-fixture-recommendation-001",
+    }),
+  );
+  expect(devFixture.recordCandidate?.provenanceMetadata).toEqual(
+    expect.objectContaining({
+      sourceBrokerResultMetadata: expect.objectContaining({
+        fixtureOnly: true,
+        source: "execution_record_creation_dev_fixture",
+      }),
+    }),
+  );
+});
+
+test("validates broker result source classifications without enforcement side effects", () => {
+  const unsafeForPersistence: BrokerResultSourceClassification[] = [
+    "preview_only",
+    "dev_fixture",
+    "mock_broker",
+    "dry_run",
+    "local_diagnostics",
+  ];
+
+  for (const classification of unsafeForPersistence) {
+    const result = validateBrokerResultSourceForUsage({
+      classification,
+      intendedUsage: "persistence",
+      metadata: {
+        classification,
+        sourceEnvironment: "local_dev",
+        provenanceLabel: `${classification} fixture`,
+      },
+    });
+
+    expect(result.allowed).toBe(false);
+    expect(result.rejectionReasons).toContain(
+      "source_not_persistence_capable",
+    );
+    expect(result.capabilityFlags?.allowsPersistence).toBe(false);
+    expect(result.capabilityFlags?.allowsTradeMutation).toBe(false);
+    expect(result.warnings).toContain(
+      "policy_metadata_only_not_runtime_enforcement",
+    );
+  }
+
+  for (const classification of BROKER_RESULT_SOURCE_CLASSIFICATIONS) {
+    const result = validateBrokerResultSourceForUsage({
+      classification,
+      intendedUsage: "trade_mutation",
+      metadata: {
+        classification,
+        sourceEnvironment: "production",
+        provenanceLabel: `${classification} trade mutation fixture`,
+      },
+    });
+
+    expect(result.allowed).toBe(false);
+    expect(result.rejectionReasons).toContain(
+      "source_not_trade_mutation_capable",
+    );
+    expect(result.capabilityFlags?.allowsTradeMutation).toBe(false);
+  }
+
+  const brokerConfirmedPersistence = validateBrokerResultSourceForUsage({
+    classification: "broker_confirmed",
+    intendedUsage: "persistence",
+    metadata: {
+      classification: "broker_confirmed",
+      sourceEnvironment: "production",
+      provenanceLabel: "confirmed broker evidence fixture",
+      evidenceFingerprint: "broker-confirmed-evidence-fingerprint",
+      brokerOrderId: "AVZ-SOURCE-CLASS-ORDER-001",
+    },
+  });
+
+  expect(brokerConfirmedPersistence.allowed).toBe(false);
+  expect(brokerConfirmedPersistence.rejectionReasons).toContain(
+    "source_not_persistence_capable",
+  );
+  expect(brokerConfirmedPersistence.warnings).toContain(
+    "broker_confirmed_requires_additional_persistence_gates",
+  );
+
+  const productionSafePersistence = validateBrokerResultSourceForUsage({
+    classification: "production_safe_candidate",
+    intendedUsage: "persistence",
+    metadata: {
+      classification: "production_safe_candidate",
+      sourceEnvironment: "production",
+      provenanceLabel: "production-safe candidate fixture",
+      evidenceFingerprint: "production-safe-evidence-fingerprint",
+      brokerOrderId: "AVZ-SOURCE-CLASS-ORDER-002",
+      brokerConfirmationId: "AVZ-SOURCE-CLASS-CONFIRM-002",
+    },
+  });
+
+  expect(productionSafePersistence.allowed).toBe(true);
+  expect(productionSafePersistence.rejectionReasons).toEqual([]);
+  expect(productionSafePersistence.capabilityFlags?.allowsPersistence).toBe(
+    true,
+  );
+  expect(productionSafePersistence.warnings).toEqual(
+    expect.arrayContaining([
+      "policy_metadata_only_not_runtime_enforcement",
+      "allowed_does_not_enable_persistence",
+      "production_safe_candidate_requires_server_write_boundary",
+    ]),
+  );
+
+  const productionSafeTradeMutation = validateBrokerResultSourceForUsage({
+    classification: "production_safe_candidate",
+    intendedUsage: "trade_mutation",
+    metadata: {
+      classification: "production_safe_candidate",
+      sourceEnvironment: "production",
+    },
+  });
+
+  expect(productionSafeTradeMutation.allowed).toBe(false);
+  expect(productionSafeTradeMutation.rejectionReasons).toContain(
+    "source_not_trade_mutation_capable",
+  );
+
+  const unsupported = validateBrokerResultSourceForUsage({
+    classification: "user_entered_json",
+    intendedUsage: "persistence",
+  });
+
+  expect(unsupported.allowed).toBe(false);
+  expect(unsupported.classification).toBeNull();
+  expect(unsupported.policyRule).toBeNull();
+  expect(unsupported.rejectionReasons).toContain(
+    "unsupported_source_classification",
+  );
+});
+
+test("validates Avanza confirmation evidence without capture or conversion", () => {
+  const buildEvidence = (
+    overrides: Partial<AvanzaConfirmationEvidence> = {},
+  ): AvanzaConfirmationEvidence => ({
+    contractVersion: AVANZA_BROKER_CONFIRMATION_EVIDENCE_CONTRACT_VERSION,
+    broker: "avanza",
+    sourceType: "final_confirmation",
+    sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+    side: "buy",
+    quantity: 12,
+    price: {
+      value: 86.5,
+      fieldType: "execution_price",
+      currency: "SEK",
+      rawLabel: "Genomfort pris",
+    },
+    currency: "SEK",
+    confirmationTimestamp: "2026-06-15T09:35:10.000Z",
+    capturedTimestamp: "2026-06-15T09:35:15.000Z",
+    manualConfirmationCheckpoint: true,
+    sourceClassification: "broker_confirmed",
+    provenance: {
+      captureMethod: "browser_readback",
+      captureMode: "semi_automatic_supervised",
+      pageIdentity: "final_confirmation",
+      capturedAt: "2026-06-15T09:35:15.000Z",
+      evidenceFingerprint: "avanza-confirmation-evidence-fingerprint-001",
+      sourceClassification: "broker_confirmed",
+      browserSessionLabel: "sanitized-session-label",
+      extractionConfidence: 0.96,
+      fieldConfidence: {
+        instrument: { value: 0.98 },
+        side: { value: 0.99 },
+        quantity: { value: 0.97 },
+        price: { value: 0.96 },
+        timestamp: { value: 0.94 },
+        brokerReference: { value: 0.95 },
+        status: { value: 0.93 },
+        currency: { value: 0.98 },
+      },
+      userConfirmationCheckpoint: true,
+      captureId: "avanza-capture-001",
+      requestId: "avanza-request-001",
+      handoffPayloadFingerprint: "handoff-fingerprint-001",
+    },
+    privacy: {
+      containsRawScreenshot: false,
+      containsRawPageText: false,
+      containsRawDom: false,
+      containsCredentials: false,
+      containsCookiesOrTokens: false,
+      containsAccountNumber: false,
+      containsBalanceOrHoldings: false,
+      accountIdentifierMasked: true,
+      rawUrlStored: false,
+      rawSensitiveDataStored: false,
+    },
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+      instrumentType: "stock",
+    },
+    brokerReferences: {
+      orderId: "AVZ-EVIDENCE-ORDER-001",
+      confirmationId: "AVZ-EVIDENCE-CONFIRM-001",
+      brokerReference: "AVZ-EVIDENCE-REF-001",
+    },
+    orderStatus: "filled",
+    orderType: "limit",
+    accountContext: {
+      accountLabel: "Masked ISK",
+      accountType: "ISK",
+      maskedAccountId: "****1234",
+    },
+    handoffPayloadFingerprint: "handoff-fingerprint-001",
+    fee: 1.5,
+    totalAmount: 1038,
+    ...overrides,
+  });
+
+  const valid = validateAvanzaConfirmationEvidence(buildEvidence());
+
+  expect(valid.status).toBe("valid");
+  expect(valid.validForNextStep).toBe(true);
+  expect(valid.rejectionReasons).toEqual([]);
+  expect(valid.sourceClassificationResult?.allowed).toBe(true);
+
+  const orderPreview = validateAvanzaConfirmationEvidence(
+    buildEvidence({
+      sourceType: "order_preview",
+      sourcePageFlowIdentifier: "avanza-order-preview",
+      provenance: {
+        ...buildEvidence().provenance,
+        pageIdentity: "order_preview",
+      },
+    }),
+  );
+
+  expect(orderPreview.status).toBe("rejected");
+  expect(orderPreview.rejectionReasons).toEqual(
+    expect.arrayContaining([
+      "missing_final_confirmation_source",
+      "source_is_order_preview",
+    ]),
+  );
+
+  const missingOrderId = validateAvanzaConfirmationEvidence(
+    buildEvidence({
+      brokerReferences: {},
+    }),
+  );
+
+  expect(missingOrderId.status).toBe("rejected");
+  expect(missingOrderId.rejectionReasons).toContain("missing_order_id");
+
+  const missingProvenanceEvidence: Partial<AvanzaConfirmationEvidence> =
+    buildEvidence();
+  delete missingProvenanceEvidence.provenance;
+
+  const missingProvenance = validateAvanzaConfirmationEvidence(
+    missingProvenanceEvidence,
+  );
+
+  expect(missingProvenance.status).toBe("rejected");
+  expect(missingProvenance.rejectionReasons).toContain("provenance_missing");
+
+  const invalidQuantityAndPrice = validateAvanzaConfirmationEvidence(
+    buildEvidence({
+      quantity: 0,
+      price: {
+        value: -1,
+        fieldType: "execution_price",
+        currency: "SEK",
+      },
+    }),
+  );
+
+  expect(invalidQuantityAndPrice.status).toBe("rejected");
+  expect(invalidQuantityAndPrice.rejectionReasons).toEqual(
+    expect.arrayContaining(["quantity_mismatch", "price_invalid"]),
+  );
+
+  const partialFill = validateAvanzaConfirmationEvidence(
+    buildEvidence({
+      orderStatus: "partially_filled",
+      partialFill: {
+        status: "unclear",
+        filledQuantity: 6,
+        remainingQuantity: 6,
+        averageFillPrice: 86.5,
+        orderId: "AVZ-EVIDENCE-ORDER-001",
+      },
+    }),
+  );
+
+  expect(partialFill.status).toBe("needs_review");
+  expect(partialFill.rejectionReasons).toContain("partial_fill_ambiguous");
+
+  const lowConfidence = validateAvanzaConfirmationEvidence(
+    buildEvidence({
+      provenance: {
+        ...buildEvidence().provenance,
+        extractionConfidence: 0.62,
+        fieldConfidence: {
+          ...buildEvidence().provenance.fieldConfidence,
+          price: { value: 0.55 },
+        },
+      },
+    }),
+  );
+
+  expect(lowConfidence.status).toBe("needs_review");
+  expect(lowConfidence.rejectionReasons).toContain(
+    "extraction_confidence_low",
+  );
+  expect(lowConfidence.warnings).toContain("field_confidence_partial");
+});
+
+test("validates BrokerExecutionResult confirmation without mapping or writes", () => {
+  const buildEvidence = (
+    overrides: Partial<AvanzaConfirmationEvidence> = {},
+  ): AvanzaConfirmationEvidence => ({
+    contractVersion: AVANZA_BROKER_CONFIRMATION_EVIDENCE_CONTRACT_VERSION,
+    broker: "avanza",
+    sourceType: "final_confirmation",
+    sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+    side: "buy",
+    quantity: 12,
+    price: {
+      value: 86.5,
+      fieldType: "execution_price",
+      currency: "SEK",
+      rawLabel: "Genomfort pris",
+    },
+    currency: "SEK",
+    confirmationTimestamp: "2026-06-15T09:35:10.000Z",
+    capturedTimestamp: "2026-06-15T09:35:15.000Z",
+    manualConfirmationCheckpoint: true,
+    sourceClassification: "production_safe_candidate",
+    provenance: {
+      captureMethod: "browser_readback",
+      captureMode: "semi_automatic_supervised",
+      pageIdentity: "final_confirmation",
+      capturedAt: "2026-06-15T09:35:15.000Z",
+      evidenceFingerprint:
+        "avanza-confirmation-validator-evidence-fingerprint-001",
+      sourceClassification: "production_safe_candidate",
+      extractionConfidence: 0.96,
+      fieldConfidence: {
+        instrument: { value: 0.98 },
+        side: { value: 0.99 },
+        quantity: { value: 0.97 },
+        price: { value: 0.96 },
+        timestamp: { value: 0.94 },
+        brokerReference: { value: 0.95 },
+        status: { value: 0.93 },
+        currency: { value: 0.98 },
+      },
+      userConfirmationCheckpoint: true,
+      captureId: "avanza-confirmation-validator-capture-001",
+      requestId: "avanza-confirmation-validator-request-001",
+      handoffPayloadFingerprint: "handoff-confirmation-validator-001",
+    },
+    privacy: {
+      containsRawScreenshot: false,
+      containsRawPageText: false,
+      containsRawDom: false,
+      containsCredentials: false,
+      containsCookiesOrTokens: false,
+      containsAccountNumber: false,
+      containsBalanceOrHoldings: false,
+      accountIdentifierMasked: true,
+      rawUrlStored: false,
+      rawSensitiveDataStored: false,
+    },
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+      instrumentType: "stock",
+    },
+    brokerReferences: {
+      orderId: "AVZ-CONFIRM-VALIDATOR-ORDER-001",
+      confirmationId: "AVZ-CONFIRM-VALIDATOR-CONFIRM-001",
+      brokerReference: "AVZ-CONFIRM-VALIDATOR-REF-001",
+    },
+    orderStatus: "filled",
+    orderType: "limit",
+    accountContext: {
+      accountLabel: "Masked ISK",
+      accountType: "ISK",
+      maskedAccountId: "****1234",
+    },
+    handoffPayloadFingerprint: "handoff-confirmation-validator-001",
+    fee: 1.5,
+    totalAmount: 1038,
+    ...overrides,
+  });
+
+  const buildInput = (
+    evidence: AvanzaConfirmationEvidence = buildEvidence(),
+    overrides: Partial<BrokerExecutionResultConfirmationValidatorInput> = {},
+  ): BrokerExecutionResultConfirmationValidatorInput => ({
+    contractVersion:
+      BROKER_EXECUTION_RESULT_CONFIRMATION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-15T09:36:00.000Z",
+    broker: "avanza",
+    mode: "semi_auto_manual_confirmed",
+    rawEvidence: evidence,
+    evidenceValidationResult: validateAvanzaConfirmationEvidence(evidence),
+    sourceClassification: evidence.sourceClassification,
+    intendedSide: "buy",
+    intendedInstrument: {
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      currency: "SEK",
+    },
+    intendedQuantity: 12,
+    intendedPrice: {
+      expectedExecutionPrice: 86.5,
+      currency: "SEK",
+      source: "handoff_payload",
+    },
+    handoffPayloadFingerprint: "handoff-confirmation-validator-001",
+    expectedAccountContext: {
+      broker: "avanza",
+      accountLabel: "Masked ISK",
+      accountType: "ISK",
+      maskedAccountId: "****1234",
+    },
+    mappingPolicyVersion: "broker-confirmation-mapping-policy-v1",
+    ...overrides,
+  });
+
+  const valid = validateBrokerExecutionResultConfirmation(buildInput());
+
+  expect(valid.status).toBe("confirmed_candidate");
+  expect(valid.safeToConvert).toBe(true);
+  expect(valid.safeToPersist).toBe(false);
+  expect(valid.safeToMutateTrade).toBe(false);
+  expect(valid.brokerExecutionResultCreated).toBe(false);
+  expect(valid.mapperRan).toBe(false);
+  expect(valid.persistenceAttempted).toBe(false);
+  expect(valid.tradeMutationAttempted).toBe(false);
+  expect(valid.rejectionReasons).toEqual([]);
+  expect(valid.fingerprintInputSummary).toEqual(
+    expect.objectContaining({
+      handoffPayloadFingerprint: "handoff-confirmation-validator-001",
+      evidenceFingerprint:
+        "avanza-confirmation-validator-evidence-fingerprint-001",
+      brokerOrderId: "AVZ-CONFIRM-VALIDATOR-ORDER-001",
+      brokerConfirmationId: "AVZ-CONFIRM-VALIDATOR-CONFIRM-001",
+      ticker: "ERIC B",
+      side: "buy",
+      quantity: 12,
+      price: 86.5,
+    }),
+  );
+
+  const rejectedEvidence = validateBrokerExecutionResultConfirmation(
+    buildInput(buildEvidence({ brokerReferences: {} })),
+  );
+
+  expect(rejectedEvidence.status).toBe("rejected");
+  expect(rejectedEvidence.rejectionReasons).toContain("evidence_rejected");
+  expect(rejectedEvidence.rejectionReasons).toContain(
+    "broker_reference_missing",
+  );
+  expect(rejectedEvidence.safeToConvert).toBe(false);
+  expect(rejectedEvidence.safeToPersist).toBe(false);
+
+  const partialFill = validateBrokerExecutionResultConfirmation(
+    buildInput(
+      buildEvidence({
+        orderStatus: "partially_filled",
+        partialFill: {
+          status: "unclear",
+          filledQuantity: 6,
+          remainingQuantity: 6,
+          averageFillPrice: 86.5,
+          orderId: "AVZ-CONFIRM-VALIDATOR-ORDER-001",
+        },
+      }),
+    ),
+  );
+
+  expect(partialFill.status).toBe("partial_fill_review");
+  expect(partialFill.rejectionReasons).toContain("evidence_needs_review");
+  expect(partialFill.rejectionReasons).toContain("partial_fill_ambiguous");
+  expect(partialFill.safeToConvert).toBe(false);
+
+  const lowConfidence = validateBrokerExecutionResultConfirmation(
+    buildInput(
+      buildEvidence({
+        provenance: {
+          ...buildEvidence().provenance,
+          extractionConfidence: 0.62,
+          fieldConfidence: {
+            ...buildEvidence().provenance.fieldConfidence,
+            price: { value: 0.55 },
+          },
+        },
+      }),
+    ),
+  );
+
+  expect(lowConfidence.status).toBe("needs_review");
+  expect(lowConfidence.rejectionReasons).toContain("evidence_needs_review");
+
+  const missingHandoff = validateBrokerExecutionResultConfirmation(
+    buildInput(undefined, { handoffPayloadFingerprint: null }),
+  );
+
+  expect(missingHandoff.status).toBe("rejected");
+  expect(missingHandoff.rejectionReasons).toContain(
+    "missing_handoff_fingerprint",
+  );
+
+  const automaticMode = validateBrokerExecutionResultConfirmation(
+    buildInput(undefined, { mode: "automatic" }),
+  );
+
+  expect(automaticMode.status).toBe("rejected");
+  expect(automaticMode.rejectionReasons).toContain(
+    "automatic_mode_not_allowed",
+  );
+
+  const notProductionSafe = validateBrokerExecutionResultConfirmation(
+    buildInput(
+      buildEvidence({
+        sourceClassification: "broker_confirmed",
+        provenance: {
+          ...buildEvidence().provenance,
+          sourceClassification: "broker_confirmed",
+        },
+      }),
+    ),
+  );
+
+  expect(notProductionSafe.status).toBe("rejected");
+  expect(notProductionSafe.rejectionReasons).toContain(
+    "source_not_production_safe",
+  );
+  expect(notProductionSafe.safeToPersist).toBe(false);
+
+  const previewSource = validateBrokerExecutionResultConfirmation(
+    buildInput(
+      buildEvidence({
+        sourceClassification: "preview_only",
+        provenance: {
+          ...buildEvidence().provenance,
+          sourceClassification: "preview_only",
+        },
+      }),
+    ),
+  );
+
+  expect(previewSource.status).toBe("rejected");
+  expect(previewSource.rejectionReasons).toContain("evidence_rejected");
+  expect(previewSource.rejectionReasons).toContain(
+    "source_not_confirmation_capable",
+  );
+
+  const mismatched = validateBrokerExecutionResultConfirmation(
+    buildInput(undefined, {
+      intendedSide: "sell",
+      intendedInstrument: {
+        ticker: "VOLV B",
+        instrumentName: "Volvo B",
+        isin: "SE0000115446",
+        instrumentId: "9999",
+      },
+      intendedQuantity: 24,
+    }),
+  );
+
+  expect(mismatched.status).toBe("rejected");
+  expect(mismatched.rejectionReasons).toEqual(
+    expect.arrayContaining([
+      "side_mismatch",
+      "instrument_mismatch",
+      "quantity_mismatch",
+    ]),
+  );
+});
+
+test("validates final settlement note matching without finalization or writes", () => {
+  const accountContext: BrokerEvidenceMaskedAccountContext = {
+    accountLabel: "Masked ISK",
+    accountType: "ISK",
+    maskedAccountId: "****1234",
+  };
+
+  const buildSourceReference = (
+    overrides: Partial<BrokerEvidenceSourceReference> = {},
+  ): BrokerEvidenceSourceReference => ({
+    sourceClassification: "production_safe_candidate",
+    sourcePageIdentity: "avanza-final-settlement-note",
+    sourceReferenceLabel: "AVZ-NOTE-001",
+    capturedAt: "2026-06-16T10:05:00.000Z",
+    evidenceFingerprint: "final-note-evidence-fingerprint-001",
+    captureId: "final-note-capture-001",
+    requestId: "final-note-request-001",
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    rawSensitiveDataStored: false,
+    ...overrides,
+  });
+
+  const buildImmediateEvidence = (
+    overrides: Partial<ImmediateBrokerReadbackEvidence> = {},
+  ): ImmediateBrokerReadbackEvidence => ({
+    contractVersion: TWO_STAGE_BROKER_EVIDENCE_CONTRACT_VERSION,
+    evidenceStage: "immediate_readback",
+    lifecycleStatus: "final_note_pending",
+    broker: "avanza",
+    accountContext,
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+    },
+    side: "buy",
+    quantity: 12,
+    visiblePrice: {
+      value: 86.5,
+      currency: "SEK",
+      rawLabel: "Genomfort pris",
+    },
+    visibleCurrency: "SEK",
+    transactionReadbackTimestamp: "2026-06-16T10:00:00.000Z",
+    sourcePageIdentity: "avanza-immediate-readback",
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    provisionalStatus: "provisional",
+    finalNotePending: true,
+    missingFields: [],
+    provisionalFields: [],
+    provenance: buildSourceReference({
+      sourcePageIdentity: "avanza-immediate-readback",
+      evidenceFingerprint: "immediate-readback-evidence-fingerprint-001",
+    }),
+    safetyPolicy: TWO_STAGE_BROKER_EVIDENCE_DEFAULT_SAFETY_POLICY,
+    reviewFlags: [],
+    warnings: [],
+    ...overrides,
+  });
+
+  const buildFinalEvidence = (
+    overrides: Partial<FinalBrokerSettlementNoteEvidence> = {},
+  ): FinalBrokerSettlementNoteEvidence => ({
+    contractVersion: TWO_STAGE_BROKER_EVIDENCE_CONTRACT_VERSION,
+    evidenceStage: "final_settlement_note",
+    lifecycleStatus: "final_note_available",
+    broker: "avanza",
+    noteReferenceNumber: "AVZ-NOTE-001",
+    businessDate: "2026-06-16",
+    settlementDate: "2026-06-18",
+    printDate: "2026-06-16",
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+    },
+    isin: "SE0000108656",
+    side: "buy",
+    quantity: 12,
+    executionPrice: {
+      value: 86.5,
+      currency: "SEK",
+    },
+    currency: "SEK",
+    executionTime: "2026-06-16T10:03:00.000Z",
+    orderType: "limit",
+    marketOrVenue: "XSTO",
+    commission: {
+      value: 1.5,
+      currency: "SEK",
+    },
+    consideration: {
+      value: 1038,
+      currency: "SEK",
+    },
+    fxRates: [],
+    totalAmount: {
+      value: 1039.5,
+      currency: "SEK",
+    },
+    accountContext,
+    provenance: buildSourceReference(),
+    matchingCandidate: {
+      provisionalEvidenceFingerprint:
+        "immediate-readback-evidence-fingerprint-001",
+      finalNoteEvidenceFingerprint: "final-note-evidence-fingerprint-001",
+      noteReferenceNumber: "AVZ-NOTE-001",
+      broker: "avanza",
+      accountContext,
+      instrument: {
+        instrumentName: "Ericsson B",
+        ticker: "ERIC B",
+        isin: "SE0000108656",
+        instrumentId: "5361",
+      },
+      side: "buy",
+      quantity: 12,
+      tradeDate: "2026-06-16",
+      approximateExecutionTime: "2026-06-16T10:00:00.000Z",
+      price: {
+        value: 86.5,
+        currency: "SEK",
+        rawLabel: "limit",
+      },
+      handoffPayloadFingerprint: "handoff-final-note-001",
+      matchingStatus: "exact_match",
+      matchingReasons: [],
+      reviewFlags: [],
+    },
+    finalizedFields: [],
+    missingFields: [],
+    safetyPolicy: TWO_STAGE_BROKER_EVIDENCE_DEFAULT_SAFETY_POLICY,
+    reviewFlags: [],
+    warnings: [],
+    ...overrides,
+  });
+
+  const buildInput = (
+    overrides: Partial<FinalSettlementNoteMatchingInput> = {},
+  ): FinalSettlementNoteMatchingInput => ({
+    contractVersion: FINAL_SETTLEMENT_NOTE_MATCHING_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T10:10:00.000Z",
+    broker: "avanza",
+    provisionalImmediateReadbackEvidence: buildImmediateEvidence(),
+    provisionalTradeContext: {
+      broker: "avanza",
+      accountContext,
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      side: "buy",
+      quantity: 12,
+      tradeDate: "2026-06-16",
+      approximateExecutionTime: "2026-06-16T10:00:00.000Z",
+      expectedPrice: {
+        value: 86.5,
+        currency: "SEK",
+      },
+      handoffPayloadFingerprint: "handoff-final-note-001",
+      provenance: buildSourceReference({
+        sourcePageIdentity: "avanza-immediate-readback",
+        evidenceFingerprint: "immediate-readback-evidence-fingerprint-001",
+      }),
+    },
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    finalSettlementNoteEvidence: buildFinalEvidence(),
+    accountContext,
+    sourceMetadata: {
+      broker: "avanza",
+      sourceClassification: "production_safe_candidate",
+      sourcePageIdentity: "avanza-final-settlement-note",
+      sourceReferenceLabel: "AVZ-NOTE-001",
+      sourceEvidenceFingerprint: "final-note-evidence-fingerprint-001",
+      finalNoteReferenceNumber: "AVZ-NOTE-001",
+      capturedAt: "2026-06-16T10:05:00.000Z",
+      provenance: buildSourceReference(),
+    },
+    policySnapshot: FINAL_SETTLEMENT_NOTE_MATCHING_DEFAULT_POLICY_SNAPSHOT,
+    ...overrides,
+  });
+
+  const exactMatch = validateFinalSettlementNoteMatch(buildInput());
+
+  expect(exactMatch.status).toBe("matched");
+  expect(["exact_match", "strong_match"]).toContain(exactMatch.confidence);
+  expect(exactMatch.matched).toBe(true);
+  expect(exactMatch.hardGateResults.every((result) => result.passed)).toBe(
+    true,
+  );
+  expect(exactMatch.safeToFinalize).toBe(false);
+  expect(exactMatch.safeToPersist).toBe(false);
+  expect(exactMatch.safeToMutateTrade).toBe(false);
+  expect(exactMatch.finalizationAttempted).toBe(false);
+  expect(exactMatch.persistenceAttempted).toBe(false);
+  expect(exactMatch.tradeMutationAttempted).toBe(false);
+  expect(exactMatch.executionRecordCreated).toBe(false);
+
+  const sideMismatch = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({ side: "sell" }),
+    }),
+  );
+
+  expect(sideMismatch.status).toBe("mismatch");
+  expect(sideMismatch.confidence).toBe("mismatch");
+  expect(sideMismatch.mismatchReasons).toContain("side_mismatch");
+  expect(
+    sideMismatch.hardGateResults.find((result) => result.gate === "same_side")
+      ?.blocked,
+  ).toBe(true);
+
+  const instrumentMismatch = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        instrument: {
+          instrumentName: "Volvo B",
+          ticker: "VOLV B",
+          isin: "SE0000115446",
+          instrumentId: "3521",
+          market: "Stockholm",
+          venue: "XSTO",
+        },
+        isin: "SE0000115446",
+      }),
+    }),
+  );
+
+  expect(instrumentMismatch.status).toBe("mismatch");
+  expect(instrumentMismatch.mismatchReasons).toContain(
+    "instrument_mismatch",
+  );
+
+  const quantityMismatch = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({ quantity: 11 }),
+    }),
+  );
+
+  expect(quantityMismatch.status).toBe("mismatch");
+  expect(quantityMismatch.mismatchReasons).toContain("quantity_mismatch");
+
+  const explicitPartialFill = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        quantity: 6,
+        reviewFlags: ["partial_match_requires_review"],
+      }),
+      metadata: {
+        explicit_partial_fill_model: true,
+      },
+    }),
+  );
+
+  expect(explicitPartialFill.status).toBe("needs_review");
+  expect(explicitPartialFill.confidence).toBe("partial_match");
+  expect(explicitPartialFill.partialFillMatchingStatus).toBe(
+    "single_note_partial_fill_requires_review",
+  );
+  expect(explicitPartialFill.safeToPersist).toBe(false);
+
+  const missingSourceIdentity = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        noteReferenceNumber: null,
+        provenance: buildSourceReference({
+          sourceReferenceLabel: null,
+          evidenceFingerprint: null,
+          captureId: "final-note-capture-001",
+        }),
+      }),
+      sourceMetadata: {
+        broker: "avanza",
+        sourceClassification: "production_safe_candidate",
+        sourcePageIdentity: "avanza-final-settlement-note",
+        sourceReferenceLabel: null,
+        sourceEvidenceFingerprint: null,
+        finalNoteReferenceNumber: null,
+        capturedAt: "2026-06-16T10:05:00.000Z",
+        provenance: buildSourceReference({
+          sourceReferenceLabel: null,
+          evidenceFingerprint: null,
+          captureId: "final-note-capture-001",
+        }),
+      },
+    }),
+  );
+
+  expect(missingSourceIdentity.status).toBe("insufficient_data");
+  expect(missingSourceIdentity.mismatchReasons).toContain(
+    "missing_note_reference",
+  );
+
+  const missingProvenance = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        provenance: buildSourceReference({
+          sourcePageIdentity: "",
+          sourceReferenceLabel: null,
+          evidenceFingerprint: null,
+          captureId: null,
+          requestId: null,
+        }),
+      }),
+      sourceMetadata: {
+        broker: "avanza",
+        sourceClassification: "production_safe_candidate",
+        sourcePageIdentity: "avanza-final-settlement-note",
+        sourceReferenceLabel: "AVZ-NOTE-001",
+        sourceEvidenceFingerprint: null,
+        finalNoteReferenceNumber: "AVZ-NOTE-001",
+        capturedAt: "2026-06-16T10:05:00.000Z",
+        provenance: null,
+      },
+    }),
+  );
+
+  expect(missingProvenance.status).toBe("insufficient_data");
+  expect(missingProvenance.mismatchReasons).toContain("missing_provenance");
+  expect(missingProvenance.reviewFlags).toContain("provenance_review");
+
+  const duplicateCandidates = validateFinalSettlementNoteMatch(
+    buildInput({
+      metadata: {
+        duplicate_note_candidates: true,
+      },
+    }),
+  );
+
+  expect(duplicateCandidates.status).toBe("duplicate_candidates");
+  expect(duplicateCandidates.confidence).toBe("duplicate_candidates");
+  expect(duplicateCandidates.duplicateReasons).toContain(
+    "duplicate_note_candidates",
+  );
+  expect(duplicateCandidates.safeToFinalize).toBe(false);
+
+  const softSignalReview = validateFinalSettlementNoteMatch(
+    buildInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        executionPrice: {
+          value: 92,
+          currency: "SEK",
+        },
+        executionTime: "2026-06-16T11:00:00.000Z",
+      }),
+    }),
+  );
+
+  expect(softSignalReview.status).toBe("needs_review");
+  expect(["partial_match", "ambiguous_match"]).toContain(
+    softSignalReview.confidence,
+  );
+  expect(softSignalReview.mismatchReasons).toContain("price_mismatch");
+  expect(
+    softSignalReview.softSignalResults.find(
+      (result) => result.signal === "price_tolerance",
+    )?.requiresReview,
+  ).toBe(true);
+  expect(
+    softSignalReview.softSignalResults.find(
+      (result) => result.signal === "time_proximity",
+    )?.requiresReview,
+  ).toBe(true);
+});
+
+test("builds finalization candidates without finalization or writes", () => {
+  const accountContext: BrokerEvidenceMaskedAccountContext = {
+    accountLabel: "Masked ISK",
+    accountType: "ISK",
+    maskedAccountId: "****1234",
+  };
+
+  const buildSourceReference = (
+    overrides: Partial<BrokerEvidenceSourceReference> = {},
+  ): BrokerEvidenceSourceReference => ({
+    sourceClassification: "production_safe_candidate",
+    sourcePageIdentity: "avanza-final-settlement-note",
+    sourceReferenceLabel: "AVZ-NOTE-001",
+    capturedAt: "2026-06-16T10:05:00.000Z",
+    evidenceFingerprint: "final-note-evidence-fingerprint-001",
+    captureId: "final-note-capture-001",
+    requestId: "final-note-request-001",
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    rawSensitiveDataStored: false,
+    ...overrides,
+  });
+
+  const buildImmediateEvidence = (
+    overrides: Partial<ImmediateBrokerReadbackEvidence> = {},
+  ): ImmediateBrokerReadbackEvidence => ({
+    contractVersion: TWO_STAGE_BROKER_EVIDENCE_CONTRACT_VERSION,
+    evidenceStage: "immediate_readback",
+    lifecycleStatus: "final_note_pending",
+    broker: "avanza",
+    accountContext,
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+    },
+    side: "buy",
+    quantity: 12,
+    visiblePrice: {
+      value: 86.5,
+      currency: "SEK",
+      rawLabel: "Genomfort pris",
+    },
+    visibleCurrency: "SEK",
+    transactionReadbackTimestamp: "2026-06-16T10:00:00.000Z",
+    sourcePageIdentity: "avanza-immediate-readback",
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    provisionalStatus: "provisional",
+    finalNotePending: true,
+    missingFields: [],
+    provisionalFields: [],
+    provenance: buildSourceReference({
+      sourcePageIdentity: "avanza-immediate-readback",
+      evidenceFingerprint: "immediate-readback-evidence-fingerprint-001",
+    }),
+    safetyPolicy: TWO_STAGE_BROKER_EVIDENCE_DEFAULT_SAFETY_POLICY,
+    reviewFlags: [],
+    warnings: [],
+    ...overrides,
+  });
+
+  const buildFinalEvidence = (
+    overrides: Partial<FinalBrokerSettlementNoteEvidence> = {},
+  ): FinalBrokerSettlementNoteEvidence => ({
+    contractVersion: TWO_STAGE_BROKER_EVIDENCE_CONTRACT_VERSION,
+    evidenceStage: "final_settlement_note",
+    lifecycleStatus: "final_note_available",
+    broker: "avanza",
+    noteReferenceNumber: "AVZ-NOTE-001",
+    businessDate: "2026-06-16",
+    settlementDate: "2026-06-18",
+    printDate: "2026-06-16",
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+    },
+    isin: "SE0000108656",
+    side: "buy",
+    quantity: 12,
+    executionPrice: {
+      value: 86.5,
+      currency: "SEK",
+    },
+    currency: "SEK",
+    executionTime: "2026-06-16T10:03:00.000Z",
+    orderType: "limit",
+    marketOrVenue: "XSTO",
+    commission: {
+      value: 1.5,
+      currency: "SEK",
+    },
+    consideration: {
+      value: 1038,
+      currency: "SEK",
+    },
+    fxRates: [],
+    totalAmount: {
+      value: 1039.5,
+      currency: "SEK",
+    },
+    accountContext,
+    provenance: buildSourceReference(),
+    finalizedFields: [],
+    missingFields: [],
+    safetyPolicy: TWO_STAGE_BROKER_EVIDENCE_DEFAULT_SAFETY_POLICY,
+    reviewFlags: [],
+    warnings: [],
+    ...overrides,
+  });
+
+  const buildMatchingInput = (
+    finalSettlementNoteEvidence = buildFinalEvidence(),
+  ): FinalSettlementNoteMatchingInput => ({
+    contractVersion: FINAL_SETTLEMENT_NOTE_MATCHING_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T10:10:00.000Z",
+    broker: "avanza",
+    provisionalImmediateReadbackEvidence: buildImmediateEvidence(),
+    provisionalTradeContext: {
+      broker: "avanza",
+      accountContext,
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      side: "buy",
+      quantity: 12,
+      tradeDate: "2026-06-16",
+      approximateExecutionTime: "2026-06-16T10:00:00.000Z",
+      expectedPrice: {
+        value: 86.5,
+        currency: "SEK",
+      },
+      handoffPayloadFingerprint: "handoff-final-note-001",
+      provenance: buildSourceReference({
+        sourcePageIdentity: "avanza-immediate-readback",
+        evidenceFingerprint: "immediate-readback-evidence-fingerprint-001",
+      }),
+    },
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    finalSettlementNoteEvidence,
+    accountContext,
+    sourceMetadata: {
+      broker: "avanza",
+      sourceClassification: "production_safe_candidate",
+      sourcePageIdentity: "avanza-final-settlement-note",
+      sourceReferenceLabel: "AVZ-NOTE-001",
+      sourceEvidenceFingerprint: "final-note-evidence-fingerprint-001",
+      finalNoteReferenceNumber: "AVZ-NOTE-001",
+      capturedAt: "2026-06-16T10:05:00.000Z",
+      provenance: buildSourceReference(),
+    },
+    policySnapshot: FINAL_SETTLEMENT_NOTE_MATCHING_DEFAULT_POLICY_SNAPSHOT,
+  });
+
+  const buildBrokerCandidate = (
+    overrides: Partial<BrokerExecutionResultCandidate> = {},
+  ): BrokerExecutionResultCandidate => ({
+    contractVersion: BROKER_EXECUTION_RESULT_CANDIDATE_CONTRACT_VERSION,
+    status: "confirmed_candidate",
+    broker: "avanza",
+    source: {
+      classification: "production_safe_candidate",
+      evidenceSourceType: "final_confirmation",
+      sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+      evidenceFingerprint: "broker-candidate-evidence-fingerprint-001",
+      captureId: "broker-candidate-capture-001",
+      requestId: "broker-candidate-request-001",
+    },
+    sourceClassification: "production_safe_candidate",
+    brokerReferences: {
+      orderId: "order-001",
+      brokerOrderId: "order-001",
+      brokerConfirmationId: "confirmation-001",
+    },
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+    },
+    execution: {
+      side: "buy",
+      quantity: 12,
+      orderType: "limit",
+      brokerStatus: "filled",
+      rawStatus: "filled",
+    },
+    price: {
+      executionPrice: 86.5,
+      currency: "SEK",
+      priceFieldType: "execution_price",
+      commission: 1.5,
+      totalAmount: 1039.5,
+    },
+    confirmationTimestamp: "2026-06-16T10:03:00.000Z",
+    capturedTimestamp: "2026-06-16T10:05:00.000Z",
+    provenance: {
+      source: {
+        classification: "production_safe_candidate",
+        evidenceSourceType: "final_confirmation",
+        sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+        evidenceFingerprint: "broker-candidate-evidence-fingerprint-001",
+        captureId: "broker-candidate-capture-001",
+        requestId: "broker-candidate-request-001",
+      },
+      confirmationStatus: "confirmed_candidate",
+      confirmationTimestamp: "2026-06-16T10:03:00.000Z",
+      capturedTimestamp: "2026-06-16T10:05:00.000Z",
+      captureMethod: "browser_readback",
+      captureMode: "semi_automatic_supervised",
+      pageIdentity: "final_confirmation",
+      evidenceValidationStatus: "valid",
+    },
+    fieldMapping: {
+      mappedFields: [],
+      rawFieldMapPresent: false,
+      rawSensitiveDataStored: false,
+    },
+    fingerprintInput: {
+      confirmationFingerprintInputSummary: {
+        handoffPayloadFingerprint: "handoff-final-note-001",
+        evidenceFingerprint: "broker-candidate-evidence-fingerprint-001",
+        brokerOrderId: "order-001",
+        brokerConfirmationId: "confirmation-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        isin: "SE0000108656",
+        instrumentId: "5361",
+        side: "buy",
+        quantity: 12,
+        price: 86.5,
+        currency: "SEK",
+        confirmationTimestamp: "2026-06-16T10:03:00.000Z",
+        captureId: "broker-candidate-capture-001",
+        requestId: "broker-candidate-request-001",
+      },
+      handoffPayloadFingerprint: "handoff-final-note-001",
+      evidenceFingerprint: "broker-candidate-evidence-fingerprint-001",
+      brokerReferenceFingerprintInput: "order-001|confirmation-001",
+      candidateFingerprintDraft: "broker-candidate-fingerprint-001",
+    },
+    handoffPayloadFingerprint: "handoff-final-note-001",
+    accountContext,
+    partialFill: {
+      status: "not_partial",
+      requiresReview: false,
+    },
+    warnings: [],
+    reviewFlags: [],
+    safetyPolicy: BROKER_EXECUTION_RESULT_CANDIDATE_DEFAULT_SAFETY_POLICY,
+    ...overrides,
+  });
+
+  const buildBuilderInput = (
+    overrides: Partial<FinalizationCandidateBuilderInput> = {},
+  ): FinalizationCandidateBuilderInput => {
+    const finalSettlementNoteEvidence =
+      overrides.finalSettlementNoteEvidence ?? buildFinalEvidence();
+    const matchingResult =
+      overrides.finalSettlementNoteMatchingResult ??
+      validateFinalSettlementNoteMatch(
+        buildMatchingInput(finalSettlementNoteEvidence),
+      );
+
+    return {
+      contractVersion: FINALIZATION_CANDIDATE_BUILDER_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T10:15:00.000Z",
+      provisionalImmediateReadbackEvidence: buildImmediateEvidence(),
+      finalSettlementNoteEvidence,
+      finalSettlementNoteMatchingResult: matchingResult,
+      brokerExecutionResultCandidate: buildBrokerCandidate(),
+      provisionalTradeContext: {
+        provisionalTradeId: "provisional-trade-001",
+        recommendationId: "recommendation-001",
+        positionId: "position-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        side: "buy",
+        quantity: 12,
+        status: "final_note_pending",
+      },
+      handoffPayloadFingerprint: "handoff-final-note-001",
+      accountContext,
+      ...overrides,
+    };
+  };
+
+  const clean = buildFinalizationCandidate(buildBuilderInput());
+
+  expect(clean.status).toBe("candidate_built");
+  expect(clean.candidate?.status).toBe("candidate_ready");
+  expect(clean.candidate?.sourceReferences.source).toBe(
+    "final_settlement_note_match",
+  );
+  expect(clean.safeToFinalize).toBe(false);
+  expect(clean.safeToPersist).toBe(false);
+  expect(clean.safeToCreateExecutionRecord).toBe(false);
+  expect(clean.safeToUpdateStats).toBe(false);
+  expect(clean.safeToMutateTrade).toBe(false);
+  expect(clean.finalizationAttempted).toBe(false);
+  expect(clean.persistenceAttempted).toBe(false);
+  expect(clean.executionRecordCreationAttempted).toBe(false);
+  expect(clean.statsUpdateAttempted).toBe(false);
+  expect(clean.tradeMutationAttempted).toBe(false);
+  expect(clean.candidate?.safeToFinalize).toBe(false);
+  expect(clean.candidate?.safeToPersist).toBe(false);
+  expect(clean.candidate?.safeToCreateExecutionRecord).toBe(false);
+  expect(clean.candidate?.safeToUpdateStats).toBe(false);
+  expect(clean.candidate?.safeToMutateTrade).toBe(false);
+
+  const missingSourceFinalNote = buildFinalEvidence({
+    noteReferenceNumber: null,
+    provenance: buildSourceReference({
+      sourceReferenceLabel: null,
+      evidenceFingerprint: null,
+    }),
+  });
+  const missingSource = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteEvidence: missingSourceFinalNote,
+      finalSettlementNoteMatchingResult: {
+        ...validateFinalSettlementNoteMatch(
+          buildMatchingInput(missingSourceFinalNote),
+        ),
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+      },
+    }),
+  );
+
+  expect(missingSource.status).toBe("blocked");
+  expect(missingSource.candidate).toBeNull();
+  expect(missingSource.rejectionReasons).toContain(
+    "missing_final_note_source",
+  );
+
+  const missingProvenanceFinalNote = buildFinalEvidence({
+    provenance: buildSourceReference({
+      sourcePageIdentity: "",
+      sourceReferenceLabel: null,
+      evidenceFingerprint: null,
+      captureId: null,
+      requestId: null,
+    }),
+  });
+  const missingProvenance = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteEvidence: missingProvenanceFinalNote,
+      finalSettlementNoteMatchingResult: {
+        ...validateFinalSettlementNoteMatch(
+          buildMatchingInput(missingProvenanceFinalNote),
+        ),
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+      },
+    }),
+  );
+
+  expect(missingProvenance.status).toBe("blocked");
+  expect(missingProvenance.rejectionReasons).toContain("missing_provenance");
+
+  const unacceptableMatchingResult: FinalSettlementNoteMatchingResult = {
+    ...validateFinalSettlementNoteMatch(buildMatchingInput()),
+    status: "mismatch",
+    confidence: "mismatch",
+    matched: false,
+    mismatchReasons: ["side_mismatch"],
+  };
+  const unacceptable = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteMatchingResult: unacceptableMatchingResult,
+    }),
+  );
+
+  expect(unacceptable.status).toBe("blocked");
+  expect(unacceptable.rejectionReasons).toContain(
+    "matching_result_not_acceptable",
+  );
+
+  const duplicateMatchingResult: FinalSettlementNoteMatchingResult = {
+    ...validateFinalSettlementNoteMatch(buildMatchingInput()),
+    status: "duplicate_candidates",
+    confidence: "duplicate_candidates",
+    matched: false,
+    duplicateReasons: ["duplicate_note_candidates"],
+  };
+  const duplicate = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteMatchingResult: duplicateMatchingResult,
+    }),
+  );
+
+  expect(duplicate.status).toBe("duplicate_review");
+  expect(duplicate.candidate?.status).toBe("duplicate_review");
+  expect(duplicate.rejectionReasons).toContain("duplicate_candidate_conflict");
+  expect(duplicate.safeToFinalize).toBe(false);
+
+  const partialFillMatchingResult: FinalSettlementNoteMatchingResult = {
+    ...validateFinalSettlementNoteMatch(buildMatchingInput()),
+    status: "needs_review",
+    confidence: "partial_match",
+    matched: false,
+    partialFillMatchingStatus: "partial_fill_ambiguous",
+    mismatchReasons: ["partial_fill_ambiguous"],
+  };
+  const partialFill = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteMatchingResult: partialFillMatchingResult,
+    }),
+  );
+
+  expect(partialFill.status).toBe("partial_fill_review");
+  expect(partialFill.candidate?.partialFillStatus).toBe(
+    "partial_fill_ambiguous",
+  );
+  expect(partialFill.rejectionReasons).toContain("partial_fill_ambiguous");
+
+  const missingFeeFxFinalNote = buildFinalEvidence({
+    commission: null,
+    currency: "USD",
+    executionPrice: {
+      value: 86.5,
+      currency: "USD",
+    },
+    consideration: {
+      value: 1038,
+      currency: "USD",
+    },
+    totalAmount: {
+      value: 1038,
+      currency: "USD",
+    },
+    fxRates: [],
+    missingFields: ["commission", "fx_rate"],
+  });
+  const missingFeeFx = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteEvidence: missingFeeFxFinalNote,
+      finalSettlementNoteMatchingResult: {
+        ...validateFinalSettlementNoteMatch(buildMatchingInput()),
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+      },
+    }),
+  );
+
+  expect(missingFeeFx.status).toBe("needs_review");
+  expect(missingFeeFx.warnings).toEqual(
+    expect.arrayContaining([
+      "fee_data_missing_review_required",
+      "fx_data_missing_review_required",
+    ]),
+  );
+  expect(missingFeeFx.safeToFinalize).toBe(false);
+  expect(missingFeeFx.candidate?.feeSummary.reviewRequired).toBe(true);
+  expect(missingFeeFx.candidate?.fxSummary.reviewRequired).toBe(true);
+
+  const unsupportedSource = buildFinalizationCandidate(
+    buildBuilderInput({
+      finalSettlementNoteEvidence: buildFinalEvidence({
+        provenance: buildSourceReference({
+          sourceClassification: "preview_only",
+        }),
+      }),
+      brokerExecutionResultCandidate: buildBrokerCandidate({
+        sourceClassification: "preview_only",
+        source: {
+          classification: "preview_only",
+          evidenceSourceType: "final_confirmation",
+          sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+        },
+      }),
+    }),
+  );
+
+  expect(unsupportedSource.status).toBe("unsupported");
+  expect(unsupportedSource.candidate).toBeNull();
+  expect(unsupportedSource.rejectionReasons).toContain("unsupported_source");
+  expect(unsupportedSource.safeToPersist).toBe(false);
+});
+
+test("validates finalization candidates without finalization or writes", () => {
+  const buildFixture = () => buildFinalizationCandidateDevFixtureResult();
+
+  const requireCandidate = (candidate: FinalizationCandidate | null) => {
+    expect(candidate).not.toBeNull();
+
+    return candidate as FinalizationCandidate;
+  };
+
+  const buildInput = (
+    candidate: FinalizationCandidate | null,
+    overrides: Partial<FinalizationValidatorInput> = {},
+  ): FinalizationValidatorInput => {
+    const builderResult = buildFixture();
+
+    return {
+      contractVersion: FINALIZATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T10:20:00.000Z",
+      candidate,
+      builderResult: {
+        ...builderResult,
+        candidate,
+      },
+      finalSettlementNoteMatchingResult:
+        candidate?.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      provisionalTradeContext: {
+        provisionalTradeId: "finalization-validator-test-trade-001",
+        recommendationId: "finalization-validator-test-recommendation-001",
+        positionId: "finalization-validator-test-position-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        side: "buy",
+        quantity: 12,
+        status: "final_note_pending",
+      },
+      executionRecordCandidateMetadata:
+        candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+      ...overrides,
+    };
+  };
+
+  const baseCandidate = (): FinalizationCandidate => {
+    const candidate = requireCandidate(buildFixture().candidate ?? null);
+
+    return {
+      ...candidate,
+      status: "candidate_ready",
+      partialFillStatus: "not_partial",
+      matchSummary: {
+        ...candidate.matchSummary,
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+        duplicateReasons: [],
+      },
+      feeSummary: {
+        ...candidate.feeSummary,
+        missingFeeData: false,
+        reviewRequired: false,
+      },
+      fxSummary: {
+        ...candidate.fxSummary,
+        missingFxData: false,
+        reviewRequired: false,
+      },
+    };
+  };
+  const withCandidate = (
+    overrides: Partial<FinalizationCandidate>,
+  ): FinalizationCandidate => ({
+    ...baseCandidate(),
+    ...overrides,
+  });
+
+  const clean = validateFinalizationCandidate(buildInput(baseCandidate()));
+
+  expect(clean.status).toBe("ready_for_finalization_review");
+  expect(clean.readinessSummary.readyForFinalizationReview).toBe(true);
+  expect(clean.readinessSummary.readyForFinalizationReviewIsNotFinalization).toBe(
+    true,
+  );
+  expect(clean.safeToFinalize).toBe(false);
+  expect(clean.safeToPersist).toBe(false);
+  expect(clean.safeToCreateExecutionRecord).toBe(false);
+  expect(clean.safeToUpdateStats).toBe(false);
+  expect(clean.safeToMutateTrade).toBe(false);
+  expect(clean.finalizationAttempted).toBe(false);
+  expect(clean.persistenceAttempted).toBe(false);
+  expect(clean.executionRecordCreationAttempted).toBe(false);
+  expect(clean.statsUpdateAttempted).toBe(false);
+  expect(clean.tradeMutationAttempted).toBe(false);
+  expect(clean.warnings).toContain("ready_for_review_not_finalization");
+  expect(clean.warnings).toContain("candidate_not_write_authority");
+
+  const missingCandidate = validateFinalizationCandidate(buildInput(null));
+
+  expect(missingCandidate.status).toBe("blocked");
+  expect(missingCandidate.rejectionReasons).toContain("candidate_missing");
+  expect(missingCandidate.safeToFinalize).toBe(false);
+
+  const blockedCandidate = validateFinalizationCandidate(
+    buildInput(
+      withCandidate({
+        status: "blocked",
+      }),
+    ),
+  );
+
+  expect(blockedCandidate.status).toBe("blocked");
+  expect(blockedCandidate.rejectionReasons).toContain("candidate_blocked");
+
+  const candidateForMissingProvenance = baseCandidate();
+  const finalNoteWithoutProvenance =
+    candidateForMissingProvenance.sourceReferences.finalSettlementNoteEvidence
+      ? {
+          ...candidateForMissingProvenance.sourceReferences
+            .finalSettlementNoteEvidence,
+          provenance: {
+            ...candidateForMissingProvenance.sourceReferences
+              .finalSettlementNoteEvidence.provenance,
+            sourcePageIdentity: "",
+            sourceReferenceLabel: null,
+            evidenceFingerprint: null,
+            captureId: null,
+            requestId: null,
+          },
+        }
+      : null;
+  const missingProvenance = validateFinalizationCandidate(
+    buildInput({
+      ...candidateForMissingProvenance,
+      sourceReferences: {
+        ...candidateForMissingProvenance.sourceReferences,
+        finalSettlementNoteEvidence: finalNoteWithoutProvenance,
+      },
+      evidenceSummary: {
+        ...candidateForMissingProvenance.evidenceSummary,
+        sourceReference: null,
+      },
+      settlementSummary: {
+        ...candidateForMissingProvenance.settlementSummary,
+        provenance: null,
+      },
+    }),
+  );
+
+  expect(missingProvenance.status).toBe("blocked");
+  expect(missingProvenance.rejectionReasons).toContain("missing_provenance");
+
+  const candidateForMissingSource = baseCandidate();
+  const sourceReferenceForMissingSource =
+    candidateForMissingSource.evidenceSummary.sourceReference;
+  const finalNoteWithoutSource =
+    candidateForMissingSource.sourceReferences.finalSettlementNoteEvidence
+      ? {
+          ...candidateForMissingSource.sourceReferences
+            .finalSettlementNoteEvidence,
+          noteReferenceNumber: null,
+          provenance: {
+            ...candidateForMissingSource.sourceReferences
+              .finalSettlementNoteEvidence.provenance,
+            sourceReferenceLabel: null,
+            evidenceFingerprint: null,
+          },
+        }
+      : null;
+  const missingFinalNoteSource = validateFinalizationCandidate(
+    buildInput({
+      ...candidateForMissingSource,
+      sourceReferences: {
+        ...candidateForMissingSource.sourceReferences,
+        finalSettlementNoteEvidence: finalNoteWithoutSource,
+      },
+      evidenceSummary: {
+        ...candidateForMissingSource.evidenceSummary,
+        noteReferenceNumber: null,
+        sourceReference: sourceReferenceForMissingSource
+          ? {
+              ...sourceReferenceForMissingSource,
+              sourceReferenceLabel: null,
+              evidenceFingerprint: null,
+            }
+          : null,
+      },
+      settlementSummary: {
+        ...candidateForMissingSource.settlementSummary,
+        noteReferenceNumber: null,
+      },
+    }),
+  );
+
+  expect(missingFinalNoteSource.status).toBe("blocked");
+  expect(missingFinalNoteSource.rejectionReasons).toContain(
+    "missing_final_note_source",
+  );
+
+  const duplicateReview = validateFinalizationCandidate(
+    buildInput(
+      withCandidate({
+        status: "duplicate_review",
+        matchSummary: {
+          ...baseCandidate().matchSummary,
+          status: "duplicate_candidates",
+          confidence: "duplicate_candidates",
+          matched: false,
+          duplicateReasons: ["duplicate_note_candidates"],
+        },
+      }),
+    ),
+  );
+
+  expect(duplicateReview.status).toBe("duplicate_review");
+  expect(duplicateReview.rejectionReasons).toContain("duplicate_conflict");
+  expect(duplicateReview.safeToCreateExecutionRecord).toBe(false);
+
+  const partialFillReview = validateFinalizationCandidate(
+    buildInput(
+      withCandidate({
+        status: "partial_fill_review",
+        partialFillStatus: "partial_fill_ambiguous",
+      }),
+    ),
+  );
+
+  expect(partialFillReview.status).toBe("partial_fill_review");
+  expect(partialFillReview.reviewFlags).toContain("partial_fill_review");
+  expect(partialFillReview.safeToPersist).toBe(false);
+
+  const missingFeeFx = validateFinalizationCandidate(
+    buildInput(
+      withCandidate({
+        feeSummary: {
+          ...baseCandidate().feeSummary,
+          missingFeeData: true,
+          reviewRequired: true,
+        },
+        fxSummary: {
+          ...baseCandidate().fxSummary,
+          missingFxData: true,
+          reviewRequired: true,
+        },
+      }),
+    ),
+  );
+
+  expect(missingFeeFx.status).toBe("needs_review");
+  expect(missingFeeFx.reviewFlags).toContain("missing_fee_fx_data");
+  expect(missingFeeFx.warnings).toContain("fee_fx_review_required");
+  expect(missingFeeFx.safeToUpdateStats).toBe(false);
+
+  const unsafeAuthorityCandidate = withCandidate({
+    safeToFinalize: true as unknown as false,
+    safetyPolicy: {
+      ...baseCandidate().safetyPolicy,
+      safeToFinalize: true as unknown as false,
+    },
+  });
+  const unsafeAuthority = validateFinalizationCandidate(
+    buildInput(unsafeAuthorityCandidate),
+  );
+
+  expect(unsafeAuthority.status).toBe("blocked");
+  expect(unsafeAuthority.rejectionReasons).toContain(
+    "authority_flag_unexpectedly_true",
+  );
+  expect(unsafeAuthority.safeToFinalize).toBe(false);
+
+  const unsupportedSource = validateFinalizationCandidate(
+    buildInput(
+      withCandidate({
+        status: "unsupported",
+        evidenceSummary: {
+          ...baseCandidate().evidenceSummary,
+          sourceClassification: "preview_only",
+        },
+      }),
+    ),
+  );
+
+  expect(unsupportedSource.status).toBe("unsupported");
+  expect(unsupportedSource.rejectionReasons).toContain("unsupported_source");
+  expect(unsupportedSource.finalizationAttempted).toBe(false);
+  expect(unsupportedSource.persistenceAttempted).toBe(false);
+  expect(unsupportedSource.executionRecordCreationAttempted).toBe(false);
+  expect(unsupportedSource.statsUpdateAttempted).toBe(false);
+  expect(unsupportedSource.tradeMutationAttempted).toBe(false);
+});
+
+test("validates finalization state transition candidates without applying state", () => {
+  const buildFixture = () => buildFinalizationCandidateDevFixtureResult();
+
+  const requireCandidate = (candidate: FinalizationCandidate | null) => {
+    expect(candidate).not.toBeNull();
+
+    return candidate as FinalizationCandidate;
+  };
+
+  const boundaryStatus = (
+    reason = "No write boundary requested for transition validation.",
+  ): FinalizationTransitionBoundaryStatus => ({
+    available: false,
+    status: "not_required",
+    reason,
+  });
+
+  const baseCandidate = (): FinalizationCandidate => {
+    const candidate = requireCandidate(buildFixture().candidate ?? null);
+
+    return {
+      ...candidate,
+      status: "candidate_ready",
+      partialFillStatus: "not_partial",
+      matchSummary: {
+        ...candidate.matchSummary,
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+        duplicateReasons: [],
+      },
+      feeSummary: {
+        ...candidate.feeSummary,
+        missingFeeData: false,
+        reviewRequired: false,
+      },
+      fxSummary: {
+        ...candidate.fxSummary,
+        missingFxData: false,
+        reviewRequired: false,
+      },
+      pnlAdjustmentSummary: {
+        ...candidate.pnlAdjustmentSummary,
+        status: "preview_only",
+      },
+    };
+  };
+
+  const buildValidationInput = (
+    candidate: FinalizationCandidate | null,
+  ): FinalizationValidatorInput => {
+    const builderResult = buildFixture();
+
+    return {
+      contractVersion: FINALIZATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T10:40:00.000Z",
+      candidate,
+      builderResult: {
+        ...builderResult,
+        candidate,
+      },
+      finalSettlementNoteMatchingResult:
+        candidate?.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      provisionalTradeContext: {
+        provisionalTradeId: "transition-validator-test-trade-001",
+        recommendationId: "transition-validator-test-recommendation-001",
+        positionId: "transition-validator-test-position-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        side: "buy",
+        quantity: 12,
+        status: "final_note_pending",
+      },
+      executionRecordCandidateMetadata:
+        candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    };
+  };
+
+  const buildTransitionInput = (
+    candidate: FinalizationCandidate | null,
+    validationResult: FinalizationValidationResult | null,
+    overrides: Partial<FinalizationTransitionInput> = {},
+  ): FinalizationTransitionInput => ({
+    contractVersion: FINALIZATION_STATE_TRANSITION_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T10:45:00.000Z",
+    sourceState: validationResult?.status ?? "not_ready",
+    candidate,
+    validationResult,
+    builderResult: null,
+    finalSettlementNoteMatchingResult:
+      candidate?.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+    provisionalTradeContext: {
+      provisionalTradeId: "transition-validator-test-trade-001",
+      recommendationId: "transition-validator-test-recommendation-001",
+      positionId: "transition-validator-test-position-001",
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      side: "buy",
+      quantity: 12,
+      status: "final_note_pending",
+    },
+    executionRecordCandidateMetadata:
+      candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    approvalContext: {
+      approvalRequired: true,
+      approved: true,
+      approvedBy: "manual-reviewer",
+      approvedAt: "2026-06-16T10:44:00.000Z",
+      approvalReference: "transition-validator-test-approval",
+      approvalNotes: "Review metadata only.",
+    },
+    persistenceBoundaryStatus: boundaryStatus(),
+    executionRecordBoundaryStatus: boundaryStatus(),
+    statsPnlBoundaryStatus: boundaryStatus(),
+    auditContext: {
+      auditRequired: true,
+      auditStrategyAvailable: true,
+      sourceEvidenceTraceable: true,
+      beforeAfterValuesKnown: true,
+      duplicatePreventionAvailable: true,
+      correctionStrategyAvailable: true,
+      auditReference: "transition-validator-test-audit",
+      candidateFingerprint: candidate?.candidateId ?? null,
+      validatorResultReference: validationResult?.evaluatedAt ?? null,
+    },
+    ...overrides,
+  });
+
+  const buildTransitionValidatorInput = (
+    candidate: FinalizationCandidate | null,
+    validationResult: FinalizationValidationResult | null,
+    overrides: Partial<FinalizationStateTransitionValidatorInput> = {},
+  ): FinalizationStateTransitionValidatorInput => {
+    const transitionInput = buildTransitionInput(
+      candidate,
+      validationResult,
+      overrides.transitionInput ?? undefined,
+    );
+
+    return {
+      contractVersion: FINALIZATION_STATE_TRANSITION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T10:50:00.000Z",
+      transitionInput,
+      validationResult,
+      candidate,
+      sourceState: transitionInput.sourceState,
+      proposedTargetState: "finalization_review_ready",
+      persistenceBoundaryStatus: boundaryStatus(),
+      executionRecordBoundaryStatus: boundaryStatus(),
+      statsPnlBoundaryStatus: boundaryStatus(),
+      tradeMutationBoundaryStatus: boundaryStatus(),
+      auditAppendBoundaryStatus: boundaryStatus(),
+      correctionRollbackBoundaryStatus: boundaryStatus(),
+      approvalContext: transitionInput.approvalContext,
+      auditContext: transitionInput.auditContext,
+      executionRecordCandidateMetadata:
+        candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+      ...overrides,
+    };
+  };
+
+  const cleanCandidate = baseCandidate();
+  const cleanValidation = validateFinalizationCandidate(
+    buildValidationInput(cleanCandidate),
+  );
+  const clean = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation),
+  );
+
+  expect(clean.status).toBe("transition_candidate_valid");
+  expect(clean.sourceTargetCompatibility.compatible).toBe(true);
+  expect(clean.sourceTargetCompatibility.expectedTargetState).toBe(
+    "finalization_review_ready",
+  );
+  expect(clean.boundaryReadinessSummary.checkedAsMetadataOnly).toBe(true);
+  expect(clean.boundaryReadinessSummary.persistenceAttempted).toBe(false);
+  expect(clean.boundaryReadinessSummary.executionRecordCreationAttempted).toBe(
+    false,
+  );
+  expect(clean.boundaryReadinessSummary.statsUpdateAttempted).toBe(false);
+  expect(clean.boundaryReadinessSummary.tradeMutationAttempted).toBe(false);
+  expect(clean.auditCorrectionReadinessSummary.ready).toBe(true);
+  expect(clean.safeToApplyTransition).toBe(false);
+  expect(clean.safeToFinalize).toBe(false);
+  expect(clean.safeToPersist).toBe(false);
+  expect(clean.safeToCreateExecutionRecord).toBe(false);
+  expect(clean.safeToUpdateStats).toBe(false);
+  expect(clean.safeToMutateTrade).toBe(false);
+  expect(clean.transitionApplied).toBe(false);
+  expect(clean.finalizationAttempted).toBe(false);
+  expect(clean.persistenceAttempted).toBe(false);
+  expect(clean.executionRecordCreationAttempted).toBe(false);
+  expect(clean.statsUpdateAttempted).toBe(false);
+  expect(clean.tradeMutationAttempted).toBe(false);
+  expect(clean.warnings).toEqual(
+    expect.arrayContaining([
+      "valid_transition_candidate_not_applied",
+      "manual_approval_not_write_authority",
+      "boundary_readiness_metadata_only",
+    ]),
+  );
+
+  const unsupportedPair = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation, {
+      proposedTargetState: "finalization_blocked",
+    }),
+  );
+
+  expect(unsupportedPair.status).toBe("blocked");
+  expect(unsupportedPair.sourceTargetCompatibility.compatible).toBe(false);
+  expect(unsupportedPair.blockedReasons).toContain(
+    "unsupported_source_target_pair",
+  );
+
+  const missingCandidate = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(null, cleanValidation),
+  );
+
+  expect(missingCandidate.status).toBe("blocked");
+  expect(missingCandidate.blockedReasons).toContain("missing_candidate");
+
+  const missingValidationResult = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, null),
+  );
+
+  expect(missingValidationResult.status).toBe("blocked");
+  expect(missingValidationResult.blockedReasons).toContain(
+    "missing_validation_result",
+  );
+
+  const unsafeAuthority = validateFinalizationStateTransition({
+    ...buildTransitionValidatorInput(cleanCandidate, cleanValidation),
+    safeToPersist: true,
+  } as unknown as FinalizationStateTransitionValidatorInput);
+
+  expect(unsafeAuthority.status).toBe("blocked");
+  expect(unsafeAuthority.blockedReasons).toContain("unsafe_authority_flag");
+  expect(unsafeAuthority.safeToPersist).toBe(false);
+
+  const duplicateCandidate: FinalizationCandidate = {
+    ...baseCandidate(),
+    status: "duplicate_review",
+    matchSummary: {
+      ...baseCandidate().matchSummary,
+      status: "duplicate_candidates",
+      confidence: "duplicate_candidates",
+      matched: false,
+      duplicateReasons: ["duplicate_note_candidates"],
+    },
+  };
+  const duplicateValidation = validateFinalizationCandidate(
+    buildValidationInput(duplicateCandidate),
+  );
+  const duplicateReview = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(duplicateCandidate, duplicateValidation, {
+      proposedTargetState: "finalization_needs_review",
+    }),
+  );
+
+  expect(duplicateReview.status).toBe("needs_review");
+  expect(duplicateReview.blockedReasons).toContain("duplicate_conflict");
+  expect(duplicateReview.warnings).toContain("review_state_required");
+  expect(duplicateReview.transitionApplied).toBe(false);
+
+  const partialFillCandidate: FinalizationCandidate = {
+    ...baseCandidate(),
+    status: "partial_fill_review",
+    partialFillStatus: "partial_fill_ambiguous",
+  };
+  const partialFillValidation = validateFinalizationCandidate(
+    buildValidationInput(partialFillCandidate),
+  );
+  const partialFillReview = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(partialFillCandidate, partialFillValidation, {
+      proposedTargetState: "finalization_needs_review",
+    }),
+  );
+
+  expect(partialFillReview.status).toBe("needs_review");
+  expect(partialFillReview.warnings).toContain("review_state_required");
+  expect(partialFillReview.safeToMutateTrade).toBe(false);
+
+  const missingAuditStrategy = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation, {
+      auditContext: null,
+    }),
+  );
+
+  expect(missingAuditStrategy.status).toBe("blocked");
+  expect(missingAuditStrategy.blockedReasons).toContain(
+    "missing_audit_correction_strategy",
+  );
+  expect(missingAuditStrategy.auditAppendAttempted).toBe(false);
+
+  const missingBoundaryMetadata = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation, {
+      persistenceBoundaryStatus: null,
+    }),
+  );
+
+  expect(missingBoundaryMetadata.status).toBe("blocked");
+  expect(missingBoundaryMetadata.blockedReasons).toContain(
+    "missing_required_boundary_metadata",
+  );
+  expect(missingBoundaryMetadata.boundaryReadinessSummary.checkedAsMetadataOnly).toBe(
+    true,
+  );
+});
+
+test("validates finalization action candidates without running actions or writes", () => {
+  const buildFixture = () => buildFinalizationCandidateDevFixtureResult();
+
+  const requireCandidate = (candidate: FinalizationCandidate | null) => {
+    expect(candidate).not.toBeNull();
+
+    return candidate as FinalizationCandidate;
+  };
+
+  const boundaryStatus = (
+    reason = "No write boundary requested for action validation.",
+  ): FinalizationTransitionBoundaryStatus => ({
+    available: false,
+    status: "not_required",
+    reason,
+  });
+
+  const baseCandidate = (): FinalizationCandidate => {
+    const candidate = requireCandidate(buildFixture().candidate ?? null);
+
+    return {
+      ...candidate,
+      status: "candidate_ready",
+      partialFillStatus: "not_partial",
+      matchSummary: {
+        ...candidate.matchSummary,
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+        duplicateReasons: [],
+      },
+      feeSummary: {
+        ...candidate.feeSummary,
+        missingFeeData: false,
+        reviewRequired: false,
+      },
+      fxSummary: {
+        ...candidate.fxSummary,
+        missingFxData: false,
+        reviewRequired: false,
+      },
+      pnlAdjustmentSummary: {
+        ...candidate.pnlAdjustmentSummary,
+        status: "preview_only",
+      },
+    };
+  };
+
+  const buildValidationInput = (
+    candidate: FinalizationCandidate | null,
+  ): FinalizationValidatorInput => {
+    const builderResult = buildFixture();
+
+    return {
+      contractVersion: FINALIZATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T11:00:00.000Z",
+      candidate,
+      builderResult: {
+        ...builderResult,
+        candidate,
+      },
+      finalSettlementNoteMatchingResult:
+        candidate?.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      provisionalTradeContext: {
+        provisionalTradeId: "action-validator-test-trade-001",
+        recommendationId: "action-validator-test-recommendation-001",
+        positionId: "action-validator-test-position-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        side: "buy",
+        quantity: 12,
+        status: "final_note_pending",
+      },
+      executionRecordCandidateMetadata:
+        candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    };
+  };
+
+  const buildTransitionValidatorInput = (
+    candidate: FinalizationCandidate | null,
+    validationResult: FinalizationValidationResult | null,
+    overrides: Partial<FinalizationStateTransitionValidatorInput> = {},
+  ): FinalizationStateTransitionValidatorInput => ({
+    contractVersion: FINALIZATION_STATE_TRANSITION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T11:05:00.000Z",
+    transitionInput: null,
+    validationResult,
+    candidate,
+    sourceState: validationResult?.status ?? "not_ready",
+    proposedTargetState: "finalization_review_ready",
+    persistenceBoundaryStatus: boundaryStatus(),
+    executionRecordBoundaryStatus: boundaryStatus(),
+    statsPnlBoundaryStatus: boundaryStatus(),
+    tradeMutationBoundaryStatus: boundaryStatus(),
+    auditAppendBoundaryStatus: boundaryStatus(),
+    correctionRollbackBoundaryStatus: boundaryStatus(),
+    approvalContext: {
+      approvalRequired: true,
+      approved: true,
+      approvedBy: "manual-reviewer",
+      approvedAt: "2026-06-16T11:04:00.000Z",
+      approvalReference: "action-validator-test-transition-approval",
+      approvalNotes: "Review metadata only.",
+    },
+    auditContext: {
+      auditRequired: true,
+      auditStrategyAvailable: true,
+      sourceEvidenceTraceable: true,
+      beforeAfterValuesKnown: true,
+      duplicatePreventionAvailable: true,
+      correctionStrategyAvailable: true,
+      auditReference: "action-validator-test-transition-audit",
+      candidateFingerprint: candidate?.candidateId ?? null,
+      validatorResultReference: validationResult?.evaluatedAt ?? null,
+    },
+    executionRecordCandidateMetadata:
+      candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    ...overrides,
+  });
+
+  const buildActionInput = (
+    candidate: FinalizationCandidate | null,
+    finalizationValidationResult: FinalizationValidationResult | null,
+    transitionValidationResult: ReturnType<typeof validateFinalizationStateTransition> | null,
+    overrides: Partial<FinalizationActionInput> = {},
+  ): FinalizationActionInput => ({
+    contractVersion: FINALIZATION_ACTION_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T11:10:00.000Z",
+    mode: "dry_run",
+    candidate,
+    finalizationValidationResult,
+    transitionValidationResult,
+    transitionResult: null,
+    executionRecordCandidateMetadata:
+      candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    persistenceBoundaryStatus: boundaryStatus(),
+    executionRecordBoundaryStatus: boundaryStatus(),
+    statsPnlBoundaryStatus: boundaryStatus(),
+    tradeMutationBoundaryStatus: boundaryStatus(),
+    auditAppendBoundaryStatus: boundaryStatus(),
+    correctionRollbackBoundaryStatus: boundaryStatus(),
+    approvalContext: {
+      approvalRequired: true,
+      approved: true,
+      approvedBy: "manual-reviewer",
+      approvedAt: "2026-06-16T11:09:00.000Z",
+      approvalReference: "action-validator-test-approval",
+      approvalNotes: "Action validation review metadata only.",
+    },
+    auditContext: {
+      auditRequired: true,
+      auditStrategyAvailable: true,
+      sourceEvidenceTraceable: true,
+      beforeAfterValuesKnown: true,
+      duplicatePreventionAvailable: true,
+      correctionStrategyAvailable: true,
+      auditReference: "action-validator-test-audit",
+      candidateFingerprint: candidate?.candidateId ?? null,
+      validatorResultReference: finalizationValidationResult?.evaluatedAt ?? null,
+    },
+    authority: FINALIZATION_ACTION_DEFAULT_AUTHORITY,
+    ...overrides,
+  });
+
+  const buildValidatorInput = (
+    actionInput: FinalizationActionInput,
+    overrides: Partial<FinalizationActionValidatorInput> = {},
+  ): FinalizationActionValidatorInput => ({
+    contractVersion: FINALIZATION_ACTION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T11:15:00.000Z",
+    actionInput,
+    actionResult: null,
+    candidate: actionInput.candidate ?? null,
+    finalizationValidationResult:
+      actionInput.finalizationValidationResult ?? null,
+    transitionValidationResult: actionInput.transitionValidationResult ?? null,
+    transitionResult: null,
+    executionRecordCandidateMetadata:
+      actionInput.executionRecordCandidateMetadata ?? null,
+    boundaryMetadata: {
+      persistenceBoundaryStatus: actionInput.persistenceBoundaryStatus,
+      executionRecordBoundaryStatus: actionInput.executionRecordBoundaryStatus,
+      statsPnlBoundaryStatus: actionInput.statsPnlBoundaryStatus,
+      auditAppendBoundaryStatus: actionInput.auditAppendBoundaryStatus,
+      correctionRollbackBoundaryStatus:
+        actionInput.correctionRollbackBoundaryStatus,
+      tradeMutationBoundaryStatus: actionInput.tradeMutationBoundaryStatus,
+      metadataPresentWhenRelevant: true,
+      missingBoundaryMetadata: [],
+    },
+    manualApprovalContext: {
+      approvalRequired: true,
+      approvalPresent: actionInput.approvalContext?.approved === true,
+      approvalContext: actionInput.approvalContext ?? null,
+      approvalIsWriteAuthority: false,
+      approvedBy: actionInput.approvalContext?.approvedBy,
+      approvedAt: actionInput.approvalContext?.approvedAt,
+      approvalReference: actionInput.approvalContext?.approvalReference,
+    },
+    auditCorrectionMetadata: {
+      auditRequired: true,
+      correctionRollbackRequired: true,
+      auditContext: actionInput.auditContext ?? null,
+      beforeStateReference: "action-validator-before-state",
+      afterStateReference: "action-validator-after-state",
+      sourceEvidenceReference:
+        actionInput.candidate?.evidenceSummary.sourceReference
+          ?.evidenceFingerprint ??
+        "action-validator-source-evidence",
+      duplicatePreventionReference: "action-validator-duplicate-prevention",
+      correctionStrategyReference: "action-validator-correction-strategy",
+    },
+    ...overrides,
+  });
+
+  const cleanCandidate = baseCandidate();
+  const cleanValidation = validateFinalizationCandidate(
+    buildValidationInput(cleanCandidate),
+  );
+  const cleanTransition = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation),
+  );
+  const cleanActionInput = buildActionInput(
+    cleanCandidate,
+    cleanValidation,
+    cleanTransition,
+  );
+  const clean = validateFinalizationAction(
+    buildValidatorInput(cleanActionInput),
+  );
+
+  expect(clean.status).toBe("action_candidate_valid");
+  expect(clean.authorityValidation.unexpectedTrueAuthorityKeys).toEqual([]);
+  expect(clean.auditCorrectionValidation.checkedAsMetadataOnly).toBe(true);
+  expect(clean.decisionRecommendation.runFinalizationAction).toBe(false);
+  expect(clean.safeToValidateOnly).toBe(true);
+  expect(clean.safeToRunFinalizationAction).toBe(false);
+  expect(clean.safeToFinalize).toBe(false);
+  expect(clean.safeToPersist).toBe(false);
+  expect(clean.safeToCreateExecutionRecord).toBe(false);
+  expect(clean.safeToUpdateStats).toBe(false);
+  expect(clean.safeToMutateTrade).toBe(false);
+  expect(clean.safeToAppendAudit).toBe(false);
+  expect(clean.safeToRollback).toBe(false);
+  expect(clean.finalizationActionAttempted).toBe(false);
+  expect(clean.finalizationAttempted).toBe(false);
+  expect(clean.persistenceAttempted).toBe(false);
+  expect(clean.executionRecordCreationAttempted).toBe(false);
+  expect(clean.statsUpdateAttempted).toBe(false);
+  expect(clean.auditAppendAttempted).toBe(false);
+  expect(clean.rollbackAttempted).toBe(false);
+  expect(clean.tradeMutationAttempted).toBe(false);
+  expect(clean.warnings).toEqual(
+    expect.arrayContaining([
+      "action_candidate_not_execution",
+      "candidate_not_write_authority",
+      "manual_approval_not_write_authority",
+    ]),
+  );
+
+  const unsafeAuthority = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, cleanValidation, cleanTransition, {
+        authority: {
+          ...FINALIZATION_ACTION_DEFAULT_AUTHORITY,
+          finalizationAuthority: true as unknown as false,
+        },
+      }),
+    ),
+  );
+
+  expect(unsafeAuthority.status).toBe("blocked");
+  expect(unsafeAuthority.blockedReasons).toContain(
+    "authority_flag_unexpectedly_true",
+  );
+  expect(unsafeAuthority.safeToRunFinalizationAction).toBe(false);
+
+  const automaticMode = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, cleanValidation, cleanTransition, {
+        mode: "future_write_candidate",
+      }),
+    ),
+  );
+
+  expect(automaticMode.status).toBe("blocked");
+  expect(automaticMode.blockedReasons).toContain(
+    "automatic_mode_not_allowed",
+  );
+  expect(automaticMode.finalizationActionAttempted).toBe(false);
+
+  const missingCandidateTransition = {
+    ...cleanTransition,
+    candidate: null,
+  };
+  const missingCandidate = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(null, { ...cleanValidation, candidate: null }, missingCandidateTransition),
+      {
+        candidate: null,
+        finalizationValidationResult: { ...cleanValidation, candidate: null },
+        transitionValidationResult: missingCandidateTransition,
+      },
+    ),
+  );
+
+  expect(missingCandidate.status).toBe("blocked");
+  expect(missingCandidate.blockedReasons).toContain(
+    "missing_finalization_candidate",
+  );
+
+  const missingFinalizationValidationTransition = {
+    ...cleanTransition,
+    validationResult: null,
+  };
+  const missingFinalizationValidation = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, null, missingFinalizationValidationTransition),
+      {
+        finalizationValidationResult: null,
+        transitionValidationResult: missingFinalizationValidationTransition,
+      },
+    ),
+  );
+
+  expect(missingFinalizationValidation.status).toBe("blocked");
+  expect(missingFinalizationValidation.blockedReasons).toContain(
+    "missing_finalization_validation",
+  );
+
+  const missingTransitionValidation = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, cleanValidation, null),
+      {
+        transitionValidationResult: null,
+      },
+    ),
+  );
+
+  expect(missingTransitionValidation.status).toBe("blocked");
+  expect(missingTransitionValidation.blockedReasons).toContain(
+    "missing_transition_validation",
+  );
+
+  const missingManualApproval = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, cleanValidation, cleanTransition, {
+        approvalContext: {
+          approvalRequired: true,
+          approved: false,
+          approvalReference: "action-validator-review-missing",
+        },
+      }),
+      {
+        manualApprovalContext: {
+          approvalRequired: true,
+          approvalPresent: false,
+          approvalContext: null,
+          approvalIsWriteAuthority: false,
+        },
+      },
+    ),
+  );
+
+  expect(missingManualApproval.status).toBe("needs_review");
+  expect(missingManualApproval.safeToRunFinalizationAction).toBe(false);
+  expect(missingManualApproval.preconditionValidations).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        precondition: "manual_approval_present_if_required",
+        status: "needs_review",
+      }),
+    ]),
+  );
+
+  const missingAuditCorrection = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(cleanCandidate, cleanValidation, cleanTransition, {
+        auditContext: null,
+      }),
+      {
+        auditCorrectionMetadata: null,
+      },
+    ),
+  );
+
+  expect(missingAuditCorrection.status).toBe("blocked");
+  expect(missingAuditCorrection.blockedReasons).toEqual(
+    expect.arrayContaining([
+      "audit_requirement_missing",
+      "correction_strategy_missing",
+    ]),
+  );
+  expect(missingAuditCorrection.auditAppendAttempted).toBe(false);
+  expect(missingAuditCorrection.rollbackAttempted).toBe(false);
+
+  const missingWriteBoundary = validateFinalizationAction(
+    buildValidatorInput(cleanActionInput, {
+      boundaryMetadata: {
+        persistenceBoundaryStatus: null,
+        executionRecordBoundaryStatus: boundaryStatus(),
+        statsPnlBoundaryStatus: boundaryStatus(),
+        auditAppendBoundaryStatus: boundaryStatus(),
+        correctionRollbackBoundaryStatus: boundaryStatus(),
+        tradeMutationBoundaryStatus: boundaryStatus(),
+        metadataPresentWhenRelevant: false,
+        missingBoundaryMetadata: ["persistence_boundary"],
+      },
+    }),
+  );
+
+  expect(missingWriteBoundary.status).toBe("blocked");
+  expect(missingWriteBoundary.blockedReasons).toContain(
+    "write_boundary_unavailable",
+  );
+  expect(missingWriteBoundary.writeBoundaryValidations).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        boundary: "persistence_boundary",
+        safeToInvoke: false,
+        writeAttempted: false,
+      }),
+    ]),
+  );
+
+  const unsupportedCandidate: FinalizationCandidate = {
+    ...cleanCandidate,
+    status: "unsupported",
+    evidenceSummary: {
+      ...cleanCandidate.evidenceSummary,
+      sourceClassification: "preview_only",
+    },
+  };
+  const unsupportedValidation = validateFinalizationCandidate(
+    buildValidationInput(unsupportedCandidate),
+  );
+  const unsupported = validateFinalizationAction(
+    buildValidatorInput(
+      buildActionInput(
+        unsupportedCandidate,
+        unsupportedValidation,
+        cleanTransition,
+      ),
+    ),
+  );
+
+  expect(unsupported.status).toBe("unsupported");
+  expect(unsupported.safeToPersist).toBe(false);
+  expect(unsupported.tradeMutationAttempted).toBe(false);
+});
+
+test("dry-runs finalization action impacts without running actions or writes", () => {
+  const buildFixture = () => buildFinalizationCandidateDevFixtureResult();
+
+  const requireCandidate = (candidate: FinalizationCandidate | null) => {
+    expect(candidate).not.toBeNull();
+
+    return candidate as FinalizationCandidate;
+  };
+
+  const boundaryStatus = (
+    reason = "No write boundary requested for action dry-run.",
+  ): FinalizationTransitionBoundaryStatus => ({
+    available: false,
+    status: "not_required",
+    reason,
+  });
+
+  const baseCandidate = (): FinalizationCandidate => {
+    const candidate = requireCandidate(buildFixture().candidate ?? null);
+
+    return {
+      ...candidate,
+      status: "candidate_ready",
+      partialFillStatus: "not_partial",
+      matchSummary: {
+        ...candidate.matchSummary,
+        status: "matched",
+        confidence: "exact_match",
+        matched: true,
+        mismatchReasons: [],
+        duplicateReasons: [],
+      },
+      feeSummary: {
+        ...candidate.feeSummary,
+        missingFeeData: false,
+        reviewRequired: false,
+      },
+      fxSummary: {
+        ...candidate.fxSummary,
+        missingFxData: false,
+        reviewRequired: false,
+      },
+      pnlAdjustmentSummary: {
+        ...candidate.pnlAdjustmentSummary,
+        status: "preview_only",
+      },
+    };
+  };
+
+  const buildValidationInput = (
+    candidate: FinalizationCandidate | null,
+  ): FinalizationValidatorInput => {
+    const builderResult = buildFixture();
+
+    return {
+      contractVersion: FINALIZATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T12:00:00.000Z",
+      candidate,
+      builderResult: {
+        ...builderResult,
+        candidate,
+      },
+      finalSettlementNoteMatchingResult:
+        candidate?.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      provisionalTradeContext: {
+        provisionalTradeId: "action-dry-run-test-trade-001",
+        recommendationId: "action-dry-run-test-recommendation-001",
+        positionId: "action-dry-run-test-position-001",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        side: "buy",
+        quantity: 12,
+        status: "final_note_pending",
+      },
+      executionRecordCandidateMetadata:
+        candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    };
+  };
+
+  const buildTransitionValidatorInput = (
+    candidate: FinalizationCandidate | null,
+    validationResult: FinalizationValidationResult | null,
+    overrides: Partial<FinalizationStateTransitionValidatorInput> = {},
+  ): FinalizationStateTransitionValidatorInput => ({
+    contractVersion: FINALIZATION_STATE_TRANSITION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T12:05:00.000Z",
+    transitionInput: null,
+    validationResult,
+    candidate,
+    sourceState: validationResult?.status ?? "not_ready",
+    proposedTargetState: "finalization_review_ready",
+    persistenceBoundaryStatus: boundaryStatus(),
+    executionRecordBoundaryStatus: boundaryStatus(),
+    statsPnlBoundaryStatus: boundaryStatus(),
+    tradeMutationBoundaryStatus: boundaryStatus(),
+    auditAppendBoundaryStatus: boundaryStatus(),
+    correctionRollbackBoundaryStatus: boundaryStatus(),
+    approvalContext: {
+      approvalRequired: true,
+      approved: true,
+      approvedBy: "manual-reviewer",
+      approvedAt: "2026-06-16T12:04:00.000Z",
+      approvalReference: "action-dry-run-test-transition-approval",
+      approvalNotes: "Dry-run metadata only.",
+    },
+    auditContext: {
+      auditRequired: true,
+      auditStrategyAvailable: true,
+      sourceEvidenceTraceable: true,
+      beforeAfterValuesKnown: true,
+      duplicatePreventionAvailable: true,
+      correctionStrategyAvailable: true,
+      auditReference: "action-dry-run-test-transition-audit",
+      candidateFingerprint: candidate?.candidateId ?? null,
+      validatorResultReference: validationResult?.evaluatedAt ?? null,
+    },
+    executionRecordCandidateMetadata:
+      candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    ...overrides,
+  });
+
+  const buildActionInput = (
+    candidate: FinalizationCandidate | null,
+    finalizationValidationResult: FinalizationValidationResult | null,
+    transitionValidationResult: ReturnType<
+      typeof validateFinalizationStateTransition
+    > | null,
+    overrides: Partial<FinalizationActionInput> = {},
+  ): FinalizationActionInput => ({
+    contractVersion: FINALIZATION_ACTION_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T12:10:00.000Z",
+    mode: "dry_run",
+    candidate,
+    finalizationValidationResult,
+    transitionValidationResult,
+    transitionResult: null,
+    executionRecordCandidateMetadata:
+      candidate?.executionRecordMetadata?.executionRecordCandidate ?? null,
+    persistenceBoundaryStatus: boundaryStatus(),
+    executionRecordBoundaryStatus: boundaryStatus(),
+    statsPnlBoundaryStatus: boundaryStatus(),
+    tradeMutationBoundaryStatus: boundaryStatus(),
+    auditAppendBoundaryStatus: boundaryStatus(),
+    correctionRollbackBoundaryStatus: boundaryStatus(),
+    approvalContext: {
+      approvalRequired: true,
+      approved: true,
+      approvedBy: "manual-reviewer",
+      approvedAt: "2026-06-16T12:09:00.000Z",
+      approvalReference: "action-dry-run-test-approval",
+      approvalNotes: "Dry-run review metadata only.",
+    },
+    auditContext: {
+      auditRequired: true,
+      auditStrategyAvailable: true,
+      sourceEvidenceTraceable: true,
+      beforeAfterValuesKnown: true,
+      duplicatePreventionAvailable: true,
+      correctionStrategyAvailable: true,
+      auditReference: "action-dry-run-test-audit",
+      candidateFingerprint: candidate?.candidateId ?? null,
+      validatorResultReference: finalizationValidationResult?.evaluatedAt ?? null,
+    },
+    authority: FINALIZATION_ACTION_DEFAULT_AUTHORITY,
+    ...overrides,
+  });
+
+  const buildValidatorInput = (
+    actionInput: FinalizationActionInput,
+    overrides: Partial<FinalizationActionValidatorInput> = {},
+  ): FinalizationActionValidatorInput => ({
+    contractVersion: FINALIZATION_ACTION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T12:15:00.000Z",
+    actionInput,
+    actionResult: null,
+    candidate: actionInput.candidate ?? null,
+    finalizationValidationResult:
+      actionInput.finalizationValidationResult ?? null,
+    transitionValidationResult: actionInput.transitionValidationResult ?? null,
+    transitionResult: null,
+    executionRecordCandidateMetadata:
+      actionInput.executionRecordCandidateMetadata ?? null,
+    boundaryMetadata: {
+      persistenceBoundaryStatus: actionInput.persistenceBoundaryStatus,
+      executionRecordBoundaryStatus: actionInput.executionRecordBoundaryStatus,
+      statsPnlBoundaryStatus: actionInput.statsPnlBoundaryStatus,
+      auditAppendBoundaryStatus: actionInput.auditAppendBoundaryStatus,
+      correctionRollbackBoundaryStatus:
+        actionInput.correctionRollbackBoundaryStatus,
+      tradeMutationBoundaryStatus: actionInput.tradeMutationBoundaryStatus,
+      metadataPresentWhenRelevant: true,
+      missingBoundaryMetadata: [],
+    },
+    manualApprovalContext: {
+      approvalRequired: true,
+      approvalPresent: actionInput.approvalContext?.approved === true,
+      approvalContext: actionInput.approvalContext ?? null,
+      approvalIsWriteAuthority: false,
+      approvedBy: actionInput.approvalContext?.approvedBy,
+      approvedAt: actionInput.approvalContext?.approvedAt,
+      approvalReference: actionInput.approvalContext?.approvalReference,
+    },
+    auditCorrectionMetadata: {
+      auditRequired: true,
+      correctionRollbackRequired: true,
+      auditContext: actionInput.auditContext ?? null,
+      beforeStateReference: "action-dry-run-before-state",
+      afterStateReference: "action-dry-run-after-state",
+      sourceEvidenceReference:
+        actionInput.candidate?.evidenceSummary.sourceReference
+          ?.evidenceFingerprint ??
+        "action-dry-run-source-evidence",
+      duplicatePreventionReference: "action-dry-run-duplicate-prevention",
+      correctionStrategyReference: "action-dry-run-correction-strategy",
+    },
+    ...overrides,
+  });
+
+  const buildDryRunInput = (
+    actionValidationResult: FinalizationActionValidationResult | null,
+    actionInput: FinalizationActionInput | null,
+    overrides: Partial<FinalizationActionDryRunInput> = {},
+  ): FinalizationActionDryRunInput => ({
+    contractVersion: FINALIZATION_ACTION_DRY_RUN_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T12:20:00.000Z",
+    actionInput,
+    actionResult: null,
+    actionValidationResult,
+    candidate: actionValidationResult?.candidate ?? actionInput?.candidate ?? null,
+    finalizationValidationResult:
+      actionValidationResult?.finalizationValidationResult ??
+      actionInput?.finalizationValidationResult ??
+      null,
+    transitionValidationResult:
+      actionValidationResult?.transitionValidationResult ??
+      actionInput?.transitionValidationResult ??
+      null,
+    transitionResult: null,
+    executionRecordCandidateMetadata:
+      actionValidationResult?.executionRecordCandidateMetadata ??
+      actionInput?.executionRecordCandidateMetadata ??
+      null,
+    boundaryMetadata: {
+      persistenceBoundaryStatus: actionInput?.persistenceBoundaryStatus,
+      executionRecordBoundaryStatus:
+        actionInput?.executionRecordBoundaryStatus,
+      statsPnlBoundaryStatus: actionInput?.statsPnlBoundaryStatus,
+      auditAppendBoundaryStatus: actionInput?.auditAppendBoundaryStatus,
+      correctionRollbackBoundaryStatus:
+        actionInput?.correctionRollbackBoundaryStatus,
+      tradeMutationBoundaryStatus: actionInput?.tradeMutationBoundaryStatus,
+      metadataPresentWhenRelevant: true,
+      missingBoundaryMetadata: [],
+    },
+    auditCorrectionMetadata: {
+      auditRequired: true,
+      correctionRollbackRequired: true,
+      auditContext: actionInput?.auditContext ?? null,
+      beforeStateReference: "action-dry-run-before-state",
+      afterStateReference: "action-dry-run-after-state",
+      sourceEvidenceReference:
+        actionInput?.candidate?.evidenceSummary.sourceReference
+          ?.evidenceFingerprint ??
+        "action-dry-run-source-evidence",
+      duplicatePreventionReference: "action-dry-run-duplicate-prevention",
+      correctionStrategyReference: "action-dry-run-correction-strategy",
+    },
+    manualApprovalContext: {
+      approvalRequired: true,
+      approvalPresent: actionInput?.approvalContext?.approved === true,
+      approvalContext: actionInput?.approvalContext ?? null,
+      approvalIsWriteAuthority: false,
+      approvedBy: actionInput?.approvalContext?.approvedBy,
+      approvedAt: actionInput?.approvalContext?.approvedAt,
+      approvalReference: actionInput?.approvalContext?.approvalReference,
+    },
+    approvalContext: actionInput?.approvalContext ?? null,
+    auditContext: actionInput?.auditContext ?? null,
+    ...overrides,
+  });
+
+  const withStatus = (
+    validationResult: FinalizationActionValidationResult,
+    status: FinalizationActionValidationResult["status"],
+  ): FinalizationActionValidationResult => ({
+    ...validationResult,
+    status,
+    blockedReasons:
+      status === "blocked" ? ["finalization_action_not_enabled"] : [],
+    decisionRecommendation: {
+      ...validationResult.decisionRecommendation,
+      recommendedStatus: status,
+      requiresManualReview: true,
+      blockedReason:
+        status === "blocked" ? "finalization_action_not_enabled" : null,
+    },
+  });
+
+  const assertNoAuthorityOrAttempts = (
+    result: ReturnType<typeof runFinalizationActionDryRun>,
+  ) => {
+    expect(result.dryRunOnly).toBe(true);
+    expect(result.safeToRunFinalizationAction).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.dryRunExecuted).toBe(false);
+    expect(result.finalizationActionAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+  };
+
+  const cleanCandidate = baseCandidate();
+  const cleanValidation = validateFinalizationCandidate(
+    buildValidationInput(cleanCandidate),
+  );
+  const cleanTransition = validateFinalizationStateTransition(
+    buildTransitionValidatorInput(cleanCandidate, cleanValidation),
+  );
+  const cleanActionInput = buildActionInput(
+    cleanCandidate,
+    cleanValidation,
+    cleanTransition,
+  );
+  const cleanActionValidation = validateFinalizationAction(
+    buildValidatorInput(cleanActionInput),
+  );
+
+  const ready = runFinalizationActionDryRun(
+    buildDryRunInput(cleanActionValidation, cleanActionInput),
+  );
+
+  expect(ready.status).toBe("dry_run_ready");
+  expect(ready.validationSummary.actionCandidateValid).toBe(true);
+  expect(ready.impactSummary.allImpactsDescriptiveOnly).toBe(true);
+  expect(ready.impactSummary.writesAttempted).toBe(false);
+  expect(ready.impactSummary.finalizationImpact.proposed).toBe(true);
+  expect(ready.impactSummary.finalizationImpact.safeToApply).toBe(false);
+  expect(ready.impactSummary.executionRecordImpact.proposed).toBe(true);
+  expect(ready.impactSummary.persistenceImpact.proposed).toBe(true);
+  expect(ready.impactSummary.statsPnlImpact.proposed).toBe(true);
+  expect(ready.impactSummary.auditImpact.proposed).toBe(true);
+  expect(ready.impactSummary.correctionImpact.proposed).toBe(true);
+  expect(ready.impactSummary.tradeMutationImpact.disposition).toBe(
+    "out_of_scope",
+  );
+  expect(ready.impactSummary.tradeMutationImpact.proposed).toBe(false);
+  expect(ready.impactSummary.tradeMutationImpact.wouldMutateTrade).toBe(false);
+  expect(ready.impactSummary.finalizationImpact.finalizationAttempted).toBe(
+    false,
+  );
+  expect(
+    ready.impactSummary.executionRecordImpact.executionRecordCreationAttempted,
+  ).toBe(false);
+  expect(ready.impactSummary.persistenceImpact.persistenceAttempted).toBe(false);
+  expect(ready.impactSummary.statsPnlImpact.statsUpdateAttempted).toBe(false);
+  expect(ready.impactSummary.auditImpact.auditAppendAttempted).toBe(false);
+  expect(ready.impactSummary.correctionImpact.rollbackAttempted).toBe(false);
+  assertNoAuthorityOrAttempts(ready);
+
+  const blocked = runFinalizationActionDryRun(
+    buildDryRunInput(
+      withStatus(cleanActionValidation, "blocked"),
+      cleanActionInput,
+    ),
+  );
+
+  expect(blocked.status).toBe("dry_run_blocked");
+  expect(blocked.blockedReasons).toContain("finalization_action_not_enabled");
+  expect(blocked.impactSummary.persistenceImpact.safeToApply).toBe(false);
+  assertNoAuthorityOrAttempts(blocked);
+
+  const needsReview = runFinalizationActionDryRun(
+    buildDryRunInput(
+      withStatus(cleanActionValidation, "needs_review"),
+      cleanActionInput,
+    ),
+  );
+
+  expect(needsReview.status).toBe("dry_run_needs_review");
+  expect(needsReview.warnings).toContain("manual_review_required");
+  assertNoAuthorityOrAttempts(needsReview);
+
+  const unsupported = runFinalizationActionDryRun(
+    buildDryRunInput(
+      withStatus(cleanActionValidation, "unsupported"),
+      cleanActionInput,
+    ),
+  );
+
+  expect(unsupported.status).toBe("dry_run_unsupported");
+  expect(unsupported.safeToPersist).toBe(false);
+  assertNoAuthorityOrAttempts(unsupported);
+
+  const missingCandidateValidation: FinalizationActionValidationResult = {
+    ...cleanActionValidation,
+    candidate: null,
+  };
+  const missingCandidateActionInput = buildActionInput(
+    null,
+    cleanValidation,
+    cleanTransition,
+  );
+  const missingCandidate = runFinalizationActionDryRun(
+    buildDryRunInput(missingCandidateValidation, missingCandidateActionInput, {
+      candidate: null,
+    }),
+  );
+
+  expect(missingCandidate.status).toBe("dry_run_blocked");
+  expect(missingCandidate.blockedReasons).toContain(
+    "missing_finalization_candidate",
+  );
+  assertNoAuthorityOrAttempts(missingCandidate);
+
+  const missingTransitionValidation: FinalizationActionValidationResult = {
+    ...cleanActionValidation,
+    transitionValidationResult: null,
+  };
+  const missingTransitionActionInput = buildActionInput(
+    cleanCandidate,
+    cleanValidation,
+    null,
+  );
+  const missingTransition = runFinalizationActionDryRun(
+    buildDryRunInput(
+      missingTransitionValidation,
+      missingTransitionActionInput,
+      {
+        transitionValidationResult: null,
+      },
+    ),
+  );
+
+  expect(missingTransition.status).toBe("dry_run_blocked");
+  expect(missingTransition.blockedReasons).toContain(
+    "missing_transition_validation",
+  );
+  assertNoAuthorityOrAttempts(missingTransition);
+});
+
+test("maps finalization outputs to execution-record bridge candidates only", () => {
+  const buildInput = (
+    overrides: Partial<FinalizationToExecutionRecordBridgeInput> = {},
+  ): FinalizationToExecutionRecordBridgeInput => {
+    const fixture = buildFinalizationActionDevFixtureResult();
+    const candidate = fixture.finalizationCandidateBuilderResult.candidate;
+
+    if (!candidate) {
+      throw new Error("Bridge mapper fixture requires a finalization candidate.");
+    }
+
+    return {
+      contractVersion:
+        FINALIZATION_TO_EXECUTION_RECORD_BRIDGE_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T12:30:00.000Z",
+      immediateBrokerReadback:
+        candidate.sourceReferences.provisionalImmediateReadbackEvidence ??
+        null,
+      brokerExecutionResultCandidate:
+        candidate.sourceReferences.brokerExecutionResultCandidate ?? null,
+      finalSettlementNoteMatch:
+        candidate.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      finalizationCandidate: candidate,
+      finalizationValidationResult: fixture.finalizationValidationResult,
+      transitionValidationResult: fixture.transitionValidationResult,
+      actionValidationResult: fixture.actionValidationResult,
+      actionDryRunResult: fixture.dryRunResult,
+      brokerPayloadHandoffMetadata: {
+        handoffPayloadFingerprint:
+          candidate.evidenceSummary.handoffPayloadFingerprint,
+        recommendationId: candidate.sourceReferences.recommendationId,
+        positionId: candidate.sourceReferences.positionId,
+        executionMode: "semi_automatic",
+        sourceEnvironment: "local_dev",
+        metadata: {
+          fixtureOnly: true,
+          noExecutionRecordCreated: true,
+        },
+      },
+      manualApprovalContext:
+        fixture.actionValidationInput.manualApprovalContext ?? null,
+      auditCorrectionMetadata:
+        fixture.actionValidationInput.auditCorrectionMetadata ?? null,
+      existingExecutionRecordCandidateMetadata: null,
+      ...overrides,
+    };
+  };
+
+  const assertNoAuthorityOrAttempts = (
+    result: FinalizationToExecutionRecordBridgeResult,
+  ) => {
+    expect(result.mappingOnly).toBe(true);
+    expect(result.candidateOnly).toBe(true);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.safeToRunBrokerAction).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.finalizationActionAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+    expect(result.safetyPolicy.mappingOnly).toBe(true);
+    expect(result.safetyPolicy.candidateOnly).toBe(true);
+    expect(result.safetyPolicy.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safetyPolicy.safeToPersist).toBe(false);
+    expect(result.safetyPolicy.safeToFinalize).toBe(false);
+    expect(result.safetyPolicy.safeToUpdateStats).toBe(false);
+    expect(result.safetyPolicy.safeToAppendAudit).toBe(false);
+    expect(result.safetyPolicy.safeToRollback).toBe(false);
+    expect(result.safetyPolicy.safeToMutateTrade).toBe(false);
+    expect(result.safetyPolicy.safeToRunBrokerAction).toBe(false);
+    expect(result.safetyPolicy.automaticModeAllowed).toBe(false);
+  };
+
+  const readyInput = buildInput();
+  const ready = mapFinalizationToExecutionRecordBridge(readyInput);
+
+  expect(ready.status).toBe("bridge_candidate_ready");
+  expect(ready.sourceEvidenceSummary.evidenceChainComplete).toBe(true);
+  expect(ready.sourceEvidenceSummary.finalSettlementNoteMatched).toBe(true);
+  expect(ready.targetSummary.intendedExecutionRecordCandidateInputAvailable).toBe(
+    true,
+  );
+  expect(ready.targetSummary.intendedCreationInput).not.toBeNull();
+  expect(ready.fieldMappingSummary.length).toBeGreaterThan(10);
+  expect(ready.idempotencySummary.requiredFingerprintsPresent).toBe(true);
+  expect(ready.idempotencySummary.duplicateCheckRequired).toBe(true);
+  expect(ready.auditCorrectionSummary.auditMetadataPresent).toBe(true);
+  expect(ready.auditCorrectionSummary.auditAppendAttempted).toBe(false);
+  expect(ready.auditCorrectionSummary.rollbackAttempted).toBe(false);
+  expect(ready.validationHandoffSummary.bridgeOutputCandidateOnly).toBe(true);
+  expect(
+    ready.validationHandoffSummary.executableWriteCandidateProduced,
+  ).toBe(false);
+  expect(ready.warnings).toEqual(
+    expect.arrayContaining([
+      "candidate_only",
+      "mapping_only",
+      "proposed_impact_not_write",
+      "dry_run_ready_not_write_approval",
+      "audit_required_before_write",
+      "duplicate_check_required",
+      "stats_update_out_of_scope",
+      "trade_mutation_out_of_scope",
+    ]),
+  );
+  assertNoAuthorityOrAttempts(ready);
+
+  const missingCandidate = mapFinalizationToExecutionRecordBridge(
+    buildInput({ finalizationCandidate: null }),
+  );
+
+  expect(missingCandidate.status).toBe("bridge_candidate_blocked");
+  expect(missingCandidate.blockedReasons).toContain(
+    "missing_finalization_candidate",
+  );
+  assertNoAuthorityOrAttempts(missingCandidate);
+
+  const missingValidation = mapFinalizationToExecutionRecordBridge(
+    buildInput({ finalizationValidationResult: null }),
+  );
+
+  expect(missingValidation.status).toBe("bridge_candidate_blocked");
+  expect(missingValidation.blockedReasons).toContain(
+    "missing_finalization_validation",
+  );
+
+  const missingDryRun = mapFinalizationToExecutionRecordBridge(
+    buildInput({ actionDryRunResult: null }),
+  );
+
+  expect(missingDryRun.status).toBe("bridge_candidate_blocked");
+  expect(missingDryRun.blockedReasons).toContain("missing_action_dry_run");
+
+  const unsupportedCandidate: FinalizationCandidate = {
+    ...readyInput.finalizationCandidate!,
+    status: "unsupported",
+    evidenceSummary: {
+      ...readyInput.finalizationCandidate!.evidenceSummary,
+      sourceClassification: "preview_only",
+    },
+  };
+  const unsupported = mapFinalizationToExecutionRecordBridge(
+    buildInput({ finalizationCandidate: unsupportedCandidate }),
+  );
+
+  expect(unsupported.status).toBe("bridge_candidate_unsupported");
+  expect(unsupported.blockedReasons).toContain("unsupported_source");
+  assertNoAuthorityOrAttempts(unsupported);
+
+  const ambiguousMatch: FinalSettlementNoteMatchingResult = {
+    ...readyInput.finalSettlementNoteMatch!,
+    status: "duplicate_candidates",
+    confidence: "duplicate_candidates",
+    matched: false,
+    duplicateReasons: ["duplicate_note_candidates"],
+  };
+  const ambiguous = mapFinalizationToExecutionRecordBridge(
+    buildInput({ finalSettlementNoteMatch: ambiguousMatch }),
+  );
+
+  expect(ambiguous.status).toBe("bridge_candidate_blocked");
+  expect(ambiguous.blockedReasons).toContain(
+    "ambiguous_final_settlement_note_match",
+  );
+  expect(ambiguous.reviewItems).toContain("final_settlement_note_match_review");
+
+  const mismatchedMatch: FinalSettlementNoteMatchingResult = {
+    ...readyInput.finalSettlementNoteMatch!,
+    status: "mismatch",
+    confidence: "mismatch",
+    matched: false,
+    mismatchReasons: [
+      "quantity_mismatch",
+      "currency_mismatch",
+      "fx_or_commission_mismatch",
+    ],
+  };
+  const mismatched = mapFinalizationToExecutionRecordBridge(
+    buildInput({ finalSettlementNoteMatch: mismatchedMatch }),
+  );
+
+  expect(mismatched.status).toBe("bridge_candidate_blocked");
+  expect(mismatched.blockedReasons).toEqual(
+    expect.arrayContaining([
+      "mismatched_quantity",
+      "mismatched_currency",
+      "mismatched_fees",
+      "mismatched_fx_rate",
+    ]),
+  );
+  expect(mismatched.reviewItems).toEqual(
+    expect.arrayContaining([
+      "quantity_review",
+      "currency_review",
+      "fees_review",
+      "fx_rate_review",
+    ]),
+  );
+
+  const candidateWithoutFingerprints: FinalizationCandidate = {
+    ...readyInput.finalizationCandidate!,
+    sourceReferences: {
+      ...readyInput.finalizationCandidate!.sourceReferences,
+      handoffPayloadFingerprint: null,
+    },
+    evidenceSummary: {
+      ...readyInput.finalizationCandidate!.evidenceSummary,
+      provisionalEvidenceFingerprint: null,
+      finalNoteEvidenceFingerprint: null,
+      handoffPayloadFingerprint: null,
+      noteReferenceNumber: null,
+      sourceReference: {
+        ...readyInput.finalizationCandidate!.evidenceSummary.sourceReference!,
+        evidenceFingerprint: null,
+      },
+    },
+    executionRecordMetadata: null,
+    settlementSummary: {
+      ...readyInput.finalizationCandidate!.settlementSummary,
+      noteReferenceNumber: null,
+    },
+  };
+  const missingIdempotency = mapFinalizationToExecutionRecordBridge(
+    buildInput({
+      finalizationCandidate: candidateWithoutFingerprints,
+      brokerPayloadHandoffMetadata: null,
+    }),
+  );
+
+  expect(missingIdempotency.status).toBe("bridge_candidate_blocked");
+  expect(missingIdempotency.blockedReasons).toContain(
+    "missing_idempotency_fingerprint",
+  );
+  expect(missingIdempotency.warnings).toContain("idempotency_review_required");
+
+  const missingAuditCorrection = mapFinalizationToExecutionRecordBridge(
+    buildInput({ auditCorrectionMetadata: null }),
+  );
+
+  expect(missingAuditCorrection.status).toBe("bridge_candidate_blocked");
+  expect(missingAuditCorrection.blockedReasons).toContain(
+    "missing_audit_correction_metadata",
+  );
+  expect(missingAuditCorrection.reviewItems).toContain(
+    "audit_correction_review",
+  );
+  assertNoAuthorityOrAttempts(missingAuditCorrection);
+});
+
+test("validates finalization bridge results without write authority", () => {
+  const buildBridgeInput = (
+    overrides: Partial<FinalizationToExecutionRecordBridgeInput> = {},
+  ): FinalizationToExecutionRecordBridgeInput => {
+    const fixture = buildFinalizationActionDevFixtureResult();
+    const candidate = fixture.finalizationCandidateBuilderResult.candidate;
+
+    if (!candidate) {
+      throw new Error("Bridge validator fixture requires a finalization candidate.");
+    }
+
+    return {
+      contractVersion:
+        FINALIZATION_TO_EXECUTION_RECORD_BRIDGE_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T13:00:00.000Z",
+      immediateBrokerReadback:
+        candidate.sourceReferences.provisionalImmediateReadbackEvidence ??
+        null,
+      brokerExecutionResultCandidate:
+        candidate.sourceReferences.brokerExecutionResultCandidate ?? null,
+      finalSettlementNoteMatch:
+        candidate.sourceReferences.finalSettlementNoteMatchingResult ?? null,
+      finalizationCandidate: candidate,
+      finalizationValidationResult: fixture.finalizationValidationResult,
+      transitionValidationResult: fixture.transitionValidationResult,
+      actionValidationResult: fixture.actionValidationResult,
+      actionDryRunResult: fixture.dryRunResult,
+      brokerPayloadHandoffMetadata: {
+        handoffPayloadFingerprint:
+          candidate.evidenceSummary.handoffPayloadFingerprint,
+        recommendationId: candidate.sourceReferences.recommendationId,
+        positionId: candidate.sourceReferences.positionId,
+        executionMode: "semi_automatic",
+        sourceEnvironment: "local_dev",
+      },
+      manualApprovalContext:
+        fixture.actionValidationInput.manualApprovalContext ?? null,
+      auditCorrectionMetadata:
+        fixture.actionValidationInput.auditCorrectionMetadata ?? null,
+      existingExecutionRecordCandidateMetadata: null,
+      ...overrides,
+    };
+  };
+  const buildValidationInput = (
+    bridgeResult: FinalizationToExecutionRecordBridgeResult | null,
+  ): ExecutionRecordFinalizationBridgeValidationInput => ({
+    contractVersion:
+      EXECUTION_RECORD_FINALIZATION_BRIDGE_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-16T13:05:00.000Z",
+    bridgeResult,
+    originalBridgeInput: bridgeResult?.input ?? null,
+  });
+  const validate = (
+    bridgeResult: FinalizationToExecutionRecordBridgeResult | null,
+  ) =>
+    validateExecutionRecordFinalizationBridge(buildValidationInput(bridgeResult));
+  const assertNoAuthorityOrAttempts = (
+    result: ExecutionRecordFinalizationBridgeValidationResult,
+  ) => {
+    expect(result.validationOnly).toBe(true);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.safeToRunBrokerAction).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.authorityFlags.validationOnly).toBe(true);
+    expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+    expect(result.authorityFlags.safeToPersist).toBe(false);
+    expect(result.authorityFlags.safeToFinalize).toBe(false);
+    expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+    expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+    expect(result.authorityFlags.safeToRollback).toBe(false);
+    expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+    expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+    expect(result.authorityFlags.automaticModeAllowed).toBe(false);
+  };
+
+  const readyBridge = mapFinalizationToExecutionRecordBridge(buildBridgeInput());
+  const valid = validate(readyBridge);
+
+  expect(valid.status).toBe("bridge_validation_valid");
+  expect(valid.decisionRecommendation).toBe("validate_only");
+  expect(valid.summaryValidation.sourceEvidenceSummaryPresent).toBe(true);
+  expect(valid.summaryValidation.targetSummaryPresent).toBe(true);
+  expect(valid.summaryValidation.fieldMappingSummaryPresent).toBe(true);
+  expect(valid.idempotencyValidationSummary.requiredFingerprintsPresent).toBe(
+    true,
+  );
+  expect(valid.auditCorrectionValidationSummary.auditMetadataPresent).toBe(true);
+  expect(valid.safetyPolicyValidationSummary.allAuthorityFlagsFalse).toBe(true);
+  expect(valid.validatedFieldSummary.length).toBeGreaterThan(10);
+  assertNoAuthorityOrAttempts(valid);
+
+  const missingBridge = validate(null);
+  expect(missingBridge.status).toBe("bridge_validation_blocked");
+  expect(missingBridge.blockedReasons).toContain("missing_bridge_result");
+  assertNoAuthorityOrAttempts(missingBridge);
+
+  const invalidStatusBridge = {
+    ...readyBridge,
+    status: "bridge_candidate_mystery",
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const invalidStatus = validate(invalidStatusBridge);
+  expect(invalidStatus.status).toBe("bridge_validation_invalid");
+  expect(invalidStatus.blockedReasons).toContain("invalid_bridge_status");
+
+  const unsupportedBridge = mapFinalizationToExecutionRecordBridge(
+    buildBridgeInput({
+      finalizationCandidate: {
+        ...readyBridge.input!.finalizationCandidate!,
+        status: "unsupported",
+      },
+    }),
+  );
+  const unsupported = validate(unsupportedBridge);
+  expect(unsupported.status).toBe("bridge_validation_unsupported");
+  expect(unsupported.blockedReasons).toContain("unsupported_source");
+
+  const blockedBridge = mapFinalizationToExecutionRecordBridge(
+    buildBridgeInput({ finalizationCandidate: null }),
+  );
+  const blocked = validate(blockedBridge);
+  expect(blocked.status).toBe("bridge_validation_blocked");
+  expect(blocked.blockedReasons).toContain("missing_required_fingerprint");
+
+  const reviewBridge = {
+    ...readyBridge,
+    status: "bridge_candidate_needs_review",
+    reviewItems: ["idempotency_review"],
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const needsReview = validate(reviewBridge);
+  expect(needsReview.status).toBe("bridge_validation_needs_review");
+  expect(needsReview.reviewItems).toContain("idempotency_review");
+
+  const readyWithBlockedReasons = {
+    ...readyBridge,
+    blockedReasons: ["missing_idempotency_fingerprint"],
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const readyBlocked = validate(readyWithBlockedReasons);
+  expect(readyBlocked.status).toBe("bridge_validation_blocked");
+  expect(readyBlocked.blockedReasons).toContain(
+    "bridge_ready_with_blocked_reasons",
+  );
+
+  const missingSummaryBridge = {
+    ...readyBridge,
+    fieldMappingSummary: [],
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const missingSummary = validate(missingSummaryBridge);
+  expect(missingSummary.status).toBe("bridge_validation_invalid");
+  expect(missingSummary.blockedReasons).toContain(
+    "missing_field_mapping_summary",
+  );
+
+  const authorityViolationBridge = {
+    ...readyBridge,
+    safeToPersist: true,
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const authorityViolation = validate(authorityViolationBridge);
+  expect(authorityViolation.status).toBe("bridge_validation_invalid");
+  expect(authorityViolation.blockedReasons).toEqual(
+    expect.arrayContaining([
+      "safety_policy_authority_violation",
+      "write_authority_not_allowed",
+    ]),
+  );
+  expect(
+    authorityViolation.safetyPolicyValidationSummary.unexpectedTrueAuthorityFlags,
+  ).toContain("safeToPersist");
+  assertNoAuthorityOrAttempts(authorityViolation);
+
+  const weakIdempotencyBridge = {
+    ...readyBridge,
+    idempotencySummary: {
+      ...readyBridge.idempotencySummary,
+      requiredFingerprintsPresent: false,
+      sourceEvidenceFingerprint: null,
+      finalSettlementNoteMatchIdentity: null,
+    },
+  } as FinalizationToExecutionRecordBridgeResult;
+  const weakIdempotency = validate(weakIdempotencyBridge);
+  expect(weakIdempotency.status).toBe("bridge_validation_blocked");
+  expect(weakIdempotency.blockedReasons).toContain(
+    "missing_required_fingerprint",
+  );
+  expect(weakIdempotency.warnings).toContain("idempotency_review_required");
+
+  const conflictingFingerprintBridge = {
+    ...readyBridge,
+    idempotencySummary: {
+      ...readyBridge.idempotencySummary,
+      duplicateDetected: true,
+    },
+  } as FinalizationToExecutionRecordBridgeResult;
+  const conflictingFingerprint = validate(conflictingFingerprintBridge);
+  expect(conflictingFingerprint.status).toBe("bridge_validation_blocked");
+  expect(conflictingFingerprint.blockedReasons).toContain(
+    "conflicting_fingerprint",
+  );
+
+  const missingAuditBridge = {
+    ...readyBridge,
+    auditCorrectionSummary: {
+      ...readyBridge.auditCorrectionSummary,
+      auditMetadataPresent: false,
+    },
+  } as FinalizationToExecutionRecordBridgeResult;
+  const missingAudit = validate(missingAuditBridge);
+  expect(missingAudit.status).toBe("bridge_validation_blocked");
+  expect(missingAudit.blockedReasons).toContain(
+    "audit_correction_metadata_missing",
+  );
+
+  const fieldMismatchBridge = {
+    ...readyBridge,
+    fieldMappingSummary: readyBridge.fieldMappingSummary.map((field, index) =>
+      index === 0
+        ? { ...field, requiresReview: true, blockedReason: "mismatched_amount" }
+        : field,
+    ),
+  } as unknown as FinalizationToExecutionRecordBridgeResult;
+  const fieldMismatch = validate(fieldMismatchBridge);
+  expect(fieldMismatch.status).toBe("bridge_validation_blocked");
+  expect(fieldMismatch.blockedReasons).toContain("field_mismatch");
+  expect(fieldMismatch.reviewItems).toContain("field_mapping_review");
+
+  const missingManualApprovalBridge = {
+    ...readyBridge,
+    validationHandoffSummary: {
+      ...readyBridge.validationHandoffSummary,
+      manualApprovalRequired: true,
+      manualApprovalPresent: false,
+    },
+  } as FinalizationToExecutionRecordBridgeResult;
+  const missingManualApproval = validate(missingManualApprovalBridge);
+  expect(missingManualApproval.status).toBe("bridge_validation_blocked");
+  expect(missingManualApproval.blockedReasons).toContain(
+    "manual_approval_missing",
+  );
+  expect(missingManualApproval.reviewItems).toContain("manual_approval_review");
+});
+
+test("builds finalization execution-record bridge dev preview from fixture data only", () => {
+  const result = buildFinalizationExecutionRecordBridgeDevFixtureResult();
+
+  expect(result.metadata.fixtureOnly).toBe(true);
+  expect(result.metadata.explicitTriggerOnly).toBe(true);
+  expect(result.metadata.readOnlyPreview).toBe(true);
+  expect(result.metadata.pureMapperOnly).toBe(true);
+  expect(result.metadata.pureValidatorOnly).toBe(true);
+  expect(result.metadata.noExecutionRecordCandidateBuilder).toBe(true);
+  expect(result.metadata.noExecutionRecordCreated).toBe(true);
+  expect(result.metadata.noPersistence).toBe(true);
+  expect(result.metadata.noSupabaseWrite).toBe(true);
+  expect(result.metadata.noLocalStorageWrite).toBe(true);
+  expect(result.metadata.noAuditAppend).toBe(true);
+  expect(result.metadata.noStatsUpdate).toBe(true);
+  expect(result.metadata.noRollbackCorrection).toBe(true);
+  expect(result.metadata.noTradeMutation).toBe(true);
+  expect(result.metadata.noLiveAvanzaData).toBe(true);
+  expect(result.metadata.noCapture).toBe(true);
+  expect(result.metadata.noBrowserAutomation).toBe(true);
+  expect(result.metadata.noAvanzaBehavior).toBe(true);
+  expect(result.metadata.noBrokerOrderBehavior).toBe(true);
+
+  expect(result.bridgeResult.status).toBe("bridge_candidate_ready");
+  expect(result.bridgeResult.candidateOnly).toBe(true);
+  expect(result.bridgeResult.mappingOnly).toBe(true);
+  expect(result.bridgeResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.bridgeResult.safeToPersist).toBe(false);
+  expect(result.bridgeResult.safeToFinalize).toBe(false);
+  expect(result.bridgeResult.safeToUpdateStats).toBe(false);
+  expect(result.bridgeResult.safeToAppendAudit).toBe(false);
+  expect(result.bridgeResult.safeToRollback).toBe(false);
+  expect(result.bridgeResult.safeToMutateTrade).toBe(false);
+  expect(result.bridgeResult.safeToRunBrokerAction).toBe(false);
+  expect(result.bridgeResult.automaticModeAllowed).toBe(false);
+  expect(result.bridgeResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.bridgeResult.persistenceAttempted).toBe(false);
+  expect(result.bridgeResult.auditAppendAttempted).toBe(false);
+  expect(result.bridgeResult.statsUpdateAttempted).toBe(false);
+  expect(result.bridgeResult.rollbackAttempted).toBe(false);
+  expect(result.bridgeResult.tradeMutationAttempted).toBe(false);
+  expect(result.bridgeResult.browserAutomationAttempted).toBe(false);
+  expect(result.bridgeResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.bridgeResult.brokerAutomationAttempted).toBe(false);
+
+  expect(result.validatorResult.status).toBe("bridge_validation_valid");
+  expect(result.validatorResult.decisionRecommendation).toBe("validate_only");
+  expect(result.validatorResult.validationOnly).toBe(true);
+  expect(result.validatorResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.validatorResult.safeToPersist).toBe(false);
+  expect(result.validatorResult.safeToFinalize).toBe(false);
+  expect(result.validatorResult.safeToUpdateStats).toBe(false);
+  expect(result.validatorResult.safeToAppendAudit).toBe(false);
+  expect(result.validatorResult.safeToRollback).toBe(false);
+  expect(result.validatorResult.safeToMutateTrade).toBe(false);
+  expect(result.validatorResult.safeToRunBrokerAction).toBe(false);
+  expect(result.validatorResult.automaticModeAllowed).toBe(false);
+  expect(result.validatorResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.validatorResult.persistenceAttempted).toBe(false);
+  expect(result.validatorResult.auditAppendAttempted).toBe(false);
+  expect(result.validatorResult.statsUpdateAttempted).toBe(false);
+  expect(result.validatorResult.rollbackAttempted).toBe(false);
+  expect(result.validatorResult.tradeMutationAttempted).toBe(false);
+  expect(result.validatorResult.browserAutomationAttempted).toBe(false);
+  expect(result.validatorResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.validatorResult.brokerAutomationAttempted).toBe(false);
+});
+
+test("validates execution-record candidate builder adapter inputs without builder invocation or writes", () => {
+  const buildSchemaReadiness = (
+    overrides: Partial<ExecutionRecordCandidateBuilderIntegrationSchemaReadinessSummary> = {},
+  ): ExecutionRecordCandidateBuilderIntegrationSchemaReadinessSummary => ({
+    schemaReadinessMetadataPresent: true,
+    generatedTypesAvailable: true,
+    generatedTypesLocation: "types/supabase.execution-records.generated.ts",
+    generatedTypesReviewed: true,
+    executionRecordsTablePresent: true,
+    executionRecordsSchemaAlignedWithContract: true,
+    migrationApplicationProven: true,
+    migrationReference: "supabase/migrations/execution_records.sql",
+    rlsPolicyReviewed: true,
+    persistenceBoundaryEnabled: false,
+    insertRouteDryRunOnly: true,
+    productionWriteEnabled: false,
+    safeToPersist: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      fixtureOnly: true,
+      noPersistence: true,
+    },
+    ...overrides,
+  });
+
+  const buildProposedCreationInput = (
+    fixture: ReturnType<typeof buildFinalizationExecutionRecordBridgeDevFixtureResult>,
+  ): ExecutionRecordCreationInput => {
+    const draft = fixture.bridgeResult.targetSummary.intendedCreationInput ?? {};
+
+    return {
+      ...draft,
+      contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+      requestedAt: fixture.bridgeInput.requestedAt,
+      sourceEnvironment: "local_dev",
+      executionMode: "semi_automatic",
+      executionPhase: "exit",
+      expectedAction: "sell",
+      expectedInstrument: {
+        ticker: "ERIC B",
+        name: "Ericsson B",
+        market: "Stockholm",
+        currency: "SEK",
+        instrumentType: "stock",
+        ...draft.expectedInstrument,
+      },
+      expectedQuantity: draft.expectedQuantity ?? 12,
+      expectedPositionId: draft.expectedPositionId ?? "position-adapter-001",
+      positionId: draft.positionId ?? "position-adapter-001",
+      recommendationId:
+        draft.recommendationId ??
+        fixture.bridgeInput.brokerPayloadHandoffMetadata?.recommendationId ??
+        "recommendation-adapter-001",
+      sourceBrokerExecutionResult: {
+        broker: "avanza",
+        status: "filled",
+        side: "sell",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        market: "Stockholm",
+        currency: "SEK",
+        instrumentType: "stock",
+        filledQuantity: 12,
+        averageFillPrice: 86.5,
+        grossAmount: 1038,
+        netAmount: 1036.5,
+        fees: 1.5,
+        brokerOrderId: "AVZ-ADAPTER-ORDER-001",
+        brokerConfirmationId: "AVZ-ADAPTER-CONFIRM-001",
+        confirmationTimestamp: fixture.bridgeInput.requestedAt,
+        metadata: {
+          fxRate: 1,
+          noSupabaseWrite: true,
+          noTradeMutation: true,
+          adapterFixtureOnly: true,
+        },
+      },
+      brokerMetadata: {
+        broker: "avanza",
+        brokerOrderId: "AVZ-ADAPTER-ORDER-001",
+        brokerConfirmationId: "AVZ-ADAPTER-CONFIRM-001",
+        confirmationTimestamp: fixture.bridgeInput.requestedAt,
+      },
+      idempotency: {
+        idempotencyKey:
+          fixture.bridgeResult.idempotencySummary
+            .intendedExecutionRecordIdempotencyKey ??
+          "execution-record-adapter-idempotency-001",
+        sourceEvidenceFingerprint:
+          fixture.bridgeResult.idempotencySummary.sourceEvidenceFingerprint ??
+          "source-evidence-adapter-001",
+        brokerResultFingerprint:
+          fixture.bridgeResult.idempotencySummary
+            .brokerExecutionResultCandidateFingerprint ??
+          "broker-result-adapter-001",
+        handoffPayloadFingerprint:
+          fixture.bridgeResult.idempotencySummary.handoffPayloadFingerprint ??
+          "handoff-payload-adapter-001",
+      },
+      auditContext: {
+        createdBy: "manual_user_confirmation",
+        handoffSessionId:
+          fixture.bridgeInput.brokerPayloadHandoffMetadata?.handoffSessionId ??
+          "handoff-adapter-001",
+        payloadId:
+          fixture.bridgeInput.brokerPayloadHandoffMetadata?.payloadId ??
+          "payload-adapter-001",
+        sourceEventIds: ["event-adapter-001"],
+      },
+      existingTradeRef: {
+        positionId: "position-adapter-001",
+        ticker: "ERIC B",
+      },
+    };
+  };
+
+  const buildIntegrationResult = (
+    fixture: ReturnType<typeof buildFinalizationExecutionRecordBridgeDevFixtureResult>,
+    proposedCreationInput: ExecutionRecordCreationInput,
+    schemaReadinessSummary: ExecutionRecordCandidateBuilderIntegrationSchemaReadinessSummary,
+    overrides: Partial<ExecutionRecordCandidateBuilderIntegrationResult> = {},
+  ): ExecutionRecordCandidateBuilderIntegrationResult => {
+    const integrationInput = {
+      contractVersion: EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_CONTRACT_VERSION,
+      requestedAt: fixture.bridgeInput.requestedAt,
+      bridgeResult: fixture.bridgeResult,
+      bridgeValidationResult: fixture.validatorResult,
+      bridgeMapperResult: fixture.bridgeResult,
+      originalBridgeInput: fixture.bridgeInput,
+      finalizationCandidate: fixture.bridgeInput.finalizationCandidate,
+      candidateBuilderInputShape: proposedCreationInput,
+      manualApprovalContext: fixture.bridgeInput.manualApprovalContext,
+      idempotencyMetadata: fixture.bridgeResult.idempotencySummary,
+      auditCorrectionMetadata: fixture.bridgeResult.auditCorrectionSummary,
+      sourceEvidenceSummary: fixture.bridgeResult.sourceEvidenceSummary,
+      targetSummary: fixture.bridgeResult.targetSummary,
+      fieldMappingSummary: fixture.bridgeResult.fieldMappingSummary,
+      validationHandoffSummary: fixture.bridgeResult.validationHandoffSummary,
+      schemaReadinessSummary,
+      metadata: {
+        fixtureOnly: true,
+        noBuilderInvocation: true,
+      },
+    };
+
+    return {
+      contractVersion: EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_CONTRACT_VERSION,
+      evaluatedAt: fixture.bridgeInput.requestedAt,
+      status: "builder_integration_ready",
+      decisionRecommendation: "shape_candidate_input_only",
+      input: integrationInput,
+      sourceSummary: {
+        bridgeResultPresent: true,
+        bridgeResult: fixture.bridgeResult,
+        bridgeValidationPresent: true,
+        bridgeValidationResult: fixture.validatorResult,
+        bridgeMapperResult: fixture.bridgeResult,
+        originalBridgeInput: fixture.bridgeInput,
+        finalizationCandidate: fixture.bridgeInput.finalizationCandidate,
+        sourceEvidenceSummary: fixture.bridgeResult.sourceEvidenceSummary,
+        targetSummary: fixture.bridgeResult.targetSummary,
+        validationHandoffSummary: fixture.bridgeResult.validationHandoffSummary,
+        sourceEvidenceTraceable: true,
+        finalSettlementNoteIdentityPresent: true,
+        supportedSource: true,
+        supportedBroker: true,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      inputShapeSummary: {
+        candidateBuilderContractPresent: true,
+        candidateInputShapeAvailable: true,
+        candidateInputShapeOnly: true,
+        proposedCandidateInput: proposedCreationInput,
+        proposedCandidate: null,
+        candidateBuilderResultPreview: null,
+        fieldMappingSummary: fixture.bridgeResult.fieldMappingSummary,
+        validatedFieldSummary: fixture.validatorResult.validatedFieldSummary,
+        requiredFieldsPresent: true,
+        missingRequiredFields: [],
+        shapedFields: [],
+        safeToCallCandidateBuilder: false,
+        safeToCreateExecutionRecord: false,
+        builderInvocationAttempted: false,
+        executionRecordCreationAttempted: false,
+        blockedReasons: [],
+        warnings: ["candidate_input_shape_only"],
+        reviewItems: [],
+      },
+      handoffSummary: {
+        contractOnly: true,
+        bridgeResultPresent: true,
+        bridgeValidationPresent: true,
+        bridgeValidationValid: true,
+        bridgeMapperResultPresent: true,
+        finalizationCandidatePresent: true,
+        candidateBuilderContractPresent: true,
+        candidateInputShapeAvailable: true,
+        manualApprovalRequired:
+          fixture.bridgeResult.validationHandoffSummary.manualApprovalRequired,
+        manualApprovalPresent:
+          fixture.bridgeResult.validationHandoffSummary.manualApprovalPresent,
+        canShapeCandidateInput: true,
+        safeToCallCandidateBuilder: false,
+        safeToCreateExecutionRecord: false,
+        safeToPersist: false,
+        candidateBuilderCalled: false,
+        builderIntegrationImplemented: false,
+        executionRecordCreated: false,
+        persistenceAttempted: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      idempotencySummary: {
+        sourceSummary: fixture.bridgeResult.idempotencySummary,
+        validationSummary: fixture.validatorResult.idempotencyValidationSummary,
+        requiredFingerprintsPresent: true,
+        duplicateCheckRequired: true,
+        duplicateDetected: false,
+        duplicateOfRecordId: null,
+        retrySafe: true,
+        mismatchRequiresReview: false,
+        intendedExecutionRecordCandidateFingerprint:
+          fixture.bridgeResult.idempotencySummary
+            .intendedExecutionRecordCandidateFingerprint,
+        intendedExecutionRecordIdempotencyKey:
+          fixture.bridgeResult.idempotencySummary
+            .intendedExecutionRecordIdempotencyKey,
+        sourceEvidenceFingerprint:
+          fixture.bridgeResult.idempotencySummary.sourceEvidenceFingerprint,
+        finalSettlementNoteMatchIdentity:
+          fixture.bridgeResult.idempotencySummary.finalSettlementNoteMatchIdentity,
+        safeForCandidateInputShapeOnly: true,
+        safeForWrite: false,
+      },
+      auditCorrectionSummary: {
+        sourceSummary: fixture.bridgeResult.auditCorrectionSummary,
+        validationSummary: fixture.validatorResult.auditCorrectionValidationSummary,
+        auditCorrectionMetadata: fixture.bridgeInput.auditCorrectionMetadata,
+        manualApprovalContext: fixture.bridgeInput.manualApprovalContext,
+        auditRequiredBeforeWrite: true,
+        auditMetadataPresent: true,
+        correctionMetadataPresent: true,
+        sourceEvidenceTraceable: true,
+        manualApprovalRequired:
+          fixture.bridgeResult.validationHandoffSummary.manualApprovalRequired,
+        manualApprovalPresent:
+          fixture.bridgeResult.validationHandoffSummary.manualApprovalPresent,
+        duplicatePreventionReference:
+          fixture.bridgeResult.auditCorrectionSummary
+            .duplicatePreventionReference,
+        correctionStrategyReference:
+          fixture.bridgeResult.auditCorrectionSummary
+            .correctionStrategyReference,
+        rollbackMetadataRequired: true,
+        rollbackMetadataPresent: false,
+        auditAppendAttempted: false,
+        rollbackAttempted: false,
+        safeForCandidateInputShapeOnly: true,
+        safeForWrite: false,
+      },
+      schemaReadinessSummary,
+      safetyPolicy:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_DEFAULT_SAFETY_POLICY,
+      blockedReasons: [],
+      warnings: ["candidate_input_shape_only"],
+      reviewItems: [],
+      contractOnly: true,
+      candidateInputShapeOnly: true,
+      safeToCallCandidateBuilder: false,
+      safeToCreateExecutionRecord: false,
+      safeToPersist: false,
+      safeToFinalize: false,
+      safeToUpdateStats: false,
+      safeToAppendAudit: false,
+      safeToRollback: false,
+      safeToMutateTrade: false,
+      safeToRunBrokerAction: false,
+      automaticModeAllowed: false,
+      candidateBuilderInvocationAttempted: false,
+      executionRecordCreationAttempted: false,
+      persistenceAttempted: false,
+      finalizationAttempted: false,
+      statsUpdateAttempted: false,
+      auditAppendAttempted: false,
+      rollbackAttempted: false,
+      tradeMutationAttempted: false,
+      brokerAutomationAttempted: false,
+      avanzaAutomationAttempted: false,
+      browserAutomationAttempted: false,
+      metadata: {
+        fixtureOnly: true,
+        noBuilderInvocation: true,
+        noPersistence: true,
+      },
+      ...overrides,
+    };
+  };
+
+  const buildAdapterInput = (
+    overrides: Partial<ExecutionRecordCandidateBuilderIntegrationAdapterInput> = {},
+  ): ExecutionRecordCandidateBuilderIntegrationAdapterInput => {
+    const fixture = buildFinalizationExecutionRecordBridgeDevFixtureResult();
+    const proposedCreationInput = buildProposedCreationInput(fixture);
+    const schemaReadinessSummary = buildSchemaReadiness();
+    const integrationResult = buildIntegrationResult(
+      fixture,
+      proposedCreationInput,
+      schemaReadinessSummary,
+    );
+
+    return {
+      contractVersion:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_ADAPTER_CONTRACT_VERSION,
+      requestedAt: fixture.bridgeInput.requestedAt,
+      integrationInput: integrationResult.input,
+      integrationResult,
+      bridgeResult: fixture.bridgeResult,
+      bridgeValidationResult: fixture.validatorResult,
+      bridgeMapperResult: fixture.bridgeResult,
+      originalBridgeInput: fixture.bridgeInput,
+      finalizationCandidate: fixture.bridgeInput.finalizationCandidate,
+      manualApprovalContext: fixture.bridgeInput.manualApprovalContext,
+      idempotencyMetadata: integrationResult.idempotencySummary,
+      auditCorrectionMetadata: integrationResult.auditCorrectionSummary,
+      sourceEvidenceSummary: fixture.bridgeResult.sourceEvidenceSummary,
+      targetSummary: fixture.bridgeResult.targetSummary,
+      validationHandoffSummary: fixture.bridgeResult.validationHandoffSummary,
+      fieldMappingSummary: fixture.bridgeResult.fieldMappingSummary,
+      proposedCreationInput,
+      schemaReadinessSummary,
+      metadata: {
+        fixtureOnly: true,
+        adapterInputShapeOnly: true,
+        noBuilderInvocation: true,
+        noPersistence: true,
+      },
+      ...overrides,
+    };
+  };
+
+  const expectNoRuntimeSideEffects = (
+    result: ExecutionRecordCandidateBuilderIntegrationAdapterResult,
+  ) => {
+    expect(result.safeToCallCandidateBuilder).toBe(false);
+    expect(result.safeToCreateExecutionRecordCandidate).toBe(false);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.safeToRunBrokerAction).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.adapterImplemented).toBe(false);
+    expect(result.candidateBuilderInvocationAttempted).toBe(false);
+    expect(result.executionRecordCandidateCreationAttempted).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+  };
+
+  const validateAdapterResult = (
+    adapterResult: ExecutionRecordCandidateBuilderIntegrationAdapterResult | null,
+  ) =>
+    validateExecutionRecordCandidateBuilderIntegration({
+      contractVersion:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INTEGRATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T13:15:00.000Z",
+      adapterResult,
+      adapterInput: adapterResult?.input ?? null,
+      integrationInput: adapterResult?.input?.integrationInput ?? null,
+      integrationResult: adapterResult?.input?.integrationResult ?? null,
+      bridgeValidationResult:
+        adapterResult?.input?.bridgeValidationResult ?? null,
+      bridgeMapperResult: adapterResult?.input?.bridgeMapperResult ?? null,
+      proposedInputSummary: adapterResult?.proposedInputSummary ?? null,
+      fieldMappingSummary: adapterResult?.fieldMappingSummary ?? null,
+      preconditionSummary: adapterResult?.preconditionSummary ?? null,
+      schemaReadinessSummary: adapterResult?.schemaReadinessSummary ?? null,
+      idempotencySummary: adapterResult?.idempotencySummary ?? null,
+      auditProvenanceSummary: adapterResult?.auditProvenanceSummary ?? null,
+      manualApprovalContext:
+        adapterResult?.auditProvenanceSummary.manualApprovalContext ?? null,
+      expectedCreationContractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+      expectedAdapterStatus: "adapter_input_ready",
+      safetyPolicy: adapterResult?.safetyPolicy ?? null,
+      metadata: {
+        fixtureOnly: true,
+        validatorOnly: true,
+        noBuilderInvocation: true,
+        noPersistence: true,
+      },
+    });
+
+  const expectNoValidationSideEffects = (
+    result: ExecutionRecordCandidateBuilderIntegrationValidationResult,
+  ) => {
+    expect(result.validationOnly).toBe(true);
+    expect(result.adapterOutputOnly).toBe(true);
+    expect(result.proposedInputOnly).toBe(true);
+    expect(result.safeToCallCandidateBuilder).toBe(false);
+    expect(result.safeToCreateExecutionRecordCandidate).toBe(false);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.safeToRunBrokerAction).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.validatorImplementationEnabled).toBe(false);
+    expect(result.candidateBuilderInvocationAttempted).toBe(false);
+    expect(result.executionRecordCandidateCreationAttempted).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+    expect(result.authorityFlags.safeToCallCandidateBuilder).toBe(false);
+    expect(result.authorityFlags.safeToCreateExecutionRecordCandidate).toBe(
+      false,
+    );
+    expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+    expect(result.authorityFlags.safeToPersist).toBe(false);
+    expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+    expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+    expect(result.authorityFlags.safeToRollback).toBe(false);
+    expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+    expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  };
+
+  const buildInvocationResult = (
+    adapterResult: ExecutionRecordCandidateBuilderIntegrationAdapterResult,
+    adapterValidationResult: ExecutionRecordCandidateBuilderIntegrationValidationResult,
+    overrides: Partial<ExecutionRecordCandidateBuilderInvocationResult> = {},
+  ): ExecutionRecordCandidateBuilderInvocationResult => {
+    const proposedCreationInput =
+      adapterResult.proposedInputSummary
+        .proposedCreationInput! as ExecutionRecordCreationInput;
+
+    const base: ExecutionRecordCandidateBuilderInvocationResult = {
+      contractVersion:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_CONTRACT_VERSION,
+      evaluatedAt: "2026-06-16T13:20:00.000Z",
+      status: "builder_invocation_ready",
+      decisionRecommendation: "candidate_builder_invocation_contract_only",
+      input: {
+        contractVersion:
+          EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_CONTRACT_VERSION,
+        requestedAt: "2026-06-16T13:20:00.000Z",
+        adapterResult,
+        adapterInput: adapterResult.input,
+        adapterValidationResult,
+        proposedCreationInput,
+        integrationInput: adapterResult.input?.integrationInput ?? null,
+        integrationResult: adapterResult.input?.integrationResult ?? null,
+        bridgeValidationResult:
+          adapterResult.input?.bridgeValidationResult ?? null,
+        bridgeMapperResult: adapterResult.input?.bridgeMapperResult ?? null,
+        finalizationCandidate: adapterResult.input?.finalizationCandidate ?? null,
+        idempotencyMetadata: adapterResult.idempotencySummary,
+        auditProvenanceMetadata: adapterResult.auditProvenanceSummary,
+        manualApprovalMetadata:
+          adapterResult.auditProvenanceSummary.manualApprovalContext ?? null,
+        schemaReadinessMetadata: adapterResult.schemaReadinessSummary,
+        safetyPolicy:
+          EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_DEFAULT_SAFETY_POLICY,
+        metadata: {
+          fixtureOnly: true,
+          noBuilderInvocation: true,
+          validatorOnly: true,
+        },
+      },
+      prerequisiteSummary: {
+        adapterResultPresent: true,
+        adapterValidationResultPresent: true,
+        adapterValidationValid:
+          adapterValidationResult.status === "adapter_validation_valid",
+        reviewGateExplicitlyAllowed: false,
+        proposedCreationInputPresent: true,
+        proposedCreationInputComplete: true,
+        requiredBuilderInputFieldsPresent: true,
+        missingRequiredBuilderInputFields: [],
+        schemaReadinessAcknowledged: true,
+        generatedTypesStatusAcknowledged: true,
+        migrationApplicationStatusAcknowledged: true,
+        idempotencyMetadataPresent: true,
+        auditProvenanceMetadataPresent: true,
+        manualApprovalRequired: true,
+        manualApprovalPresent: true,
+        supportedSource: true,
+        supportedBroker: true,
+        allAuthorityFlagsFalse: true,
+        noWriteAuthorityRequested: true,
+        canConsiderCandidateOnlyInvocation: true,
+        safeToCallCandidateBuilder: false,
+        safeToCreateExecutionRecordCandidate: false,
+        safeToCreateExecutionRecord: false,
+        safeToPersist: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      inputSourceSummary: {
+        adapterInput: adapterResult.input,
+        adapterResult,
+        adapterValidationResult,
+        adapterProposedInputSummary: adapterResult.proposedInputSummary,
+        adapterPreconditionSummary: adapterResult.preconditionSummary,
+        validatorProposedInputSummary:
+          adapterValidationResult.proposedInputValidationSummary,
+        validatorPreconditionSummary:
+          adapterValidationResult.preconditionValidationSummary,
+        proposedCreationInput,
+        inputComesFromAdapterShapedProposedInput: true,
+        adapterOutputValidated: true,
+        directBridgeToBuilderBypassAttempted: false,
+        directFinalizationToBuilderBypassAttempted: false,
+        liveBrokerOrAvanzaDataConsumed: false,
+        uiStateBypassAttempted: false,
+        routeOrStorageBypassAttempted: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      outputSummary: {
+        candidateOutputOnly: true,
+        builderInvocationImplemented: false,
+        candidateBuilderCalled: false,
+        candidateBuilderResult: null,
+        candidateOutput: null,
+        candidateOutputWouldBeCandidateOnly: true,
+        outputRequiresSeparateValidation: true,
+        persistenceValidatorSeparate: true,
+        insertRouteSeparate: true,
+        dryRunInsertRouteSeparate: true,
+        productionWritePathSeparate: true,
+        safeToCreateExecutionRecordCandidate: false,
+        safeToCreateExecutionRecord: false,
+        safeToPersist: false,
+        safeToAppendAudit: false,
+        safeToUpdateStats: false,
+        safeToRollback: false,
+        safeToMutateTrade: false,
+        blockedReasons: [],
+        warnings: ["candidate_builder_not_called"],
+        reviewItems: [],
+      },
+      idempotencySummary: {
+        sourceSummary: adapterResult.idempotencySummary,
+        intendedExecutionRecordIdempotencyKey:
+          adapterResult.idempotencySummary.intendedExecutionRecordIdempotencyKey,
+        intendedExecutionRecordCandidateFingerprint:
+          adapterResult.idempotencySummary
+            .intendedExecutionRecordCandidateFingerprint,
+        builderRecordFingerprint:
+          adapterResult.idempotencySummary
+            .intendedExecutionRecordCandidateFingerprint,
+        sourceEvidenceFingerprint:
+          adapterResult.idempotencySummary.sourceEvidenceFingerprint,
+        brokerResultFingerprint:
+          adapterResult.idempotencySummary.brokerResultFingerprint,
+        handoffPayloadFingerprint:
+          adapterResult.idempotencySummary.handoffPayloadFingerprint,
+        requiredFingerprintsPresent: true,
+        duplicateCheckRequired: true,
+        duplicateDetectionSeparate: true,
+        duplicateDetected: false,
+        duplicateOfRecordId: null,
+        retrySafe: true,
+        mismatchRequiresReview: false,
+        insertBoundaryMustEnforceUniquenessLater: true,
+        safeForCandidateOnlyInvocationReview: true,
+        safeForWrite: false,
+      },
+      auditProvenanceSummary: {
+        sourceSummary: adapterResult.auditProvenanceSummary,
+        sourceEvidenceChainPreserved: true,
+        finalizationReferencePreserved: true,
+        bridgeReferencePreserved: true,
+        adapterValidationReferencePreserved: true,
+        manualApprovalMetadataPreserved: true,
+        auditAppendSeparate: true,
+        auditRequiredBeforeWrite: true,
+        auditMetadataPresent: true,
+        provenanceMetadataPresent: true,
+        sourceEvidenceTraceable: true,
+        sourceEventIds: ["event-invocation-validator-001"],
+        handoffSessionId:
+          adapterResult.auditProvenanceSummary.handoffSessionId ??
+          "handoff-invocation-validator-001",
+        payloadId:
+          adapterResult.auditProvenanceSummary.payloadId ??
+          "payload-invocation-validator-001",
+        beforeAfterValuesRequiredLater: true,
+        auditAppendAttempted: false,
+        rollbackAttempted: false,
+        safeForCandidateOnlyInvocationReview: true,
+        safeForWrite: false,
+      },
+      schemaReadinessSummary: {
+        sourceSummary: adapterResult.schemaReadinessSummary,
+        schemaReadinessMetadataPresent: true,
+        generatedTypesAvailable: true,
+        generatedTypesReviewed: true,
+        generatedTypesLocation: "generated-types-fixture",
+        generatedTypesRequiredForCandidateOnlyInvocation: false,
+        migrationApplicationProven: true,
+        migrationReference: "migration-fixture",
+        executionRecordsTablePresent: true,
+        executionRecordsSchemaAlignedWithCreationContract: true,
+        persistenceBoundaryEnabled: false,
+        insertRouteDryRunOnly: true,
+        productionWriteEnabled: false,
+        candidateOnlyInvocationIndependentFromDbGeneratedTypes: true,
+        persistenceCouplingMustWaitForMigrationAndTypes: true,
+        safeToPersist: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      safetyPolicy:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_DEFAULT_SAFETY_POLICY,
+      blockedReasons: [],
+      warnings: ["candidate_builder_not_called"],
+      reviewItems: [],
+      contractOnly: true,
+      invocationBoundaryOnly: true,
+      candidateOnlyOutputBoundary: true,
+      safeToCallCandidateBuilder: false,
+      safeToCreateExecutionRecordCandidate: false,
+      safeToCreateExecutionRecord: false,
+      safeToPersist: false,
+      safeToFinalize: false,
+      safeToUpdateStats: false,
+      safeToAppendAudit: false,
+      safeToRollback: false,
+      safeToMutateTrade: false,
+      safeToRunBrokerAction: false,
+      automaticModeAllowed: false,
+      invocationImplemented: false,
+      candidateBuilderInvocationAttempted: false,
+      executionRecordCandidateCreationAttempted: false,
+      executionRecordCreationAttempted: false,
+      persistenceAttempted: false,
+      finalizationAttempted: false,
+      statsUpdateAttempted: false,
+      auditAppendAttempted: false,
+      rollbackAttempted: false,
+      tradeMutationAttempted: false,
+      brokerAutomationAttempted: false,
+      avanzaAutomationAttempted: false,
+      browserAutomationAttempted: false,
+      metadata: {
+        fixtureOnly: true,
+        noBuilderInvocation: true,
+        noPersistence: true,
+      },
+    };
+
+    return {
+      ...base,
+      ...overrides,
+    };
+  };
+
+  const validateInvocationResult = (
+    invocationResult: ExecutionRecordCandidateBuilderInvocationResult | null,
+    adapterValidationResult?: ExecutionRecordCandidateBuilderIntegrationValidationResult,
+  ) =>
+    validateExecutionRecordCandidateBuilderInvocation({
+      contractVersion:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_VALIDATOR_CONTRACT_VERSION,
+      requestedAt: "2026-06-16T13:25:00.000Z",
+      invocationResult,
+      invocationInput: invocationResult?.input ?? null,
+      invocationOutputSummary: invocationResult?.outputSummary ?? null,
+      adapterResult: invocationResult?.input?.adapterResult ?? null,
+      adapterValidationResult:
+        adapterValidationResult ??
+        invocationResult?.input?.adapterValidationResult ??
+        null,
+      proposedCreationInput:
+        invocationResult?.input?.proposedCreationInput ?? null,
+      integrationInput: invocationResult?.input?.integrationInput ?? null,
+      integrationResult: invocationResult?.input?.integrationResult ?? null,
+      bridgeValidationResult:
+        invocationResult?.input?.bridgeValidationResult ?? null,
+      bridgeMapperResult: invocationResult?.input?.bridgeMapperResult ?? null,
+      finalizationCandidate:
+        invocationResult?.input?.finalizationCandidate ?? null,
+      schemaReadinessMetadata:
+        invocationResult?.schemaReadinessSummary ?? null,
+      idempotencyMetadata: invocationResult?.idempotencySummary ?? null,
+      auditProvenanceMetadata:
+        invocationResult?.auditProvenanceSummary ?? null,
+      manualApprovalMetadata:
+        invocationResult?.input?.manualApprovalMetadata ?? null,
+      expectedInvocationContractVersion:
+        EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_CONTRACT_VERSION,
+      expectedInvocationStatus: "builder_invocation_ready",
+      metadata: {
+        fixtureOnly: true,
+        validationOnly: true,
+        noBuilderInvocation: true,
+      },
+    });
+
+  const expectNoInvocationValidationSideEffects = (
+    result: ExecutionRecordCandidateBuilderInvocationValidationResult,
+  ) => {
+    expect(result.validationOnly).toBe(true);
+    expect(result.safeToCallCandidateBuilder).toBe(false);
+    expect(result.safeToCreateExecutionRecordCandidate).toBe(false);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToFinalize).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.safeToRunBrokerAction).toBe(false);
+    expect(result.automaticModeAllowed).toBe(false);
+    expect(result.validatorImplementationEnabled).toBe(false);
+    expect(result.candidateBuilderInvocationAttempted).toBe(false);
+    expect(result.executionRecordCandidateCreationAttempted).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.finalizationAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+    expect(result.authorityFlags.validationOnly).toBe(true);
+    expect(result.authorityFlags.safeToCallCandidateBuilder).toBe(false);
+    expect(result.authorityFlags.safeToCreateExecutionRecordCandidate).toBe(
+      false,
+    );
+    expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+    expect(result.authorityFlags.safeToPersist).toBe(false);
+    expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+    expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+    expect(result.authorityFlags.safeToRollback).toBe(false);
+    expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+    expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  };
+
+  const ready = shapeExecutionRecordCandidateBuilderInput(buildAdapterInput());
+  expect(ready.status).toBe("adapter_input_ready");
+  expect(ready.decisionRecommendation).toBe("shape_input_only");
+  expect(ready.proposedInputSummary.requiredFieldsPresent).toBe(true);
+  expect(
+    ready.proposedInputSummary.proposedCreationInput
+      ?.sourceBrokerExecutionResult,
+  ).toBeDefined();
+  expect(
+    ready.proposedInputSummary.proposedSourceBrokerExecutionResult?.broker,
+  ).toBe("avanza");
+  expect(ready.preconditionSummary.canShapeProposedInput).toBe(true);
+  expect(ready.schemaReadinessSummary.generatedTypesAvailable).toBe(true);
+  expect(ready.schemaReadinessSummary.migrationApplicationProven).toBe(true);
+  expect(ready.idempotencySummary.requiredFingerprintsPresent).toBe(true);
+  expect(ready.auditProvenanceSummary.auditMetadataPresent).toBe(true);
+  expect(ready.blockedReasons).toEqual([]);
+  expectNoRuntimeSideEffects(ready);
+
+  const missingIntegration = shapeExecutionRecordCandidateBuilderInput(
+    buildAdapterInput({
+      integrationInput: null,
+      integrationResult: null,
+    }),
+  );
+  expect(missingIntegration.status).toBe("adapter_input_blocked");
+  expect(missingIntegration.blockedReasons).toEqual(
+    expect.arrayContaining([
+      "missing_integration_input",
+      "missing_integration_result",
+    ]),
+  );
+  expectNoRuntimeSideEffects(missingIntegration);
+
+  const fixtureForInvalidValidation =
+    buildFinalizationExecutionRecordBridgeDevFixtureResult();
+  const proposedForInvalidValidation = buildProposedCreationInput(
+    fixtureForInvalidValidation,
+  );
+  const schemaForInvalidValidation = buildSchemaReadiness();
+  const invalidValidationResult = {
+    ...fixtureForInvalidValidation.validatorResult,
+    status: "bridge_validation_blocked",
+  } as ExecutionRecordFinalizationBridgeValidationResult;
+  const invalidValidationIntegration = buildIntegrationResult(
+    fixtureForInvalidValidation,
+    proposedForInvalidValidation,
+    schemaForInvalidValidation,
+  );
+  const invalidValidation = shapeExecutionRecordCandidateBuilderInput(
+    buildAdapterInput({
+      integrationInput: {
+        ...invalidValidationIntegration.input!,
+        bridgeValidationResult: invalidValidationResult,
+      },
+      integrationResult: invalidValidationIntegration,
+      bridgeResult: fixtureForInvalidValidation.bridgeResult,
+      bridgeValidationResult: invalidValidationResult,
+      bridgeMapperResult: fixtureForInvalidValidation.bridgeResult,
+      originalBridgeInput: fixtureForInvalidValidation.bridgeInput,
+      finalizationCandidate:
+        fixtureForInvalidValidation.bridgeInput.finalizationCandidate,
+      proposedCreationInput: proposedForInvalidValidation,
+      schemaReadinessSummary: schemaForInvalidValidation,
+    }),
+  );
+  expect(invalidValidation.status).toBe("adapter_input_blocked");
+  expect(invalidValidation.blockedReasons).toContain(
+    "bridge_validation_not_valid",
+  );
+  expectNoRuntimeSideEffects(invalidValidation);
+
+  const schemaNeedsReview = buildSchemaReadiness({
+    generatedTypesAvailable: false,
+    generatedTypesReviewed: false,
+    migrationApplicationProven: false,
+    blockedReasons: [
+      "generated_types_absent_or_unknown",
+      "migration_application_not_proven",
+    ],
+    warnings: [
+      "generated_types_required_later",
+      "migration_application_required_later",
+    ],
+    reviewItems: ["generated_types_review", "migration_application_review"],
+  });
+  const fixtureForSchemaReview =
+    buildFinalizationExecutionRecordBridgeDevFixtureResult();
+  const proposedForSchemaReview = buildProposedCreationInput(
+    fixtureForSchemaReview,
+  );
+  const schemaReviewIntegration = buildIntegrationResult(
+    fixtureForSchemaReview,
+    proposedForSchemaReview,
+    schemaNeedsReview,
+  );
+  const schemaReview = shapeExecutionRecordCandidateBuilderInput(
+    buildAdapterInput({
+      integrationInput: schemaReviewIntegration.input,
+      integrationResult: schemaReviewIntegration,
+      bridgeResult: fixtureForSchemaReview.bridgeResult,
+      bridgeValidationResult: fixtureForSchemaReview.validatorResult,
+      bridgeMapperResult: fixtureForSchemaReview.bridgeResult,
+      originalBridgeInput: fixtureForSchemaReview.bridgeInput,
+      finalizationCandidate:
+        fixtureForSchemaReview.bridgeInput.finalizationCandidate,
+      proposedCreationInput: proposedForSchemaReview,
+      schemaReadinessSummary: schemaNeedsReview,
+    }),
+  );
+  expect(schemaReview.status).toBe("adapter_input_needs_review");
+  expect(schemaReview.blockedReasons).toEqual(
+    expect.arrayContaining([
+      "generated_types_absent_or_unknown",
+      "migration_application_not_proven",
+    ]),
+  );
+  expectNoRuntimeSideEffects(schemaReview);
+
+  const missingIdempotencyInput = buildAdapterInput();
+  const missingIdempotency = shapeExecutionRecordCandidateBuilderInput(
+    buildAdapterInput({
+      idempotencyMetadata: {
+        ...missingIdempotencyInput.integrationResult!.idempotencySummary,
+        requiredFingerprintsPresent: false,
+      },
+    }),
+  );
+  expect(missingIdempotency.status).toBe("adapter_input_blocked");
+  expect(missingIdempotency.blockedReasons).toContain(
+    "missing_idempotency_metadata",
+  );
+  expectNoRuntimeSideEffects(missingIdempotency);
+
+  const missingAuditInput = buildAdapterInput();
+  const missingAudit = shapeExecutionRecordCandidateBuilderInput(
+    buildAdapterInput({
+      auditCorrectionMetadata: {
+        ...missingAuditInput.integrationResult!.auditCorrectionSummary,
+        auditMetadataPresent: false,
+      },
+    }),
+  );
+  expect(missingAudit.status).toBe("adapter_input_blocked");
+  expect(missingAudit.blockedReasons).toContain(
+    "missing_audit_provenance_metadata",
+  );
+  expectNoRuntimeSideEffects(missingAudit);
+
+  const validValidation = validateAdapterResult(ready);
+  expect(validValidation.status).toBe("adapter_validation_valid");
+  expect(validValidation.decisionRecommendation).toBe("validate_only");
+  expect(validValidation.proposedInputValidationSummary.requiredFieldsPresent).toBe(
+    true,
+  );
+  expect(validValidation.fieldMappingValidationSummary.length).toBeGreaterThan(0);
+  expect(
+    validValidation.preconditionValidationSummary.canValidateAdapterOutput,
+  ).toBe(true);
+  expect(
+    validValidation.schemaReadinessValidationSummary.generatedTypesAvailable,
+  ).toBe(true);
+  expect(validValidation.idempotencyValidationSummary.requiredFingerprintsPresent).toBe(
+    true,
+  );
+  expect(validValidation.auditProvenanceValidationSummary.auditMetadataPresent).toBe(
+    true,
+  );
+  expect(validValidation.safetyPolicyValidationSummary.allAuthorityFlagsFalse).toBe(
+    true,
+  );
+  expectNoValidationSideEffects(validValidation);
+
+  const missingAdapterValidation = validateAdapterResult(null);
+  expect(missingAdapterValidation.status).toBe("adapter_validation_blocked");
+  expect(missingAdapterValidation.blockedReasons).toContain(
+    "missing_adapter_result",
+  );
+  expectNoValidationSideEffects(missingAdapterValidation);
+
+  const invalidAdapterStatus = validateAdapterResult({
+    ...ready,
+    status: "adapter_input_surprise",
+  } as unknown as ExecutionRecordCandidateBuilderIntegrationAdapterResult);
+  expect(invalidAdapterStatus.status).toBe("adapter_validation_invalid");
+  expect(invalidAdapterStatus.blockedReasons).toContain(
+    "invalid_adapter_status",
+  );
+  expectNoValidationSideEffects(invalidAdapterStatus);
+
+  const unsupportedValidation = validateAdapterResult({
+    ...ready,
+    status: "adapter_input_unsupported",
+  });
+  expect(unsupportedValidation.status).toBe("adapter_validation_unsupported");
+  expectNoValidationSideEffects(unsupportedValidation);
+
+  const blockedValidation = validateAdapterResult(missingIntegration);
+  expect(blockedValidation.status).toBe("adapter_validation_blocked");
+  expectNoValidationSideEffects(blockedValidation);
+
+  const needsReviewValidation = validateAdapterResult(schemaReview);
+  expect(needsReviewValidation.status).toBe("adapter_validation_needs_review");
+  expectNoValidationSideEffects(needsReviewValidation);
+
+  const notReadyValidation = validateAdapterResult({
+    ...ready,
+    status: "adapter_input_not_ready",
+  });
+  expect(notReadyValidation.status).toBe("adapter_validation_blocked");
+  expectNoValidationSideEffects(notReadyValidation);
+
+  const readyWithBlockedReasons = validateAdapterResult({
+    ...ready,
+    blockedReasons: ["missing_idempotency_metadata"],
+  });
+  expect(readyWithBlockedReasons.status).toBe("adapter_validation_blocked");
+  expect(readyWithBlockedReasons.blockedReasons).toContain(
+    "adapter_ready_with_blocked_reasons",
+  );
+  expectNoValidationSideEffects(readyWithBlockedReasons);
+
+  const missingProposedSummary = validateAdapterResult({
+    ...ready,
+    proposedInputSummary: undefined,
+  } as unknown as ExecutionRecordCandidateBuilderIntegrationAdapterResult);
+  expect(missingProposedSummary.status).toBe("adapter_validation_blocked");
+  expect(missingProposedSummary.blockedReasons).toContain(
+    "adapter_ready_with_missing_proposed_input_summary",
+  );
+  expectNoValidationSideEffects(missingProposedSummary);
+
+  const missingRequiredProposedField = validateAdapterResult({
+    ...ready,
+    proposedInputSummary: {
+      ...ready.proposedInputSummary,
+      requiredFieldsPresent: false,
+      missingRequiredFields: ["idempotency.idempotencyKey"],
+    },
+  });
+  expect(missingRequiredProposedField.status).toBe("adapter_validation_blocked");
+  expect(missingRequiredProposedField.blockedReasons).toContain(
+    "missing_required_proposed_input_field",
+  );
+  expectNoValidationSideEffects(missingRequiredProposedField);
+
+  const schemaAbsent = validateAdapterResult({
+    ...ready,
+    schemaReadinessSummary: {
+      ...ready.schemaReadinessSummary,
+      schemaReadinessMetadataPresent: false,
+      generatedTypesAvailable: false,
+      generatedTypesReviewed: false,
+      migrationApplicationProven: false,
+    },
+  });
+  expect(["adapter_validation_blocked", "adapter_validation_needs_review"]).toContain(
+    schemaAbsent.status,
+  );
+  expect(schemaAbsent.blockedReasons).toContain(
+    "schema_readiness_absent_or_unknown",
+  );
+  expectNoValidationSideEffects(schemaAbsent);
+
+  const migrationUnproven = validateAdapterResult({
+    ...ready,
+    schemaReadinessSummary: {
+      ...ready.schemaReadinessSummary,
+      migrationApplicationProven: false,
+    },
+  });
+  expect(migrationUnproven.status).toBe("adapter_validation_needs_review");
+  expect(migrationUnproven.blockedReasons).toContain(
+    "migration_application_not_proven",
+  );
+  expectNoValidationSideEffects(migrationUnproven);
+
+  const generatedTypesUnknown = validateAdapterResult({
+    ...ready,
+    schemaReadinessSummary: {
+      ...ready.schemaReadinessSummary,
+      generatedTypesAvailable: false,
+      generatedTypesReviewed: false,
+    },
+  });
+  expect(generatedTypesUnknown.status).toBe("adapter_validation_needs_review");
+  expect(generatedTypesUnknown.blockedReasons).toContain(
+    "generated_types_absent_or_unknown",
+  );
+  expectNoValidationSideEffects(generatedTypesUnknown);
+
+  const missingIdempotencyValidation = validateAdapterResult(missingIdempotency);
+  expect(missingIdempotencyValidation.status).toBe(
+    "adapter_validation_blocked",
+  );
+  expect(missingIdempotencyValidation.blockedReasons).toContain(
+    "missing_required_fingerprint",
+  );
+  expectNoValidationSideEffects(missingIdempotencyValidation);
+
+  const conflictingFingerprint = validateAdapterResult({
+    ...ready,
+    idempotencySummary: {
+      ...ready.idempotencySummary,
+      duplicateDetected: true,
+    },
+  });
+  expect(conflictingFingerprint.status).toBe("adapter_validation_blocked");
+  expect(conflictingFingerprint.blockedReasons).toContain(
+    "conflicting_fingerprint",
+  );
+  expectNoValidationSideEffects(conflictingFingerprint);
+
+  const missingAuditValidation = validateAdapterResult(missingAudit);
+  expect(missingAuditValidation.status).toBe("adapter_validation_blocked");
+  expect(missingAuditValidation.blockedReasons).toContain(
+    "missing_audit_provenance_summary",
+  );
+  expectNoValidationSideEffects(missingAuditValidation);
+
+  const manualApprovalMissing = validateAdapterResult({
+    ...ready,
+    auditProvenanceSummary: {
+      ...ready.auditProvenanceSummary,
+      manualApprovalRequired: true,
+      manualApprovalPresent: false,
+    },
+  });
+  expect(manualApprovalMissing.status).toBe("adapter_validation_blocked");
+  expect(manualApprovalMissing.blockedReasons).toContain(
+    "manual_approval_missing",
+  );
+  expectNoValidationSideEffects(manualApprovalMissing);
+
+  const authorityViolation = validateAdapterResult({
+    ...ready,
+    safeToPersist: true,
+  } as unknown as ExecutionRecordCandidateBuilderIntegrationAdapterResult);
+  expect(authorityViolation.status).toBe("adapter_validation_invalid");
+  expect(authorityViolation.blockedReasons).toContain(
+    "safety_policy_authority_violation",
+  );
+  expect(authorityViolation.blockedReasons).toContain(
+    "write_authority_not_allowed",
+  );
+  expectNoValidationSideEffects(authorityViolation);
+
+  const validInvocationResult = buildInvocationResult(ready, validValidation);
+  const validInvocationValidation = validateInvocationResult(
+    validInvocationResult,
+  );
+  expect(validInvocationValidation.status).toBe(
+    "builder_invocation_validation_valid",
+  );
+  expect(validInvocationValidation.decisionRecommendation).toBe("validate_only");
+  expect(
+    validInvocationValidation.prerequisiteValidationSummary
+      .invocationReadyWithRequiredSummaries,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.inputSourceValidationSummary
+      .adapterOutputValidated,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.proposedInputValidationSummary.requiredFieldsPresent,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.idempotencyValidationSummary
+      .requiredFingerprintsPresent,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.auditProvenanceValidationSummary
+      .sourceEvidenceChainPresent,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.schemaReadinessValidationSummary
+      .generatedTypesAvailable,
+  ).toBe(true);
+  expect(
+    validInvocationValidation.safetyPolicyValidationSummary
+      .allAuthorityFlagsFalse,
+  ).toBe(true);
+  expectNoInvocationValidationSideEffects(validInvocationValidation);
+
+  const missingInvocationValidation = validateInvocationResult(null);
+  expect(missingInvocationValidation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingInvocationValidation.blockedReasons).toContain(
+    "missing_invocation_result",
+  );
+  expectNoInvocationValidationSideEffects(missingInvocationValidation);
+
+  const invalidInvocationStatus = validateInvocationResult({
+    ...validInvocationResult,
+    status: "builder_invocation_surprise",
+  } as unknown as ExecutionRecordCandidateBuilderInvocationResult);
+  expect(invalidInvocationStatus.status).toBe(
+    "builder_invocation_validation_invalid",
+  );
+  expect(invalidInvocationStatus.blockedReasons).toContain(
+    "invalid_invocation_status",
+  );
+  expectNoInvocationValidationSideEffects(invalidInvocationStatus);
+
+  const unsupportedInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    status: "builder_invocation_unsupported",
+  });
+  expect(unsupportedInvocation.status).toBe(
+    "builder_invocation_validation_unsupported",
+  );
+  expectNoInvocationValidationSideEffects(unsupportedInvocation);
+
+  const blockedInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    status: "builder_invocation_blocked",
+  });
+  expect(blockedInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expectNoInvocationValidationSideEffects(blockedInvocation);
+
+  const needsReviewInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    status: "builder_invocation_needs_review",
+  });
+  expect(needsReviewInvocation.status).toBe(
+    "builder_invocation_validation_needs_review",
+  );
+  expectNoInvocationValidationSideEffects(needsReviewInvocation);
+
+  const notReadyInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    status: "builder_invocation_not_ready",
+  });
+  expect(notReadyInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expectNoInvocationValidationSideEffects(notReadyInvocation);
+
+  const readyInvocationWithBlockedReasons = validateInvocationResult({
+    ...validInvocationResult,
+    blockedReasons: ["missing_idempotency_metadata"],
+  });
+  expect(readyInvocationWithBlockedReasons.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(readyInvocationWithBlockedReasons.blockedReasons).toContain(
+    "invocation_ready_with_blocked_reasons",
+  );
+  expectNoInvocationValidationSideEffects(readyInvocationWithBlockedReasons);
+
+  const missingAdapterValidationInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    prerequisiteSummary: {
+      ...validInvocationResult.prerequisiteSummary,
+      adapterValidationResultPresent: false,
+      adapterValidationValid: false,
+    },
+    input: {
+      ...validInvocationResult.input!,
+      adapterValidationResult: null,
+    },
+  });
+  expect(missingAdapterValidationInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingAdapterValidationInvocation.blockedReasons).toContain(
+    "missing_adapter_validation",
+  );
+  expectNoInvocationValidationSideEffects(missingAdapterValidationInvocation);
+
+  const adapterValidationNotValidInvocation = validateInvocationResult(
+    {
+      ...validInvocationResult,
+      prerequisiteSummary: {
+        ...validInvocationResult.prerequisiteSummary,
+        adapterValidationValid: false,
+      },
+    },
+    needsReviewValidation,
+  );
+  expect(adapterValidationNotValidInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(adapterValidationNotValidInvocation.blockedReasons).toContain(
+    "adapter_validation_not_valid",
+  );
+  expectNoInvocationValidationSideEffects(adapterValidationNotValidInvocation);
+
+  const missingProposedInputInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    input: {
+      ...validInvocationResult.input!,
+      proposedCreationInput: null,
+    },
+    prerequisiteSummary: {
+      ...validInvocationResult.prerequisiteSummary,
+      proposedCreationInputPresent: false,
+      proposedCreationInputComplete: false,
+    },
+  });
+  expect(missingProposedInputInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingProposedInputInvocation.blockedReasons).toContain(
+    "missing_proposed_input",
+  );
+  expectNoInvocationValidationSideEffects(missingProposedInputInvocation);
+
+  const missingRequiredProposedInputInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    prerequisiteSummary: {
+      ...validInvocationResult.prerequisiteSummary,
+      requiredBuilderInputFieldsPresent: false,
+      missingRequiredBuilderInputFields: ["idempotency.idempotencyKey"],
+    },
+  });
+  expect(missingRequiredProposedInputInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingRequiredProposedInputInvocation.blockedReasons).toContain(
+    "missing_required_proposed_input_field",
+  );
+  expectNoInvocationValidationSideEffects(
+    missingRequiredProposedInputInvocation,
+  );
+
+  const schemaAbsentInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    schemaReadinessSummary: {
+      ...validInvocationResult.schemaReadinessSummary,
+      schemaReadinessMetadataPresent: false,
+      generatedTypesAvailable: false,
+      generatedTypesReviewed: false,
+      migrationApplicationProven: false,
+    },
+  });
+  expect(
+    [
+      "builder_invocation_validation_blocked",
+      "builder_invocation_validation_needs_review",
+    ],
+  ).toContain(schemaAbsentInvocation.status);
+  expect(schemaAbsentInvocation.blockedReasons).toContain(
+    "schema_readiness_absent_or_unknown",
+  );
+  expectNoInvocationValidationSideEffects(schemaAbsentInvocation);
+
+  const migrationUnprovenInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    schemaReadinessSummary: {
+      ...validInvocationResult.schemaReadinessSummary,
+      migrationApplicationProven: false,
+    },
+  });
+  expect(migrationUnprovenInvocation.status).toBe(
+    "builder_invocation_validation_needs_review",
+  );
+  expect(migrationUnprovenInvocation.blockedReasons).toContain(
+    "migration_application_not_proven",
+  );
+  expectNoInvocationValidationSideEffects(migrationUnprovenInvocation);
+
+  const generatedTypesUnknownInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    schemaReadinessSummary: {
+      ...validInvocationResult.schemaReadinessSummary,
+      generatedTypesAvailable: false,
+      generatedTypesReviewed: false,
+    },
+  });
+  expect(generatedTypesUnknownInvocation.status).toBe(
+    "builder_invocation_validation_needs_review",
+  );
+  expect(generatedTypesUnknownInvocation.blockedReasons).toContain(
+    "generated_types_absent_or_unknown",
+  );
+  expectNoInvocationValidationSideEffects(generatedTypesUnknownInvocation);
+
+  const missingIdempotencyInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    idempotencySummary: {
+      ...validInvocationResult.idempotencySummary,
+      requiredFingerprintsPresent: false,
+      sourceEvidenceFingerprint: null,
+    },
+  });
+  expect(missingIdempotencyInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingIdempotencyInvocation.blockedReasons).toContain(
+    "missing_required_fingerprint",
+  );
+  expectNoInvocationValidationSideEffects(missingIdempotencyInvocation);
+
+  const conflictingFingerprintInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    idempotencySummary: {
+      ...validInvocationResult.idempotencySummary,
+      duplicateDetected: true,
+    },
+  });
+  expect(conflictingFingerprintInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(conflictingFingerprintInvocation.blockedReasons).toContain(
+    "conflicting_fingerprint",
+  );
+  expectNoInvocationValidationSideEffects(conflictingFingerprintInvocation);
+
+  const missingAuditInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    auditProvenanceSummary: {
+      ...validInvocationResult.auditProvenanceSummary,
+      auditMetadataPresent: false,
+    },
+  });
+  expect(missingAuditInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(missingAuditInvocation.blockedReasons).toContain(
+    "missing_audit_provenance_summary",
+  );
+  expectNoInvocationValidationSideEffects(missingAuditInvocation);
+
+  const manualApprovalMissingInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    auditProvenanceSummary: {
+      ...validInvocationResult.auditProvenanceSummary,
+      manualApprovalMetadataPreserved: false,
+    },
+  });
+  expect(manualApprovalMissingInvocation.status).toBe(
+    "builder_invocation_validation_blocked",
+  );
+  expect(manualApprovalMissingInvocation.blockedReasons).toContain(
+    "manual_approval_missing",
+  );
+  expectNoInvocationValidationSideEffects(manualApprovalMissingInvocation);
+
+  const authorityViolationInvocation = validateInvocationResult({
+    ...validInvocationResult,
+    safeToPersist: true,
+  } as unknown as ExecutionRecordCandidateBuilderInvocationResult);
+  expect(authorityViolationInvocation.status).toBe(
+    "builder_invocation_validation_invalid",
+  );
+  expect(authorityViolationInvocation.blockedReasons).toContain(
+    "safety_policy_authority_violation",
+  );
+  expect(authorityViolationInvocation.blockedReasons).toContain(
+    "write_authority_not_allowed",
+  );
+  expectNoInvocationValidationSideEffects(authorityViolationInvocation);
+});
+
+test("builds execution-record candidate builder integration dev preview from fixture data only", () => {
+  const result =
+    buildExecutionRecordCandidateBuilderIntegrationDevFixtureResult();
+
+  expect(result.metadata.fixtureOnly).toBe(true);
+  expect(result.metadata.explicitTriggerOnly).toBe(true);
+  expect(result.metadata.readOnlyPreview).toBe(true);
+  expect(result.metadata.pureAdapterOnly).toBe(true);
+  expect(result.metadata.pureValidatorOnly).toBe(true);
+  expect(result.metadata.noBuildExecutionRecordCandidateCall).toBe(true);
+  expect(result.metadata.noExecutionRecordCandidateCreated).toBe(true);
+  expect(result.metadata.noExecutionRecordCreated).toBe(true);
+  expect(result.metadata.noPersistence).toBe(true);
+  expect(result.metadata.noSupabaseWrite).toBe(true);
+  expect(result.metadata.noLocalStorageWrite).toBe(true);
+  expect(result.metadata.noAuditAppend).toBe(true);
+  expect(result.metadata.noStatsUpdate).toBe(true);
+  expect(result.metadata.noRollbackCorrection).toBe(true);
+  expect(result.metadata.noTradeMutation).toBe(true);
+  expect(result.metadata.noLiveAvanzaData).toBe(true);
+  expect(result.metadata.noCapture).toBe(true);
+  expect(result.metadata.noBrowserAutomation).toBe(true);
+  expect(result.metadata.noAvanzaBehavior).toBe(true);
+  expect(result.metadata.noBrokerOrderBehavior).toBe(true);
+
+  expect(result.adapterResult.status).toBe("adapter_input_ready");
+  expect(result.adapterResult.decisionRecommendation).toBe("shape_input_only");
+  expect(result.adapterResult.proposedInputSummary.requiredFieldsPresent).toBe(
+    true,
+  );
+  expect(result.adapterResult.proposedInputSummary.proposedCreationInput).toBeDefined();
+  expect(result.adapterResult.fieldMappingSummary.length).toBeGreaterThan(0);
+  expect(result.adapterResult.preconditionSummary.canShapeProposedInput).toBe(
+    true,
+  );
+  expect(result.adapterResult.schemaReadinessSummary.safeToPersist).toBe(false);
+  expect(result.adapterResult.idempotencySummary.requiredFingerprintsPresent).toBe(
+    true,
+  );
+  expect(result.adapterResult.auditProvenanceSummary.auditMetadataPresent).toBe(
+    true,
+  );
+  expect(result.adapterResult.safeToCallCandidateBuilder).toBe(false);
+  expect(result.adapterResult.safeToCreateExecutionRecordCandidate).toBe(false);
+  expect(result.adapterResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.adapterResult.safeToPersist).toBe(false);
+  expect(result.adapterResult.safeToAppendAudit).toBe(false);
+  expect(result.adapterResult.safeToUpdateStats).toBe(false);
+  expect(result.adapterResult.safeToRollback).toBe(false);
+  expect(result.adapterResult.safeToMutateTrade).toBe(false);
+  expect(result.adapterResult.candidateBuilderInvocationAttempted).toBe(false);
+  expect(result.adapterResult.executionRecordCandidateCreationAttempted).toBe(
+    false,
+  );
+  expect(result.adapterResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.adapterResult.persistenceAttempted).toBe(false);
+  expect(result.adapterResult.auditAppendAttempted).toBe(false);
+  expect(result.adapterResult.statsUpdateAttempted).toBe(false);
+  expect(result.adapterResult.rollbackAttempted).toBe(false);
+  expect(result.adapterResult.tradeMutationAttempted).toBe(false);
+  expect(result.adapterResult.browserAutomationAttempted).toBe(false);
+  expect(result.adapterResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.adapterResult.brokerAutomationAttempted).toBe(false);
+
+  expect(result.validatorResult.status).toBe("adapter_validation_valid");
+  expect(result.validatorResult.decisionRecommendation).toBe("validate_only");
+  expect(result.validatorResult.proposedInputValidationSummary.requiredFieldsPresent).toBe(
+    true,
+  );
+  expect(result.validatorResult.fieldMappingValidationSummary.length).toBeGreaterThan(0);
+  expect(
+    result.validatorResult.preconditionValidationSummary.canValidateAdapterOutput,
+  ).toBe(true);
+  expect(result.validatorResult.schemaReadinessValidationSummary.safeToPersist).toBe(
+    false,
+  );
+  expect(result.validatorResult.idempotencyValidationSummary.requiredFingerprintsPresent).toBe(
+    true,
+  );
+  expect(result.validatorResult.auditProvenanceValidationSummary.auditMetadataPresent).toBe(
+    true,
+  );
+  expect(result.validatorResult.safetyPolicyValidationSummary.allAuthorityFlagsFalse).toBe(
+    true,
+  );
+  expect(result.validatorResult.safeToCallCandidateBuilder).toBe(false);
+  expect(result.validatorResult.safeToCreateExecutionRecordCandidate).toBe(false);
+  expect(result.validatorResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.validatorResult.safeToPersist).toBe(false);
+  expect(result.validatorResult.safeToAppendAudit).toBe(false);
+  expect(result.validatorResult.safeToUpdateStats).toBe(false);
+  expect(result.validatorResult.safeToRollback).toBe(false);
+  expect(result.validatorResult.safeToMutateTrade).toBe(false);
+  expect(result.validatorResult.candidateBuilderInvocationAttempted).toBe(false);
+  expect(result.validatorResult.executionRecordCandidateCreationAttempted).toBe(
+    false,
+  );
+  expect(result.validatorResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.validatorResult.persistenceAttempted).toBe(false);
+  expect(result.validatorResult.auditAppendAttempted).toBe(false);
+  expect(result.validatorResult.statsUpdateAttempted).toBe(false);
+  expect(result.validatorResult.rollbackAttempted).toBe(false);
+  expect(result.validatorResult.tradeMutationAttempted).toBe(false);
+  expect(result.validatorResult.browserAutomationAttempted).toBe(false);
+  expect(result.validatorResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.validatorResult.brokerAutomationAttempted).toBe(false);
+});
+
+test("maps validated Avanza evidence to BrokerExecutionResult candidates only", () => {
+  const buildEvidence = (
+    overrides: Partial<AvanzaConfirmationEvidence> = {},
+  ): AvanzaConfirmationEvidence => ({
+    contractVersion: AVANZA_BROKER_CONFIRMATION_EVIDENCE_CONTRACT_VERSION,
+    broker: "avanza",
+    sourceType: "final_confirmation",
+    sourcePageFlowIdentifier: "avanza-final-confirmation-readback",
+    side: "buy",
+    quantity: 12,
+    price: {
+      value: 86.5,
+      fieldType: "execution_price",
+      currency: "SEK",
+      rawLabel: "Genomfort pris",
+    },
+    currency: "SEK",
+    confirmationTimestamp: "2026-06-15T09:35:10.000Z",
+    capturedTimestamp: "2026-06-15T09:35:15.000Z",
+    manualConfirmationCheckpoint: true,
+    sourceClassification: "production_safe_candidate",
+    provenance: {
+      captureMethod: "browser_readback",
+      captureMode: "semi_automatic_supervised",
+      pageIdentity: "final_confirmation",
+      capturedAt: "2026-06-15T09:35:15.000Z",
+      evidenceFingerprint: "avanza-mapper-evidence-fingerprint-001",
+      sourceClassification: "production_safe_candidate",
+      extractionConfidence: 0.96,
+      fieldConfidence: {
+        instrument: { value: 0.98 },
+        side: { value: 0.99 },
+        quantity: { value: 0.97 },
+        price: { value: 0.96 },
+        timestamp: { value: 0.94 },
+        brokerReference: { value: 0.95 },
+        status: { value: 0.93 },
+        currency: { value: 0.98 },
+      },
+      userConfirmationCheckpoint: true,
+      captureId: "avanza-mapper-capture-001",
+      requestId: "avanza-mapper-request-001",
+      handoffPayloadFingerprint: "handoff-mapper-001",
+    },
+    privacy: {
+      containsRawScreenshot: false,
+      containsRawPageText: false,
+      containsRawDom: false,
+      containsCredentials: false,
+      containsCookiesOrTokens: false,
+      containsAccountNumber: false,
+      containsBalanceOrHoldings: false,
+      accountIdentifierMasked: true,
+      rawUrlStored: false,
+      rawSensitiveDataStored: false,
+    },
+    instrument: {
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      venue: "XSTO",
+      instrumentType: "stock",
+    },
+    brokerReferences: {
+      orderId: "AVZ-MAPPER-ORDER-001",
+      confirmationId: "AVZ-MAPPER-CONFIRM-001",
+      brokerReference: "AVZ-MAPPER-REF-001",
+    },
+    orderStatus: "filled",
+    orderType: "limit",
+    accountContext: {
+      accountLabel: "Masked ISK",
+      accountType: "ISK",
+      maskedAccountId: "****1234",
+    },
+    handoffPayloadFingerprint: "handoff-mapper-001",
+    fee: 1.5,
+    totalAmount: 1038,
+    ...overrides,
+  });
+
+  const buildConfirmationInput = (
+    evidence: AvanzaConfirmationEvidence,
+    overrides: Partial<BrokerExecutionResultConfirmationValidatorInput> = {},
+  ): BrokerExecutionResultConfirmationValidatorInput => ({
+    contractVersion:
+      BROKER_EXECUTION_RESULT_CONFIRMATION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-15T09:36:00.000Z",
+    broker: "avanza",
+    mode: "semi_auto_manual_confirmed",
+    rawEvidence: evidence,
+    evidenceValidationResult: validateAvanzaConfirmationEvidence(evidence),
+    sourceClassification: evidence.sourceClassification,
+    intendedSide: "buy",
+    intendedInstrument: {
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      isin: "SE0000108656",
+      instrumentId: "5361",
+      market: "Stockholm",
+      currency: "SEK",
+    },
+    intendedQuantity: 12,
+    intendedPrice: {
+      expectedExecutionPrice: 86.5,
+      currency: "SEK",
+      source: "handoff_payload",
+    },
+    handoffPayloadFingerprint: "handoff-mapper-001",
+    expectedAccountContext: {
+      broker: "avanza",
+      accountLabel: "Masked ISK",
+      accountType: "ISK",
+      maskedAccountId: "****1234",
+    },
+    mappingPolicyVersion: "broker-confirmation-mapping-policy-v1",
+    ...overrides,
+  });
+
+  const buildMapperInput = (
+    evidence: AvanzaConfirmationEvidence = buildEvidence(),
+    overrides: Partial<EvidenceToBrokerExecutionResultMapperInput> = {},
+  ): EvidenceToBrokerExecutionResultMapperInput => {
+    const evidenceValidationResult = validateAvanzaConfirmationEvidence(evidence);
+    const confirmationValidationResult =
+      validateBrokerExecutionResultConfirmation(
+        buildConfirmationInput(evidence, {
+          evidenceValidationResult,
+        }),
+      );
+
+    return {
+      contractVersion:
+        EVIDENCE_TO_BROKER_EXECUTION_RESULT_MAPPER_CONTRACT_VERSION,
+      requestedAt: "2026-06-15T09:37:00.000Z",
+      broker: "avanza",
+      mode: "contract_preview",
+      rawEvidence: evidence,
+      evidenceValidationResult,
+      confirmationValidationResult,
+      sourceClassification: evidence.sourceClassification,
+      handoffPayloadFingerprint: "handoff-mapper-001",
+      intendedContext: {
+        side: "buy",
+        ticker: "ERIC B",
+        instrumentName: "Ericsson B",
+        isin: "SE0000108656",
+        instrumentId: "5361",
+        quantity: 12,
+        expectedExecutionPrice: 86.5,
+        currency: "SEK",
+        handoffPayloadFingerprint: "handoff-mapper-001",
+      },
+      ...overrides,
+    };
+  };
+
+  const valid = mapEvidenceToBrokerExecutionResultCandidate(buildMapperInput());
+
+  expect(valid.status).toBe("mapped_candidate");
+  expect(valid.rejectionReasons).toEqual([]);
+  expect(valid.mapperImplemented).toBe(true);
+  expect(valid.brokerExecutionResultCreated).toBe(false);
+  expect(valid.safeToPersist).toBe(false);
+  expect(valid.safeToMutateTrade).toBe(false);
+  expect(valid.persistenceAttempted).toBe(false);
+  expect(valid.tradeMutationAttempted).toBe(false);
+  expect(valid.auditAppendAttempted).toBe(false);
+  expect(valid.mappedCandidate).toEqual(
+    expect.objectContaining({
+      status: "confirmed_candidate",
+      broker: "avanza",
+      sourceClassification: "production_safe_candidate",
+      handoffPayloadFingerprint: "handoff-mapper-001",
+      confirmationTimestamp: "2026-06-15T09:35:10.000Z",
+      capturedTimestamp: "2026-06-15T09:35:15.000Z",
+    }),
+  );
+  expect(valid.mappedCandidate?.brokerReferences).toEqual(
+    expect.objectContaining({
+      brokerOrderId: "AVZ-MAPPER-ORDER-001",
+      brokerConfirmationId: "AVZ-MAPPER-CONFIRM-001",
+    }),
+  );
+  expect(valid.mappedCandidate?.instrument).toEqual(
+    expect.objectContaining({
+      instrumentName: "Ericsson B",
+      ticker: "ERIC B",
+      isin: "SE0000108656",
+    }),
+  );
+  expect(valid.mappedCandidate?.execution).toEqual(
+    expect.objectContaining({
+      side: "buy",
+      quantity: 12,
+      orderType: "limit",
+    }),
+  );
+  expect(valid.mappedCandidate?.price).toEqual(
+    expect.objectContaining({
+      executionPrice: 86.5,
+      currency: "SEK",
+    }),
+  );
+  expect(valid.mappedCandidate?.fieldMapping.mappedFields.length).toBeGreaterThan(
+    0,
+  );
+  expect(valid.mappedCandidate?.fingerprintInput).toEqual(
+    expect.objectContaining({
+      handoffPayloadFingerprint: "handoff-mapper-001",
+      evidenceFingerprint: "avanza-mapper-evidence-fingerprint-001",
+      brokerReferenceFingerprintInput: "AVZ-MAPPER-CONFIRM-001",
+    }),
+  );
+  expect(valid.mappedCandidate?.partialFill).toEqual(
+    expect.objectContaining({
+      status: "not_partial",
+      requiresReview: false,
+    }),
+  );
+  expect(valid.mappedCandidate?.safetyPolicy).toEqual(
+    expect.objectContaining({
+      notExecutionRecord: true,
+      notPersistenceApproval: true,
+      notTradeMutationApproval: true,
+      safeToPersist: false,
+      safeToMutateTrade: false,
+      brokerExecutionResultCreated: false,
+      executionRecordCreated: false,
+      persistenceAttempted: false,
+      tradeMutationAttempted: false,
+    }),
+  );
+
+  const nonConfirmed = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(undefined, {
+      confirmationValidationResult: {
+        ...buildMapperInput().confirmationValidationResult,
+        status: "needs_review",
+        safeToConvert: false,
+      },
+    }),
+  );
+
+  expect(nonConfirmed.status).toBe("needs_review");
+  expect(nonConfirmed.rejectionReasons).toContain(
+    "confirmation_not_confirmed_candidate",
+  );
+  expect(nonConfirmed.mappedCandidate).toBeUndefined();
+
+  const safeToConvertFalse = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(undefined, {
+      confirmationValidationResult: {
+        ...buildMapperInput().confirmationValidationResult,
+        safeToConvert: false,
+      },
+    }),
+  );
+
+  expect(safeToConvertFalse.status).toBe("rejected");
+  expect(safeToConvertFalse.rejectionReasons).toContain(
+    "confirmation_not_confirmed_candidate",
+  );
+
+  const rejectedEvidence = buildEvidence({
+    brokerReferences: {},
+  });
+  const rejectedEvidenceResult = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(rejectedEvidence),
+  );
+
+  expect(rejectedEvidenceResult.status).toBe("rejected");
+  expect(rejectedEvidenceResult.rejectionReasons).toEqual(
+    expect.arrayContaining([
+      "evidence_rejected",
+      "missing_broker_reference",
+    ]),
+  );
+
+  const missingHandoff = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(undefined, {
+      handoffPayloadFingerprint: null,
+      rawEvidence: {
+        ...buildEvidence(),
+        handoffPayloadFingerprint: null,
+        provenance: {
+          ...buildEvidence().provenance,
+          handoffPayloadFingerprint: null,
+        },
+      },
+    }),
+  );
+
+  expect(missingHandoff.status).toBe("rejected");
+  expect(missingHandoff.rejectionReasons).toContain(
+    "missing_handoff_fingerprint",
+  );
+
+  const missingRequiredFields = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(
+      buildEvidence({
+        quantity: 0,
+        price: {
+          value: -1,
+          fieldType: "execution_price",
+          currency: "SEK",
+        },
+      }),
+    ),
+  );
+
+  expect(missingRequiredFields.status).toBe("rejected");
+  expect(missingRequiredFields.rejectionReasons).toContain(
+    "missing_required_field",
+  );
+
+  const partialFillEvidence = buildEvidence({
+    orderStatus: "partially_filled",
+    partialFill: {
+      status: "unclear",
+      filledQuantity: 6,
+      remainingQuantity: 6,
+      averageFillPrice: 86.5,
+      fillTimestamp: "2026-06-15T09:35:12.000Z",
+      orderId: "AVZ-MAPPER-ORDER-001",
+    },
+  });
+  const partialFill = mapEvidenceToBrokerExecutionResultCandidate(
+    buildMapperInput(partialFillEvidence),
+  );
+
+  expect(partialFill.status).toBe("partial_fill_review");
+  expect(partialFill.rejectionReasons).toContain("partial_fill_ambiguous");
+  expect(partialFill.partialFillMapping.requiresReview).toBe(true);
+  expect(partialFill.mappedCandidate).toBeUndefined();
+});
+
+test("validates execution record persistence eligibility without writes", () => {
+  const buildCreationInput = (
+    overrides: Partial<ExecutionRecordCreationInput> = {},
+  ): ExecutionRecordCreationInput => ({
+    contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T16:50:00.000Z",
+    sourceEnvironment: "production",
+    executionMode: "semi_automatic",
+    executionPhase: "exit",
+    expectedAction: "sell",
+    expectedInstrument: {
+      ticker: "ERIC B",
+      name: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+    },
+    expectedQuantity: 12,
+    expectedPositionId: "position-persist-001",
+    positionId: "position-persist-001",
+    sourceBrokerExecutionResult: {
+      broker: "avanza",
+      status: "filled",
+      side: "sell",
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+      filledQuantity: 12,
+      averageFillPrice: 86.5,
+      grossAmount: 1038,
+      netAmount: 1036.5,
+      fees: 1.5,
+      brokerOrderId: "AVZ-PERSIST-ORDER-001",
+      brokerConfirmationId: "AVZ-PERSIST-CONFIRM-001",
+      confirmationTimestamp: "2026-06-11T16:49:30.000Z",
+      metadata: {
+        noSupabaseWrite: true,
+        noTradeMutation: true,
+      },
+    },
+    brokerMetadata: {
+      broker: "avanza",
+      brokerOrderId: "AVZ-PERSIST-ORDER-001",
+      brokerConfirmationId: "AVZ-PERSIST-CONFIRM-001",
+      confirmationTimestamp: "2026-06-11T16:49:30.000Z",
+    },
+    idempotency: {
+      idempotencyKey: "execution-record-persist-idempotency-001",
+      sourceEvidenceFingerprint: "source-evidence-persist-001",
+      brokerResultFingerprint: "broker-result-persist-001",
+      handoffPayloadFingerprint: "handoff-payload-persist-001",
+    },
+    auditContext: {
+      createdBy: "manual_user_confirmation",
+      handoffSessionId: "handoff-persist-001",
+      sourceEventIds: ["event-persist-001"],
+    },
+    existingTradeRef: {
+      positionId: "position-persist-001",
+      ticker: "ERIC B",
+    },
+    ...overrides,
+  });
+
+  const built = buildExecutionRecordCandidate(buildCreationInput());
+  expect(built.status).toBe("eligible");
+  expect(built.recordCandidate).toBeDefined();
+  const candidate = built.recordCandidate!;
+
+  const buildPersistenceInput = (
+    overrides: Partial<ExecutionRecordPersistenceInput> = {},
+  ): ExecutionRecordPersistenceInput => ({
+    contractVersion: EXECUTION_RECORD_PERSISTENCE_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T16:51:00.000Z",
+    candidate,
+    idempotencyKey: candidate.idempotencyKey,
+    recordFingerprint: candidate.recordFingerprint,
+    sourceFingerprint: candidate.sourceEvidenceFingerprint,
+    brokerConfirmation: {
+      broker: candidate.broker,
+      brokerOrderId: candidate.brokerOrderId,
+      brokerConfirmationId: candidate.brokerConfirmationId,
+      brokerResultFingerprint: candidate.brokerResultFingerprint,
+      confirmedAt: candidate.confirmationTimestamp,
+      capturedAt: "2026-06-11T16:50:00.000Z",
+      sourceFingerprint: candidate.sourceEvidenceFingerprint,
+    },
+    association: {
+      sourceRecommendationId: candidate.recommendationId,
+      sourcePositionId: candidate.positionId,
+      handoffSessionId: candidate.handoffSessionId,
+      planningSnapshotId: candidate.planningSnapshotId,
+      tradeAssociationConfidence: "confirmed",
+    },
+    userContext: {
+      userId: "user-persist-001",
+      accountId: "account-persist-001",
+      actor: "server_route",
+      sourceEnvironment: "production",
+    },
+    safetyChecklist: {
+      candidateValidated: true,
+      candidateSafeToPersist: true,
+      notPreviewOnly: true,
+      notDevFixture: true,
+      notSynthetic: true,
+      notMock: true,
+      hasConfirmedBrokerResult: true,
+      hasIdempotencyKey: true,
+      hasRecordFingerprint: true,
+      hasSourceFingerprint: true,
+      hasUserOrAccountContext: true,
+      hasUnambiguousTradeAssociation: true,
+      schemaAvailable: true,
+      rlsContextPresent: true,
+      auditPolicyReviewed: true,
+      tradeMutationSeparated: true,
+      automaticModeReviewed: true,
+    },
+    auditMetadata: {
+      noTradeMutation: true,
+      noAuditAppendInContract: true,
+      persistenceAttempted: false,
+      supabaseWriteAttempted: false,
+      tradeMutationAttempted: false,
+      auditAppendAttempted: false,
+      actor: "server_route",
+      sourceEnvironment: "production",
+      sourceEventIds: ["event-persist-001"],
+      idempotencyKey: candidate.idempotencyKey,
+      recordFingerprint: candidate.recordFingerprint,
+      sourceFingerprint: candidate.sourceEvidenceFingerprint,
+      brokerResultFingerprint: candidate.brokerResultFingerprint,
+      handoffSessionId: candidate.handoffSessionId,
+    },
+    schemaReference: {
+      tableName: "execution_records",
+      expectedColumnsVersion: "execution_records_v1",
+      migrationVersion: "planned",
+    },
+    ...overrides,
+  });
+
+  const eligible = validateExecutionRecordPersistenceInput(buildPersistenceInput());
+  expect(eligible).toEqual(
+    expect.objectContaining({
+      status: "eligible",
+      safeToWrite: true,
+      rejectionReasons: [],
+      duplicateMatches: [],
+      idempotencyKey: candidate.idempotencyKey,
+      recordFingerprint: candidate.recordFingerprint,
+    }),
+  );
+
+  const unsafeCandidate = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      safetyChecklist: {
+        ...buildPersistenceInput().safetyChecklist,
+        candidateSafeToPersist: false,
+      },
+    }),
+  );
+  expect(unsafeCandidate.status).toBe("rejected");
+  expect(unsafeCandidate.rejectionReasons).toContain(
+    "candidate_not_safe_to_persist",
+  );
+
+  const devFixture = buildExecutionRecordCandidate(
+    buildExecutionRecordCreationDevFixtureInput({
+      action: "sell",
+      executionMode: "semi_automatic",
+      handoffSessionId: "dev-fixture-persist-handoff-001",
+      livePositionId: "dev-fixture-persist-position-001",
+      market: "Stockholm",
+      payloadFingerprint: "dev-fixture-persist-payload-fingerprint-001",
+      payloadId: "dev-fixture-persist-payload-001",
+      quantity: 3,
+      recommendationId: "dev-fixture-persist-recommendation-001",
+      ticker: "ERIC B",
+    }),
+  );
+  expect(devFixture.recordCandidate).toBeDefined();
+  const devFixtureCandidate = devFixture.recordCandidate!;
+  const devFixtureResult = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      candidate: devFixtureCandidate,
+      idempotencyKey: devFixtureCandidate.idempotencyKey,
+      recordFingerprint: devFixtureCandidate.recordFingerprint,
+      sourceFingerprint: devFixtureCandidate.sourceEvidenceFingerprint,
+      brokerConfirmation: {
+        broker: devFixtureCandidate.broker,
+        brokerOrderId: devFixtureCandidate.brokerOrderId,
+        brokerConfirmationId: devFixtureCandidate.brokerConfirmationId,
+        confirmedAt: devFixtureCandidate.confirmationTimestamp,
+        sourceFingerprint: devFixtureCandidate.sourceEvidenceFingerprint,
+      },
+    }),
+  );
+  expect(devFixtureResult.status).toBe("rejected");
+  expect(devFixtureResult.rejectionReasons).toContain(
+    "dev_fixture_candidate_not_allowed",
+  );
+
+  const missingIdempotency = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      idempotencyKey: "",
+      safetyChecklist: {
+        ...buildPersistenceInput().safetyChecklist,
+        hasIdempotencyKey: false,
+      },
+    }),
+  );
+  expect(missingIdempotency.status).toBe("rejected");
+  expect(missingIdempotency.rejectionReasons).toContain(
+    "missing_idempotency_key",
+  );
+
+  const missingUserContext = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      userContext: {
+        userId: null,
+        accountId: null,
+        actor: "server_route",
+        sourceEnvironment: "production",
+      },
+      safetyChecklist: {
+        ...buildPersistenceInput().safetyChecklist,
+        hasUserOrAccountContext: false,
+      },
+    }),
+  );
+  expect(missingUserContext.status).toBe("rejected");
+  expect(missingUserContext.rejectionReasons).toContain("missing_user_context");
+
+  const duplicate = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      duplicateMatches: [
+        {
+          matchType: "idempotency_key",
+          existingRecordId: "execution-record-existing-001",
+          idempotencyKey: candidate.idempotencyKey,
+          recordFingerprint: candidate.recordFingerprint,
+          brokerOrderId: candidate.brokerOrderId,
+          brokerConfirmationId: candidate.brokerConfirmationId,
+        },
+      ],
+    }),
+  );
+  expect(duplicate.status).toBe("duplicate");
+  expect(duplicate.safeToWrite).toBe(false);
+  expect(duplicate.rejectionReasons).toContain("duplicate_execution_record");
+  expect(duplicate.duplicateMatches[0]).toEqual(
+    expect.objectContaining({
+      existingRecordId: "execution-record-existing-001",
+      matchType: "idempotency_key",
+    }),
+  );
+
+  const schemaUnavailable = validateExecutionRecordPersistenceInput(
+    buildPersistenceInput({
+      schemaReference: null,
+      safetyChecklist: {
+        ...buildPersistenceInput().safetyChecklist,
+        schemaAvailable: false,
+      },
+    }),
+  );
+  expect(schemaUnavailable.status).toBe("rejected");
+  expect(schemaUnavailable.rejectionReasons).toContain("schema_unavailable");
+});
+
+function buildExecutionRecordInsertRouteRequest(
+  persistenceOverrides: Partial<ExecutionRecordPersistenceInput> = {},
+  routeOverrides: Partial<ExecutionRecordInsertRouteRequest> = {},
+): ExecutionRecordInsertRouteRequest {
+  const built = buildExecutionRecordCandidate({
+    contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:05:00.000Z",
+    sourceEnvironment: "production",
+    executionMode: "semi_automatic",
+    executionPhase: "exit",
+    expectedAction: "sell",
+    expectedInstrument: {
+      ticker: "ERIC B",
+      name: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+    },
+    expectedQuantity: 12,
+    expectedPositionId: "position-route-001",
+    positionId: "position-route-001",
+    sourceBrokerExecutionResult: {
+      broker: "avanza",
+      status: "filled",
+      side: "sell",
+      ticker: "ERIC B",
+      instrumentName: "Ericsson B",
+      market: "Stockholm",
+      currency: "SEK",
+      instrumentType: "stock",
+      filledQuantity: 12,
+      averageFillPrice: 86.5,
+      grossAmount: 1038,
+      netAmount: 1036.5,
+      fees: 1.5,
+      brokerOrderId: "AVZ-ROUTE-ORDER-001",
+      brokerConfirmationId: "AVZ-ROUTE-CONFIRM-001",
+      confirmationTimestamp: "2026-06-11T17:04:30.000Z",
+      metadata: {
+        noSupabaseWrite: true,
+        noTradeMutation: true,
+      },
+    },
+    brokerMetadata: {
+      broker: "avanza",
+      brokerOrderId: "AVZ-ROUTE-ORDER-001",
+      brokerConfirmationId: "AVZ-ROUTE-CONFIRM-001",
+      confirmationTimestamp: "2026-06-11T17:04:30.000Z",
+    },
+    idempotency: {
+      idempotencyKey: "execution-record-route-idempotency-001",
+      sourceEvidenceFingerprint: "source-evidence-route-001",
+      brokerResultFingerprint: "broker-result-route-001",
+      handoffPayloadFingerprint: "handoff-payload-route-001",
+    },
+    auditContext: {
+      createdBy: "manual_user_confirmation",
+      handoffSessionId: "handoff-route-001",
+      sourceEventIds: ["event-route-001"],
+    },
+    existingTradeRef: {
+      positionId: "position-route-001",
+      ticker: "ERIC B",
+    },
+  });
+
+  if (built.status !== "eligible" || !built.recordCandidate) {
+    throw new Error("Expected execution record route fixture to be eligible.");
+  }
+
+  const candidate = built.recordCandidate;
+  const persistenceInput: ExecutionRecordPersistenceInput = {
+    contractVersion: EXECUTION_RECORD_PERSISTENCE_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:06:00.000Z",
+    candidate,
+    idempotencyKey: candidate.idempotencyKey,
+    recordFingerprint: candidate.recordFingerprint,
+    sourceFingerprint: candidate.sourceEvidenceFingerprint,
+    brokerConfirmation: {
+      broker: candidate.broker,
+      brokerOrderId: candidate.brokerOrderId,
+      brokerConfirmationId: candidate.brokerConfirmationId,
+      brokerResultFingerprint: candidate.brokerResultFingerprint,
+      confirmedAt: candidate.confirmationTimestamp,
+      capturedAt: "2026-06-11T17:05:00.000Z",
+      sourceFingerprint: candidate.sourceEvidenceFingerprint,
+    },
+    association: {
+      sourceRecommendationId: candidate.recommendationId,
+      sourcePositionId: candidate.positionId,
+      handoffSessionId: candidate.handoffSessionId,
+      planningSnapshotId: candidate.planningSnapshotId,
+      tradeAssociationConfidence: "confirmed",
+    },
+    userContext: {
+      userId: "user-route-001",
+      accountId: "account-route-001",
+      actor: "server_route",
+      sourceEnvironment: "production",
+    },
+    safetyChecklist: {
+      candidateValidated: true,
+      candidateSafeToPersist: true,
+      notPreviewOnly: true,
+      notDevFixture: true,
+      notSynthetic: true,
+      notMock: true,
+      hasConfirmedBrokerResult: true,
+      hasIdempotencyKey: true,
+      hasRecordFingerprint: true,
+      hasSourceFingerprint: true,
+      hasUserOrAccountContext: true,
+      hasUnambiguousTradeAssociation: true,
+      schemaAvailable: true,
+      rlsContextPresent: true,
+      auditPolicyReviewed: true,
+      tradeMutationSeparated: true,
+      automaticModeReviewed: true,
+    },
+    auditMetadata: {
+      noTradeMutation: true,
+      noAuditAppendInContract: true,
+      persistenceAttempted: false,
+      supabaseWriteAttempted: false,
+      tradeMutationAttempted: false,
+      auditAppendAttempted: false,
+      actor: "server_route",
+      sourceEnvironment: "production",
+      sourceEventIds: ["event-route-001"],
+      idempotencyKey: candidate.idempotencyKey,
+      recordFingerprint: candidate.recordFingerprint,
+      sourceFingerprint: candidate.sourceEvidenceFingerprint,
+      brokerResultFingerprint: candidate.brokerResultFingerprint,
+      handoffSessionId: candidate.handoffSessionId,
+    },
+    schemaReference: {
+      tableName: "execution_records",
+      expectedColumnsVersion: "execution_records_v1",
+      migrationVersion: "planned",
+    },
+    ...persistenceOverrides,
+  };
+
+  return {
+    contractVersion: EXECUTION_RECORD_INSERT_ROUTE_CONTRACT_VERSION,
+    method: "POST",
+    routePath: "/api/execution/records/insert",
+    requestedAt: "2026-06-11T17:06:30.000Z",
+    mode: "dry_run",
+    dryRun: true,
+    persistenceInput,
+    candidate: persistenceInput.candidate,
+    idempotencyKey: persistenceInput.idempotencyKey,
+    recordFingerprint: persistenceInput.recordFingerprint,
+    sourceFingerprint: persistenceInput.sourceFingerprint,
+    brokerConfirmation: persistenceInput.brokerConfirmation,
+    association: persistenceInput.association,
+    userContext: persistenceInput.userContext,
+    auditMetadata: persistenceInput.auditMetadata,
+    safetyChecklist: persistenceInput.safetyChecklist,
+    clientContext: {
+      expectedUserId: persistenceInput.userContext.userId,
+      expectedAccountId: persistenceInput.userContext.accountId,
+      requestId: "execution-record-insert-route-dry-run-test",
+    },
+    metadata: {
+      testOnly: true,
+    },
+    ...routeOverrides,
+  };
+}
+
+test("dry-runs execution record insert route without persistence", async ({
+  context,
+}) => {
+  const routeRequest = buildExecutionRecordInsertRouteRequest();
+  const response = await context.request.post("/api/execution/records/insert", {
+    data: routeRequest,
+  });
+  const body = (await response.json()) as ExecutionRecordInsertRouteResponse;
+
+  if (process.env.NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS === "false") {
+    expect(response.status()).toBe(403);
+    expect(body.status).toBe("rejected");
+    expect(body.safetyMetadata.noTradeMutation).toBe(true);
+    expect(body.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+    return;
+  }
+
+  expect(response.status()).toBe(202);
+  expect(body.status).toBe("dry_run");
+  expect(body.idempotencyKey).toBe(routeRequest.idempotencyKey);
+  expect(body.recordFingerprint).toBe(routeRequest.recordFingerprint);
+  expect(body).not.toHaveProperty("persistedRecord");
+  expect(body.safetyMetadata).toEqual(
+    expect.objectContaining({
+      directClientSupabaseWriteAllowed: false,
+      noTradeMutation: true,
+      noAuditAppendInInitialRoute: true,
+      noBrokerResultCreation: true,
+      noAvanzaAutomation: true,
+    }),
+  );
+  expect(body.dryRunMetadata).toEqual(
+    expect.objectContaining({
+      dryRun: true,
+      insertAttempted: false,
+      supabaseWriteAttempted: false,
+      auditAppendAttempted: false,
+      tradeMutationAttempted: false,
+      plannedDuplicateLookup: true,
+      plannedInsertMapping: true,
+    }),
+  );
+});
+
+test("rejects malformed and non-dry-run execution record insert requests", async ({
+  context,
+}) => {
+  const malformedResponse = await context.request.post(
+    "/api/execution/records/insert",
+    {
+      data: Buffer.from("{not-json"),
+      headers: {
+        "content-type": "application/json",
+      },
+    },
+  );
+  const malformedBody =
+    (await malformedResponse.json()) as ExecutionRecordInsertRouteResponse;
+
+  if (process.env.NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS === "false") {
+    expect(malformedResponse.status()).toBe(403);
+    expect(malformedBody.status).toBe("rejected");
+    return;
+  }
+
+  expect(malformedResponse.status()).toBe(400);
+  expect(malformedBody.status).toBe("rejected");
+  expect(malformedBody.validationErrors[0]).toEqual(
+    expect.objectContaining({
+      code: "invalid_json",
+    }),
+  );
+  expect(malformedBody.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+  expect(malformedBody.dryRunMetadata?.tradeMutationAttempted).toBe(false);
+
+  const nonDryRunResponse = await context.request.post(
+    "/api/execution/records/insert",
+    {
+      data: buildExecutionRecordInsertRouteRequest(
+        {},
+        {
+          mode: "insert",
+          dryRun: false,
+        },
+      ),
+    },
+  );
+  const nonDryRunBody =
+    (await nonDryRunResponse.json()) as ExecutionRecordInsertRouteResponse;
+
+  expect(nonDryRunResponse.status()).toBe(400);
+  expect(nonDryRunBody.status).toBe("rejected");
+  expect(nonDryRunBody.validationErrors).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "supabase_write_disabled",
+      }),
+    ]),
+  );
+  expect(nonDryRunBody).not.toHaveProperty("persistedRecord");
+  expect(nonDryRunBody.safetyMetadata.directClientSupabaseWriteAllowed).toBe(
+    false,
+  );
+});
+
+test("simulates duplicate and rejected execution record insert dry-runs", async ({
+  context,
+}) => {
+  const duplicateRequest = buildExecutionRecordInsertRouteRequest();
+  const duplicateResponse = await context.request.post(
+    "/api/execution/records/insert",
+    {
+      data: buildExecutionRecordInsertRouteRequest({
+        duplicateMatches: [
+          {
+            matchType: "idempotency_key",
+            existingRecordId: "execution-record-existing-route-001",
+            idempotencyKey: duplicateRequest.idempotencyKey,
+            recordFingerprint: duplicateRequest.recordFingerprint,
+            brokerOrderId: duplicateRequest.brokerConfirmation.brokerOrderId,
+            brokerConfirmationId:
+              duplicateRequest.brokerConfirmation.brokerConfirmationId,
+          },
+        ],
+      }),
+    },
+  );
+  const duplicateBody =
+    (await duplicateResponse.json()) as ExecutionRecordInsertRouteResponse;
+
+  if (process.env.NEXT_PUBLIC_ENABLE_EXECUTION_DEV_TOOLS === "false") {
+    expect(duplicateResponse.status()).toBe(403);
+    expect(duplicateBody.status).toBe("rejected");
+    return;
+  }
+
+  expect(duplicateResponse.status()).toBe(200);
+  expect(duplicateBody.status).toBe("duplicate");
+  expect(duplicateBody).not.toHaveProperty("persistedRecord");
+  expect(duplicateBody.duplicate?.duplicateMatches[0]).toEqual(
+    expect.objectContaining({
+      existingRecordId: "execution-record-existing-route-001",
+      matchType: "idempotency_key",
+    }),
+  );
+  expect(duplicateBody.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+
+  const unsafeResponse = await context.request.post(
+    "/api/execution/records/insert",
+    {
+      data: buildExecutionRecordInsertRouteRequest({
+        safetyChecklist: {
+          ...duplicateRequest.safetyChecklist,
+          candidateSafeToPersist: false,
+        },
+      }),
+    },
+  );
+  const unsafeBody =
+    (await unsafeResponse.json()) as ExecutionRecordInsertRouteResponse;
+
+  expect(unsafeResponse.status()).toBe(400);
+  expect(unsafeBody.status).toBe("rejected");
+  expect(unsafeBody.rejectionReasons).toContain(
+    "candidate_not_safe_to_persist",
+  );
+  expect(unsafeBody.validationErrors).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        persistenceReason: "candidate_not_safe_to_persist",
+      }),
+    ]),
+  );
+  expect(unsafeBody).not.toHaveProperty("persistedRecord");
+  expect(unsafeBody.safetyMetadata.noTradeMutation).toBe(true);
+  expect(unsafeBody.dryRunMetadata?.auditAppendAttempted).toBe(false);
+});
+
+test("client helper calls execution record insert dry-run route safely", async () => {
+  const routeRequest = buildExecutionRecordInsertRouteRequest();
+  let capturedUrl = "";
+  let capturedMethod = "";
+  let capturedBody: ExecutionRecordInsertRouteRequest | null = null;
+  const routeResponse: ExecutionRecordInsertRouteResponse = {
+    contractVersion: EXECUTION_RECORD_INSERT_ROUTE_CONTRACT_VERSION,
+    routePath: "/api/execution/records/insert",
+    method: "POST",
+    receivedAt: "2026-06-11T17:07:00.000Z",
+    evaluatedAt: "2026-06-11T17:07:01.000Z",
+    status: "dry_run",
+    idempotencyKey: routeRequest.idempotencyKey,
+    recordFingerprint: routeRequest.recordFingerprint,
+    warnings: [],
+    validationErrors: [],
+    rejectionReasons: [],
+    auditMetadata: routeRequest.auditMetadata,
+    safetyMetadata: {
+      serverOnly: true,
+      directClientSupabaseWriteAllowed: false,
+      noTradeMutation: true,
+      noAuditAppendInInitialRoute: true,
+      noBrokerResultCreation: true,
+      noAvanzaAutomation: true,
+      migrationMustBeAppliedBeforeRealInsert: true,
+    },
+    dryRunMetadata: {
+      dryRun: true,
+      insertAttempted: false,
+      supabaseWriteAttempted: false,
+      auditAppendAttempted: false,
+      tradeMutationAttempted: false,
+      plannedRoutePath: "/api/execution/records/insert",
+      plannedMethod: "POST",
+      plannedTableName: "execution_records",
+      plannedDuplicateLookup: true,
+      plannedInsertMapping: true,
+      message:
+        "Execution record insert dry-run accepted. No Supabase read/write, audit append, or trade mutation occurred.",
+    },
+  };
+  const fetchOk: typeof fetch = async (input, init) => {
+    capturedUrl = String(input);
+    capturedMethod = init?.method ?? "";
+    capturedBody =
+      typeof init?.body === "string"
+        ? (JSON.parse(init.body) as ExecutionRecordInsertRouteRequest)
+        : null;
+
+    return new Response(JSON.stringify(routeResponse), {
+      status: 202,
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  };
+
+  const result = await requestExecutionRecordInsertDryRun(routeRequest, {
+    fetchFn: fetchOk,
+  });
+
+  expect(capturedUrl).toBe("/api/execution/records/insert");
+  expect(capturedMethod).toBe("POST");
+  expect(capturedBody).toEqual(
+    expect.objectContaining({
+      mode: "dry_run",
+      dryRun: true,
+      idempotencyKey: routeRequest.idempotencyKey,
+    }),
+  );
+  expect(result.status).toBe("dry_run");
+  expect(result).not.toHaveProperty("persistedRecord");
+  expect(result.safetyMetadata.directClientSupabaseWriteAllowed).toBe(false);
+  expect(result.safetyMetadata.noTradeMutation).toBe(true);
+  expect(result.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+  expect(result.dryRunMetadata?.auditAppendAttempted).toBe(false);
+});
+
+test("client helper refuses non-dry-run execution record insert requests", async () => {
+  const routeRequest = buildExecutionRecordInsertRouteRequest(
+    {},
+    {
+      mode: "insert",
+      dryRun: false,
+    },
+  );
+  let fetchCalled = false;
+  const result = await requestExecutionRecordInsertDryRun(routeRequest, {
+    fetchFn: async () => {
+      fetchCalled = true;
+      return new Response("{}");
+    },
+  });
+
+  expect(fetchCalled).toBe(false);
+  expect(result.status).toBe("rejected");
+  expect(result.validationErrors).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "supabase_write_disabled",
+      }),
+    ]),
+  );
+  expect(result).not.toHaveProperty("persistedRecord");
+  expect(result.safetyMetadata.directClientSupabaseWriteAllowed).toBe(false);
+  expect(result.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+  expect(result.dryRunMetadata?.tradeMutationAttempted).toBe(false);
+});
+
+test("client helper returns typed error for invalid dry-run route responses", async () => {
+  const routeRequest = buildExecutionRecordInsertRouteRequest();
+  const invalidJson = await requestExecutionRecordInsertDryRun(routeRequest, {
+    fetchFn: async () =>
+      new Response("not-json", {
+        status: 502,
+        headers: {
+          "content-type": "text/plain",
+        },
+      }),
+  });
+
+  expect(invalidJson.status).toBe("error");
+  expect(invalidJson.validationErrors).toEqual([]);
+  expect(invalidJson).not.toHaveProperty("persistedRecord");
+  expect(invalidJson.safetyMetadata.noAuditAppendInInitialRoute).toBe(true);
+  expect(invalidJson.dryRunMetadata?.supabaseWriteAttempted).toBe(false);
+
+  const invalidShape = await requestExecutionRecordInsertDryRun(routeRequest, {
+    fetchFn: async () =>
+      new Response(JSON.stringify({ status: "dry_run" }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+        },
+      }),
+  });
+
+  expect(invalidShape.status).toBe("error");
+  expect(invalidShape.safetyMetadata.noTradeMutation).toBe(true);
+  expect(invalidShape.dryRunMetadata?.auditAppendAttempted).toBe(false);
 });
 
 test("normalizes localhost bridge execution record eligibility stub responses safely", async () => {
@@ -11115,6 +18061,12 @@ test("uses the dev-only execution fixture to QA the handoff modal", async ({
     await expect(
       page.getByText("Execution record eligibility preview"),
     ).toBeHidden();
+    await expect(
+      page.getByText("Mapped BrokerExecutionResult candidate preview"),
+    ).toBeHidden();
+    await expect(
+      page.getByText("Finalization Candidate Preview"),
+    ).toBeHidden();
     return;
   }
 
@@ -11157,6 +18109,970 @@ test("uses the dev-only execution fixture to QA the handoff modal", async ({
   await expect(modal.getByText("Manual account review")).toBeVisible();
   await expect(modal.getByText("STOP LOSS FIXTURE")).toBeVisible();
   await expect(modal.getByText("$118.00")).toBeVisible();
+  await expect(
+    modal.getByText("Execution record creation preview"),
+  ).toBeVisible();
+  await expect(modal.getByText("Source: Dev fixture candidate")).toBeVisible();
+  await expect(
+    modal.getByText("Candidate preview available. Read-only only", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(modal.getByText("Candidate fields")).toBeVisible();
+  await expect(modal.getByText("Safe to persist")).toBeVisible();
+  await expect(modal.getByText("No persistence").first()).toBeVisible();
+  const dryRunInsertPreviewPanel = modal.locator("details").filter({
+    hasText: "Execution record insert dry-run preview",
+  });
+
+  await expect(dryRunInsertPreviewPanel).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Dry-run only", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Dev fixture / sandbox only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("No Supabase write"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("No trade mutation"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("No audit append"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("No record persisted"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByRole("button", {
+      name: "Run dry-run preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    dryRunInsertPreviewPanel.getByRole("button", {
+      name: /persist|save|create/i,
+    }),
+  ).toHaveCount(0);
+
+  await dryRunInsertPreviewPanel
+    .getByRole("button", { name: "Run dry-run preview" })
+    .click();
+
+  await expect(dryRunInsertPreviewPanel.getByText("Route status")).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Wrote Supabase"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Mutated trade"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Appended audit"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Persisted record"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("No record persisted"),
+  ).toBeVisible();
+  await expect(
+    dryRunInsertPreviewPanel.getByText("Rejection reasons"),
+  ).toBeVisible();
+
+  const mappedCandidatePreviewPanel = modal.locator("details").filter({
+    hasText: "Mapped BrokerExecutionResult candidate preview",
+  });
+
+  await expect(mappedCandidatePreviewPanel).toBeVisible();
+  await mappedCandidatePreviewPanel.locator("summary").click();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Preview only", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Dev fixture / sandbox only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Candidate only"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Not runtime BrokerExecutionResult"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Not execution record"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Not persisted"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Does not mutate trade state"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByRole("button", {
+      name: "Run mapped candidate preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    mappedCandidatePreviewPanel.getByRole("button", {
+      name: /persist|save|create|mark trade|send to broker/i,
+    }),
+  ).toHaveCount(0);
+
+  await mappedCandidatePreviewPanel
+    .getByRole("button", { name: "Run mapped candidate preview" })
+    .click();
+
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Mapper status"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("mapped candidate"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Candidate summary"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Ericsson B"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("AVZ-MAPPED-CANDIDATE-FIXTURE-ORDER-001"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Provenance and fingerprint"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText(
+      "mapped-candidate-dev-fixture-evidence-001",
+    ),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Partial-fill status"),
+  ).toBeVisible();
+  await expect(
+    mappedCandidatePreviewPanel.getByText("Not attempted").first(),
+  ).toBeVisible();
+
+  const finalNoteMatchPreviewPanel = modal.locator("details").filter({
+    hasText: "Final Settlement Note Match Preview",
+  });
+
+  await expect(finalNoteMatchPreviewPanel).toBeVisible();
+  await finalNoteMatchPreviewPanel.locator("summary").click();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Match Preview Only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Dev fixture / sandbox only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Match result only"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Not finalization"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Not persistence approval"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Not execution record"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Does not mutate trade state"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("safeToFinalize=false"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText(
+      "Manual broker confirmation boundary still applies",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByRole("button", {
+      name: "Run final note match preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    finalNoteMatchPreviewPanel.getByRole("button", {
+      name: /save|finalize|persist|create execution record|mark trade|mutate|send to broker/i,
+    }),
+  ).toHaveCount(0);
+
+  await finalNoteMatchPreviewPanel
+    .getByRole("button", { name: "Run final note match preview" })
+    .click();
+
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Match status"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("exact match"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Lifecycle suggestion"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Lifecycle metadata only"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Hard gates"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("same broker"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Soft signals"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("price tolerance"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Partial-fill and missing data"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Evidence comparison"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("AVZ-FINAL-NOTE-FIXTURE-001"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Ericsson B / ERIC B"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Provenance and source comparison"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText(
+      "final-note-match-dev-fixture-final-evidence-001",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+  await expect(
+    finalNoteMatchPreviewPanel.getByText("Pure validator only"),
+  ).toBeVisible();
+
+  const finalizationCandidatePreviewPanel = modal.locator("details").filter({
+    hasText: "Finalization Candidate Preview",
+  });
+
+  await expect(finalizationCandidatePreviewPanel).toBeVisible();
+  await finalizationCandidatePreviewPanel.locator("summary").click();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Candidate Preview Only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Controlled fixture only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Candidate only"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Not finalization approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Not persistence approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Not execution record approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Not stats/PnL update approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Does not mutate trade state"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("safeToFinalize=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("safeToUpdateStats=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByRole("button", {
+      name: "Run finalization candidate preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    finalizationCandidatePreviewPanel.getByRole("button", {
+      name: /save|finalize|persist|create execution record|update stats|update PnL|mark trade|mutate|send to broker/i,
+    }),
+  ).toHaveCount(0);
+
+  await finalizationCandidatePreviewPanel
+    .getByRole("button", { name: "Run finalization candidate preview" })
+    .click();
+
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Builder status"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("candidate built"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Finalization candidate status"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("candidate ready"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Evidence summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText(
+      "final-note-match-dev-fixture-final-evidence-001",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Match summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Settlement summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Ericsson B / ERIC B"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Fee summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("FX summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("PnL adjustment summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Precondition results"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText(
+      "matching result exact or strong enough or reviewable",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Review flags"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Warnings"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Rejection reasons"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Policy snapshot"),
+  ).toBeVisible();
+  await expect(
+    finalizationCandidatePreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+
+  const finalizationActionPreviewPanel = modal.locator("details").filter({
+    hasText: "Finalization Action Dry-run Preview",
+  });
+
+  await expect(finalizationActionPreviewPanel).toBeVisible();
+  await finalizationActionPreviewPanel.locator("summary").click();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Dry-run Preview Only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Controlled fixture only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Dry-run only"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed impact only"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Not action execution"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Not finalization approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Not persistence approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Not execution record approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Not audit append approval"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Does not mutate trade state"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("dryRunOnly=true"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "safeToRunFinalizationAction=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToFinalize=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToUpdateStats=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToAppendAudit=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToRollback=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByRole("button", {
+      name: "Run finalization action dry-run preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    finalizationActionPreviewPanel.getByRole("button", {
+      name: /finalize|persist|create execution record|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  await finalizationActionPreviewPanel
+    .getByRole("button", { name: "Run finalization action dry-run preview" })
+    .click();
+
+  await expect(
+    finalizationActionPreviewPanel.getByText("Dry-run status"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("dry run ready"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Validation summary"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("action candidate valid"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed finalization impact"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "Proposed execution-record impact",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed persistence impact"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed stats/PnL impact"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed audit impact"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText(
+      "Proposed correction/rollback impact",
+    ),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Proposed trade mutation impact"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("out of scope"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Blocked reasons"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Warnings"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Status metadata"),
+  ).toBeVisible();
+  await expect(
+    finalizationActionPreviewPanel.getByText("Trade mutation attempted"),
+  ).toBeVisible();
+
+  const executionRecordBridgePreviewPanel = modal.locator("details").filter({
+    hasText: "Execution Record Bridge Preview",
+  });
+
+  await expect(executionRecordBridgePreviewPanel).toBeVisible();
+  await executionRecordBridgePreviewPanel.locator("summary").click();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge preview only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Controlled fixture only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Candidate-only"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Mapping-only"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Validation-only"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Not execution-record creation",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Not persistence approval"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Not finalization approval"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Not audit append approval"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Does not mutate trade state",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Does not send to broker"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("No Avanza/browser action"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToFinalize=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToUpdateStats=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToAppendAudit=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToRollback=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("safeToRunBrokerAction=false"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByRole("button", {
+      name: "Run execution-record bridge preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    executionRecordBridgePreviewPanel.getByRole("button", {
+      name: /create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  await executionRecordBridgePreviewPanel
+    .getByRole("button", { name: "Run execution-record bridge preview" })
+    .click();
+
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge mapper status"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("bridge candidate ready"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Bridge source evidence summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Bridge target execution-record summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge field mapping summary"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge idempotency summary"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Bridge audit/correction summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Bridge validation handoff summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge safety policy"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Bridge validator status"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("bridge validation valid"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("validate only"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Validated field summary"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Idempotency validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Audit/correction validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText(
+      "Safety policy validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByText("Validator authority flags"),
+  ).toBeVisible();
+  await expect(
+    executionRecordBridgePreviewPanel.getByRole("button", {
+      name: /create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  const candidateBuilderIntegrationPreviewPanel = modal.locator("details").filter({
+    hasText: "Execution Record Candidate Builder Integration Preview",
+  });
+
+  await expect(candidateBuilderIntegrationPreviewPanel).toBeVisible();
+  await candidateBuilderIntegrationPreviewPanel.locator("summary").click();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Candidate builder integration preview only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Controlled fixture only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Proposed input only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Validation-only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Does not call buildExecutionRecordCandidate(...)",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Does not create execution-record candidate",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Does not create execution record",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Not persistence approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Does not mutate trade state",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Does not send to broker"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("No Avanza/browser action"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "safeToCallCandidateBuilder=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "safeToCreateExecutionRecordCandidate=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("safeToUpdateStats=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("safeToAppendAudit=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("safeToRollback=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByRole("button", {
+      name: "Run candidate builder integration preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByRole("button", {
+      name: /call builder|build execution record candidate|create candidate|create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  await candidateBuilderIntegrationPreviewPanel
+    .getByRole("button", {
+      name: "Run candidate builder integration preview",
+    })
+    .click();
+
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Adapter status"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("adapter input ready"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Proposed ExecutionRecordCreationInput summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("ERIC B"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Field mapping summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Precondition summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Schema readiness summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Idempotency summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Audit/provenance summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Adapter blocked reasons"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Adapter warnings"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Adapter review items"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Validation status"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("adapter validation valid"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("validate only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Validated proposed input summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Field mapping validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Precondition validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Schema readiness validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Idempotency validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Audit/provenance validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText(
+      "Safety policy validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Authority flags"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Validator blocked reasons"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Validator warnings"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByText("Validator review items"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderIntegrationPreviewPanel.getByRole("button", {
+      name: /call builder|build execution record candidate|create candidate|create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
   await expect(modal.getByText("Session-detection preview")).toBeVisible();
   await expect(
     modal.getByText(
@@ -13501,6 +21417,19 @@ test("uses the dev-only execution fixture to QA the handoff modal", async ({
   await expect(modal.getByText("No Execution Record").first()).toBeVisible();
   await expect(modal.getByText("No Supabase Write").first()).toBeVisible();
   await expect(modal.getByText("No Trade Mutation").first()).toBeVisible();
+  await expect(
+    modal.getByText("Execution record creation preview"),
+  ).toBeVisible();
+  await expect(
+    modal.getByText("Source: Broker-result preview diagnostics"),
+  ).toBeVisible();
+  await expect(
+    modal.getByText("Creation candidate preview is blocked.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(modal.getByText("PREVIEW ONLY RESULT")).toBeVisible();
+  await expect(modal.getByText("Safe to persist")).toBeVisible();
   await expect(
     modal.getByRole("button", {
       name: /run avanza|start avanza|search avanza|open avanza|fill avanza|review avanza|click granska|click bekräfta|submit order|open order|start order|convert broker|create broker|create result|execute broker/i,

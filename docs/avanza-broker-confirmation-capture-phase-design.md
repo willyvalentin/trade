@@ -23,6 +23,81 @@ This phase is separate from:
 
 It must never infer execution from `user_confirmed_unverified` alone.
 
+## Action 448 Reassessment
+
+Action 448 created
+`docs/broker-execution-result-confirmation-path-reassessment.md`.
+
+Capture boundary update:
+
+- Current capture paths remain preview/stub diagnostics.
+- Capture evidence is not a `BrokerExecutionResult`, execution record,
+  Supabase write, or trade mutation.
+- No production-safe confirmed broker result source exists yet.
+- Future capture must prove broker-originating sanitized evidence, reliable
+  order/confirmation identity, timestamp, instrument, side, quantity, price,
+  account/currency context, idempotency, and anti-spoofing provenance before
+  conversion or persistence can be considered.
+
+Next recommended action:
+
+**Action 449 - Create BrokerExecutionResult Confirmation Requirements Spec**
+
+## Action 449 Requirements Spec
+
+Action 449 created
+`docs/broker-execution-result-confirmation-requirements-spec.md`.
+
+Capture implications:
+
+- Future capture must produce broker-originating sanitized evidence, not
+  user-entered-only data or arbitrary JSON.
+- Future capture must distinguish pre-confirmation/review pages from
+  post-confirmation receipt, order-status, fill, or execution evidence.
+- Future capture must provide or explain broker order/confirmation identity,
+  timestamps, instrument, side, quantity, price, currency/account context,
+  source capture method, and provenance metadata.
+- Preview/dev/mock/dry-run/local diagnostic evidence remains blocked from
+  persistence and trade mutation.
+
+Next recommended action:
+
+**Action 450 - Create Broker Result Source Classification Types**
+
+## Action 450 Source Classification Types
+
+Action 450 created `lib/broker-result-source-classification.ts`.
+
+Capture boundary update:
+
+- Future capture readiness can use explicit source classes before any browser
+  or Avanza behavior changes.
+- Capture preview/stub and local diagnostics sources remain blocked from
+  persistence and trade mutation.
+- The new module is contract-only and adds no capture implementation,
+  conversion logic, persistence, or trade mutation.
+
+Next recommended action:
+
+**Action 451 - Reassess Broker Result Source Classification Types**
+
+## Action 451 Classification Reassessment
+
+Action 451 created
+`docs/broker-result-source-classification-types-reassessment.md`.
+
+Capture boundary update:
+
+- Source classification policy remains disconnected from capture behavior.
+- No browser, Avanza, broker confirmation capture, conversion, persistence, or
+  trade mutation behavior was added.
+- Future capture readiness should wait for a pure classification validator and
+  typed Avanza evidence contract.
+
+Next recommended action:
+
+**Action 452 - Create Broker Result Source Classification Validator**
+
 ## Scope
 
 Allowed future behavior:
@@ -377,3 +452,325 @@ Action 308 added the mapping design. The next step should remain pure
 preview/shape work. It must not create or persist execution records, write
 Supabase, update History/Statistics, or mutate trades without a separate
 explicit approval.
+
+## Action 453 Follow-Up
+
+Action 453 created
+`docs/broker-result-source-classification-validator-reassessment.md`.
+
+Capture-phase impact:
+
+- Source classification validation was verified as pure and disconnected from
+  capture.
+- It does not capture Avanza pages, validate confirmation evidence, persist
+  records, or mutate trades.
+- The next safe broker-confirmation step is to define Avanza confirmation
+  evidence contracts before capture readiness advances.
+
+Next recommended action:
+
+**Action 454 - Create Avanza Broker Confirmation Evidence Contract**
+
+## Action 454 Evidence Contract
+
+Action 454 created
+`docs/avanza-broker-confirmation-evidence-contract.md`.
+
+Capture boundary update:
+
+- Future capture must target final confirmation/readback or account/order
+  history evidence, not order forms or previews.
+- Future capture evidence must preserve required fields, provenance metadata,
+  source page/flow identity, confidence, and privacy minimization.
+- Partial-fill evidence remains conservative and should block or require
+  review until a dedicated partial-fill policy exists.
+- The contract adds no browser automation, OCR, capture implementation,
+  conversion, persistence, Supabase writes, audit append, trade mutation, or
+  Avanza behavior.
+
+Next recommended action:
+
+**Action 455 - Create Avanza Broker Confirmation Evidence Types**
+
+## Action 455 Evidence Types
+
+Action 455 created
+`lib/avanza-broker-confirmation-evidence-contract.ts`.
+
+Capture boundary update:
+
+- Future capture now has type-only evidence targets for source type,
+  provenance, field confidence, privacy, raw field maps, broker references,
+  price evidence, account context, and partial fills.
+- The module does not implement capture, extraction, validation, conversion,
+  persistence, or browser/Avanza behavior.
+- Capture readiness should still wait for reassessment and validator design.
+
+Next recommended action:
+
+**Action 456 - Reassess Avanza Broker Confirmation Evidence Types**
+
+## Action 456 Evidence Type Reassessment
+
+Action 456 created
+`docs/avanza-broker-confirmation-evidence-types-reassessment.md`.
+
+Capture boundary update:
+
+- Evidence types are confirmed to be contract-only and do not implement
+  capture.
+- Future capture still needs a validator before any readback can be trusted.
+- Capture readiness should remain paused until evidence validation and
+  confirmation validator design are clearer.
+
+Next recommended action:
+
+**Action 457 - Create Avanza Broker Confirmation Evidence Validator**
+
+## Action 457 Evidence Validator
+
+Action 457 created
+`lib/avanza-broker-confirmation-evidence-validator.ts`.
+
+Capture boundary update:
+
+- Future capture now has a pure evidence validation gate to target.
+- The validator does not read pages, run OCR, inspect browser state, or capture
+  Avanza evidence.
+- Capture readiness remains separate and should wait for reassessment of the
+  validator before any browser/Avanza work.
+
+Next recommended action:
+
+**Action 458 - Reassess Avanza Broker Confirmation Evidence Validator**
+
+## Action 458 Evidence Validator Reassessment
+
+Action 458 created
+`docs/avanza-broker-confirmation-evidence-validator-reassessment.md`.
+
+Capture boundary update:
+
+- The evidence validator remains disconnected from capture and browser/Avanza
+  behavior.
+- Future capture output must still be treated as untrusted evidence until it
+  passes validation.
+- Capture readiness remains paused while evidence-to-result mapping is
+  designed.
+
+Next recommended action:
+
+**Action 459 - Create Evidence-to-BrokerExecutionResult Mapping Design**
+
+## Action 459 Mapping Design
+
+Action 459 created
+`docs/avanza-evidence-to-broker-execution-result-mapping-design.md`.
+
+Capture boundary update:
+
+- Future capture output now has a design-only downstream mapping target after
+  evidence validation.
+- Capture still does not create BrokerExecutionResults or execution records.
+- Browser/Avanza readiness remains paused until confirmation validator design
+  is complete.
+
+Next recommended action:
+
+**Action 460 - Create BrokerExecutionResult Confirmation Validator Design**
+
+## Action 460 Confirmation Validator Design
+
+Action 460 created
+`docs/broker-execution-result-confirmation-validator-design.md`.
+
+Capture boundary update:
+
+- Capture remains upstream of evidence validation and confirmation validation.
+- The future confirmation validator design does not add browser/Avanza capture.
+- Capture readiness should still wait until validator/mapper contracts are
+  clearer.
+
+Next recommended action:
+
+**Action 461 - Create BrokerExecutionResult Confirmation Validator Contract Types**
+
+## Action 475 Capture Readiness Reassessment
+
+Action 475 created
+`docs/avanza-broker-confirmation-capture-readiness-reassessment.md`.
+
+Capture boundary update:
+
+- Capture/readback is still not ready for implementation.
+- Evidence contracts, validators, confirmation validation, mapper, and mapped
+  candidate preview now define downstream requirements.
+- The remaining blocker is verified knowledge of real Avanza final
+  confirmation and account/order-history fields, broker references, timestamps,
+  partial-fill display, and privacy constraints.
+- The next safe step is manual QA, not capture code.
+
+Next recommended action:
+
+**Action 476 - Create Avanza Confirmation Capture Manual QA Checklist**
+
+## Action 476 Manual QA Checklist
+
+Action 476 created
+`docs/avanza-confirmation-capture-manual-qa-checklist.md`.
+
+Capture boundary update:
+
+- Future capture now has a manual QA checklist for final confirmation/readback
+  and account/order-history field observation.
+- The checklist keeps capture implementation, browser automation, OCR/browser
+  extraction, persistence, execution-record creation, and trade mutation out of
+  scope.
+- Manual QA findings must be reassessed before any read-only prototype design
+  or capture contract update.
+
+Next recommended action:
+
+**Action 477 - Reassess Manual QA Findings**
+
+## Action 477 Manual QA Findings Reassessment
+
+Action 477 created
+`docs/avanza-confirmation-capture-manual-qa-findings-reassessment.md`.
+
+Capture boundary update:
+
+- Current findings are not sufficient for capture implementation.
+- Existing docs document pre-submit flow and confirmation modal research only.
+- Final confirmation/readback and account/order-history findings are still
+  missing.
+- The next safe repository step is a dedicated findings template.
+
+Next recommended action:
+
+**Action 478 - Create Manual QA Findings Template**
+
+## Action 478 Findings Template
+
+Action 478 created
+`docs/avanza-confirmation-capture-manual-qa-findings-template.md`.
+
+Capture boundary update:
+
+- Future manual findings now have a structured place to be recorded.
+- The template is blank and does not assert Avanza final confirmation or order
+  history behavior.
+- Capture implementation remains blocked until real findings are recorded and
+  reassessed.
+
+Next recommended action:
+
+**Action 479 - Fill Manual QA Findings Template**
+
+## Action 479 Filled Findings Template
+
+Action 479 filled
+`docs/avanza-confirmation-capture-manual-qa-findings-template.md` using only
+existing repo findings.
+
+Capture boundary update:
+
+- Pre-submit order form/review/confirmation-modal observations are recorded.
+- Final confirmation/readback and account/order-history observations remain
+  missing.
+- Capture implementation remains blocked until real manual observations are
+  recorded.
+
+Next recommended action:
+
+**Action 480 - Record Real Avanza Manual QA Observations**
+
+## Action 480 Observation Log
+
+Action 480 created
+`docs/avanza-confirmation-capture-manual-qa-observation-log.md`.
+
+Capture boundary update:
+
+- Future real manual observations now have a safe blank log.
+- The log is not a capture implementation and contains no actual final/history
+  findings yet.
+- Capture implementation remains blocked until observations are recorded and
+  reassessed.
+
+Next recommended action:
+
+**Action 481 - Reassess Real Avanza Manual QA Observations**
+
+## Action 481 Real Observation Reassessment
+
+Action 481 created
+`docs/avanza-confirmation-capture-real-manual-qa-observations-reassessment.md`.
+
+Capture boundary update:
+
+- No real post-submit final confirmation/readback observations are recorded.
+- No real account/order-history observations are recorded.
+- Capture implementation and prototype design remain blocked.
+- A user manual QA runbook is recommended next.
+
+Next recommended action:
+
+**Action 482 - Create User Manual QA Runbook**
+
+## Action 482 User Manual QA Runbook
+
+Action 482 created
+`docs/avanza-confirmation-capture-user-manual-qa-runbook.md`.
+
+Capture boundary update:
+
+- The user now has a practical runbook for collecting real final/history
+  observations safely.
+- Capture implementation remains blocked until user-recorded observations are
+  reassessed.
+- No browser automation, capture, persistence, or trade mutation was added.
+
+Next recommended action:
+
+**Action 483 - Reassess User-Recorded Avanza Manual QA Observations**
+
+## Action 483 Follow-Up
+
+Action 483 created
+`docs/avanza-confirmation-capture-user-recorded-observations-reassessment.md`.
+
+Capture-phase impact:
+
+- No user-recorded final confirmation/readback observations exist yet.
+- No user-recorded account/order-history observations exist yet.
+- The capture phase remains blocked from implementation because the project
+  still lacks real Avanza final/history source field inventory.
+- No capture, browser extraction, persistence, execution-record creation, or
+  trade mutation behavior was added.
+
+Next recommended action:
+
+**Action 484 - Record Real Avanza Manual QA Observations**
+
+## Action 485 Two-Stage Broker Evidence Flow
+
+Action 485 created
+`docs/two-stage-broker-evidence-flow-design.md`.
+
+Capture boundary update:
+
+- The capture phase should be split into Immediate Broker Readback and Final
+  Broker Settlement Note collection.
+- Immediate readback is collected only after the user manually confirms the
+  broker order and must be marked provisional/final-note-pending.
+- Final settlement-note collection is later, likely next day, and may use
+  transaction history, notor, or `avrakningsnota`/PDF sources.
+- Semi-auto mode still forbids the agent from clicking `KOP`, `SALJ`, or any
+  final broker confirmation equivalent.
+- This design adds no read-only capture prototype, Avanza automation,
+  extraction, persistence, execution-record creation, or trade mutation.
+
+Next recommended action:
+
+**Action 486 - Create Two-Stage Broker Evidence Contract Types**

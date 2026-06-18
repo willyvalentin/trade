@@ -189,8 +189,12 @@ import {
   writeProviderPlanModeHint,
 } from "@/lib/persistence/dev-diagnostics-local-storage";
 import {
+  createDefaultLiveMarketTrialRunbookState,
+  readLiveMarketTrialRunbookState,
+  writeLiveMarketTrialRunbookState,
+} from "@/lib/persistence/live-market-trial-runbook-persistence";
+import {
   TRADE_DEMO_STORAGE_KEYS,
-  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY,
   TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
 } from "@/lib/persistence/local-storage-keys";
 import {
@@ -291,7 +295,6 @@ import {
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
 import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
-import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
 import type { BatchCandidateAuditSummary } from "@/lib/batch-candidate-audit";
 import {
   buildRecommendationTierPerformanceSummary,
@@ -316,6 +319,11 @@ import {
   entryTuningProposalJson,
   type EntryTuningProposal,
 } from "@/lib/entry-tuning-proposal";
+import {
+  inferRecommendationEntryTypeMetadata,
+  type EntryTypeTriggerSummary,
+  type RecommendationEntryTypeMetadata,
+} from "@/lib/recommendation-entry-type";
 import {
   buildRecommendationSampleQualitySummary,
   recommendationSampleQualitySummaryJson,
@@ -1095,6 +1103,20 @@ type PlanReferencePriceMetadata = {
   reference_price_symbol: string | null;
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
+  plan_reference_metadata_status?:
+    | "complete"
+    | "price_missing_timestamp"
+    | "price_missing_source"
+    | "price_missing_source_and_timestamp"
+    | "missing_price";
+  plan_reference_metadata_trace?: {
+    candidate_price_available_before_generation: boolean;
+    generated_recommendation_retained_reference_price: boolean | null;
+    price_read_path: string | null;
+    source_read_path: string | null;
+    timestamp_read_path: string | null;
+    provider_read_path: string | null;
+  };
 };
 
 type EntryTypeMetadata = RecommendationEntryTypeMetadata;
@@ -1261,6 +1283,12 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   visibleGridCount: number;
   gridCards: number;
   expectedOutcomeRowsFromEligibleSnapshots: number;
+  batchCandidateAudit: BatchCandidateAuditSummary | null;
+  expectedSnapshotCountFromScan: number;
+  actualSnapshotCountForBatch: number;
+  missingSnapshotCount: number;
+  missingSnapshotReasons: Record<string, number>;
+  strictBatchFilterExcludedCount: number;
   batchHealth: string | null;
   batchCandidateAudit: BatchCandidateAuditSummary | null;
   expectedSnapshotCountFromScan: number;
@@ -1313,6 +1341,7 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   shadowMissingMetadataCount: number;
   shadowEntryTrialCount: number;
   shadowEntryTriggeredCount: number;
+  entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   outcomeProviderBudgetStatus: string | null;
   nextRetrySuggestion: string | null;
   summary: string;
@@ -1683,8 +1712,6 @@ function buildDevPreviewRecommendations(now = new Date()): Recommendation[] {
     },
   ];
 }
-const liveMarketTrialRunbookStorageKey =
-  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY;
 const liveTradesAutoRefreshIntervalMs = 5 * 60 * 1000;
 const liveTradesNearCloseAutoRefreshIntervalMs = 2 * 60 * 1000;
 
@@ -1704,95 +1731,6 @@ const text = (value: unknown, fallback = "") => {
 };
 
 const displayValue = (value: unknown, fallback = "—") => text(value, fallback);
-
-function createDefaultLiveMarketTrialRunbookState(
-  now = new Date(),
-): LiveMarketTrialRunbookLocalState {
-  return {
-    trial_date: getNewYorkDateString(now),
-    selected_mode: "observation_only",
-    checklist_completion: {},
-    notes: "",
-    trial_outcome: "none",
-    ended_at: null,
-  };
-}
-
-function normalizeLiveMarketTrialRunbookMode(
-  value: unknown,
-): LiveMarketTrialRunbookMode {
-  if (
-    value === "observation_only" ||
-    value === "recommendation_logging" ||
-    value === "optional_manual_paper_tracking"
-  ) {
-    return value;
-  }
-
-  return "observation_only";
-}
-
-function normalizeLiveMarketTrialRunbookOutcome(
-  value: unknown,
-): LiveMarketTrialRunbookOutcome {
-  if (
-    value === "no_trade_valid" ||
-    value === "recommendations_logged" ||
-    value === "paper_trade_completed" ||
-    value === "blocked" ||
-    value === "needs_review" ||
-    value === "none"
-  ) {
-    return value;
-  }
-
-  return "none";
-}
-
-function normalizeLiveMarketTrialRunbookState(
-  value: unknown,
-): LiveMarketTrialRunbookLocalState {
-  const fallback = createDefaultLiveMarketTrialRunbookState();
-
-  if (!value || typeof value !== "object") {
-    return fallback;
-  }
-
-  const record = value as Record<string, unknown>;
-  const completion =
-    record.checklist_completion && typeof record.checklist_completion === "object"
-      ? Object.fromEntries(
-          Object.entries(record.checklist_completion as Record<string, unknown>)
-            .filter(([key]) => key.trim().length > 0)
-            .map(([key, completed]) => [key, completed === true]),
-        )
-      : {};
-
-  return {
-    trial_date: text(record.trial_date, fallback.trial_date),
-    selected_mode: normalizeLiveMarketTrialRunbookMode(record.selected_mode),
-    checklist_completion: completion,
-    notes: text(record.notes).slice(0, 2000),
-    trial_outcome: normalizeLiveMarketTrialRunbookOutcome(record.trial_outcome),
-    ended_at: text(record.ended_at) || null,
-  };
-}
-
-function readLiveMarketTrialRunbookState(): LiveMarketTrialRunbookLocalState {
-  if (typeof window === "undefined") {
-    return createDefaultLiveMarketTrialRunbookState();
-  }
-
-  try {
-    const stored = window.localStorage.getItem(liveMarketTrialRunbookStorageKey);
-
-    return stored
-      ? normalizeLiveMarketTrialRunbookState(JSON.parse(stored))
-      : createDefaultLiveMarketTrialRunbookState();
-  } catch {
-    return createDefaultLiveMarketTrialRunbookState();
-  }
-}
 
 function isDemoId(value: string | null | undefined) {
   return typeof value === "string" && value.startsWith(demoIdPrefix);
@@ -2880,6 +2818,44 @@ function getInlineMetadataEnd(value: string, markerIndex: number) {
   return nextMarkerIndexes.length > 0 ? Math.min(...nextMarkerIndexes) : value.length;
 }
 
+function getInlineJsonObjectEnd(value: string, objectStart: number, hardEnd: number) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = objectStart; index < hardEnd; index += 1) {
+    const char = value[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return index + 1;
+      }
+    }
+  }
+
+  return hardEnd;
+}
+
 function parseInlineMetadata(value: string, prefix: string) {
   const markerIndex = value.lastIndexOf(prefix);
 
@@ -2888,12 +2864,15 @@ function parseInlineMetadata(value: string, prefix: string) {
   }
 
   const metadataEnd = getInlineMetadataEnd(value, markerIndex);
-  const metadataText = value
-    .slice(markerIndex + prefix.length, metadataEnd)
-    .trim();
-  const jsonText = metadataText.endsWith("]")
-    ? metadataText.slice(0, -1)
-    : metadataText;
+  const metadataStart = markerIndex + prefix.length;
+  const objectStart = value.indexOf("{", metadataStart);
+
+  if (objectStart === -1 || objectStart >= metadataEnd) {
+    return null;
+  }
+
+  const objectEnd = getInlineJsonObjectEnd(value, objectStart, metadataEnd);
+  const jsonText = value.slice(objectStart, objectEnd);
 
   try {
     return JSON.parse(jsonText) as Record<string, unknown>;
@@ -3003,6 +2982,52 @@ function parsePlanReferencePriceMetadata(
   if (referencePrice === null && typeof source?.reference_price_source !== "string") {
     return null;
   }
+  const metadataStatus =
+    source?.plan_reference_metadata_status === "complete" ||
+    source?.plan_reference_metadata_status === "price_missing_timestamp" ||
+    source?.plan_reference_metadata_status === "price_missing_source" ||
+    source?.plan_reference_metadata_status ===
+      "price_missing_source_and_timestamp" ||
+    source?.plan_reference_metadata_status === "missing_price"
+      ? source.plan_reference_metadata_status
+      : undefined;
+  const traceSource =
+    typeof source?.plan_reference_metadata_trace === "object" &&
+    source.plan_reference_metadata_trace !== null &&
+    !Array.isArray(source.plan_reference_metadata_trace)
+      ? (source.plan_reference_metadata_trace as Record<string, unknown>)
+      : null;
+  const trace = traceSource
+    ? {
+        candidate_price_available_before_generation:
+          traceSource.candidate_price_available_before_generation === true,
+        generated_recommendation_retained_reference_price:
+          typeof traceSource.generated_recommendation_retained_reference_price ===
+          "boolean"
+            ? traceSource.generated_recommendation_retained_reference_price
+            : null,
+        price_read_path:
+          typeof traceSource.price_read_path === "string" &&
+          traceSource.price_read_path.trim()
+            ? traceSource.price_read_path.trim()
+            : null,
+        source_read_path:
+          typeof traceSource.source_read_path === "string" &&
+          traceSource.source_read_path.trim()
+            ? traceSource.source_read_path.trim()
+            : null,
+        timestamp_read_path:
+          typeof traceSource.timestamp_read_path === "string" &&
+          traceSource.timestamp_read_path.trim()
+            ? traceSource.timestamp_read_path.trim()
+            : null,
+        provider_read_path:
+          typeof traceSource.provider_read_path === "string" &&
+          traceSource.provider_read_path.trim()
+            ? traceSource.provider_read_path.trim()
+            : null,
+      }
+    : undefined;
 
   return {
     reference_price_used_for_plan: referencePrice,
@@ -3031,6 +3056,10 @@ function parsePlanReferencePriceMetadata(
       source.reference_price_read_path.trim()
         ? source.reference_price_read_path.trim()
         : null,
+    ...(metadataStatus
+      ? { plan_reference_metadata_status: metadataStatus }
+      : {}),
+    ...(trace ? { plan_reference_metadata_trace: trace } : {}),
   };
 }
 
@@ -3050,7 +3079,48 @@ function parseEntryTypeMetadata(
   }
 
   return inferRecommendationEntryTypeMetadata({
-    existingMetadata: source,
+    existingMetadata: {
+      entry_type: source.entry_type as EntryTypeMetadata["entry_type"],
+      entry_trigger_semantics:
+        typeof source.entry_trigger_semantics === "string"
+          ? (source.entry_trigger_semantics as EntryTypeMetadata["entry_trigger_semantics"])
+          : "unknown",
+      entry_type_source:
+        typeof source.entry_type_source === "string"
+          ? (source.entry_type_source as EntryTypeMetadata["entry_type_source"])
+          : "unknown",
+      entry_type_confidence:
+        source.entry_type_confidence === "high" ||
+        source.entry_type_confidence === "medium" ||
+        source.entry_type_confidence === "low"
+          ? source.entry_type_confidence
+          : "low",
+      entry_type_warnings: Array.isArray(source.entry_type_warnings)
+        ? source.entry_type_warnings.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : [],
+      entry_type_reference_price: parseNumber(
+        source.entry_type_reference_price,
+      ),
+      entry_type_reference_source:
+        typeof source.entry_type_reference_source === "string"
+          ? source.entry_type_reference_source
+          : null,
+      entry_type_reference_read_path:
+        typeof source.entry_type_reference_read_path === "string"
+          ? source.entry_type_reference_read_path
+          : null,
+      entry_type_reference_distance_pct: parseNumber(
+        source.entry_type_reference_distance_pct,
+      ),
+      entry_type_requires_reference_price:
+        source.entry_type_requires_reference_price !== false,
+      reference_price_missing_for_entry_type:
+        source.reference_price_missing_for_entry_type === true,
+      unknown_due_to_missing_reference:
+        source.unknown_due_to_missing_reference === true,
+    },
   });
 }
 
@@ -3242,9 +3312,9 @@ function buildConfidenceMetadata(recommendation: Recommendation) {
     intraday_indicators: recommendation.intradayIndicators,
     output_enrichment: recommendation.outputEnrichment,
     plan_reference_price: recommendation.planReferencePrice ?? null,
-    ...(recommendation.planReferencePrice ?? {}),
     entry_type_metadata: recommendation.entryTypeMetadata ?? null,
     ...(recommendation.entryTypeMetadata ?? {}),
+    ...(recommendation.planReferencePrice ?? {}),
     setup_type: recommendation.setupType,
   })}]`;
 }
@@ -4235,6 +4305,7 @@ function buildVisibleRecommendationSnapshotInput({
         outputEnrichment?.provider_plan_profile_mode ??
         recommendation.outputEnrichment?.provider_plan_profile_mode ??
         null,
+      plan_reference_price: planReferencePrice,
       ...planReferencePrice,
       ...entryTypeMetadata,
       entry_type_metadata: entryTypeMetadata,
@@ -4259,6 +4330,7 @@ function buildVisibleRecommendationSnapshotInput({
         entry,
         stop,
         target,
+        plan_reference_price: planReferencePrice,
         ...planReferencePrice,
         ...entryTypeMetadata,
       },
@@ -4286,6 +4358,7 @@ function buildVisibleRecommendationSnapshotInput({
         scan_window: recommendation.scanWindow,
         expires_at: recommendation.expiresAtRaw,
         created_at: recommendation.createdAtRaw,
+        plan_reference_price: planReferencePrice,
         ...planReferencePrice,
         ...entryTypeMetadata,
       },
@@ -8115,6 +8188,12 @@ export function TradeApp() {
     visibleGridCount: 0,
     gridCards: 0,
     expectedOutcomeRowsFromEligibleSnapshots: 0,
+    batchCandidateAudit: null,
+    expectedSnapshotCountFromScan: 0,
+    actualSnapshotCountForBatch: 0,
+    missingSnapshotCount: 0,
+    missingSnapshotReasons: {},
+    strictBatchFilterExcludedCount: 0,
     batchHealth: null,
     batchCandidateAudit: null,
     expectedSnapshotCountFromScan: 0,
@@ -8167,6 +8246,7 @@ export function TradeApp() {
     shadowMissingMetadataCount: 0,
     shadowEntryTrialCount: 0,
     shadowEntryTriggeredCount: 0,
+    entryTypeTriggerSummary: null,
     outcomeProviderBudgetStatus: null,
     nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
@@ -8995,14 +9075,7 @@ export function TradeApp() {
       return;
     }
 
-    try {
-      window.localStorage.setItem(
-        liveMarketTrialRunbookStorageKey,
-        JSON.stringify(liveMarketTrialRunbookState),
-      );
-    } catch {
-      // Local trial runbook notes must never block the app.
-    }
+    writeLiveMarketTrialRunbookState(liveMarketTrialRunbookState);
   }, [liveMarketTrialRunbookState]);
 
   useEffect(() => {
@@ -13646,10 +13719,6 @@ export function TradeApp() {
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
           recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
-        plan_reference_metadata_trace:
-          recommendationOutcomeEvaluationDiagnostics.planReferenceMetadataTrace ??
-          recommendationOutcomeEvaluationRun?.plan_reference_metadata_trace ??
-          null,
         entry_type_trigger_summary:
           recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
           recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
@@ -14400,18 +14469,6 @@ export function TradeApp() {
         strictBatchFilterExcludedCount: Number(
           routeDiagnostics.strict_batch_filter_excluded_count ?? 0,
         ),
-        entryTypeTriggerSummary:
-          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
-          routeDiagnostics.entry_type_trigger_summary !== null &&
-          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
-            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
-            : run.entry_type_trigger_summary ?? null,
-        planReferenceMetadataTrace:
-          typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
-          routeDiagnostics.plan_reference_metadata_trace !== null &&
-          !Array.isArray(routeDiagnostics.plan_reference_metadata_trace)
-            ? (routeDiagnostics.plan_reference_metadata_trace as PlanReferenceMetadataTraceSummary)
-            : run.plan_reference_metadata_trace ?? null,
         batchHealth:
           typeof routeDiagnostics.batch_health === "string"
             ? routeDiagnostics.batch_health
@@ -14577,6 +14634,12 @@ export function TradeApp() {
             run.shadow_entry_triggered_count ??
             0,
         ),
+        entryTypeTriggerSummary:
+          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
+          routeDiagnostics.entry_type_trigger_summary !== null &&
+          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
+            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
+            : run.entry_type_trigger_summary ?? null,
         outcomeProviderBudgetStatus:
           typeof routeDiagnostics.outcome_provider_budget_status === "string"
             ? routeDiagnostics.outcome_provider_budget_status
@@ -30715,8 +30778,43 @@ function ExecutionHandoffPreviewModal({
     checkLocalhostBrokerExecutionEligibilityStub,
     checkLocalhostBrokerExecutionPreviewStub,
     checkLocalhostExecutionRecordEligibilityStub,
+    canRunExecutionRecordInsertDryRun,
+    canRunFinalSettlementNoteMatchPreview,
+    canRunFinalizationCandidatePreview,
+    canRunFinalizationActionPreview,
+    canRunFinalizationExecutionRecordBridgePreview,
+    canRunExecutionRecordCandidateBuilderIntegrationPreview,
+    canRunMappedBrokerExecutionResultCandidatePreview,
+    executionRecordCreationPreviewResult,
+    executionRecordCreationPreviewSourceDescription,
+    executionRecordCreationPreviewSourceLabel,
+    executionRecordInsertDryRunMessage,
+    executionRecordInsertDryRunResult,
+    executionRecordInsertDryRunUnavailableReason,
+    executionRecordCandidateBuilderIntegrationPreviewMessage,
+    executionRecordCandidateBuilderIntegrationPreviewResult,
+    executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
     executionRecordEligibilityCandidate,
     executionRecordEligibilityCandidateIsPreviewOnly,
+    finalSettlementNoteMatchPreviewMessage,
+    finalSettlementNoteMatchPreviewResult,
+    finalSettlementNoteMatchPreviewUnavailableReason,
+    finalizationCandidatePreviewMessage,
+    finalizationCandidatePreviewResult,
+    finalizationCandidatePreviewUnavailableReason,
+    finalizationActionPreviewMessage,
+    finalizationActionPreviewResult,
+    finalizationActionPreviewUnavailableReason,
+    finalizationExecutionRecordBridgePreviewMessage,
+    finalizationExecutionRecordBridgePreviewResult,
+    finalizationExecutionRecordBridgePreviewUnavailableReason,
+    isExecutionRecordInsertDryRunRunning,
+    isExecutionRecordCandidateBuilderIntegrationPreviewRunning,
+    isFinalSettlementNoteMatchPreviewRunning,
+    isFinalizationCandidatePreviewRunning,
+    isFinalizationActionPreviewRunning,
+    isFinalizationExecutionRecordBridgePreviewRunning,
+    isMappedBrokerExecutionResultCandidatePreviewRunning,
     isLocalhostBrokerConfirmationCaptureRunning,
     isLocalhostBrokerExecutionEligibilityRunning,
     isLocalhostBrokerExecutionPreviewRunning,
@@ -30761,6 +30859,16 @@ function ExecutionHandoffPreviewModal({
     localhostExecutionRecordNoExecutionRecord,
     localhostExecutionRecordNoSupabaseWrite,
     localhostExecutionRecordNoTradeMutation,
+    mappedBrokerExecutionResultCandidatePreviewMessage,
+    mappedBrokerExecutionResultCandidatePreviewResult,
+    mappedBrokerExecutionResultCandidatePreviewUnavailableReason,
+    runExecutionRecordInsertDryRunPreview,
+    runExecutionRecordCandidateBuilderIntegrationPreview,
+    runFinalizationActionPreview,
+    runFinalizationExecutionRecordBridgePreview,
+    runFinalSettlementNoteMatchPreview,
+    runFinalizationCandidatePreview,
+    runMappedBrokerExecutionResultCandidatePreview,
   } = latePhasePreviewState;
   const avanzaReadinessState = useAvanzaReadinessState({
     avanzaDryRunRequestPreview,
@@ -31969,6 +32077,73 @@ function ExecutionHandoffPreviewModal({
           preparationStubError,
           preparationStubMessage,
           shortPayloadId,
+        }}
+        mappedBrokerExecutionResultCandidatePreviewProps={{
+          canRun: canRunMappedBrokerExecutionResultCandidatePreview,
+          isRunning: isMappedBrokerExecutionResultCandidatePreviewRunning,
+          message: mappedBrokerExecutionResultCandidatePreviewMessage,
+          onRun: () =>
+            void runMappedBrokerExecutionResultCandidatePreview(),
+          result: mappedBrokerExecutionResultCandidatePreviewResult,
+          unavailableReason:
+            mappedBrokerExecutionResultCandidatePreviewUnavailableReason,
+        }}
+        finalSettlementNoteMatchPreviewProps={{
+          canRun: canRunFinalSettlementNoteMatchPreview,
+          isRunning: isFinalSettlementNoteMatchPreviewRunning,
+          message: finalSettlementNoteMatchPreviewMessage,
+          onRun: () => void runFinalSettlementNoteMatchPreview(),
+          result: finalSettlementNoteMatchPreviewResult,
+          unavailableReason: finalSettlementNoteMatchPreviewUnavailableReason,
+        }}
+        finalizationCandidatePreviewProps={{
+          canRun: canRunFinalizationCandidatePreview,
+          isRunning: isFinalizationCandidatePreviewRunning,
+          message: finalizationCandidatePreviewMessage,
+          onRun: () => void runFinalizationCandidatePreview(),
+          result: finalizationCandidatePreviewResult,
+          unavailableReason: finalizationCandidatePreviewUnavailableReason,
+        }}
+        finalizationActionPreviewProps={{
+          canRun: canRunFinalizationActionPreview,
+          isRunning: isFinalizationActionPreviewRunning,
+          message: finalizationActionPreviewMessage,
+          onRun: () => void runFinalizationActionPreview(),
+          result: finalizationActionPreviewResult,
+          unavailableReason: finalizationActionPreviewUnavailableReason,
+        }}
+        finalizationExecutionRecordBridgePreviewProps={{
+          canRun: canRunFinalizationExecutionRecordBridgePreview,
+          isRunning: isFinalizationExecutionRecordBridgePreviewRunning,
+          message: finalizationExecutionRecordBridgePreviewMessage,
+          onRun: () => void runFinalizationExecutionRecordBridgePreview(),
+          result: finalizationExecutionRecordBridgePreviewResult,
+          unavailableReason:
+            finalizationExecutionRecordBridgePreviewUnavailableReason,
+        }}
+        executionRecordCandidateBuilderIntegrationPreviewProps={{
+          canRun: canRunExecutionRecordCandidateBuilderIntegrationPreview,
+          isRunning:
+            isExecutionRecordCandidateBuilderIntegrationPreviewRunning,
+          message: executionRecordCandidateBuilderIntegrationPreviewMessage,
+          onRun: () =>
+            void runExecutionRecordCandidateBuilderIntegrationPreview(),
+          result: executionRecordCandidateBuilderIntegrationPreviewResult,
+          unavailableReason:
+            executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
+        }}
+        executionRecordCreationPreviewProps={{
+          result: executionRecordCreationPreviewResult,
+          sourceDescription: executionRecordCreationPreviewSourceDescription,
+          sourceLabel: executionRecordCreationPreviewSourceLabel,
+        }}
+        executionRecordInsertDryRunPreviewProps={{
+          canRun: canRunExecutionRecordInsertDryRun,
+          isRunning: isExecutionRecordInsertDryRunRunning,
+          message: executionRecordInsertDryRunMessage,
+          onRun: () => void runExecutionRecordInsertDryRunPreview(),
+          result: executionRecordInsertDryRunResult,
+          unavailableReason: executionRecordInsertDryRunUnavailableReason,
         }}
         executionRecordEligibilityPreviewProps={{
           canCheck: canCheckLocalhostExecutionRecordEligibility,

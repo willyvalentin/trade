@@ -1,0 +1,511 @@
+# Supabase Execution Records Migration Application Reassessment
+
+## 1. Purpose
+
+This document reassesses Supabase execution-record migration/application
+readiness before any future execution-record integration work.
+
+The reassessment inventories the current migration draft, generated type
+status, persistence boundary, contract/schema alignment, idempotency and
+duplicate-prevention readiness, audit/correction readiness, security/RLS
+readiness, no-write status, risks, and recommended next action.
+
+This action is documentation-only. It does not apply migrations, modify
+Supabase schema, generate types, add runtime code, enable execution-record
+creation, enable persistence/write behavior, write Supabase/localStorage,
+append audit records, update stats/PnL, roll back/correct records, mutate
+trades, wire UI, touch Avanza/browser behavior, or change broker/order
+behavior.
+
+## 2. Current Migration Inventory
+
+Migration draft found:
+
+- `supabase/migrations/20260614000000_create_execution_records.sql`
+
+Migration intent:
+
+- Create a future normalized `public.execution_records` table.
+- Support durable execution-record summaries derived from confirmed broker
+  evidence and validated execution-record candidate data.
+- Provide idempotency and duplicate-prevention constraints before any future
+  production write path.
+- Keep execution-record storage separate from broker confirmation capture,
+  audit append, stats/PnL update, rollback/correction, and trade mutation.
+
+Expected table:
+
+- `public.execution_records`
+
+Major expected columns:
+
+- Identity/timestamps: `id`, `created_at`, `updated_at`.
+- Ownership/account context: `user_id`, `account_id`.
+- Broker/source references: `broker`, `broker_order_id`,
+  `broker_confirmation_id`, `broker_result_id`, `handoff_session_id`,
+  `planning_snapshot_id`, `source_recommendation_id`,
+  `source_position_id`.
+- Instrument fields: `ticker`, `instrument_id`, `instrument_name`, `market`,
+  `instrument_type`, `currency`.
+- Execution fields: `side`, `execution_phase`, `execution_mode`, `quantity`,
+  `price`, `fees`, `gross_amount`, `net_amount`, `confirmed_at`,
+  `captured_at`.
+- Idempotency/fingerprints: `idempotency_key`, `record_fingerprint`,
+  `source_fingerprint`, `broker_result_fingerprint`.
+- Safety/environment fields: `source_environment`, `is_mock`, `is_dev`,
+  `validation_status`, `validation_errors`, `validation_warnings`.
+- Metadata: `metadata`, `audit_metadata`.
+
+Constraints and indexes expected in the draft:
+
+- Primary key on `id`.
+- Check constraints for `side`, `execution_phase`, `execution_mode`, `broker`,
+  `source_environment`, `validation_status`, positive quantity/price,
+  non-negative optional fees/gross/net amounts, and sane `captured_at`.
+- Unique `idempotency_key`.
+- Unique `record_fingerprint`.
+- Partial unique `(broker, broker_confirmation_id)` for real non-dev/non-mock
+  rows when confirmation id exists.
+- Partial unique `(broker, broker_order_id, confirmed_at)` fallback when
+  confirmation id is missing.
+- Unique `broker_result_id` where present.
+- Query indexes for user/account, ticker, broker order, broker confirmation,
+  source recommendation, source position, confirmed time, created time, and
+  environment/dev/mock flags.
+
+RLS/security notes found:
+
+- The migration draft explicitly does not enable RLS.
+- SQL comments state that the auth/user/account ownership model is not
+  finalized.
+- SQL comments state production writes should be server-only until RLS
+  policies, ownership, idempotency lookup, and duplicate handling are reviewed.
+- SQL comments warn not to create permissive client insert/update policies.
+
+Application status:
+
+- Draft migration exists.
+- Applied status is not proven by repository inspection.
+- No migration was applied by Action 549.
+- No schema was modified by Action 549.
+- Existing docs continue to describe application as not performed by prior
+  actions.
+- Treat current database application status as **unknown/not verified** until a
+  separate local/staging/prod application check is run against the target
+  Supabase project.
+
+## 3. Current Generated Types Inventory
+
+Generated type search:
+
+- No common generated Supabase database type file was found by repository file
+  scan, such as `database.types.ts`, `supabase.types.ts`,
+  `types/supabase`, or `supabase/types`.
+- `lib/setup-types.ts` exists, but it is not a generated Supabase database
+  schema type file for `public.execution_records`.
+
+Execution-record table types:
+
+- No generated `public.execution_records` database type was found.
+- Current execution-record shapes are contract/application types in `lib/*`
+  modules, not generated Supabase table types.
+
+Alignment status:
+
+- Generated database type alignment is **unknown/absent**.
+- Contract and migration draft alignment can be reasoned about at a high level,
+  but generated type proof is not available.
+
+Regeneration status:
+
+- No generated types were regenerated by Action 549.
+- Generated types should be produced only after the migration is applied to a
+  target database and project conventions are confirmed.
+- A later generated-types reassessment or plan is needed before generated DB
+  types are used in runtime persistence code.
+
+## 4. Current Persistence Boundary Inventory
+
+Persistence contract:
+
+- `lib/execution-record-persistence-contract.ts`
+- Defines future persistence inputs/results, statuses, rejection reasons,
+  warnings, duplicate match types, user context, broker confirmation metadata,
+  association metadata, safety checklist, audit metadata, duplicate matches,
+  and persisted-record references.
+- It is contract/type logic and does not write Supabase.
+
+Persistence validator:
+
+- `lib/execution-record-persistence-validator.ts`
+- Validates candidate safety, idempotency, record/source fingerprints,
+  user/account context, broker confirmation, timestamp, preview/dev/mock
+  rejection, schema availability, RLS context, broker/mode/phase, quantity,
+  price, association certainty, audit policy, duplicate matches, and trade
+  mutation separation.
+- Returns eligible/rejected/duplicate/needs-review metadata.
+- Does not persist or write Supabase.
+
+Dry-run route/client/preview:
+
+- `app/api/execution/records/insert/route.ts`
+- `lib/execution-record-insert-route-contract.ts`
+- `lib/execution-record-insert-dry-run-client.ts`
+- `components/execution/ExecutionRecordInsertDryRunPreview.tsx`
+- Current route is dev-tools-gated and requires dry-run mode.
+- It validates request shape and persistence input, then returns dry-run
+  metadata.
+- Route messages explicitly state no Supabase read/write, audit append, or
+  trade mutation occurred.
+- Dry-run metadata reports `insertAttempted=false`,
+  `supabaseWriteAttempted=false`, `auditAppendAttempted=false`, and
+  `tradeMutationAttempted=false`.
+
+Production write route:
+
+- No production execution-record insert/write route is enabled.
+- The existing route path is a dry-run stub and rejects non-dry-run mode.
+- No durable duplicate lookup is performed against Supabase.
+- No real insert mapping is executed.
+
+No-write status:
+
+- Production persistence remains absent/blocked.
+- Migration application is not proven.
+- Generated table types are absent/unknown.
+- RLS/ownership is unresolved.
+- Current UI previews remain diagnostics/dry-run only.
+
+## 5. Contract/Schema Alignment Check
+
+Execution-record creation contract:
+
+- `lib/execution-record-creation-contract.ts` models candidate fields such as
+  broker, source environment, execution mode/phase, side, quantity, price,
+  fees, gross/net, confirmation timestamp, idempotency key, record
+  fingerprint, source evidence fingerprint, broker references, source
+  recommendation/position, and validation metadata.
+- These align at a high level with the migration draft columns.
+
+Finalization bridge output:
+
+- `FinalizationToExecutionRecordBridgeResult` maps source evidence, target
+  execution-record summary, field mapping, idempotency, audit/correction, and
+  validation handoff metadata.
+- Bridge output remains candidate-only and mapping-only.
+- It can inform future candidate-builder review, but it does not prove schema
+  application or persistence readiness.
+
+Bridge validator output:
+
+- `ExecutionRecordFinalizationBridgeValidationResult` validates bridge output
+  and keeps `validationOnly=true` with false write/action authority flags.
+- It does not authorize execution-record creation or persistence.
+
+Persistence boundary plan:
+
+- `docs/execution-record-persistence-boundary-plan.md` documents schema,
+  idempotency, duplicate prevention, RLS/security, audit, and separation from
+  trade mutation as prerequisites before writes.
+- The plan remains aligned with the draft migration's uniqueness and no-write
+  posture.
+
+Migration/checklist docs:
+
+- `docs/supabase-execution-record-schema-plan.md` describes the intended table,
+  constraints, indexes, RLS/security posture, and no-write goals.
+- `docs/supabase-execution-record-migration-draft-reassessment.md` reassessed
+  the draft and identified unresolved RLS/ownership, partial-fill,
+  generated-types, rollback, and production-apply questions.
+- `docs/supabase-execution-record-migration-application-checklist.md`
+  documents local/staging/prod application steps and emphasizes no writes
+  should be bundled with migration application.
+
+Known alignment conclusion:
+
+- Contract shapes, migration draft, and persistence boundary docs are broadly
+  aligned at a high level.
+- Generated database type alignment is not proven.
+- Actual target database application is not proven.
+- RLS/ownership is unresolved.
+- Persistence should remain blocked until migration application and generated
+  type status are verified.
+
+## 6. Idempotency and Duplicate Prevention Readiness
+
+Required unique keys/fingerprints:
+
+- `idempotency_key`
+- `record_fingerprint`
+- `source_fingerprint`
+- `broker_result_fingerprint`
+- broker confirmation identity where available
+- broker order plus `confirmed_at` fallback where confirmation id is absent
+- finalization candidate fingerprint
+- execution-record candidate fingerprint
+
+Migration readiness:
+
+- Draft migration includes unique `idempotency_key`.
+- Draft migration includes unique `record_fingerprint`.
+- Draft migration includes partial unique broker confirmation and broker order
+  fallback indexes for real non-dev/non-mock rows.
+- Draft migration includes unique `broker_result_id` where present.
+
+Contract/validator readiness:
+
+- Persistence validator requires idempotency key, record fingerprint, source
+  fingerprint, candidate safety, user/account context, broker confirmation, and
+  schema/RLS context.
+- Bridge mapper/validator carry final settlement note match identity,
+  finalization candidate fingerprint, intended execution-record candidate
+  fingerprint, and intended idempotency key metadata.
+
+Duplicate prevention status:
+
+- Design and draft schema support duplicate prevention concepts.
+- Durable duplicate lookup is not implemented in the dry-run route.
+- Production duplicate handling is not enabled.
+
+Remaining unknowns:
+
+- Whether the migration is applied in any target database.
+- Whether broker confirmation ids are always available from real Avanza flows.
+- Whether broker order plus `confirmed_at` is sufficient for partial fills.
+- Whether generated types capture the final table shape after application.
+- Whether final note identity should become a first-class table column or stay
+  metadata/reference in later schema revisions.
+
+## 7. Audit/Correction Readiness
+
+Audit trail requirements:
+
+- Source evidence references.
+- Before/after value references.
+- Manual approval references.
+- Duplicate prevention references.
+- Correction strategy references.
+- Rollback metadata references.
+- Audit metadata tying persistence to finalization and broker evidence.
+
+Current schema/docs support:
+
+- Draft migration includes `audit_metadata jsonb`.
+- Persistence contract includes `ExecutionRecordPersistenceAuditMetadata`.
+- Bridge mapper and validator surface audit/correction summaries and require
+  audit/correction metadata before future write boundaries.
+- Migration/application checklist requires rollback planning before apply.
+
+Remaining unknowns:
+
+- No audit append integration exists for execution records.
+- No execution-record-specific audit table linkage is implemented.
+- No rollback/correction execution path exists.
+- It is unknown whether `audit_metadata jsonb` is enough for production
+  audit/correction requirements or whether first-class columns/foreign keys are
+  needed later.
+- No production correction/rollback policy is finalized.
+
+## 8. Security/RLS Readiness
+
+RLS assumptions found:
+
+- The draft migration intentionally does not enable RLS.
+- Comments require reviewed RLS policies, ownership, idempotency lookup, and
+  duplicate handling before production writes.
+- Comments warn against permissive client insert/update policies.
+
+Service-role/client boundary assumptions:
+
+- Current checklist says production writes should remain server-only until
+  ownership and RLS are finalized.
+- Current dry-run route safety metadata states
+  `serverOnly=true` and `directClientSupabaseWriteAllowed=false`.
+- Current route is dev-tools-gated and dry-run-only.
+
+Future write posture:
+
+- Future writes should be server-only through a narrow API route or trusted job.
+- Direct client inserts should remain disallowed unless explicitly approved in
+  a later security review.
+
+Remaining unknowns:
+
+- User/account ownership model.
+- Whether users can read execution records directly.
+- Whether admin/audit reads are separate from user reads.
+- Whether dev/mock rows should be visible in the same table.
+- Exact RLS policies for local/staging/production.
+- Whether service-role writes need additional application-level ownership
+  checks before insert.
+
+## 9. No-Write Boundary Verification
+
+Explicitly confirmed for Action 549:
+
+- No migration was applied.
+- No schema was changed.
+- No generated Supabase types were generated.
+- No Supabase writes were performed.
+- No execution records were created.
+- No persistence route was enabled.
+- No production insert/write route was added.
+- No candidate builder integration was added.
+- No bridge integration changes were made.
+- No stats/PnL changes were made.
+- No audit append changes were made.
+- No trade mutation changes were made.
+- No UI behavior changed.
+- No Avanza/browser behavior changed.
+- No broker/order behavior changed.
+
+Current system boundary remains:
+
+- dry-run route/client/preview only.
+- no durable duplicate lookup.
+- no real insert.
+- no production persistence.
+- no migration application proof.
+
+## 10. Risks
+
+Migration believed applied when not:
+
+- Repository contains a draft migration file, but target database application
+  is not proven.
+
+Generated types stale or absent:
+
+- No generated Supabase database type for `execution_records` was found.
+- Runtime persistence code should not assume generated types exist.
+
+RLS/security missing:
+
+- RLS is intentionally absent from the draft and ownership is unresolved.
+
+Idempotency too weak:
+
+- Broker confirmation ids may be absent.
+- Broker order plus timestamp fallback may be insufficient for partial fills.
+
+Duplicate records:
+
+- Durable duplicate lookup and conflict handling remain future work.
+
+Audit/correction unsupported:
+
+- `audit_metadata` exists in the draft, but audit append and rollback/correction
+  paths are not implemented.
+
+Write route enabled before validation gates:
+
+- A future production route could bypass migration, generated types, RLS,
+  duplicate lookup, or validator gates if implemented too early.
+
+Client-side write leakage:
+
+- Direct client writes must remain disallowed until explicit security review.
+
+Schema/contract drift:
+
+- Contract types, migration SQL, generated types, and route mapping can drift if
+  generated types are delayed.
+
+## 11. Candidate Next Actions
+
+A. Create Supabase Execution Records Migration Application Plan
+
+- Best next step.
+- Converts draft/checklist/reassessment into a target-specific local-first
+  application plan.
+- Should define exact local/staging/prod checks, rollback steps, generated type
+  timing, RLS review gates, and no-write verification.
+
+B. Create Execution Record Candidate Builder Integration Design
+
+- Important later, but should follow migration/application clarity so builder
+  output can target the correct schema and persistence gates.
+
+C. Create Execution Records Generated Types Reassessment
+
+- Useful after local migration application or once the generated type workflow
+  is chosen.
+- Premature if no target database has applied the migration.
+
+D. Create Provisional Trade State Design
+
+- Useful product/design work, but should follow schema and persistence
+  readiness.
+
+## 12. Recommended Next Action
+
+**Action 550 - Create Supabase Execution Records Migration Application Plan**
+
+## Action 550 Follow-Up - Migration Application Plan Created
+
+Action 550 created
+`docs/supabase-execution-records-migration-application-plan.md`.
+
+Reassessment impact:
+
+- Converted the Action 549 readiness findings into a future/manual application
+  plan.
+- Defined preconditions, migration inspection, future application steps,
+  generated type planning, post-application validation, rollback/correction
+  thinking, write-boundary gates, no-write verification, and risks.
+- Confirmed no migration was applied, no schema changed, no types were
+  generated, and no runtime/write behavior was added.
+
+Next recommended action:
+
+**Action 551 - Create Supabase Execution Records Generated Types Plan**
+
+## Action 551 Follow-Up - Generated Types Plan Created
+
+Action 551 created
+`docs/supabase-execution-records-generated-types-plan.md`.
+
+Reassessment impact:
+
+- Confirmed generated execution-record table types remain absent/unknown.
+- Defined the future steps to generate, verify, and compare types after
+  migration application.
+- Confirmed no generated type files were modified and no runtime behavior
+  changed.
+
+Next recommended action:
+
+**Action 552 - Create Execution Record Candidate Builder Integration Design**
+
+## Action 552 Follow-Up - Candidate Builder Integration Design Created
+
+Action 552 created
+`docs/execution-record-candidate-builder-integration-design.md`.
+
+Migration/application reassessment impact:
+
+- Confirmed bridge-to-builder design remains blocked from persistence until
+  migration application, generated types, RLS/security, duplicate prevention,
+  and write-boundary gates are satisfied.
+- Confirmed no database or runtime behavior changed.
+
+Next recommended action:
+
+**Action 553 - Create Execution Record Candidate Builder Integration Contract Types**
+
+Rationale:
+
+- Migration SQL exists but application status is not proven.
+- Generated types are absent/unknown.
+- RLS/ownership remains unresolved.
+- A local-first application plan is safer than candidate builder integration or
+  generated type work because it can preserve no-write boundaries while
+  clarifying the database substrate.
+
+## 13. Verification
+
+Documentation-only verification required for this action:
+
+- `git diff --check`
+
+No runtime validation is required because Action 549 changes documentation only.

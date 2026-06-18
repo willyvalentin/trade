@@ -7,12 +7,20 @@ import { AvanzaDryRunReadinessPanel } from "@/components/execution/AvanzaDryRunR
 import { AvanzaDryRunRequestPreview } from "@/components/execution/AvanzaDryRunRequestPreview";
 import { BridgeRequestEnvelopePreview } from "@/components/execution/BridgeRequestEnvelopePreview";
 import { ExecutionBrokerCaptureStubPanel } from "@/components/execution/ExecutionBrokerCaptureStubPanel";
+import { ExecutionRecordCreationPreview } from "@/components/execution/ExecutionRecordCreationPreview";
+import { ExecutionRecordCandidateBuilderIntegrationPreview } from "@/components/execution/ExecutionRecordCandidateBuilderIntegrationPreview";
 import { ExecutionHandoffStatusReadbacks } from "@/components/execution/ExecutionHandoffStatusReadbacks";
 import { ExecutionLifecycleStatusPanel } from "@/components/execution/ExecutionLifecycleStatusPanel";
+import { ExecutionRecordInsertDryRunPreview } from "@/components/execution/ExecutionRecordInsertDryRunPreview";
+import { FinalizationActionPreview } from "@/components/execution/FinalizationActionPreview";
+import { FinalizationCandidatePreview } from "@/components/execution/FinalizationCandidatePreview";
+import { FinalizationExecutionRecordBridgePreview } from "@/components/execution/FinalizationExecutionRecordBridgePreview";
+import { FinalSettlementNoteMatchPreview } from "@/components/execution/FinalSettlementNoteMatchPreview";
 import { ExecutionSandboxQaPanel } from "@/components/execution/ExecutionSandboxQaPanel";
 import { FutureAgentRequestPreview } from "@/components/execution/FutureAgentRequestPreview";
 import { HandoffCoreSummary } from "@/components/execution/HandoffCoreSummary";
 import { LocalhostBridgeControls } from "@/components/execution/LocalhostBridgeControls";
+import { MappedBrokerExecutionResultCandidatePreview } from "@/components/execution/MappedBrokerExecutionResultCandidatePreview";
 import { AdvancedFormFillPreview } from "@/components/execution/stub-previews/AdvancedFormFillPreview";
 import { BrokerConfirmationCapturePreview } from "@/components/execution/stub-previews/BrokerConfirmationCapturePreview";
 import { BrokerExecutionResultEligibilityPreview } from "@/components/execution/stub-previews/BrokerExecutionResultEligibilityPreview";
@@ -56,6 +64,30 @@ export type ExecutionHandoffModalCompositionProps = {
   executionLifecycleStatusPanelProps: ComponentProps<
     typeof ExecutionLifecycleStatusPanel
   >;
+  mappedBrokerExecutionResultCandidatePreviewProps: ComponentProps<
+    typeof MappedBrokerExecutionResultCandidatePreview
+  >;
+  executionRecordCreationPreviewProps: ComponentProps<
+    typeof ExecutionRecordCreationPreview
+  >;
+  executionRecordCandidateBuilderIntegrationPreviewProps: ComponentProps<
+    typeof ExecutionRecordCandidateBuilderIntegrationPreview
+  >;
+  executionRecordInsertDryRunPreviewProps: ComponentProps<
+    typeof ExecutionRecordInsertDryRunPreview
+  >;
+  finalSettlementNoteMatchPreviewProps: ComponentProps<
+    typeof FinalSettlementNoteMatchPreview
+  >;
+  finalizationCandidatePreviewProps: ComponentProps<
+    typeof FinalizationCandidatePreview
+  >;
+  finalizationActionPreviewProps: ComponentProps<
+    typeof FinalizationActionPreview
+  >;
+  finalizationExecutionRecordBridgePreviewProps: ComponentProps<
+    typeof FinalizationExecutionRecordBridgePreview
+  >;
   executionRecordEligibilityPreviewProps: ComponentProps<
     typeof ExecutionRecordEligibilityPreview
   >;
@@ -93,6 +125,14 @@ export function ExecutionHandoffModalComposition({
   executionBrokerCaptureStubPanelProps,
   executionDevToolsEnabled,
   executionLifecycleStatusPanelProps,
+  mappedBrokerExecutionResultCandidatePreviewProps,
+  executionRecordCreationPreviewProps,
+  executionRecordCandidateBuilderIntegrationPreviewProps,
+  executionRecordInsertDryRunPreviewProps,
+  finalSettlementNoteMatchPreviewProps,
+  finalizationCandidatePreviewProps,
+  finalizationActionPreviewProps,
+  finalizationExecutionRecordBridgePreviewProps,
   executionRecordEligibilityPreviewProps,
   executionSandboxQaPanelProps,
   futureAgentRequestPreviewProps,
@@ -153,6 +193,52 @@ export function ExecutionHandoffModalComposition({
       {executionDevToolsEnabled && (
         <ExecutionRecordEligibilityPreview
           {...executionRecordEligibilityPreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <ExecutionRecordCreationPreview
+          {...executionRecordCreationPreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <ExecutionRecordInsertDryRunPreview
+          {...executionRecordInsertDryRunPreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <MappedBrokerExecutionResultCandidatePreview
+          {...mappedBrokerExecutionResultCandidatePreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <FinalSettlementNoteMatchPreview
+          {...finalSettlementNoteMatchPreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <FinalizationCandidatePreview
+          {...finalizationCandidatePreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <FinalizationActionPreview {...finalizationActionPreviewProps} />
+      )}
+
+      {executionDevToolsEnabled && (
+        <FinalizationExecutionRecordBridgePreview
+          {...finalizationExecutionRecordBridgePreviewProps}
+        />
+      )}
+
+      {executionDevToolsEnabled && (
+        <ExecutionRecordCandidateBuilderIntegrationPreview
+          {...executionRecordCandidateBuilderIntegrationPreviewProps}
         />
       )}
 

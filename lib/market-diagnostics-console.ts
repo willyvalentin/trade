@@ -17,7 +17,6 @@ import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-p
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
-import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
 import type { EntryTypeTriggerSummary } from "@/lib/recommendation-entry-type";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
@@ -325,7 +324,6 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
     plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
-    plan_reference_metadata_trace?: PlanReferenceMetadataTraceSummary | null;
     entry_type_trigger_summary?: EntryTypeTriggerSummary | null;
     batch_candidate_audit?: BatchCandidateAuditSummary | null;
     expected_snapshot_count_from_scan?: number | null;
@@ -1577,8 +1575,6 @@ function buildSections(
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
-  const planReferenceMetadataTrace =
-    input.outcome_evaluation?.plan_reference_metadata_trace ?? null;
   const entryTypeTriggerSummary =
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
@@ -3970,108 +3966,6 @@ function buildSections(
       },
     }),
     section({
-      section_id: "plan_reference_metadata_trace",
-      title: "Plan Reference Metadata Trace",
-      severity:
-        (planReferenceMetadataTrace?.missing_reference_price_count ?? 0) > 0 ||
-        (planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0) > 0
-          ? "warning"
-          : "info",
-      lines: [
-        lineValue(
-          "Complete reference metadata",
-          `${planReferenceMetadataTrace?.complete_reference_metadata_count ?? 0} / ${planReferenceMetadataTrace?.total_traced_items ?? 0}`,
-        ),
-        lineValue(
-          "Missing reference price",
-          planReferenceMetadataTrace?.missing_reference_price_count ?? 0,
-        ),
-        lineValue(
-          "Missing reference timestamp",
-          planReferenceMetadataTrace?.missing_reference_timestamp_count ?? 0,
-        ),
-        lineValue(
-          "Missing reference source",
-          planReferenceMetadataTrace?.missing_reference_source_count ?? 0,
-        ),
-        lineValue(
-          "Malformed inline metadata",
-          planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0,
-        ),
-        lineValue(
-          "First missing stage counts",
-          topReasonText(planReferenceMetadataTrace?.first_missing_stage_counts),
-        ),
-        lineValue(
-          "Price read paths",
-          topReasonText(planReferenceMetadataTrace?.reference_price_read_path_counts),
-        ),
-        lineValue(
-          "Timestamp read paths",
-          topReasonText(
-            planReferenceMetadataTrace?.reference_timestamp_read_path_counts,
-          ),
-        ),
-        lineValue(
-          "Source read paths",
-          topReasonText(planReferenceMetadataTrace?.reference_source_read_path_counts),
-        ),
-        lineValue(
-          "Top missing tickers",
-          (planReferenceMetadataTrace?.top_missing_reference_tickers ?? []).join(
-            ", ",
-          ) || "none",
-        ),
-        lineValue(
-          "Sample traces",
-          (planReferenceMetadataTrace?.sample_traces ?? [])
-            .slice(0, 5)
-            .map(
-              (trace) =>
-                `${trace.ticker ?? "unknown"} ${trace.classification} @ ${trace.first_missing_stage ?? "none"}`,
-            )
-            .join("; ") || "none",
-        ),
-      ],
-      metrics: {
-        total_traced_items: planReferenceMetadataTrace?.total_traced_items ?? 0,
-        complete_reference_metadata_count:
-          planReferenceMetadataTrace?.complete_reference_metadata_count ?? 0,
-        missing_reference_price_count:
-          planReferenceMetadataTrace?.missing_reference_price_count ?? 0,
-        missing_reference_timestamp_count:
-          planReferenceMetadataTrace?.missing_reference_timestamp_count ?? 0,
-        missing_reference_source_count:
-          planReferenceMetadataTrace?.missing_reference_source_count ?? 0,
-        malformed_inline_metadata_count:
-          planReferenceMetadataTrace?.malformed_inline_metadata_count ?? 0,
-        traced_by_ticker: JSON.stringify(
-          planReferenceMetadataTrace?.traced_by_ticker ?? {},
-        ),
-        first_missing_stage_counts: JSON.stringify(
-          planReferenceMetadataTrace?.first_missing_stage_counts ?? {},
-        ),
-        reference_price_read_path_counts: JSON.stringify(
-          planReferenceMetadataTrace?.reference_price_read_path_counts ?? {},
-        ),
-        reference_timestamp_read_path_counts: JSON.stringify(
-          planReferenceMetadataTrace?.reference_timestamp_read_path_counts ?? {},
-        ),
-        reference_source_read_path_counts: JSON.stringify(
-          planReferenceMetadataTrace?.reference_source_read_path_counts ?? {},
-        ),
-        top_missing_reference_tickers: JSON.stringify(
-          planReferenceMetadataTrace?.top_missing_reference_tickers ?? [],
-        ),
-        top_malformed_inline_metadata_tickers: JSON.stringify(
-          planReferenceMetadataTrace?.top_malformed_inline_metadata_tickers ?? [],
-        ),
-        sample_traces: JSON.stringify(
-          planReferenceMetadataTrace?.sample_traces ?? [],
-        ),
-      },
-    }),
-    section({
       section_id: "entry_type_trigger_diagnostics",
       title: "Entry Type Trigger Diagnostics",
       severity:
@@ -4081,78 +3975,65 @@ function buildSections(
           : "info",
       lines: [
         lineValue(
-          "Known/unknown entry types",
+          "Known / unknown entry type",
           `${entryTypeTriggerSummary?.known_entry_type_count ?? 0}/${entryTypeTriggerSummary?.unknown_entry_type_count ?? 0}`,
         ),
         lineValue(
-          "Missing reference impact",
-          String(entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0),
+          "Pullback / breakout / market reference",
+          `${entryTypeTriggerSummary?.by_entry_type.pullback_limit ?? 0}/${entryTypeTriggerSummary?.by_entry_type.breakout_stop ?? 0}/${entryTypeTriggerSummary?.by_entry_type.market_reference ?? 0}`,
         ),
         lineValue(
-          "Official vs entry-type-aware triggered",
-          `${entryTypeTriggerSummary?.official_triggered_count ?? 0}/${entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0}`,
+          "Current route vs entry-type-aware triggered",
+          `${entryTypeTriggerSummary?.current_route_triggered_count ?? 0}/${entryTypeTriggerSummary?.entry_type_triggered_count ?? 0}`,
         ),
         lineValue(
           "Disagreement count/rate",
-          `${entryTypeTriggerSummary?.disagreement_count ?? 0}/${pctValue((entryTypeTriggerSummary?.disagreement_rate ?? 0) * 100)}`,
-        ),
-        lineValue(
-          "Entry types",
-          Object.entries(entryTypeTriggerSummary?.by_entry_type ?? {})
-            .map(([entryType, countValue]) => `${entryType}=${countValue}`)
-            .join(", ") || "none",
-        ),
-        lineValue(
-          "Trigger semantics",
-          Object.entries(entryTypeTriggerSummary?.by_trigger_semantics ?? {})
-            .map(([semantics, countValue]) => `${semantics}=${countValue}`)
-            .join(", ") || "none",
-        ),
-        lineValue(
-          "Sources",
-          Object.entries(entryTypeTriggerSummary?.by_source ?? {})
-            .map(([source, countValue]) => `${source}=${countValue}`)
-            .join(", ") || "none",
+          `${entryTypeTriggerSummary?.disagreement_count ?? 0}/${pctValue(
+            entryTypeTriggerSummary
+              ? entryTypeTriggerSummary.disagreement_rate * 100
+              : null,
+          )}`,
         ),
         lineValue(
           "Top disagreement reasons",
-          Object.entries(entryTypeTriggerSummary?.disagreement_reasons ?? {})
-            .sort((first, second) => second[1] - first[1])
-            .slice(0, 5)
-            .map(([reason, countValue]) => `${reason}=${countValue}`)
-            .join(", ") || "none",
+          topReasonText(entryTypeTriggerSummary?.top_disagreement_reasons),
         ),
         lineValue(
-          "Disagreement tickers",
-          (entryTypeTriggerSummary?.disagreement_tickers ?? []).slice(0, 10).join(", ") ||
+          "Tickers with disagreements",
+          (entryTypeTriggerSummary?.tickers_with_disagreements ?? []).join(", ") ||
             "none",
+        ),
+        lineValue(
+          "Missing reference impact",
+          entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0,
         ),
       ],
       metrics: {
-        total_candidates: entryTypeTriggerSummary?.total_candidates ?? 0,
+        total_outcomes: entryTypeTriggerSummary?.total_outcomes ?? 0,
         known_entry_type_count:
           entryTypeTriggerSummary?.known_entry_type_count ?? 0,
         unknown_entry_type_count:
           entryTypeTriggerSummary?.unknown_entry_type_count ?? 0,
-        unknown_due_to_missing_reference_count:
-          entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0,
-        official_triggered_count:
-          entryTypeTriggerSummary?.official_triggered_count ?? 0,
-        entry_type_aware_triggered_count:
-          entryTypeTriggerSummary?.entry_type_aware_triggered_count ?? 0,
-        disagreement_count: entryTypeTriggerSummary?.disagreement_count ?? 0,
-        disagreement_rate: entryTypeTriggerSummary?.disagreement_rate ?? 0,
-        by_entry_type: JSON.stringify(entryTypeTriggerSummary?.by_entry_type ?? {}),
+        by_entry_type: JSON.stringify(
+          entryTypeTriggerSummary?.by_entry_type ?? {},
+        ),
         by_trigger_semantics: JSON.stringify(
           entryTypeTriggerSummary?.by_trigger_semantics ?? {},
         ),
-        by_source: JSON.stringify(entryTypeTriggerSummary?.by_source ?? {}),
-        disagreement_reasons: JSON.stringify(
-          entryTypeTriggerSummary?.disagreement_reasons ?? {},
+        entry_type_triggered_count:
+          entryTypeTriggerSummary?.entry_type_triggered_count ?? 0,
+        current_route_triggered_count:
+          entryTypeTriggerSummary?.current_route_triggered_count ?? 0,
+        disagreement_count: entryTypeTriggerSummary?.disagreement_count ?? 0,
+        disagreement_rate: entryTypeTriggerSummary?.disagreement_rate ?? 0,
+        top_disagreement_reasons: JSON.stringify(
+          entryTypeTriggerSummary?.top_disagreement_reasons ?? {},
         ),
-        disagreement_tickers: JSON.stringify(
-          entryTypeTriggerSummary?.disagreement_tickers ?? [],
+        tickers_with_disagreements: JSON.stringify(
+          entryTypeTriggerSummary?.tickers_with_disagreements ?? [],
         ),
+        unknown_due_to_missing_reference_count:
+          entryTypeTriggerSummary?.unknown_due_to_missing_reference_count ?? 0,
       },
     }),
     section({

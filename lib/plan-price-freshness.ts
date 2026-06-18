@@ -19,8 +19,6 @@ export type PlanPriceFreshnessDiagnostics = {
   reference_price_symbol: string | null;
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
-  plan_reference_metadata_status: PlanReferenceMetadataStatus;
-  plan_reference_metadata_missing_reason: string | null;
   first_available_candle_close: number | null;
   first_available_candle_timestamp: string | null;
   latest_provider_price_if_available: number | null;
@@ -127,16 +125,6 @@ function toIso(value: unknown): string | null {
 
 function textOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
-}
-
-function planReferenceMetadataStatusOrNull(
-  value: unknown,
-): PlanReferenceMetadataStatus | null {
-  return value === "present" ||
-    value === "missing_but_plan_prices_present" ||
-    value === "missing_no_plan_prices"
-    ? value
-    : null;
 }
 
 function roundPct(value: number | null): number | null {
@@ -519,8 +507,6 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     reference_price_symbol: reference.symbol,
     reference_price_provider: reference.provider,
     reference_price_read_path: reference.readPath,
-    plan_reference_metadata_status: metadataStatus,
-    plan_reference_metadata_missing_reason: metadataMissingReason,
     first_available_candle_close: first.close,
     first_available_candle_timestamp: first.timestamp,
     latest_provider_price_if_available: latestPrice,

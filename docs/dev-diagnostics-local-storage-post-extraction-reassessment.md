@@ -235,3 +235,74 @@ Verification for this documentation-only action:
 - `git diff --check`
 
 No runtime code changes are expected.
+
+## Action 411 Follow-Up
+
+Action 411 created
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Boundary outcome:
+
+- Inventoried the inline live market trial runbook persistence in
+  `app/trade-app.tsx`.
+- Confirmed the exact localStorage key remains
+  `trade-live-market-trial-runbook-v1`.
+- Confirmed read behavior returns a typed default on server/no-window, missing
+  storage, malformed JSON, or localStorage errors.
+- Confirmed normalization owns selected mode, trial outcome, checklist
+  completion coercion, notes truncation, trial date fallback, and ended-at
+  text/null behavior.
+- Concluded wrapper extraction is safe only if the exact
+  default/normalization/read/write contract moves together and the parent keeps
+  state, hydration/write-effect guards, UI callbacks, live market workflow,
+  Supabase/trade behavior, and execution/orchestrator behavior.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## Action 412 Follow-Up
+
+Action 412 created
+`lib/persistence/live-market-trial-runbook-persistence.ts`.
+
+Boundary outcome:
+
+- Extracted only the live market trial runbook persistence helpers that were
+  explicitly reassessed as safe.
+- Preserved exact key/type/default/normalization/read/write/error behavior.
+- Left app-local dev/preference helpers in
+  `lib/persistence/dev-diagnostics-local-storage.ts`.
+- Left diagnostics stores, execution audit/event stores, execution record
+  stores, Supabase behavior, trade mutations, and execution/orchestrator
+  behavior untouched.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- default sandbox `npm run test:e2e` was blocked on `0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Next recommended action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## Action 413 Follow-Up
+
+Action 413 created
+`docs/live-market-trial-runbook-persistence-post-extraction-reassessment.md`.
+
+Boundary outcome:
+
+- Verified the live market trial runbook wrapper stayed separate from the
+  app-local dev/preference wrapper.
+- Confirmed no diagnostics stores, execution audit/event stores, execution
+  record stores, Supabase behavior, trade mutations, or execution/orchestrator
+  behavior moved.
+- Confirmed the next persistence reassessment should move beyond low-risk
+  app-local localStorage wrappers.
+
+Next recommended action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
