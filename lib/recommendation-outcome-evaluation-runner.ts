@@ -25,6 +25,10 @@ import {
   type EntryTypeTriggerSummary,
   type RecommendationEntryTypeMetadata,
 } from "@/lib/recommendation-entry-type";
+import {
+  buildPlanReferenceMetadataTrace,
+  type PlanReferenceMetadataTraceSummary,
+} from "@/lib/plan-reference-metadata-trace";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -146,6 +150,7 @@ export type RecommendationOutcomeEvaluationRun = {
   shadow_entry_trial_count: number;
   shadow_entry_triggered_count: number;
   plan_price_freshness_summary: PlanPriceFreshnessSummary | null;
+  plan_reference_metadata_trace: PlanReferenceMetadataTraceSummary | null;
   entry_type_trigger_summary: EntryTypeTriggerSummary | null;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
@@ -734,6 +739,7 @@ export async function runRecommendationOutcomeEvaluation(
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       plan_price_freshness_summary: null,
+      plan_reference_metadata_trace: planReferenceMetadataTrace,
       entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
       candle_request_debug_sample: [],
       candidates,
@@ -983,8 +989,6 @@ export async function runRecommendationOutcomeEvaluation(
           entry_type_aware_trigger: entryTypeTriggerFromOutcome(work.existingOutcome),
           warnings: [reason],
           error: null,
-          entry_type_metadata: entryTypeMetadataForSnapshot(snapshot),
-          entry_type_aware_trigger: null,
         });
         warnings.push(
           warning(snapshot, work.horizon, "pending_provider_budget", reason),
@@ -1272,7 +1276,7 @@ export async function runRecommendationOutcomeEvaluation(
       ),
   }));
   const planPriceFreshnessSummary = summarizePlanPriceFreshness(
-    candidatesWithDiagnostics.map((candidate) => ({
+    candidatesWithPlanFreshness.map((candidate) => ({
       ticker: candidate.ticker,
       snapshot_fingerprint: candidate.snapshot_fingerprint,
       horizon: candidate.horizon,
@@ -1293,6 +1297,11 @@ export async function runRecommendationOutcomeEvaluation(
       };
     }),
   );
+  const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
+    snapshots: sortedSnapshots,
+    candidates: candidatesWithPlanFreshness,
+    outcomes,
+  });
   const completedRun = {
     run_id: createRunId(startedAt),
     run_version: "1.0" as const,
@@ -1331,9 +1340,10 @@ export async function runRecommendationOutcomeEvaluation(
     shadow_entry_trial_count: shadowEntryTrialCount,
     shadow_entry_triggered_count: shadowEntryTriggeredCount,
     plan_price_freshness_summary: planPriceFreshnessSummary,
+    plan_reference_metadata_trace: planReferenceMetadataTrace,
     entry_type_trigger_summary: entryTypeTriggerSummary,
     candle_request_debug_sample: candleRequestDebugSample,
-    candidates: candidatesWithTrace,
+    candidates: candidatesWithPlanFreshness,
     outcomes,
     warnings,
   };

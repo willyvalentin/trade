@@ -28,6 +28,8 @@ export type PlanPriceFreshnessDiagnostics = {
   entry_distance_from_reference_price_pct: number | null;
   reference_to_first_candle_drift_pct: number | null;
   classification: PlanPriceFreshnessClassification;
+  plan_reference_metadata_status: PlanReferenceMetadataStatus;
+  plan_reference_metadata_missing_reason: string | null;
   warnings: string[];
 };
 
@@ -125,6 +127,16 @@ function toIso(value: unknown): string | null {
 
 function textOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function planReferenceMetadataStatusOrNull(
+  value: unknown,
+): PlanReferenceMetadataStatus | null {
+  return value === "present" ||
+    value === "missing_but_plan_prices_present" ||
+    value === "missing_no_plan_prices"
+    ? value
+    : null;
 }
 
 function roundPct(value: number | null): number | null {
@@ -516,6 +528,8 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     entry_distance_from_reference_price_pct: distancePct(entry, reference.value),
     reference_to_first_candle_drift_pct: distancePct(reference.value, first.close),
     classification,
+    plan_reference_metadata_status: metadataStatus,
+    plan_reference_metadata_missing_reason: metadataMissingReason,
     warnings,
   };
 }

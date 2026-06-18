@@ -2,6 +2,10 @@ import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
 import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
+import {
+  parseRecommendationConfidenceMetadata,
+  planReferenceMetadataDiagnostics,
+} from "@/lib/recommendation-inline-metadata";
 
 export type RecommendationSnapshotStatus =
   | "visible"

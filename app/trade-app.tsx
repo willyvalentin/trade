@@ -1,6 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -273,12 +279,15 @@ import {
   type EntryTypeTriggerSummary,
   type RecommendationEntryTypeMetadata,
 } from "@/lib/recommendation-entry-type";
+import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
+
 import {
   buildRecommendationPerformanceStatistics,
   recommendationPerformanceStatisticsJson,
   type RecommendationPerformanceBucket,
   type RecommendationPerformanceStatistics,
 } from "@/lib/recommendation-performance-statistics";
+
 import {
   buildRecommendationHistory,
   defaultRecommendationHistoryFilter,
@@ -320,11 +329,6 @@ import {
   type EntryTuningProposal,
 } from "@/lib/entry-tuning-proposal";
 import {
-  inferRecommendationEntryTypeMetadata,
-  type EntryTypeTriggerSummary,
-  type RecommendationEntryTypeMetadata,
-} from "@/lib/recommendation-entry-type";
-import {
   buildRecommendationSampleQualitySummary,
   recommendationSampleQualitySummaryJson,
   type RecommendationSampleQualityCoverage,
@@ -365,7 +369,9 @@ import {
   type ProviderBudgetGuardSummary,
   type ProviderBudgetStatus,
 } from "@/lib/provider-budget-guard";
-import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import {
+  buildProviderPlanProfile,
+} from "@/lib/provider-plan-profile";
 import {
   buildLiveMarketTrialRunbookSummary,
   liveMarketTrialRunbookSummaryJson,
@@ -394,7 +400,9 @@ import {
   type RecommendationOutputEnrichmentItem,
   type RecommendationOutputEnrichmentMetadata,
 } from "@/lib/recommendation-output-enrichment";
-import { realScannerCandidateGenerationSummaryJson } from "@/lib/real-scanner-candidate-generation";
+import {
+  realScannerCandidateGenerationSummaryJson,
+} from "@/lib/real-scanner-candidate-generation";
 import {
   buildScannerOutputQaSummary,
   scannerOutputQaSummaryJson,
@@ -589,7 +597,9 @@ import {
   type BrokerExecutionCaptureStatus,
   type BrokerExecutionCaptureResult,
 } from "@/lib/broker-execution-capture";
-import { appendExecutionRecord } from "@/lib/execution-record-store";
+import {
+  appendExecutionRecord,
+} from "@/lib/execution-record-store";
 import {
   buildAvanzaAgentRequest,
   buildAvanzaAgentProgressEvent,
@@ -605,22 +615,52 @@ import {
   TextBlock,
 } from "@/components/execution/handoff-modal-shared";
 import type { AgentProgressStubTimelineItem } from "@/components/execution/AgentProgressStubPanel";
-import { ExecutionHandoffModalComposition } from "@/components/execution/ExecutionHandoffModalComposition";
+import {
+  ExecutionHandoffModalComposition,
+} from "@/components/execution/ExecutionHandoffModalComposition";
 import type { ExecutionSandboxQaOverallStatus } from "@/components/execution/ExecutionSandboxQaPanel";
-import { ExecutionHandoffModalShell } from "@/components/execution/ExecutionHandoffModalShell";
-import { ClosedTradeAuditTimelinePanel } from "@/components/history/ClosedTradeAuditTimelinePanel";
-import { ClosedTradeDetailsModal } from "@/components/history/ClosedTradeDetailsModal";
-import { ClosedTradePlanAdherencePanel } from "@/components/history/ClosedTradePlanAdherencePanel";
-import { HistoryTab } from "@/components/history/HistoryTab";
-import { buildClosedTradeDisplayProps } from "@/components/history/closed-trade-display-mapper";
-import { LiveDayTradeCardBody } from "@/components/live-day-trades/LiveDayTradeCardBody";
-import { LiveExecutionStatusSurface } from "@/components/live-day-trades/LiveExecutionStatusSurface";
-import { LiveDayTradesTab } from "@/components/live-day-trades/LiveDayTradesTab";
-import { LiveTradeDetailsModal } from "@/components/live-day-trades/LiveTradeDetailsModal";
-import { buildLiveDayTradeDisplayProps } from "@/components/live-day-trades/live-day-trade-display-mapper";
-import { RecommendationsTab } from "@/components/recommendations/RecommendationsTab";
-import { RecommendationCardContainer } from "@/components/recommendations/RecommendationCardContainer";
-import { RecommendationDetailsPill } from "@/components/recommendations/RecommendationDetailsModal";
+import {
+  ExecutionHandoffModalShell,
+} from "@/components/execution/ExecutionHandoffModalShell";
+import {
+  ClosedTradeAuditTimelinePanel,
+} from "@/components/history/ClosedTradeAuditTimelinePanel";
+import {
+  ClosedTradeDetailsModal,
+} from "@/components/history/ClosedTradeDetailsModal";
+import {
+  ClosedTradePlanAdherencePanel,
+} from "@/components/history/ClosedTradePlanAdherencePanel";
+import {
+  HistoryTab,
+} from "@/components/history/HistoryTab";
+import {
+  buildClosedTradeDisplayProps,
+} from "@/components/history/closed-trade-display-mapper";
+import {
+  LiveDayTradeCardBody,
+} from "@/components/live-day-trades/LiveDayTradeCardBody";
+import {
+  LiveExecutionStatusSurface,
+} from "@/components/live-day-trades/LiveExecutionStatusSurface";
+import {
+  LiveDayTradesTab,
+} from "@/components/live-day-trades/LiveDayTradesTab";
+import {
+  LiveTradeDetailsModal,
+} from "@/components/live-day-trades/LiveTradeDetailsModal";
+import {
+  buildLiveDayTradeDisplayProps,
+} from "@/components/live-day-trades/live-day-trade-display-mapper";
+import {
+  RecommendationsTab,
+} from "@/components/recommendations/RecommendationsTab";
+import {
+  RecommendationCardContainer,
+} from "@/components/recommendations/RecommendationCardContainer";
+import {
+  RecommendationDetailsPill,
+} from "@/components/recommendations/RecommendationDetailsModal";
 import {
   recommendationDetailsCurrency,
   recommendationDetailsShares,
@@ -630,9 +670,15 @@ import {
   recommendationCardConfidenceLabel,
   recommendationCardConfidenceTone,
 } from "@/components/recommendations/recommendation-card-display-mapper";
-import { StatisticsDashboard as StatisticsDashboardShell } from "@/components/statistics/StatisticsDashboard";
-import { StatisticsMetricCard } from "@/components/statistics/StatisticsMetricCard";
-import { StatisticsSummaryGrid } from "@/components/statistics/StatisticsSummaryGrid";
+import {
+  StatisticsDashboard as StatisticsDashboardShell,
+} from "@/components/statistics/StatisticsDashboard";
+import {
+  StatisticsMetricCard,
+} from "@/components/statistics/StatisticsMetricCard";
+import {
+  StatisticsSummaryGrid,
+} from "@/components/statistics/StatisticsSummaryGrid";
 import {
   buildAvanzaDryRunOrderInputFromExecutionIntent,
 } from "@/lib/execution-intent-to-avanza-dry-run";
@@ -640,22 +686,38 @@ import {
   createAvanzaAgentBridgeFromConfig,
   createAvanzaAgentBridgeRunnerFromConfig,
 } from "@/lib/avanza-agent-bridge-factory";
-import { readAvanzaAgentBridgeConfig } from "@/lib/avanza-agent-bridge-config";
+import {
+  readAvanzaAgentBridgeConfig,
+} from "@/lib/avanza-agent-bridge-config";
 import {
   appendAvanzaAgentRun,
   createStoredAvanzaAgentRun,
 } from "@/lib/avanza-agent-run-store";
-import { type ExecutionSandboxQaItem } from "@/lib/handoff-modal-data-mappers";
-import { useAvanzaReadinessState } from "@/hooks/execution/useAvanzaReadinessState";
-import { useEarlyPhasePreviewState } from "@/hooks/execution/useEarlyPhasePreviewState";
-import { useLatePhasePreviewState } from "@/hooks/execution/useLatePhasePreviewState";
-import { useLocalhostBridgeControlsState } from "@/hooks/execution/useLocalhostBridgeControlsState";
-import { useMiddlePhasePreviewState } from "@/hooks/execution/useMiddlePhasePreviewState";
+import {
+  type ExecutionSandboxQaItem,
+} from "@/lib/handoff-modal-data-mappers";
+import {
+  useAvanzaReadinessState,
+} from "@/hooks/execution/useAvanzaReadinessState";
+import {
+  useEarlyPhasePreviewState,
+} from "@/hooks/execution/useEarlyPhasePreviewState";
+import {
+  useLatePhasePreviewState,
+} from "@/hooks/execution/useLatePhasePreviewState";
+import {
+  useLocalhostBridgeControlsState,
+} from "@/hooks/execution/useLocalhostBridgeControlsState";
+import {
+  useMiddlePhasePreviewState,
+} from "@/hooks/execution/useMiddlePhasePreviewState";
 import {
   useTradeAppNavigationState,
   type TradeAppTab,
 } from "@/hooks/trade-app/useTradeAppNavigationState";
-import { useStatisticsRangeState } from "@/hooks/trade-app/useStatisticsRangeState";
+import {
+  useStatisticsRangeState,
+} from "@/hooks/trade-app/useStatisticsRangeState";
 import {
   buildAvanzaAgentBridgeEnvelope,
   getAvanzaAgentBridgeTransportDisplayLabel,
@@ -754,8 +816,12 @@ import {
   normalizeSetupType,
   type SetupType,
 } from "@/lib/setup-types";
-import { supabase } from "@/lib/supabase";
-import { normalizeUnknownError } from "@/lib/error-logging";
+import {
+  supabase,
+} from "@/lib/supabase";
+import {
+  normalizeUnknownError,
+} from "@/lib/error-logging";
 
 type Direction = "Long" | "Short";
 type RecommendationStatus =
@@ -1290,12 +1356,6 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   missingSnapshotReasons: Record<string, number>;
   strictBatchFilterExcludedCount: number;
   batchHealth: string | null;
-  batchCandidateAudit: BatchCandidateAuditSummary | null;
-  expectedSnapshotCountFromScan: number;
-  actualSnapshotCountForBatch: number;
-  missingSnapshotCount: number;
-  missingSnapshotReasons: Record<string, number>;
-  strictBatchFilterExcludedCount: number;
   entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   planReferenceMetadataTrace: PlanReferenceMetadataTraceSummary | null;
   incompleteDueToMissingCandles: number;
@@ -1341,7 +1401,6 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   shadowMissingMetadataCount: number;
   shadowEntryTrialCount: number;
   shadowEntryTriggeredCount: number;
-  entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   outcomeProviderBudgetStatus: string | null;
   nextRetrySuggestion: string | null;
   summary: string;
@@ -8195,12 +8254,6 @@ export function TradeApp() {
     missingSnapshotReasons: {},
     strictBatchFilterExcludedCount: 0,
     batchHealth: null,
-    batchCandidateAudit: null,
-    expectedSnapshotCountFromScan: 0,
-    actualSnapshotCountForBatch: 0,
-    missingSnapshotCount: 0,
-    missingSnapshotReasons: {},
-    strictBatchFilterExcludedCount: 0,
     entryTypeTriggerSummary: null,
     planReferenceMetadataTrace: null,
     incompleteDueToMissingCandles: 0,
@@ -8246,7 +8299,6 @@ export function TradeApp() {
     shadowMissingMetadataCount: 0,
     shadowEntryTrialCount: 0,
     shadowEntryTriggeredCount: 0,
-    entryTypeTriggerSummary: null,
     outcomeProviderBudgetStatus: null,
     nextRetrySuggestion: null,
     summary: "Outcome evaluation has not run yet.",
@@ -14640,6 +14692,12 @@ export function TradeApp() {
           !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
             ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
             : run.entry_type_trigger_summary ?? null,
+        planReferenceMetadataTrace:
+          typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
+          routeDiagnostics.plan_reference_metadata_trace !== null &&
+          !Array.isArray(routeDiagnostics.plan_reference_metadata_trace)
+            ? (routeDiagnostics.plan_reference_metadata_trace as PlanReferenceMetadataTraceSummary)
+            : null,
         outcomeProviderBudgetStatus:
           typeof routeDiagnostics.outcome_provider_budget_status === "string"
             ? routeDiagnostics.outcome_provider_budget_status

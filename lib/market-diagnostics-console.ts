@@ -17,6 +17,7 @@ import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-p
 import type { RecommendationScanRunHistorySummary } from "@/lib/recommendation-scan-run-history";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import type { PlanPriceFreshnessSummary } from "@/lib/plan-price-freshness";
+import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
 import type { EntryTypeTriggerSummary } from "@/lib/recommendation-entry-type";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerOutputQaSummary } from "@/lib/scanner-output-qa";
@@ -324,6 +325,7 @@ export type MarketDiagnosticsConsoleInput = {
     elapsed_ms?: number | null;
     tickers_evaluated?: string[];
     plan_price_freshness_summary?: PlanPriceFreshnessSummary | null;
+    plan_reference_metadata_trace?: PlanReferenceMetadataTraceSummary | null;
     entry_type_trigger_summary?: EntryTypeTriggerSummary | null;
     batch_candidate_audit?: BatchCandidateAuditSummary | null;
     expected_snapshot_count_from_scan?: number | null;
@@ -1575,6 +1577,8 @@ function buildSections(
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
     input.outcome_evaluation?.plan_price_freshness_summary ?? null;
+  const planReferenceMetadataTrace =
+    input.outcome_evaluation?.plan_reference_metadata_trace ?? null;
   const entryTypeTriggerSummary =
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
@@ -16,7 +16,6 @@ import {
   type RecommendationOutcomeCandleRequest,
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
-import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { buildPlanReferenceMetadataTrace } from "@/lib/plan-reference-metadata-trace";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
@@ -32,7 +31,6 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
-import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -1566,6 +1564,7 @@ export async function POST(request: Request) {
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
+      plan_reference_metadata_trace: planReferenceMetadataTrace,
     };
 
     return NextResponse.json({
@@ -1690,6 +1689,17 @@ export async function POST(request: Request) {
         blocker.toLowerCase().includes("side is unavailable"),
       ),
   ).length;
+  const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
+    snapshots,
+    candidates: run.candidates,
+    outcomes: run.outcomes,
+    batchFingerprint:
+      stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
+      batchFingerprint,
+    scanRunFingerprint: stringOrNull(
+      officialSnapshotLoad?.batch?.scan_run_fingerprint,
+    ),
+  });
   const diagnostics = {
     route_version: outcomeEvaluationRouteVersion,
     mode,
@@ -1803,6 +1813,7 @@ export async function POST(request: Request) {
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
     entry_type_trigger_summary: run.entry_type_trigger_summary,
+    plan_reference_metadata_trace: planReferenceMetadataTrace,
   };
 
   return NextResponse.json({

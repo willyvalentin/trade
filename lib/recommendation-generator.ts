@@ -76,6 +76,7 @@ import {
   type PlanReferenceMetadataStatus,
   type PlanReferencePriceMetadata,
 } from "@/lib/recommendation-plan-reference";
+import { recommendationConfidenceMetadataPrefix } from "@/lib/recommendation-inline-metadata";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -1869,79 +1870,7 @@ function nullableNumber(value: unknown) {
 function buildPlanReferencePriceMetadata(
   candidate: MockCandidate,
 ): PlanReferencePriceMetadata {
-  const scannerReferencePrice = nullableNumber(
-    candidate.reference_price_used_for_plan,
-  );
-  if (scannerReferencePrice !== null && scannerReferencePrice > 0) {
-    return {
-      reference_price_used_for_plan: scannerReferencePrice,
-      reference_price_source:
-        nullableString(candidate.reference_price_source) ?? "fallback_last_price",
-      reference_price_timestamp:
-        nullableString(candidate.reference_price_timestamp) ?? null,
-      reference_price_symbol:
-        nullableString(candidate.reference_price_symbol) ??
-        normalizeTicker(candidate.ticker) ??
-        null,
-      reference_price_provider:
-        nullableString(candidate.reference_price_provider) ?? null,
-      reference_price_read_path:
-        nullableString(candidate.reference_price_read_path) ??
-        "candidate.reference_price_used_for_plan",
-    };
-  }
-
-  const latestClose = nullableNumber(candidate.latest_close);
-  if (latestClose !== null && latestClose > 0) {
-    return {
-      reference_price_used_for_plan: latestClose,
-      reference_price_source: "fallback_last_price",
-      reference_price_timestamp: null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider: null,
-      reference_price_read_path: "candidate.latest_close",
-    };
-  }
-
-  const intradayLatestPrice = nullableNumber(
-    candidate.intraday_indicators?.latestPrice,
-  );
-  if (intradayLatestPrice !== null && intradayLatestPrice > 0) {
-    return {
-      reference_price_used_for_plan: intradayLatestPrice,
-      reference_price_source: "latest_intraday_candle_close",
-      reference_price_timestamp:
-        nullableString(candidate.intraday_indicator_cached_at) ?? null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider:
-        candidate.intraday_indicator_source === "fresh" ||
-        candidate.intraday_indicator_source === "cache"
-          ? "twelve_data"
-          : null,
-      reference_price_read_path: "candidate.intraday_indicators.latestPrice",
-    };
-  }
-
-  const mockCurrentPrice = nullableNumber(candidate.mock_current_price);
-  if (mockCurrentPrice !== null && mockCurrentPrice > 0) {
-    return {
-      reference_price_used_for_plan: mockCurrentPrice,
-      reference_price_source: "current_price",
-      reference_price_timestamp: null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider: "mock",
-      reference_price_read_path: "candidate.mock_current_price",
-    };
-  }
-
-  return {
-    reference_price_used_for_plan: null,
-    reference_price_source: "unknown",
-    reference_price_timestamp: null,
-    reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-    reference_price_provider: null,
-    reference_price_read_path: null,
-  };
+  return resolvePlanReferencePriceMetadata(candidate);
 }
 
 function midpoint(low: number | null, high: number | null) {
@@ -1956,7 +1885,7 @@ function buildPlanEntryTypeMetadata(input: {
   entry: number | null;
   planReferencePrice: PlanReferencePriceMetadata;
   source: RecommendationEntryTypeSource;
-  existingMetadata?: Record<string, unknown> | null;
+  existingMetadata?: RecommendationEntryTypeMetadata | null;
 }): EntryTypeMetadata {
   return inferRecommendationEntryTypeMetadata({
     side: input.side,
@@ -1993,32 +1922,6 @@ function planReferenceMetadataTraceOrNull(
     timestamp_read_path: nullableString(trace.timestamp_read_path),
     provider_read_path: nullableString(trace.provider_read_path),
   };
-}
-
-function buildPlanReferencePriceMetadata(
-  candidate: MockCandidate,
-): PlanReferencePriceMetadata {
-  return resolvePlanReferencePriceMetadata(candidate);
-}
-
-function midpoint(low: number, high: number) {
-  return (low + high) / 2;
-}
-
-function buildPlanEntryTypeMetadata(input: {
-  side: "long" | "short";
-  entry: number;
-  planReferencePrice: PlanReferencePriceMetadata;
-  source: RecommendationEntryTypeSource;
-}): EntryTypeMetadata {
-  return inferRecommendationEntryTypeMetadata({
-    side: input.side,
-    entry: input.entry,
-    referencePrice: input.planReferencePrice.reference_price_used_for_plan,
-    referencePriceSource: input.planReferencePrice.reference_price_source,
-    referencePriceReadPath: input.planReferencePrice.reference_price_read_path,
-    source: input.source,
-  });
 }
 
 function buildOpenAiBatchContext(input: {
