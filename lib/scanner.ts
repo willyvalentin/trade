@@ -333,7 +333,7 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
       rawValues.reference_price_provider.trim()
         ? rawValues.reference_price_provider.trim()
         : "scanner_cache",
-    reference_price_read_path: "scanner_cache.latest_close",
+    reference_price_read_path: "scanner_candidate.latest_close",
   };
 }
 
@@ -488,7 +488,7 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
     intraday_indicators: null,
     reference_price_timestamp: isoFromTimestampSeconds(latestCandle.timestamp),
     reference_price_provider: "twelve_data",
-    reference_price_read_path: "twelve_data.time_series.1day.values[-1].close",
+    reference_price_read_path: "scanner_candidate.latest_close",
   };
 }
 
@@ -536,7 +536,7 @@ function buildCandidate(
     range_expansion_ratio: scannerValues.range_expansion_ratio,
     intraday_indicators: scannerValues.intraday_indicators,
     reference_price_used_for_plan: scannerValues.latest_close,
-    reference_price_source: "fallback_last_price",
+    reference_price_source: "scanner_candidate_latest_close",
     reference_price_timestamp: scannerValues.reference_price_timestamp,
     reference_price_symbol: baseCandidate.ticker,
     reference_price_provider: scannerValues.reference_price_provider,

@@ -605,6 +605,8 @@ export function buildRecommendationSnapshot(
       !Array.isArray(payloadJsonRecord.recommendation)
         ? {
             ...(payloadJsonRecord.recommendation as Record<string, unknown>),
+            ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
+            ...planReferenceStatus,
             ...entryTypeMetadata,
           }
         : payloadJsonRecord.recommendation,

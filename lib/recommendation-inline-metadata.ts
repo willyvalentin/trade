@@ -19,17 +19,65 @@ export function parseRecommendationConfidenceMetadata(
   if (start === -1) return null;
 
   const jsonStart = start + recommendationConfidenceMetadataPrefix.length;
-  const end = value.indexOf("]", jsonStart);
-  if (end === -1) return null;
+  const jsonEnd = findJsonObjectEnd(value, jsonStart);
+  if (jsonEnd === null) return null;
 
   try {
-    const parsed = JSON.parse(value.slice(jsonStart, end)) as unknown;
+    const parsed = JSON.parse(value.slice(jsonStart, jsonEnd)) as unknown;
     return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
       ? (parsed as Record<string, unknown>)
       : null;
   } catch {
     return null;
   }
+}
+
+function findJsonObjectEnd(value: string, start: number) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let objectStarted = false;
+
+  for (let index = start; index < value.length; index += 1) {
+    const character = value[index];
+
+    if (!objectStarted) {
+      if (/\s/.test(character)) continue;
+      if (character !== "{") return null;
+      objectStarted = true;
+      depth = 1;
+      continue;
+    }
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (character === "\\") {
+      escaped = inString;
+      continue;
+    }
+
+    if (character === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (character === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return index + 1;
+    }
+  }
+
+  return null;
 }
 
 function finiteNumber(value: unknown) {
