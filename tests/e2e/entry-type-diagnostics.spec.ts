@@ -303,6 +303,133 @@ test("deterministic fallback missing price does not fake unknown reference metad
   );
 });
 
+test("deterministic fallback accepts same-day plan reference metadata", () => {
+  const planReference = markPlanReferenceRetained(
+    resolvePlanReferencePriceMetadata(
+      {
+        ticker: "JPM",
+        latest_close: 290.11,
+        reference_price_timestamp: "2026-06-23T14:05:00.000Z",
+        reference_price_provider: "twelve_data",
+      },
+      {
+        enforceFreshness: true,
+        now: "2026-06-23T14:35:00.000Z",
+      },
+    ),
+  );
+
+  expect(planReference.reference_price_used_for_plan).toBe(290.11);
+  expect(planReference.reference_price_source).toBe(
+    "scanner_candidate_latest_close",
+  );
+  expect(planReference.reference_price_timestamp).toBe(
+    "2026-06-23T14:05:00.000Z",
+  );
+  expect(planReference.plan_reference_metadata_status).toBe("complete");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_freshness_status,
+  ).toBe("accepted");
+  expect(
+    planReference.plan_reference_metadata_trace
+      .generated_recommendation_retained_reference_price,
+  ).toBe(true);
+});
+
+test("deterministic fallback rejects weeks-old scanner-cache plan reference", () => {
+  const planReference = resolvePlanReferencePriceMetadata(
+    {
+      ticker: "CRM",
+      latest_close: 192,
+      reference_price_timestamp: "2026-06-03T16:31:19.914Z",
+      reference_price_provider: "scanner_cache",
+    },
+    {
+      enforceFreshness: true,
+      now: "2026-06-23T13:33:30.577Z",
+    },
+  );
+
+  expect(planReference.reference_price_used_for_plan).toBeNull();
+  expect(planReference.reference_price_source).toBe("unknown");
+  expect(planReference.reference_price_read_path).toBeNull();
+  expect(planReference.plan_reference_metadata_status).toBe("missing_price");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_freshness_status,
+  ).toBe("rejected");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_price_stale_block_reason,
+  ).toBe("scanner_cache_reference_too_old");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_price_source_attempted,
+  ).toBe("scanner_candidate_latest_close");
+});
+
+test("deterministic fallback uses fresh quote over stale scanner-cache reference", () => {
+  const planReference = resolvePlanReferencePriceMetadata(
+    {
+      ticker: "MSFT",
+      latest_close: 424.43,
+      reference_price_timestamp: "2026-06-03T17:19:06.826Z",
+      reference_price_provider: "scanner_cache",
+      quote: {
+        price: 375.39,
+        timestamp: "2026-06-23T13:32:00.000Z",
+        provider: "twelve_data",
+      },
+    },
+    {
+      enforceFreshness: true,
+      now: "2026-06-23T13:33:30.577Z",
+    },
+  );
+
+  expect(planReference.reference_price_used_for_plan).toBe(375.39);
+  expect(planReference.reference_price_source).toBe(
+    "scanner_candidate_quote_price",
+  );
+  expect(planReference.reference_price_timestamp).toBe(
+    "2026-06-23T13:32:00.000Z",
+  );
+  expect(planReference.reference_price_provider).toBe("twelve_data");
+  expect(planReference.reference_price_read_path).toBe(
+    "scanner_candidate.quote.price",
+  );
+  expect(
+    planReference.plan_reference_metadata_trace.reference_freshness_status,
+  ).toBe("accepted");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_price_rejected_read_path,
+  ).toBe("scanner_candidate.latest_close");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_price_final_source_used,
+  ).toBe("scanner_candidate_quote_price");
+});
+
+test("deterministic fallback blocks when only stale scanner-cache exists", () => {
+  const planReference = resolvePlanReferencePriceMetadata(
+    {
+      ticker: "CVX",
+      latest_close: 196.12,
+      reference_price_timestamp: "2026-05-19T10:53:21.029Z",
+      reference_price_provider: "scanner_cache",
+    },
+    {
+      enforceFreshness: true,
+      now: "2026-06-23T13:33:30.577Z",
+    },
+  );
+
+  expect(planReference.reference_price_used_for_plan).toBeNull();
+  expect(planReference.plan_reference_metadata_status).toBe("missing_price");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_price_stale_block_reason,
+  ).toBe("scanner_cache_reference_too_old");
+  expect(
+    planReference.plan_reference_metadata_trace.reference_timestamp_age_minutes,
+  ).toBeGreaterThan(1000);
+});
+
 test("entry type reads completed retained candles without provider refetch", async () => {
   const snapshot = buildRecommendationSnapshot({
     recommendation_id: "rec_jpm",

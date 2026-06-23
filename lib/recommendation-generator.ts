@@ -189,6 +189,7 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   plan_reference_price?: PlanReferencePriceMetadata | null;
   plan_reference_metadata_status?: PlanReferenceMetadataStatus | null;
   recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
+  entry_type_metadata?: EntryTypeMetadata | null;
   entry_type?: RecommendationEntryType | null;
   entry_trigger_semantics?: RecommendationEntryTriggerSemantics | null;
   entry_type_source?: RecommendationEntryTypeSource | null;
@@ -248,6 +249,8 @@ export type RecommendationScanLogDetails = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  deterministic_fallback_reference_block_count?: number | null;
+  deterministic_fallback_reference_block_reasons?: string[] | null;
   recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
   recommendations_built_count?: number | null;
   automation_route_version?: string | null;
@@ -1869,8 +1872,9 @@ function nullableNumber(value: unknown) {
 
 function buildPlanReferencePriceMetadata(
   candidate: MockCandidate,
+  options?: Parameters<typeof resolvePlanReferencePriceMetadata>[1],
 ): PlanReferencePriceMetadata {
-  return resolvePlanReferencePriceMetadata(candidate);
+  return resolvePlanReferencePriceMetadata(candidate, options);
 }
 
 function midpoint(low: number | null, high: number | null) {
@@ -1878,6 +1882,39 @@ function midpoint(low: number | null, high: number | null) {
   if (low === null) return high;
   if (high === null) return low;
   return (low + high) / 2;
+}
+
+function planReferenceBlockReason(
+  metadata: PlanReferencePriceMetadata,
+  ticker: string,
+) {
+  const reason =
+    metadata.plan_reference_metadata_trace.reference_price_stale_block_reason ??
+    (metadata.reference_price_used_for_plan === null
+      ? "missing_fresh_reference_price"
+      : null);
+
+  return reason
+    ? `${ticker}: ${reason} (${metadata.plan_reference_metadata_trace.reference_price_source_attempted ?? "unknown_source"})`
+    : null;
+}
+
+function buildPlanPricesFromReference(referencePrice: number) {
+  const entryLow = Number((referencePrice * 0.99).toFixed(2));
+  const entryHigh = Number((referencePrice * 1.01).toFixed(2));
+  const stopLoss = Number((referencePrice * 0.96).toFixed(2));
+  const riskPerShare = Math.max(entryHigh - stopLoss, referencePrice * 0.01);
+  const target1 = Number((entryHigh + riskPerShare * 1.5).toFixed(2));
+  const target2 = Number((entryHigh + riskPerShare * 2.25).toFixed(2));
+
+  return {
+    entryLow,
+    entryHigh,
+    stopLoss,
+    target1,
+    target2,
+    riskReward: Number(((target2 - entryHigh) / riskPerShare).toFixed(2)),
+  };
 }
 
 function buildPlanEntryTypeMetadata(input: {
@@ -1921,6 +1958,34 @@ function planReferenceMetadataTraceOrNull(
     source_read_path: nullableString(trace.source_read_path),
     timestamp_read_path: nullableString(trace.timestamp_read_path),
     provider_read_path: nullableString(trace.provider_read_path),
+    reference_timestamp_age_ms: nullableNumber(trace.reference_timestamp_age_ms),
+    reference_timestamp_age_minutes: nullableNumber(
+      trace.reference_timestamp_age_minutes,
+    ),
+    reference_freshness_checked_at: nullableString(
+      trace.reference_freshness_checked_at,
+    ),
+    reference_freshness_market_date: nullableString(
+      trace.reference_freshness_market_date,
+    ),
+    reference_freshness_status:
+      trace.reference_freshness_status === "accepted" ||
+      trace.reference_freshness_status === "rejected" ||
+      trace.reference_freshness_status === "not_checked"
+        ? trace.reference_freshness_status
+        : undefined,
+    reference_price_stale_block_reason: nullableString(
+      trace.reference_price_stale_block_reason,
+    ),
+    reference_price_source_attempted: nullableString(
+      trace.reference_price_source_attempted,
+    ),
+    reference_price_final_source_used: nullableString(
+      trace.reference_price_final_source_used,
+    ),
+    reference_price_rejected_read_path: nullableString(
+      trace.reference_price_rejected_read_path,
+    ),
   };
 }
 
@@ -2096,12 +2161,16 @@ function buildDeterministicLearningRecommendations({
   source: RecommendationGenerationSource;
   maxRecommendations: number;
   powerHourTrial?: boolean;
-}): AiRecommendation[] {
+}): { recommendations: AiRecommendation[]; skippedReasons: string[] } {
   const rankingByTicker = new Map(
     rankingSummary.results.map((result) => [result.ticker, result]),
   );
+  const recommendations: AiRecommendation[] = [];
+  const skippedReasons: string[] = [];
 
-  return candidates.slice(0, maxRecommendations).map((candidate) => {
+  for (const candidate of candidates) {
+    if (recommendations.length >= maxRecommendations) break;
+
     const ranking = rankingByTicker.get(candidate.ticker) ?? null;
     const tier = ranking?.score.tier ?? "unknown";
     const localScore = clamp(
@@ -2125,14 +2194,28 @@ function buildDeterministicLearningRecommendations({
     const setupType = normalizeSetupType(candidate.setup_type);
     const setupLabel = getSetupTypeLabel(setupType);
     const planReferencePrice = markPlanReferenceRetained(
-      buildPlanReferencePriceMetadata(candidate),
+      buildPlanReferencePriceMetadata(candidate, {
+        enforceFreshness: true,
+      }),
     );
+    const referencePrice = planReferencePrice.reference_price_used_for_plan;
+    const staleBlockReason = planReferenceBlockReason(
+      planReferencePrice,
+      candidate.ticker,
+    );
+
+    if (referencePrice === null || staleBlockReason) {
+      skippedReasons.push(
+        staleBlockReason ??
+          `${candidate.ticker}: missing_fresh_reference_price (unknown_source)`,
+      );
+      continue;
+    }
+
+    const planPrices = buildPlanPricesFromReference(referencePrice);
     const entryTypeMetadata = buildPlanEntryTypeMetadata({
       side: "long",
-      entry: midpoint(
-        Number(candidate.proposed_entry_low),
-        Number(candidate.proposed_entry_high),
-      ),
+      entry: midpoint(planPrices.entryLow, planPrices.entryHigh),
       planReferencePrice,
       source: "deterministic_plan_builder",
     });
@@ -2145,17 +2228,17 @@ function buildDeterministicLearningRecommendations({
       timing_quality: candidate.local_score_breakdown.timing,
     };
 
-    return {
+    recommendations.push({
       ticker: candidate.ticker,
       company_name: candidate.company_name,
       direction: "long",
       setup_type: setupType,
-      entry_low: Number(candidate.proposed_entry_low),
-      entry_high: Number(candidate.proposed_entry_high),
-      stop_loss: Number(candidate.proposed_stop_loss),
-      target_1: Number(candidate.proposed_target_1),
-      target_2: Number(candidate.proposed_target_2),
-      risk_reward: Number(candidate.proposed_risk_reward),
+      entry_low: planPrices.entryLow,
+      entry_high: planPrices.entryHigh,
+      stop_loss: planPrices.stopLoss,
+      target_1: planPrices.target1,
+      target_2: planPrices.target2,
+      risk_reward: planPrices.riskReward,
       confidence: confidenceFromScore(localScore),
       confidence_score: localScore,
       confidence_label: confidenceLabelFromScore(localScore),
@@ -2179,9 +2262,7 @@ function buildDeterministicLearningRecommendations({
         reasons.length > 0
           ? reasons.join(" ")
           : `${candidate.ticker} is a ${tier} ranked ${setupLabel} learning candidate with a defined intraday plan.`,
-      invalidation: `The setup is invalidated if price trades below ${Number(
-        candidate.proposed_stop_loss,
-      ).toFixed(2)} or intraday momentum and volume confirmation fail.`,
+      invalidation: `The setup is invalidated if price trades below ${planPrices.stopLoss.toFixed(2)} or intraday momentum and volume confirmation fail.`,
       reason_to_avoid:
         warningSummary.length > 0
           ? warningSummary.join(" ")
@@ -2215,8 +2296,10 @@ function buildDeterministicLearningRecommendations({
       entry_type_metadata: entryTypeMetadata,
       ...entryTypeMetadata,
       ...planReferencePrice,
-    };
-  });
+    });
+  }
+
+  return { recommendations, skippedReasons };
 }
 
 function parseSettingNumber(value: unknown, fallback: number) {
@@ -3751,6 +3834,7 @@ export async function generateRecommendations({
 
     let deterministicFallbackUsed = false;
     let deterministicFallbackReason: string | null = null;
+    let deterministicFallbackSkippedReasons: string[] = [];
     let aiResponse: AiResponse;
     let openAiOutputRecommendationCount = 0;
     let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
@@ -3759,7 +3843,7 @@ export async function generateRecommendations({
     function deterministicFallback(reason: string): AiResponse {
       deterministicFallbackUsed = true;
       deterministicFallbackReason = reason;
-      const recommendations = buildDeterministicLearningRecommendations({
+      const deterministic = buildDeterministicLearningRecommendations({
         candidates: candidatesForOpenAI,
         rankingSummary: scannerCandidateRankingSummary,
         scanWindow,
@@ -3767,17 +3851,22 @@ export async function generateRecommendations({
         maxRecommendations: settings.max_recommendations_per_session,
         powerHourTrial,
       });
+      deterministicFallbackSkippedReasons = deterministic.skippedReasons;
 
       logPipeline("deterministic_fallback_used", true);
       logPipeline("deterministic_fallback_reason", reason);
       logPipeline(
         "deterministic_fallback_recommendations_count",
-        recommendations.length,
+        deterministic.recommendations.length,
+      );
+      logPipeline(
+        "deterministic_fallback_reference_block_reasons",
+        deterministicFallbackSkippedReasons,
       );
 
       return {
         result: "trade_recommendation",
-        recommendations,
+        recommendations: deterministic.recommendations,
       };
     }
 
@@ -3911,7 +4000,10 @@ export async function generateRecommendations({
     );
     logPipeline(
       "skipped_recommendation_reasons",
-      sanitizedRecommendations.skippedReasons,
+      [
+        ...sanitizedRecommendations.skippedReasons,
+        ...deterministicFallbackSkippedReasons,
+      ],
     );
     logPipeline(
       "openai_recommendation_reality_guard_final",
@@ -3955,6 +4047,7 @@ export async function generateRecommendations({
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason:
             sanitizedRecommendations.skippedReasons[0] ??
+            deterministicFallbackSkippedReasons[0] ??
             deterministicFallbackReason ??
             "Publishable candidates failed recommendation validation.",
           no_publish_reason: deterministicFallbackUsed
@@ -3964,10 +4057,15 @@ export async function generateRecommendations({
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
           deterministic_fallback_used: deterministicFallbackUsed,
+          deterministic_fallback_reference_block_count:
+            deterministicFallbackSkippedReasons.length,
+          deterministic_fallback_reference_block_reasons:
+            deterministicFallbackSkippedReasons,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
-            sanitizedRecommendations.skippedReasons.length,
+            sanitizedRecommendations.skippedReasons.length +
+            deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
@@ -4037,10 +4135,15 @@ export async function generateRecommendations({
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
           deterministic_fallback_used: deterministicFallbackUsed,
+          deterministic_fallback_reference_block_count:
+            deterministicFallbackSkippedReasons.length,
+          deterministic_fallback_reference_block_reasons:
+            deterministicFallbackSkippedReasons,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
-            sanitizedRecommendations.skippedReasons.length,
+            sanitizedRecommendations.skippedReasons.length +
+            deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
@@ -4127,10 +4230,15 @@ export async function generateRecommendations({
         power_hour_publish_allowed: powerHourTrial,
         power_hour_publish_block_reason: null,
         deterministic_fallback_used: deterministicFallbackUsed,
+        deterministic_fallback_reference_block_count:
+          deterministicFallbackSkippedReasons.length,
+        deterministic_fallback_reference_block_reasons:
+          deterministicFallbackSkippedReasons,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:
           candidatesRemovedByCooldown.length +
-          sanitizedRecommendations.skippedReasons.length,
+          sanitizedRecommendations.skippedReasons.length +
+          deterministicFallbackSkippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
         dynamic_movers_discovery: dynamicMoversDiscovery,
         scanner_candidate_ranking: scannerCandidateRankingSummary,

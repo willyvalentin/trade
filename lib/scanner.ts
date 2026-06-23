@@ -328,11 +328,7 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
     reference_price_timestamp:
       isoStringOrNull(rawValues.reference_price_timestamp) ??
       isoStringOrNull(row.updated_at),
-    reference_price_provider:
-      typeof rawValues.reference_price_provider === "string" &&
-      rawValues.reference_price_provider.trim()
-        ? rawValues.reference_price_provider.trim()
-        : "scanner_cache",
+    reference_price_provider: "scanner_cache",
     reference_price_read_path: "scanner_candidate.latest_close",
   };
 }
