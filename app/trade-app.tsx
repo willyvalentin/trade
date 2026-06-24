@@ -30917,7 +30917,6 @@ function ExecutionHandoffPreviewModal({
     canRunFinalizationActionPreview,
     canRunFinalizationExecutionRecordBridgePreview,
     canRunExecutionRecordCandidateBuilderIntegrationPreview,
-    canRunExecutionRecordPersistenceValidatorIntegrationPreview,
     canRunMappedBrokerExecutionResultCandidatePreview,
     executionRecordCreationPreviewResult,
     executionRecordCreationPreviewSourceDescription,
@@ -30928,9 +30927,6 @@ function ExecutionHandoffPreviewModal({
     executionRecordCandidateBuilderIntegrationPreviewMessage,
     executionRecordCandidateBuilderIntegrationPreviewResult,
     executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
-    executionRecordPersistenceValidatorIntegrationPreviewMessage,
-    executionRecordPersistenceValidatorIntegrationPreviewResult,
-    executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
     executionRecordEligibilityCandidate,
     executionRecordEligibilityCandidateIsPreviewOnly,
     finalSettlementNoteMatchPreviewMessage,
@@ -30947,7 +30943,6 @@ function ExecutionHandoffPreviewModal({
     finalizationExecutionRecordBridgePreviewUnavailableReason,
     isExecutionRecordInsertDryRunRunning,
     isExecutionRecordCandidateBuilderIntegrationPreviewRunning,
-    isExecutionRecordPersistenceValidatorIntegrationPreviewRunning,
     isFinalSettlementNoteMatchPreviewRunning,
     isFinalizationCandidatePreviewRunning,
     isFinalizationActionPreviewRunning,
@@ -31002,7 +30997,6 @@ function ExecutionHandoffPreviewModal({
     mappedBrokerExecutionResultCandidatePreviewUnavailableReason,
     runExecutionRecordInsertDryRunPreview,
     runExecutionRecordCandidateBuilderIntegrationPreview,
-    runExecutionRecordPersistenceValidatorIntegrationPreview,
     runFinalizationActionPreview,
     runFinalizationExecutionRecordBridgePreview,
     runFinalSettlementNoteMatchPreview,
@@ -32270,19 +32264,6 @@ function ExecutionHandoffPreviewModal({
           result: executionRecordCandidateBuilderIntegrationPreviewResult,
           unavailableReason:
             executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
-        }}
-        executionRecordPersistenceValidatorIntegrationPreviewProps={{
-          canRun: canRunExecutionRecordPersistenceValidatorIntegrationPreview,
-          isRunning:
-            isExecutionRecordPersistenceValidatorIntegrationPreviewRunning,
-          message:
-            executionRecordPersistenceValidatorIntegrationPreviewMessage,
-          onRun: () =>
-            void runExecutionRecordPersistenceValidatorIntegrationPreview(),
-          result:
-            executionRecordPersistenceValidatorIntegrationPreviewResult,
-          unavailableReason:
-            executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
         }}
         executionRecordCreationPreviewProps={{
           result: executionRecordCreationPreviewResult,
