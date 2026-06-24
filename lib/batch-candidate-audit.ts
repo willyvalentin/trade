@@ -1,6 +1,17 @@
+import type {
+  CandidateBuildRejectionReason,
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
+import {
+  normalizeCandidateBuildRejectionReason,
+  summarizeSelectedCandidateBuildDiagnostics,
+} from "@/lib/recommendation-build-diagnostics";
+
 export type BatchCandidateAuditDropOffReason =
   | "below_publish_threshold"
   | "no_trade_candidate"
+  | CandidateBuildRejectionReason
   | "incomplete_price_plan"
   | "missing_ticker"
   | "missing_side"
@@ -56,6 +67,7 @@ export type BatchCandidateAuditSummary = {
   missing_snapshot_reasons: Record<BatchCandidateAuditDropOffReason, number>;
   strict_batch_filter_excluded_count: number;
   drop_off_reasons: Record<BatchCandidateAuditDropOffReason, number>;
+  selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
   largest_drop_off_stage: string | null;
   largest_drop_off_count: number;
   batch_completeness: "complete" | "partial" | "sparse" | "empty" | "unknown";
@@ -84,12 +96,32 @@ export type BatchCandidateAuditInput = {
   incompletePricePlanCount?: number | null;
   missingSnapshotReasons?: Partial<Record<string, number>> | null;
   dropOffReasons?: Partial<Record<string, number>> | null;
+  selectedCandidateBuildDiagnostics?: SelectedCandidateBuildDiagnostic[] | null;
+  selectedToBuiltDropOff?: SelectedToBuiltDropOffSummary | null;
   lineage?: Partial<BatchCandidateAuditLineageItem>[] | null;
 };
 
 const emptyReasons = {
   below_publish_threshold: 0,
   no_trade_candidate: 0,
+  built: 0,
+  not_selected_by_ranking: 0,
+  ranking_selected_but_not_qualified: 0,
+  fallback_builder_limit_reached: 0,
+  missing_fresh_reference_price: 0,
+  scanner_cache_reference_too_old: 0,
+  stale_reference_price: 0,
+  future_reference_timestamp: 0,
+  missing_reference_source: 0,
+  missing_reference_timestamp: 0,
+  invalid_risk_geometry: 0,
+  weak_risk_reward: 0,
+  sanitizer_rejected: 0,
+  openai_no_trade: 0,
+  openai_skipped_deterministic_fallback: 0,
+  provider_data_unavailable: 0,
+  stale_market_data: 0,
+  unknown_build_rejection: 0,
   incomplete_price_plan: 0,
   missing_ticker: 0,
   missing_side: 0,
@@ -118,6 +150,11 @@ function textOrNull(value: string | null | undefined) {
 }
 
 function normalizeReason(value: string): BatchCandidateAuditDropOffReason {
+  const candidateReason = normalizeCandidateBuildRejectionReason(value);
+  if (candidateReason !== "unknown_build_rejection" || value === "unknown_build_rejection") {
+    return candidateReason;
+  }
+
   if (
     value === "below_publish_threshold" ||
     value === "no_trade_candidate" ||
@@ -257,6 +294,24 @@ export function buildBatchCandidateAuditSummary(
   mergeReasons(dropOffReasons, input.dropOffReasons);
   mergeReasons(dropOffReasons, input.missingSnapshotReasons);
   mergeReasons(missingSnapshotReasons, input.missingSnapshotReasons);
+  const selectedToBuiltDropOff =
+    input.selectedToBuiltDropOff ??
+    (input.selectedCandidateBuildDiagnostics
+      ? summarizeSelectedCandidateBuildDiagnostics(
+          input.selectedCandidateBuildDiagnostics,
+        )
+      : null);
+  let explainedSelectedToBuiltDropOff = 0;
+
+  for (const [reason, value] of Object.entries(
+    selectedToBuiltDropOff?.rejection_counts ?? {},
+  )) {
+    const amount = numberValue(value);
+    if (amount <= 0) continue;
+    const normalized = normalizeReason(reason);
+    addReason(dropOffReasons, normalized, amount);
+    explainedSelectedToBuiltDropOff += amount;
+  }
 
   addReason(
     dropOffReasons,
@@ -276,7 +331,10 @@ export function buildBatchCandidateAuditSummary(
   addReason(
     dropOffReasons,
     "no_trade_candidate",
-    Math.max(0, selectedCandidates - builtRecommendations),
+    Math.max(
+      0,
+      selectedCandidates - builtRecommendations - explainedSelectedToBuiltDropOff,
+    ),
   );
   addReason(
     dropOffReasons,
@@ -352,6 +410,7 @@ export function buildBatchCandidateAuditSummary(
     missing_snapshot_reasons: missingSnapshotReasons,
     strict_batch_filter_excluded_count: strictBatchExcluded,
     drop_off_reasons: dropOffReasons,
+    selected_to_built_drop_off: selectedToBuiltDropOff,
     largest_drop_off_stage: largest.stage,
     largest_drop_off_count: largest.count,
     batch_completeness: getBatchCompleteness({

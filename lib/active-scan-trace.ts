@@ -1,4 +1,8 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
+import type {
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 import {
   AUTOMATION_ROUTE_VERSION,
   BUILD_MARKER,
@@ -158,6 +162,8 @@ export type ActiveScanTrace = {
     batch_fingerprint: string | null;
     scan_run_fingerprint: string | null;
     zero_candidate_reason: string | null;
+    selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
+    selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
   };
 };
 
@@ -336,6 +342,8 @@ export function createActiveScanTrace({
       batch_fingerprint: null,
       scan_run_fingerprint: null,
       zero_candidate_reason: null,
+      selected_candidate_build_diagnostics: [],
+      selected_to_built_drop_off: null,
     },
   };
 

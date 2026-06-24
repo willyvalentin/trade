@@ -42,6 +42,7 @@ import {
 import {
   buildScannerCandidateRankingSummary,
   type ScannerCandidateRankingSummary,
+  type ScannerCandidateRankingResult,
 } from "@/lib/scanner-candidate-ranking";
 import {
   buildOpenAiRecommendationRealityGuardSummary,
@@ -77,6 +78,13 @@ import {
   type PlanReferencePriceMetadata,
 } from "@/lib/recommendation-plan-reference";
 import { recommendationConfidenceMetadataPrefix } from "@/lib/recommendation-inline-metadata";
+import {
+  buildSelectedCandidateBuildDiagnostic,
+  summarizeSelectedCandidateBuildDiagnostics,
+  type CandidateBuildRejectionReason,
+  type SelectedCandidateBuildDiagnostic,
+  type SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -251,6 +259,8 @@ export type RecommendationScanLogDetails = {
   deterministic_fallback_used?: boolean | null;
   deterministic_fallback_reference_block_count?: number | null;
   deterministic_fallback_reference_block_reasons?: string[] | null;
+  selected_candidate_build_diagnostics?: SelectedCandidateBuildDiagnostic[] | null;
+  selected_to_built_drop_off?: SelectedToBuiltDropOffSummary | null;
   recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
   recommendations_built_count?: number | null;
   automation_route_version?: string | null;
@@ -2147,6 +2157,103 @@ function buildOpenAiCandidatePayloads({
   });
 }
 
+function riskGeometryStatus(planPrices: ReturnType<typeof buildPlanPricesFromReference>) {
+  if (
+    planPrices.entryLow <= 0 ||
+    planPrices.entryHigh <= 0 ||
+    planPrices.stopLoss <= 0 ||
+    planPrices.target1 <= 0 ||
+    planPrices.target2 <= 0
+  ) {
+    return "invalid_non_positive_plan";
+  }
+
+  if (
+    planPrices.stopLoss >= planPrices.entryLow ||
+    planPrices.entryLow > planPrices.entryHigh ||
+    planPrices.target1 <= planPrices.entryHigh ||
+    planPrices.target2 <= planPrices.target1
+  ) {
+    return "invalid_long_geometry";
+  }
+
+  if (planPrices.riskReward < 1.5) {
+    return "weak_risk_reward";
+  }
+
+  return "valid";
+}
+
+function buildDiagnosticForCandidate(input: {
+  candidate: ScoredCandidate;
+  ranking: ScannerCandidateRankingResult | null;
+  planReferencePrice: PlanReferencePriceMetadata | null;
+  riskGeometryStatus?: string | null;
+  built: boolean;
+  rejectionReason?: CandidateBuildRejectionReason | string | null;
+  explanation?: string | null;
+}): SelectedCandidateBuildDiagnostic {
+  const indicators = input.candidate.intraday_indicators;
+  const planReference = input.planReferencePrice;
+
+  return buildSelectedCandidateBuildDiagnostic({
+    ticker: input.candidate.ticker,
+    side: "long",
+    score: input.candidate.local_score,
+    tier: input.ranking?.score.tier ?? "unknown",
+    setupType: input.candidate.setup_type,
+    source: input.ranking?.source_contribution ?? input.candidate.intraday_indicator_source,
+    referencePriceStatus: planReference?.plan_reference_metadata_status ?? null,
+    referencePriceSource: planReference?.reference_price_source ?? null,
+    referencePriceReadPath: planReference?.reference_price_read_path ?? null,
+    referencePriceAgeMinutes:
+      planReference?.plan_reference_metadata_trace.reference_timestamp_age_minutes ??
+      null,
+    vwapStatus:
+      typeof indicators?.isAboveVwap === "boolean"
+        ? indicators.isAboveVwap
+          ? "above_vwap"
+          : "below_vwap"
+        : "unknown",
+    momentumStatus: indicators?.momentumDirection ?? "unknown",
+    volumeStatus: indicators?.volumeTrend ?? "unknown",
+    riskGeometryStatus: input.riskGeometryStatus ?? "not_checked",
+    enoughDataToBuildPlan:
+      Boolean(planReference?.reference_price_used_for_plan) &&
+      (input.riskGeometryStatus === "valid" || input.built),
+    built: input.built,
+    rejectionReason: input.rejectionReason,
+    explanation: input.explanation,
+  });
+}
+
+function diagnosticReasonForReferenceBlock(
+  planReferencePrice: PlanReferencePriceMetadata,
+): CandidateBuildRejectionReason {
+  const staleReason =
+    planReferencePrice.plan_reference_metadata_trace.reference_price_stale_block_reason;
+
+  if (staleReason === "scanner_cache_reference_too_old") {
+    return "scanner_cache_reference_too_old";
+  }
+  if (staleReason === "stale_reference_price") return "stale_reference_price";
+  if (staleReason === "future_reference_timestamp") {
+    return "future_reference_timestamp";
+  }
+  if (planReferencePrice.plan_reference_metadata_status === "price_missing_source") {
+    return "missing_reference_source";
+  }
+  if (
+    planReferencePrice.plan_reference_metadata_status === "price_missing_timestamp" ||
+    planReferencePrice.plan_reference_metadata_status ===
+      "price_missing_source_and_timestamp"
+  ) {
+    return "missing_reference_timestamp";
+  }
+
+  return "missing_fresh_reference_price";
+}
+
 function buildDeterministicLearningRecommendations({
   candidates,
   rankingSummary,
@@ -2161,17 +2268,35 @@ function buildDeterministicLearningRecommendations({
   source: RecommendationGenerationSource;
   maxRecommendations: number;
   powerHourTrial?: boolean;
-}): { recommendations: AiRecommendation[]; skippedReasons: string[] } {
+}): {
+  recommendations: AiRecommendation[];
+  skippedReasons: string[];
+  buildDiagnostics: SelectedCandidateBuildDiagnostic[];
+} {
   const rankingByTicker = new Map(
     rankingSummary.results.map((result) => [result.ticker, result]),
   );
   const recommendations: AiRecommendation[] = [];
   const skippedReasons: string[] = [];
+  const buildDiagnostics: SelectedCandidateBuildDiagnostic[] = [];
 
   for (const candidate of candidates) {
-    if (recommendations.length >= maxRecommendations) break;
-
     const ranking = rankingByTicker.get(candidate.ticker) ?? null;
+    if (recommendations.length >= maxRecommendations) {
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice: null,
+          built: false,
+          rejectionReason: "fallback_builder_limit_reached",
+          explanation:
+            "Deterministic fallback reached the configured recommendation limit before this selected candidate.",
+        }),
+      );
+      continue;
+    }
+
     const tier = ranking?.score.tier ?? "unknown";
     const localScore = clamp(
       candidate.local_score,
@@ -2205,14 +2330,49 @@ function buildDeterministicLearningRecommendations({
     );
 
     if (referencePrice === null || staleBlockReason) {
+      const diagnosticReason = diagnosticReasonForReferenceBlock(planReferencePrice);
       skippedReasons.push(
         staleBlockReason ??
           `${candidate.ticker}: missing_fresh_reference_price (unknown_source)`,
+      );
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          built: false,
+          rejectionReason: diagnosticReason,
+          explanation:
+            staleBlockReason ??
+            `${candidate.ticker} lacked a fresh reference price for deterministic fallback.`,
+        }),
       );
       continue;
     }
 
     const planPrices = buildPlanPricesFromReference(referencePrice);
+    const geometryStatus = riskGeometryStatus(planPrices);
+
+    if (geometryStatus !== "valid") {
+      const rejectionReason =
+        geometryStatus === "weak_risk_reward"
+          ? "weak_risk_reward"
+          : "invalid_risk_geometry";
+      skippedReasons.push(`${candidate.ticker}: ${rejectionReason}`);
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          riskGeometryStatus: geometryStatus,
+          built: false,
+          rejectionReason,
+          explanation: `${candidate.ticker} blocked by ${geometryStatus}.`,
+        }),
+      );
+      continue;
+    }
+
     const entryTypeMetadata = buildPlanEntryTypeMetadata({
       side: "long",
       entry: midpoint(planPrices.entryLow, planPrices.entryHigh),
@@ -2297,9 +2457,19 @@ function buildDeterministicLearningRecommendations({
       ...entryTypeMetadata,
       ...planReferencePrice,
     });
+    buildDiagnostics.push(
+      buildDiagnosticForCandidate({
+        candidate,
+        ranking,
+        planReferencePrice,
+        riskGeometryStatus: geometryStatus,
+        built: true,
+        rejectionReason: "built",
+      }),
+    );
   }
 
-  return { recommendations, skippedReasons };
+  return { recommendations, skippedReasons, buildDiagnostics };
 }
 
 function parseSettingNumber(value: unknown, fallback: number) {
@@ -3732,6 +3902,46 @@ export async function generateRecommendations({
     const candidateTickersForOpenAI = candidatesForOpenAI.map(
       (candidate) => candidate.ticker,
     );
+    const candidatesForOpenAiSet = new Set(candidateTickersForOpenAI);
+    let selectedCandidateBuildDiagnostics =
+      scoredCandidates
+        .filter((candidate) => selectedRankingTickerSet.has(candidate.ticker))
+        .filter((candidate) => !candidatesForOpenAiSet.has(candidate.ticker))
+        .map((candidate) => {
+          const ranking = rankingResultByTicker.get(candidate.ticker) ?? null;
+          const planReferencePrice = markPlanReferenceRetained(
+            buildPlanReferencePriceMetadata(candidate, {
+              enforceFreshness: true,
+            }),
+          );
+          const referencePrice = planReferencePrice.reference_price_used_for_plan;
+          const planPrices =
+            referencePrice === null
+              ? null
+              : buildPlanPricesFromReference(referencePrice);
+          const geometryStatus = planPrices
+            ? riskGeometryStatus(planPrices)
+            : "not_checked";
+          const rankingTier = ranking?.score.tier ?? "unknown";
+          const rejectionReason =
+            candidate.local_score < publishableThreshold
+              ? "below_publish_threshold"
+              : rankingTier !== "strong" &&
+                  rankingTier !== "valid" &&
+                  rankingTier !== "experimental"
+                ? "ranking_selected_but_not_qualified"
+                : "fallback_builder_limit_reached";
+
+          return buildDiagnosticForCandidate({
+            candidate,
+            ranking,
+            planReferencePrice,
+            riskGeometryStatus: geometryStatus,
+            built: false,
+            rejectionReason,
+            explanation: `${candidate.ticker} was selected by ranking but not sent to the recommendation builder: ${rejectionReason}.`,
+          });
+        });
     const realScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
         universe: scannerBaseCandidates,
@@ -3769,6 +3979,10 @@ export async function generateRecommendations({
     logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
 
     if (candidatesForOpenAI.length === 0) {
+      const selectedToBuiltDropOff = summarizeSelectedCandidateBuildDiagnostics(
+        selectedCandidateBuildDiagnostics,
+        scannerCandidateRankingSummary.target_min,
+      );
       const message =
         qualifiedCandidates.length === 0
           ? "Scan completed. No structurally valid ranked learning candidates were publishable."
@@ -3822,6 +4036,8 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
+          selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -3852,6 +4068,12 @@ export async function generateRecommendations({
         powerHourTrial,
       });
       deterministicFallbackSkippedReasons = deterministic.skippedReasons;
+      selectedCandidateBuildDiagnostics = [
+        ...selectedCandidateBuildDiagnostics.filter(
+          (item) => !candidateTickersForOpenAI.includes(item.ticker),
+        ),
+        ...deterministic.buildDiagnostics,
+      ];
 
       logPipeline("deterministic_fallback_used", true);
       logPipeline("deterministic_fallback_reason", reason);
@@ -3973,6 +4195,53 @@ export async function generateRecommendations({
       });
     }
 
+    if (!deterministicFallbackUsed) {
+      const builtTickerSet = new Set(
+        recommendationsToInsert.map((recommendation) => recommendation.ticker),
+      );
+      const openAiBuildDiagnostics = candidatesForOpenAI.map((candidate) => {
+        const ranking = rankingResultByTicker.get(candidate.ticker) ?? null;
+        const planReferencePrice = markPlanReferenceRetained(
+          buildPlanReferencePriceMetadata(candidate, {
+            enforceFreshness: true,
+          }),
+        );
+        const referencePrice = planReferencePrice.reference_price_used_for_plan;
+        const planPrices =
+          referencePrice === null ? null : buildPlanPricesFromReference(referencePrice);
+        const geometryStatus = planPrices ? riskGeometryStatus(planPrices) : "not_checked";
+        const built = builtTickerSet.has(candidate.ticker);
+
+        return buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          riskGeometryStatus: geometryStatus,
+          built,
+          rejectionReason: built
+            ? "built"
+            : sanitizedRecommendations.skippedReasons.length > 0
+              ? "sanitizer_rejected"
+              : "openai_no_trade",
+          explanation: built
+            ? `${candidate.ticker} was built by the OpenAI recommendation path.`
+            : `${candidate.ticker} was selected but not built by the OpenAI recommendation path.`,
+        });
+      });
+
+      selectedCandidateBuildDiagnostics = [
+        ...selectedCandidateBuildDiagnostics.filter(
+          (item) => !candidateTickersForOpenAI.includes(item.ticker),
+        ),
+        ...openAiBuildDiagnostics,
+      ];
+    }
+
+    const selectedToBuiltDropOff = summarizeSelectedCandidateBuildDiagnostics(
+      selectedCandidateBuildDiagnostics,
+      scannerCandidateRankingSummary.target_min,
+    );
+
     if (openAiRealityGuardSummary) {
       openAiRealityGuardSummary = finalizeOpenAiRecommendationRealityGuardSummary(
         openAiRealityGuardSummary,
@@ -4061,6 +4330,9 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           deterministic_fallback_reference_block_reasons:
             deterministicFallbackSkippedReasons,
+          selected_candidate_build_diagnostics:
+            selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
@@ -4139,6 +4411,9 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           deterministic_fallback_reference_block_reasons:
             deterministicFallbackSkippedReasons,
+          selected_candidate_build_diagnostics:
+            selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
@@ -4234,6 +4509,9 @@ export async function generateRecommendations({
           deterministicFallbackSkippedReasons.length,
         deterministic_fallback_reference_block_reasons:
           deterministicFallbackSkippedReasons,
+        selected_candidate_build_diagnostics:
+          selectedCandidateBuildDiagnostics,
+        selected_to_built_drop_off: selectedToBuiltDropOff,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:
           candidatesRemovedByCooldown.length +

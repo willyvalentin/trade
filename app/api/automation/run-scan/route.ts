@@ -772,6 +772,8 @@ function finishActiveScanTrace(
     batchFingerprint = null,
     scanRunFingerprint = null,
     zeroReason = null,
+    selectedCandidateBuildDiagnostics = [],
+    selectedToBuiltDropOff = null,
     elapsedMilliseconds = null,
     timeoutWasReached = false,
   }: {
@@ -796,6 +798,10 @@ function finishActiveScanTrace(
     batchFingerprint?: string | null;
     scanRunFingerprint?: string | null;
     zeroReason?: string | null;
+    selectedCandidateBuildDiagnostics?: NonNullable<
+      RecommendationScanLogDetails["selected_candidate_build_diagnostics"]
+    >;
+    selectedToBuiltDropOff?: RecommendationScanLogDetails["selected_to_built_drop_off"];
     elapsedMilliseconds?: number | null;
     timeoutWasReached?: boolean;
   },
@@ -849,6 +855,8 @@ function finishActiveScanTrace(
       candidatesGenerated === 0 || recommendationsCreated === 0
         ? zeroReason ?? resolvedNoPublishReason ?? zeroCandidateReason(activeScanTrace.trace)
         : null,
+    selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
+    selected_to_built_drop_off: selectedToBuiltDropOff,
   });
   activeScanTrace.markStage("final", "completed");
 
@@ -1302,6 +1310,16 @@ function createAutomationScanLog({
     recommendations_built_count:
       typeof details?.recommendations_built_count === "number"
         ? details.recommendations_built_count
+        : null,
+    selected_candidate_build_diagnostics: Array.isArray(
+      details?.selected_candidate_build_diagnostics,
+    )
+      ? details.selected_candidate_build_diagnostics
+      : null,
+    selected_to_built_drop_off:
+      typeof details?.selected_to_built_drop_off === "object" &&
+      details.selected_to_built_drop_off !== null
+        ? (details.selected_to_built_drop_off as RecommendationScanLogDetails["selected_to_built_drop_off"])
         : null,
     strong_count:
       typeof details?.strong_count === "number" ? details.strong_count : null,
@@ -3166,6 +3184,10 @@ export async function POST(request: Request) {
         generationScanLog?.deterministic_fallback_used === true,
       batchFingerprint,
       scanRunFingerprint,
+      selectedCandidateBuildDiagnostics:
+        generationScanLog?.selected_candidate_build_diagnostics ?? [],
+      selectedToBuiltDropOff:
+        generationScanLog?.selected_to_built_drop_off ?? null,
       elapsedMilliseconds: elapsedMs(routeStartedAtMs),
       timeoutWasReached: timeoutReached(
         routeStartedAtMs,

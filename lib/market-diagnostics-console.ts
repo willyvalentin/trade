@@ -1560,6 +1560,10 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
       input.outcome_evaluation?.ineligible_reasons ??
       null,
     dropOffReasons: input.outcome_evaluation?.ineligible_reasons ?? null,
+    selectedCandidateBuildDiagnostics:
+      input.active_scan_trace?.final.selected_candidate_build_diagnostics ?? null,
+    selectedToBuiltDropOff:
+      input.active_scan_trace?.final.selected_to_built_drop_off ?? null,
   });
 }
 
@@ -1581,6 +1585,7 @@ function buildSections(
   const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
   const headline = diagnosticsHeadline(input);
   const batchCandidateAudit = getBatchCandidateAudit(input);
+  const selectedToBuiltDropOff = batchCandidateAudit.selected_to_built_drop_off;
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
@@ -2346,6 +2351,13 @@ function buildSections(
               `${input.active_scan_trace.market_data_fetch.quote_error_count}/${input.active_scan_trace.market_data_fetch.candle_error_count}`,
             ),
             lineValue(
+              "Quote/candle mode",
+              input.active_scan_trace.market_data_fetch.quote_success_count === 0 &&
+                input.active_scan_trace.market_data_fetch.candle_success_count > 0
+                ? "quote endpoint not used; scanner built from candle/cache/indicator data"
+                : "provider fetch counters observed",
+            ),
+            lineValue(
               "Raw/ranked/output",
               `${input.active_scan_trace.raw_candidates.raw_candidate_count}/${input.active_scan_trace.ranking.ranked_count}/${input.active_scan_trace.openai.output_recommendation_count}`,
             ),
@@ -2587,6 +2599,85 @@ function buildSections(
           input.active_scan_trace?.final.publishable_threshold ?? null,
         deterministic_fallback_used:
           input.active_scan_trace?.final.deterministic_fallback_used ?? null,
+      },
+    }),
+    section({
+      section_id: "selected_to_built_drop_off",
+      title: "Selected -> Built Drop-off",
+      severity:
+        selectedToBuiltDropOff &&
+        selectedToBuiltDropOff.output_below_target_reason_category ===
+          "implementation_bottleneck"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Selected/built/published",
+          `${selectedToBuiltDropOff?.selected_count ?? batchCandidateAudit.selected_candidates_count}/${selectedToBuiltDropOff?.built_count ?? batchCandidateAudit.built_recommendations_count}/${batchCandidateAudit.published_recommendations_count}`,
+        ),
+        lineValue(
+          "Rejected selected",
+          selectedToBuiltDropOff?.rejected_count ??
+            Math.max(
+              0,
+              batchCandidateAudit.selected_candidates_count -
+                batchCandidateAudit.built_recommendations_count,
+            ),
+        ),
+        lineValue(
+          "Top exact rejection reasons",
+          topReasonText(selectedToBuiltDropOff?.rejection_counts ?? null),
+        ),
+        lineValue(
+          "Reason examples",
+          selectedToBuiltDropOff
+            ? Object.entries(selectedToBuiltDropOff.examples_by_reason)
+                .filter(([, tickers]) => (tickers ?? []).length > 0)
+                .slice(0, 4)
+                .map(([reason, tickers]) => `${words(reason)}:${tickers?.join(",")}`)
+                .join(" / ") || "none"
+            : "not observed",
+        ),
+        lineValue(
+          "Below-target category",
+          selectedToBuiltDropOff
+            ? words(selectedToBuiltDropOff.output_below_target_reason_category)
+            : "not observed",
+        ),
+        lineValue(
+          "Below-target explanation",
+          selectedToBuiltDropOff?.output_below_target_explanation ??
+            "Selected candidate build diagnostics were not observed for this scan.",
+        ),
+      ],
+      metrics: {
+        selected_count:
+          selectedToBuiltDropOff?.selected_count ??
+          batchCandidateAudit.selected_candidates_count,
+        built_count:
+          selectedToBuiltDropOff?.built_count ??
+          batchCandidateAudit.built_recommendations_count,
+        published_count: batchCandidateAudit.published_recommendations_count,
+        rejected_count:
+          selectedToBuiltDropOff?.rejected_count ??
+          Math.max(
+            0,
+            batchCandidateAudit.selected_candidates_count -
+              batchCandidateAudit.built_recommendations_count,
+          ),
+        rejection_counts: JSON.stringify(
+          selectedToBuiltDropOff?.rejection_counts ?? {},
+        ),
+        category_counts: JSON.stringify(
+          selectedToBuiltDropOff?.category_counts ?? {},
+        ),
+        examples_by_reason: JSON.stringify(
+          selectedToBuiltDropOff?.examples_by_reason ?? {},
+        ),
+        output_below_target_reason_category:
+          selectedToBuiltDropOff?.output_below_target_reason_category ?? null,
+        output_below_target_explanation:
+          selectedToBuiltDropOff?.output_below_target_explanation ?? null,
       },
     }),
     section({
