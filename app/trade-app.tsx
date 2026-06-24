@@ -411,7 +411,9 @@ import {
 } from "@/lib/scanner-output-qa";
 import {
   buildDayTradeScanOrchestrationSummary,
+  classifyDayTradeScanWindow,
   dayTradeScanOrchestrationSummaryJson,
+  normalizeDayTradeScanWindow,
   type DayTradeScanOrchestrationDecision,
   type DayTradeScanOrchestrationSummary,
 } from "@/lib/day-trade-scan-orchestration";
@@ -2355,6 +2357,37 @@ function getNewYorkDateFromIso(value: string | null) {
   }
 
   return getNewYorkDateString(date);
+}
+
+function getNewYorkTimestampFromIso(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    timeZone: "America/New_York",
+  }).formatToParts(date);
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
+
+  return `${valueByType.get("year")}-${valueByType.get("month")}-${valueByType.get(
+    "day",
+  )} ${valueByType.get("hour")}:${valueByType.get("minute")}:${valueByType.get(
+    "second",
+  )} America/New_York`;
 }
 
 function timeToMinutes(value: string | null) {
@@ -12599,11 +12632,37 @@ export function TradeApp() {
       : null);
   const latestActiveScanTrace =
     latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
+  const readbackTimingFields = ({
+    createdAt,
+    scanWindow,
+  }: {
+    createdAt: string | null;
+    scanWindow: string | null;
+  }) => {
+    const windowClassification = normalizeDayTradeScanWindow(scanWindow);
+    const timestampWindowClassification = createdAt
+      ? classifyDayTradeScanWindow({ now: createdAt })
+      : "unknown";
+
+    return {
+      created_at_ny: getNewYorkTimestampFromIso(createdAt),
+      window_classification: windowClassification,
+      created_at_window_classification: timestampWindowClassification,
+      produced_inside_official_window:
+        timestampWindowClassification === "morning" ||
+        timestampWindowClassification === "midday" ||
+        timestampWindowClassification === "power_hour",
+    };
+  };
   const latestSuccessfulReadbackScan = latestSuccessfulScanLog
     ? {
         result: latestSuccessfulScanLog.result,
         created_at: latestSuccessfulScanLog.created_at,
         scan_window: latestSuccessfulScanLog.scan_window,
+        ...readbackTimingFields({
+          createdAt: latestSuccessfulScanLog.created_at,
+          scanWindow: latestSuccessfulScanLog.scan_window,
+        }),
         visible_recommendation_count:
           latestSuccessfulScanLog.recommendations_published_count ??
           latestSuccessfulScanLog.recommendations_created ??
@@ -12619,6 +12678,10 @@ export function TradeApp() {
           result: "recommendation_created",
           created_at: latestSuccessfulStoredRecommendationScanRun.observed_at,
           scan_window: latestSuccessfulStoredRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestSuccessfulStoredRecommendationScanRun.observed_at,
+            scanWindow: latestSuccessfulStoredRecommendationScanRun.window,
+          }),
           visible_recommendation_count:
             latestSuccessfulStoredRecommendationScanRun.counts
               .visible_recommendation_count,
@@ -12631,12 +12694,16 @@ export function TradeApp() {
         }
       : marketClosedReadbackMode && latestReviewSuccessfulRecommendationScanRun
         ? {
-            result: "recommendation_created",
-            created_at: latestReviewSuccessfulRecommendationScanRun.observed_at,
-            scan_window: latestReviewSuccessfulRecommendationScanRun.window,
-            visible_recommendation_count:
-              latestReviewSuccessfulRecommendationScanRun.counts
-                .visible_recommendation_count,
+          result: "recommendation_created",
+          created_at: latestReviewSuccessfulRecommendationScanRun.observed_at,
+          scan_window: latestReviewSuccessfulRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestReviewSuccessfulRecommendationScanRun.observed_at,
+            scanWindow: latestReviewSuccessfulRecommendationScanRun.window,
+          }),
+          visible_recommendation_count:
+            latestReviewSuccessfulRecommendationScanRun.counts
+              .visible_recommendation_count,
             message:
               typeof latestReviewSuccessfulRecommendationScanRun.payload_json
                 .message === "string"
@@ -12650,6 +12717,10 @@ export function TradeApp() {
         result: latestAttemptedScanLog.result,
         created_at: latestAttemptedScanLog.created_at,
         scan_window: latestAttemptedScanLog.scan_window,
+        ...readbackTimingFields({
+          createdAt: latestAttemptedScanLog.created_at,
+          scanWindow: latestAttemptedScanLog.scan_window,
+        }),
         visible_recommendation_count:
           latestAttemptedScanLog.recommendations_published_count ??
           latestAttemptedScanLog.recommendations_created ??
@@ -12669,6 +12740,10 @@ export function TradeApp() {
               : latestAttemptedStoredRecommendationScanRun.status,
           created_at: latestAttemptedStoredRecommendationScanRun.observed_at,
           scan_window: latestAttemptedStoredRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestAttemptedStoredRecommendationScanRun.observed_at,
+            scanWindow: latestAttemptedStoredRecommendationScanRun.window,
+          }),
           visible_recommendation_count:
             latestAttemptedStoredRecommendationScanRun.counts
               .visible_recommendation_count,
@@ -30842,6 +30917,8 @@ function ExecutionHandoffPreviewModal({
     canRunFinalizationActionPreview,
     canRunFinalizationExecutionRecordBridgePreview,
     canRunExecutionRecordCandidateBuilderIntegrationPreview,
+    canRunExecutionRecordCandidateBuilderInvocationPreview,
+    canRunExecutionRecordPersistenceValidatorIntegrationPreview,
     canRunMappedBrokerExecutionResultCandidatePreview,
     executionRecordCreationPreviewResult,
     executionRecordCreationPreviewSourceDescription,
@@ -30852,6 +30929,12 @@ function ExecutionHandoffPreviewModal({
     executionRecordCandidateBuilderIntegrationPreviewMessage,
     executionRecordCandidateBuilderIntegrationPreviewResult,
     executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
+    executionRecordCandidateBuilderInvocationPreviewMessage,
+    executionRecordCandidateBuilderInvocationPreviewResult,
+    executionRecordCandidateBuilderInvocationPreviewUnavailableReason,
+    executionRecordPersistenceValidatorIntegrationPreviewMessage,
+    executionRecordPersistenceValidatorIntegrationPreviewResult,
+    executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
     executionRecordEligibilityCandidate,
     executionRecordEligibilityCandidateIsPreviewOnly,
     finalSettlementNoteMatchPreviewMessage,
@@ -30868,6 +30951,8 @@ function ExecutionHandoffPreviewModal({
     finalizationExecutionRecordBridgePreviewUnavailableReason,
     isExecutionRecordInsertDryRunRunning,
     isExecutionRecordCandidateBuilderIntegrationPreviewRunning,
+    isExecutionRecordCandidateBuilderInvocationPreviewRunning,
+    isExecutionRecordPersistenceValidatorIntegrationPreviewRunning,
     isFinalSettlementNoteMatchPreviewRunning,
     isFinalizationCandidatePreviewRunning,
     isFinalizationActionPreviewRunning,
@@ -30922,6 +31007,8 @@ function ExecutionHandoffPreviewModal({
     mappedBrokerExecutionResultCandidatePreviewUnavailableReason,
     runExecutionRecordInsertDryRunPreview,
     runExecutionRecordCandidateBuilderIntegrationPreview,
+    runExecutionRecordCandidateBuilderInvocationPreview,
+    runExecutionRecordPersistenceValidatorIntegrationPreview,
     runFinalizationActionPreview,
     runFinalizationExecutionRecordBridgePreview,
     runFinalSettlementNoteMatchPreview,
@@ -32189,6 +32276,30 @@ function ExecutionHandoffPreviewModal({
           result: executionRecordCandidateBuilderIntegrationPreviewResult,
           unavailableReason:
             executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
+        }}
+        executionRecordCandidateBuilderInvocationPreviewProps={{
+          canRun: canRunExecutionRecordCandidateBuilderInvocationPreview,
+          isRunning:
+            isExecutionRecordCandidateBuilderInvocationPreviewRunning,
+          message: executionRecordCandidateBuilderInvocationPreviewMessage,
+          onRun: () =>
+            void runExecutionRecordCandidateBuilderInvocationPreview(),
+          result: executionRecordCandidateBuilderInvocationPreviewResult,
+          unavailableReason:
+            executionRecordCandidateBuilderInvocationPreviewUnavailableReason,
+        }}
+        executionRecordPersistenceValidatorIntegrationPreviewProps={{
+          canRun: canRunExecutionRecordPersistenceValidatorIntegrationPreview,
+          isRunning:
+            isExecutionRecordPersistenceValidatorIntegrationPreviewRunning,
+          message:
+            executionRecordPersistenceValidatorIntegrationPreviewMessage,
+          onRun: () =>
+            void runExecutionRecordPersistenceValidatorIntegrationPreview(),
+          result:
+            executionRecordPersistenceValidatorIntegrationPreviewResult,
+          unavailableReason:
+            executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
         }}
         executionRecordCreationPreviewProps={{
           result: executionRecordCreationPreviewResult,

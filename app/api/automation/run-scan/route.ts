@@ -37,6 +37,7 @@ import {
   MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING,
   MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
   POLYGON_CALENDAR_ENV_GUIDANCE,
+  shouldRunOfficialDayTradeScan,
   type DayTradeScanOrchestrationSummary,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
@@ -492,6 +493,23 @@ function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
 
 function isActiveDayTradeWindow(window: string | null | undefined) {
   return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+function scheduledSkipDecisionForOrchestration(
+  orchestration: DayTradeScanOrchestrationSummary,
+): AutomationScanDecision {
+  if (orchestration.decision === "market_closed") {
+    return "skipped_market_closed";
+  }
+
+  if (
+    orchestration.decision === "blocked_by_provider" ||
+    orchestration.calendar_confidence === "unknown"
+  ) {
+    return "skipped_provider_unavailable";
+  }
+
+  return "skipped_outside_window";
 }
 
 function scheduledScanDiagnosticEntry(
@@ -2450,18 +2468,57 @@ export async function POST(request: Request) {
   let startedScheduledRunId: string | number | null = null;
 
   try {
-    if (!force && !isActiveAutomationWindow(scanWindow.scanWindow)) {
-      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped without recording a noisy empty run.`;
-      const decision =
-        dayTradeScanOrchestration.decision === "market_closed"
-          ? ("skipped_market_closed" satisfies AutomationScanDecision)
-          : ("skipped_outside_window" satisfies AutomationScanDecision);
+    if (!force && !shouldRunOfficialDayTradeScan(dayTradeScanOrchestration)) {
+      const decision = scheduledSkipDecisionForOrchestration(
+        dayTradeScanOrchestration,
+      );
+      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped because official window decision is ${dayTradeScanOrchestration.decision}.`;
       const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
         decision,
         status: "skipped",
         skipReason: message,
-        zeroReason: "not_active_automation_window",
+        zeroReason: "not_official_scan_window",
       });
+      const scanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result:
+          decision === "skipped_market_closed"
+            ? "market_closed"
+            : decision === "skipped_provider_unavailable"
+              ? "provider_error"
+              : "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "not_official_scan_window",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+
+      try {
+        await recordScheduledScanRun({
+          scanDate,
+          sessionType,
+          status: "skipped",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog,
+          ignoreExistingRun: ignore_existing_run,
+        });
+      } catch (recordError) {
+        console.error("[automation/run-scan] official_window_skip_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(recordError),
+        });
+      }
+
       return NextResponse.json({
         ok: true,
         message,
@@ -2476,6 +2533,7 @@ export async function POST(request: Request) {
         automation_diagnostics: automationDiagnostics({
           decision,
           skippedReason: message,
+          currentScanLog: scanLog,
         }),
         forced: force,
         scan_date: scanDate,

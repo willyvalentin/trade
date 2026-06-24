@@ -171,7 +171,11 @@ export type MarketDiagnosticsConsoleInput = {
     latest_successful_scan?: {
       result?: string | null;
       created_at?: string | null;
+      created_at_ny?: string | null;
       scan_window?: string | null;
+      window_classification?: string | null;
+      created_at_window_classification?: string | null;
+      produced_inside_official_window?: boolean | null;
       visible_recommendation_count?: number | null;
       message?: string | null;
       source?: string | null;
@@ -179,7 +183,11 @@ export type MarketDiagnosticsConsoleInput = {
     latest_attempted_scan?: {
       result?: string | null;
       created_at?: string | null;
+      created_at_ny?: string | null;
       scan_window?: string | null;
+      window_classification?: string | null;
+      created_at_window_classification?: string | null;
+      produced_inside_official_window?: boolean | null;
       visible_recommendation_count?: number | null;
       message?: string | null;
       source?: string | null;
@@ -1609,15 +1617,23 @@ function buildSections(
             : "not observed");
   const latestSuccessfulScan = input.scan_readback?.latest_successful_scan ?? null;
   const latestAttemptedScan = input.scan_readback?.latest_attempted_scan ?? null;
+  const officialScheduleLabel =
+    input.scan_orchestration.official_scan_windows
+      ?.map((item) => `${item.label} ${item.start_time}-${item.end_time}`)
+      .join(" / ") || "not configured";
+  const morningWindowStatus =
+    input.scan_orchestration.official_window_statuses?.find(
+      (item) => item.window === "morning",
+    ) ?? null;
   const successfulScanLabel = latestSuccessfulScan
     ? `${compact(latestSuccessfulScan.result, "unknown")} @ ${compact(
-        latestSuccessfulScan.created_at,
+        latestSuccessfulScan.created_at_ny ?? latestSuccessfulScan.created_at,
         "unknown",
       )}`
     : "not observed";
   const attemptedScanLabel = latestAttemptedScan
     ? `${compact(latestAttemptedScan.result, "unknown")} @ ${compact(
-        latestAttemptedScan.created_at,
+        latestAttemptedScan.created_at_ny ?? latestAttemptedScan.created_at,
         "unknown",
       )}`
     : "not observed";
@@ -1887,6 +1903,8 @@ function buildSections(
       severity: "info",
       lines: [
         lineValue("Generated", input.market_session.evaluated_at),
+        lineValue("Current UTC", input.scan_orchestration.current_utc_time),
+        lineValue("Current NY", input.scan_orchestration.current_ny_time),
         lineValue(
           "Market",
           `${input.market_session.market_is_open ? "open" : "closed"} / ${words(
@@ -1905,7 +1923,14 @@ function buildSections(
           "Session/window",
           `${words(input.market_session.phase)} / ${words(
             input.scan_orchestration.active_window,
-          )}`,
+          )} / ${words(input.scan_orchestration.decision)}`,
+        ),
+        lineValue("Official schedule", officialScheduleLabel),
+        lineValue(
+          "Morning today",
+          morningWindowStatus
+            ? `${words(morningWindowStatus.status)} - ${morningWindowStatus.explanation}`
+            : "not observed",
         ),
         lineValue(
           "Next window",
@@ -1924,6 +1949,8 @@ function buildSections(
       ],
       metrics: {
         generated_at: input.market_session.evaluated_at,
+        current_utc_time: input.scan_orchestration.current_utc_time,
+        current_ny_time: input.scan_orchestration.current_ny_time,
         market_is_open: input.market_session.market_is_open,
         market_day_type: input.market_status?.dayType ?? null,
         calendar_confidence: input.scan_orchestration.calendar_confidence,
@@ -1933,7 +1960,16 @@ function buildSections(
           input.scan_orchestration.fallback_calendar_scan_allowed,
         session_phase: input.market_session.phase,
         active_scan_window: input.scan_orchestration.active_window,
+        orchestration_decision: input.scan_orchestration.decision,
+        should_scan_now: input.scan_orchestration.should_scan_now,
         next_scan_window: input.scan_orchestration.next_window,
+        next_scan_window_starts_at:
+          input.scan_orchestration.next_window_starts_at,
+        official_schedule: officialScheduleLabel,
+        morning_window_status: morningWindowStatus?.status ?? null,
+        morning_window_latest_scan_at:
+          morningWindowStatus?.latest_scan_at ?? null,
+        morning_window_explanation: morningWindowStatus?.explanation ?? null,
         data_mode: input.data_mode_clarity.overall_mode,
       },
     }),
@@ -2658,7 +2694,45 @@ function buildSections(
           : "warning",
       lines: [
         lineValue("Latest successful scan", successfulScanLabel),
+        lineValue(
+          "Latest official batch stored window",
+          compact(
+            latestSuccessfulScan?.window_classification ??
+              latestSuccessfulScan?.scan_window,
+            "not observed",
+          ),
+        ),
+        lineValue(
+          "Latest official batch time window",
+          compact(
+            latestSuccessfulScan?.created_at_window_classification,
+            "not observed",
+          ),
+        ),
+        lineValue(
+          "Latest official batch timing",
+          latestSuccessfulScan
+            ? latestSuccessfulScan.produced_inside_official_window
+              ? "inside official window"
+              : "outside official window"
+            : "not observed",
+        ),
         lineValue("Latest attempted scan", attemptedScanLabel),
+        lineValue(
+          "Latest attempt stored window",
+          compact(
+            latestAttemptedScan?.window_classification ??
+              latestAttemptedScan?.scan_window,
+            "not observed",
+          ),
+        ),
+        lineValue(
+          "Latest attempt time window",
+          compact(
+            latestAttemptedScan?.created_at_window_classification,
+            "not observed",
+          ),
+        ),
         ...(input.scan_readback?.market_closed_readback_mode === true
           ? [
               lineValue(
@@ -2853,14 +2927,30 @@ function buildSections(
         latest_successful_scan_result: latestSuccessfulScan?.result ?? null,
         latest_successful_scan_created_at:
           latestSuccessfulScan?.created_at ?? null,
+        latest_successful_scan_created_at_ny:
+          latestSuccessfulScan?.created_at_ny ?? null,
         latest_successful_scan_window:
           latestSuccessfulScan?.scan_window ?? null,
+        latest_successful_scan_window_classification:
+          latestSuccessfulScan?.window_classification ?? null,
+        latest_successful_scan_created_at_window_classification:
+          latestSuccessfulScan?.created_at_window_classification ?? null,
+        latest_successful_scan_inside_official_window:
+          latestSuccessfulScan?.produced_inside_official_window ?? null,
         latest_successful_visible_recommendation_count:
           latestSuccessfulScan?.visible_recommendation_count ?? null,
         latest_successful_scan_source: latestSuccessfulScan?.source ?? null,
         latest_attempted_scan_result: latestAttemptedScan?.result ?? null,
         latest_attempted_scan_created_at: latestAttemptedScan?.created_at ?? null,
+        latest_attempted_scan_created_at_ny:
+          latestAttemptedScan?.created_at_ny ?? null,
         latest_attempted_scan_window: latestAttemptedScan?.scan_window ?? null,
+        latest_attempted_scan_window_classification:
+          latestAttemptedScan?.window_classification ?? null,
+        latest_attempted_scan_created_at_window_classification:
+          latestAttemptedScan?.created_at_window_classification ?? null,
+        latest_attempted_scan_inside_official_window:
+          latestAttemptedScan?.produced_inside_official_window ?? null,
         latest_attempted_visible_recommendation_count:
           latestAttemptedScan?.visible_recommendation_count ?? null,
         latest_attempted_scan_source: latestAttemptedScan?.source ?? null,
