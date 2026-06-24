@@ -30917,7 +30917,6 @@ function ExecutionHandoffPreviewModal({
     canRunFinalizationActionPreview,
     canRunFinalizationExecutionRecordBridgePreview,
     canRunExecutionRecordCandidateBuilderIntegrationPreview,
-    canRunExecutionRecordCandidateBuilderInvocationPreview,
     canRunExecutionRecordPersistenceValidatorIntegrationPreview,
     canRunMappedBrokerExecutionResultCandidatePreview,
     executionRecordCreationPreviewResult,
@@ -30929,9 +30928,6 @@ function ExecutionHandoffPreviewModal({
     executionRecordCandidateBuilderIntegrationPreviewMessage,
     executionRecordCandidateBuilderIntegrationPreviewResult,
     executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
-    executionRecordCandidateBuilderInvocationPreviewMessage,
-    executionRecordCandidateBuilderInvocationPreviewResult,
-    executionRecordCandidateBuilderInvocationPreviewUnavailableReason,
     executionRecordPersistenceValidatorIntegrationPreviewMessage,
     executionRecordPersistenceValidatorIntegrationPreviewResult,
     executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
@@ -30951,7 +30947,6 @@ function ExecutionHandoffPreviewModal({
     finalizationExecutionRecordBridgePreviewUnavailableReason,
     isExecutionRecordInsertDryRunRunning,
     isExecutionRecordCandidateBuilderIntegrationPreviewRunning,
-    isExecutionRecordCandidateBuilderInvocationPreviewRunning,
     isExecutionRecordPersistenceValidatorIntegrationPreviewRunning,
     isFinalSettlementNoteMatchPreviewRunning,
     isFinalizationCandidatePreviewRunning,
@@ -31007,7 +31002,6 @@ function ExecutionHandoffPreviewModal({
     mappedBrokerExecutionResultCandidatePreviewUnavailableReason,
     runExecutionRecordInsertDryRunPreview,
     runExecutionRecordCandidateBuilderIntegrationPreview,
-    runExecutionRecordCandidateBuilderInvocationPreview,
     runExecutionRecordPersistenceValidatorIntegrationPreview,
     runFinalizationActionPreview,
     runFinalizationExecutionRecordBridgePreview,
@@ -32276,17 +32270,6 @@ function ExecutionHandoffPreviewModal({
           result: executionRecordCandidateBuilderIntegrationPreviewResult,
           unavailableReason:
             executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
-        }}
-        executionRecordCandidateBuilderInvocationPreviewProps={{
-          canRun: canRunExecutionRecordCandidateBuilderInvocationPreview,
-          isRunning:
-            isExecutionRecordCandidateBuilderInvocationPreviewRunning,
-          message: executionRecordCandidateBuilderInvocationPreviewMessage,
-          onRun: () =>
-            void runExecutionRecordCandidateBuilderInvocationPreview(),
-          result: executionRecordCandidateBuilderInvocationPreviewResult,
-          unavailableReason:
-            executionRecordCandidateBuilderInvocationPreviewUnavailableReason,
         }}
         executionRecordPersistenceValidatorIntegrationPreviewProps={{
           canRun: canRunExecutionRecordPersistenceValidatorIntegrationPreview,
