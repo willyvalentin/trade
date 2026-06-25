@@ -10,6 +10,11 @@ import {
   buildRecommendationServingCadenceSummary,
 } from "../../lib/recommendation-serving-cadence";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
+import {
+  buildScheduledScanTimelineToday,
+  type ScheduledScanAttempt,
+} from "../../lib/scheduled-scan-attempts";
+import type { ScanLogEntry } from "../../lib/scan-logs";
 
 const tradingDayMarketStatus: MarketSessionStatus = {
   isOpenDay: true,
@@ -71,6 +76,41 @@ test("classifies official scan windows from UTC into New York time", () => {
   expect(midday.active_window).toBe("midday");
   expect(midday.decision).toBe("should_scan_now");
   expect(shouldRunOfficialDayTradeScan(midday)).toBe(true);
+});
+
+test("classifies Action 204 incident timestamps against official windows", () => {
+  const beforeMorning = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-25T13:33:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-25" },
+  });
+  expect(beforeMorning.current_ny_time).toBe(
+    "2026-06-25 09:33 America/New_York",
+  );
+  expect(beforeMorning.active_window).toBe("outside_window");
+  expect(beforeMorning.decision).toBe("outside_scan_window");
+  expect(shouldRunOfficialDayTradeScan(beforeMorning)).toBe(false);
+
+  const firstMorningTick = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-25T13:48:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-25" },
+  });
+  expect(firstMorningTick.current_ny_time).toBe(
+    "2026-06-25 09:48 America/New_York",
+  );
+  expect(firstMorningTick.active_window).toBe("morning");
+  expect(firstMorningTick.decision).toBe("should_scan_now");
+  expect(shouldRunOfficialDayTradeScan(firstMorningTick)).toBe(true);
+
+  const liveDiagnosticTime = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-25T14:52:22.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-25" },
+  });
+  expect(liveDiagnosticTime.current_ny_time).toBe(
+    "2026-06-25 10:52 America/New_York",
+  );
+  expect(liveDiagnosticTime.active_window).toBe("morning");
+  expect(liveDiagnosticTime.decision).toBe("should_scan_now");
+  expect(shouldRunOfficialDayTradeScan(liveDiagnosticTime)).toBe(true);
 });
 
 test("explains missing Morning before the Midday window starts", () => {
@@ -170,6 +210,153 @@ test("previous trading-day runs do not satisfy today's Morning state", () => {
   expect(morningStatus).toMatchObject({
     status: "missed",
     attempted_today: false,
+  });
+});
+
+test("does not mark Morning completed from synthetic empty readback without an observed attempt", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-25T14:52:22.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-25" },
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "morning",
+          observedAt: "2026-06-25T14:52:22.000Z",
+          tradingDate: "2026-06-25",
+          visibleCount: 0,
+        }),
+        source: "mixed",
+        payload_json: {},
+        scanned_ticker_count: null,
+        raw_candidate_count: null,
+      } as RecommendationScanRun,
+    ],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(summary.decision).toBe("should_scan_now");
+  expect(morningStatus).toMatchObject({
+    status: "active",
+    latest_scan_at: null,
+    attempted_today: false,
+  });
+});
+
+test("same-window cooldown has a distinct reason from outside-window gating", () => {
+  const scanLog: ScanLogEntry = {
+    created_at: "2026-06-25T14:03:00.000Z",
+    source: "scheduled",
+    scan_window: "morning_momentum",
+    market_status: "open",
+    result: "skipped",
+    message: "Recent Morning scan already completed 15 minutes ago.",
+    recommendations_created: 0,
+    no_publish_reason: "same_window_cooldown",
+  };
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [scanLog],
+    scanRuns: [],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    official_window: "morning",
+    outcome: "skipped",
+    reason: "same_window_cooldown",
+  });
+  expect(timeline[0]?.reason).not.toBe("not_official_scan_window");
+});
+
+test("scheduled scan timeline includes skipped and successful same-day attempts newest first", () => {
+  const attempts: ScheduledScanAttempt[] = [
+    {
+      attempt_fingerprint: "attempt-outside",
+      created_at: "2026-06-25T13:33:00.000Z",
+      trading_date: "2026-06-25",
+      source: "netlify_scheduled_function",
+      mode: "scheduled",
+      outcome: "skipped",
+      allowed: false,
+      route_received_at: "2026-06-25T13:33:00.000Z",
+      scheduled_function_fired_at: "2026-06-25T13:33:00.000Z",
+      utc_timestamp: "2026-06-25T13:33:00.000Z",
+      ny_timestamp: "2026-06-25 09:33 America/New_York",
+      official_window: "outside_window",
+      intraday_scan_window: "pre_market",
+      orchestration_decision: "outside_scan_window",
+      skip_reason: "not_official_scan_window",
+      message: "Outside official window.",
+      http_status: 200,
+      raw_count: 0,
+      ranked_count: 0,
+      selected_count: 0,
+      built_count: 0,
+      published_count: 0,
+      recommendations_created: 0,
+      batch_fingerprint: null,
+      scan_run_fingerprint: null,
+      scheduled_scan_run_id: null,
+      payload_json: {},
+    },
+    {
+      attempt_fingerprint: "attempt-morning",
+      created_at: "2026-06-25T13:48:00.000Z",
+      trading_date: "2026-06-25",
+      source: "netlify_scheduled_function",
+      mode: "scheduled",
+      outcome: "scanned",
+      allowed: true,
+      route_received_at: "2026-06-25T13:48:00.000Z",
+      scheduled_function_fired_at: "2026-06-25T13:48:00.000Z",
+      utc_timestamp: "2026-06-25T13:48:00.000Z",
+      ny_timestamp: "2026-06-25 09:48 America/New_York",
+      official_window: "morning",
+      intraday_scan_window: "morning_momentum",
+      orchestration_decision: "should_scan_now",
+      skip_reason: null,
+      message: "Created 1 day trade recommendation.",
+      http_status: 200,
+      raw_count: 8,
+      ranked_count: 4,
+      selected_count: 2,
+      built_count: 1,
+      published_count: 1,
+      recommendations_created: 1,
+      batch_fingerprint: "batch-1",
+      scan_run_fingerprint: "run-1",
+      scheduled_scan_run_id: "scheduled-1",
+      payload_json: {},
+    },
+  ];
+  const timeline = buildScheduledScanTimelineToday({
+    attempts,
+    scanLogs: [],
+    scanRuns: [],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline.map((item) => item.utc_timestamp)).toEqual([
+    "2026-06-25T13:48:00.000Z",
+    "2026-06-25T13:33:00.000Z",
+  ]);
+  expect(timeline[0]).toMatchObject({
+    official_window: "morning",
+    outcome: "scanned",
+    raw_count: 8,
+    ranked_count: 4,
+    selected_count: 2,
+    built_count: 1,
+    published_count: 1,
+    batch_fingerprint: "batch-1",
+    scan_run_fingerprint: "run-1",
+  });
+  expect(timeline[1]).toMatchObject({
+    official_window: "outside_window",
+    outcome: "skipped",
+    reason: "not_official_scan_window",
   });
 });
 

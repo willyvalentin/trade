@@ -46,6 +46,10 @@ import {
   type RecommendationServingCadenceSummary,
 } from "@/lib/recommendation-serving-cadence";
 import {
+  buildScheduledScanAttemptFingerprint,
+  buildScheduledScanAttemptRecord,
+} from "@/lib/scheduled-scan-attempts";
+import {
   buildRecommendationScanRun,
   persistRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
@@ -95,6 +99,7 @@ type AutomationRunRequestBody = {
   ignore_existing_run?: unknown;
   source?: unknown;
   scheduled_function_fired_at_utc?: unknown;
+  scheduled_scan_attempt_fingerprint?: unknown;
   max_tickers?: unknown;
   skip_openai?: unknown;
   timeout_ms?: unknown;
@@ -1177,6 +1182,113 @@ async function updateScheduledScanRun({
   }
 }
 
+async function recordScheduledScanAttempt({
+  attemptFingerprint,
+  source,
+  mode,
+  outcome,
+  allowed,
+  routeReceivedAtUtc,
+  scheduledFunctionFiredAtUtc,
+  scanDate,
+  scanWindow,
+  orchestration,
+  message,
+  skipReason = null,
+  httpStatus = null,
+  scanLog = null,
+  activeScanTrace = null,
+  scheduledScanRunId = null,
+}: {
+  attemptFingerprint: string;
+  source: string | null;
+  mode: "scheduled" | "manual" | "diagnostic";
+  outcome: "scheduled_function_fired" | "route_received" | "skipped" | "failed" | "scanned" | "request_failed";
+  allowed: boolean | null;
+  routeReceivedAtUtc: string;
+  scheduledFunctionFiredAtUtc: string | null;
+  scanDate: string;
+  scanWindow: IntradayScanWindow;
+  orchestration: DayTradeScanOrchestrationSummary;
+  message: string | null;
+  skipReason?: string | null;
+  httpStatus?: number | null;
+  scanLog?: ScanLogEntry | null;
+  activeScanTrace?: ActiveScanTrace | null;
+  scheduledScanRunId?: string | number | null;
+}) {
+  const rawCount =
+    activeScanTrace?.raw_candidates.raw_candidate_count ??
+    scanLog?.real_scanner_candidate_generation?.universe.candidates_generated ??
+    scanLog?.candidates_scanned ??
+    null;
+  const rankedCount =
+    activeScanTrace?.ranking.ranked_count ??
+    scanLog?.ranked_candidates_count ??
+    null;
+  const selectedCount =
+    activeScanTrace?.ranking.selected_count ??
+    scanLog?.scanner_candidate_ranking?.selected_count ??
+    null;
+  const builtCount =
+    activeScanTrace?.final.recommendations_built_count ??
+    scanLog?.recommendations_built_count ??
+    null;
+  const publishedCount =
+    activeScanTrace?.final.recommendations_published_count ??
+    scanLog?.recommendations_published_count ??
+    scanLog?.recommendations_created ??
+    null;
+  const record = buildScheduledScanAttemptRecord({
+    attempt_fingerprint: attemptFingerprint,
+    trading_date: scanDate,
+    source: source ?? "automation_route",
+    mode,
+    outcome,
+    allowed,
+    route_received_at: routeReceivedAtUtc,
+    scheduled_function_fired_at: scheduledFunctionFiredAtUtc,
+    utc_timestamp: routeReceivedAtUtc,
+    official_window: orchestration.active_window,
+    intraday_scan_window: scanWindow,
+    orchestration_decision: orchestration.decision,
+    skip_reason: skipReason,
+    message,
+    http_status: httpStatus,
+    raw_count: rawCount,
+    ranked_count: rankedCount,
+    selected_count: selectedCount,
+    built_count: builtCount,
+    published_count: publishedCount,
+    recommendations_created:
+      activeScanTrace?.final.recommendations_created ??
+      scanLog?.recommendations_created ??
+      null,
+    batch_fingerprint: activeScanTrace?.final.batch_fingerprint ?? null,
+    scan_run_fingerprint: activeScanTrace?.final.scan_run_fingerprint ?? null,
+    scheduled_scan_run_id:
+      scheduledScanRunId === null || scheduledScanRunId === undefined
+        ? null
+        : String(scheduledScanRunId),
+    payload_json: {
+      scan_log_result: scanLog?.result ?? null,
+      active_scan_trace: activeScanTrace,
+    },
+  });
+  const { error } = await supabase
+    .from("scheduled_scan_attempts")
+    .upsert(record, { onConflict: "attempt_fingerprint" });
+
+  if (error) {
+    console.error("[automation/run-scan] scheduled_scan_attempt_record_error", {
+      source: "supabase.scheduled_scan_attempts",
+      operation: "upsert_scheduled_scan_attempt",
+      attemptFingerprint,
+      error: normalizeUnknownError(error),
+    });
+  }
+}
+
 function marketStatusLabel(marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>) {
   if (marketStatus.dayType === "unknown") return "unknown";
   return isMarketOpenForIntradayTrading(marketStatus) ? "open" : "closed";
@@ -1987,14 +2099,23 @@ export async function POST(request: Request) {
   const scheduledFunctionFiredAtUtc = isoTextOrNull(
     body.scheduled_function_fired_at_utc,
   );
+  const requestSource = textOrNull(body.source);
+  const scheduledScanAttemptFingerprint =
+    textOrNull(body.scheduled_scan_attempt_fingerprint) ??
+    buildScheduledScanAttemptFingerprint({
+      scheduledFunctionFiredAt: scheduledFunctionFiredAtUtc,
+      routeReceivedAt: new Date().toISOString(),
+      source: requestSource ?? (force ? "manual" : "automation_route"),
+    });
 
   console.log("[automation/run-scan] request body", {
     force,
     session_type,
     scan_window: requestedScanWindow,
     ignore_existing_run,
-    source: textOrNull(body.source),
+    source: requestSource,
     scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc,
+    scheduled_scan_attempt_fingerprint: scheduledScanAttemptFingerprint,
   });
 
   const routeStartedAtMs = Date.now();
@@ -2161,6 +2282,46 @@ export async function POST(request: Request) {
       recentScheduledScanRuns,
       currentScanLog,
     });
+  const attemptMode: "scheduled" | "manual" | "diagnostic" = force
+    ? "diagnostic"
+    : "scheduled";
+  const recordAttempt = (input: {
+    outcome: Parameters<typeof recordScheduledScanAttempt>[0]["outcome"];
+    allowed?: boolean | null;
+    message?: string | null;
+    skipReason?: string | null;
+    httpStatus?: number | null;
+    scanLog?: ScanLogEntry | null;
+    activeScanTrace?: ActiveScanTrace | null;
+    scheduledScanRunId?: string | number | null;
+  }) =>
+    recordScheduledScanAttempt({
+      attemptFingerprint: scheduledScanAttemptFingerprint,
+      source: requestSource ?? (force ? "manual" : "automation_route"),
+      mode: attemptMode,
+      outcome: input.outcome,
+      allowed:
+        input.allowed ??
+        (dayTradeScanOrchestration.should_scan_now &&
+          shouldRunOfficialDayTradeScan(dayTradeScanOrchestration)),
+      routeReceivedAtUtc,
+      scheduledFunctionFiredAtUtc,
+      scanDate: scanWindow.scanDate || marketStatus.date,
+      scanWindow: scanWindow.scanWindow,
+      orchestration: dayTradeScanOrchestration,
+      message: input.message ?? null,
+      skipReason: input.skipReason ?? null,
+      httpStatus: input.httpStatus ?? null,
+      scanLog: input.scanLog ?? null,
+      activeScanTrace: input.activeScanTrace ?? null,
+      scheduledScanRunId: input.scheduledScanRunId ?? null,
+    });
+
+  await recordAttempt({
+    outcome: "route_received",
+    allowed: dayTradeScanOrchestration.should_scan_now,
+    message: "Automation route received scheduled scan request.",
+  });
 
   activeScanTrace.updateProviderEnv();
   const schemaSupabase = getServerSupabaseClient();
@@ -2345,6 +2506,15 @@ export async function POST(request: Request) {
       skipReason: message,
       zeroReason: "market_not_open_for_active_scan",
     });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: "market_not_open_for_active_scan",
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -2439,6 +2609,15 @@ export async function POST(request: Request) {
       skipReason: message,
       zeroReason: "outside_generation_window",
     });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: "outside_generation_window",
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -2518,8 +2697,9 @@ export async function POST(request: Request) {
         },
       });
 
+      let skippedRunId: string | number | null = null;
       try {
-        await recordScheduledScanRun({
+        skippedRunId = await recordScheduledScanRun({
           scanDate,
           sessionType,
           status: "skipped",
@@ -2536,6 +2716,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(recordError),
         });
       }
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: false,
+        message,
+        skipReason: "not_official_scan_window",
+        httpStatus: 200,
+        scanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: skippedRunId,
+      });
 
       return NextResponse.json({
         ok: true,
@@ -2602,8 +2792,9 @@ export async function POST(request: Request) {
         },
       });
 
+      let providerSkipRunId: string | number | null = null;
       try {
-        await recordScheduledScanRun({
+        providerSkipRunId = await recordScheduledScanRun({
           scanDate,
           sessionType,
           status: "failed",
@@ -2620,6 +2811,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(recordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: shouldRunOfficialDayTradeScan(dayTradeScanOrchestration),
+        message,
+        skipReason: "provider_environment_missing",
+        httpStatus: 200,
+        scanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: providerSkipRunId,
+      });
 
       return NextResponse.json(
         {
@@ -2721,9 +2922,36 @@ export async function POST(request: Request) {
         candidatesGenerated,
         recommendationsServed: recommendationsCreated,
         recommendationsCreated,
-        zeroReason: "recent_same_window_scan_completed",
+        noPublishReason: "same_window_cooldown",
+        zeroReason: "same_window_cooldown",
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: false,
+      });
+      const cooldownScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "same_window_cooldown",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence:
+            latestSameWindowScan?.scanLog.recommendation_serving_cadence ??
+            initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: true,
+        message,
+        skipReason: "same_window_cooldown",
+        httpStatus: 200,
+        scanLog: cooldownScanLog,
+        activeScanTrace: activeScanTracePayload,
       });
 
       return NextResponse.json({
@@ -2795,6 +3023,30 @@ export async function POST(request: Request) {
         zeroReason: "scheduled_scan_in_progress",
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: false,
+      });
+      const inProgressScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "scheduled_scan_in_progress",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: true,
+        message,
+        skipReason: "scheduled_scan_in_progress",
+        httpStatus: 200,
+        scanLog: inProgressScanLog,
+        activeScanTrace: activeScanTracePayload,
       });
 
       return NextResponse.json({
@@ -2894,6 +3146,21 @@ export async function POST(request: Request) {
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: true,
       });
+      const timeoutScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "timeout_budget_exceeded",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
 
       try {
         await updateScheduledScanRun({
@@ -2901,6 +3168,7 @@ export async function POST(request: Request) {
           status: "failed",
           recommendationsCreated: 0,
           message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog: timeoutScanLog,
         });
       } catch (timeoutRecordError) {
         console.error("[automation/run-scan] pre_generation_timeout_record_error", {
@@ -2910,6 +3178,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(timeoutRecordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: true,
+        message,
+        skipReason: "timeout_budget_exceeded",
+        httpStatus: 200,
+        scanLog: timeoutScanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: startedScheduledRunId,
+      });
 
       return NextResponse.json({
         ok: true,
@@ -3015,6 +3293,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(timeoutRecordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: true,
+        message,
+        skipReason: "timeout_budget_exceeded",
+        httpStatus: 200,
+        scanLog: timeoutScanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: startedScheduledRunId,
+      });
 
       return NextResponse.json({
         ok: true,
@@ -3215,6 +3503,15 @@ export async function POST(request: Request) {
         ignoreExistingRun: ignore_existing_run,
       });
     }
+    await recordAttempt({
+      outcome: "scanned",
+      allowed: true,
+      message,
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+      scheduledScanRunId: startedScheduledRunId,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -3370,6 +3667,20 @@ export async function POST(request: Request) {
 
     const status =
       error instanceof RecommendationGenerationError ? error.status : 500;
+    await recordAttempt({
+      outcome: failureDecision === "failed" ? "failed" : "skipped",
+      allowed: shouldRunOfficialDayTradeScan(dayTradeScanOrchestration),
+      message,
+      skipReason:
+        failureResult === "provider_error" ||
+        failureResult === "provider_rate_limited"
+          ? failureResult
+          : errorType(error),
+      httpStatus: status,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+      scheduledScanRunId: startedScheduledRunId,
+    });
 
     return NextResponse.json(
       {

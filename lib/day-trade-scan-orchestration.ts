@@ -445,6 +445,28 @@ function scanRunTradingDate(scanRun: RecommendationScanRun, observedAt: string) 
   return getNyMarketTime(date).ny_date;
 }
 
+function scanRunHasObservedAttempt(scanRun: RecommendationScanRun) {
+  const payload = scanRun.payload_json ?? {};
+  const activeTrace = payload.active_scan_trace;
+  const scanObservability = payload.scan_observability;
+  const scheduledScanRunId =
+    typeof payload.scheduled_scan_run_id === "string" ||
+    typeof payload.scheduled_scan_run_id === "number"
+      ? textOrNull(String(payload.scheduled_scan_run_id))
+      : null;
+
+  return (
+    scanRun.counts.visible_recommendation_count > 0 ||
+    (typeof activeTrace === "object" && activeTrace !== null) ||
+    (typeof scanObservability === "object" &&
+      scanObservability !== null &&
+      scanRun.source !== "mixed") ||
+    (scheduledScanRunId !== null && scheduledScanRunId !== "no-scheduled-id") ||
+    (scanRun.scanned_ticker_count ?? 0) > 0 ||
+    (scanRun.raw_candidate_count ?? 0) > 0
+  );
+}
+
 function latestScanPerWindow(scanRuns: RecommendationScanRun[], tradingDate: string) {
   const latest: Partial<Record<DayTradeScanWindow, string>> = {};
 
@@ -455,6 +477,7 @@ function latestScanPerWindow(scanRuns: RecommendationScanRun[], tradingDate: str
     if (
       !observedAt ||
       window === "unknown" ||
+      !scanRunHasObservedAttempt(scanRun) ||
       scanRunTradingDate(scanRun, observedAt) !== tradingDate
     ) {
       continue;

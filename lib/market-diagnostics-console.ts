@@ -25,6 +25,7 @@ import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
 import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-readiness";
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import type { ScheduledScanTimelineEntry } from "@/lib/scheduled-scan-attempts";
 import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
@@ -192,6 +193,7 @@ export type MarketDiagnosticsConsoleInput = {
       message?: string | null;
       source?: string | null;
     } | null;
+    scheduled_scan_timeline_today?: ScheduledScanTimelineEntry[];
   } | null;
   stats_today_readback?: {
     stats_today_positions_considered?: number | null;
@@ -1664,6 +1666,8 @@ function buildSections(
     null;
   const batchesCreatedTodayByWindow =
     input.scan_readback?.batches_created_today_by_window ?? {};
+  const scheduledScanTimelineToday =
+    input.scan_readback?.scheduled_scan_timeline_today ?? [];
   const outcomeRowsExpectedToday =
     input.scan_readback?.expected_outcome_rows_today ??
     (input.scan_readback?.unique_learning_ideas_today ??
@@ -1993,6 +1997,67 @@ function buildSections(
       metrics: {
         active_tab: input.ui_refresh?.active_tab ?? null,
         ...uiRefreshMetrics,
+      },
+    }),
+    section({
+      section_id: "scheduled_scan_timeline_today",
+      title: "Scheduled Scan Timeline Today",
+      severity:
+        input.scan_orchestration.active_window === "morning" &&
+        scheduledScanTimelineToday.length === 0
+          ? "warning"
+          : "info",
+      lines:
+        scheduledScanTimelineToday.length > 0
+          ? scheduledScanTimelineToday.map((attempt, index) =>
+              lineValue(
+                `Attempt ${index + 1}`,
+                [
+                  compact(attempt.utc_timestamp, "unknown UTC"),
+                  compact(attempt.ny_timestamp, "unknown NY"),
+                  `${compact(attempt.source, "unknown")}/${compact(
+                    attempt.mode,
+                    "unknown",
+                  )}`,
+                  `${compact(attempt.official_window, "unknown")} -> ${compact(
+                    attempt.outcome,
+                    "unknown",
+                  )}`,
+                  `allowed=${attempt.allowed === null ? "unknown" : bool(attempt.allowed)}`,
+                  `reason=${compact(attempt.reason, "none")}`,
+                  `raw/ranked/selected/built/published=${attempt.raw_count ?? 0}/${attempt.ranked_count ?? 0}/${attempt.selected_count ?? 0}/${attempt.built_count ?? 0}/${attempt.published_count ?? 0}`,
+                  `batch=${compact(attempt.batch_fingerprint, "none")}`,
+                  `run=${compact(attempt.scan_run_fingerprint, "none")}`,
+                ].join(" | "),
+              ),
+            )
+          : [
+              lineValue(
+                "Attempts",
+                input.scan_orchestration.active_window === "morning" ||
+                  input.scan_orchestration.active_window === "midday" ||
+                  input.scan_orchestration.active_window === "power_hour"
+                  ? "not observed for current trading day"
+                  : "not observed",
+              ),
+            ],
+      metrics: {
+        scheduled_scan_timeline_count: scheduledScanTimelineToday.length,
+        scheduled_scan_timeline_latest_utc:
+          scheduledScanTimelineToday[0]?.utc_timestamp ?? null,
+        scheduled_scan_timeline_latest_ny:
+          scheduledScanTimelineToday[0]?.ny_timestamp ?? null,
+        scheduled_scan_timeline_latest_source:
+          scheduledScanTimelineToday[0]?.source ?? null,
+        scheduled_scan_timeline_latest_mode:
+          scheduledScanTimelineToday[0]?.mode ?? null,
+        scheduled_scan_timeline_latest_window:
+          scheduledScanTimelineToday[0]?.official_window ?? null,
+        scheduled_scan_timeline_latest_outcome:
+          scheduledScanTimelineToday[0]?.outcome ?? null,
+        scheduled_scan_timeline_latest_reason:
+          scheduledScanTimelineToday[0]?.reason ?? null,
+        scheduled_scan_timeline_json: JSON.stringify(scheduledScanTimelineToday),
       },
     }),
     section({

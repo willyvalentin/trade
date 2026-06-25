@@ -141,6 +141,11 @@ import {
   type ScanPipelineObservabilitySummary,
 } from "@/lib/scan-pipeline-observability";
 import {
+  buildScheduledScanTimelineToday,
+  scheduledScanAttemptFromRow,
+  type ScheduledScanAttempt,
+} from "@/lib/scheduled-scan-attempts";
+import {
   buildRecommendationEmptyStateSummary,
   recommendationEmptyStateSummaryJson,
   type RecommendationEmptyStateReason,
@@ -8155,6 +8160,9 @@ export function TradeApp() {
   const [message, setMessage] = useState("");
   const [lastDemoAction, setLastDemoAction] = useState("No demo action yet.");
   const [scanLogs, setScanLogs] = useState<ScanLogEntry[]>([]);
+  const [scheduledScanAttempts, setScheduledScanAttempts] = useState<
+    ScheduledScanAttempt[]
+  >([]);
   const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
   const [marketStatusError, setMarketStatusError] = useState("");
@@ -8444,6 +8452,7 @@ export function TradeApp() {
         closedPositionsResult,
         positionUpdatesResult,
         scanLogsResult,
+        scheduledScanAttemptsResult,
         recommendationScanRunsResult,
         recommendationBatchesResult,
         recommendationSnapshotsResult,
@@ -8483,6 +8492,15 @@ export function TradeApp() {
             )
             .order("created_at", { ascending: false })
             .limit(50),
+          supabase
+            .from("scheduled_scan_attempts")
+            .select("*")
+            .gte(
+              "utc_timestamp",
+              new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+            )
+            .order("utc_timestamp", { ascending: false })
+            .limit(100),
           supabase
             .from("recommendation_scan_runs")
             .select("*")
@@ -8632,6 +8650,27 @@ export function TradeApp() {
         ((scanLogsResult.data ?? []) as ScheduledScanRunRow[]).map(
           parseScanLogFromMessage,
         ),
+      );
+      }
+
+      if (scheduledScanAttemptsResult.error) {
+      console.info("[trade-app] scheduled_scan_attempts unavailable", {
+        source: "supabase.scheduled_scan_attempts",
+        operation: "select_recent_scheduled_scan_attempts",
+        error: normalizeUnknownError(scheduledScanAttemptsResult.error),
+      });
+        if (isInitialLoad) {
+          setScheduledScanAttempts([]);
+        }
+      } else {
+      setScheduledScanAttempts(
+        ((scheduledScanAttemptsResult.data ?? []) as Array<
+          Record<string, unknown>
+        >)
+          .map(scheduledScanAttemptFromRow)
+          .filter(
+            (attempt): attempt is ScheduledScanAttempt => attempt !== null,
+          ),
       );
       }
 
@@ -10528,6 +10567,13 @@ export function TradeApp() {
   const dailyScanLogs = scanLogs.filter(
     (scanLog) => getNewYorkDateFromIso(scanLog.created_at) === dailySessionDate,
   );
+  const dailyScheduledScanAttempts = scheduledScanAttempts.filter(
+    (attempt) =>
+      getNewYorkDateFromIso(attempt.utc_timestamp) === dailySessionDate ||
+      attempt.trading_date === dailySessionDate,
+  ).sort((first, second) =>
+    second.utc_timestamp.localeCompare(first.utc_timestamp),
+  );
   const marketClosedReadbackMode =
     getTopMarketStatus(marketStatus, currentTime) !== "open";
   const latestSuccessfulDailyScanLog =
@@ -10537,6 +10583,13 @@ export function TradeApp() {
   const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
     (scanRun) => !hasDiagnosticPayload(scanRun.payload_json),
   );
+  const scheduledScanTimelineToday = buildScheduledScanTimelineToday({
+    attempts: dailyScheduledScanAttempts,
+    scanLogs: dailyScanLogs,
+    scanRuns: liveStoredRecommendationScanRuns,
+    tradingDate: dailySessionDate,
+    limit: 12,
+  });
   const liveStoredRecommendationBatches =
     storedRecommendationBatches.filter(isLiveRecommendationBatch);
   const successfulLiveRecommendationBatches =
@@ -12616,9 +12669,16 @@ export function TradeApp() {
         scanRun.trading_date === dailySessionDate ||
         getNewYorkDateFromIso(scanRun.observed_at) === dailySessionDate,
     ) ?? null;
+  const latestAttemptedScheduledScanTrace =
+    dailyScheduledScanAttempts.find(
+      (attempt) =>
+        typeof attempt.payload_json.active_scan_trace === "object" &&
+        attempt.payload_json.active_scan_trace !== null,
+    )?.payload_json.active_scan_trace as ActiveScanTrace | undefined;
   const latestAttemptedActiveScanTrace =
     dailyScanLogs.find((scanLog) => scanLog.active_scan_trace)
       ?.active_scan_trace ??
+    latestAttemptedScheduledScanTrace ??
     (latestAttemptedStoredRecommendationScanRun
       ? getStoredActiveScanTrace(latestAttemptedStoredRecommendationScanRun)
       : null);
@@ -12712,26 +12772,41 @@ export function TradeApp() {
             source: "recommendation_scan_runs:closed_market_review",
           }
       : null;
-  const latestAttemptedReadbackScan = latestAttemptedScanLog
-    ? {
-        result: latestAttemptedScanLog.result,
-        created_at: latestAttemptedScanLog.created_at,
-        scan_window: latestAttemptedScanLog.scan_window,
-        ...readbackTimingFields({
-          createdAt: latestAttemptedScanLog.created_at,
-          scanWindow: latestAttemptedScanLog.scan_window,
-        }),
-        visible_recommendation_count:
-          latestAttemptedScanLog.recommendations_published_count ??
-          latestAttemptedScanLog.recommendations_created ??
-          latestAttemptedScanLog.active_scan_trace?.final
-            .recommendations_published_count ??
-          latestAttemptedScanLog.active_scan_trace?.final.recommendations_created ??
-          null,
-        message: latestAttemptedScanLog.message,
-        source: "scheduled_scan_runs",
-      }
-    : latestAttemptedStoredRecommendationScanRun
+  type LatestAttemptedReadbackCandidate = {
+    result: string | null;
+    created_at: string | null;
+    created_at_ny: string | null;
+    scan_window: string | null;
+    window_classification: string;
+    created_at_window_classification: string;
+    produced_inside_official_window: boolean;
+    visible_recommendation_count: number | null;
+    message: string | null;
+    source: string | null;
+  };
+  const latestAttemptedReadbackCandidates = ([
+    latestAttemptedScanLog
+      ? {
+          result: latestAttemptedScanLog.result,
+          created_at: latestAttemptedScanLog.created_at,
+          scan_window: latestAttemptedScanLog.scan_window,
+          ...readbackTimingFields({
+            createdAt: latestAttemptedScanLog.created_at,
+            scanWindow: latestAttemptedScanLog.scan_window,
+          }),
+          visible_recommendation_count:
+            latestAttemptedScanLog.recommendations_published_count ??
+            latestAttemptedScanLog.recommendations_created ??
+            latestAttemptedScanLog.active_scan_trace?.final
+              .recommendations_published_count ??
+            latestAttemptedScanLog.active_scan_trace?.final
+              .recommendations_created ??
+            null,
+          message: latestAttemptedScanLog.message,
+          source: "scheduled_scan_runs",
+        }
+      : null,
+    latestAttemptedStoredRecommendationScanRun
       ? {
           result:
             latestAttemptedStoredRecommendationScanRun.counts
@@ -12750,7 +12825,41 @@ export function TradeApp() {
           message: null,
           source: "recommendation_scan_runs",
         }
-      : null;
+      : null,
+    dailyScheduledScanAttempts[0]
+      ? {
+          result:
+            dailyScheduledScanAttempts[0].outcome === "scanned" &&
+            (dailyScheduledScanAttempts[0].published_count ??
+              dailyScheduledScanAttempts[0].recommendations_created ??
+              0) > 0
+              ? "recommendation_created"
+              : dailyScheduledScanAttempts[0].outcome,
+          created_at: dailyScheduledScanAttempts[0].utc_timestamp,
+          scan_window:
+            dailyScheduledScanAttempts[0].intraday_scan_window ??
+            dailyScheduledScanAttempts[0].official_window,
+          ...readbackTimingFields({
+            createdAt: dailyScheduledScanAttempts[0].utc_timestamp,
+            scanWindow:
+              dailyScheduledScanAttempts[0].intraday_scan_window ??
+              dailyScheduledScanAttempts[0].official_window,
+          }),
+          visible_recommendation_count:
+            dailyScheduledScanAttempts[0].published_count ??
+            dailyScheduledScanAttempts[0].recommendations_created ??
+            null,
+          message:
+            dailyScheduledScanAttempts[0].skip_reason ??
+            dailyScheduledScanAttempts[0].message,
+          source: dailyScheduledScanAttempts[0].source,
+        }
+      : null,
+  ].filter(Boolean) as LatestAttemptedReadbackCandidate[]);
+  const latestAttemptedReadbackScan =
+    latestAttemptedReadbackCandidates.sort((first, second) =>
+      (second.created_at ?? "").localeCompare(first.created_at ?? ""),
+    )[0] ?? null;
   const recommendationServingCadenceSummary =
     buildRecommendationServingCadenceSummary({
       tradingDate: dailySessionDate,
@@ -13905,9 +14014,12 @@ export function TradeApp() {
         same_window_batch_blocked_count:
           latestAttemptedScanLog?.no_publish_reason ===
             "recent_same_window_scan_completed" ||
+          latestAttemptedScanLog?.no_publish_reason ===
+            "same_window_cooldown" ||
           latestAttemptedReadbackScan?.message
             ?.toLowerCase()
-            .includes("scan already completed")
+            .includes("scan already completed") ||
+          latestAttemptedReadbackScan?.message === "same_window_cooldown"
             ? 1
             : 0,
         daily_learning_limit_status: growMaxLearningModeEnabled
@@ -13964,6 +14076,7 @@ export function TradeApp() {
         hidden_reason_breakdown: latestLiveHiddenReasonBreakdown,
         latest_successful_scan: latestSuccessfulReadbackScan,
         latest_attempted_scan: latestAttemptedReadbackScan,
+        scheduled_scan_timeline_today: scheduledScanTimelineToday,
       },
       stats_today_readback: {
         stats_today_positions_considered:
