@@ -75,6 +75,8 @@ export type ScheduledScanTimelineEntry = {
   utc_timestamp: string;
   ny_timestamp: string | null;
   source: string;
+  source_type: "scan_attempt" | "scan_log" | "scan_run" | "retained_readback";
+  readback_kind: "actual_scan" | "retained_review_batch" | null;
   mode: ScheduledScanAttemptMode | string;
   official_window: DayTradeScanWindow | string;
   intraday_scan_window: string | null;
@@ -655,10 +657,18 @@ export function scheduledScanAttemptFromRow(
 function timelineFromAttempt(
   attempt: ScheduledScanAttempt,
 ): ScheduledScanTimelineEntry {
+  const isActualScan =
+    attempt.outcome === "scanned" &&
+    ((attempt.published_count ?? attempt.recommendations_created ?? 0) > 0 ||
+      attempt.batch_fingerprint !== null ||
+      attempt.scan_run_fingerprint !== null);
+
   return {
     utc_timestamp: attempt.utc_timestamp,
     ny_timestamp: attempt.ny_timestamp,
     source: attempt.source,
+    source_type: "scan_attempt",
+    readback_kind: isActualScan ? "actual_scan" : null,
     mode: attempt.mode,
     official_window: attempt.official_window,
     intraday_scan_window: attempt.intraday_scan_window,
@@ -669,7 +679,10 @@ function timelineFromAttempt(
     ranked_count: attempt.ranked_count,
     selected_count: attempt.selected_count,
     built_count: attempt.built_count,
-    published_count: attempt.published_count ?? attempt.recommendations_created,
+    published_count:
+      attempt.outcome === "scanned"
+        ? attempt.published_count ?? attempt.recommendations_created
+        : 0,
     batch_fingerprint: attempt.batch_fingerprint,
     scan_run_fingerprint: attempt.scan_run_fingerprint,
     empty_scan_reason: attempt.empty_scan_reason,
@@ -685,6 +698,7 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
   const timestamp = isoOrNull(scanLog.created_at);
   if (!timestamp) return null;
   const nyTime = getNyMarketTime(new Date(timestamp));
+  const officialWindow = classifyDayTradeScanWindow({ now: timestamp });
   const outcome =
     scanLog.result === "recommendation_created"
       ? "scanned"
@@ -697,17 +711,33 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     dropOff,
     emptyScanReason,
   });
+  const traceBatchFingerprint =
+    scanLog.active_scan_trace?.final.batch_fingerprint ?? null;
+  const traceScanRunFingerprint =
+    scanLog.active_scan_trace?.final.scan_run_fingerprint ?? null;
+  const publishedCount =
+    scanLog.recommendations_published_count ?? scanLog.recommendations_created;
+  const isRetainedReadback =
+    outcome === "scanned" &&
+    (officialWindow === "closed" || officialWindow === "outside_window") &&
+    !traceBatchFingerprint &&
+    !traceScanRunFingerprint &&
+    (publishedCount ?? 0) > 0;
 
   return {
     utc_timestamp: timestamp,
     ny_timestamp: `${nyTime.ny_date} ${nyTime.ny_time} America/New_York`,
-    source: scanLog.source,
+    source: isRetainedReadback ? "review/readback" : scanLog.source,
+    source_type: isRetainedReadback ? "retained_readback" : "scan_log",
+    readback_kind: isRetainedReadback ? "retained_review_batch" : null,
     mode: scanLog.diagnostic_mode ? "diagnostic" : scanLog.source,
-    official_window: classifyDayTradeScanWindow({ now: timestamp }),
+    official_window: officialWindow,
     intraday_scan_window: scanLog.scan_window,
-    outcome,
+    outcome: isRetainedReadback ? "retained_review_batch" : outcome,
     allowed: scanLog.day_trade_scan_orchestration?.should_scan_now ?? null,
-    reason: emptyScanReason ?? scanLog.no_publish_reason ?? scanLog.message,
+    reason: isRetainedReadback
+      ? "market_closed_retained_batch"
+      : emptyScanReason ?? scanLog.no_publish_reason ?? scanLog.message,
     raw_count:
       scanLog.real_scanner_candidate_generation?.universe.candidates_generated ??
       scanLog.candidates_scanned ??
@@ -715,11 +745,9 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     ranked_count: scanLog.ranked_candidates_count ?? null,
     selected_count: scanLog.scanner_candidate_ranking?.selected_count ?? null,
     built_count: scanLog.recommendations_built_count ?? null,
-    published_count:
-      scanLog.recommendations_published_count ?? scanLog.recommendations_created,
-    batch_fingerprint: scanLog.active_scan_trace?.final.batch_fingerprint ?? null,
-    scan_run_fingerprint:
-      scanLog.active_scan_trace?.final.scan_run_fingerprint ?? null,
+    published_count: publishedCount,
+    batch_fingerprint: traceBatchFingerprint,
+    scan_run_fingerprint: traceScanRunFingerprint,
     empty_scan_reason: emptyScanReason,
     rejection_summary: rejectionSummary,
     selected_to_built_drop_off: dropOff,
@@ -774,23 +802,45 @@ function timelineFromScanRun(
       ? buildDiagnosticsFromPayload(scanRun.payload_json)
       : trace?.final?.selected_candidate_build_diagnostics ?? [];
   const referenceRefresh = referenceRefreshFromPayload(scanRun.payload_json);
+  const publishedCount =
+    trace?.final?.recommendations_published_count ??
+    scanRun.counts.visible_recommendation_count;
+  const officialWindow = normalizeDayTradeScanWindow(scanRun.window);
+  const isRetainedReadback =
+    (officialWindow === "closed" || officialWindow === "outside_window") &&
+    publishedCount > 0 &&
+    !trace?.final?.batch_fingerprint;
+  const actualScanProduced =
+    !isRetainedReadback &&
+    (publishedCount > 0 || (trace?.final?.batch_fingerprint ?? null) !== null);
 
   return {
     utc_timestamp: timestamp,
     ny_timestamp: `${nyTime.ny_date} ${nyTime.ny_time} America/New_York`,
-    source: "recommendation_scan_runs",
+    source: isRetainedReadback
+      ? "review/readback"
+      : "recommendation_scan_runs",
+    source_type: isRetainedReadback ? "retained_readback" : "scan_run",
+    readback_kind: isRetainedReadback
+      ? "retained_review_batch"
+      : actualScanProduced
+        ? "actual_scan"
+        : null,
     mode: "scheduled",
-    official_window: normalizeDayTradeScanWindow(scanRun.window),
+    official_window: officialWindow,
     intraday_scan_window: scanRun.window,
     outcome:
-      scanRun.counts.visible_recommendation_count > 0 ||
-      (trace?.final?.recommendations_published_count ?? 0) > 0
+      isRetainedReadback
+        ? "retained_review_batch"
+        : actualScanProduced
         ? "scanned"
         : scanRun.status === "failed"
           ? "failed"
           : "skipped",
     allowed: trace?.should_scan_now ?? null,
-    reason: emptyScanReason ?? trace?.final?.no_publish_reason ?? scanRun.status,
+    reason: isRetainedReadback
+      ? "market_closed_retained_batch"
+      : emptyScanReason ?? trace?.final?.no_publish_reason ?? scanRun.status,
     raw_count: scanRun.raw_candidate_count ?? trace?.raw_candidates?.raw_candidate_count ?? null,
     ranked_count:
       trace?.ranking?.ranked_count ??
@@ -799,9 +849,7 @@ function timelineFromScanRun(
       null,
     selected_count: trace?.ranking?.selected_count ?? null,
     built_count: trace?.final?.recommendations_built_count ?? null,
-    published_count:
-      trace?.final?.recommendations_published_count ??
-      scanRun.counts.visible_recommendation_count,
+    published_count: publishedCount,
     batch_fingerprint: trace?.final?.batch_fingerprint ?? null,
     scan_run_fingerprint: trace?.final?.scan_run_fingerprint ?? scanRun.run_fingerprint,
     empty_scan_reason: emptyScanReason,

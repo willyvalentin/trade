@@ -1492,6 +1492,102 @@ function referenceRefreshExamplesText(
 
 function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   const existing = input.outcome_evaluation?.batch_candidate_audit;
+  const activeTraceBatchFingerprint =
+    input.active_scan_trace?.final.batch_fingerprint ?? null;
+  const activeTraceScanRunFingerprint =
+    input.active_scan_trace?.final.scan_run_fingerprint ?? null;
+  const expectedBatchFingerprint =
+    input.outcome_evaluation?.current_batch_fingerprint ??
+    input.scan_readback?.current_batch_fingerprint ??
+    input.scan_readback?.latest_official_batch_fingerprint ??
+    null;
+  const expectedScanRunFingerprint =
+    input.scan_readback?.latest_official_scan_run_fingerprint ??
+    input.scan_readback?.latest_official_scan_run_id ??
+    null;
+  const activeTraceLinked =
+    input.active_scan_trace !== null &&
+    input.active_scan_trace !== undefined &&
+    ((activeTraceBatchFingerprint !== null &&
+      activeTraceBatchFingerprint === expectedBatchFingerprint) ||
+      (activeTraceScanRunFingerprint !== null &&
+        activeTraceScanRunFingerprint === expectedScanRunFingerprint));
+  const activeTraceHasCandidateFunnel =
+    count(input.active_scan_trace?.raw_candidates.raw_candidate_count) > 0 ||
+    count(input.active_scan_trace?.ranking.ranked_count) > 0 ||
+    count(input.active_scan_trace?.ranking.selected_count) > 0;
+
+  if (activeTraceLinked && activeTraceHasCandidateFunnel) {
+    return buildBatchCandidateAuditSummary({
+      scanRunFingerprint: activeTraceScanRunFingerprint,
+      batchFingerprint:
+        activeTraceBatchFingerprint ??
+        input.outcome_evaluation?.current_batch_fingerprint ??
+        input.scan_readback?.current_batch_fingerprint ??
+        null,
+      rawCandidatesCount:
+        input.active_scan_trace?.raw_candidates.raw_candidate_count ?? null,
+      rankedCandidatesCount:
+        input.active_scan_trace?.ranking.ranked_count ?? null,
+      selectedCandidatesCount:
+        input.active_scan_trace?.ranking.selected_count ?? null,
+      builtRecommendationsCount:
+        input.active_scan_trace?.final.recommendations_built_count ?? null,
+      publishedRecommendationsCount:
+        input.active_scan_trace?.final.recommendations_published_count ?? null,
+      persistedRecommendationRowsCount:
+        input.outcome_evaluation?.total_recommendation_rows_loaded_for_batch ??
+        input.scan_readback?.recommendation_rows_found_count ??
+        input.scan_readback?.current_batch_recommendation_count ??
+        null,
+      persistedSnapshotRowsCount:
+        input.outcome_evaluation?.raw_snapshot_rows ??
+        input.scan_readback?.current_batch_raw_snapshot_rows ??
+        input.scan_readback?.current_batch_snapshot_count ??
+        null,
+      uniqueSnapshotFingerprintsCount:
+        input.outcome_evaluation?.unique_snapshot_fingerprints_count ??
+        input.scan_readback?.current_batch_unique_snapshot_fingerprints ??
+        null,
+      visibleGridCardsCount:
+        input.outcome_evaluation?.visible_grid_count ??
+        input.scan_readback?.current_batch_visible_grid_count ??
+        null,
+      hiddenArchivedCount:
+        input.scan_readback?.hidden_archived_members_today ?? null,
+      outcomeEligibleSnapshotCount:
+        input.outcome_evaluation?.outcome_eligible_snapshot_count ??
+        input.outcome_evaluation?.eligible_visible_snapshot_count ??
+        null,
+      outcomeIneligibleSnapshotCount:
+        input.outcome_evaluation?.outcome_ineligible_snapshot_count ??
+        input.outcome_evaluation?.ineligible_snapshot_count ??
+        null,
+      expectedSnapshotCountFromScan:
+        input.outcome_evaluation?.expected_snapshot_count_from_scan ??
+        input.scan_readback?.batch_expected_count ??
+        null,
+      actualSnapshotCountForBatch:
+        input.outcome_evaluation?.actual_snapshot_count_for_batch ??
+        input.scan_readback?.current_batch_snapshot_count ??
+        null,
+      strictBatchFilterExcludedCount:
+        input.outcome_evaluation?.strict_batch_filter_excluded_count ??
+        input.outcome_evaluation?.ineligible_reasons?.missing_batch_membership ??
+        null,
+      incompletePricePlanCount:
+        input.active_scan_trace?.raw_candidates.invalid_price_plan_count ?? null,
+      missingSnapshotReasons:
+        input.outcome_evaluation?.missing_snapshot_reasons ??
+        input.outcome_evaluation?.ineligible_reasons ??
+        null,
+      dropOffReasons: input.outcome_evaluation?.ineligible_reasons ?? null,
+      selectedCandidateBuildDiagnostics:
+        input.active_scan_trace?.final.selected_candidate_build_diagnostics ?? null,
+      selectedToBuiltDropOff:
+        input.active_scan_trace?.final.selected_to_built_drop_off ?? null,
+    });
+  }
 
   if (existing) {
     return existing;
@@ -2056,6 +2152,8 @@ function buildSections(
                     attempt.mode,
                     "unknown",
                   )}`,
+                  `source_type=${compact(attempt.source_type, "unknown")}`,
+                  `readback=${compact(attempt.readback_kind, "none")}`,
                   `${compact(attempt.official_window, "unknown")} -> ${compact(
                     attempt.outcome,
                     "unknown",
@@ -2129,6 +2227,10 @@ function buildSections(
           scheduledScanTimelineToday[0]?.ny_timestamp ?? null,
         scheduled_scan_timeline_latest_source:
           scheduledScanTimelineToday[0]?.source ?? null,
+        scheduled_scan_timeline_latest_source_type:
+          scheduledScanTimelineToday[0]?.source_type ?? null,
+        scheduled_scan_timeline_latest_readback_kind:
+          scheduledScanTimelineToday[0]?.readback_kind ?? null,
         scheduled_scan_timeline_latest_mode:
           scheduledScanTimelineToday[0]?.mode ?? null,
         scheduled_scan_timeline_latest_window:

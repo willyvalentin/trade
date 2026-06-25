@@ -621,6 +621,132 @@ test("scan run timeline keeps selected-to-built diagnostics when final counts ar
   ).toBe(18);
 });
 
+test("closed retained readback is not shown as a fresh scanned timeline row", () => {
+  const scanLog: ScanLogEntry = {
+    created_at: "2026-06-25T20:13:00.000Z",
+    source: "scheduled",
+    scan_window: "closed",
+    market_status: "closed",
+    result: "recommendation_created",
+    message: "Market closed; retaining latest recommendations.",
+    recommendations_created: 3,
+    recommendations_published_count: 3,
+  };
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [scanLog],
+    scanRuns: [],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    source: "review/readback",
+    source_type: "retained_readback",
+    readback_kind: "retained_review_batch",
+    official_window: "closed",
+    outcome: "retained_review_batch",
+    reason: "market_closed_retained_batch",
+    published_count: 3,
+    batch_fingerprint: null,
+  });
+  expect(timeline[0]?.outcome).not.toBe("scanned");
+});
+
+test("official Power Hour scan run keeps its creation-time window after close", () => {
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [],
+    scanRuns: [
+      scanRun({
+        window: "power_hour",
+        observedAt: "2026-06-25T19:16:00.000Z",
+        tradingDate: "2026-06-25",
+        visibleCount: 3,
+      }),
+    ],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    source_type: "scan_run",
+    readback_kind: "actual_scan",
+    official_window: "power_hour",
+    outcome: "scanned",
+    published_count: 3,
+  });
+});
+
+test("batch-none rows cannot show published count unless labeled retained readback", () => {
+  const skippedAttempt: ScheduledScanAttempt = {
+    attempt_fingerprint: "attempt-outside-retained-count",
+    created_at: "2026-06-25T19:50:00.000Z",
+    trading_date: "2026-06-25",
+    source: "netlify_scheduled_function",
+    mode: "scheduled",
+    outcome: "skipped",
+    allowed: false,
+    route_received_at: "2026-06-25T19:50:00.000Z",
+    scheduled_function_fired_at: "2026-06-25T19:50:00.000Z",
+    utc_timestamp: "2026-06-25T19:50:00.000Z",
+    ny_timestamp: "2026-06-25 15:50 America/New_York",
+    official_window: "outside_window",
+    intraday_scan_window: "outside_window",
+    orchestration_decision: "outside_scan_window",
+    skip_reason: "not_official_scan_window",
+    message: "Outside official window.",
+    http_status: 200,
+    raw_count: 0,
+    ranked_count: 0,
+    selected_count: 0,
+    built_count: 0,
+    published_count: 3,
+    recommendations_created: 3,
+    batch_fingerprint: null,
+    scan_run_fingerprint: null,
+    scheduled_scan_run_id: null,
+    ...emptyScheduledAttemptDiagnostics,
+    payload_json: {},
+  };
+  const retainedLog: ScanLogEntry = {
+    created_at: "2026-06-25T20:13:00.000Z",
+    source: "scheduled",
+    scan_window: "closed",
+    market_status: "closed",
+    result: "recommendation_created",
+    message: "Market closed; retaining latest recommendations.",
+    recommendations_created: 3,
+    recommendations_published_count: 3,
+  };
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [skippedAttempt],
+    scanLogs: [retainedLog],
+    scanRuns: [],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        outcome: "skipped",
+        reason: "not_official_scan_window",
+        batch_fingerprint: null,
+        published_count: 0,
+      }),
+      expect.objectContaining({
+        source_type: "retained_readback",
+        outcome: "retained_review_batch",
+        batch_fingerprint: null,
+        published_count: 3,
+      }),
+    ]),
+  );
+  for (const row of timeline) {
+    if (row.batch_fingerprint === null && (row.published_count ?? 0) > 0) {
+      expect(row.source_type).toBe("retained_readback");
+    }
+  }
+});
+
 test("outside official window does not create a current official serving batch", () => {
   const orchestration = buildDayTradeScanOrchestrationSummary({
     now: "2026-06-24T15:34:00.000Z",

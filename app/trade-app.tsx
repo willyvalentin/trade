@@ -12733,6 +12733,25 @@ export function TradeApp() {
         message: latestSuccessfulScanLog.message,
         source: "scheduled_scan_runs",
       }
+    : latestSuccessfulStoredRecommendationBatch
+      ? {
+          result: "recommendation_created",
+          created_at: latestSuccessfulStoredRecommendationBatch.observed_at,
+          scan_window: latestSuccessfulStoredRecommendationBatch.window,
+          ...readbackTimingFields({
+            createdAt: latestSuccessfulStoredRecommendationBatch.observed_at,
+            scanWindow: latestSuccessfulStoredRecommendationBatch.window,
+          }),
+          visible_recommendation_count:
+            latestSuccessfulStoredRecommendationBatch.recommendation_count,
+          message:
+            marketClosedReadbackMode
+              ? "Market closed — latest official batch retained for review."
+              : null,
+          source: marketClosedReadbackMode
+            ? "recommendation_batches:retained_review"
+            : "recommendation_batches",
+        }
     : latestSuccessfulStoredRecommendationScanRun
       ? {
           result: "recommendation_created",
@@ -12806,7 +12825,8 @@ export function TradeApp() {
           source: "scheduled_scan_runs",
         }
       : null,
-    latestAttemptedStoredRecommendationScanRun
+    latestAttemptedStoredRecommendationScanRun &&
+    !isSuccessfulLiveRecommendationScanRun(latestAttemptedStoredRecommendationScanRun)
       ? {
           result:
             latestAttemptedStoredRecommendationScanRun.counts
