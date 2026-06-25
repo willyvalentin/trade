@@ -83,11 +83,66 @@ const emptyOfficialReferenceRefresh: ReferenceRefreshDiagnostics = {
   reference_refresh_failed_count: 5,
   reference_refresh_skipped_budget_count: 1,
   reference_refresh_source_counts: {
-    provider_intraday_reference_refresh: 3,
+    twelve_data_intraday: 3,
+    intraday_indicator_cache: 5,
+    unknown: 1,
+  },
+  reference_refresh_accepted_source_counts: {
+    twelve_data_intraday: 3,
+  },
+  reference_refresh_rejected_source_counts: {
+    intraday_indicator_cache: 5,
+    unknown: 1,
   },
   reference_refresh_failure_reasons: {
-    stale_reference_price: 5,
+    cache_hit_but_wrong_day: 5,
+    budget_skipped: 1,
   },
+  reference_refresh_failure_examples: {
+    cache_hit_but_wrong_day: ["CAT@2026-06-24T17:02:00.000Z"],
+    budget_skipped: ["NVDA"],
+  },
+  reference_refresh_attempts: [
+    {
+      ticker: "CAT",
+      provider_symbol: "CAT",
+      source_attempted: "intraday_indicator_cache",
+      timestamp: "2026-06-24T17:02:00.000Z",
+      price: 200,
+      provider: "twelve_data",
+      read_path: "reference_refresh.intraday_indicators.current_intraday_price",
+      ny_trading_date: "2026-06-24",
+      accepted: false,
+      rejection_reason: "cache_hit_but_wrong_day",
+      provider_message: null,
+    },
+    {
+      ticker: "AMD",
+      provider_symbol: "AMD",
+      source_attempted: "twelve_data_intraday",
+      timestamp: "2026-06-25T17:02:00.000Z",
+      price: 112.35,
+      provider: "twelve_data",
+      read_path: "reference_refresh.intraday_indicators.current_intraday_price",
+      ny_trading_date: "2026-06-25",
+      accepted: true,
+      rejection_reason: null,
+      provider_message: null,
+    },
+    {
+      ticker: "NVDA",
+      provider_symbol: null,
+      source_attempted: "unknown",
+      timestamp: null,
+      price: null,
+      provider: null,
+      read_path: null,
+      ny_trading_date: null,
+      accepted: false,
+      rejection_reason: "budget_skipped",
+      provider_message: null,
+    },
+  ],
   reference_refresh_examples_by_ticker: {
     attempted: ["CAT", "AMD", "JPM", "MSFT"],
     rescued: ["AMD", "JPM", "MSFT"],
@@ -486,6 +541,21 @@ test("scheduled scan attempt readback surfaces empty official build rejection di
     reference_refresh_failed_count: 5,
     reference_refresh_rescued_from_scanner_cache_reference_too_old_count: 3,
     reference_refresh_remaining_stale_reference_blocks: 5,
+    reference_refresh_failure_reasons: {
+      cache_hit_but_wrong_day: 5,
+      budget_skipped: 1,
+    },
+    reference_refresh_failure_examples: {
+      cache_hit_but_wrong_day: ["CAT@2026-06-24T17:02:00.000Z"],
+      budget_skipped: ["NVDA"],
+    },
+    reference_refresh_accepted_source_counts: {
+      twelve_data_intraday: 3,
+    },
+    reference_refresh_rejected_source_counts: {
+      intraday_indicator_cache: 5,
+      unknown: 1,
+    },
   });
 });
 

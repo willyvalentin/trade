@@ -1476,6 +1476,20 @@ function topReasonText(reasons: Record<string, number> | null | undefined) {
     : "none";
 }
 
+function referenceRefreshExamplesText(
+  examples: Record<string, string[]> | null | undefined,
+) {
+  const entries = Object.entries(examples ?? {})
+    .filter(([, values]) => values.length > 0)
+    .slice(0, 4);
+
+  return entries.length > 0
+    ? entries
+        .map(([reason, values]) => `${words(reason)}:${values.slice(0, 4).join(",")}`)
+        .join(" / ")
+    : "none";
+}
+
 function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   const existing = input.outcome_evaluation?.batch_candidate_audit;
 
@@ -2054,6 +2068,21 @@ function buildSections(
                       ? `attempted=${attempt.reference_refresh.reference_refresh_attempted_count}/success=${attempt.reference_refresh.reference_refresh_success_count}/failed=${attempt.reference_refresh.reference_refresh_failed_count}/rescued_stale_cache=${attempt.reference_refresh.reference_refresh_rescued_from_scanner_cache_reference_too_old_count}/remaining_stale=${attempt.reference_refresh.reference_refresh_remaining_stale_reference_blocks}`
                       : "none"
                   }`,
+                  `refresh_failures=${topReasonText(
+                    attempt.reference_refresh?.reference_refresh_failure_reasons,
+                  )}`,
+                  `refresh_examples=${referenceRefreshExamplesText(
+                    attempt.reference_refresh?.reference_refresh_failure_examples,
+                  )}`,
+                  `refresh_sources=${topReasonText(
+                    attempt.reference_refresh?.reference_refresh_source_counts,
+                  )}`,
+                  `refresh_accepted_sources=${topReasonText(
+                    attempt.reference_refresh?.reference_refresh_accepted_source_counts,
+                  )}`,
+                  `refresh_rejected_sources=${topReasonText(
+                    attempt.reference_refresh?.reference_refresh_rejected_source_counts,
+                  )}`,
                   `rejections=${
                     attempt.rejection_summary?.top_rejection_reasons.join(",") ||
                     "none"
@@ -2136,6 +2165,31 @@ function buildSections(
         scheduled_scan_timeline_latest_reference_refresh_remaining_stale:
           scheduledScanTimelineToday[0]?.reference_refresh
             ?.reference_refresh_remaining_stale_reference_blocks ?? null,
+        scheduled_scan_timeline_latest_reference_refresh_failure_reasons:
+          JSON.stringify(
+            scheduledScanTimelineToday[0]?.reference_refresh
+              ?.reference_refresh_failure_reasons ?? {},
+          ),
+        scheduled_scan_timeline_latest_reference_refresh_failure_examples:
+          JSON.stringify(
+            scheduledScanTimelineToday[0]?.reference_refresh
+              ?.reference_refresh_failure_examples ?? {},
+          ),
+        scheduled_scan_timeline_latest_reference_refresh_source_counts:
+          JSON.stringify(
+            scheduledScanTimelineToday[0]?.reference_refresh
+              ?.reference_refresh_source_counts ?? {},
+          ),
+        scheduled_scan_timeline_latest_reference_refresh_accepted_source_counts:
+          JSON.stringify(
+            scheduledScanTimelineToday[0]?.reference_refresh
+              ?.reference_refresh_accepted_source_counts ?? {},
+          ),
+        scheduled_scan_timeline_latest_reference_refresh_rejected_source_counts:
+          JSON.stringify(
+            scheduledScanTimelineToday[0]?.reference_refresh
+              ?.reference_refresh_rejected_source_counts ?? {},
+          ),
         scheduled_scan_timeline_json: JSON.stringify(scheduledScanTimelineToday),
       },
     }),
@@ -2797,6 +2851,41 @@ function buildSections(
             : "not observed",
         ),
         lineValue(
+          "Reference refresh failures",
+          topReasonText(
+            latestScheduledBuildRejectionAttempt?.reference_refresh
+              ?.reference_refresh_failure_reasons,
+          ),
+        ),
+        lineValue(
+          "Reference refresh examples",
+          referenceRefreshExamplesText(
+            latestScheduledBuildRejectionAttempt?.reference_refresh
+              ?.reference_refresh_failure_examples,
+          ),
+        ),
+        lineValue(
+          "Reference refresh sources",
+          topReasonText(
+            latestScheduledBuildRejectionAttempt?.reference_refresh
+              ?.reference_refresh_source_counts,
+          ),
+        ),
+        lineValue(
+          "Reference refresh accepted sources",
+          topReasonText(
+            latestScheduledBuildRejectionAttempt?.reference_refresh
+              ?.reference_refresh_accepted_source_counts,
+          ),
+        ),
+        lineValue(
+          "Reference refresh rejected sources",
+          topReasonText(
+            latestScheduledBuildRejectionAttempt?.reference_refresh
+              ?.reference_refresh_rejected_source_counts,
+          ),
+        ),
+        lineValue(
           "Reason examples",
           selectedToBuiltDropOff
             ? Object.entries(selectedToBuiltDropOff.examples_by_reason)
@@ -2852,6 +2941,26 @@ function buildSections(
         reference_refresh_remaining_stale_reference_blocks:
           latestScheduledBuildRejectionAttempt?.reference_refresh
             ?.reference_refresh_remaining_stale_reference_blocks ?? null,
+        reference_refresh_failure_reasons: JSON.stringify(
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_failure_reasons ?? {},
+        ),
+        reference_refresh_failure_examples: JSON.stringify(
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_failure_examples ?? {},
+        ),
+        reference_refresh_source_counts: JSON.stringify(
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_source_counts ?? {},
+        ),
+        reference_refresh_accepted_source_counts: JSON.stringify(
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_accepted_source_counts ?? {},
+        ),
+        reference_refresh_rejected_source_counts: JSON.stringify(
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_rejected_source_counts ?? {},
+        ),
         selected_count:
           selectedToBuiltDropOff?.selected_count ??
           batchCandidateAudit.selected_candidates_count,

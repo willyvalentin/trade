@@ -271,6 +271,38 @@ function referenceRefreshFromUnknown(
   const candidate = objectOrNull(value);
   if (!candidate) return null;
   const examples = objectOrNull(candidate.reference_refresh_examples_by_ticker);
+  const attempts = Array.isArray(candidate.reference_refresh_attempts)
+    ? candidate.reference_refresh_attempts
+        .map((item) => objectOrNull(item))
+        .filter((item): item is Record<string, unknown> => item !== null)
+        .map((item) => ({
+          ticker:
+            typeof item.ticker === "string" && item.ticker.trim()
+              ? item.ticker
+              : "UNKNOWN",
+          provider_symbol:
+            typeof item.provider_symbol === "string" ? item.provider_symbol : null,
+          source_attempted:
+            typeof item.source_attempted === "string"
+              ? item.source_attempted
+              : "unknown",
+          timestamp: isoOrNull(item.timestamp),
+          price: numberOrNull(item.price),
+          provider: typeof item.provider === "string" ? item.provider : null,
+          read_path: typeof item.read_path === "string" ? item.read_path : null,
+          ny_trading_date:
+            typeof item.ny_trading_date === "string" ? item.ny_trading_date : null,
+          accepted: Boolean(item.accepted),
+          rejection_reason:
+            typeof item.rejection_reason === "string"
+              ? item.rejection_reason
+              : null,
+          provider_message:
+            typeof item.provider_message === "string"
+              ? item.provider_message
+              : null,
+        }))
+    : [];
 
   return {
     reference_refresh_attempted_count:
@@ -284,9 +316,20 @@ function referenceRefreshFromUnknown(
     reference_refresh_source_counts: numericRecordFromUnknown<string>(
       candidate.reference_refresh_source_counts,
     ) as Record<string, number>,
+    reference_refresh_accepted_source_counts: numericRecordFromUnknown<string>(
+      candidate.reference_refresh_accepted_source_counts,
+    ) as Record<string, number>,
+    reference_refresh_rejected_source_counts: numericRecordFromUnknown<string>(
+      candidate.reference_refresh_rejected_source_counts,
+    ) as Record<string, number>,
     reference_refresh_failure_reasons: numericRecordFromUnknown<string>(
       candidate.reference_refresh_failure_reasons,
-    ) as Record<string, number>,
+    ) as ReferenceRefreshDiagnostics["reference_refresh_failure_reasons"],
+    reference_refresh_failure_examples: stringArrayRecordFromUnknown<string>(
+      candidate.reference_refresh_failure_examples,
+    ) as ReferenceRefreshDiagnostics["reference_refresh_failure_examples"],
+    reference_refresh_attempts:
+      attempts as ReferenceRefreshDiagnostics["reference_refresh_attempts"],
     reference_refresh_examples_by_ticker: {
       attempted:
         Array.isArray(examples?.attempted)

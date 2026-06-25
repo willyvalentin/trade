@@ -4,13 +4,60 @@ import {
 } from "@/lib/recommendation-plan-reference";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 
+export type ReferenceRefreshFailureReason =
+  | "provider_no_data"
+  | "provider_error"
+  | "provider_timeout"
+  | "provider_rate_limited"
+  | "provider_returned_stale_timestamp"
+  | "provider_returned_future_timestamp"
+  | "provider_wrong_symbol"
+  | "provider_invalid_price"
+  | "provider_missing_timestamp"
+  | "provider_missing_price"
+  | "provider_response_shape_unrecognized"
+  | "cache_hit_but_stale"
+  | "cache_hit_but_wrong_day"
+  | "budget_skipped"
+  | "refresh_not_attempted_not_eligible"
+  | "unknown_refresh_failure";
+
+export type ReferenceRefreshSource =
+  | "candidate_metadata"
+  | "intraday_indicator_cache"
+  | "twelve_data_intraday"
+  | "twelve_data_quote"
+  | "unknown";
+
+export type ReferenceRefreshAttemptDiagnostic = {
+  ticker: string;
+  provider_symbol: string | null;
+  source_attempted: ReferenceRefreshSource;
+  timestamp: string | null;
+  price: number | null;
+  provider: string | null;
+  read_path: string | null;
+  ny_trading_date: string | null;
+  accepted: boolean;
+  rejection_reason: ReferenceRefreshFailureReason | null;
+  provider_message: string | null;
+};
+
 export type ReferenceRefreshDiagnostics = {
   reference_refresh_attempted_count: number;
   reference_refresh_success_count: number;
   reference_refresh_failed_count: number;
   reference_refresh_skipped_budget_count: number;
   reference_refresh_source_counts: Record<string, number>;
-  reference_refresh_failure_reasons: Record<string, number>;
+  reference_refresh_accepted_source_counts: Record<string, number>;
+  reference_refresh_rejected_source_counts: Record<string, number>;
+  reference_refresh_failure_reasons: Partial<
+    Record<ReferenceRefreshFailureReason, number>
+  >;
+  reference_refresh_failure_examples: Partial<
+    Record<ReferenceRefreshFailureReason, string[]>
+  >;
+  reference_refresh_attempts: ReferenceRefreshAttemptDiagnostic[];
   reference_refresh_examples_by_ticker: {
     attempted: string[];
     rescued: string[];
@@ -52,6 +99,10 @@ export type ReferenceRefreshProviderResult = {
   cached_at: string | null;
   stale: boolean;
   warnings: string[];
+  provider?: string | null;
+  provider_symbol?: string | null;
+  provider_message?: string | null;
+  read_path?: string | null;
 };
 
 export type ReferenceRefreshResult<T extends ReferenceRefreshCandidate> = {
@@ -70,7 +121,11 @@ function emptyDiagnostics(): ReferenceRefreshDiagnostics {
     reference_refresh_failed_count: 0,
     reference_refresh_skipped_budget_count: 0,
     reference_refresh_source_counts: {},
+    reference_refresh_accepted_source_counts: {},
+    reference_refresh_rejected_source_counts: {},
     reference_refresh_failure_reasons: {},
+    reference_refresh_failure_examples: {},
+    reference_refresh_attempts: [],
     reference_refresh_examples_by_ticker: {
       attempted: [],
       rescued: [],
@@ -86,6 +141,20 @@ function emptyDiagnostics(): ReferenceRefreshDiagnostics {
 function increment(record: Record<string, number>, key: string | null | undefined) {
   const normalized = key && key.trim() ? key.trim() : "unknown";
   record[normalized] = (record[normalized] ?? 0) + 1;
+}
+
+function incrementFailure(
+  diagnostics: ReferenceRefreshDiagnostics,
+  reason: ReferenceRefreshFailureReason,
+  example: string,
+) {
+  diagnostics.reference_refresh_failure_reasons[reason] =
+    (diagnostics.reference_refresh_failure_reasons[reason] ?? 0) + 1;
+  const examples = diagnostics.reference_refresh_failure_examples[reason] ?? [];
+  if (examples.length < 8) {
+    examples.push(example);
+  }
+  diagnostics.reference_refresh_failure_examples[reason] = examples;
 }
 
 function staleBlockReason(metadata: PlanReferencePriceMetadata) {
@@ -118,6 +187,192 @@ function finalReference(metadata: PlanReferencePriceMetadata) {
     read_path: metadata.reference_price_read_path,
     price: metadata.reference_price_used_for_plan,
   };
+}
+
+function priceFromResult(result: ReferenceRefreshProviderResult | null) {
+  const price = result?.indicators?.latestPrice;
+  return typeof price === "number" && Number.isFinite(price) ? price : null;
+}
+
+function providerMessage(result: ReferenceRefreshProviderResult | null) {
+  const messages = [
+    result?.provider_message,
+    ...(result?.warnings ?? []),
+  ].filter((message): message is string => Boolean(message && message.trim()));
+
+  return messages.length > 0 ? messages.slice(0, 3).join("; ").slice(0, 240) : null;
+}
+
+function nyTradingDate(value: Date | string | number | null | undefined) {
+  if (value === null || value === undefined) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: string) =>
+    parts.find((entry) => entry.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function referenceSourceFromResult(
+  result: ReferenceRefreshProviderResult | null,
+): ReferenceRefreshSource {
+  if (!result) return "unknown";
+  if (result.source === "cache") return "intraday_indicator_cache";
+  if (result.source === "fresh") return "twelve_data_intraday";
+  if (result.provider === "twelve_data_quote") return "twelve_data_quote";
+
+  return "twelve_data_intraday";
+}
+
+function normalizeProviderFailureReason(
+  message: string | null | undefined,
+): ReferenceRefreshFailureReason {
+  const normalized = (message ?? "").toLowerCase();
+  if (!normalized) return "provider_error";
+  if (
+    normalized.includes("rate") ||
+    normalized.includes("429") ||
+    normalized.includes("quota") ||
+    normalized.includes("limit")
+  ) {
+    return "provider_rate_limited";
+  }
+  if (
+    normalized.includes("timeout") ||
+    normalized.includes("timed out") ||
+    normalized.includes("abort")
+  ) {
+    return "provider_timeout";
+  }
+  if (
+    normalized.includes("shape") ||
+    normalized.includes("unrecognized") ||
+    normalized.includes("invalid json") ||
+    normalized.includes("parse")
+  ) {
+    return "provider_response_shape_unrecognized";
+  }
+
+  return "provider_error";
+}
+
+function exampleFor(ticker: string, timestamp: string | null) {
+  return timestamp ? `${ticker}@${timestamp}` : ticker;
+}
+
+function attemptDiagnostic(input: {
+  ticker: string;
+  result: ReferenceRefreshProviderResult | null;
+  source: ReferenceRefreshSource;
+  accepted: boolean;
+  rejectionReason: ReferenceRefreshFailureReason | null;
+}): ReferenceRefreshAttemptDiagnostic {
+  return {
+    ticker: input.ticker,
+    provider_symbol: input.result?.provider_symbol ?? input.result?.ticker ?? null,
+    source_attempted: input.source,
+    timestamp: input.result?.cached_at ?? null,
+    price: priceFromResult(input.result),
+    provider: input.result ? input.result.provider ?? "twelve_data" : null,
+    read_path: input.result ? input.result.read_path ?? refreshReferenceReadPath : null,
+    ny_trading_date: nyTradingDate(input.result?.cached_at),
+    accepted: input.accepted,
+    rejection_reason: input.rejectionReason,
+    provider_message: providerMessage(input.result),
+  };
+}
+
+function failureReasonFromAfter(
+  after: PlanReferencePriceMetadata,
+  result: ReferenceRefreshProviderResult,
+  now: Date | string | number,
+): ReferenceRefreshFailureReason {
+  const reason = staleBlockReason(after);
+  const resultSource = referenceSourceFromResult(result);
+  const resultTradingDate = nyTradingDate(result.cached_at);
+  const currentTradingDate = nyTradingDate(now);
+
+  if (
+    resultSource === "intraday_indicator_cache" &&
+    resultTradingDate !== null &&
+    currentTradingDate !== null &&
+    resultTradingDate !== currentTradingDate
+  ) {
+    return "cache_hit_but_wrong_day";
+  }
+  if (reason === "future_reference_timestamp") {
+    return "provider_returned_future_timestamp";
+  }
+  if (reason === "missing_reference_timestamp") {
+    return "provider_missing_timestamp";
+  }
+  if (
+    reason === "missing_fresh_reference_price" ||
+    after.reference_price_used_for_plan === null
+  ) {
+    return priceFromResult(result) === null
+      ? "provider_missing_price"
+      : "unknown_refresh_failure";
+  }
+  if (
+    reason === "stale_reference_price" ||
+    reason === "scanner_cache_reference_too_old"
+  ) {
+    return resultSource === "intraday_indicator_cache"
+      ? "cache_hit_but_stale"
+      : "provider_returned_stale_timestamp";
+  }
+
+  return "unknown_refresh_failure";
+}
+
+function rejectionReasonForResult(
+  result: ReferenceRefreshProviderResult,
+  candidateTicker: string,
+  now: Date | string | number,
+): ReferenceRefreshFailureReason | null {
+  const source = referenceSourceFromResult(result);
+  const message = providerMessage(result);
+  const price = result.indicators?.latestPrice;
+  const resultTradingDate = nyTradingDate(result.cached_at);
+  const currentTradingDate = nyTradingDate(now);
+
+  if (result.ticker.trim().toUpperCase() !== candidateTicker.toUpperCase()) {
+    return "provider_wrong_symbol";
+  }
+  if (!result.indicators) {
+    return message ? normalizeProviderFailureReason(message) : "provider_no_data";
+  }
+  if (price === null || price === undefined) {
+    return "provider_missing_price";
+  }
+  if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
+    return "provider_invalid_price";
+  }
+  if (!result.cached_at) {
+    return "provider_missing_timestamp";
+  }
+  if (
+    source === "intraday_indicator_cache" &&
+    resultTradingDate !== null &&
+    currentTradingDate !== null &&
+    resultTradingDate !== currentTradingDate
+  ) {
+    return "cache_hit_but_wrong_day";
+  }
+  if (result.stale) {
+    return source === "intraday_indicator_cache"
+      ? "cache_hit_but_stale"
+      : "provider_returned_stale_timestamp";
+  }
+
+  return null;
 }
 
 function refreshedCandidate<T extends ReferenceRefreshCandidate>(
@@ -187,6 +442,18 @@ export async function refreshSelectedCandidateReferences<
         candidate.ticker,
       );
       diagnostics.reference_refresh_remaining_stale_reference_blocks += 1;
+      increment(diagnostics.reference_refresh_source_counts, "unknown");
+      increment(diagnostics.reference_refresh_rejected_source_counts, "unknown");
+      incrementFailure(diagnostics, "budget_skipped", candidate.ticker);
+      diagnostics.reference_refresh_attempts.push(
+        attemptDiagnostic({
+          ticker: candidate.ticker,
+          result: null,
+          source: "unknown",
+          accepted: false,
+          rejectionReason: "budget_skipped",
+        }),
+      );
       refreshedCandidates.push(candidate);
       continue;
     }
@@ -196,15 +463,37 @@ export async function refreshSelectedCandidateReferences<
 
     try {
       const result = await fetchIntradayIndicators(candidate.ticker);
+      const source = referenceSourceFromResult(result);
+      increment(diagnostics.reference_refresh_source_counts, source);
+      const preflightRejection = rejectionReasonForResult(
+        result,
+        candidate.ticker,
+        now,
+      );
 
-      if (result.ticker.trim().toUpperCase() !== candidate.ticker.toUpperCase()) {
-        throw new Error("wrong_symbol_returned");
-      }
-      if (!result.indicators || result.indicators.latestPrice === null) {
-        throw new Error("provider_data_unavailable");
-      }
-      if (result.stale) {
-        throw new Error("stale_reference_price");
+      if (preflightRejection) {
+        diagnostics.reference_refresh_failed_count += 1;
+        diagnostics.reference_refresh_examples_by_ticker.failed.push(
+          candidate.ticker,
+        );
+        diagnostics.reference_refresh_remaining_stale_reference_blocks += 1;
+        increment(diagnostics.reference_refresh_rejected_source_counts, source);
+        incrementFailure(
+          diagnostics,
+          preflightRejection,
+          exampleFor(candidate.ticker, result.cached_at),
+        );
+        diagnostics.reference_refresh_attempts.push(
+          attemptDiagnostic({
+            ticker: candidate.ticker,
+            result,
+            source,
+            accepted: false,
+            rejectionReason: preflightRejection,
+          }),
+        );
+        refreshedCandidates.push(candidate);
+        continue;
       }
 
       const candidateWithRefresh = refreshedCandidate(candidate, result);
@@ -215,14 +504,26 @@ export async function refreshSelectedCandidateReferences<
       const afterReason = staleBlockReason(after);
 
       if (after.reference_price_used_for_plan === null || afterReason) {
+        const rejectionReason = failureReasonFromAfter(after, result, now);
         diagnostics.reference_refresh_failed_count += 1;
         diagnostics.reference_refresh_examples_by_ticker.failed.push(
           candidate.ticker,
         );
         diagnostics.reference_refresh_remaining_stale_reference_blocks += 1;
-        increment(
-          diagnostics.reference_refresh_failure_reasons,
-          afterReason ?? "missing_fresh_reference_price",
+        increment(diagnostics.reference_refresh_rejected_source_counts, source);
+        incrementFailure(
+          diagnostics,
+          rejectionReason,
+          exampleFor(candidate.ticker, result.cached_at),
+        );
+        diagnostics.reference_refresh_attempts.push(
+          attemptDiagnostic({
+            ticker: candidate.ticker,
+            result,
+            source,
+            accepted: false,
+            rejectionReason,
+          }),
         );
         refreshedCandidates.push(candidate);
         continue;
@@ -233,8 +534,17 @@ export async function refreshSelectedCandidateReferences<
       diagnostics.reference_refresh_final_references[candidate.ticker] =
         finalReference(after);
       increment(
-        diagnostics.reference_refresh_source_counts,
-        after.reference_price_source,
+        diagnostics.reference_refresh_accepted_source_counts,
+        source,
+      );
+      diagnostics.reference_refresh_attempts.push(
+        attemptDiagnostic({
+          ticker: candidate.ticker,
+          result,
+          source,
+          accepted: true,
+          rejectionReason: null,
+        }),
       );
       if (beforeReason === "scanner_cache_reference_too_old") {
         diagnostics.reference_refresh_rescued_from_scanner_cache_reference_too_old_count +=
@@ -245,11 +555,19 @@ export async function refreshSelectedCandidateReferences<
       diagnostics.reference_refresh_failed_count += 1;
       diagnostics.reference_refresh_examples_by_ticker.failed.push(candidate.ticker);
       diagnostics.reference_refresh_remaining_stale_reference_blocks += 1;
-      increment(
-        diagnostics.reference_refresh_failure_reasons,
-        error instanceof Error && error.message
-          ? error.message
-          : "provider_data_unavailable",
+      const message = error instanceof Error ? error.message : null;
+      const rejectionReason = normalizeProviderFailureReason(message);
+      increment(diagnostics.reference_refresh_source_counts, "unknown");
+      increment(diagnostics.reference_refresh_rejected_source_counts, "unknown");
+      incrementFailure(diagnostics, rejectionReason, candidate.ticker);
+      diagnostics.reference_refresh_attempts.push(
+        attemptDiagnostic({
+          ticker: candidate.ticker,
+          result: null,
+          source: "unknown",
+          accepted: false,
+          rejectionReason,
+        }),
       );
       refreshedCandidates.push(candidate);
     }

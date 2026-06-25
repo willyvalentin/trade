@@ -40,15 +40,24 @@ function providerResult(input: {
   cachedAt?: string | null;
   source?: ReferenceRefreshProviderResult["source"];
   stale?: boolean;
+  warnings?: string[];
+  indicatorsOverride?: IntradayIndicators | null;
 }): ReferenceRefreshProviderResult {
   return {
     ticker: input.ticker,
     indicators:
-      typeof input.price === "number" ? indicators(input.price) : null,
+      input.indicatorsOverride !== undefined
+        ? input.indicatorsOverride
+        : typeof input.price === "number"
+          ? indicators(input.price)
+          : null,
     source: input.source ?? "fresh",
-    cached_at: input.cachedAt ?? "2026-06-25T17:02:00.000Z",
+    cached_at:
+      input.cachedAt !== undefined
+        ? input.cachedAt
+        : "2026-06-25T17:02:00.000Z",
     stale: input.stale ?? false,
-    warnings: [],
+    warnings: input.warnings ?? [],
   };
 }
 
@@ -70,6 +79,26 @@ test("fresh provider intraday reference rescues stale scanner-cache candidate", 
   expect(result.diagnostics.reference_refresh_examples_by_ticker.rescued).toEqual([
     "AMD",
   ]);
+  expect(result.diagnostics.reference_refresh_source_counts).toMatchObject({
+    twelve_data_intraday: 1,
+  });
+  expect(result.diagnostics.reference_refresh_accepted_source_counts).toMatchObject({
+    twelve_data_intraday: 1,
+  });
+  expect(result.diagnostics.reference_refresh_attempts).toMatchObject([
+    {
+      ticker: "AMD",
+      provider_symbol: "AMD",
+      source_attempted: "twelve_data_intraday",
+      timestamp: "2026-06-25T17:02:00.000Z",
+      price: 112.35,
+      provider: "twelve_data",
+      read_path: "reference_refresh.intraday_indicators.current_intraday_price",
+      ny_trading_date: "2026-06-25",
+      accepted: true,
+      rejection_reason: null,
+    },
+  ]);
 
   const refreshedReference = resolvePlanReferencePriceMetadata(
     result.candidates[0],
@@ -86,8 +115,8 @@ test("fresh provider intraday reference rescues stale scanner-cache candidate", 
   expect(refreshedReference.plan_reference_metadata_status).toBe("complete");
 });
 
-test("stale, future, missing, or wrong-symbol provider refresh still blocks", async () => {
-  const stale = await refreshSelectedCandidateReferences({
+test("provider/cache refresh rejection reasons are precise and machine readable", async () => {
+  const staleCache = await refreshSelectedCandidateReferences({
     candidates: [staleCandidate("CAT")],
     maxAttempts: 10,
     now: "2026-06-25T17:03:00.000Z",
@@ -100,12 +129,36 @@ test("stale, future, missing, or wrong-symbol provider refresh still blocks", as
         stale: true,
       }),
   });
-  const missing = await refreshSelectedCandidateReferences({
+  const missingData = await refreshSelectedCandidateReferences({
     candidates: [staleCandidate("JPM")],
     maxAttempts: 10,
     now: "2026-06-25T17:03:00.000Z",
     fetchIntradayIndicators: async (ticker) =>
       providerResult({ ticker, price: null }),
+  });
+  const missingPrice = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("AVGO")],
+    maxAttempts: 10,
+    now: "2026-06-25T17:03:00.000Z",
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({
+        ticker,
+        indicatorsOverride: { ...indicators(500), latestPrice: null },
+      }),
+  });
+  const missingTimestamp = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("META")],
+    maxAttempts: 10,
+    now: "2026-06-25T17:03:00.000Z",
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({ ticker, price: 320, cachedAt: null }),
+  });
+  const invalidPrice = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("ADBE")],
+    maxAttempts: 10,
+    now: "2026-06-25T17:03:00.000Z",
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({ ticker, price: -1 }),
   });
   const future = await refreshSelectedCandidateReferences({
     candidates: [staleCandidate("MSFT")],
@@ -125,20 +178,65 @@ test("stale, future, missing, or wrong-symbol provider refresh still blocks", as
     fetchIntradayIndicators: async () =>
       providerResult({ ticker: "AMD", price: 112 }),
   });
+  const unrecognized = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("TSLA")],
+    maxAttempts: 10,
+    now: "2026-06-25T17:03:00.000Z",
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({
+        ticker,
+        source: "unavailable",
+        warnings: ["Provider response shape unrecognized."],
+      }),
+  });
 
-  expect(stale.diagnostics.reference_refresh_success_count).toBe(0);
+  expect(staleCache.diagnostics.reference_refresh_success_count).toBe(0);
   expect(
-    stale.diagnostics.reference_refresh_failure_reasons.stale_reference_price,
+    staleCache.diagnostics.reference_refresh_failure_reasons
+      .cache_hit_but_wrong_day,
   ).toBe(1);
-  expect(missing.diagnostics.reference_refresh_failure_reasons.provider_data_unavailable).toBe(
+  expect(
+    staleCache.diagnostics.reference_refresh_failure_examples
+      .cache_hit_but_wrong_day,
+  ).toEqual(["CAT@2026-06-24T17:02:00.000Z"]);
+  expect(
+    staleCache.diagnostics.reference_refresh_rejected_source_counts
+      .intraday_indicator_cache,
+  ).toBe(1);
+  expect(missingData.diagnostics.reference_refresh_failure_reasons.provider_no_data).toBe(
     1,
   );
   expect(
-    future.diagnostics.reference_refresh_failure_reasons.future_reference_timestamp,
+    missingPrice.diagnostics.reference_refresh_failure_reasons
+      .provider_missing_price,
   ).toBe(1);
-  expect(wrongSymbol.diagnostics.reference_refresh_failure_reasons.wrong_symbol_returned).toBe(
-    1,
-  );
+  expect(
+    missingTimestamp.diagnostics.reference_refresh_failure_reasons
+      .provider_missing_timestamp,
+  ).toBe(1);
+  expect(
+    invalidPrice.diagnostics.reference_refresh_failure_reasons
+      .provider_invalid_price,
+  ).toBe(1);
+  expect(
+    future.diagnostics.reference_refresh_failure_reasons
+      .provider_returned_future_timestamp,
+  ).toBe(1);
+  expect(
+    wrongSymbol.diagnostics.reference_refresh_failure_reasons
+      .provider_wrong_symbol,
+  ).toBe(1);
+  expect(
+    unrecognized.diagnostics.reference_refresh_failure_reasons
+      .provider_response_shape_unrecognized,
+  ).toBe(1);
+  expect(wrongSymbol.diagnostics.reference_refresh_attempts[0]).toMatchObject({
+    ticker: "NVDA",
+    provider_symbol: "AMD",
+    source_attempted: "twelve_data_intraday",
+    accepted: false,
+    rejection_reason: "provider_wrong_symbol",
+  });
 });
 
 test("reference refresh respects budget cap", async () => {
@@ -156,4 +254,13 @@ test("reference refresh respects budget cap", async () => {
   expect(
     result.diagnostics.reference_refresh_examples_by_ticker.skipped_budget,
   ).toEqual(["MSFT"]);
+  expect(result.diagnostics.reference_refresh_failure_reasons.budget_skipped).toBe(
+    1,
+  );
+  expect(result.diagnostics.reference_refresh_attempts[1]).toMatchObject({
+    ticker: "MSFT",
+    source_attempted: "unknown",
+    accepted: false,
+    rejection_reason: "budget_skipped",
+  });
 });
