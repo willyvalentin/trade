@@ -14,6 +14,7 @@ import type {
   SelectedCandidateBuildDiagnostic,
   SelectedToBuiltDropOffSummary,
 } from "@/lib/recommendation-build-diagnostics";
+import type { ReferenceRefreshDiagnostics } from "@/lib/reference-refresh-diagnostics";
 
 export type ScheduledScanAttemptOutcome =
   | "scheduled_function_fired"
@@ -57,6 +58,7 @@ export type ScheduledScanAttempt = {
   selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
   empty_scan_reason: string | null;
   rejection_summary: ScheduledScanRejectionSummary | null;
+  reference_refresh: ReferenceRefreshDiagnostics | null;
   payload_json: Record<string, unknown>;
 };
 
@@ -90,6 +92,7 @@ export type ScheduledScanTimelineEntry = {
   rejection_summary: ScheduledScanRejectionSummary | null;
   selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
   selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
+  reference_refresh: ReferenceRefreshDiagnostics | null;
 };
 
 export type ScheduledScanAttemptInput = Partial<ScheduledScanAttempt> & {
@@ -262,6 +265,60 @@ function selectedBuildDiagnosticsFromUnknown(
     : [];
 }
 
+function referenceRefreshFromUnknown(
+  value: unknown,
+): ReferenceRefreshDiagnostics | null {
+  const candidate = objectOrNull(value);
+  if (!candidate) return null;
+  const examples = objectOrNull(candidate.reference_refresh_examples_by_ticker);
+
+  return {
+    reference_refresh_attempted_count:
+      numberOrNull(candidate.reference_refresh_attempted_count) ?? 0,
+    reference_refresh_success_count:
+      numberOrNull(candidate.reference_refresh_success_count) ?? 0,
+    reference_refresh_failed_count:
+      numberOrNull(candidate.reference_refresh_failed_count) ?? 0,
+    reference_refresh_skipped_budget_count:
+      numberOrNull(candidate.reference_refresh_skipped_budget_count) ?? 0,
+    reference_refresh_source_counts: numericRecordFromUnknown<string>(
+      candidate.reference_refresh_source_counts,
+    ) as Record<string, number>,
+    reference_refresh_failure_reasons: numericRecordFromUnknown<string>(
+      candidate.reference_refresh_failure_reasons,
+    ) as Record<string, number>,
+    reference_refresh_examples_by_ticker: {
+      attempted:
+        Array.isArray(examples?.attempted)
+          ? examples.attempted.filter((item): item is string => typeof item === "string")
+          : [],
+      rescued:
+        Array.isArray(examples?.rescued)
+          ? examples.rescued.filter((item): item is string => typeof item === "string")
+          : [],
+      failed:
+        Array.isArray(examples?.failed)
+          ? examples.failed.filter((item): item is string => typeof item === "string")
+          : [],
+      skipped_budget:
+        Array.isArray(examples?.skipped_budget)
+          ? examples.skipped_budget.filter(
+              (item): item is string => typeof item === "string",
+            )
+          : [],
+    },
+    reference_refresh_final_references:
+      (objectOrNull(candidate.reference_refresh_final_references) as ReferenceRefreshDiagnostics["reference_refresh_final_references"] | null) ??
+      {},
+    reference_refresh_rescued_from_scanner_cache_reference_too_old_count:
+      numberOrNull(
+        candidate.reference_refresh_rescued_from_scanner_cache_reference_too_old_count,
+      ) ?? 0,
+    reference_refresh_remaining_stale_reference_blocks:
+      numberOrNull(candidate.reference_refresh_remaining_stale_reference_blocks) ?? 0,
+  };
+}
+
 function activeTraceFromPayload(payload: Record<string, unknown>): ActiveScanTrace | null {
   const trace = objectOrNull(payload.active_scan_trace);
   return trace ? (trace as ActiveScanTrace) : null;
@@ -389,6 +446,10 @@ function buildDiagnosticsFromPayload(payload: Record<string, unknown>) {
   ];
 }
 
+function referenceRefreshFromPayload(payload: Record<string, unknown>) {
+  return referenceRefreshFromUnknown(payload.reference_refresh);
+}
+
 export function buildScheduledScanAttemptFingerprint(input: {
   scheduledFunctionFiredAt?: string | null;
   routeReceivedAt?: string | null;
@@ -470,6 +531,9 @@ export function buildScheduledScanAttemptRecord(
       ...inputPayload,
       selected_to_built_drop_off: dropOff,
       selected_candidate_build_diagnostics: buildDiagnostics,
+      reference_refresh:
+        referenceRefreshFromUnknown(input.reference_refresh) ??
+        referenceRefreshFromPayload(inputPayload),
       empty_scan_reason: emptyScanReason,
       rejection_summary: rejectionSummary,
       build_rejection_diagnostics: {
@@ -541,6 +605,7 @@ export function scheduledScanAttemptFromRow(
         emptyScanReason,
       }),
     payload_json: payload,
+    reference_refresh: referenceRefreshFromPayload(payload),
   };
 }
 
@@ -569,6 +634,7 @@ function timelineFromAttempt(
     selected_to_built_drop_off: attempt.selected_to_built_drop_off,
     selected_candidate_build_diagnostics:
       attempt.selected_candidate_build_diagnostics,
+    reference_refresh: attempt.reference_refresh,
   };
 }
 
@@ -616,6 +682,7 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     selected_to_built_drop_off: dropOff,
     selected_candidate_build_diagnostics:
       scanLog.selected_candidate_build_diagnostics ?? [],
+    reference_refresh: scanLog.reference_refresh ?? null,
   };
 }
 
@@ -663,6 +730,7 @@ function timelineFromScanRun(
     buildDiagnosticsFromPayload(scanRun.payload_json).length > 0
       ? buildDiagnosticsFromPayload(scanRun.payload_json)
       : trace?.final?.selected_candidate_build_diagnostics ?? [];
+  const referenceRefresh = referenceRefreshFromPayload(scanRun.payload_json);
 
   return {
     utc_timestamp: timestamp,
@@ -697,6 +765,7 @@ function timelineFromScanRun(
     rejection_summary: rejectionSummary,
     selected_to_built_drop_off: dropOff,
     selected_candidate_build_diagnostics: buildDiagnostics,
+    reference_refresh: referenceRefresh,
   };
 }
 

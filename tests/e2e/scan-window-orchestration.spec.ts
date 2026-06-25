@@ -17,6 +17,7 @@ import {
   type ScheduledScanAttempt,
 } from "../../lib/scheduled-scan-attempts";
 import type { SelectedToBuiltDropOffSummary } from "../../lib/recommendation-build-diagnostics";
+import type { ReferenceRefreshDiagnostics } from "../../lib/reference-refresh-diagnostics";
 import type { ScanLogEntry } from "../../lib/scan-logs";
 
 const tradingDayMarketStatus: MarketSessionStatus = {
@@ -55,6 +56,7 @@ const emptyScheduledAttemptDiagnostics = {
   selected_candidate_build_diagnostics: [],
   empty_scan_reason: null,
   rejection_summary: null,
+  reference_refresh: null,
 };
 
 const emptyOfficialDropOff: SelectedToBuiltDropOffSummary = {
@@ -73,6 +75,36 @@ const emptyOfficialDropOff: SelectedToBuiltDropOffSummary = {
   output_below_target_reason_category: "data_quality",
   output_below_target_explanation:
     "18 selected candidates had no fresh reference price for plan construction.",
+};
+
+const emptyOfficialReferenceRefresh: ReferenceRefreshDiagnostics = {
+  reference_refresh_attempted_count: 8,
+  reference_refresh_success_count: 3,
+  reference_refresh_failed_count: 5,
+  reference_refresh_skipped_budget_count: 1,
+  reference_refresh_source_counts: {
+    provider_intraday_reference_refresh: 3,
+  },
+  reference_refresh_failure_reasons: {
+    stale_reference_price: 5,
+  },
+  reference_refresh_examples_by_ticker: {
+    attempted: ["CAT", "AMD", "JPM", "MSFT"],
+    rescued: ["AMD", "JPM", "MSFT"],
+    failed: ["CAT"],
+    skipped_budget: ["NVDA"],
+  },
+  reference_refresh_final_references: {
+    AMD: {
+      source: "provider_intraday_reference_refresh",
+      timestamp: "2026-06-25T17:02:00.000Z",
+      provider: "twelve_data",
+      read_path: "reference_refresh.intraday_indicators.current_intraday_price",
+      price: 112.35,
+    },
+  },
+  reference_refresh_rescued_from_scanner_cache_reference_too_old_count: 3,
+  reference_refresh_remaining_stale_reference_blocks: 5,
 };
 
 test("classifies official scan windows from UTC into New York time", () => {
@@ -413,6 +445,7 @@ test("scheduled scan attempt readback surfaces empty official build rejection di
     scan_run_fingerprint: "run-empty-morning",
     payload_json: {
       selected_to_built_drop_off: emptyOfficialDropOff,
+      reference_refresh: emptyOfficialReferenceRefresh,
     },
   });
   const attempt = scheduledScanAttemptFromRow(row);
@@ -447,6 +480,13 @@ test("scheduled scan attempt readback surfaces empty official build rejection di
   expect(timeline[0]?.rejection_summary?.below_target_category).toBe(
     "data_quality",
   );
+  expect(timeline[0]?.reference_refresh).toMatchObject({
+    reference_refresh_attempted_count: 8,
+    reference_refresh_success_count: 3,
+    reference_refresh_failed_count: 5,
+    reference_refresh_rescued_from_scanner_cache_reference_too_old_count: 3,
+    reference_refresh_remaining_stale_reference_blocks: 5,
+  });
 });
 
 test("scan run timeline keeps selected-to-built diagnostics when final counts are sparse", () => {

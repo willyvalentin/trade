@@ -12,6 +12,10 @@ import {
   type ScannerCandidate,
 } from "@/lib/scanner";
 import {
+  getOrRefreshIntradayIndicators,
+  SCANNER_INDICATOR_MAX_AGE_MINUTES,
+} from "@/lib/intraday-indicator-cache";
+import {
   getIntradayScanPolicy,
   getIntradayScanWindowLabel,
   type IntradayScanWindow,
@@ -85,6 +89,10 @@ import {
   type SelectedCandidateBuildDiagnostic,
   type SelectedToBuiltDropOffSummary,
 } from "@/lib/recommendation-build-diagnostics";
+import {
+  refreshSelectedCandidateReferences,
+  type ReferenceRefreshDiagnostics,
+} from "@/lib/reference-refresh-diagnostics";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -259,6 +267,7 @@ export type RecommendationScanLogDetails = {
   deterministic_fallback_used?: boolean | null;
   deterministic_fallback_reference_block_count?: number | null;
   deterministic_fallback_reference_block_reasons?: string[] | null;
+  reference_refresh?: ReferenceRefreshDiagnostics | null;
   selected_candidate_build_diagnostics?: SelectedCandidateBuildDiagnostic[] | null;
   selected_to_built_drop_off?: SelectedToBuiltDropOffSummary | null;
   recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
@@ -3895,7 +3904,24 @@ export async function generateRecommendations({
       source === "scheduled"
         ? Math.max(1, settings.max_recommendations_per_session)
         : Math.max(6, settings.max_recommendations_per_session * 3);
-    const candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    const referenceRefreshResult =
+      candidatesForOpenAI.length > 0
+        ? await refreshSelectedCandidateReferences({
+            candidates: candidatesForOpenAI,
+            maxAttempts: source === "scheduled" ? 10 : 3,
+            now: new Date(),
+            fetchIntradayIndicators: (ticker) =>
+              getOrRefreshIntradayIndicators(ticker, {
+                source: source === "scheduled" ? "scheduled" : "manual",
+                maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+                allowFreshFetch: true,
+              }),
+          })
+        : null;
+    const referenceRefreshDiagnostics =
+      referenceRefreshResult?.diagnostics ?? null;
+    candidatesForOpenAI = referenceRefreshResult?.candidates ?? candidatesForOpenAI;
     const availableCandidateTickers = availableCandidates.map(
       (candidate) => candidate.ticker,
     );
@@ -3973,6 +3999,7 @@ export async function generateRecommendations({
     logPipeline("top_scored_candidate_setup_type", topCandidateSetupType);
     logPipeline("scored_candidates", scoredCandidateSummary);
     logPipeline("scanner_candidate_ranking", scannerCandidateRankingSummary);
+    logPipeline("reference_refresh", referenceRefreshDiagnostics);
     logPipeline("real_scanner_candidate_generation", realScannerCandidateGeneration);
     logPipeline("candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
@@ -4036,6 +4063,7 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
+          reference_refresh: referenceRefreshDiagnostics,
           selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
           selected_to_built_drop_off: selectedToBuiltDropOff,
         } satisfies RecommendationScanLogDetails,
@@ -4330,6 +4358,7 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           deterministic_fallback_reference_block_reasons:
             deterministicFallbackSkippedReasons,
+          reference_refresh: referenceRefreshDiagnostics,
           selected_candidate_build_diagnostics:
             selectedCandidateBuildDiagnostics,
           selected_to_built_drop_off: selectedToBuiltDropOff,
@@ -4411,6 +4440,7 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           deterministic_fallback_reference_block_reasons:
             deterministicFallbackSkippedReasons,
+          reference_refresh: referenceRefreshDiagnostics,
           selected_candidate_build_diagnostics:
             selectedCandidateBuildDiagnostics,
           selected_to_built_drop_off: selectedToBuiltDropOff,
@@ -4509,6 +4539,7 @@ export async function generateRecommendations({
           deterministicFallbackSkippedReasons.length,
         deterministic_fallback_reference_block_reasons:
           deterministicFallbackSkippedReasons,
+        reference_refresh: referenceRefreshDiagnostics,
         selected_candidate_build_diagnostics:
           selectedCandidateBuildDiagnostics,
         selected_to_built_drop_off: selectedToBuiltDropOff,

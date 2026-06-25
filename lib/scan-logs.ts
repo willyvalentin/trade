@@ -7,6 +7,7 @@ import type {
   SelectedToBuiltDropOffSummary,
 } from "@/lib/recommendation-build-diagnostics";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
+import type { ReferenceRefreshDiagnostics } from "@/lib/reference-refresh-diagnostics";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
@@ -94,6 +95,7 @@ export type ScanLogEntry = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  reference_refresh?: ReferenceRefreshDiagnostics | null;
   recommendation_build_path?: string | null;
   recommendations_built_count?: number | null;
   selected_candidate_build_diagnostics?: SelectedCandidateBuildDiagnostic[] | null;

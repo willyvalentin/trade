@@ -1291,6 +1291,7 @@ async function recordScheduledScanAttempt({
         activeScanTrace?.final.selected_candidate_build_diagnostics ??
         scanLog?.selected_candidate_build_diagnostics ??
         [],
+      reference_refresh: scanLog?.reference_refresh ?? null,
     },
   });
   const { error } = await supabase
@@ -1450,6 +1451,11 @@ function createAutomationScanLog({
       typeof details?.selected_to_built_drop_off === "object" &&
       details.selected_to_built_drop_off !== null
         ? (details.selected_to_built_drop_off as RecommendationScanLogDetails["selected_to_built_drop_off"])
+        : null,
+    reference_refresh:
+      typeof details?.reference_refresh === "object" &&
+      details.reference_refresh !== null
+        ? (details.reference_refresh as RecommendationScanLogDetails["reference_refresh"])
         : null,
     strong_count:
       typeof details?.strong_count === "number" ? details.strong_count : null,
@@ -1904,6 +1910,7 @@ async function persistAutomationArtifacts({
       selected_to_built_drop_off: selectedToBuiltDropOff,
       selected_candidate_build_diagnostics:
         scanLog.selected_candidate_build_diagnostics ?? [],
+      reference_refresh: scanLog.reference_refresh ?? null,
       empty_scan_reason: emptyScanReason,
       build_rejection_diagnostics: {
         selected_count:

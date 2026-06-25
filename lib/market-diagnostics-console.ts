@@ -2049,6 +2049,11 @@ function buildSections(
                   `allowed=${attempt.allowed === null ? "unknown" : bool(attempt.allowed)}`,
                   `reason=${compact(attempt.reason, "none")}`,
                   `empty_reason=${compact(attempt.empty_scan_reason, "none")}`,
+                  `reference_refresh=${
+                    attempt.reference_refresh
+                      ? `attempted=${attempt.reference_refresh.reference_refresh_attempted_count}/success=${attempt.reference_refresh.reference_refresh_success_count}/failed=${attempt.reference_refresh.reference_refresh_failed_count}/rescued_stale_cache=${attempt.reference_refresh.reference_refresh_rescued_from_scanner_cache_reference_too_old_count}/remaining_stale=${attempt.reference_refresh.reference_refresh_remaining_stale_reference_blocks}`
+                      : "none"
+                  }`,
                   `rejections=${
                     attempt.rejection_summary?.top_rejection_reasons.join(",") ||
                     "none"
@@ -2115,6 +2120,22 @@ function buildSections(
         scheduled_scan_timeline_latest_next_best_fix:
           scheduledScanTimelineToday[0]?.rejection_summary?.next_best_fix ??
           null,
+        scheduled_scan_timeline_latest_reference_refresh_attempted:
+          scheduledScanTimelineToday[0]?.reference_refresh
+            ?.reference_refresh_attempted_count ?? null,
+        scheduled_scan_timeline_latest_reference_refresh_success:
+          scheduledScanTimelineToday[0]?.reference_refresh
+            ?.reference_refresh_success_count ?? null,
+        scheduled_scan_timeline_latest_reference_refresh_failed:
+          scheduledScanTimelineToday[0]?.reference_refresh
+            ?.reference_refresh_failed_count ?? null,
+        scheduled_scan_timeline_latest_reference_refresh_rescued_stale_cache:
+          scheduledScanTimelineToday[0]?.reference_refresh
+            ?.reference_refresh_rescued_from_scanner_cache_reference_too_old_count ??
+          null,
+        scheduled_scan_timeline_latest_reference_refresh_remaining_stale:
+          scheduledScanTimelineToday[0]?.reference_refresh
+            ?.reference_refresh_remaining_stale_reference_blocks ?? null,
         scheduled_scan_timeline_json: JSON.stringify(scheduledScanTimelineToday),
       },
     }),
@@ -2770,6 +2791,12 @@ function buildSections(
           topReasonText(selectedToBuiltDropOff?.rejection_counts ?? null),
         ),
         lineValue(
+          "Reference refresh",
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ? `attempted=${latestScheduledBuildRejectionAttempt.reference_refresh.reference_refresh_attempted_count} / success=${latestScheduledBuildRejectionAttempt.reference_refresh.reference_refresh_success_count} / failed=${latestScheduledBuildRejectionAttempt.reference_refresh.reference_refresh_failed_count} / rescued stale cache=${latestScheduledBuildRejectionAttempt.reference_refresh.reference_refresh_rescued_from_scanner_cache_reference_too_old_count} / remaining stale=${latestScheduledBuildRejectionAttempt.reference_refresh.reference_refresh_remaining_stale_reference_blocks}`
+            : "not observed",
+        ),
+        lineValue(
           "Reason examples",
           selectedToBuiltDropOff
             ? Object.entries(selectedToBuiltDropOff.examples_by_reason)
@@ -2809,6 +2836,22 @@ function buildSections(
         next_best_fix:
           latestScheduledBuildRejectionAttempt?.rejection_summary
             ?.next_best_fix ?? null,
+        reference_refresh_attempted_count:
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_attempted_count ?? null,
+        reference_refresh_success_count:
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_success_count ?? null,
+        reference_refresh_failed_count:
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_failed_count ?? null,
+        reference_refresh_rescued_from_scanner_cache_reference_too_old_count:
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_rescued_from_scanner_cache_reference_too_old_count ??
+          null,
+        reference_refresh_remaining_stale_reference_blocks:
+          latestScheduledBuildRejectionAttempt?.reference_refresh
+            ?.reference_refresh_remaining_stale_reference_blocks ?? null,
         selected_count:
           selectedToBuiltDropOff?.selected_count ??
           batchCandidateAudit.selected_candidates_count,
