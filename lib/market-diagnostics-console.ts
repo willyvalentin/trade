@@ -1587,7 +1587,32 @@ function buildSections(
   const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
   const headline = diagnosticsHeadline(input);
   const batchCandidateAudit = getBatchCandidateAudit(input);
-  const selectedToBuiltDropOff = batchCandidateAudit.selected_to_built_drop_off;
+  const scheduledScanTimelineToday =
+    input.scan_readback?.scheduled_scan_timeline_today ?? [];
+  const latestScheduledBuildRejectionAttempt =
+    scheduledScanTimelineToday.find(
+      (attempt) =>
+        attempt.selected_to_built_drop_off &&
+        (attempt.selected_count ?? 0) > 0 &&
+        (attempt.built_count ?? 0) === 0 &&
+        (attempt.published_count ?? 0) === 0,
+    ) ??
+    scheduledScanTimelineToday.find(
+      (attempt) => attempt.selected_to_built_drop_off,
+    ) ??
+    null;
+  const selectedToBuiltDropOff =
+    batchCandidateAudit.selected_to_built_drop_off ??
+    latestScheduledBuildRejectionAttempt?.selected_to_built_drop_off ??
+    null;
+  const selectedToBuiltSource = batchCandidateAudit.selected_to_built_drop_off
+    ? "batch_candidate_audit"
+    : latestScheduledBuildRejectionAttempt
+      ? "scheduled_scan_timeline"
+      : "not_observed";
+  const selectedToBuiltPublishedCount =
+    latestScheduledBuildRejectionAttempt?.published_count ??
+    batchCandidateAudit.published_recommendations_count;
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
@@ -1666,8 +1691,6 @@ function buildSections(
     null;
   const batchesCreatedTodayByWindow =
     input.scan_readback?.batches_created_today_by_window ?? {};
-  const scheduledScanTimelineToday =
-    input.scan_readback?.scheduled_scan_timeline_today ?? [];
   const outcomeRowsExpectedToday =
     input.scan_readback?.expected_outcome_rows_today ??
     (input.scan_readback?.unique_learning_ideas_today ??
@@ -2025,6 +2048,29 @@ function buildSections(
                   )}`,
                   `allowed=${attempt.allowed === null ? "unknown" : bool(attempt.allowed)}`,
                   `reason=${compact(attempt.reason, "none")}`,
+                  `empty_reason=${compact(attempt.empty_scan_reason, "none")}`,
+                  `rejections=${
+                    attempt.rejection_summary?.top_rejection_reasons.join(",") ||
+                    "none"
+                  }`,
+                  `examples=${
+                    Object.entries(
+                      attempt.rejection_summary?.examples_by_reason ?? {},
+                    )
+                      .slice(0, 2)
+                      .map(([reason, tickers]) =>
+                        `${words(reason)}:${tickers.slice(0, 4).join(",")}`,
+                      )
+                      .join(" / ") || "none"
+                  }`,
+                  `category=${compact(
+                    attempt.rejection_summary?.below_target_category,
+                    "none",
+                  )}`,
+                  `next=${compact(
+                    attempt.rejection_summary?.next_best_fix,
+                    "none",
+                  )}`,
                   `raw/ranked/selected/built/published=${attempt.raw_count ?? 0}/${attempt.ranked_count ?? 0}/${attempt.selected_count ?? 0}/${attempt.built_count ?? 0}/${attempt.published_count ?? 0}`,
                   `batch=${compact(attempt.batch_fingerprint, "none")}`,
                   `run=${compact(attempt.scan_run_fingerprint, "none")}`,
@@ -2057,6 +2103,18 @@ function buildSections(
           scheduledScanTimelineToday[0]?.outcome ?? null,
         scheduled_scan_timeline_latest_reason:
           scheduledScanTimelineToday[0]?.reason ?? null,
+        scheduled_scan_timeline_latest_empty_scan_reason:
+          scheduledScanTimelineToday[0]?.empty_scan_reason ?? null,
+        scheduled_scan_timeline_latest_rejections:
+          scheduledScanTimelineToday[0]?.rejection_summary?.top_rejection_reasons.join(
+            ",",
+          ) ?? null,
+        scheduled_scan_timeline_latest_rejection_category:
+          scheduledScanTimelineToday[0]?.rejection_summary
+            ?.below_target_category ?? null,
+        scheduled_scan_timeline_latest_next_best_fix:
+          scheduledScanTimelineToday[0]?.rejection_summary?.next_best_fix ??
+          null,
         scheduled_scan_timeline_json: JSON.stringify(scheduledScanTimelineToday),
       },
     }),
@@ -2678,7 +2736,25 @@ function buildSections(
       lines: [
         lineValue(
           "Selected/built/published",
-          `${selectedToBuiltDropOff?.selected_count ?? batchCandidateAudit.selected_candidates_count}/${selectedToBuiltDropOff?.built_count ?? batchCandidateAudit.built_recommendations_count}/${batchCandidateAudit.published_recommendations_count}`,
+          `${selectedToBuiltDropOff?.selected_count ?? batchCandidateAudit.selected_candidates_count}/${selectedToBuiltDropOff?.built_count ?? batchCandidateAudit.built_recommendations_count}/${selectedToBuiltPublishedCount}`,
+        ),
+        lineValue("Source", selectedToBuiltSource),
+        lineValue(
+          "Latest attempt",
+          latestScheduledBuildRejectionAttempt
+            ? `${latestScheduledBuildRejectionAttempt.utc_timestamp} / ${compact(
+                latestScheduledBuildRejectionAttempt.ny_timestamp,
+                "unknown NY",
+              )}`
+            : "not observed",
+        ),
+        lineValue(
+          "Scan run",
+          compact(
+            latestScheduledBuildRejectionAttempt?.scan_run_fingerprint ??
+              batchCandidateAudit.scan_run_fingerprint,
+            "not observed",
+          ),
         ),
         lineValue(
           "Rejected selected",
@@ -2714,15 +2790,32 @@ function buildSections(
           selectedToBuiltDropOff?.output_below_target_explanation ??
             "Selected candidate build diagnostics were not observed for this scan.",
         ),
+        lineValue(
+          "Next best fix",
+          latestScheduledBuildRejectionAttempt?.rejection_summary
+            ?.next_best_fix ??
+            "Inspect selected candidate diagnostics for missing data or builder gaps.",
+        ),
       ],
       metrics: {
+        selected_to_built_source: selectedToBuiltSource,
+        latest_attempt_utc:
+          latestScheduledBuildRejectionAttempt?.utc_timestamp ?? null,
+        latest_attempt_ny:
+          latestScheduledBuildRejectionAttempt?.ny_timestamp ?? null,
+        scan_run_fingerprint:
+          latestScheduledBuildRejectionAttempt?.scan_run_fingerprint ??
+          batchCandidateAudit.scan_run_fingerprint,
+        next_best_fix:
+          latestScheduledBuildRejectionAttempt?.rejection_summary
+            ?.next_best_fix ?? null,
         selected_count:
           selectedToBuiltDropOff?.selected_count ??
           batchCandidateAudit.selected_candidates_count,
         built_count:
           selectedToBuiltDropOff?.built_count ??
           batchCandidateAudit.built_recommendations_count,
-        published_count: batchCandidateAudit.published_recommendations_count,
+        published_count: selectedToBuiltPublishedCount,
         rejected_count:
           selectedToBuiltDropOff?.rejected_count ??
           Math.max(

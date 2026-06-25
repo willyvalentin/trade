@@ -11,9 +11,12 @@ import {
 } from "../../lib/recommendation-serving-cadence";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
 import {
+  buildScheduledScanAttemptRecord,
   buildScheduledScanTimelineToday,
+  scheduledScanAttemptFromRow,
   type ScheduledScanAttempt,
 } from "../../lib/scheduled-scan-attempts";
+import type { SelectedToBuiltDropOffSummary } from "../../lib/recommendation-build-diagnostics";
 import type { ScanLogEntry } from "../../lib/scan-logs";
 
 const tradingDayMarketStatus: MarketSessionStatus = {
@@ -46,6 +49,31 @@ function scanRun(input: {
     payload_json: {},
   } as RecommendationScanRun;
 }
+
+const emptyScheduledAttemptDiagnostics = {
+  selected_to_built_drop_off: null,
+  selected_candidate_build_diagnostics: [],
+  empty_scan_reason: null,
+  rejection_summary: null,
+};
+
+const emptyOfficialDropOff: SelectedToBuiltDropOffSummary = {
+  selected_count: 18,
+  built_count: 0,
+  rejected_count: 18,
+  rejection_counts: {
+    missing_fresh_reference_price: 18,
+  },
+  category_counts: {
+    data_quality: 18,
+  },
+  examples_by_reason: {
+    missing_fresh_reference_price: ["AMD", "NVDA", "MSFT"],
+  },
+  output_below_target_reason_category: "data_quality",
+  output_below_target_explanation:
+    "18 selected candidates had no fresh reference price for plan construction.",
+};
 
 test("classifies official scan windows from UTC into New York time", () => {
   const morning = buildDayTradeScanOrchestrationSummary({
@@ -229,7 +257,7 @@ test("does not mark Morning completed from synthetic empty readback without an o
         payload_json: {},
         scanned_ticker_count: null,
         raw_candidate_count: null,
-      } as RecommendationScanRun,
+      } as unknown as RecommendationScanRun,
     ],
   });
 
@@ -299,6 +327,7 @@ test("scheduled scan timeline includes skipped and successful same-day attempts 
       batch_fingerprint: null,
       scan_run_fingerprint: null,
       scheduled_scan_run_id: null,
+      ...emptyScheduledAttemptDiagnostics,
       payload_json: {},
     },
     {
@@ -328,6 +357,7 @@ test("scheduled scan timeline includes skipped and successful same-day attempts 
       batch_fingerprint: "batch-1",
       scan_run_fingerprint: "run-1",
       scheduled_scan_run_id: "scheduled-1",
+      ...emptyScheduledAttemptDiagnostics,
       payload_json: {},
     },
   ];
@@ -358,6 +388,127 @@ test("scheduled scan timeline includes skipped and successful same-day attempts 
     outcome: "skipped",
     reason: "not_official_scan_window",
   });
+});
+
+test("scheduled scan attempt readback surfaces empty official build rejection diagnostics", () => {
+  const row = buildScheduledScanAttemptRecord({
+    attempt_fingerprint: "attempt-empty-morning",
+    route_received_at: "2026-06-25T13:48:00.000Z",
+    scheduled_function_fired_at: "2026-06-25T13:48:00.000Z",
+    trading_date: "2026-06-25",
+    source: "netlify_scheduled_function",
+    mode: "scheduled",
+    outcome: "scanned",
+    allowed: true,
+    official_window: "morning",
+    intraday_scan_window: "morning_momentum",
+    orchestration_decision: "should_scan_now",
+    message: "Official scan selected candidates but published none.",
+    raw_count: 22,
+    ranked_count: 22,
+    selected_count: 18,
+    built_count: 0,
+    published_count: 0,
+    recommendations_created: 0,
+    scan_run_fingerprint: "run-empty-morning",
+    payload_json: {
+      selected_to_built_drop_off: emptyOfficialDropOff,
+    },
+  });
+  const attempt = scheduledScanAttemptFromRow(row);
+  expect(attempt).not.toBeNull();
+
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: attempt ? [attempt] : [],
+    scanLogs: [],
+    scanRuns: [],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    official_window: "morning",
+    outcome: "scanned",
+    reason: "empty_due_to_missing_fresh_reference",
+    raw_count: 22,
+    ranked_count: 22,
+    selected_count: 18,
+    built_count: 0,
+    published_count: 0,
+    scan_run_fingerprint: "run-empty-morning",
+    empty_scan_reason: "empty_due_to_missing_fresh_reference",
+  });
+  expect(
+    timeline[0]?.rejection_summary?.top_rejection_reasons,
+  ).toContain("missing_fresh_reference_price:18");
+  expect(
+    timeline[0]?.rejection_summary?.examples_by_reason
+      .missing_fresh_reference_price,
+  ).toEqual(["AMD", "NVDA", "MSFT"]);
+  expect(timeline[0]?.rejection_summary?.below_target_category).toBe(
+    "data_quality",
+  );
+});
+
+test("scan run timeline keeps selected-to-built diagnostics when final counts are sparse", () => {
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [],
+    scanRuns: [
+      {
+        id: "scan-empty-morning",
+        run_fingerprint: "run-empty-morning",
+        trading_date: "2026-06-25",
+        window: "morning",
+        status: "empty",
+        source: "scheduled",
+        observed_at: "2026-06-25T13:48:00.000Z",
+        raw_candidate_count: 22,
+        counts: {
+          visible_recommendation_count: 0,
+        },
+        payload_json: {
+          selected_to_built_drop_off: emptyOfficialDropOff,
+          selected_candidate_build_diagnostics: [],
+          empty_scan_reason: "empty_due_to_missing_fresh_reference",
+          active_scan_trace: {
+            should_scan_now: true,
+            raw_candidates: {
+              raw_candidate_count: 22,
+            },
+            ranking: {
+              ranked_count: 22,
+              selected_count: 18,
+            },
+            final: {
+              no_publish_reason: "empty",
+              scan_run_fingerprint: "run-empty-morning",
+              recommendations_built_count: 0,
+              recommendations_published_count: 0,
+              selected_to_built_drop_off: emptyOfficialDropOff,
+            },
+          },
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+    tradingDate: "2026-06-25",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    source: "recommendation_scan_runs",
+    official_window: "morning",
+    outcome: "skipped",
+    reason: "empty_due_to_missing_fresh_reference",
+    raw_count: 22,
+    ranked_count: 22,
+    selected_count: 18,
+    built_count: 0,
+    published_count: 0,
+    scan_run_fingerprint: "run-empty-morning",
+  });
+  expect(
+    timeline[0]?.selected_to_built_drop_off?.rejection_counts
+      .missing_fresh_reference_price,
+  ).toBe(18);
 });
 
 test("outside official window does not create a current official serving batch", () => {

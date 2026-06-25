@@ -7,6 +7,13 @@ import { getNewYorkDateString, type IntradayScanWindow } from "@/lib/intraday-sc
 import { getNyMarketTime } from "@/lib/market-session";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { ScanLogEntry } from "@/lib/scan-logs";
+import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import type {
+  CandidateBuildRejectionCategory,
+  CandidateBuildRejectionReason,
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 
 export type ScheduledScanAttemptOutcome =
   | "scheduled_function_fired"
@@ -46,7 +53,20 @@ export type ScheduledScanAttempt = {
   batch_fingerprint: string | null;
   scan_run_fingerprint: string | null;
   scheduled_scan_run_id: string | null;
+  selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
+  selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
+  empty_scan_reason: string | null;
+  rejection_summary: ScheduledScanRejectionSummary | null;
   payload_json: Record<string, unknown>;
+};
+
+export type ScheduledScanRejectionSummary = {
+  empty_scan_reason: string | null;
+  top_rejection_reasons: string[];
+  examples_by_reason: Record<string, string[]>;
+  below_target_category: string | null;
+  below_target_explanation: string | null;
+  next_best_fix: string | null;
 };
 
 export type ScheduledScanTimelineEntry = {
@@ -66,6 +86,10 @@ export type ScheduledScanTimelineEntry = {
   published_count: number | null;
   batch_fingerprint: string | null;
   scan_run_fingerprint: string | null;
+  empty_scan_reason: string | null;
+  rejection_summary: ScheduledScanRejectionSummary | null;
+  selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
+  selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
 };
 
 export type ScheduledScanAttemptInput = Partial<ScheduledScanAttempt> & {
@@ -140,6 +164,231 @@ function timestampFor(input: ScheduledScanAttemptInput) {
   );
 }
 
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function numericRecordFromUnknown<T extends string>(
+  value: unknown,
+): Partial<Record<T, number>> {
+  const candidate = objectOrNull(value);
+  if (!candidate) return {};
+
+  return Object.fromEntries(
+    Object.entries(candidate)
+      .map(([key, recordValue]) => [key, numberOrNull(recordValue)] as const)
+      .filter((entry): entry is readonly [string, number] => entry[1] !== null),
+  ) as Partial<Record<T, number>>;
+}
+
+function stringArrayRecordFromUnknown<T extends string>(
+  value: unknown,
+): Partial<Record<T, string[]>> {
+  const candidate = objectOrNull(value);
+  if (!candidate) return {};
+
+  return Object.fromEntries(
+    Object.entries(candidate)
+      .map(([key, recordValue]) => [
+        key,
+        Array.isArray(recordValue)
+          ? recordValue.filter((item): item is string => typeof item === "string")
+          : [],
+      ] as const)
+      .filter(([, recordValue]) => recordValue.length > 0),
+  ) as Partial<Record<T, string[]>>;
+}
+
+function outputBelowTargetCategoryFromUnknown(
+  value: unknown,
+): SelectedToBuiltDropOffSummary["output_below_target_reason_category"] {
+  const text = textOrNull(value);
+  if (
+    text === "healthy_caution" ||
+    text === "data_quality" ||
+    text === "safety" ||
+    text === "builder_limit" ||
+    text === "implementation_bottleneck"
+  ) {
+    return text;
+  }
+
+  return "unknown";
+}
+
+function selectedToBuiltFromUnknown(
+  value: unknown,
+): SelectedToBuiltDropOffSummary | null {
+  const candidate = objectOrNull(value);
+  if (!candidate) return null;
+
+  return {
+    selected_count: numberOrNull(candidate.selected_count) ?? 0,
+    built_count: numberOrNull(candidate.built_count) ?? 0,
+    rejected_count: numberOrNull(candidate.rejected_count) ?? 0,
+    rejection_counts: numericRecordFromUnknown<CandidateBuildRejectionReason>(
+      candidate.rejection_counts,
+    ),
+    category_counts: numericRecordFromUnknown<CandidateBuildRejectionCategory>(
+      candidate.category_counts,
+    ),
+    examples_by_reason:
+      stringArrayRecordFromUnknown<CandidateBuildRejectionReason>(
+        candidate.examples_by_reason,
+      ),
+    output_below_target_reason_category: outputBelowTargetCategoryFromUnknown(
+      candidate.output_below_target_reason_category,
+    ),
+    output_below_target_explanation:
+      textOrNull(candidate.output_below_target_explanation) ??
+      "Output is below target and needs additional diagnostics.",
+  };
+}
+
+function selectedBuildDiagnosticsFromUnknown(
+  value: unknown,
+): SelectedCandidateBuildDiagnostic[] {
+  return Array.isArray(value)
+    ? value.filter(
+        (item): item is SelectedCandidateBuildDiagnostic =>
+          typeof item === "object" &&
+          item !== null &&
+          typeof (item as { ticker?: unknown }).ticker === "string" &&
+          typeof (item as { rejection_reason?: unknown }).rejection_reason ===
+            "string",
+      )
+    : [];
+}
+
+function activeTraceFromPayload(payload: Record<string, unknown>): ActiveScanTrace | null {
+  const trace = objectOrNull(payload.active_scan_trace);
+  return trace ? (trace as ActiveScanTrace) : null;
+}
+
+export function buildEmptyScanReason(
+  dropOff: SelectedToBuiltDropOffSummary | null,
+): string | null {
+  const topReason =
+    Object.entries(dropOff?.rejection_counts ?? {})
+      .filter(([, value]) => numberOrNull(value) !== null && Number(value) > 0)
+      .sort((first, second) => Number(second[1]) - Number(first[1]))[0]?.[0] ??
+    null;
+
+  if (
+    topReason === "missing_fresh_reference_price" ||
+    topReason === "missing_reference_source" ||
+    topReason === "missing_reference_timestamp"
+  ) {
+    return "empty_due_to_missing_fresh_reference";
+  }
+  if (
+    topReason === "scanner_cache_reference_too_old" ||
+    topReason === "stale_reference_price" ||
+    topReason === "stale_market_data" ||
+    topReason === "future_reference_timestamp"
+  ) {
+    return "empty_due_to_stale_reference";
+  }
+  if (topReason === "provider_data_unavailable") {
+    return "empty_due_to_provider_data_unavailable";
+  }
+  if (topReason === "invalid_risk_geometry" || topReason === "weak_risk_reward") {
+    return "empty_due_to_risk_geometry";
+  }
+  if (
+    topReason === "below_publish_threshold" ||
+    topReason === "ranking_selected_but_not_qualified" ||
+    topReason === "not_selected_by_ranking"
+  ) {
+    return "empty_due_to_thresholds";
+  }
+  if (topReason === "fallback_builder_limit_reached") {
+    return "empty_due_to_builder_limit";
+  }
+  if (dropOff && Object.keys(dropOff.rejection_counts).length > 1) {
+    return "empty_due_to_mixed_rejections";
+  }
+
+  return null;
+}
+
+function nextBestFixForCategory(category: string | null) {
+  if (category === "data_quality") {
+    return "Refresh provider/reference-price inputs before the next official scan.";
+  }
+  if (category === "safety") {
+    return "Inspect rejected plans for invalid entry/stop/target geometry before changing thresholds.";
+  }
+  if (category === "builder_limit") {
+    return "Review builder/session limits if the selected set is otherwise valid.";
+  }
+  if (category === "implementation_bottleneck") {
+    return "Add missing exact rejection instrumentation for the selected candidates.";
+  }
+  if (category === "healthy_caution") {
+    return "No immediate fix; the scanner avoided forcing low-quality output.";
+  }
+
+  return "Inspect selected candidate diagnostics for missing data or builder gaps.";
+}
+
+export function buildScheduledScanRejectionSummary({
+  dropOff,
+  emptyScanReason,
+}: {
+  dropOff: SelectedToBuiltDropOffSummary | null;
+  emptyScanReason?: string | null;
+}): ScheduledScanRejectionSummary | null {
+  if (!dropOff || dropOff.selected_count === 0) return null;
+
+  const topRejectionReasons = Object.entries(dropOff.rejection_counts)
+    .filter(([, value]) => Number(value) > 0)
+    .sort((first, second) => Number(second[1]) - Number(first[1]))
+    .slice(0, 5)
+    .map(([reason, value]) => `${reason}:${value}`);
+  const examplesByReason = Object.fromEntries(
+    Object.entries(dropOff.examples_by_reason)
+      .filter(([, examples]) => Array.isArray(examples) && examples.length > 0)
+      .map(([reason, examples]) => [reason, examples ?? []]),
+  );
+  const category = dropOff.output_below_target_reason_category;
+
+  return {
+    empty_scan_reason: emptyScanReason ?? buildEmptyScanReason(dropOff),
+    top_rejection_reasons: topRejectionReasons,
+    examples_by_reason: examplesByReason,
+    below_target_category: category,
+    below_target_explanation: dropOff.output_below_target_explanation,
+    next_best_fix: nextBestFixForCategory(category),
+  };
+}
+
+function dropOffFromPayload(payload: Record<string, unknown>) {
+  const trace = activeTraceFromPayload(payload);
+  return (
+    selectedToBuiltFromUnknown(payload.selected_to_built_drop_off) ??
+    selectedToBuiltFromUnknown(
+      objectOrNull(payload.build_rejection_diagnostics)?.selected_to_built_drop_off,
+    ) ??
+    trace?.final.selected_to_built_drop_off ??
+    null
+  );
+}
+
+function buildDiagnosticsFromPayload(payload: Record<string, unknown>) {
+  const trace = activeTraceFromPayload(payload);
+  return [
+    ...selectedBuildDiagnosticsFromUnknown(payload.selected_candidate_build_diagnostics),
+    ...selectedBuildDiagnosticsFromUnknown(
+      objectOrNull(payload.build_rejection_diagnostics)
+        ?.selected_candidate_build_diagnostics,
+    ),
+    ...(trace?.final.selected_candidate_build_diagnostics ?? []),
+  ];
+}
+
 export function buildScheduledScanAttemptFingerprint(input: {
   scheduledFunctionFiredAt?: string | null;
   routeReceivedAt?: string | null;
@@ -171,6 +420,25 @@ export function buildScheduledScanAttemptRecord(
       routeReceivedAt: input.route_received_at,
       source: input.source,
     });
+  const inputPayload =
+    input.payload_json && typeof input.payload_json === "object"
+      ? input.payload_json
+      : {};
+  const dropOff =
+    selectedToBuiltFromUnknown(input.selected_to_built_drop_off) ??
+    dropOffFromPayload(inputPayload);
+  const buildDiagnostics =
+    input.selected_candidate_build_diagnostics?.length
+      ? input.selected_candidate_build_diagnostics
+      : buildDiagnosticsFromPayload(inputPayload);
+  const emptyScanReason =
+    textOrNull(input.empty_scan_reason) ?? buildEmptyScanReason(dropOff);
+  const rejectionSummary =
+    input.rejection_summary ??
+    buildScheduledScanRejectionSummary({
+      dropOff,
+      emptyScanReason,
+    });
 
   return {
     attempt_fingerprint: attemptFingerprint,
@@ -198,10 +466,21 @@ export function buildScheduledScanAttemptRecord(
     batch_fingerprint: textOrNull(input.batch_fingerprint),
     scan_run_fingerprint: textOrNull(input.scan_run_fingerprint),
     scheduled_scan_run_id: textOrNull(input.scheduled_scan_run_id),
-    payload_json:
-      input.payload_json && typeof input.payload_json === "object"
-        ? input.payload_json
-        : {},
+    payload_json: {
+      ...inputPayload,
+      selected_to_built_drop_off: dropOff,
+      selected_candidate_build_diagnostics: buildDiagnostics,
+      empty_scan_reason: emptyScanReason,
+      rejection_summary: rejectionSummary,
+      build_rejection_diagnostics: {
+        selected_count: dropOff?.selected_count ?? input.selected_count ?? null,
+        built_count: dropOff?.built_count ?? input.built_count ?? null,
+        published_count: input.published_count ?? input.recommendations_created ?? null,
+        selected_to_built_drop_off: dropOff,
+        selected_candidate_build_diagnostics: buildDiagnostics,
+        rejection_summary: rejectionSummary,
+      },
+    },
   };
 }
 
@@ -212,6 +491,17 @@ export function scheduledScanAttemptFromRow(
   const utcTimestamp = isoOrNull(row.utc_timestamp ?? row.route_received_at ?? row.created_at);
 
   if (!attemptFingerprint || !utcTimestamp) return null;
+
+  const payload =
+    row.payload_json && typeof row.payload_json === "object"
+      ? (row.payload_json as Record<string, unknown>)
+      : {};
+  const dropOff = dropOffFromPayload(payload);
+  const buildDiagnostics = buildDiagnosticsFromPayload(payload);
+  const emptyScanReason =
+    textOrNull(payload.empty_scan_reason) ?? buildEmptyScanReason(dropOff);
+  const rejectionSummary =
+    objectOrNull(payload.rejection_summary) as ScheduledScanRejectionSummary | null;
 
   return {
     id: textOrNull(row.id),
@@ -241,10 +531,16 @@ export function scheduledScanAttemptFromRow(
     batch_fingerprint: textOrNull(row.batch_fingerprint),
     scan_run_fingerprint: textOrNull(row.scan_run_fingerprint),
     scheduled_scan_run_id: textOrNull(row.scheduled_scan_run_id),
-    payload_json:
-      row.payload_json && typeof row.payload_json === "object"
-        ? (row.payload_json as Record<string, unknown>)
-        : {},
+    selected_to_built_drop_off: dropOff,
+    selected_candidate_build_diagnostics: buildDiagnostics,
+    empty_scan_reason: emptyScanReason,
+    rejection_summary:
+      rejectionSummary ??
+      buildScheduledScanRejectionSummary({
+        dropOff,
+        emptyScanReason,
+      }),
+    payload_json: payload,
   };
 }
 
@@ -260,7 +556,7 @@ function timelineFromAttempt(
     intraday_scan_window: attempt.intraday_scan_window,
     outcome: attempt.outcome,
     allowed: attempt.allowed,
-    reason: attempt.skip_reason ?? attempt.message,
+    reason: attempt.skip_reason ?? attempt.empty_scan_reason ?? attempt.message,
     raw_count: attempt.raw_count,
     ranked_count: attempt.ranked_count,
     selected_count: attempt.selected_count,
@@ -268,6 +564,11 @@ function timelineFromAttempt(
     published_count: attempt.published_count ?? attempt.recommendations_created,
     batch_fingerprint: attempt.batch_fingerprint,
     scan_run_fingerprint: attempt.scan_run_fingerprint,
+    empty_scan_reason: attempt.empty_scan_reason,
+    rejection_summary: attempt.rejection_summary,
+    selected_to_built_drop_off: attempt.selected_to_built_drop_off,
+    selected_candidate_build_diagnostics:
+      attempt.selected_candidate_build_diagnostics,
   };
 }
 
@@ -281,6 +582,12 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
       : scanLog.result === "provider_error" || scanLog.result === "openai_error"
         ? "failed"
         : "skipped";
+  const dropOff = scanLog.selected_to_built_drop_off ?? null;
+  const emptyScanReason = buildEmptyScanReason(dropOff);
+  const rejectionSummary = buildScheduledScanRejectionSummary({
+    dropOff,
+    emptyScanReason,
+  });
 
   return {
     utc_timestamp: timestamp,
@@ -291,7 +598,7 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     intraday_scan_window: scanLog.scan_window,
     outcome,
     allowed: scanLog.day_trade_scan_orchestration?.should_scan_now ?? null,
-    reason: scanLog.no_publish_reason ?? scanLog.message,
+    reason: emptyScanReason ?? scanLog.no_publish_reason ?? scanLog.message,
     raw_count:
       scanLog.real_scanner_candidate_generation?.universe.candidates_generated ??
       scanLog.candidates_scanned ??
@@ -304,6 +611,11 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     batch_fingerprint: scanLog.active_scan_trace?.final.batch_fingerprint ?? null,
     scan_run_fingerprint:
       scanLog.active_scan_trace?.final.scan_run_fingerprint ?? null,
+    empty_scan_reason: emptyScanReason,
+    rejection_summary: rejectionSummary,
+    selected_to_built_drop_off: dropOff,
+    selected_candidate_build_diagnostics:
+      scanLog.selected_candidate_build_diagnostics ?? [],
   };
 }
 
@@ -325,12 +637,32 @@ function timelineFromScanRun(
             ranked_candidates_count?: number | null;
             recommendations_built_count?: number | null;
             recommendations_published_count?: number | null;
+            selected_candidate_build_diagnostics?:
+              | SelectedCandidateBuildDiagnostic[]
+              | null;
+            selected_to_built_drop_off?: SelectedToBuiltDropOffSummary | null;
           };
-          ranking?: { selected_count?: number | null };
+          ranking?: {
+            ranked_count?: number | null;
+            selected_count?: number | null;
+          };
           raw_candidates?: { raw_candidate_count?: number | null };
           should_scan_now?: boolean | null;
         })
       : null;
+  const dropOff =
+    dropOffFromPayload(scanRun.payload_json) ??
+    trace?.final?.selected_to_built_drop_off ??
+    null;
+  const emptyScanReason = buildEmptyScanReason(dropOff);
+  const rejectionSummary = buildScheduledScanRejectionSummary({
+    dropOff,
+    emptyScanReason,
+  });
+  const buildDiagnostics =
+    buildDiagnosticsFromPayload(scanRun.payload_json).length > 0
+      ? buildDiagnosticsFromPayload(scanRun.payload_json)
+      : trace?.final?.selected_candidate_build_diagnostics ?? [];
 
   return {
     utc_timestamp: timestamp,
@@ -347,9 +679,13 @@ function timelineFromScanRun(
           ? "failed"
           : "skipped",
     allowed: trace?.should_scan_now ?? null,
-    reason: trace?.final?.no_publish_reason ?? scanRun.status,
+    reason: emptyScanReason ?? trace?.final?.no_publish_reason ?? scanRun.status,
     raw_count: scanRun.raw_candidate_count ?? trace?.raw_candidates?.raw_candidate_count ?? null,
-    ranked_count: trace?.final?.ranked_candidates_count ?? null,
+    ranked_count:
+      trace?.ranking?.ranked_count ??
+      trace?.final?.ranked_candidates_count ??
+      scanRun.raw_candidate_count ??
+      null,
     selected_count: trace?.ranking?.selected_count ?? null,
     built_count: trace?.final?.recommendations_built_count ?? null,
     published_count:
@@ -357,6 +693,10 @@ function timelineFromScanRun(
       scanRun.counts.visible_recommendation_count,
     batch_fingerprint: trace?.final?.batch_fingerprint ?? null,
     scan_run_fingerprint: trace?.final?.scan_run_fingerprint ?? scanRun.run_fingerprint,
+    empty_scan_reason: emptyScanReason,
+    rejection_summary: rejectionSummary,
+    selected_to_built_drop_off: dropOff,
+    selected_candidate_build_diagnostics: buildDiagnostics,
   };
 }
 

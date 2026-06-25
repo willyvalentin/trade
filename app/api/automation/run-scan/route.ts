@@ -48,6 +48,8 @@ import {
 import {
   buildScheduledScanAttemptFingerprint,
   buildScheduledScanAttemptRecord,
+  buildEmptyScanReason,
+  buildScheduledScanRejectionSummary,
 } from "@/lib/scheduled-scan-attempts";
 import {
   buildRecommendationScanRun,
@@ -1252,7 +1254,15 @@ async function recordScheduledScanAttempt({
     official_window: orchestration.active_window,
     intraday_scan_window: scanWindow,
     orchestration_decision: orchestration.decision,
-    skip_reason: skipReason,
+    skip_reason:
+      skipReason ??
+      (publishedCount === 0
+        ? buildEmptyScanReason(
+            activeScanTrace?.final.selected_to_built_drop_off ??
+              scanLog?.selected_to_built_drop_off ??
+              null,
+          )
+        : null),
     message,
     http_status: httpStatus,
     raw_count: rawCount,
@@ -1273,6 +1283,14 @@ async function recordScheduledScanAttempt({
     payload_json: {
       scan_log_result: scanLog?.result ?? null,
       active_scan_trace: activeScanTrace,
+      selected_to_built_drop_off:
+        activeScanTrace?.final.selected_to_built_drop_off ??
+        scanLog?.selected_to_built_drop_off ??
+        null,
+      selected_candidate_build_diagnostics:
+        activeScanTrace?.final.selected_candidate_build_diagnostics ??
+        scanLog?.selected_candidate_build_diagnostics ??
+        [],
     },
   });
   const { error } = await supabase
@@ -1834,6 +1852,12 @@ async function persistAutomationArtifacts({
     scanLog,
     recommendations,
   });
+  const selectedToBuiltDropOff = scanLog.selected_to_built_drop_off ?? null;
+  const emptyScanReason = buildEmptyScanReason(selectedToBuiltDropOff);
+  const buildRejectionSummary = buildScheduledScanRejectionSummary({
+    dropOff: selectedToBuiltDropOff,
+    emptyScanReason,
+  });
   const scanRun = buildRecommendationScanRun({
     trading_date: scanDate,
     observed_at: now,
@@ -1877,6 +1901,28 @@ async function persistAutomationArtifacts({
         scanLog.real_scanner_candidate_generation?.provider_source ??
         scanLog.indicator_source ??
         null,
+      selected_to_built_drop_off: selectedToBuiltDropOff,
+      selected_candidate_build_diagnostics:
+        scanLog.selected_candidate_build_diagnostics ?? [],
+      empty_scan_reason: emptyScanReason,
+      build_rejection_diagnostics: {
+        selected_count:
+          selectedToBuiltDropOff?.selected_count ??
+          scanLog.scanner_candidate_ranking?.selected_count ??
+          null,
+        built_count:
+          selectedToBuiltDropOff?.built_count ??
+          scanLog.recommendations_built_count ??
+          null,
+        published_count:
+          scanLog.recommendations_published_count ??
+          scanLog.recommendations_created ??
+          null,
+        selected_to_built_drop_off: selectedToBuiltDropOff,
+        selected_candidate_build_diagnostics:
+          scanLog.selected_candidate_build_diagnostics ?? [],
+        rejection_summary: buildRejectionSummary,
+      },
     },
   });
   const persistence = {
