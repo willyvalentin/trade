@@ -20,6 +20,10 @@ import type {
   SelectedToBuiltDropOffSummary,
 } from "@/lib/recommendation-build-diagnostics";
 import type { ReferenceRefreshDiagnostics } from "@/lib/reference-refresh-diagnostics";
+import type {
+  ReferencePriceTimestampKind,
+  ReferenceRefreshTimestampValidationStatus,
+} from "@/lib/reference-refresh-diagnostics";
 
 export type ScheduledScanAttemptOutcome =
   | "scheduled_function_fired"
@@ -228,6 +232,36 @@ function outputBelowTargetCategoryFromUnknown(
   return "unknown";
 }
 
+function timestampKindFromUnknown(value: unknown): ReferencePriceTimestampKind {
+  if (
+    value === "market_data_time" ||
+    value === "fetch_time" ||
+    value === "cache_time" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+
+  return "unknown";
+}
+
+function timestampValidationStatusFromUnknown(
+  value: unknown,
+): ReferenceRefreshTimestampValidationStatus | null {
+  if (
+    value === "provider_timestamp_current" ||
+    value === "provider_timestamp_within_scan_skew_tolerance" ||
+    value === "provider_future_beyond_scan_skew_tolerance" ||
+    value === "provider_returned_future_timestamp" ||
+    value === "provider_timestamp_wrong_trading_day" ||
+    value === "provider_timestamp_missing"
+  ) {
+    return value;
+  }
+
+  return null;
+}
+
 function selectedToBuiltFromUnknown(
   value: unknown,
 ): SelectedToBuiltDropOffSummary | null {
@@ -308,6 +342,17 @@ function referenceRefreshFromUnknown(
             typeof item.provider_message === "string"
               ? item.provider_message
               : null,
+          reference_price_timestamp_kind: timestampKindFromUnknown(
+            item.reference_price_timestamp_kind,
+          ),
+          reference_price_timestamp_skew_ms: numberOrNull(
+            item.reference_price_timestamp_skew_ms,
+          ),
+          reference_price_scan_time: isoOrNull(item.reference_price_scan_time),
+          reference_price_timestamp_validation_status:
+            timestampValidationStatusFromUnknown(
+              item.reference_price_timestamp_validation_status,
+            ),
         }))
     : [];
 

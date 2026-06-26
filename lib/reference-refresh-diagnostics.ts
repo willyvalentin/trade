@@ -11,6 +11,7 @@ export type ReferenceRefreshFailureReason =
   | "provider_rate_limited"
   | "provider_returned_stale_timestamp"
   | "provider_returned_future_timestamp"
+  | "provider_future_beyond_scan_skew_tolerance"
   | "provider_wrong_symbol"
   | "provider_invalid_price"
   | "provider_missing_timestamp"
@@ -29,11 +30,31 @@ export type ReferenceRefreshSource =
   | "twelve_data_quote"
   | "unknown";
 
+export type ReferencePriceTimestampKind =
+  | "market_data_time"
+  | "fetch_time"
+  | "cache_time"
+  | "unknown";
+
+export type ReferenceRefreshTimestampValidationStatus =
+  | "provider_timestamp_current"
+  | "provider_timestamp_within_scan_skew_tolerance"
+  | "provider_future_beyond_scan_skew_tolerance"
+  | "provider_returned_future_timestamp"
+  | "provider_timestamp_wrong_trading_day"
+  | "provider_timestamp_missing";
+
 export type ReferenceRefreshAttemptDiagnostic = {
   ticker: string;
   provider_symbol: string | null;
   source_attempted: ReferenceRefreshSource;
   timestamp: string | null;
+  reference_price_timestamp_kind: ReferencePriceTimestampKind;
+  reference_price_timestamp_skew_ms: number | null;
+  reference_price_scan_time: string | null;
+  reference_price_timestamp_validation_status:
+    | ReferenceRefreshTimestampValidationStatus
+    | null;
   price: number | null;
   provider: string | null;
   read_path: string | null;
@@ -69,6 +90,9 @@ export type ReferenceRefreshDiagnostics = {
     {
       source: string | null;
       timestamp: string | null;
+      timestamp_kind?: ReferencePriceTimestampKind | null;
+      timestamp_skew_ms?: number | null;
+      scan_time?: string | null;
       provider: string | null;
       read_path: string | null;
       price: number | null;
@@ -87,6 +111,12 @@ export type ReferenceRefreshCandidate = {
   reference_price_used_for_plan?: number | null;
   reference_price_source?: string | null;
   reference_price_timestamp?: string | null;
+  reference_price_timestamp_kind?: ReferencePriceTimestampKind | null;
+  reference_price_timestamp_skew_ms?: number | null;
+  reference_price_scan_time?: string | null;
+  reference_price_timestamp_validation_status?:
+    | ReferenceRefreshTimestampValidationStatus
+    | null;
   reference_price_symbol?: string | null;
   reference_price_provider?: string | null;
   reference_price_read_path?: string | null;
@@ -97,6 +127,7 @@ export type ReferenceRefreshProviderResult = {
   indicators: IntradayIndicators | null;
   source: "cache" | "fresh" | "unavailable";
   cached_at: string | null;
+  timestamp_kind?: ReferencePriceTimestampKind | null;
   stale: boolean;
   warnings: string[];
   provider?: string | null;
@@ -113,6 +144,7 @@ export type ReferenceRefreshResult<T extends ReferenceRefreshCandidate> = {
 const refreshReferenceSource = "provider_intraday_reference_refresh";
 const refreshReferenceReadPath =
   "reference_refresh.intraday_indicators.current_intraday_price";
+export const REFERENCE_REFRESH_SCAN_TIME_SKEW_TOLERANCE_MS = 120_000;
 
 function emptyDiagnostics(): ReferenceRefreshDiagnostics {
   return {
@@ -183,6 +215,9 @@ function finalReference(metadata: PlanReferencePriceMetadata) {
   return {
     source: metadata.reference_price_source,
     timestamp: metadata.reference_price_timestamp,
+    timestamp_kind: null,
+    timestamp_skew_ms: null,
+    scan_time: null,
     provider: metadata.reference_price_provider,
     read_path: metadata.reference_price_read_path,
     price: metadata.reference_price_used_for_plan,
@@ -219,6 +254,12 @@ function nyTradingDate(value: Date | string | number | null | undefined) {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
+function isoOrNull(value: Date | string | number | null | undefined) {
+  if (value === null || value === undefined) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
 function referenceSourceFromResult(
   result: ReferenceRefreshProviderResult | null,
 ): ReferenceRefreshSource {
@@ -228,6 +269,106 @@ function referenceSourceFromResult(
   if (result.provider === "twelve_data_quote") return "twelve_data_quote";
 
   return "twelve_data_intraday";
+}
+
+function timestampKindFromResult(
+  result: ReferenceRefreshProviderResult | null,
+): ReferencePriceTimestampKind {
+  if (!result) return "unknown";
+  if (
+    result.timestamp_kind === "market_data_time" ||
+    result.timestamp_kind === "fetch_time" ||
+    result.timestamp_kind === "cache_time" ||
+    result.timestamp_kind === "unknown"
+  ) {
+    return result.timestamp_kind;
+  }
+  if (result.source === "cache") return "cache_time";
+  if (result.source === "fresh") return "fetch_time";
+
+  return "unknown";
+}
+
+function timestampValidationForResult(input: {
+  result: ReferenceRefreshProviderResult | null;
+  now: Date | string | number;
+}) {
+  const scanTime = isoOrNull(input.now);
+  const timestamp = isoOrNull(input.result?.cached_at);
+  const kind = timestampKindFromResult(input.result);
+
+  if (!timestamp || !scanTime) {
+    return {
+      kind,
+      skewMs: null,
+      scanTime,
+      status: "provider_timestamp_missing" as const,
+      rejectionReason: "provider_missing_timestamp" as const,
+    };
+  }
+
+  const timestampDate = new Date(timestamp);
+  const scanDate = new Date(scanTime);
+  const skewMs = timestampDate.getTime() - scanDate.getTime();
+  const resultTradingDate = nyTradingDate(timestamp);
+  const currentTradingDate = nyTradingDate(scanTime);
+
+  if (
+    resultTradingDate !== null &&
+    currentTradingDate !== null &&
+    resultTradingDate !== currentTradingDate
+  ) {
+    return {
+      kind,
+      skewMs,
+      scanTime,
+      status: "provider_timestamp_wrong_trading_day" as const,
+      rejectionReason:
+        kind === "cache_time"
+          ? ("cache_hit_but_wrong_day" as const)
+          : skewMs > 0
+            ? ("provider_returned_future_timestamp" as const)
+            : ("provider_returned_stale_timestamp" as const),
+    };
+  }
+
+  if (skewMs <= 0) {
+    return {
+      kind,
+      skewMs,
+      scanTime,
+      status: "provider_timestamp_current" as const,
+      rejectionReason: null,
+    };
+  }
+
+  if (kind === "fetch_time" && skewMs <= REFERENCE_REFRESH_SCAN_TIME_SKEW_TOLERANCE_MS) {
+    return {
+      kind,
+      skewMs,
+      scanTime,
+      status: "provider_timestamp_within_scan_skew_tolerance" as const,
+      rejectionReason: null,
+    };
+  }
+
+  if (kind === "fetch_time") {
+    return {
+      kind,
+      skewMs,
+      scanTime,
+      status: "provider_future_beyond_scan_skew_tolerance" as const,
+      rejectionReason: "provider_future_beyond_scan_skew_tolerance" as const,
+    };
+  }
+
+  return {
+    kind,
+    skewMs,
+    scanTime,
+    status: "provider_returned_future_timestamp" as const,
+    rejectionReason: "provider_returned_future_timestamp" as const,
+  };
 }
 
 function normalizeProviderFailureReason(
@@ -262,8 +403,22 @@ function normalizeProviderFailureReason(
   return "provider_error";
 }
 
-function exampleFor(ticker: string, timestamp: string | null) {
-  return timestamp ? `${ticker}@${timestamp}` : ticker;
+function exampleFor(
+  ticker: string,
+  timestamp: string | null,
+  reason?: ReferenceRefreshFailureReason | null,
+  now?: Date | string | number,
+) {
+  if (!timestamp) return ticker;
+  if (
+    reason === "provider_returned_future_timestamp" ||
+    reason === "provider_future_beyond_scan_skew_tolerance"
+  ) {
+    const scanTime = isoOrNull(now);
+    return scanTime ? `${ticker}@${timestamp} scan@${scanTime}` : `${ticker}@${timestamp}`;
+  }
+
+  return `${ticker}@${timestamp}`;
 }
 
 function attemptDiagnostic(input: {
@@ -272,12 +427,25 @@ function attemptDiagnostic(input: {
   source: ReferenceRefreshSource;
   accepted: boolean;
   rejectionReason: ReferenceRefreshFailureReason | null;
+  now: Date | string | number;
 }): ReferenceRefreshAttemptDiagnostic {
+  const timestampValidation = timestampValidationForResult({
+    result: input.result,
+    now: input.now,
+  });
+
   return {
     ticker: input.ticker,
     provider_symbol: input.result?.provider_symbol ?? input.result?.ticker ?? null,
     source_attempted: input.source,
     timestamp: input.result?.cached_at ?? null,
+    reference_price_timestamp_kind: timestampValidation.kind,
+    reference_price_timestamp_skew_ms: timestampValidation.skewMs,
+    reference_price_scan_time: timestampValidation.scanTime,
+    reference_price_timestamp_validation_status:
+      timestampValidation.status === "provider_timestamp_missing" && !input.result
+        ? null
+        : timestampValidation.status,
     price: priceFromResult(input.result),
     provider: input.result ? input.result.provider ?? "twelve_data" : null,
     read_path: input.result ? input.result.read_path ?? refreshReferenceReadPath : null,
@@ -295,6 +463,7 @@ function failureReasonFromAfter(
 ): ReferenceRefreshFailureReason {
   const reason = staleBlockReason(after);
   const resultSource = referenceSourceFromResult(result);
+  const timestampValidation = timestampValidationForResult({ result, now });
   const resultTradingDate = nyTradingDate(result.cached_at);
   const currentTradingDate = nyTradingDate(now);
 
@@ -307,7 +476,10 @@ function failureReasonFromAfter(
     return "cache_hit_but_wrong_day";
   }
   if (reason === "future_reference_timestamp") {
-    return "provider_returned_future_timestamp";
+    return timestampValidation.rejectionReason ===
+      "provider_future_beyond_scan_skew_tolerance"
+      ? "provider_future_beyond_scan_skew_tolerance"
+      : "provider_returned_future_timestamp";
   }
   if (reason === "missing_reference_timestamp") {
     return "provider_missing_timestamp";
@@ -340,6 +512,7 @@ function rejectionReasonForResult(
   const source = referenceSourceFromResult(result);
   const message = providerMessage(result);
   const price = result.indicators?.latestPrice;
+  const timestampValidation = timestampValidationForResult({ result, now });
   const resultTradingDate = nyTradingDate(result.cached_at);
   const currentTradingDate = nyTradingDate(now);
 
@@ -357,6 +530,14 @@ function rejectionReasonForResult(
   }
   if (!result.cached_at) {
     return "provider_missing_timestamp";
+  }
+  if (
+    timestampValidation.rejectionReason === "provider_returned_future_timestamp" ||
+    timestampValidation.rejectionReason ===
+      "provider_future_beyond_scan_skew_tolerance" ||
+    timestampValidation.rejectionReason === "provider_returned_stale_timestamp"
+  ) {
+    return timestampValidation.rejectionReason;
   }
   if (
     source === "intraday_indicator_cache" &&
@@ -378,7 +559,10 @@ function rejectionReasonForResult(
 function refreshedCandidate<T extends ReferenceRefreshCandidate>(
   candidate: T,
   result: ReferenceRefreshProviderResult,
+  now: Date | string | number,
 ): T {
+  const timestampValidation = timestampValidationForResult({ result, now });
+
   return {
     ...candidate,
     intraday_indicators: result.indicators,
@@ -388,9 +572,43 @@ function refreshedCandidate<T extends ReferenceRefreshCandidate>(
     reference_price_used_for_plan: result.indicators?.latestPrice ?? null,
     reference_price_source: refreshReferenceSource,
     reference_price_timestamp: result.cached_at,
+    reference_price_timestamp_kind: timestampValidation.kind,
+    reference_price_timestamp_skew_ms: timestampValidation.skewMs,
+    reference_price_scan_time: timestampValidation.scanTime,
+    reference_price_timestamp_validation_status: timestampValidation.status,
     reference_price_symbol: candidate.ticker,
     reference_price_provider: "twelve_data",
     reference_price_read_path: refreshReferenceReadPath,
+  };
+}
+
+function validationNowForRefresh(
+  result: ReferenceRefreshProviderResult,
+  now: Date | string | number,
+) {
+  const timestampValidation = timestampValidationForResult({ result, now });
+  return timestampValidation.status ===
+    "provider_timestamp_within_scan_skew_tolerance"
+    ? result.cached_at ?? now
+    : now;
+}
+
+function finalReferenceFromRefresh(
+  metadata: PlanReferencePriceMetadata,
+  result: ReferenceRefreshProviderResult,
+  now: Date | string | number,
+) {
+  const timestampValidation = timestampValidationForResult({ result, now });
+
+  return {
+    source: metadata.reference_price_source,
+    timestamp: metadata.reference_price_timestamp,
+    timestamp_kind: timestampValidation.kind,
+    timestamp_skew_ms: timestampValidation.skewMs,
+    scan_time: timestampValidation.scanTime,
+    provider: metadata.reference_price_provider,
+    read_path: metadata.reference_price_read_path,
+    price: metadata.reference_price_used_for_plan,
   };
 }
 
@@ -452,6 +670,7 @@ export async function refreshSelectedCandidateReferences<
           source: "unknown",
           accepted: false,
           rejectionReason: "budget_skipped",
+          now,
         }),
       );
       refreshedCandidates.push(candidate);
@@ -481,7 +700,7 @@ export async function refreshSelectedCandidateReferences<
         incrementFailure(
           diagnostics,
           preflightRejection,
-          exampleFor(candidate.ticker, result.cached_at),
+          exampleFor(candidate.ticker, result.cached_at, preflightRejection, now),
         );
         diagnostics.reference_refresh_attempts.push(
           attemptDiagnostic({
@@ -490,16 +709,17 @@ export async function refreshSelectedCandidateReferences<
             source,
             accepted: false,
             rejectionReason: preflightRejection,
+            now,
           }),
         );
         refreshedCandidates.push(candidate);
         continue;
       }
 
-      const candidateWithRefresh = refreshedCandidate(candidate, result);
+      const candidateWithRefresh = refreshedCandidate(candidate, result, now);
       const after = resolvePlanReferencePriceMetadata(candidateWithRefresh, {
         enforceFreshness: true,
-        now,
+        now: validationNowForRefresh(result, now),
       });
       const afterReason = staleBlockReason(after);
 
@@ -514,7 +734,7 @@ export async function refreshSelectedCandidateReferences<
         incrementFailure(
           diagnostics,
           rejectionReason,
-          exampleFor(candidate.ticker, result.cached_at),
+          exampleFor(candidate.ticker, result.cached_at, rejectionReason, now),
         );
         diagnostics.reference_refresh_attempts.push(
           attemptDiagnostic({
@@ -523,6 +743,7 @@ export async function refreshSelectedCandidateReferences<
             source,
             accepted: false,
             rejectionReason,
+            now,
           }),
         );
         refreshedCandidates.push(candidate);
@@ -532,7 +753,7 @@ export async function refreshSelectedCandidateReferences<
       diagnostics.reference_refresh_success_count += 1;
       diagnostics.reference_refresh_examples_by_ticker.rescued.push(candidate.ticker);
       diagnostics.reference_refresh_final_references[candidate.ticker] =
-        finalReference(after);
+        finalReferenceFromRefresh(after, result, now);
       increment(
         diagnostics.reference_refresh_accepted_source_counts,
         source,
@@ -544,6 +765,7 @@ export async function refreshSelectedCandidateReferences<
           source,
           accepted: true,
           rejectionReason: null,
+          now,
         }),
       );
       if (beforeReason === "scanner_cache_reference_too_old") {
@@ -567,6 +789,7 @@ export async function refreshSelectedCandidateReferences<
           source: "unknown",
           accepted: false,
           rejectionReason,
+          now,
         }),
       );
       refreshedCandidates.push(candidate);
