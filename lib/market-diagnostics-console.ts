@@ -952,7 +952,8 @@ function mondayLiveTrialChecklist({
     input.outcome_learning?.total_evaluated_outcomes ??
     input.live_market_trial_readiness.outcome_readiness.evaluated_recommendations;
   const shadowReadyStatus: MondayLiveTrialChecklistItemStatus =
-    shadowTrialState === "collecting data"
+    shadowTrialState === "collecting data" ||
+    shadowTrialState === "samples collected; latest variant rejected"
       ? "ready"
       : shadowTrialState === "no proposal"
         ? "warning"
@@ -1071,7 +1072,9 @@ function mondayLiveTrialChecklist({
       status: shadowReadyStatus,
       message:
         shadowReadyStatus === "ready"
-          ? "Shadow entry trial is collecting data."
+          ? shadowTrialState === "samples collected; latest variant rejected"
+            ? "Shadow tracking collected samples; latest variant was rejected, waiting for next proposal."
+            : "Shadow entry trial is collecting data."
           : shadowReadyStatus === "pending_next_market_window"
             ? "Shadow entry trial will collect data from future batches only."
             : "No active entry tuning proposal is ready for shadow tracking.",
@@ -1490,8 +1493,47 @@ function referenceRefreshExamplesText(
     : "none";
 }
 
+function closedMarketReviewBatchFingerprint(input: MarketDiagnosticsConsoleInput) {
+  if (
+    input.outcome_evaluation?.market_closed_readback_mode === true ||
+    input.scan_readback?.market_closed_readback_mode === true ||
+    isClosedMarketWaitState(input)
+  ) {
+    return (
+      input.outcome_evaluation?.latest_review_batch_fingerprint ??
+      input.outcome_evaluation?.current_batch_fingerprint ??
+      input.outcome_evaluation?.current_official_batch_fingerprint ??
+      input.scan_readback?.latest_review_batch_fingerprint ??
+      input.scan_readback?.current_batch_fingerprint ??
+      input.scan_readback?.latest_official_batch_fingerprint ??
+      null
+    );
+  }
+
+  return null;
+}
+
+function auditMatchesBatch(
+  audit: BatchCandidateAuditSummary | null | undefined,
+  batchFingerprint: string | null,
+): audit is BatchCandidateAuditSummary {
+  return (
+    audit !== null &&
+    audit !== undefined &&
+    (batchFingerprint === null || audit.batch_fingerprint === batchFingerprint)
+  );
+}
+
+function entryMatchesBatch(
+  entry: ScheduledScanTimelineEntry,
+  batchFingerprint: string | null,
+) {
+  return batchFingerprint !== null && entry.batch_fingerprint === batchFingerprint;
+}
+
 function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   const existing = input.outcome_evaluation?.batch_candidate_audit;
+  const reviewBatchFingerprint = closedMarketReviewBatchFingerprint(input);
   const activeTraceBatchFingerprint =
     input.active_scan_trace?.final.batch_fingerprint ?? null;
   const activeTraceScanRunFingerprint =
@@ -1508,6 +1550,8 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   const activeTraceLinked =
     input.active_scan_trace !== null &&
     input.active_scan_trace !== undefined &&
+    (reviewBatchFingerprint === null ||
+      activeTraceBatchFingerprint === reviewBatchFingerprint) &&
     ((activeTraceBatchFingerprint !== null &&
       activeTraceBatchFingerprint === expectedBatchFingerprint) ||
       (activeTraceScanRunFingerprint !== null &&
@@ -1516,6 +1560,9 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
     count(input.active_scan_trace?.raw_candidates.raw_candidate_count) > 0 ||
     count(input.active_scan_trace?.ranking.ranked_count) > 0 ||
     count(input.active_scan_trace?.ranking.selected_count) > 0;
+  const activeTraceInReviewScope =
+    reviewBatchFingerprint === null ||
+    activeTraceBatchFingerprint === reviewBatchFingerprint;
 
   if (activeTraceLinked && activeTraceHasCandidateFunnel) {
     return buildBatchCandidateAuditSummary({
@@ -1589,7 +1636,7 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
     });
   }
 
-  if (existing) {
+  if (auditMatchesBatch(existing, reviewBatchFingerprint)) {
     return existing;
   }
 
@@ -1604,24 +1651,34 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
       input.active_scan_trace?.final.batch_fingerprint ??
       null,
     rawCandidatesCount:
-      input.active_scan_trace?.raw_candidates.raw_candidate_count ??
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.raw_candidates.raw_candidate_count
+        : null) ??
       input.scanner_ranking?.candidates_ranked ??
       input.scan_readback?.provider_budget_used_for_scan ??
       null,
     rankedCandidatesCount:
-      input.active_scan_trace?.ranking.ranked_count ??
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.ranking.ranked_count
+        : null) ??
       input.scanner_ranking?.candidates_ranked ??
       null,
     selectedCandidatesCount:
-      input.active_scan_trace?.ranking.selected_count ??
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.ranking.selected_count
+        : null) ??
       input.scanner_ranking?.selected_count ??
       null,
     builtRecommendationsCount:
-      input.active_scan_trace?.final.recommendations_built_count ??
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.final.recommendations_built_count
+        : null) ??
       input.scan_readback?.active_trace_published_count ??
       null,
     publishedRecommendationsCount:
-      input.active_scan_trace?.final.recommendations_published_count ??
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.final.recommendations_published_count
+        : null) ??
       input.scan_readback?.active_trace_published_count ??
       input.scan_readback?.current_batch_recommendation_count ??
       null,
@@ -1666,16 +1723,22 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
       input.outcome_evaluation?.ineligible_reasons?.missing_batch_membership ??
       null,
     incompletePricePlanCount:
-      input.active_scan_trace?.raw_candidates.invalid_price_plan_count ?? null,
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.raw_candidates.invalid_price_plan_count
+        : null) ?? null,
     missingSnapshotReasons:
       input.outcome_evaluation?.missing_snapshot_reasons ??
       input.outcome_evaluation?.ineligible_reasons ??
       null,
     dropOffReasons: input.outcome_evaluation?.ineligible_reasons ?? null,
     selectedCandidateBuildDiagnostics:
-      input.active_scan_trace?.final.selected_candidate_build_diagnostics ?? null,
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.final.selected_candidate_build_diagnostics
+        : null) ?? null,
     selectedToBuiltDropOff:
-      input.active_scan_trace?.final.selected_to_built_drop_off ?? null,
+      (activeTraceInReviewScope
+        ? input.active_scan_trace?.final.selected_to_built_drop_off
+        : null) ?? null,
   });
 }
 
@@ -1699,29 +1762,44 @@ function buildSections(
   const batchCandidateAudit = getBatchCandidateAudit(input);
   const scheduledScanTimelineToday =
     input.scan_readback?.scheduled_scan_timeline_today ?? [];
+  const reviewBatchFingerprint = closedMarketReviewBatchFingerprint(input);
+  const latestReviewBatchAttempt =
+    scheduledScanTimelineToday.find((attempt) =>
+      entryMatchesBatch(attempt, reviewBatchFingerprint),
+    ) ?? null;
   const latestScheduledBuildRejectionAttempt =
+    latestReviewBatchAttempt ??
     scheduledScanTimelineToday.find(
       (attempt) =>
+        !batchCandidateAudit.selected_to_built_drop_off &&
         attempt.selected_to_built_drop_off &&
         (attempt.selected_count ?? 0) > 0 &&
         (attempt.built_count ?? 0) === 0 &&
         (attempt.published_count ?? 0) === 0,
     ) ??
-    scheduledScanTimelineToday.find(
-      (attempt) => attempt.selected_to_built_drop_off,
-    ) ??
+    (batchCandidateAudit.selected_to_built_drop_off
+      ? null
+      : scheduledScanTimelineToday.find(
+          (attempt) => attempt.selected_to_built_drop_off,
+        )) ??
     null;
   const selectedToBuiltDropOff =
     batchCandidateAudit.selected_to_built_drop_off ??
     latestScheduledBuildRejectionAttempt?.selected_to_built_drop_off ??
     null;
   const selectedToBuiltSource = batchCandidateAudit.selected_to_built_drop_off
-    ? "batch_candidate_audit"
+    ? reviewBatchFingerprint
+      ? "latest_official_batch_audit"
+      : "batch_candidate_audit"
     : latestScheduledBuildRejectionAttempt
-      ? "scheduled_scan_timeline"
+      ? latestReviewBatchAttempt
+        ? "latest_official_batch_timeline"
+        : "latest_attempt_timeline"
       : "not_observed";
   const selectedToBuiltPublishedCount =
-    latestScheduledBuildRejectionAttempt?.published_count ??
+    (batchCandidateAudit.selected_to_built_drop_off
+      ? batchCandidateAudit.effective_published_recommendations_count
+      : latestScheduledBuildRejectionAttempt?.published_count) ??
     batchCandidateAudit.published_recommendations_count;
   const selectedToBuiltDisplayBuilt =
     batchCandidateAudit.reconciled_from_persisted_rows
@@ -1883,6 +1961,11 @@ function buildSections(
     input.outcome_evaluation?.shadow_snapshot_metadata_missing_count ?? 0;
   const shadowTrialSampleSize =
     input.outcome_learning?.shadow_entry_trial.shadow_trial_sample_size ?? 0;
+  const outcomeRouteShadowSampleSize =
+    input.outcome_evaluation?.shadow_entry_trial_count ?? 0;
+  const shadowSamplesCollectedWithoutProposal =
+    !shadowProposalExists &&
+    Math.max(shadowTrialSampleSize, outcomeRouteShadowSampleSize) > 0;
   const shadowQualityClassification =
     input.outcome_learning?.shadow_entry_trial.status ?? "not_enough_data";
   const shadowRiskWarningRate =
@@ -1920,7 +2003,9 @@ function buildSections(
   const metadataMissingAtStage =
     input.metadata_coverage?.metadata_missing_at_stage ??
     metadataCoverage.metadata_missing_at_stage;
-  const shadowTrialState = !shadowProposalExists
+  const shadowTrialState = shadowSamplesCollectedWithoutProposal
+    ? "samples collected; latest variant rejected"
+    : !shadowProposalExists
     ? "no proposal"
     : shadowMetadataPresent === 0 && shadowMetadataMissing > 0
       ? "proposal exists but current snapshots have no metadata"

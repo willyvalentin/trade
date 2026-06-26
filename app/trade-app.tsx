@@ -14640,6 +14640,33 @@ export function TradeApp() {
       setRecommendationOutcomeEvaluationRun(run);
       const routeDiagnostics = run as RecommendationOutcomeEvaluationRun &
         Record<string, unknown>;
+      const positiveDiagnosticCount = (
+        routeValue: unknown,
+        runValue: unknown,
+      ) => {
+        const routeCount = Number(routeValue ?? 0);
+        if (Number.isFinite(routeCount) && routeCount > 0) {
+          return routeCount;
+        }
+
+        const runCount = Number(runValue ?? 0);
+        if (Number.isFinite(runCount) && runCount > 0) {
+          return runCount;
+        }
+
+        return Number.isFinite(routeCount) ? routeCount : 0;
+      };
+      const routeEntryTypeTriggerSummary =
+        typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
+        routeDiagnostics.entry_type_trigger_summary !== null &&
+        !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
+          ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
+          : null;
+      const entryTypeTriggerSummary =
+        routeEntryTypeTriggerSummary &&
+        routeEntryTypeTriggerSummary.total_outcomes > 0
+          ? routeEntryTypeTriggerSummary
+          : run.entry_type_trigger_summary ?? routeEntryTypeTriggerSummary;
       setRecommendationOutcomeEvaluationDiagnostics({
         status: run.status,
         eligibleSnapshots: run.eligible_snapshot_count,
@@ -14897,37 +14924,39 @@ export function TradeApp() {
             0,
         ),
         retainedCandlesAddedCount: Number(
-          routeDiagnostics.retained_candles_added_count ??
-            run.retained_candles_added_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.retained_candles_added_count,
+            run.retained_candles_added_count,
+          ),
         ),
         counterfactualReadyCount: Number(
-          routeDiagnostics.counterfactual_ready_count ??
-            run.counterfactual_ready_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.counterfactual_ready_count,
+            run.counterfactual_ready_count,
+          ),
         ),
         shadowEligibleSnapshotCount: Number(
-          routeDiagnostics.shadow_eligible_snapshot_count ?? 0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_eligible_snapshot_count,
+            null,
+          ),
         ),
         shadowMissingMetadataCount: Number(
           routeDiagnostics.shadow_missing_metadata_count ?? 0,
         ),
         shadowEntryTrialCount: Number(
-          routeDiagnostics.shadow_entry_trial_count ??
-            run.shadow_entry_trial_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_entry_trial_count,
+            run.shadow_entry_trial_count,
+          ),
         ),
         shadowEntryTriggeredCount: Number(
-          routeDiagnostics.shadow_entry_triggered_count ??
-            run.shadow_entry_triggered_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_entry_triggered_count,
+            run.shadow_entry_triggered_count,
+          ),
         ),
-        entryTypeTriggerSummary:
-          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
-          routeDiagnostics.entry_type_trigger_summary !== null &&
-          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
-            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
-            : run.entry_type_trigger_summary ?? null,
+        entryTypeTriggerSummary,
         planReferenceMetadataTrace:
           typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
           routeDiagnostics.plan_reference_metadata_trace !== null &&
