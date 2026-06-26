@@ -52,8 +52,15 @@ export type BatchCandidateAuditSummary = {
   raw_candidates_count: number;
   ranked_candidates_count: number;
   selected_candidates_count: number;
+  raw_scan_run_built_count: number;
+  raw_scan_run_published_count: number;
   built_recommendations_count: number;
   published_recommendations_count: number;
+  effective_built_recommendations_count: number;
+  effective_published_recommendations_count: number;
+  counter_reconciliation: "none" | "scan_run_sparse_reconciled_from_persisted_rows";
+  reconciled_from_persisted_rows: boolean;
+  counter_reconciliation_note: string | null;
   persisted_recommendation_rows_count: number;
   persisted_snapshot_rows_count: number;
   unique_snapshot_fingerprints_count: number;
@@ -227,7 +234,7 @@ function getLargestDropOff(stages: Array<[string, number, number]>) {
 
   for (const [stage, from, to] of stages) {
     const dropOff = Math.max(0, from - to);
-    if (dropOff > largest.count) {
+    if (dropOff >= largest.count && dropOff > 0) {
       largest = { stage, count: dropOff };
     }
   }
@@ -260,6 +267,22 @@ function getBatchCompleteness(input: {
   return "partial" as const;
 }
 
+function reconcileCounter(input: {
+  rawCount: number;
+  persistedRows: number;
+  visibleCards: number;
+  outcomeEligible: number;
+}) {
+  if (
+    input.rawCount === 0 &&
+    (input.persistedRows > 0 || input.visibleCards > 0 || input.outcomeEligible > 0)
+  ) {
+    return Math.max(input.persistedRows, input.visibleCards, input.outcomeEligible);
+  }
+
+  return input.rawCount;
+}
+
 export function buildBatchCandidateAuditSummary(
   input: BatchCandidateAuditInput,
 ): BatchCandidateAuditSummary {
@@ -279,11 +302,32 @@ export function buildBatchCandidateAuditSummary(
   const hiddenArchived = numberValue(input.hiddenArchivedCount);
   const outcomeEligible = numberValue(input.outcomeEligibleSnapshotCount);
   const outcomeIneligible = numberValue(input.outcomeIneligibleSnapshotCount);
+  const effectiveBuiltRecommendations = reconcileCounter({
+    rawCount: builtRecommendations,
+    persistedRows: persistedRecommendationRows,
+    visibleCards: visibleGridCards,
+    outcomeEligible,
+  });
+  const effectivePublishedRecommendations = reconcileCounter({
+    rawCount: publishedRecommendations,
+    persistedRows: persistedRecommendationRows,
+    visibleCards: visibleGridCards,
+    outcomeEligible,
+  });
+  const reconciledFromPersistedRows =
+    effectiveBuiltRecommendations !== builtRecommendations ||
+    effectivePublishedRecommendations !== publishedRecommendations;
+  const counterReconciliation = reconciledFromPersistedRows
+    ? "scan_run_sparse_reconciled_from_persisted_rows"
+    : "none";
+  const counterReconciliationNote = reconciledFromPersistedRows
+    ? "Build/publish counters reconciled from persisted recommendation rows because scan-run counters were sparse."
+    : null;
   const expectedSnapshots =
     numberValue(input.expectedSnapshotCountFromScan) ||
-    publishedRecommendations ||
+    effectivePublishedRecommendations ||
     persistedRecommendationRows ||
-    builtRecommendations;
+    effectiveBuiltRecommendations;
   const actualSnapshots =
     numberValue(input.actualSnapshotCountForBatch) || persistedSnapshotRows;
   const missingSnapshotCount = Math.max(0, expectedSnapshots - actualSnapshots);
@@ -326,25 +370,29 @@ export function buildBatchCandidateAuditSummary(
   addReason(
     dropOffReasons,
     "below_publish_threshold",
-    Math.max(0, rankedCandidates - selectedCandidates),
+    selectedToBuiltDropOff
+      ? 0
+      : Math.max(0, rankedCandidates - selectedCandidates),
   );
   addReason(
     dropOffReasons,
     "no_trade_candidate",
     Math.max(
       0,
-      selectedCandidates - builtRecommendations - explainedSelectedToBuiltDropOff,
+      selectedCandidates -
+        effectiveBuiltRecommendations -
+        explainedSelectedToBuiltDropOff,
     ),
   );
   addReason(
     dropOffReasons,
     "no_trade_candidate",
-    Math.max(0, builtRecommendations - publishedRecommendations),
+    Math.max(0, effectiveBuiltRecommendations - effectivePublishedRecommendations),
   );
   addReason(
     dropOffReasons,
     "persistence_failed",
-    Math.max(0, publishedRecommendations - persistedRecommendationRows),
+    Math.max(0, effectivePublishedRecommendations - persistedRecommendationRows),
   );
   addReason(dropOffReasons, "persistence_failed", missingSnapshotCount);
   addReason(missingSnapshotReasons, "persistence_failed", missingSnapshotCount);
@@ -364,11 +412,19 @@ export function buildBatchCandidateAuditSummary(
   const largest = getLargestDropOff([
     ["scanner_candidates_to_ranked", rawCandidates, rankedCandidates],
     ["ranked_to_selected", rankedCandidates, selectedCandidates],
-    ["selected_to_built", selectedCandidates, builtRecommendations],
-    ["built_to_published", builtRecommendations, publishedRecommendations],
+    [
+      "selected_to_published_or_threshold",
+      selectedCandidates,
+      effectiveBuiltRecommendations,
+    ],
+    [
+      "built_to_published",
+      effectiveBuiltRecommendations,
+      effectivePublishedRecommendations,
+    ],
     [
       "published_to_persisted_recommendations",
-      publishedRecommendations,
+      effectivePublishedRecommendations,
       persistedRecommendationRows,
     ],
     [
@@ -395,8 +451,15 @@ export function buildBatchCandidateAuditSummary(
     raw_candidates_count: rawCandidates,
     ranked_candidates_count: rankedCandidates,
     selected_candidates_count: selectedCandidates,
-    built_recommendations_count: builtRecommendations,
-    published_recommendations_count: publishedRecommendations,
+    raw_scan_run_built_count: builtRecommendations,
+    raw_scan_run_published_count: publishedRecommendations,
+    built_recommendations_count: effectiveBuiltRecommendations,
+    published_recommendations_count: effectivePublishedRecommendations,
+    effective_built_recommendations_count: effectiveBuiltRecommendations,
+    effective_published_recommendations_count: effectivePublishedRecommendations,
+    counter_reconciliation: counterReconciliation,
+    reconciled_from_persisted_rows: reconciledFromPersistedRows,
+    counter_reconciliation_note: counterReconciliationNote,
     persisted_recommendation_rows_count: persistedRecommendationRows,
     persisted_snapshot_rows_count: persistedSnapshotRows,
     unique_snapshot_fingerprints_count: uniqueSnapshotFingerprints,

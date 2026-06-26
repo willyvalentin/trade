@@ -900,6 +900,93 @@ test("scan run timeline keeps selected-to-built diagnostics when final counts ar
   ).toBe(18);
 });
 
+test("scan run timeline reconciles sparse counters from visible persisted recommendations", () => {
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [],
+    scanRuns: [
+      {
+        id: "scan-reconciled-midday",
+        run_fingerprint: "rec_scan_run_vlz162",
+        trading_date: "2026-06-26",
+        window: "midday",
+        status: "completed",
+        source: "scheduled",
+        observed_at: "2026-06-26T16:03:00.000Z",
+        raw_candidate_count: 22,
+        counts: {
+          visible_recommendation_count: 6,
+        },
+        payload_json: {
+          persisted_recommendation_rows_count: 6,
+          visible_grid_cards_count: 6,
+          selected_to_built_drop_off: {
+            selected_count: 14,
+            built_count: 6,
+            rejected_count: 8,
+            rejection_counts: {
+              below_publish_threshold: 8,
+            },
+            category_counts: {
+              healthy_caution: 8,
+            },
+            examples_by_reason: {
+              below_publish_threshold: ["BAC", "JPM", "MSFT"],
+            },
+            output_below_target_reason_category: "healthy_caution",
+            output_below_target_explanation:
+              "8 selected candidates were below the publish threshold.",
+          },
+          active_scan_trace: {
+            should_scan_now: true,
+            raw_candidates: {
+              raw_candidate_count: 22,
+            },
+            ranking: {
+              ranked_count: 22,
+              selected_count: 14,
+            },
+            final: {
+              no_publish_reason: null,
+              scan_run_fingerprint: "rec_scan_run_vlz162",
+              batch_fingerprint: "rec_batch_1vxtb7z",
+              recommendations_built_count: 0,
+              recommendations_published_count: 0,
+            },
+          },
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+    tradingDate: "2026-06-26",
+  });
+
+  expect(timeline[0]).toMatchObject({
+    source: "recommendation_scan_runs",
+    official_window: "midday",
+    outcome: "scanned",
+    raw_count: 22,
+    ranked_count: 22,
+    selected_count: 14,
+    built_count: 6,
+    published_count: 6,
+    raw_scan_run_built_count: 0,
+    raw_scan_run_published_count: 0,
+    effective_built_count: 6,
+    effective_published_count: 6,
+    batch_fingerprint: "rec_batch_1vxtb7z",
+    scan_run_fingerprint: "rec_scan_run_vlz162",
+    counter_reconciliation: "scan_run_sparse_reconciled_from_persisted_rows",
+    reconciled_from_persisted_rows: true,
+  });
+  expect(timeline[0]?.counter_reconciliation_note).toContain(
+    "reconciled from persisted recommendation rows",
+  );
+  expect(
+    timeline[0]?.selected_to_built_drop_off?.rejection_counts
+      .below_publish_threshold,
+  ).toBe(8);
+});
+
 test("closed retained readback is not shown as a fresh scanned timeline row", () => {
   const scanLog: ScanLogEntry = {
     created_at: "2026-06-25T20:13:00.000Z",

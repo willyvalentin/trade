@@ -1723,6 +1723,28 @@ function buildSections(
   const selectedToBuiltPublishedCount =
     latestScheduledBuildRejectionAttempt?.published_count ??
     batchCandidateAudit.published_recommendations_count;
+  const selectedToBuiltDisplayBuilt =
+    batchCandidateAudit.reconciled_from_persisted_rows
+      ? batchCandidateAudit.effective_built_recommendations_count
+      : selectedToBuiltDropOff?.built_count ??
+        batchCandidateAudit.effective_built_recommendations_count;
+  const selectedToBuiltDisplayPublished =
+    batchCandidateAudit.reconciled_from_persisted_rows
+      ? batchCandidateAudit.effective_published_recommendations_count
+      : selectedToBuiltPublishedCount;
+  const selectedToBuiltDisplayRejected =
+    batchCandidateAudit.reconciled_from_persisted_rows
+      ? Math.max(
+          0,
+          batchCandidateAudit.selected_candidates_count -
+            batchCandidateAudit.effective_built_recommendations_count,
+        )
+      : selectedToBuiltDropOff?.rejected_count ??
+        Math.max(
+          0,
+          batchCandidateAudit.selected_candidates_count -
+            batchCandidateAudit.effective_built_recommendations_count,
+        );
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
@@ -2913,7 +2935,7 @@ function buildSections(
       lines: [
         lineValue(
           "Selected/built/published",
-          `${selectedToBuiltDropOff?.selected_count ?? batchCandidateAudit.selected_candidates_count}/${selectedToBuiltDropOff?.built_count ?? batchCandidateAudit.built_recommendations_count}/${selectedToBuiltPublishedCount}`,
+          `${selectedToBuiltDropOff?.selected_count ?? batchCandidateAudit.selected_candidates_count}/${selectedToBuiltDisplayBuilt}/${selectedToBuiltDisplayPublished}`,
         ),
         lineValue("Source", selectedToBuiltSource),
         lineValue(
@@ -2935,12 +2957,7 @@ function buildSections(
         ),
         lineValue(
           "Rejected selected",
-          selectedToBuiltDropOff?.rejected_count ??
-            Math.max(
-              0,
-              batchCandidateAudit.selected_candidates_count -
-                batchCandidateAudit.built_recommendations_count,
-            ),
+          selectedToBuiltDisplayRejected,
         ),
         lineValue(
           "Top exact rejection reasons",
@@ -3067,16 +3084,15 @@ function buildSections(
           selectedToBuiltDropOff?.selected_count ??
           batchCandidateAudit.selected_candidates_count,
         built_count:
-          selectedToBuiltDropOff?.built_count ??
-          batchCandidateAudit.built_recommendations_count,
-        published_count: selectedToBuiltPublishedCount,
-        rejected_count:
-          selectedToBuiltDropOff?.rejected_count ??
-          Math.max(
-            0,
-            batchCandidateAudit.selected_candidates_count -
-              batchCandidateAudit.built_recommendations_count,
-          ),
+          selectedToBuiltDisplayBuilt,
+        published_count: selectedToBuiltDisplayPublished,
+        rejected_count: selectedToBuiltDisplayRejected,
+        raw_scan_run_built_count: batchCandidateAudit.raw_scan_run_built_count,
+        raw_scan_run_published_count:
+          batchCandidateAudit.raw_scan_run_published_count,
+        counter_reconciliation: batchCandidateAudit.counter_reconciliation,
+        reconciled_from_persisted_rows:
+          batchCandidateAudit.reconciled_from_persisted_rows,
         rejection_counts: JSON.stringify(
           selectedToBuiltDropOff?.rejection_counts ?? {},
         ),
@@ -3115,8 +3131,20 @@ function buildSections(
         ),
         lineValue(
           "Recommendation funnel",
-          `${batchCandidateAudit.built_recommendations_count} built -> ${batchCandidateAudit.published_recommendations_count} published -> ${batchCandidateAudit.persisted_recommendation_rows_count} persisted rows`,
+          `${batchCandidateAudit.effective_built_recommendations_count} built -> ${batchCandidateAudit.effective_published_recommendations_count} published -> ${batchCandidateAudit.persisted_recommendation_rows_count} persisted rows`,
         ),
+        ...(batchCandidateAudit.reconciled_from_persisted_rows
+          ? [
+              lineValue(
+                "Raw scan-run counters",
+                `${batchCandidateAudit.raw_scan_run_built_count} built -> ${batchCandidateAudit.raw_scan_run_published_count} published`,
+              ),
+              lineValue(
+                "Counter reconciliation",
+                batchCandidateAudit.counter_reconciliation_note,
+              ),
+            ]
+          : []),
         lineValue(
           "Snapshot funnel",
           `${batchCandidateAudit.persisted_snapshot_rows_count} rows -> ${batchCandidateAudit.unique_snapshot_fingerprints_count} unique -> ${batchCandidateAudit.visible_grid_cards_count} visible cards -> ${batchCandidateAudit.outcome_eligible_snapshot_count} eligible`,
@@ -3158,6 +3186,18 @@ function buildSections(
           batchCandidateAudit.built_recommendations_count,
         published_recommendations_count:
           batchCandidateAudit.published_recommendations_count,
+        effective_built_recommendations_count:
+          batchCandidateAudit.effective_built_recommendations_count,
+        effective_published_recommendations_count:
+          batchCandidateAudit.effective_published_recommendations_count,
+        raw_scan_run_built_count: batchCandidateAudit.raw_scan_run_built_count,
+        raw_scan_run_published_count:
+          batchCandidateAudit.raw_scan_run_published_count,
+        counter_reconciliation: batchCandidateAudit.counter_reconciliation,
+        reconciled_from_persisted_rows:
+          batchCandidateAudit.reconciled_from_persisted_rows,
+        counter_reconciliation_note:
+          batchCandidateAudit.counter_reconciliation_note,
         persisted_recommendation_rows_count:
           batchCandidateAudit.persisted_recommendation_rows_count,
         persisted_snapshot_rows_count:

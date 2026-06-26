@@ -97,6 +97,13 @@ export type ScheduledScanTimelineEntry = {
   selected_count: number | null;
   built_count: number | null;
   published_count: number | null;
+  raw_scan_run_built_count?: number | null;
+  raw_scan_run_published_count?: number | null;
+  effective_built_count?: number | null;
+  effective_published_count?: number | null;
+  counter_reconciliation?: "none" | "scan_run_sparse_reconciled_from_persisted_rows";
+  reconciled_from_persisted_rows?: boolean;
+  counter_reconciliation_note?: string | null;
   batch_fingerprint: string | null;
   scan_run_fingerprint: string | null;
   empty_scan_reason: string | null;
@@ -432,6 +439,48 @@ function referenceRefreshAttempted(
           referenceRefresh.reference_refresh_failed_count,
       }
     : null;
+}
+
+function persistedRecommendationEvidenceFromPayload(
+  payload: Record<string, unknown>,
+) {
+  return Math.max(
+    0,
+    numberOrNull(payload.persisted_recommendation_rows_count) ?? 0,
+    numberOrNull(payload.persisted_recommendations_count) ?? 0,
+    numberOrNull(payload.visible_grid_cards_count) ?? 0,
+    numberOrNull(payload.visible_recommendation_count) ?? 0,
+  );
+}
+
+function reconcileSparseScanRunCounters(input: {
+  rawBuilt: number | null;
+  rawPublished: number | null;
+  persistedEvidence: number;
+}) {
+  const shouldReconcile =
+    (input.rawBuilt ?? 0) === 0 &&
+    (input.rawPublished ?? 0) === 0 &&
+    input.persistedEvidence > 0 &&
+    (input.rawBuilt === 0 || input.rawPublished === 0);
+  const effectiveBuilt = shouldReconcile
+    ? input.persistedEvidence
+    : input.rawBuilt;
+  const effectivePublished = shouldReconcile
+    ? input.persistedEvidence
+    : input.rawPublished;
+
+  return {
+    effectiveBuilt,
+    effectivePublished,
+    counterReconciliation: shouldReconcile
+      ? ("scan_run_sparse_reconciled_from_persisted_rows" as const)
+      : ("none" as const),
+    reconciledFromPersistedRows: shouldReconcile,
+    note: shouldReconcile
+      ? "Build/publish counters reconciled from persisted recommendation rows because scan-run counters were sparse."
+      : null,
+  };
 }
 
 export function buildEmptyScanReason(
@@ -903,8 +952,20 @@ function timelineFromScanRun(
       ? buildDiagnosticsFromPayload(scanRun.payload_json)
       : trace?.final?.selected_candidate_build_diagnostics ?? [];
   const referenceRefresh = referenceRefreshFromPayload(scanRun.payload_json);
+  const rawBuiltCount = trace?.final?.recommendations_built_count ?? null;
+  const rawPublishedCount =
+    trace?.final?.recommendations_published_count ?? null;
+  const persistedEvidence = Math.max(
+    persistedRecommendationEvidenceFromPayload(scanRun.payload_json),
+    numberOrNull(scanRun.counts.visible_recommendation_count) ?? 0,
+  );
+  const reconciledCounters = reconcileSparseScanRunCounters({
+    rawBuilt: rawBuiltCount,
+    rawPublished: rawPublishedCount,
+    persistedEvidence,
+  });
   const publishedCount =
-    trace?.final?.recommendations_published_count ??
+    reconciledCounters.effectivePublished ??
     scanRun.counts.visible_recommendation_count;
   const officialWindow = normalizeDayTradeScanWindow(scanRun.window);
   const isRetainedReadback =
@@ -957,8 +1018,16 @@ function timelineFromScanRun(
       scanRun.raw_candidate_count ??
       null,
     selected_count: trace?.ranking?.selected_count ?? null,
-    built_count: trace?.final?.recommendations_built_count ?? null,
+    built_count: reconciledCounters.effectiveBuilt,
     published_count: publishedCount,
+    raw_scan_run_built_count: rawBuiltCount,
+    raw_scan_run_published_count: rawPublishedCount,
+    effective_built_count: reconciledCounters.effectiveBuilt,
+    effective_published_count: reconciledCounters.effectivePublished,
+    counter_reconciliation: reconciledCounters.counterReconciliation,
+    reconciled_from_persisted_rows:
+      reconciledCounters.reconciledFromPersistedRows,
+    counter_reconciliation_note: reconciledCounters.note,
     batch_fingerprint: trace?.final?.batch_fingerprint ?? null,
     scan_run_fingerprint: trace?.final?.scan_run_fingerprint ?? scanRun.run_fingerprint,
     empty_scan_reason: emptyScanReason,

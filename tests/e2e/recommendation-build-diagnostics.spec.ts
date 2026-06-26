@@ -105,6 +105,86 @@ test("batch audit uses exact selected-to-built diagnostics instead of generic no
   expect(audit.selected_to_built_drop_off?.rejected_count).toBe(2);
 });
 
+test("batch audit reconciles sparse scan-run counters from persisted rows", () => {
+  const audit = buildBatchCandidateAuditSummary({
+    scanRunFingerprint: "rec_scan_run_vlz162",
+    batchFingerprint: "rec_batch_1vxtb7z",
+    rawCandidatesCount: 22,
+    rankedCandidatesCount: 22,
+    selectedCandidatesCount: 14,
+    builtRecommendationsCount: 0,
+    publishedRecommendationsCount: 0,
+    persistedRecommendationRowsCount: 6,
+    persistedSnapshotRowsCount: 12,
+    uniqueSnapshotFingerprintsCount: 6,
+    visibleGridCardsCount: 6,
+    outcomeEligibleSnapshotCount: 6,
+    selectedToBuiltDropOff: {
+      selected_count: 14,
+      built_count: 6,
+      rejected_count: 8,
+      rejection_counts: {
+        below_publish_threshold: 8,
+      },
+      category_counts: {
+        data_quality: 8,
+      },
+      examples_by_reason: {
+        below_publish_threshold: ["BAC", "JPM", "MSFT"],
+      },
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "8 selected candidates were below the publish threshold.",
+    },
+  });
+
+  expect(audit.raw_scan_run_built_count).toBe(0);
+  expect(audit.raw_scan_run_published_count).toBe(0);
+  expect(audit.built_recommendations_count).toBe(6);
+  expect(audit.published_recommendations_count).toBe(6);
+  expect(audit.effective_built_recommendations_count).toBe(6);
+  expect(audit.effective_published_recommendations_count).toBe(6);
+  expect(audit.reconciled_from_persisted_rows).toBe(true);
+  expect(audit.counter_reconciliation).toBe(
+    "scan_run_sparse_reconciled_from_persisted_rows",
+  );
+  expect(audit.counter_reconciliation_note).toContain(
+    "reconciled from persisted recommendation rows",
+  );
+  expect(audit.batch_completeness).toBe("complete");
+  expect(audit.largest_drop_off_stage).toBe("selected_to_published_or_threshold");
+  expect(audit.largest_drop_off_count).toBe(8);
+  expect(audit.drop_off_reasons.below_publish_threshold).toBe(8);
+  expect(audit.drop_off_reasons.no_trade_candidate).toBe(0);
+  expect(audit.drop_off_reasons.duplicate_snapshot_fingerprint).toBe(6);
+  expect(audit.missing_snapshot_count).toBe(0);
+});
+
+test("batch audit keeps truly empty batches at zero", () => {
+  const audit = buildBatchCandidateAuditSummary({
+    scanRunFingerprint: "rec_scan_run_empty",
+    batchFingerprint: null,
+    rawCandidatesCount: 0,
+    rankedCandidatesCount: 0,
+    selectedCandidatesCount: 0,
+    builtRecommendationsCount: 0,
+    publishedRecommendationsCount: 0,
+    persistedRecommendationRowsCount: 0,
+    persistedSnapshotRowsCount: 0,
+    uniqueSnapshotFingerprintsCount: 0,
+    visibleGridCardsCount: 0,
+    outcomeEligibleSnapshotCount: 0,
+  });
+
+  expect(audit.raw_scan_run_built_count).toBe(0);
+  expect(audit.raw_scan_run_published_count).toBe(0);
+  expect(audit.effective_built_recommendations_count).toBe(0);
+  expect(audit.effective_published_recommendations_count).toBe(0);
+  expect(audit.reconciled_from_persisted_rows).toBe(false);
+  expect(audit.counter_reconciliation).toBe("none");
+  expect(audit.batch_completeness).toBe("empty");
+});
+
 test("missing provider or reference data is not mislabeled as generic no-trade", () => {
   const diagnostic = buildSelectedCandidateBuildDiagnostic({
     ticker: "META",
