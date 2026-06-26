@@ -1,7 +1,10 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
-import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
+import {
+  entryTypeMetadataForSnapshot,
+  evaluateEntryTypeAwareTrigger,
+} from "@/lib/recommendation-entry-type";
 
 export type RecommendationOutcomeStatus =
   | "pending"
@@ -469,6 +472,15 @@ function priceTouchesEntry(
   return candle.high !== null && candle.low !== null && candle.low <= entry && candle.high >= entry;
 }
 
+function officialTriggerSemanticsForEntryType(
+  metadata: ReturnType<typeof entryTypeMetadataForSnapshot>,
+) {
+  return metadata.entry_type === "market_reference" &&
+    metadata.entry_trigger_semantics === "immediate_reference"
+    ? "immediate_reference"
+    : "current_candle_range_touches_entry";
+}
+
 function priceTouchesTarget(
   candle: { high: number | null; low: number | null },
   target: number,
@@ -522,6 +534,15 @@ export function computeRecommendationOutcome(
   const candles = normalizeCandles(input.candles, recommendedAt);
   const hasCandles = candles.length > 0;
   const source = textOrNull(String(input.source ?? "")) ?? "unknown";
+  const entryTypeMetadata = entryTypeMetadataForSnapshot({
+    ticker,
+    entry,
+    side,
+    quote_price: snapshot?.quote_price ?? null,
+    payload_json: snapshot?.payload_json ?? null,
+  });
+  const officialTriggerSemantics =
+    officialTriggerSemanticsForEntryType(entryTypeMetadata);
 
   if (sideResolution.warning) {
     warnings.push(sideResolution.warning);
@@ -572,9 +593,13 @@ export function computeRecommendationOutcome(
       maxAdverseExcursion =
         worstPrice === null ? null : Math.max(0, adverseMove(worstPrice, entry, side));
 
-      const entryIndex = candles.findIndex((candle) =>
+      const legacyEntryIndex = candles.findIndex((candle) =>
         priceTouchesEntry(candle, entry),
       );
+      const entryIndex =
+        officialTriggerSemantics === "immediate_reference"
+          ? 0
+          : legacyEntryIndex;
       entryTriggered = entryIndex >= 0;
       entryTriggeredAt = entryIndex >= 0 ? candles[entryIndex].timestamp : null;
 
@@ -612,10 +637,16 @@ export function computeRecommendationOutcome(
               );
             } else if (targetTouched) {
               firstTerminalEvent = "target_hit";
-              status = "target_before_stop";
+              status =
+                officialTriggerSemantics === "immediate_reference"
+                  ? "target_hit"
+                  : "target_before_stop";
             } else {
               firstTerminalEvent = "stop_hit";
-              status = "stop_before_target";
+              status =
+                officialTriggerSemantics === "immediate_reference"
+                  ? "stop_hit"
+                  : "stop_before_target";
             }
             break;
           }
@@ -663,12 +694,15 @@ export function computeRecommendationOutcome(
     candles,
     latestProviderPrice: currentPrice ?? eodPrice,
   });
-  const entryTypeMetadata = entryTypeMetadataForSnapshot({
-    ticker,
-    entry,
+  const entryTypeTriggerDiagnostics = evaluateEntryTypeAwareTrigger({
+    metadata: entryTypeMetadata,
     side,
-    quote_price: snapshot?.quote_price ?? null,
-    payload_json: snapshot?.payload_json ?? null,
+    entry,
+    stop,
+    target,
+    candles,
+    officialEntryTriggered: entryTriggered,
+    officialStatus: status,
   });
 
   const outcome: RecommendationOutcome = {
@@ -722,6 +756,8 @@ export function computeRecommendationOutcome(
       plan_price_freshness: planPriceFreshness,
       ...entryTypeMetadata,
       entry_type_metadata: entryTypeMetadata,
+      ...entryTypeTriggerDiagnostics,
+      entry_type_trigger_diagnostics: entryTypeTriggerDiagnostics,
     },
     created_at: toIso(input.created_at) ?? evaluatedAt,
     updated_at: toIso(input.updated_at) ?? evaluatedAt,

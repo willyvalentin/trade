@@ -1186,6 +1186,8 @@ function completenessRank(outcome: RecommendationOutcome) {
 
 function statusRank(outcome: RecommendationOutcome) {
   if (
+    outcome.status === "target_hit" ||
+    outcome.status === "stop_hit" ||
     outcome.status === "target_before_stop" ||
     outcome.status === "stop_before_target" ||
     outcome.status === "neither_hit" ||
@@ -1198,6 +1200,30 @@ function statusRank(outcome: RecommendationOutcome) {
   if (outcome.status === "incomplete" || outcome.status === "unknown") return 1;
   if (outcome.status === "pending" || outcome.status === "invalid") return 0;
   return 2;
+}
+
+function isMarketReferenceImmediateOutcome(outcome: RecommendationOutcome) {
+  return (
+    outcome.payload_json.entry_type === "market_reference" &&
+    outcome.payload_json.entry_trigger_semantics === "immediate_reference"
+  );
+}
+
+function hasOfficialTriggerSemanticsUpgrade(
+  nextOutcome: RecommendationOutcome,
+  existingOutcome: RecommendationOutcome | undefined,
+) {
+  if (!existingOutcome) return false;
+  if (!isMarketReferenceImmediateOutcome(nextOutcome)) return false;
+
+  return (
+    nextOutcome.payload_json.official_trigger_semantics_used ===
+      "immediate_reference" &&
+    (existingOutcome.payload_json.official_trigger_semantics_used !==
+      "immediate_reference" ||
+      (existingOutcome.entry_triggered === false &&
+        nextOutcome.entry_triggered === true))
+  );
 }
 
 function candleCount(outcome: RecommendationOutcome) {
@@ -1219,6 +1245,9 @@ function hasBetterCoverage(
   existingOutcome: RecommendationOutcome | undefined,
 ) {
   if (!existingOutcome) return true;
+  if (hasOfficialTriggerSemanticsUpgrade(nextOutcome, existingOutcome)) {
+    return true;
+  }
 
   const nextScore =
     completenessRank(nextOutcome) * 100 +

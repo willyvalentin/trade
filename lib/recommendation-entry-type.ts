@@ -55,6 +55,8 @@ export type EntryTypeAwareTriggerDiagnostics = {
   entry_type_aware_entry_triggered: boolean | null;
   entry_type_aware_entry_triggered_at: string | null;
   entry_type_aware_status_if_applied: string | null;
+  legacy_range_touch_triggered: boolean | null;
+  legacy_range_touch_triggered_at: string | null;
   entry_type_trigger_disagreement: boolean;
   entry_type_trigger_disagreement_reason: string | null;
   unknown_due_to_missing_reference: boolean;
@@ -69,6 +71,8 @@ export type EntryTypeTriggerSummary = {
   by_entry_type: Record<string, number>;
   by_trigger_semantics: Record<string, number>;
   entry_type_triggered_count: number;
+  official_triggered_count: number;
+  legacy_range_touch_triggered_count: number;
   current_route_triggered_count: number;
   disagreement_count: number;
   disagreement_rate: number;
@@ -429,6 +433,12 @@ function candleTriggered(
   return false;
 }
 
+function rangeTouchTriggered(candle: EntryTypeCandleLike, entry: number) {
+  const high = finiteNumber(candle.high);
+  const low = finiteNumber(candle.low);
+  return high !== null && low !== null && low <= entry && high >= entry;
+}
+
 function targetTouched(
   candle: EntryTypeCandleLike,
   target: number,
@@ -456,22 +466,24 @@ function stopTouched(
 function disagreementReason(input: {
   side: "long" | "short" | "unknown";
   entryType: RecommendationEntryType;
-  diagnosticTriggered: boolean | null;
-  officialTriggered: boolean | null;
+  entryTypeAwareTriggered: boolean | null;
+  legacyRangeTouchTriggered: boolean | null;
 }) {
-  if (input.diagnosticTriggered === input.officialTriggered) return null;
+  if (input.entryTypeAwareTriggered === input.legacyRangeTouchTriggered) {
+    return null;
+  }
   if (input.side === "long" && input.entryType === "breakout_stop") {
-    return input.diagnosticTriggered
+    return input.entryTypeAwareTriggered
       ? "long_breakout_high_crossed_but_current_route_not_triggered"
       : "long_breakout_current_route_triggered_but_high_cross_not_confirmed";
   }
   if (input.side === "short" && input.entryType === "breakout_stop") {
-    return input.diagnosticTriggered
+    return input.entryTypeAwareTriggered
       ? "short_breakout_low_crossed_but_current_route_not_triggered"
       : "short_breakout_current_route_triggered_but_low_cross_not_confirmed";
   }
   if (input.entryType === "market_reference") {
-    return input.diagnosticTriggered
+    return input.entryTypeAwareTriggered
       ? `${input.side}_market_reference_immediate_but_current_route_not_triggered`
       : `${input.side}_market_reference_current_route_triggered_but_immediate_not_confirmed`;
   }
@@ -494,9 +506,27 @@ export function evaluateEntryTypeAwareTrigger(input: {
   const target = finiteNumber(input.target);
   const candles = input.candles ?? [];
   const semantics = input.metadata.entry_trigger_semantics;
+  const officialSemantics =
+    input.metadata.entry_type === "market_reference" &&
+    semantics === "immediate_reference"
+      ? "immediate_reference"
+      : "current_candle_range_touches_entry";
   let triggered: boolean | null = null;
   let triggeredAt: string | null = null;
+  let legacyTriggered: boolean | null = null;
+  let legacyTriggeredAt: string | null = null;
   let statusIfApplied: string | null = input.officialStatus ?? null;
+
+  if (entry !== null && side !== "unknown" && candles.length > 0) {
+    const legacyTriggerIndex = candles.findIndex((candle) =>
+      rangeTouchTriggered(candle, entry),
+    );
+    legacyTriggered = legacyTriggerIndex >= 0;
+    legacyTriggeredAt =
+      legacyTriggerIndex >= 0
+        ? timestampIso(candles[legacyTriggerIndex]?.timestamp)
+        : null;
+  }
 
   if (
     entry !== null &&
@@ -528,37 +558,38 @@ export function evaluateEntryTypeAwareTrigger(input: {
           break;
         }
         if (targetHit) {
-          statusIfApplied = "target_before_stop";
+          statusIfApplied =
+            semantics === "immediate_reference" ? "target_hit" : "target_before_stop";
           break;
         }
         if (stopHit) {
-          statusIfApplied = "stop_before_target";
+          statusIfApplied =
+            semantics === "immediate_reference" ? "stop_hit" : "stop_before_target";
           break;
         }
         statusIfApplied = "neither_hit";
       }
     }
   } else if (input.metadata.entry_type === "unknown") {
-    triggered = input.officialEntryTriggered ?? null;
+    triggered = legacyTriggered ?? input.officialEntryTriggered ?? null;
     statusIfApplied = input.officialStatus ?? null;
   }
 
-  const officialTriggered = input.officialEntryTriggered ?? null;
   const disagreement =
     triggered !== null &&
-    officialTriggered !== null &&
-    triggered !== officialTriggered;
+    legacyTriggered !== null &&
+    triggered !== legacyTriggered;
   const reason = disagreement
     ? disagreementReason({
         side,
         entryType: input.metadata.entry_type,
-        diagnosticTriggered: triggered,
-        officialTriggered,
+        entryTypeAwareTriggered: triggered,
+        legacyRangeTouchTriggered: legacyTriggered,
       })
     : null;
 
   return {
-    official_trigger_semantics_used: "current_candle_range_touches_entry",
+    official_trigger_semantics_used: officialSemantics,
     entry_type: input.metadata.entry_type,
     entry_type_source: input.metadata.entry_type_source,
     entry_type_confidence: input.metadata.entry_type_confidence,
@@ -567,6 +598,8 @@ export function evaluateEntryTypeAwareTrigger(input: {
     entry_type_aware_entry_triggered: triggered,
     entry_type_aware_entry_triggered_at: triggeredAt,
     entry_type_aware_status_if_applied: statusIfApplied,
+    legacy_range_touch_triggered: legacyTriggered,
+    legacy_range_touch_triggered_at: legacyTriggeredAt,
     entry_type_trigger_disagreement: disagreement,
     entry_type_trigger_disagreement_reason: reason,
     unknown_due_to_missing_reference:
@@ -588,6 +621,7 @@ export function summarizeEntryTypeTriggerDiagnostics(
     entryType?: RecommendationEntryTypeMetadata | null;
     trigger?: EntryTypeAwareTriggerDiagnostics | null;
     currentRouteTriggered?: boolean | null;
+    officialTriggered?: boolean | null;
   }>,
 ): EntryTypeTriggerSummary {
   const summary: EntryTypeTriggerSummary = {
@@ -597,6 +631,8 @@ export function summarizeEntryTypeTriggerDiagnostics(
     by_entry_type: {},
     by_trigger_semantics: {},
     entry_type_triggered_count: 0,
+    official_triggered_count: 0,
+    legacy_range_touch_triggered_count: 0,
     current_route_triggered_count: 0,
     disagreement_count: 0,
     disagreement_rate: 0,
@@ -627,7 +663,13 @@ export function summarizeEntryTypeTriggerDiagnostics(
     if (trigger?.entry_type_aware_entry_triggered === true) {
       summary.entry_type_triggered_count += 1;
     }
-    if (item.currentRouteTriggered === true) {
+    if (item.officialTriggered === true) {
+      summary.official_triggered_count += 1;
+    }
+    const legacyTriggered =
+      trigger?.legacy_range_touch_triggered ?? item.currentRouteTriggered ?? null;
+    if (legacyTriggered === true) {
+      summary.legacy_range_touch_triggered_count += 1;
       summary.current_route_triggered_count += 1;
     }
     if (

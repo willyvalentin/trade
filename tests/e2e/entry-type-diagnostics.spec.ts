@@ -16,6 +16,46 @@ import { runRecommendationOutcomeEvaluation } from "../../lib/recommendation-out
 import { computeRecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
 
+function marketReferenceSnapshot(overrides: {
+  recommendationId?: string;
+  ticker?: string;
+  entry?: number;
+  stop?: number;
+  target?: number;
+}) {
+  const ticker = overrides.ticker ?? "BAC";
+  return buildRecommendationSnapshot({
+    recommendation_id: overrides.recommendationId ?? `rec_${ticker.toLowerCase()}_market_ref`,
+    ticker,
+    recommended_at: "2026-06-26T16:00:00.000Z",
+    app_timestamp: "2026-06-26T16:00:00.000Z",
+    entry: overrides.entry ?? 100.2,
+    stop: overrides.stop ?? 98,
+    target: overrides.target ?? 104,
+    side: "long",
+    quote_price: 100,
+    payload: {
+      reference_price_used_for_plan: 100,
+      reference_price_source: "provider_quote_price",
+      reference_price_read_path: "snapshot.quote_price",
+      entry_type_metadata: {
+        entry_type: "market_reference",
+        entry_trigger_semantics: "immediate_reference",
+        entry_type_source: "deterministic_plan_builder",
+        entry_type_confidence: "high",
+        entry_type_warnings: [],
+        entry_type_reference_price: 100,
+        entry_type_reference_source: "provider_quote_price",
+        entry_type_reference_read_path: "snapshot.quote_price",
+        entry_type_reference_distance_pct: 0.2,
+        entry_type_requires_reference_price: true,
+        reference_price_missing_for_entry_type: false,
+        unknown_due_to_missing_reference: false,
+      },
+    },
+  });
+}
+
 test("entry type infers trigger semantics conservatively", () => {
   const longPullback = inferRecommendationEntryTypeMetadata({
     side: "long",
@@ -52,7 +92,7 @@ test("entry type infers trigger semantics conservatively", () => {
       side: "long",
       entry: 101,
       candles: [
-        { timestamp: "2026-06-17T14:30:00.000Z", high: 101.2, low: 99 },
+        { timestamp: "2026-06-17T14:30:00.000Z", high: 101.2, low: 101.05 },
       ],
       officialEntryTriggered: false,
       officialStatus: "entry_not_triggered",
@@ -122,7 +162,9 @@ test("entry type summarizes trigger disagreements", () => {
     metadata: breakout,
     side: "long",
     entry: 101,
-    candles: [{ timestamp: "2026-06-17T14:30:00.000Z", high: 101.2, low: 99 }],
+    candles: [
+      { timestamp: "2026-06-17T14:30:00.000Z", high: 101.2, low: 101.05 },
+    ],
     officialEntryTriggered: false,
     officialStatus: "entry_not_triggered",
   });
@@ -155,6 +197,253 @@ test("entry type summarizes trigger disagreements", () => {
   expect(summary.by_entry_type.breakout_stop).toBe(1);
   expect(summary.disagreement_count).toBe(1);
   expect(summary.tickers_with_disagreements).toEqual(["JPM"]);
+});
+
+test("market reference immediate entry is official at first candle and records legacy disagreement", () => {
+  const snapshot = marketReferenceSnapshot({});
+  const result = computeRecommendationOutcome({
+    snapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      {
+        timestamp: "2026-06-26T16:05:00.000Z",
+        open: 100,
+        high: 100.1,
+        low: 99.8,
+        close: 100,
+      },
+      {
+        timestamp: "2026-06-26T16:10:00.000Z",
+        open: 100,
+        high: 100.1,
+        low: 99.9,
+        close: 100.5,
+      },
+    ],
+  });
+
+  expect(result.outcome.status).toBe("neither_hit");
+  expect(result.outcome.entry_triggered).toBe(true);
+  expect(result.outcome.entry_triggered_at).toBe("2026-06-26T16:05:00.000Z");
+  expect(result.outcome.payload_json.official_trigger_semantics_used).toBe(
+    "immediate_reference",
+  );
+  expect(result.outcome.payload_json.entry_type_aware_entry_triggered).toBe(true);
+  expect(result.outcome.payload_json.legacy_range_touch_triggered).toBe(false);
+  expect(result.outcome.payload_json.entry_type_trigger_disagreement).toBe(true);
+  expect(result.outcome.payload_json.entry_type_trigger_disagreement_reason).toBe(
+    "long_market_reference_immediate_but_current_route_not_triggered",
+  );
+});
+
+test("market reference immediate entry can hit target or stop after first candle", () => {
+  const snapshot = marketReferenceSnapshot({});
+  const firstCandle = {
+    timestamp: "2026-06-26T16:05:00.000Z",
+    open: 100,
+    high: 100.1,
+    low: 99.8,
+    close: 100,
+  };
+
+  const targetResult = computeRecommendationOutcome({
+    snapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      firstCandle,
+      {
+        timestamp: "2026-06-26T16:10:00.000Z",
+        open: 100.5,
+        high: 104.2,
+        low: 100.4,
+        close: 104,
+      },
+    ],
+  });
+  expect(targetResult.outcome.status).toBe("target_hit");
+  expect(targetResult.outcome.target_hit).toBe(true);
+  expect(targetResult.outcome.first_terminal_event).toBe("target_hit");
+
+  const stopResult = computeRecommendationOutcome({
+    snapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      firstCandle,
+      {
+        timestamp: "2026-06-26T16:10:00.000Z",
+        open: 99.8,
+        high: 100,
+        low: 97.8,
+        close: 98,
+      },
+    ],
+  });
+  expect(stopResult.outcome.status).toBe("stop_hit");
+  expect(stopResult.outcome.stop_hit).toBe(true);
+  expect(stopResult.outcome.first_terminal_event).toBe("stop_hit");
+});
+
+test("pullback and unknown entries keep conservative legacy trigger behavior", () => {
+  const pullbackSnapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_pullback_legacy",
+    ticker: "JPM",
+    recommended_at: "2026-06-26T16:00:00.000Z",
+    app_timestamp: "2026-06-26T16:00:00.000Z",
+    entry: 99,
+    stop: 97,
+    target: 103,
+    side: "long",
+    quote_price: 100,
+    payload: {
+      reference_price_used_for_plan: 100,
+      reference_price_source: "provider_quote_price",
+    },
+  });
+  const pullback = computeRecommendationOutcome({
+    snapshot: pullbackSnapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      {
+        timestamp: "2026-06-26T16:05:00.000Z",
+        open: 100,
+        high: 100.5,
+        low: 99.2,
+        close: 100,
+      },
+    ],
+  });
+  expect(pullback.outcome.status).toBe("entry_not_triggered");
+  expect(pullback.outcome.entry_triggered).toBe(false);
+  expect(pullback.outcome.payload_json.official_trigger_semantics_used).toBe(
+    "current_candle_range_touches_entry",
+  );
+
+  const unknownSnapshot = buildRecommendationSnapshot({
+    recommendation_id: "rec_unknown_legacy",
+    ticker: "CAT",
+    recommended_at: "2026-06-26T16:00:00.000Z",
+    app_timestamp: "2026-06-26T16:00:00.000Z",
+    entry: 100,
+    stop: 98,
+    target: 104,
+    side: "long",
+  });
+  const unknown = computeRecommendationOutcome({
+    snapshot: unknownSnapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      {
+        timestamp: "2026-06-26T16:05:00.000Z",
+        open: 100.8,
+        high: 101,
+        low: 100.5,
+        close: 100.7,
+      },
+    ],
+  });
+  expect(unknown.outcome.status).toBe("entry_not_triggered");
+  expect(unknown.outcome.payload_json.entry_type).toBe("unknown");
+  expect(unknown.outcome.payload_json.official_trigger_semantics_used).toBe(
+    "current_candle_range_touches_entry",
+  );
+});
+
+test("rerun updates legacy market reference entry_not_triggered outcome", async () => {
+  const snapshot = marketReferenceSnapshot({ ticker: "MSFT" });
+  const corrected = computeRecommendationOutcome({
+    snapshot,
+    horizon: "15m",
+    evaluated_at: "2026-06-26T16:20:00.000Z",
+    source: "intraday_candles",
+    data_completeness: "complete",
+    candles: [
+      {
+        timestamp: "2026-06-26T16:05:00.000Z",
+        open: 100,
+        high: 100.1,
+        low: 99.8,
+        close: 100,
+      },
+    ],
+  }).outcome;
+  const legacyOutcome = {
+    ...corrected,
+    status: "entry_not_triggered" as const,
+    entry_triggered: false,
+    entry_triggered_at: null,
+    payload_json: {
+      ...corrected.payload_json,
+      official_trigger_semantics_used: "current_candle_range_touches_entry",
+      entry_triggered_at: null,
+      entry_type_trigger_diagnostics: {
+        ...(corrected.payload_json.entry_type_trigger_diagnostics as Record<
+          string,
+          unknown
+        >),
+        official_trigger_semantics_used: "current_candle_range_touches_entry",
+        entry_type_aware_entry_triggered: true,
+        legacy_range_touch_triggered: false,
+        entry_type_trigger_disagreement: true,
+      },
+    },
+  };
+  const persisted: string[] = [];
+
+  const run = await runRecommendationOutcomeEvaluation({
+    snapshots: [snapshot],
+    existingOutcomes: [legacyOutcome],
+    horizons: ["15m"],
+    now: "2026-06-26T16:20:00.000Z",
+    fetchCandles: async (request) => ({
+      request,
+      status: "available",
+      provider: "test",
+      error: null,
+      warnings: [],
+      candles: [
+        {
+          timestamp: "2026-06-26T16:05:00.000Z",
+          open: 100,
+          high: 100.1,
+          low: 99.8,
+          close: 100,
+        },
+      ],
+    }),
+    persistOutcome: async (outcome) => {
+      persisted.push(outcome.status);
+      return {
+        status: "updated",
+        mode: "supabase",
+        outcome,
+        error: null,
+      };
+    },
+  });
+
+  expect(persisted).toEqual(["neither_hit"]);
+  expect(run.outcomes[0]?.entry_triggered).toBe(true);
+  expect(run.outcomes[0]?.payload_json.official_trigger_semantics_used).toBe(
+    "immediate_reference",
+  );
+  expect(run.entry_type_trigger_summary?.official_triggered_count).toBe(1);
+  expect(run.entry_type_trigger_summary?.legacy_range_touch_triggered_count).toBe(0);
+  expect(run.entry_type_trigger_summary?.disagreement_count).toBe(1);
 });
 
 test("deterministic fallback retains complete plan reference metadata before persistence", () => {
@@ -452,7 +741,7 @@ test("entry type reads completed retained candles without provider refetch", asy
     {
       timestamp: "2026-06-17T14:30:00.000Z",
       open: 99.5,
-      high: 98.8,
+      high: 99.5,
       low: 98,
       close: 98.4,
       volume: 1000,
@@ -503,7 +792,12 @@ test("entry type reads completed retained candles without provider refetch", asy
   expect(run.candidates[0]?.entry_type_metadata?.entry_type).toBe(
     "pullback_limit",
   );
-  expect(run.candidates[0]?.entry_type_aware_trigger).toBeNull();
+  expect(
+    run.candidates[0]?.entry_type_aware_trigger?.official_trigger_semantics_used,
+  ).toBe("current_candle_range_touches_entry");
+  expect(
+    run.candidates[0]?.entry_type_aware_trigger?.entry_type_trigger_disagreement,
+  ).toBe(false);
   expect(run.candidates[0]?.outcome_status).toBe(existingOutcome.status);
 });
 

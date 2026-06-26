@@ -399,6 +399,36 @@ function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome | undef
   );
 }
 
+function outcomeNeedsOfficialTriggerSemanticsRefresh(input: {
+  outcome: RecommendationOutcome | undefined;
+  snapshot: RecommendationSnapshot;
+}) {
+  if (!input.outcome) {
+    return false;
+  }
+
+  const metadata =
+    entryTypeMetadataFromOutcome(input.outcome) ??
+    entryTypeMetadataForSnapshot(input.snapshot);
+
+  if (
+    metadata.entry_type !== "market_reference" ||
+    metadata.entry_trigger_semantics !== "immediate_reference"
+  ) {
+    return false;
+  }
+
+  const trigger = entryTypeTriggerFromOutcome(input.outcome);
+
+  return (
+    input.outcome.payload_json.official_trigger_semantics_used !==
+      "immediate_reference" ||
+    trigger?.official_trigger_semantics_used !== "immediate_reference" ||
+    (input.outcome.entry_triggered === false &&
+      trigger?.entry_type_aware_entry_triggered === true)
+  );
+}
+
 function retainedCandlePayload(candles: RecommendationOutcomeCandle[]) {
   const retainedCandles = compactOutcomeCandles(candles);
 
@@ -791,6 +821,12 @@ export async function runRecommendationOutcomeEvaluation(
       const existingOutcomeCompleted = !isOutcomePending(existingOutcome);
       const existingOutcomeNeedsEnrichment =
         existingOutcomeCompleted && !hasRetainedCounterfactualCandles(existingOutcome);
+      const existingOutcomeNeedsOfficialSemanticsRefresh =
+        existingOutcomeCompleted &&
+        outcomeNeedsOfficialTriggerSemanticsRefresh({
+          outcome: existingOutcome,
+          snapshot,
+        });
 
       if (existingOutcomeCompleted) {
         completedOutcomesSeenCount += 1;
@@ -799,13 +835,15 @@ export async function runRecommendationOutcomeEvaluation(
       if (
         existingOutcomeCompleted &&
         enrichmentMode &&
-        !existingOutcomeNeedsEnrichment
+        !existingOutcomeNeedsEnrichment &&
+        !existingOutcomeNeedsOfficialSemanticsRefresh
       ) {
         completedOutcomesSkippedAlreadyEnrichedCount += 1;
       }
 
       if (
         existingOutcomeCompleted &&
+        !existingOutcomeNeedsOfficialSemanticsRefresh &&
         (!enrichmentMode || !existingOutcomeNeedsEnrichment)
       ) {
         const existingEntryTypeMetadata =
@@ -1294,6 +1332,7 @@ export async function runRecommendationOutcomeEvaluation(
         entryType: candidate.entry_type_metadata ?? null,
         trigger: candidate.entry_type_aware_trigger ?? null,
         currentRouteTriggered: outcome?.entry_triggered ?? null,
+        officialTriggered: outcome?.entry_triggered ?? null,
       };
     }),
   );

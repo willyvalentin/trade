@@ -342,6 +342,15 @@ import {
   buildExecutionRecordCandidateBuilderIntegrationDevFixtureResult,
 } from "../../lib/execution-record-candidate-builder-integration-dev-fixture";
 import {
+  buildExecutionRecordCandidateBuilderInvocationDevFixtureResult,
+} from "../../lib/execution-record-candidate-builder-invocation-dev-fixture";
+import {
+  buildExecutionRecordPersistenceValidatorIntegrationDevFixtureResult,
+} from "../../lib/execution-record-persistence-validator-integration-dev-fixture";
+import {
+  invokeExecutionRecordCandidateBuilder,
+} from "../../lib/execution-record-candidate-builder-invocation";
+import {
   shapeExecutionRecordCandidateBuilderInput,
 } from "../../lib/execution-record-candidate-builder-integration-adapter";
 import {
@@ -424,6 +433,7 @@ import {
 import {
   EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
   type ExecutionRecordCreationInput,
+  type ExecutionRecordCreationResult,
 } from "../../lib/execution-record-creation-contract";
 import {
   EXECUTION_RECORD_PERSISTENCE_CONTRACT_VERSION,
@@ -433,10 +443,236 @@ import {
   validateExecutionRecordPersistenceInput,
 } from "../../lib/execution-record-persistence-validator";
 import {
+  shapeExecutionRecordPersistenceValidatorInput,
+} from "../../lib/execution-record-persistence-validator-integration-adapter";
+import {
+  buildExecutionRecordPersistenceValidatorIntegration,
+  type ExecutionRecordPersistenceValidatorIntegrationReadinessResult,
+} from "../../lib/execution-record-persistence-validator-integration";
+import {
+  validateExecutionRecordPersistenceIntegration,
+} from "../../lib/execution-record-persistence-validator-integration-validator";
+import {
+  validateActualPersistenceValidatorBoundaryCall,
+} from "../../lib/execution-record-actual-persistence-validator-boundary-call-validator";
+import {
+  callActualPersistenceValidatorBoundary,
+} from "../../lib/execution-record-actual-persistence-validator-boundary-call-implementation";
+import {
+  validateExecutionRecordInsertRouteReadiness,
+} from "../../lib/execution-record-insert-route-readiness-boundary-validator";
+import {
+  callExecutionRecordInsertRoute,
+} from "../../lib/execution-record-insert-route-call-implementation";
+import {
+  validateExecutionRecordProductionInsertRouteBoundary,
+} from "../../lib/execution-record-production-insert-route-boundary-validator";
+import {
+  validateExecutionRecordPostInsertBoundary,
+} from "../../lib/execution-record-post-insert-boundary-validator";
+import {
+  validateExecutionRecordAuditAppendBoundary,
+} from "../../lib/execution-record-audit-append-boundary-validator";
+import {
+  validateExecutionRecordAuditAppendWriter,
+} from "../../lib/execution-record-audit-append-writer-validator";
+import {
+  validateExecutionRecordAuditAppendWriterContract,
+} from "../../lib/execution-record-audit-append-writer-contract-validator";
+import {
+  validateExecutionRecordAuditAppendWriterDryRun,
+} from "../../lib/execution-record-audit-append-writer-dry-run-validator";
+import {
+  validateExecutionRecordAuditAppendWriterDryRunExecution,
+} from "../../lib/execution-record-audit-append-writer-dry-run-execution-validator";
+import {
+  executeAuditAppendWriterDryRun,
+} from "../../lib/execution-record-audit-append-writer-dry-run-execution-implementation";
+import {
+  ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_CALL_CONTRACT_VERSION,
+  ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_POST_CALL_BOUNDARY,
+  ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_SAFETY_POLICY,
+  type ActualPersistenceValidatorBoundaryAuditCorrectionSummary,
+  type ActualPersistenceValidatorBoundaryCallInput,
+  type ActualPersistenceValidatorBoundaryDryRunRouteSummary,
+  type ActualPersistenceValidatorBoundaryGeneratedTypesSummary,
+  type ActualPersistenceValidatorBoundaryIdempotencySummary,
+  type ActualPersistenceValidatorBoundaryManualApprovalSummary,
+  type ActualPersistenceValidatorBoundaryMigrationSummary,
+  type ActualPersistenceValidatorBoundaryProposedInputSummary,
+  type ActualPersistenceValidatorBoundarySchemaReadinessSummary,
+  type ActualPersistenceValidatorBoundarySecuritySummary,
+  type ActualPersistenceValidatorBoundaryServerOnlySummary,
+  type ActualPersistenceValidatorBoundarySourceEvidenceSummary,
+} from "../../lib/execution-record-actual-persistence-validator-boundary-call-contract";
+import {
+  ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_CALL_VALIDATOR_CONTRACT_VERSION,
+  ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+  type ActualPersistenceValidatorBoundaryCallValidationInput,
+  type ActualPersistenceValidatorBoundaryCallValidationResult,
+} from "../../lib/execution-record-actual-persistence-validator-boundary-call-validator-contract";
+import {
+  type ActualPersistenceValidatorBoundaryCallImplementationInput,
+  type ActualPersistenceValidatorBoundaryCallImplementationResult,
+} from "../../lib/execution-record-actual-persistence-validator-boundary-call-implementation-contract";
+import {
+  EXECUTION_RECORD_PERSISTENCE_VALIDATOR_INTEGRATION_ADAPTER_CONTRACT_VERSION,
+  type ExecutionRecordPersistenceValidatorAdapterAuditCorrectionSummary,
+  type ExecutionRecordPersistenceValidatorAdapterDryRunRouteSummary,
+  type ExecutionRecordPersistenceValidatorAdapterIdempotencySummary,
+  type ExecutionRecordPersistenceValidatorAdapterSchemaReadinessSummary,
+  type ExecutionRecordPersistenceValidatorAdapterSecuritySummary,
+  type ExecutionRecordPersistenceValidatorIntegrationAdapterInput,
+  type ExecutionRecordPersistenceValidatorIntegrationAdapterResult,
+} from "../../lib/execution-record-persistence-validator-integration-adapter-contract";
+import {
+  EXECUTION_RECORD_PERSISTENCE_VALIDATOR_INTEGRATION_CONTRACT_VERSION,
+  type ExecutionRecordPersistenceValidatorIntegrationInput,
+  type ExecutionRecordPersistenceValidatorIntegrationResult,
+} from "../../lib/execution-record-persistence-validator-integration-contract";
+import type {
+  ExecutionRecordPersistenceValidatorIntegrationValidationInput,
+  ExecutionRecordPersistenceValidatorIntegrationValidationResult,
+} from "../../lib/execution-record-persistence-validator-integration-validator-contract";
+import {
   EXECUTION_RECORD_INSERT_ROUTE_CONTRACT_VERSION,
   type ExecutionRecordInsertRouteRequest,
   type ExecutionRecordInsertRouteResponse,
 } from "../../lib/execution-record-insert-route-contract";
+import {
+  EXECUTION_RECORD_INSERT_ROUTE_READINESS_BOUNDARY_CONTRACT_VERSION,
+  EXECUTION_RECORD_INSERT_ROUTE_READINESS_DEFAULT_POST_INSERT_BOUNDARY,
+  EXECUTION_RECORD_INSERT_ROUTE_READINESS_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordInsertRouteActualValidatorSummary,
+  type ExecutionRecordInsertRouteAuditCorrectionSummary,
+  type ExecutionRecordInsertRouteDryRunProductionSeparationSummary,
+  type ExecutionRecordInsertRouteEvidenceProvenanceSummary,
+  type ExecutionRecordInsertRouteGeneratedTypesSummary,
+  type ExecutionRecordInsertRouteIdempotencyDuplicateSummary,
+  type ExecutionRecordInsertRouteManualApprovalSummary,
+  type ExecutionRecordInsertRouteMigrationSummary,
+  type ExecutionRecordInsertRouteNormalizedInputSummary,
+  type ExecutionRecordInsertRouteReadinessInput,
+  type ExecutionRecordInsertRouteReadinessResult,
+  type ExecutionRecordInsertRouteRlsSecuritySummary,
+  type ExecutionRecordInsertRouteSchemaReadinessSummary,
+  type ExecutionRecordInsertRouteServerOnlyBoundarySummary,
+  type ExecutionRecordInsertRouteServerOnlyRequestContext,
+} from "../../lib/execution-record-insert-route-readiness-boundary-contract";
+import {
+  EXECUTION_RECORD_INSERT_ROUTE_READINESS_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordInsertRouteReadinessValidationInput,
+  type ExecutionRecordInsertRouteReadinessValidationResult,
+} from "../../lib/execution-record-insert-route-readiness-boundary-validator-contract";
+import {
+  EXECUTION_RECORD_INSERT_ROUTE_CALL_IMPLEMENTATION_CONTRACT_VERSION,
+  type ExecutionRecordInsertRouteCallInput,
+  type ExecutionRecordInsertRouteCallResult,
+} from "../../lib/execution-record-insert-route-call-implementation-contract";
+import {
+  EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_CONTRACT_VERSION,
+  EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_DEFAULT_POST_INSERT_BOUNDARY,
+  EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordProductionInsertRouteBoundaryInput,
+} from "../../lib/execution-record-production-insert-route-boundary-contract";
+import {
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_CONTRACT_VERSION,
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendBoundarySummary,
+  type ExecutionRecordAvanzaBrowserFollowUpBoundarySummary,
+  type ExecutionRecordBrokerOrderFollowUpBoundarySummary,
+  type ExecutionRecordCorrectionRollbackBoundarySummary,
+  type ExecutionRecordFailureRecoveryBoundarySummary,
+  type ExecutionRecordPostInsertBoundaryCategorySummaries,
+  type ExecutionRecordPostInsertBoundaryCategorySummary,
+  type ExecutionRecordPostInsertBoundaryInput,
+  type ExecutionRecordPostInsertBoundaryResult,
+  type ExecutionRecordStatsPnlUpdateBoundarySummary,
+  type ExecutionRecordTradeReconciliationBoundarySummary,
+  type ExecutionRecordUiStateUpdateBoundarySummary,
+  type ExecutionRecordUserNotificationBoundarySummary,
+} from "../../lib/execution-record-post-insert-boundary-contract";
+import {
+  EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordProductionInsertRouteBoundaryValidationInput,
+  type ExecutionRecordProductionInsertRouteBoundaryValidationResult,
+} from "../../lib/execution-record-production-insert-route-boundary-validator-contract";
+import {
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATION_DEFAULT_SAFETY_POLICY,
+  EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordPostInsertBoundaryValidationInput,
+  type ExecutionRecordPostInsertBoundaryValidationResult,
+} from "../../lib/execution-record-post-insert-boundary-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_CONTRACT_VERSION,
+  EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendBoundaryInput,
+  type ExecutionRecordAuditAppendBoundaryResult,
+} from "../../lib/execution-record-audit-append-boundary-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordAuditAppendBoundaryValidationInput,
+  type ExecutionRecordAuditAppendBoundaryValidationResult,
+} from "../../lib/execution-record-audit-append-boundary-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VERSION,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendWriterInput,
+  type ExecutionRecordAuditAppendWriterResult,
+} from "../../lib/execution-record-audit-append-writer-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATION_DEFAULT_SAFETY_POLICY,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordAuditAppendWriterValidationInput,
+  type ExecutionRecordAuditAppendWriterValidationResult,
+} from "../../lib/execution-record-audit-append-writer-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATION_DEFAULT_SAFETY_POLICY,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordAuditAppendWriterContractValidationInput,
+  type ExecutionRecordAuditAppendWriterContractValidationResult,
+} from "../../lib/execution-record-audit-append-writer-contract-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_RESULT_CONTRACT_VERSION,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendWriterDryRunInput,
+  type ExecutionRecordAuditAppendWriterDryRunResult,
+} from "../../lib/execution-record-audit-append-writer-dry-run-result-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATION_DEFAULT_SAFETY_POLICY,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordAuditAppendWriterDryRunValidationInput,
+  type ExecutionRecordAuditAppendWriterDryRunValidationResult,
+} from "../../lib/execution-record-audit-append-writer-dry-run-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_CONTRACT_VERSION,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionInput,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionResult,
+} from "../../lib/execution-record-audit-append-writer-dry-run-execution-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATION_DEFAULT_SAFETY_POLICY,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATOR_CONTRACT_VERSION,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionValidationResult,
+} from "../../lib/execution-record-audit-append-writer-dry-run-execution-validator-contract";
+import {
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_CONTRACT_VERSION,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_DEFAULT_AUTHORITY_FLAGS,
+  EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_DEFAULT_SAFETY_POLICY,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput,
+  type ExecutionRecordAuditAppendWriterDryRunExecutionImplementationResult,
+} from "../../lib/execution-record-audit-append-writer-dry-run-execution-implementation-contract";
 import {
   requestExecutionRecordInsertDryRun,
 } from "../../lib/execution-record-insert-dry-run-client";
@@ -816,7 +1052,7 @@ test("infers entry type trigger semantics conservatively", () => {
     entry: 101,
     stop: 99,
     target: 104,
-    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.2, low: 100.4 }],
+    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.2, low: 101.05 }],
     officialEntryTriggered: false,
     officialStatus: "entry_not_triggered",
   });
@@ -887,11 +1123,11 @@ test("resolves plan reference metadata from scanner candidate shapes", () => {
     }),
   ).toMatchObject({
     reference_price_used_for_plan: 201.25,
-    reference_price_source: "fallback_last_price",
+    reference_price_source: "scanner_candidate_latest_close",
     reference_price_timestamp: "2026-06-17T20:00:00.000Z",
     reference_price_symbol: "AAPL",
     reference_price_provider: "twelve_data",
-    reference_price_read_path: "candidate.latest_close",
+    reference_price_read_path: "scanner_candidate.latest_close",
     plan_reference_metadata_status: "complete",
   });
 
@@ -902,7 +1138,7 @@ test("resolves plan reference metadata from scanner candidate shapes", () => {
     }),
   ).toMatchObject({
     reference_price_used_for_plan: 162.4,
-    reference_price_read_path: "candidate.latestClose",
+    reference_price_read_path: "scanner_candidate.latestClose",
     plan_reference_metadata_status: "price_missing_timestamp",
   });
 
@@ -916,9 +1152,9 @@ test("resolves plan reference metadata from scanner candidate shapes", () => {
     }),
   ).toMatchObject({
     reference_price_used_for_plan: 44.12,
-    reference_price_source: "latest_intraday_candle_close",
+    reference_price_source: "scanner_candidate_candle_close",
     reference_price_timestamp: "2026-06-17T20:00:00.000Z",
-    reference_price_read_path: "candidate.latest_candle.close",
+    reference_price_read_path: "scanner_candidate.latest_candle.close",
     plan_reference_metadata_status: "complete",
   });
 
@@ -932,9 +1168,9 @@ test("resolves plan reference metadata from scanner candidate shapes", () => {
     }),
   ).toMatchObject({
     reference_price_used_for_plan: 389.33,
-    reference_price_source: "latest_intraday_candle_close",
+    reference_price_source: "scanner_candidate_candle_close",
     reference_price_timestamp: "2026-06-17T20:00:00.000Z",
-    reference_price_read_path: "candidate.latestCandle.close",
+    reference_price_read_path: "scanner_candidate.latestCandle.close",
     plan_reference_metadata_status: "complete",
   });
 
@@ -960,9 +1196,9 @@ test("resolves plan reference metadata from scanner candidate shapes", () => {
 
   expect(priceOnly).toMatchObject({
     reference_price_used_for_plan: 49.5,
-    reference_price_source: "current_price",
+    reference_price_source: "scanner_candidate_price",
     reference_price_timestamp: null,
-    reference_price_read_path: "candidate.price",
+    reference_price_read_path: "scanner_candidate.price",
     plan_reference_metadata_status: "price_missing_timestamp",
   });
   expect(
@@ -1002,7 +1238,7 @@ test("summarizes entry type trigger disagreements", () => {
     entry: 101,
     stop: 99,
     target: 104,
-    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.1, low: 100.5 }],
+    candles: [{ timestamp: "2026-06-17T13:30:00.000Z", high: 101.1, low: 101.05 }],
     officialEntryTriggered: false,
     officialStatus: "entry_not_triggered",
   });
@@ -10991,6 +11227,380 @@ test("builds execution-record candidate builder integration dev preview from fix
   expect(result.validatorResult.brokerAutomationAttempted).toBe(false);
 });
 
+test("builds execution-record candidate builder invocation dev preview from fixture data only", () => {
+  const result =
+    buildExecutionRecordCandidateBuilderInvocationDevFixtureResult();
+
+  expect(result.metadata.fixtureOnly).toBe(true);
+  expect(result.metadata.explicitTriggerOnly).toBe(true);
+  expect(result.metadata.readOnlyPreview).toBe(true);
+  expect(result.metadata.invocationBoundaryOnly).toBe(true);
+  expect(result.metadata.invokesPureWrapper).toBe(true);
+  expect(result.metadata.candidateBuilderCalledThroughPureWrapper).toBe(true);
+  expect(result.metadata.noDirectBuildExecutionRecordCandidateCall).toBe(true);
+  expect(result.metadata.noExecutionRecordCandidatePersisted).toBe(true);
+  expect(result.metadata.noExecutionRecordCreated).toBe(true);
+  expect(result.metadata.noPersistence).toBe(true);
+  expect(result.metadata.noSupabaseWrite).toBe(true);
+  expect(result.metadata.noLocalStorageWrite).toBe(true);
+  expect(result.metadata.noAuditAppend).toBe(true);
+  expect(result.metadata.noStatsUpdate).toBe(true);
+  expect(result.metadata.noRollbackCorrection).toBe(true);
+  expect(result.metadata.noTradeMutation).toBe(true);
+  expect(result.metadata.noLiveAvanzaData).toBe(true);
+  expect(result.metadata.noCapture).toBe(true);
+  expect(result.metadata.noBrowserAutomation).toBe(true);
+  expect(result.metadata.noAvanzaBehavior).toBe(true);
+  expect(result.metadata.noBrokerOrderBehavior).toBe(true);
+
+  expect(result.invocationResult.status).toBe("builder_invocation_needs_review");
+  expect(result.invocationResult.decisionRecommendation).toBe(
+    "needs_manual_review",
+  );
+  expect(result.invocationResult.prerequisiteSummary.adapterResultPresent).toBe(
+    true,
+  );
+  expect(
+    result.invocationResult.prerequisiteSummary.adapterValidationValid,
+  ).toBe(true);
+  expect(
+    result.invocationResult.prerequisiteSummary
+      .requiredBuilderInputFieldsPresent,
+  ).toBe(true);
+  expect(result.invocationResult.outputSummary.candidateBuilderCalled).toBe(
+    true,
+  );
+  expect(
+    result.invocationResult.outputSummary.candidateBuilderResult,
+  ).toBeDefined();
+  expect(result.invocationResult.outputSummary.candidateOutput).toBeNull();
+  expect(
+    result.invocationResult.outputSummary.candidateOutputWouldBeCandidateOnly,
+  ).toBe(false);
+  expect(
+    result.invocationResult.outputSummary
+      .safeToCreateExecutionRecordCandidate,
+  ).toBe(false);
+  expect(result.invocationResult.outputSummary.safeToPersist).toBe(false);
+  expect(
+    result.invocationResult.idempotencySummary.requiredFingerprintsPresent,
+  ).toBe(true);
+  expect(
+    result.invocationResult.auditProvenanceSummary.auditMetadataPresent,
+  ).toBe(true);
+  expect(
+    result.invocationResult.schemaReadinessSummary.productionWriteEnabled,
+  ).toBe(false);
+  expect(result.invocationResult.safeToCallCandidateBuilder).toBe(false);
+  expect(result.invocationResult.safeToCreateExecutionRecordCandidate).toBe(
+    false,
+  );
+  expect(result.invocationResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.invocationResult.safeToPersist).toBe(false);
+  expect(result.invocationResult.safeToAppendAudit).toBe(false);
+  expect(result.invocationResult.safeToUpdateStats).toBe(false);
+  expect(result.invocationResult.safeToRollback).toBe(false);
+  expect(result.invocationResult.safeToMutateTrade).toBe(false);
+  expect(result.invocationResult.candidateBuilderInvocationAttempted).toBe(
+    false,
+  );
+  expect(
+    result.invocationResult.executionRecordCandidateCreationAttempted,
+  ).toBe(false);
+  expect(result.invocationResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.invocationResult.persistenceAttempted).toBe(false);
+  expect(result.invocationResult.auditAppendAttempted).toBe(false);
+  expect(result.invocationResult.statsUpdateAttempted).toBe(false);
+  expect(result.invocationResult.rollbackAttempted).toBe(false);
+  expect(result.invocationResult.tradeMutationAttempted).toBe(false);
+  expect(result.invocationResult.browserAutomationAttempted).toBe(false);
+  expect(result.invocationResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.invocationResult.brokerAutomationAttempted).toBe(false);
+
+  expect(result.validatorResult.status).toBe(
+    "builder_invocation_validation_valid",
+  );
+  expect(result.validatorResult.decisionRecommendation).toBe("validate_only");
+  expect(
+    result.validatorResult.prerequisiteValidationSummary
+      .canValidateInvocationBoundary,
+  ).toBe(true);
+  expect(
+    result.validatorResult.inputSourceValidationSummary.adapterOutputValidated,
+  ).toBe(true);
+  expect(
+    result.validatorResult.proposedInputValidationSummary.requiredFieldsPresent,
+  ).toBe(true);
+  expect(
+    result.validatorResult.idempotencyValidationSummary
+      .requiredFingerprintsPresent,
+  ).toBe(true);
+  expect(
+    result.validatorResult.auditProvenanceValidationSummary
+      .sourceEvidenceChainPresent,
+  ).toBe(true);
+  expect(
+    result.validatorResult.schemaReadinessValidationSummary.runtimeDbWritesAllowed,
+  ).toBe(false);
+  expect(
+    result.validatorResult.safetyPolicyValidationSummary.allAuthorityFlagsFalse,
+  ).toBe(true);
+  expect(result.validatorResult.safeToCallCandidateBuilder).toBe(false);
+  expect(result.validatorResult.safeToCreateExecutionRecordCandidate).toBe(false);
+  expect(result.validatorResult.safeToCreateExecutionRecord).toBe(false);
+  expect(result.validatorResult.safeToPersist).toBe(false);
+  expect(result.validatorResult.safeToAppendAudit).toBe(false);
+  expect(result.validatorResult.safeToUpdateStats).toBe(false);
+  expect(result.validatorResult.safeToRollback).toBe(false);
+  expect(result.validatorResult.safeToMutateTrade).toBe(false);
+  expect(result.validatorResult.candidateBuilderInvocationAttempted).toBe(false);
+  expect(result.validatorResult.executionRecordCandidateCreationAttempted).toBe(
+    false,
+  );
+  expect(result.validatorResult.executionRecordCreationAttempted).toBe(false);
+  expect(result.validatorResult.persistenceAttempted).toBe(false);
+  expect(result.validatorResult.auditAppendAttempted).toBe(false);
+  expect(result.validatorResult.statsUpdateAttempted).toBe(false);
+  expect(result.validatorResult.rollbackAttempted).toBe(false);
+  expect(result.validatorResult.tradeMutationAttempted).toBe(false);
+  expect(result.validatorResult.browserAutomationAttempted).toBe(false);
+  expect(result.validatorResult.avanzaAutomationAttempted).toBe(false);
+  expect(result.validatorResult.brokerAutomationAttempted).toBe(false);
+});
+
+test("invokes execution-record candidate builder only after valid invocation validation", () => {
+  const fixture =
+    buildExecutionRecordCandidateBuilderInvocationDevFixtureResult();
+  const validInput = {
+    ...(fixture.invocationResult.input!),
+    invocationValidationResult: fixture.validatorResult,
+  };
+  let builderCallCount = 0;
+
+  const result = invokeExecutionRecordCandidateBuilder(validInput, {
+    buildCandidate: (input) => {
+      builderCallCount += 1;
+      const built = buildExecutionRecordCandidate(input);
+
+      if (built.status === "eligible" && built.recordCandidate) {
+        return built;
+      }
+
+      return {
+        ...built,
+        status: "eligible",
+        eligible: true,
+        safeToPersist: false,
+        recordCandidate: {
+          recordId: "execution_record_invocation_wrapper_candidate",
+          recordFingerprint: "invocation-wrapper-record-fingerprint",
+          idempotencyKey: input.idempotency.idempotencyKey,
+          contractVersion: EXECUTION_RECORD_CREATION_CONTRACT_VERSION,
+          createdAt: "2026-06-16T13:30:00.000Z",
+          broker: "avanza",
+          side: input.expectedAction,
+          ticker: input.expectedInstrument.ticker,
+          quantity: input.expectedQuantity ?? 1,
+          price:
+            input.sourceBrokerExecutionResult.price ??
+            input.sourceBrokerExecutionResult.averageFillPrice ??
+            input.sourceBrokerExecutionResult.average_fill_price ??
+            1,
+          currency:
+            input.expectedInstrument.currency ??
+            input.sourceBrokerExecutionResult.currency ??
+            "SEK",
+          brokerStatus: "filled",
+          confirmationTimestamp: input.brokerMetadata.confirmationTimestamp,
+          sourceEvidenceFingerprint:
+            input.idempotency.sourceEvidenceFingerprint,
+          sourceEnvironment: input.sourceEnvironment,
+          executionMode: input.executionMode,
+          executionPhase: input.executionPhase,
+          safetyMetadata: {
+            noSupabaseWrite: true,
+            noTradeMutation: true,
+            noBrokerExecution: true,
+            noAvanzaAutomation: true,
+            previewOnlySourceRejected: false,
+            syntheticSourceAllowed: false,
+            automaticModeAllowed: false,
+            validationWarnings: built.warnings,
+          },
+          auditMetadata: built.auditMetadata,
+          brokerOrderId: input.brokerMetadata.brokerOrderId ?? null,
+          brokerConfirmationId:
+            input.brokerMetadata.brokerConfirmationId ?? null,
+          brokerReference: input.brokerMetadata.brokerReference ?? null,
+          sourceEventIds: input.auditContext.sourceEventIds ?? [],
+        },
+        rejectionReasons: [],
+      } satisfies ExecutionRecordCreationResult;
+    },
+  });
+
+  expect(builderCallCount).toBe(1);
+  expect(result.status).toBe("builder_invocation_ready");
+  expect(result.decisionRecommendation).toBe(
+    "candidate_builder_invocation_contract_only",
+  );
+  expect(result.outputSummary.candidateBuilderCalled).toBe(true);
+  expect(result.outputSummary.builderInvocationImplemented).toBe(true);
+  expect(result.outputSummary.candidateBuilderResult?.status).toBe("eligible");
+  expect(result.outputSummary.candidateOutput).toBeDefined();
+  expect(result.outputSummary.candidateOutputOnly).toBe(true);
+  expect(result.outputSummary.candidateOutputWouldBeCandidateOnly).toBe(true);
+  expect(result.warnings).toContain("candidate_builder_called_candidate_only");
+  expect(result.warnings).toContain("candidate_output_would_be_candidate_only");
+  expect(result.reviewItems).toContain("candidate_output_boundary_review");
+  expect(result.safeToCallCandidateBuilder).toBe(false);
+  expect(result.safeToCreateExecutionRecordCandidate).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.candidateBuilderInvocationAttempted).toBe(false);
+  expect(result.executionRecordCandidateCreationAttempted).toBe(false);
+  expect(result.executionRecordCreationAttempted).toBe(false);
+  expect(result.persistenceAttempted).toBe(false);
+  expect(result.finalizationAttempted).toBe(false);
+  expect(result.statsUpdateAttempted).toBe(false);
+  expect(result.auditAppendAttempted).toBe(false);
+  expect(result.rollbackAttempted).toBe(false);
+  expect(result.tradeMutationAttempted).toBe(false);
+  expect(result.browserAutomationAttempted).toBe(false);
+  expect(result.avanzaAutomationAttempted).toBe(false);
+  expect(result.brokerAutomationAttempted).toBe(false);
+  expect(result.metadata?.noExecutionRecordCreated).toBe(true);
+  expect(result.metadata?.noSupabaseWrite).toBe(true);
+  expect(result.metadata?.noAuditAppend).toBe(true);
+  expect(result.metadata?.noStatsUpdate).toBe(true);
+  expect(result.metadata?.noTradeMutation).toBe(true);
+});
+
+test("blocks execution-record candidate builder invocation for unsafe validation states", () => {
+  const fixture =
+    buildExecutionRecordCandidateBuilderInvocationDevFixtureResult();
+  const baseInput = fixture.invocationResult.input!;
+  const buildInput = (
+    validationResult:
+      | ExecutionRecordCandidateBuilderInvocationValidationResult
+      | null,
+    includeProposedInput = true,
+  ) => ({
+    ...baseInput,
+    proposedCreationInput: includeProposedInput
+      ? baseInput.proposedCreationInput
+      : null,
+    invocationValidationResult: validationResult,
+  });
+  const buildValidation = (
+    status: ExecutionRecordCandidateBuilderInvocationValidationResult["status"],
+  ): ExecutionRecordCandidateBuilderInvocationValidationResult => ({
+    ...fixture.validatorResult,
+    status,
+    blockedReasons:
+      status === "builder_invocation_validation_valid"
+        ? []
+        : ["missing_invocation_result"],
+    reviewItems:
+      status === "builder_invocation_validation_valid"
+        ? []
+        : ["invocation_result_review"],
+  });
+  const unsafeCases: Array<{
+    label: string;
+    validationResult:
+      | ExecutionRecordCandidateBuilderInvocationValidationResult
+      | null;
+    expectedStatus: ExecutionRecordCandidateBuilderInvocationResult["status"];
+    includeProposedInput?: boolean;
+  }> = [
+    {
+      label: "missing validation",
+      validationResult: null,
+      expectedStatus: "builder_invocation_not_ready",
+    },
+    {
+      label: "blocked validation",
+      validationResult: buildValidation("builder_invocation_validation_blocked"),
+      expectedStatus: "builder_invocation_blocked",
+    },
+    {
+      label: "needs review validation",
+      validationResult: buildValidation(
+        "builder_invocation_validation_needs_review",
+      ),
+      expectedStatus: "builder_invocation_needs_review",
+    },
+    {
+      label: "invalid validation",
+      validationResult: buildValidation("builder_invocation_validation_invalid"),
+      expectedStatus: "builder_invocation_blocked",
+    },
+    {
+      label: "unsupported validation",
+      validationResult: buildValidation(
+        "builder_invocation_validation_unsupported",
+      ),
+      expectedStatus: "builder_invocation_unsupported",
+    },
+    {
+      label: "missing proposed input",
+      validationResult: fixture.validatorResult,
+      expectedStatus: "builder_invocation_blocked",
+      includeProposedInput: false,
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    let builderCallCount = 0;
+    const result = invokeExecutionRecordCandidateBuilder(
+      buildInput(
+        unsafeCase.validationResult,
+        unsafeCase.includeProposedInput ?? true,
+      ),
+      {
+        buildCandidate: (input) => {
+          builderCallCount += 1;
+          return buildExecutionRecordCandidate(input);
+        },
+      },
+    );
+
+    expect(builderCallCount, unsafeCase.label).toBe(0);
+    expect(result.status, unsafeCase.label).toBe(unsafeCase.expectedStatus);
+    expect(result.outputSummary.candidateBuilderCalled).toBe(false);
+    expect(result.outputSummary.candidateBuilderResult).toBeNull();
+    expect(result.outputSummary.candidateOutput).toBeNull();
+    expect(result.warnings).toContain("candidate_builder_not_called");
+    expect(result.safeToCallCandidateBuilder).toBe(false);
+    expect(result.safeToCreateExecutionRecordCandidate).toBe(false);
+    expect(result.safeToCreateExecutionRecord).toBe(false);
+    expect(result.safeToPersist).toBe(false);
+    expect(result.safeToAppendAudit).toBe(false);
+    expect(result.safeToUpdateStats).toBe(false);
+    expect(result.safeToRollback).toBe(false);
+    expect(result.safeToMutateTrade).toBe(false);
+    expect(result.candidateBuilderInvocationAttempted).toBe(false);
+    expect(result.executionRecordCandidateCreationAttempted).toBe(false);
+    expect(result.executionRecordCreationAttempted).toBe(false);
+    expect(result.persistenceAttempted).toBe(false);
+    expect(result.auditAppendAttempted).toBe(false);
+    expect(result.statsUpdateAttempted).toBe(false);
+    expect(result.rollbackAttempted).toBe(false);
+    expect(result.tradeMutationAttempted).toBe(false);
+    expect(result.browserAutomationAttempted).toBe(false);
+    expect(result.avanzaAutomationAttempted).toBe(false);
+    expect(result.brokerAutomationAttempted).toBe(false);
+  });
+});
+
 test("maps validated Avanza evidence to BrokerExecutionResult candidates only", () => {
   const buildEvidence = (
     overrides: Partial<AvanzaConfirmationEvidence> = {},
@@ -11775,6 +12385,11398 @@ function buildExecutionRecordInsertRouteRequest(
     ...routeOverrides,
   };
 }
+
+function buildPersistenceValidatorAdapterInput(
+  overrides: Partial<ExecutionRecordPersistenceValidatorIntegrationAdapterInput> = {},
+): ExecutionRecordPersistenceValidatorIntegrationAdapterInput {
+  const routeRequest = buildExecutionRecordInsertRouteRequest();
+  const persistenceInput = routeRequest.persistenceInput;
+  const invocationFixture =
+    buildExecutionRecordCandidateBuilderInvocationDevFixtureResult();
+  const invocationResult: ExecutionRecordCandidateBuilderInvocationResult = {
+    ...invocationFixture.invocationResult,
+    outputSummary: {
+      ...invocationFixture.invocationResult.outputSummary,
+      candidateOutput: persistenceInput.candidate,
+      candidateOutputOnly: true as const,
+    },
+  };
+  const persistenceIntegrationInput: ExecutionRecordPersistenceValidatorIntegrationInput =
+    {
+      contractVersion:
+        EXECUTION_RECORD_PERSISTENCE_VALIDATOR_INTEGRATION_CONTRACT_VERSION,
+      requestedAt: "2026-06-11T17:08:00.000Z",
+      invocationResult,
+      candidateOutput: persistenceInput.candidate,
+      proposedPersistenceInput: persistenceInput,
+    };
+  const persistenceIntegrationResult = {
+    contractVersion:
+      EXECUTION_RECORD_PERSISTENCE_VALIDATOR_INTEGRATION_CONTRACT_VERSION,
+    evaluatedAt: "2026-06-11T17:08:01.000Z",
+    status: "persistence_validation_ready",
+    decisionRecommendation: "validate_persistence_readiness_only",
+  } as ExecutionRecordPersistenceValidatorIntegrationResult;
+  const idempotencySummary: ExecutionRecordPersistenceValidatorAdapterIdempotencySummary =
+    {
+      idempotencyMetadataPresent: true,
+      idempotencyKey: persistenceInput.idempotencyKey,
+      recordFingerprint: persistenceInput.recordFingerprint,
+      sourceFingerprint: persistenceInput.sourceFingerprint,
+      brokerResultFingerprint:
+        persistenceInput.brokerConfirmation.brokerResultFingerprint,
+      brokerOrderFingerprint: persistenceInput.brokerConfirmation.brokerOrderId,
+      requiredFingerprintsPresent: true,
+      duplicatePreventionPresent: true,
+      duplicateLookupRequiredBeforeWrite: true,
+      duplicateLookupCompleted: true,
+      duplicateMatches: [],
+      duplicateDetected: false,
+      conflictingDuplicateRequiresReview: false,
+      safeForProposedInputShaping: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const auditCorrectionSummary: ExecutionRecordPersistenceValidatorAdapterAuditCorrectionSummary =
+    {
+      auditMetadata: persistenceInput.auditMetadata,
+      auditProvenanceMetadataPresent: true,
+      sourceEvidenceChainPresent: true,
+      sourceEventIds: persistenceInput.auditMetadata.sourceEventIds,
+      manualApprovalMetadataPresent: true,
+      correctionPolicyReviewed: true,
+      rollbackPolicyReviewed: true,
+      auditAppendSeparate: true,
+      auditAppendAttempted: false,
+      rollbackAttempted: false,
+      safeForProposedInputShaping: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const schemaReadinessSummary: ExecutionRecordPersistenceValidatorAdapterSchemaReadinessSummary =
+    {
+      schemaReference: persistenceInput.schemaReference,
+      schemaReadinessAcknowledged: true,
+      executionRecordsTableExpected: true,
+      executionRecordsTablePresent: true,
+      generatedTypesStatusAcknowledged: true,
+      generatedTypesAvailable: true,
+      generatedTypesReviewed: true,
+      generatedTypesLocation: "types/supabase.ts",
+      migrationApplicationStatusAcknowledged: true,
+      migrationApplicationProven: true,
+      migrationReference: "20260614000000_create_execution_records",
+      schemaAlignedWithPersistenceContract: true,
+      schemaAlignedWithProposedInput: true,
+      productionWriteReadinessBlockedBySchema: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const securitySummary: ExecutionRecordPersistenceValidatorAdapterSecuritySummary =
+    {
+      userContext: persistenceInput.userContext,
+      rlsSecurityProofPresent: true,
+      rlsPolicyReviewed: true,
+      serverOnlyWriteBoundaryPresent: true,
+      serviceRoleRestrictedToServer: true,
+      directClientWritePathAbsent: true,
+      noProductionUiWriteAction: true,
+      automaticModeAllowed: false,
+      automaticModeReviewed: true,
+      productionWriteBoundaryPresent: false,
+      safeForProposedInputShaping: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const dryRunRouteSummary: ExecutionRecordPersistenceValidatorAdapterDryRunRouteSummary =
+    {
+      dryRunRouteStatusAcknowledged: true,
+      dryRunRouteKnown: true,
+      dryRunRouteDevToolsGated: true,
+      dryRunRouteRejectsNonDryRun: true,
+      dryRunRouteMayCallPersistenceValidatorInDryRun: true,
+      adapterCallsPersistenceValidator: false,
+      adapterCallsInsertRoute: false,
+      dryRunRouteWritesSupabase: false,
+      dryRunRouteAppendsAudit: false,
+      dryRunRouteUpdatesStats: false,
+      dryRunRouteMutatesTrade: false,
+      dryRunRouteRunsBrokerAction: false,
+      dryRunRouteRunsAvanzaOrBrowser: false,
+      dryRunOutputIsProductionInsertReadiness: false,
+      productionInsertRouteReady: false,
+      safeForProposedInputShaping: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_PERSISTENCE_VALIDATOR_INTEGRATION_ADAPTER_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:08:02.000Z",
+    persistenceIntegrationInput,
+    persistenceIntegrationResult,
+    invocationResult,
+    candidateBuilderOutputSummary: invocationResult.outputSummary,
+    candidateOutput: persistenceInput.candidate,
+    proposedPersistenceInput: persistenceInput,
+    idempotencySummary,
+    auditCorrectionSummary,
+    schemaReadinessSummary,
+    securitySummary,
+    dryRunRouteSummary,
+    ...overrides,
+  };
+}
+
+function expectPersistenceAdapterNoAuthority(
+  result: ExecutionRecordPersistenceValidatorIntegrationAdapterResult,
+) {
+  expect(result.safeToCallPersistenceValidator).toBe(false);
+  expect(result.safeToCallInsertRoute).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.persistenceValidatorCallAttempted).toBe(false);
+  expect(result.insertRouteCallAttempted).toBe(false);
+  expect(result.executionRecordCreationAttempted).toBe(false);
+  expect(result.persistenceAttempted).toBe(false);
+  expect(result.auditAppendAttempted).toBe(false);
+  expect(result.statsUpdateAttempted).toBe(false);
+  expect(result.rollbackAttempted).toBe(false);
+  expect(result.tradeMutationAttempted).toBe(false);
+  expect(result.brokerAutomationAttempted).toBe(false);
+  expect(result.avanzaAutomationAttempted).toBe(false);
+  expect(result.browserAutomationAttempted).toBe(false);
+  expect(result.proposedInputSummary.safeToCallPersistenceValidator).toBe(false);
+  expect(result.proposedInputSummary.safeToCallInsertRoute).toBe(false);
+  expect(result.proposedInputSummary.safeToCreateExecutionRecord).toBe(false);
+  expect(result.proposedInputSummary.safeToPersist).toBe(false);
+}
+
+function buildPersistenceIntegrationValidationInput(
+  adapterInputOverrides: Partial<ExecutionRecordPersistenceValidatorIntegrationAdapterInput> = {},
+  validationOverrides: Partial<ExecutionRecordPersistenceValidatorIntegrationValidationInput> = {},
+): ExecutionRecordPersistenceValidatorIntegrationValidationInput {
+  const adapterInput =
+    buildPersistenceValidatorAdapterInput(adapterInputOverrides);
+  const adapterResult = shapeExecutionRecordPersistenceValidatorInput(adapterInput);
+
+  return {
+    contractVersion:
+      "execution_record_persistence_validator_integration_validator_v1",
+    requestedAt: "2026-06-11T17:09:00.000Z",
+    adapterInput,
+    adapterResult,
+    proposedPersistenceInput: adapterInput.proposedPersistenceInput,
+    proposedInputSummary: adapterResult.proposedInputSummary,
+    readinessSummary: adapterResult.preconditionSummary,
+    invocationResult: adapterInput.invocationResult,
+    candidateOnlyBuilderOutput: adapterInput.candidateOutput,
+    candidateOnlyBuilderOutputSummary: adapterResult.fieldMappingSummary
+      .invocationOutputSummary,
+    schemaReadinessSummary: adapterResult.schemaReadinessSummary,
+    idempotencySummary: adapterResult.idempotencySummary,
+    auditCorrectionSummary: adapterResult.auditCorrectionSummary,
+    securitySummary: adapterResult.securitySummary,
+    dryRunRouteSummary: adapterResult.dryRunRouteSummary,
+    manualApprovalContext: adapterInput.manualApprovalContext,
+    generatedTypesStatus: "available",
+    migrationApplicationStatus: "proven",
+    rlsSecurityStatus: "proven",
+    serverOnlyWriteBoundaryStatus: "proven",
+    dryRunInsertRouteStatus: "known",
+    ...validationOverrides,
+  };
+}
+
+function expectPersistenceIntegrationValidationNoAuthority(
+  result: ExecutionRecordPersistenceValidatorIntegrationValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.safeToCallPersistenceValidator).toBe(false);
+  expect(result.safeToCallInsertRoute).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.persistenceValidatorCallAttempted).toBe(false);
+  expect(result.insertRouteCallAttempted).toBe(false);
+  expect(result.executionRecordCreationAttempted).toBe(false);
+  expect(result.persistenceAttempted).toBe(false);
+  expect(result.auditAppendAttempted).toBe(false);
+  expect(result.statsUpdateAttempted).toBe(false);
+  expect(result.rollbackAttempted).toBe(false);
+  expect(result.tradeMutationAttempted).toBe(false);
+  expect(result.brokerAutomationAttempted).toBe(false);
+  expect(result.avanzaAutomationAttempted).toBe(false);
+  expect(result.browserAutomationAttempted).toBe(false);
+  expect(result.authorityFlags.safeToCallPersistenceValidator).toBe(false);
+  expect(result.authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.authorityFlags.safeToPersist).toBe(false);
+  expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+  expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+  expect(result.authorityFlags.safeToRollback).toBe(false);
+  expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+  expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  expect(result.authorityFlags.automaticModeAllowed).toBe(false);
+  expect(result.safetyPolicyValidationSummary.persistenceValidatorCallAllowed)
+    .toBe(false);
+  expect(result.safetyPolicyValidationSummary.insertRouteCallAllowed).toBe(false);
+  expect(result.safetyPolicyValidationSummary.executionRecordCreationAllowed)
+    .toBe(false);
+  expect(result.safetyPolicyValidationSummary.persistenceAllowed).toBe(false);
+}
+
+function expectPersistenceValidatorIntegrationNoAuthority(
+  result: ExecutionRecordPersistenceValidatorIntegrationReadinessResult,
+) {
+  expect(result.integrationOnly).toBe(true);
+  expect(result.readinessOnly).toBe(true);
+  expect(result.safeToCallPersistenceValidator).toBe(false);
+  expect(result.safeToCallInsertRoute).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.actualPersistenceValidatorCalled).toBe(false);
+  expect(result.persistenceValidatorCallAttempted).toBe(false);
+  expect(result.insertRouteCallAttempted).toBe(false);
+  expect(result.executionRecordCreationAttempted).toBe(false);
+  expect(result.persistenceAttempted).toBe(false);
+  expect(result.auditAppendAttempted).toBe(false);
+  expect(result.statsUpdateAttempted).toBe(false);
+  expect(result.rollbackAttempted).toBe(false);
+  expect(result.tradeMutationAttempted).toBe(false);
+  expect(result.brokerAutomationAttempted).toBe(false);
+  expect(result.avanzaAutomationAttempted).toBe(false);
+  expect(result.browserAutomationAttempted).toBe(false);
+  expect(result.actualPersistenceValidatorBoundarySummary.status).toBe(
+    "not_called_future_boundary",
+  );
+  expect(result.actualPersistenceValidatorBoundarySummary.called).toBe(false);
+  expect(result.actualPersistenceValidatorBoundarySummary
+    .safeToCallPersistenceValidator).toBe(false);
+  expect(result.actualPersistenceValidatorBoundarySummary
+    .persistenceValidatorCallAttempted).toBe(false);
+  expect(result.authorityFlags.safeToCallPersistenceValidator).toBe(false);
+  expect(result.authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.authorityFlags.safeToPersist).toBe(false);
+}
+
+function buildActualPersistenceValidatorBoundaryCallValidationInput(
+  overrides: Partial<ActualPersistenceValidatorBoundaryCallValidationInput> = {},
+): ActualPersistenceValidatorBoundaryCallValidationInput {
+  const integrationValidationInput = buildPersistenceIntegrationValidationInput();
+  const adapterInput = integrationValidationInput.adapterInput!;
+  const adapterResult = integrationValidationInput.adapterResult!;
+  const integrationValidationResult = validateExecutionRecordPersistenceIntegration(
+    integrationValidationInput,
+  );
+  const composerResult = buildExecutionRecordPersistenceValidatorIntegration({
+    requestedAt: "2026-06-11T17:20:00.000Z",
+    adapterInput,
+  });
+  const proposedPersistenceInput: ExecutionRecordPersistenceInput = {
+    ...adapterInput.proposedPersistenceInput!,
+    userContext: {
+      ...adapterInput.proposedPersistenceInput!.userContext,
+      sourceEnvironment: "staging",
+    },
+  };
+  const proposedInputSummary: ActualPersistenceValidatorBoundaryProposedInputSummary =
+    {
+      proposedPersistenceInput,
+      proposedPersistenceInputPresent: true,
+      proposedPersistenceInputComplete: true,
+      proposedInputIsValidationOnly: true,
+      persistenceContractVersionKnown: true,
+      requestedAtPresent: true,
+      candidatePresent: true,
+      brokerConfirmationPresent: true,
+      associationPresent: true,
+      userContextPresent: true,
+      safetyChecklistPresent: true,
+      auditMetadataPresent: true,
+      schemaReferencePresent: true,
+      missingRequiredPersistenceInputFields: [],
+      safeToCallActualPersistenceValidator: false,
+      safeToCallInsertRoute: false,
+      safeToCreateExecutionRecord: false,
+      safeToPersist: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const sourceEvidenceSummary: ActualPersistenceValidatorBoundarySourceEvidenceSummary =
+    {
+      sourceEvidencePresent: true,
+      sourceEvidenceFingerprint: proposedPersistenceInput.sourceFingerprint,
+      candidateFingerprint: proposedPersistenceInput.candidate.recordFingerprint,
+      builderFingerprint: proposedPersistenceInput.candidate.recordFingerprint,
+      integrationFingerprint: "test-integration-fingerprint",
+      brokerOrderId: proposedPersistenceInput.brokerConfirmation.brokerOrderId,
+      brokerConfirmationId:
+        proposedPersistenceInput.brokerConfirmation.brokerConfirmationId,
+      brokerResultId: proposedPersistenceInput.brokerConfirmation.brokerResultId,
+      provenanceMetadata: proposedPersistenceInput.auditMetadata,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const schemaReadinessSummary: ActualPersistenceValidatorBoundarySchemaReadinessSummary =
+    {
+      schemaReference: proposedPersistenceInput.schemaReference,
+      schemaReadinessKnown: true,
+      schemaReadyForValidation: true,
+      schemaAlignedWithPersistenceInput: true,
+      executionRecordsTableExpected: true,
+      executionRecordsTablePresent: true,
+      productionWriteReadinessBlockedBySchema: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const generatedTypesSummary: ActualPersistenceValidatorBoundaryGeneratedTypesSummary =
+    {
+      generatedTypesStatus: "available",
+      generatedTypesPresent: true,
+      generatedTypesReviewed: true,
+      generatedTypesLocation: "types/supabase.ts",
+      generatedTypesMatchExecutionRecordsSchema: true,
+      callBlockedWhenAbsentOrUnknown: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const migrationSummary: ActualPersistenceValidatorBoundaryMigrationSummary = {
+    migrationApplicationStatus: "proven",
+    migrationApplied: true,
+    migrationReference: "20260614000000_create_execution_records",
+    migrationVerifiedAgainstTargetProject: true,
+    callBlockedWhenNotProven: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const idempotencySummary: ActualPersistenceValidatorBoundaryIdempotencySummary =
+    {
+      idempotencyMetadataPresent: true,
+      idempotencyKey: proposedPersistenceInput.idempotencyKey,
+      recordFingerprint: proposedPersistenceInput.recordFingerprint,
+      sourceFingerprint: proposedPersistenceInput.sourceFingerprint,
+      brokerResultFingerprint:
+        proposedPersistenceInput.brokerConfirmation.brokerResultFingerprint,
+      candidateFingerprint: proposedPersistenceInput.candidate.recordFingerprint,
+      integrationFingerprint: "test-integration-fingerprint",
+      requiredFingerprintsPresent: true,
+      conflictingFingerprintsDetected: false,
+      safeForValidationReview: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const duplicatePreventionSummary:
+    ActualPersistenceValidatorBoundaryCallValidationInput["duplicatePreventionSummary"] =
+    {
+      duplicatePreventionMetadataPresent: true,
+      duplicateLookupCompleted: true,
+      duplicateDetected: false,
+      conflictingDuplicateRequiresReview: false,
+      duplicateMatches: [],
+    };
+  const auditCorrectionSummary: ActualPersistenceValidatorBoundaryAuditCorrectionSummary =
+    {
+      auditCorrectionMetadataPresent: true,
+      auditProvenanceMetadataPresent: true,
+      sourceEvidenceChainPresent: true,
+      sourceEventIds: proposedPersistenceInput.auditMetadata.sourceEventIds,
+      correctionPolicyReviewed: true,
+      rollbackPolicyReviewed: true,
+      auditAppendRequiresSeparateBoundary: true,
+      correctionRollbackRequiresSeparateBoundary: true,
+      safeToAppendAudit: false,
+      safeToRollback: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const securitySummary: ActualPersistenceValidatorBoundarySecuritySummary = {
+    rlsSecurityStatus: "proven",
+    rlsSecurityProofPresent: true,
+    securityAssumptionsReviewed: true,
+    callBlockedWhenProofMissing: true,
+    safeForValidationReview: true,
+    safeForWrite: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const serverOnlySummary: ActualPersistenceValidatorBoundaryServerOnlySummary =
+    {
+      serverOnlyBoundaryStatus: "proven",
+      serverOnlyBoundaryProofPresent: true,
+      clientWriteAccessPrevented: true,
+      callBlockedWhenBoundaryMissing: true,
+      safeForValidationReview: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const dryRunRouteSummary: ActualPersistenceValidatorBoundaryDryRunRouteSummary =
+    {
+      dryRunRouteStatus: "known",
+      dryRunRouteMetadataPresent: true,
+      dryRunRouteIsProductionInsert: false,
+      productionInsertRouteReady: false,
+      dryRunRouteDoesNotAuthorizeWrite: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const manualApprovalSummary: ActualPersistenceValidatorBoundaryManualApprovalSummary =
+    {
+      manualApprovalContext: null,
+      manualApprovalMetadataPresent: true,
+      manualApprovalRequired: true,
+      manualApprovalSatisfied: true,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const boundaryInput: ActualPersistenceValidatorBoundaryCallInput = {
+    contractVersion: ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_CALL_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:21:00.000Z",
+    composerResult,
+    adapterResult,
+    integrationValidationResult,
+    proposedPersistenceInput,
+    composerSummary: {
+      composerResult,
+      composerResultPresent: true,
+      composerStatus: composerResult.status,
+      composerReady: true,
+      composerReportsNotCalledFutureBoundary: true,
+      adapterResultPresent: true,
+      integrationValidationResultPresent: true,
+      proposedPersistenceInputSummaryPresent: true,
+      allWriteActionAuthorityFlagsFalse: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    proposedInputSummary,
+    sourceEvidenceSummary,
+    schemaReadinessSummary,
+    generatedTypesSummary,
+    migrationSummary,
+    idempotencySummary,
+    duplicatePreventionSummary: {
+      duplicatePreventionMetadataPresent: true,
+      duplicateLookupRequiredBeforeWrite: true,
+      duplicateLookupCompleted: true,
+      duplicateMatches: [],
+      duplicateDetected: false,
+      conflictingDuplicateRequiresReview: false,
+      safeForValidationReview: true,
+      safeForWrite: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    auditCorrectionSummary,
+    securitySummary,
+    serverOnlySummary,
+    dryRunRouteSummary,
+    manualApprovalSummary,
+    safetyPolicy: ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_SAFETY_POLICY,
+    metadata: {
+      postCallBoundarySummary:
+        ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_POST_CALL_BOUNDARY,
+    },
+  };
+
+  return {
+    contractVersion:
+      ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_CALL_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:22:00.000Z",
+    boundaryInput,
+    composerResult,
+    adapterResult,
+    integrationValidationResult,
+    proposedPersistenceInput,
+    proposedInputSummary,
+    sourceEvidenceSummary,
+    schemaReadinessSummary,
+    generatedTypesSummary,
+    migrationSummary,
+    idempotencySummary,
+    duplicatePreventionSummary,
+    auditCorrectionSummary,
+    securitySummary,
+    serverOnlySummary,
+    dryRunRouteSummary,
+    manualApprovalSummary,
+    authorityFlags: ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectActualPersistenceBoundaryValidationNoAuthority(
+  result: ActualPersistenceValidatorBoundaryCallValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.validatorImplemented).toBe(false);
+  expect(result.actualValidatorCalled).toBe(false);
+  expect(result.safeToCallInsertRoute).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.authorityFlags.validationOnly).toBe(true);
+  expect(result.authorityFlags.actualPersistenceValidatorCallAllowedOnly).toBe(
+    false,
+  );
+  expect(result.authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.authorityFlags.safeToPersist).toBe(false);
+  expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+  expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+  expect(result.authorityFlags.safeToRollback).toBe(false);
+  expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+  expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  expect(result.authorityFlags.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authorityFlags.automaticModeAllowed).toBe(false);
+  expect(result.authorityFlags.actualPersistenceValidatorCallAttempted).toBe(
+    false,
+  );
+  expect(result.authorityFlags.insertRouteCallAttempted).toBe(false);
+  expect(result.authorityFlags.executionRecordCreationAttempted).toBe(false);
+  expect(result.authorityFlags.persistenceAttempted).toBe(false);
+  expect(result.postCallBoundaryValidationSummary.noInsertRouteCall).toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noExecutionRecordCreation)
+    .toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noPersistenceWrite).toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noSupabaseLocalStorageWrite)
+    .toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noAuditAppend).toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noStatsPnlUpdate).toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noRollbackCorrection).toBe(
+    true,
+  );
+  expect(result.postCallBoundaryValidationSummary.noTradeMutation).toBe(true);
+  expect(result.postCallBoundaryValidationSummary.noBrokerOrderBehavior).toBe(
+    true,
+  );
+  expect(result.postCallBoundaryValidationSummary.noAvanzaBrowserBehavior)
+    .toBe(true);
+}
+
+function buildActualPersistenceValidatorBoundaryCallImplementationInput(
+  overrides: Partial<ActualPersistenceValidatorBoundaryCallImplementationInput> = {},
+): ActualPersistenceValidatorBoundaryCallImplementationInput {
+  const boundaryCallValidationInput =
+    buildActualPersistenceValidatorBoundaryCallValidationInput();
+  const boundaryCallValidationResult = validateActualPersistenceValidatorBoundaryCall(
+    boundaryCallValidationInput,
+  );
+
+  return {
+    requestedAt: "2026-06-11T17:24:00.000Z",
+    boundaryCallValidationInput,
+    boundaryCallValidationResult,
+    proposedPersistenceInput: boundaryCallValidationInput.proposedPersistenceInput,
+    proposedInputSummary: boundaryCallValidationInput.proposedInputSummary,
+    actualPersistenceValidatorCallable: {
+      callablePresent: true,
+      callableName: "validateExecutionRecordPersistence",
+      callableModule: "@/lib/execution-record-persistence-validator",
+      callableVersion: EXECUTION_RECORD_PERSISTENCE_CONTRACT_VERSION,
+      actualValidatorImplemented: true,
+      actualValidatorCallAllowed: true,
+      actualValidatorCallAttempted: false,
+      validatesOnly: true,
+      safeToCallInsertRoute: false,
+      safeToPersist: false,
+    },
+    actualPersistenceValidatorCallableFunction:
+      validateExecutionRecordPersistenceInput,
+    schemaReadinessSummary: boundaryCallValidationInput.schemaReadinessSummary,
+    generatedTypesSummary: boundaryCallValidationInput.generatedTypesSummary,
+    migrationSummary: boundaryCallValidationInput.migrationSummary,
+    sourceEvidenceSummary: boundaryCallValidationInput.sourceEvidenceSummary,
+    idempotencySummary: boundaryCallValidationInput.idempotencySummary,
+    duplicatePreventionSummary:
+      boundaryCallValidationInput.duplicatePreventionSummary,
+    auditCorrectionSummary: boundaryCallValidationInput.auditCorrectionSummary,
+    securitySummary: boundaryCallValidationInput.securitySummary,
+    serverOnlySummary: boundaryCallValidationInput.serverOnlySummary,
+    dryRunRouteSummary: boundaryCallValidationInput.dryRunRouteSummary,
+    manualApprovalSummary: boundaryCallValidationInput.manualApprovalSummary,
+    manualApprovalContext: null,
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectActualPersistenceBoundaryCallImplementationNoWriteAuthority(
+  result: ActualPersistenceValidatorBoundaryCallImplementationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.safeToCallActualPersistenceValidator).toBe(false);
+  expect(result.safeToCallInsertRoute).toBe(false);
+  expect(result.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safeToPersist).toBe(false);
+  expect(result.safeToFinalize).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.safeToUpdateStats).toBe(false);
+  expect(result.safeToRollback).toBe(false);
+  expect(result.safeToMutateTrade).toBe(false);
+  expect(result.safeToRunBrokerAction).toBe(false);
+  expect(result.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.automaticModeAllowed).toBe(false);
+  expect(result.safetyPolicy.safeToCallInsertRoute).toBe(false);
+  expect(result.safetyPolicy.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safetyPolicy.safeToPersist).toBe(false);
+  expect(result.safetyPolicy.safeToAppendAudit).toBe(false);
+  expect(result.safetyPolicy.safeToUpdateStats).toBe(false);
+  expect(result.safetyPolicy.safeToRollback).toBe(false);
+  expect(result.safetyPolicy.safeToMutateTrade).toBe(false);
+  expect(result.safetyPolicy.safeToRunBrokerAction).toBe(false);
+  expect(result.safetyPolicy.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.safetyPolicy.insertRouteCallAttempted).toBe(false);
+  expect(result.safetyPolicy.executionRecordCreationAttempted).toBe(false);
+  expect(result.safetyPolicy.persistenceAttempted).toBe(false);
+  expect(result.safetyPolicy.auditAppendAttempted).toBe(false);
+  expect(result.safetyPolicy.statsUpdateAttempted).toBe(false);
+  expect(result.safetyPolicy.rollbackAttempted).toBe(false);
+  expect(result.safetyPolicy.tradeMutationAttempted).toBe(false);
+  expect(result.safetyPolicy.brokerAutomationAttempted).toBe(false);
+  expect(result.safetyPolicy.avanzaAutomationAttempted).toBe(false);
+  expect(result.safetyPolicy.browserAutomationAttempted).toBe(false);
+  expect(result.postCallBoundarySummary.noInsertRouteCall).toBe(true);
+  expect(result.postCallBoundarySummary.noExecutionRecordCreation).toBe(true);
+  expect(result.postCallBoundarySummary.noPersistenceWrite).toBe(true);
+  expect(result.postCallBoundarySummary.noSupabaseLocalStorageWrite).toBe(true);
+  expect(result.postCallBoundarySummary.noAuditAppend).toBe(true);
+  expect(result.postCallBoundarySummary.noStatsPnlUpdate).toBe(true);
+  expect(result.postCallBoundarySummary.noRollbackCorrection).toBe(true);
+  expect(result.postCallBoundarySummary.noTradeMutation).toBe(true);
+  expect(result.postCallBoundarySummary.noBrokerOrderBehavior).toBe(true);
+  expect(result.postCallBoundarySummary.noAvanzaBrowserBehavior).toBe(true);
+}
+
+function buildExecutionRecordInsertRouteReadinessValidationInput(
+  overrides: Partial<ExecutionRecordInsertRouteReadinessValidationInput> = {},
+): ExecutionRecordInsertRouteReadinessValidationInput {
+  const wrapperInput = buildActualPersistenceValidatorBoundaryCallImplementationInput();
+  const wrapperResult = callActualPersistenceValidatorBoundary({
+    ...wrapperInput,
+    actualPersistenceValidatorCallableFunction:
+      validateExecutionRecordPersistenceInput,
+  });
+  const proposedInput = wrapperInput.proposedPersistenceInput!;
+  const actualValidatorOutput =
+    wrapperResult.validatorOutputSummary.actualValidatorResult;
+  const actualValidatorSummary: ExecutionRecordInsertRouteActualValidatorSummary =
+    {
+      wrapperResult,
+      wrapperResultPresent: true,
+      wrapperStatus: wrapperResult.status,
+      wrapperValidated: true,
+      wrapperDecision: wrapperResult.decisionRecommendation,
+      wrapperDecisionDoNotInsert: true,
+      actualValidatorOutput,
+      actualValidatorOutputPresent: Boolean(actualValidatorOutput),
+      actualValidatorOutputHasBlockingErrors: false,
+      actualValidatorWarnings: actualValidatorOutput?.warnings ?? [],
+      boundaryCallValidationResult: wrapperInput.boundaryCallValidationResult,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const normalizedInputSummary: ExecutionRecordInsertRouteNormalizedInputSummary =
+    {
+      proposedPersistenceInput: proposedInput,
+      proposedPersistenceInputPresent: true,
+      proposedPersistenceInputNormalized: true,
+      requiredPersistenceFieldsPresent: true,
+      missingRequiredPersistenceFields: [],
+      schemaReference: proposedInput.schemaReference ?? null,
+      idempotencyKeyPresent: true,
+      recordFingerprintPresent: true,
+      sourceFingerprintPresent: true,
+      candidatePresent: true,
+      brokerConfirmationPresent: true,
+      associationPresent: true,
+      userContextPresent: true,
+      safetyChecklistPresent: true,
+      auditMetadataPresent: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const schemaReadinessSummary: ExecutionRecordInsertRouteSchemaReadinessSummary =
+    {
+      schemaReadinessKnown: true,
+      schemaReadyForInsertReadiness: true,
+      schemaReference: proposedInput.schemaReference ?? {
+        tableName: "execution_records",
+      },
+      expectedTableName: "execution_records",
+      expectedColumnsVersion: "test-fixture",
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const generatedTypesSummary: ExecutionRecordInsertRouteGeneratedTypesSummary =
+    {
+      generatedTypesStatus: "available",
+      generatedTypesPresent: true,
+      generatedTypesVersion: "test-fixture",
+      generatedTypesSource: "tests/e2e/execution-sandbox.spec.ts",
+      executionRecordsTableTyped: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const migrationSummary: ExecutionRecordInsertRouteMigrationSummary = {
+    migrationApplicationStatus: "proven",
+    migrationApplied: true,
+    migrationVersion: "20260614000000_create_execution_records",
+    migrationCheckedAt: "2026-06-11T17:27:00.000Z",
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const rlsSecuritySummary: ExecutionRecordInsertRouteRlsSecuritySummary = {
+    rlsSecurityProofPresent: true,
+    rlsPolicyVerified: true,
+    serviceRoleWriteBoundaryVerified: true,
+    userScopedWriteBoundaryVerified: true,
+    secretHandlingReviewed: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const serverOnlyBoundarySummary: ExecutionRecordInsertRouteServerOnlyBoundarySummary =
+    {
+      serverOnlyBoundaryProofPresent: true,
+      serverOnlyRequestContextPresent: true,
+      clientWritePathAbsent: true,
+      browserCallablePathAbsent: true,
+      routeHandlerBoundaryVerified: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const idempotencyDuplicateSummary: ExecutionRecordInsertRouteIdempotencyDuplicateSummary =
+    {
+      idempotencyMetadataPresent: true,
+      idempotencyKeyPresent: true,
+      recordFingerprintPresent: true,
+      sourceFingerprintPresent: true,
+      brokerResultFingerprintPresent: true,
+      duplicatePreventionMetadataPresent: true,
+      duplicateLookupCompleted: true,
+      duplicateMatches: [],
+      duplicateConflictsRequireReview: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const auditCorrectionSummary: ExecutionRecordInsertRouteAuditCorrectionSummary =
+    {
+      auditCorrectionMetadataPresent: true,
+      auditPolicyReviewed: true,
+      sourceEvidenceChainPresent: true,
+      correctionRollbackSeparated: true,
+      noAuditAppendInReadinessContract: true,
+      noRollbackCorrectionInReadinessContract: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const evidenceProvenanceSummary: ExecutionRecordInsertRouteEvidenceProvenanceSummary =
+    {
+      sourceEvidencePresent: true,
+      sourceEvidenceIds: proposedInput.auditMetadata.sourceEventIds,
+      provenanceComplete: true,
+      brokerConfirmationEvidencePresent: true,
+      finalizationEvidencePresent: true,
+      candidateBuilderEvidencePresent: true,
+      persistenceAdapterEvidencePresent: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const manualApprovalSummary: ExecutionRecordInsertRouteManualApprovalSummary =
+    {
+      manualApprovalMetadataPresent: true,
+      manualApprovalRequired: true,
+      manualApprovalSatisfied: true,
+      manualApprovalContext: null,
+      automaticModeAllowed: false,
+      automaticModeDisabled: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const dryRunProductionSeparationSummary: ExecutionRecordInsertRouteDryRunProductionSeparationSummary =
+    {
+      dryRunRouteStatus: "known",
+      dryRunRouteAvailable: true,
+      dryRunRouteIsProductionRoute: false,
+      productionRouteStatus: "future_boundary_required",
+      productionRouteSeparatedFromDryRun: true,
+      dryRunSuccessIsNotProductionReadiness: true,
+      productionInsertRequiresSeparateBoundary: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    };
+  const serverOnlyRequestContext: ExecutionRecordInsertRouteServerOnlyRequestContext =
+    {
+      requestId: "insert-readiness-test-request",
+      requestedAt: "2026-06-11T17:28:00.000Z",
+      sourceEnvironment: "staging",
+      actor: "server_route",
+      routeName: "/api/execution/records/insert",
+      isServerOnly: true,
+      clientInitiatedWriteAllowed: false,
+      browserAutomationAllowed: false,
+      brokerAutomationAllowed: false,
+    };
+  const readinessInput: ExecutionRecordInsertRouteReadinessInput = {
+    contractVersion: EXECUTION_RECORD_INSERT_ROUTE_READINESS_BOUNDARY_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:29:00.000Z",
+    actualValidatorWrapperResult: wrapperResult,
+    actualValidatorOutputSummary: actualValidatorSummary,
+    proposedNormalizedPersistenceInput: proposedInput,
+    normalizedInputSummary,
+    schemaReadinessSummary,
+    generatedTypesSummary,
+    migrationSummary,
+    rlsSecuritySummary,
+    serverOnlyBoundarySummary,
+    idempotencyDuplicateSummary,
+    auditCorrectionSummary,
+    evidenceProvenanceSummary,
+    dryRunProductionSeparationSummary,
+    manualApprovalSummary,
+    serverOnlyRequestContext,
+    metadata: {
+      testOnly: true,
+    },
+  };
+  const readinessResult: ExecutionRecordInsertRouteReadinessResult = {
+    contractVersion: EXECUTION_RECORD_INSERT_ROUTE_READINESS_BOUNDARY_CONTRACT_VERSION,
+    evaluatedAt: "2026-06-11T17:30:00.000Z",
+    status: "insert_route_readiness_ready",
+    decisionRecommendation: "may_prepare_insert_route_call_only",
+    input: readinessInput,
+    routeEligibilitySummary: {
+      routeEligibilityKnown: true,
+      mayPrepareInsertRouteCallOnly: true,
+      insertRouteCallImplemented: false,
+      insertRouteCallAttempted: false,
+      safeToCallInsertRoute: false,
+      safeToCreateExecutionRecord: false,
+      safeToPersist: false,
+      dryRunRouteOnly: true,
+      productionRouteSeparated: true,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    actualValidatorSummary,
+    normalizedInputSummary,
+    schemaReadinessSummary,
+    generatedTypesSummary,
+    migrationSummary,
+    rlsSecuritySummary,
+    serverOnlyBoundarySummary,
+    idempotencyDuplicateSummary,
+    auditCorrectionSummary,
+    evidenceProvenanceSummary,
+    manualApprovalSummary,
+    dryRunProductionSeparationSummary,
+    postInsertBoundarySummary:
+      EXECUTION_RECORD_INSERT_ROUTE_READINESS_DEFAULT_POST_INSERT_BOUNDARY,
+    safetyPolicy: EXECUTION_RECORD_INSERT_ROUTE_READINESS_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_INSERT_ROUTE_READINESS_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:31:00.000Z",
+    readinessInput,
+    readinessResult,
+    actualValidatorWrapperResult: wrapperResult,
+    actualValidatorOutputSummary: actualValidatorSummary,
+    normalizedPersistenceInput: proposedInput,
+    normalizedInputSummary,
+    schemaReadinessSummary,
+    generatedTypesSummary,
+    migrationSummary,
+    rlsSecuritySummary,
+    serverOnlyBoundarySummary,
+    idempotencyDuplicateSummary,
+    auditCorrectionSummary,
+    evidenceProvenanceSummary,
+    dryRunProductionSeparationSummary,
+    manualApprovalSummary,
+    postInsertBoundarySummary:
+      EXECUTION_RECORD_INSERT_ROUTE_READINESS_DEFAULT_POST_INSERT_BOUNDARY,
+    serverOnlyRequestContext,
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectInsertRouteReadinessValidationNoAuthority(
+  result: ExecutionRecordInsertRouteReadinessValidationResult,
+) {
+  expect(result.authorityFlags.validationOnly).toBe(true);
+  expect(result.authorityFlags.readinessOnly).toBe(true);
+  expect(result.authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.authorityFlags.safeToPersist).toBe(false);
+  expect(result.authorityFlags.safeToFinalize).toBe(false);
+  expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+  expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+  expect(result.authorityFlags.safeToRollback).toBe(false);
+  expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+  expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  expect(result.authorityFlags.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authorityFlags.automaticModeAllowed).toBe(false);
+  expect(result.authorityFlags.insertRouteCallAttempted).toBe(false);
+  expect(result.authorityFlags.executionRecordCreationAttempted).toBe(false);
+  expect(result.authorityFlags.persistenceAttempted).toBe(false);
+  expect(result.authorityFlags.auditAppendAttempted).toBe(false);
+  expect(result.authorityFlags.statsUpdateAttempted).toBe(false);
+  expect(result.authorityFlags.rollbackAttempted).toBe(false);
+  expect(result.authorityFlags.tradeMutationAttempted).toBe(false);
+  expect(result.authorityFlags.brokerAutomationAttempted).toBe(false);
+  expect(result.authorityFlags.avanzaAutomationAttempted).toBe(false);
+  expect(result.authorityFlags.browserAutomationAttempted).toBe(false);
+  expect(result.safetyPolicyValidationSummary.noInsertRouteCall).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noExecutionRecordCreation).toBe(
+    true,
+  );
+  expect(result.safetyPolicyValidationSummary.noPersistenceWrite).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noAuditAppend).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noStatsPnlUpdate).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noRollbackCorrection).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noTradeMutation).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noBrokerOrderBehavior).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noAvanzaBrowserBehavior).toBe(
+    true,
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      readinessOnly: true,
+      insertRouteCalled: false,
+      executionRecordCreated: false,
+      persistenceAttempted: false,
+      insertRouteApproval: false,
+      executionRecordCreationApproval: false,
+      persistenceWriteApproval: false,
+      auditAppendApproval: false,
+      statsUpdateApproval: false,
+      rollbackCorrectionApproval: false,
+      tradeMutationApproval: false,
+      brokerOrderApproval: false,
+      avanzaBrowserApproval: false,
+    }),
+  );
+}
+
+function buildExecutionRecordInsertRouteCallInput(
+  overrides: Partial<ExecutionRecordInsertRouteCallInput> = {},
+): ExecutionRecordInsertRouteCallInput {
+  const readinessValidationInput =
+    buildExecutionRecordInsertRouteReadinessValidationInput();
+  const readinessValidationResult = validateExecutionRecordInsertRouteReadiness(
+    readinessValidationInput,
+  );
+  const normalizedPersistenceInput =
+    readinessValidationInput.normalizedPersistenceInput!;
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_INSERT_ROUTE_CALL_IMPLEMENTATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:32:00.000Z",
+    routeMode: "dry_run",
+    readinessValidationResult,
+    readinessInput: readinessValidationInput.readinessInput,
+    readinessResult: readinessValidationInput.readinessResult,
+    normalizedPersistenceInput,
+    routeModeMetadata: {
+      mode: "dry_run",
+      routeName: "/api/execution/records/insert",
+      dryRunRouteName: "/api/execution/records/insert",
+      productionRouteName: null,
+      serverOnlyRequestContext:
+        readinessValidationInput.serverOnlyRequestContext,
+    },
+    insertRouteCallable: () => ({
+      status: "insert_route_call_dry_run_only",
+      dryRunResult: {
+        accepted: true,
+        dryRunOnly: true,
+      },
+      routeValidationErrors: [],
+    }),
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectInsertRouteCallNoPostInsertAuthority(
+  result: ExecutionRecordInsertRouteCallResult,
+) {
+  expect(result.safetyPolicy.safeToCreateExecutionRecord).toBe(false);
+  expect(result.safetyPolicy.safeToPersist).toBe(false);
+  expect(result.safetyPolicy.safeToFinalize).toBe(false);
+  expect(result.safetyPolicy.safeToAppendAudit).toBe(false);
+  expect(result.safetyPolicy.safeToUpdateStats).toBe(false);
+  expect(result.safetyPolicy.safeToRollback).toBe(false);
+  expect(result.safetyPolicy.safeToMutateTrade).toBe(false);
+  expect(result.safetyPolicy.safeToRunBrokerAction).toBe(false);
+  expect(result.safetyPolicy.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.safetyPolicy.automaticModeAllowed).toBe(false);
+  expect(result.safetyPolicy.executionRecordCreationAttempted).toBe(false);
+  expect(result.safetyPolicy.persistenceAttempted).toBe(false);
+  expect(result.safetyPolicy.auditAppendAttempted).toBe(false);
+  expect(result.safetyPolicy.statsUpdateAttempted).toBe(false);
+  expect(result.safetyPolicy.rollbackAttempted).toBe(false);
+  expect(result.safetyPolicy.tradeMutationAttempted).toBe(false);
+  expect(result.safetyPolicy.brokerAutomationAttempted).toBe(false);
+  expect(result.safetyPolicy.avanzaAutomationAttempted).toBe(false);
+  expect(result.safetyPolicy.browserAutomationAttempted).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToAppendAudit).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToUpdateStats).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToRollback).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToMutateTrade).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToRunBrokerAction).toBe(false);
+  expect(result.postInsertBoundarySummary.safeToRunAvanzaBrowserAction).toBe(
+    false,
+  );
+  expect(result.postInsertBoundarySummary.automaticModeAllowed).toBe(false);
+}
+
+async function buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+  overrides: Partial<ExecutionRecordProductionInsertRouteBoundaryValidationInput> = {},
+  boundaryOverrides: Partial<ExecutionRecordProductionInsertRouteBoundaryInput> = {},
+): Promise<ExecutionRecordProductionInsertRouteBoundaryValidationInput> {
+  const insertRouteCallInput = buildExecutionRecordInsertRouteCallInput();
+  const insertRouteCallResult = await callExecutionRecordInsertRoute(
+    insertRouteCallInput,
+  );
+  const normalizedPersistenceInput =
+    insertRouteCallInput.normalizedPersistenceInput!;
+  const manualApprovalContext = {
+    approvalRequired: true,
+    approvalPresent: true,
+    approvalIsWriteAuthority: false,
+    approvedBy: "manual-reviewer",
+    approvedAt: "2026-06-11T17:31:00.000Z",
+    approvalReference: "manual-approval-action-648",
+    metadata: {
+      testOnly: true,
+    },
+  } as const;
+  const baseBoundaryInput: ExecutionRecordProductionInsertRouteBoundaryInput = {
+    contractVersion:
+      EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:33:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    routeMode: "production",
+    insertRouteCallWrapperResult: insertRouteCallResult,
+    insertRouteReadinessValidationResult:
+      insertRouteCallInput.readinessValidationResult,
+    normalizedPersistenceInput,
+    currentStateSummary: {
+      designExists: true,
+      contractExists: true,
+      productionRouteImplemented: false,
+      productionRouteCalled: false,
+      insertRouteCallWrapperExists: true,
+      insertRouteCallWrapperDryRunOnly: true,
+      devPreviewDiagnosticsOnly: true,
+      generatedTypesPresent: true,
+      migrationApplicationProven: true,
+      rlsSecurityVerified: true,
+      serverOnlyProductionWriteBoundaryVerified: false,
+      executionRecordCreationEnabled: false,
+      persistenceWriteEnabled: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    preconditionSummary: {
+      generatedTypesPresent: true,
+      migrationApplicationProven: true,
+      executionRecordsSchemaVerified: true,
+      rlsSecurityVerified: true,
+      serviceRoleServerOnlyAccessDefined: true,
+      routeAuthSecretModelDefined: true,
+      clientSideWriteImpossible: true,
+      serverOnlyBoundaryProven: true,
+      normalizedPersistenceInputValidated: true,
+      insertRouteReadinessValidated: true,
+      insertRouteCallWrapperReassessed: true,
+      idempotencyStrategyImplemented: true,
+      duplicatePreventionImplemented: true,
+      auditCorrectionMetadataComplete: true,
+      evidenceProvenanceComplete: true,
+      manualApprovalContextPresent: true,
+      dryRunProductionSeparated: true,
+      postInsertAuthoritiesFalse: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    routeShapeSummary: {
+      routeMode: "production",
+      serverOnly: true,
+      authenticated: true,
+      authorized: true,
+      idempotencyKeyRequired: true,
+      duplicatePreventionRequired: true,
+      normalizedInputOnly: true,
+      uiStateOnlySourceAllowed: false,
+      clientSideSupabaseInsertAllowed: false,
+      returnsInsertedRecordIdOnly: true,
+      returnsSafeSummaryOnly: true,
+      postInsertMutationSideEffectsAllowed: false,
+      devPreviewCallable: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    allowedInputSummary: {
+      normalizedPersistenceInput,
+      normalizedExecutionRecordInputPresent: true,
+      idempotencyFingerprintMetadataPresent: true,
+      duplicatePreventionMetadataPresent: true,
+      finalBrokerEvidenceIdentifiersPresent: true,
+      auditCorrectionMetadataPresent: true,
+      evidenceProvenanceChainPresent: true,
+      manualApprovalMetadataPresent: true,
+      serverOnlyRequestContextPresent: true,
+      generatedTypesSchemaReadinessProofPresent: true,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      productionRouteModePresent: true,
+      uiStateOnlySourceAllowed: false,
+      fixtureInputAllowed: false,
+      dryRunDiagnosticsAllowedAsProductionInput: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    allowedOutputSummary: {
+      routeStatus: "production_insert_route_boundary_ready_for_design_only",
+      insertedExecutionRecordId: null,
+      insertedExecutionRecordReference: null,
+      duplicateDetected: false,
+      duplicateMatches: [],
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+      safeRouteOutputSummary: {
+        designOnly: true,
+      },
+      auditAppendApprovalOutput: false,
+      statsPnlUpdateApprovalOutput: false,
+      rollbackCorrectionApprovalOutput: false,
+      tradeMutationApprovalOutput: false,
+      brokerOrderApprovalOutput: false,
+      avanzaBrowserApprovalOutput: false,
+      automaticModeApprovalOutput: false,
+    },
+    dryRunSeparationSummary: {
+      sourceRouteMode: insertRouteCallInput.routeMode,
+      sourceRouteCallStatus: insertRouteCallResult.status,
+      dryRunRouteDiagnosticsOnly: true,
+      dryRunResultIsProductionInsert: false,
+      dryRunSuccessProvesProductionReadiness: false,
+      productionRouteSeparate: true,
+      productionRouteServerOnly: true,
+      devPreviewMayCallProductionRoute: false,
+      fixtureCallableMayCallProductionRoute: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    securitySummary: {
+      rlsSecurityProofPresent: true,
+      rlsPoliciesVerified: true,
+      routeAuthSecretModelDefined: true,
+      userRoleAssumptionsDocumented: true,
+      serviceRoleAssumptionsDocumented: true,
+      serviceRoleServerOnly: true,
+      clientSideWriteBlocked: true,
+      browserWritable: false,
+      brokerAutomationAuthority: false,
+      avanzaBrowserAuthority: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySummary: {
+      serverOnlyRequestContext: {
+        routeHandler: "/api/execution/records/insert",
+        serviceRoleRestrictedToServer: true,
+      },
+      serverOnlyBoundaryProven: true,
+      routeHandlerOnly: true,
+      importedIntoClientCode: false,
+      callableFromDevPreview: false,
+      serviceRoleRestrictedToServer: true,
+      clientSideSupabaseInsertAllowed: false,
+      localStorageWriteAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    schemaGeneratedTypesMigrationSummary: {
+      schemaReference:
+        normalizedPersistenceInput.schemaReference ?? {
+          tableName: "execution_records",
+          expectedColumnsVersion: "action-648-test",
+          migrationVersion: "action-648-test",
+        },
+      expectedTableName: "execution_records",
+      executionRecordsSchemaVerified: true,
+      generatedTypesPresent: true,
+      generatedTypesLocation: "generated/supabase/types.ts",
+      executionRecordsTableTyped: true,
+      migrationApplicationProven: true,
+      migrationReference: "202606111733_execution_records",
+      targetEnvironment: "test",
+      productionWriteReadinessBlockedBySchema: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    idempotencyDuplicateSummary: {
+      idempotencyKey: normalizedPersistenceInput.idempotencyKey,
+      recordFingerprint: normalizedPersistenceInput.recordFingerprint,
+      sourceFingerprint: normalizedPersistenceInput.sourceFingerprint,
+      duplicatePreventionMetadataPresent: true,
+      idempotencyKeyPresent: true,
+      duplicateCheckRequiredBeforeInsert: true,
+      duplicateCheckPerformed: true,
+      duplicateDetected: false,
+      duplicateMatches: [],
+      duplicateBlocksInsert: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    auditCorrectionSummary: {
+      auditCorrectionMetadataPresent: true,
+      auditAppendAllowedByProductionInsert: false,
+      correctionAllowedByProductionInsert: false,
+      rollbackAllowedByProductionInsert: false,
+      postInsertAuditRequiresSeparateBoundary: true,
+      correctionRollbackRequiresSeparateBoundary: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenanceSummary: {
+      evidenceProvenanceChainPresent: true,
+      sourceFingerprintPresent: true,
+      finalBrokerEvidenceIdentifiersPresent: true,
+      brokerConfirmationEvidencePresent: true,
+      sourceEventIds: ["action-648-source-event"],
+      provenanceMetadataPresent: true,
+      manualApprovalContext,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    manualApprovalContext,
+    dryRunProductionSeparationMetadata: {
+      dryRunRouteDiagnosticsOnly: true,
+      productionRouteSeparate: true,
+    },
+    postInsertBoundarySummary:
+      EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_DEFAULT_POST_INSERT_BOUNDARY,
+    safetyPolicy:
+      EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_DEFAULT_SAFETY_POLICY,
+    metadata: {
+      testOnly: true,
+    },
+    ...boundaryOverrides,
+  };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_PRODUCTION_INSERT_ROUTE_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T17:34:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    boundaryInput: baseBoundaryInput,
+    boundaryResult: null,
+    insertRouteCallWrapperResult: insertRouteCallResult,
+    insertRouteReadinessValidationResult:
+      insertRouteCallInput.readinessValidationResult,
+    normalizedPersistenceInput,
+    schemaGeneratedTypesMigrationProof:
+      baseBoundaryInput.schemaGeneratedTypesMigrationSummary,
+    rlsSecurityProof: baseBoundaryInput.securitySummary,
+    serviceRoleServerOnlyMetadata: baseBoundaryInput.serverOnlySummary,
+    routeAuthSecretModelMetadata: {
+      routeAuthSecretModelDefined: true,
+    },
+    serverOnlyRequestContext:
+      baseBoundaryInput.serverOnlySummary?.serverOnlyRequestContext ?? null,
+    idempotencyDuplicateMetadata: baseBoundaryInput.idempotencyDuplicateSummary,
+    auditCorrectionMetadata: baseBoundaryInput.auditCorrectionSummary,
+    evidenceProvenanceChain: baseBoundaryInput.evidenceProvenanceSummary,
+    manualApprovalMetadata: manualApprovalContext,
+    dryRunProductionSeparationMetadata:
+      baseBoundaryInput.dryRunSeparationSummary,
+    postInsertBoundaryMetadata: baseBoundaryInput.postInsertBoundarySummary,
+    safetyPolicy: baseBoundaryInput.safetyPolicy,
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function buildExecutionRecordPostInsertBoundaryCategoryBase(
+  boundaryName: string,
+): ExecutionRecordPostInsertBoundaryCategorySummary {
+  return {
+    boundaryName,
+    representedSeparately: true,
+    implemented: false,
+    enabled: false,
+    authorityAllowed: false,
+    safeToExecute: false,
+    insertSuccessApprovesBoundary: false,
+    requiresSeparateValidator: true,
+    requiresSeparateAuthority: true,
+    requiresSeparateIdempotency: true,
+    requiresSeparateEvidence: true,
+    requiresSeparateFailureModel: true,
+    requiresSeparateAuditTrail: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+}
+
+function buildExecutionRecordPostInsertBoundaryCategorySummaries(
+  overrides: Partial<ExecutionRecordPostInsertBoundaryCategorySummaries> = {},
+): ExecutionRecordPostInsertBoundaryCategorySummaries {
+  return {
+    auditAppend: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase("audit_append"),
+      boundaryName: "audit_append",
+      auditAppendAllowed: false,
+      safeToAppendAudit: false,
+      requiredAuditEventType: "execution_record_post_insert_audit_candidate",
+      requiredInputPresent: true,
+      requiredEvidencePresent: true,
+      idempotencyKeyPresent: true,
+      duplicatePreventionPresent: true,
+      allowedOutputIsAuditCandidateOnly: true,
+      statsPnlAuthority: false,
+      tradeMutationAuthority: false,
+    } satisfies ExecutionRecordAuditAppendBoundarySummary,
+    statsPnlUpdate: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase("stats_pnl_update"),
+      boundaryName: "stats_pnl_update",
+      statsPnlUpdateAllowed: false,
+      safeToUpdateStats: false,
+      executionRecordEvidencePresent: true,
+      tradeLinkPresent: true,
+      calculationSourcePresent: true,
+      consistencyRequirementsMet: true,
+      idempotencyKeyPresent: true,
+      duplicatePreventionPresent: true,
+      reconciliationRequirementsDefined: true,
+      auditAppendAuthority: false,
+      tradeMutationAuthority: false,
+    } satisfies ExecutionRecordStatsPnlUpdateBoundarySummary,
+    tradeReconciliation: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase(
+        "trade_reconciliation",
+      ),
+      boundaryName: "trade_reconciliation",
+      tradeReconciliationAllowed: false,
+      tradeMutationAllowed: false,
+      safeToMutateTrade: false,
+      executionRecordEvidencePresent: true,
+      currentTradeStatePresent: true,
+      mutationTypeConstraintsDefined: true,
+      reconciliationChecksDefined: true,
+      conflictHandlingDefined: true,
+      idempotencyKeyPresent: true,
+      brokerOrderAuthority: false,
+      avanzaBrowserAuthority: false,
+    } satisfies ExecutionRecordTradeReconciliationBoundarySummary,
+    correctionRollback: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase(
+        "correction_rollback",
+      ),
+      boundaryName: "correction_rollback",
+      correctionRollbackAllowed: false,
+      safeToRollback: false,
+      correctionEventRequirementsPresent: true,
+      originalRecordReferencePresent: true,
+      immutableRecordAssumptionsDocumented: true,
+      compensatingActionModelDefined: true,
+      rollbackLimitationsDocumented: true,
+      auditRequirementsPresent: true,
+    } satisfies ExecutionRecordCorrectionRollbackBoundarySummary,
+    failureRecovery: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase("failure_recovery"),
+      boundaryName: "failure_recovery",
+      failureRecoveryAllowed: false,
+      partialFailureStatesDefined: true,
+      routeSuccessPostInsertFailureModeDefined: true,
+      auditSuccessStatsFailureModeDefined: true,
+      statsSuccessTradeMutationFailureModeDefined: true,
+      retryModelDefined: true,
+      idempotencyRequired: true,
+      userVisibleReviewRequired: true,
+    } satisfies ExecutionRecordFailureRecoveryBoundarySummary,
+    uiStateUpdate: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase("ui_state_update"),
+      boundaryName: "ui_state_update",
+      uiStateMutationAllowed: false,
+      safeToUpdateUiState: false,
+      readAfterWriteRequired: true,
+      optimisticUpdateRestricted: true,
+      staleDataHandlingDefined: true,
+      confirmationDisplaySeparatedFromPostInsertCompletion: true,
+      localOnlySourceOfTruthAllowed: false,
+    } satisfies ExecutionRecordUiStateUpdateBoundarySummary,
+    userNotification: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase(
+        "user_notification",
+      ),
+      boundaryName: "user_notification",
+      userNotificationAllowed: false,
+      safeToNotifyUser: false,
+      notificationTriggersDefined: true,
+      requiredSourceOfTruthPresent: true,
+      failureRetryDefined: true,
+      userReviewStatesDefined: true,
+      mayImplyBrokerOrderExecution: false,
+      mayImplyAvanzaBrowserCompletion: false,
+    } satisfies ExecutionRecordUserNotificationBoundarySummary,
+    brokerOrderFollowUp: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase(
+        "broker_order_follow_up",
+      ),
+      boundaryName: "broker_order_follow_up",
+      brokerOrderFollowUpAllowed: false,
+      safeToRunBrokerAction: false,
+      brokerOrderFollowUpDisabledByDefault: true,
+      kopSaljTriggerAllowed: false,
+      automaticModeApprovalAllowed: false,
+      futureSeparateDesignRequired: true,
+      manualConfirmationRequired: true,
+    } satisfies ExecutionRecordBrokerOrderFollowUpBoundarySummary,
+    avanzaBrowserFollowUp: {
+      ...buildExecutionRecordPostInsertBoundaryCategoryBase(
+        "avanza_browser_follow_up",
+      ),
+      boundaryName: "avanza_browser_follow_up",
+      avanzaBrowserFollowUpAllowed: false,
+      safeToRunAvanzaBrowserAction: false,
+      avanzaBrowserFollowUpDisabledByDefault: true,
+      browserActionAllowed: false,
+      kopSaljTriggerAllowed: false,
+      automaticModeApprovalAllowed: false,
+      futureSeparateDesignRequired: true,
+      manualConfirmationRequired: true,
+    } satisfies ExecutionRecordAvanzaBrowserFollowUpBoundarySummary,
+    ...overrides,
+  };
+}
+
+function buildExecutionRecordPostInsertBoundaryValidationInput(
+  overrides: Partial<ExecutionRecordPostInsertBoundaryValidationInput> = {},
+  boundaryOverrides: Partial<ExecutionRecordPostInsertBoundaryInput> = {},
+): ExecutionRecordPostInsertBoundaryValidationInput {
+  const insertRouteCallInput = buildExecutionRecordInsertRouteCallInput();
+  const normalizedPersistenceInput =
+    insertRouteCallInput.normalizedPersistenceInput!;
+  const executionRecordId = "exec_record_action_663_test";
+  const categories = buildExecutionRecordPostInsertBoundaryCategorySummaries();
+  const evidence = {
+    executionRecordId,
+    executionRecordReference: null,
+    executionRecordInsertResult: null,
+    insertResultProven: true,
+    insertedRecordSummary: {
+      id: executionRecordId,
+    },
+    normalizedExecutionRecordInput: normalizedPersistenceInput,
+    executionRecordEvidencePresent: true,
+    executionRecordEvidenceProvenancePresent: true,
+    finalBrokerEvidenceIdentifiersPresent: true,
+    generatedTypesProofPresent: true,
+    migrationProofPresent: true,
+    rlsSecurityProofPresent: true,
+    serverOnlyProofPresent: true,
+    schemaReference:
+      normalizedPersistenceInput.schemaReference ?? {
+        tableName: "execution_records",
+        expectedColumnsVersion: "action-663-test",
+        migrationVersion: "action-663-test",
+      },
+    auditCorrectionMetadata: normalizedPersistenceInput.auditMetadata,
+    manualApprovalContext: null,
+    sourceReferences: ["action-663-test-source"],
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  } satisfies ExecutionRecordPostInsertBoundaryInput["executionRecordEvidence"];
+  const idempotency = {
+    idempotencyKey: normalizedPersistenceInput.idempotencyKey,
+    idempotencyFingerprint: normalizedPersistenceInput.recordFingerprint,
+    idempotencyMetadataPresent: true,
+    duplicatePreventionMetadataPresent: true,
+    duplicateMatches: [],
+    safeToRetry: false,
+    retryRequiresReview: true,
+    duplicateSideEffectsPrevented: true,
+    conflictingDuplicateDetected: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  } satisfies ExecutionRecordPostInsertBoundaryInput["idempotency"];
+  const failureModel = {
+    partialFailureStatesKnown: true,
+    insertSucceededPostInsertFailedPossible: true,
+    auditSucceededStatsFailedPossible: true,
+    statsSucceededTradeMutationFailedPossible: true,
+    uiRefreshFailedPossible: true,
+    notificationFailedPossible: true,
+    retryModelDefined: true,
+    retriesRequireStableIdempotency: true,
+    userVisibleReviewRequired: true,
+    hiddenPartialFailureAllowed: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  } satisfies ExecutionRecordPostInsertBoundaryResult["failureModel"];
+  const dependencies = {
+    generatedTypesPresent: true,
+    migrationApplicationProven: true,
+    rlsSecurityVerified: true,
+    serverOnlyBoundaryVerified: true,
+    productionInsertRouteImplemented: true,
+    productionInsertRouteCalled: true,
+    postInsertImplementationPresent: false,
+    auditAppendImplementationPresent: false,
+    statsPnlUpdateImplementationPresent: false,
+    tradeReconciliationImplementationPresent: false,
+    correctionRollbackImplementationPresent: false,
+    uiStateUpdateImplementationPresent: false,
+    userNotificationImplementationPresent: false,
+    brokerOrderFollowUpImplementationPresent: false,
+    avanzaBrowserFollowUpImplementationPresent: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  } satisfies ExecutionRecordPostInsertBoundaryResult["dependencies"];
+  const baseBoundaryInput: ExecutionRecordPostInsertBoundaryInput = {
+    contractVersion: EXECUTION_RECORD_POST_INSERT_BOUNDARY_CONTRACT_VERSION,
+    status: "post_insert_boundary_contract_only",
+    productionInsertRouteResult: null,
+    futureInsertResultMetadata: {
+      insertedExecutionRecordId: executionRecordId,
+      insertStatus: "inserted",
+      testOnly: true,
+    },
+    executionRecordId,
+    executionRecordReference: null,
+    executionRecordEvidence: evidence,
+    finalBrokerEvidenceIdentifiers: {
+      finalBrokerEvidenceId: "action-663-final-broker-evidence",
+    },
+    normalizedExecutionRecordInput: normalizedPersistenceInput,
+    insertedRecordSummary: {
+      id: executionRecordId,
+    },
+    generatedTypesProof: {
+      generatedTypesPresent: true,
+      tableName: "execution_records",
+    },
+    migrationProof: {
+      migrationApplicationProven: true,
+      migrationReference: "action-663-test",
+    },
+    rlsSecurityProof: {
+      rlsSecurityVerified: true,
+    },
+    serverOnlyProof: {
+      serverOnlyBoundaryVerified: true,
+    },
+    idempotency,
+    duplicatePrevention: {
+      duplicatePreventionMetadataPresent: true,
+    },
+    auditCorrectionMetadata: normalizedPersistenceInput.auditMetadata,
+    currentTradeState: {
+      tradeStateReference: "action-663-current-trade-state",
+    },
+    statsPnlCalculationSource: {
+      calculationSource: "action-663-test",
+    },
+    uiStateSourceOfTruth: {
+      sourceOfTruth: "server-read-after-write",
+    },
+    notificationContext: {
+      notificationContext: "manual-review-only",
+    },
+    brokerOrderFollowUpMetadata: {
+      disabledUnlessSeparatelyApproved: true,
+    },
+    avanzaBrowserFollowUpMetadata: {
+      disabledUnlessSeparatelyApproved: true,
+    },
+    authority: EXECUTION_RECORD_POST_INSERT_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy: EXECUTION_RECORD_POST_INSERT_BOUNDARY_DEFAULT_SAFETY_POLICY,
+    categorySummaries: categories,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    ...boundaryOverrides,
+  };
+  const baseBoundaryResult: ExecutionRecordPostInsertBoundaryResult = {
+    contractVersion: EXECUTION_RECORD_POST_INSERT_BOUNDARY_CONTRACT_VERSION,
+    status: "post_insert_boundary_contract_only",
+    decisionRecommendation: "contract_only_do_not_run_post_insert_actions",
+    contractOnly: true,
+    postInsertActionsImplemented: false,
+    insertSuccessIsFullWorkflowCompletion: false,
+    insertSuccessApprovesPostInsertActions: false,
+    authority: baseBoundaryInput.authority,
+    safetyPolicy: baseBoundaryInput.safetyPolicy,
+    evidence: baseBoundaryInput.executionRecordEvidence!,
+    idempotency: baseBoundaryInput.idempotency,
+    failureModel,
+    dependencies,
+    categorySummaries: baseBoundaryInput.categorySummaries,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+  };
+
+  return {
+    contractVersion: EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+    boundaryInput: baseBoundaryInput,
+    boundaryResult: baseBoundaryResult,
+    boundaryCategorySummaries: baseBoundaryInput.categorySummaries,
+    futureExecutionRecordInsertResultMetadata:
+      baseBoundaryInput.futureInsertResultMetadata,
+    executionRecordId,
+    executionRecordReference: null,
+    insertedExecutionRecordSummary: baseBoundaryInput.insertedRecordSummary,
+    executionRecordEvidence: baseBoundaryInput.executionRecordEvidence,
+    normalizedExecutionRecordInput: normalizedPersistenceInput,
+    generatedTypesProof: baseBoundaryInput.generatedTypesProof,
+    migrationProof: baseBoundaryInput.migrationProof,
+    rlsSecurityProof: baseBoundaryInput.rlsSecurityProof,
+    serverOnlyProof: baseBoundaryInput.serverOnlyProof,
+    idempotency: baseBoundaryInput.idempotency,
+    duplicatePrevention: baseBoundaryInput.duplicatePrevention,
+    auditCorrectionMetadata: baseBoundaryInput.auditCorrectionMetadata,
+    currentTradeState: baseBoundaryInput.currentTradeState,
+    statsPnlCalculationSource: baseBoundaryInput.statsPnlCalculationSource,
+    uiStateSourceOfTruth: baseBoundaryInput.uiStateSourceOfTruth,
+    notificationContext: baseBoundaryInput.notificationContext,
+    brokerOrderFollowUpMetadata: baseBoundaryInput.brokerOrderFollowUpMetadata,
+    avanzaBrowserFollowUpMetadata:
+      baseBoundaryInput.avanzaBrowserFollowUpMetadata,
+    requestedCategoryValidations: [
+      "auditAppend",
+      "statsPnlUpdate",
+      "tradeReconciliation",
+      "correctionRollback",
+      "failureRecovery",
+      "uiStateUpdate",
+      "userNotification",
+      "brokerOrderFollowUp",
+      "avanzaBrowserFollowUp",
+    ],
+    authority:
+      EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_POST_INSERT_BOUNDARY_VALIDATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectPostInsertBoundaryValidationNoAuthority(
+  result: ExecutionRecordPostInsertBoundaryValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.validatorImplemented).toBe(false);
+  expect(result.validatorReadinessExecutesActions).toBe(false);
+  expect(result.insertSuccessApprovesPostInsertActions).toBe(false);
+  expect(result.insertSuccessIsFullWorkflowCompletion).toBe(false);
+  expect(result.authority.validationOnly).toBe(true);
+  expect(result.authority.designOnly).toBe(true);
+  expect(result.authority.postInsertActionsImplemented).toBe(false);
+  expect(result.authority.postInsertActionsAllowed).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.failureRecoveryAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.safeToUpdateStats).toBe(false);
+  expect(result.authority.safeToMutateTrade).toBe(false);
+  expect(result.authority.safeToReconcileTrade).toBe(false);
+  expect(result.authority.safeToRollback).toBe(false);
+  expect(result.authority.safeToRecoverFailure).toBe(false);
+  expect(result.authority.safeToUpdateUiState).toBe(false);
+  expect(result.authority.safeToNotifyUser).toBe(false);
+  expect(result.authority.safeToRunBrokerAction).toBe(false);
+  expect(result.authority.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.safetyPolicy.validationReadinessIsActionExecution).toBe(false);
+  expect(result.safetyPolicy.insertSuccessIsPostInsertApproval).toBe(false);
+  expect(result.safetyPolicy.insertSuccessIsFullWorkflowCompletion).toBe(false);
+  expect(result.categoryValidations.auditAppend.actionExecutionAllowed).toBe(
+    false,
+  );
+  expect(result.categoryValidations.statsPnlUpdate.actionExecutionAllowed).toBe(
+    false,
+  );
+  expect(result.categoryValidations.tradeReconciliation.actionExecutionAllowed)
+    .toBe(false);
+  expect(result.categoryValidations.correctionRollback.actionExecutionAllowed)
+    .toBe(false);
+  expect(result.categoryValidations.failureRecovery.actionExecutionAllowed).toBe(
+    false,
+  );
+  expect(result.categoryValidations.uiStateUpdate.actionExecutionAllowed).toBe(
+    false,
+  );
+  expect(result.categoryValidations.userNotification.actionExecutionAllowed)
+    .toBe(false);
+  expect(result.categoryValidations.brokerOrderFollowUp.actionExecutionAllowed)
+    .toBe(false);
+  expect(result.categoryValidations.avanzaBrowserFollowUp.actionExecutionAllowed)
+    .toBe(false);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      noRouteCall: true,
+      noPersistenceWrite: true,
+      noPostInsertActions: true,
+      brokerAvanzaDisabled: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendBoundaryValidationInput(
+  overrides: Partial<ExecutionRecordAuditAppendBoundaryValidationInput> = {},
+  boundaryOverrides: Partial<ExecutionRecordAuditAppendBoundaryInput> = {},
+): ExecutionRecordAuditAppendBoundaryValidationInput {
+  const postInsertValidationInput =
+    buildExecutionRecordPostInsertBoundaryValidationInput();
+  const postInsertValidationResult = validateExecutionRecordPostInsertBoundary(
+    postInsertValidationInput,
+  );
+  const normalizedExecutionRecordInput =
+    postInsertValidationInput.normalizedExecutionRecordInput as ExecutionRecordPersistenceInput;
+  const executionRecordId = "exec_record_action_676_test";
+  const executionRecordReference = {
+    recordId: executionRecordId,
+    tableName: "execution_records",
+    idempotencyKey: normalizedExecutionRecordInput.idempotencyKey,
+    recordFingerprint: normalizedExecutionRecordInput.recordFingerprint,
+    broker: "avanza",
+    ticker: "AAPL",
+    side: "buy",
+    executionMode: "semi_automatic",
+    executionPhase: "entry",
+    confirmedAt: "2026-06-11T18:00:00.000Z",
+    persistedAt: "2026-06-11T18:01:00.000Z",
+  } satisfies ExecutionRecordAuditAppendBoundaryInput["executionRecordReference"];
+  const insertedExecutionRecordSummary = {
+    id: executionRecordId,
+    tableName: "execution_records",
+    status: "inserted",
+  };
+  const candidate: ExecutionRecordAuditAppendBoundaryInput["candidate"] = {
+    auditEventType: "execution_record_inserted",
+    auditEventSource: "execution_record_insert_route",
+    auditEventPayloadSummary: {
+      executionRecordId,
+      status: "inserted",
+    },
+    actorSourceMetadata: {
+      actor: "server_route",
+      requestedBy: "execution-sandbox-test",
+    },
+    timestampSourceClockMetadata: {
+      sourceClock: "server",
+      capturedAt: "2026-06-11T18:01:00.000Z",
+    },
+    executionRecordId,
+    executionRecordReference,
+    candidateFingerprint: "audit-candidate-action-676",
+    candidateCreatedAt: "2026-06-11T18:01:01.000Z",
+    payloadExplainable: true,
+    noSecretPayloadExposure: true,
+    noLocalOnlySourceOfTruth: true,
+    noBrokerAvanzaAssumptions: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const evidence: ExecutionRecordAuditAppendBoundaryInput["evidence"] = {
+    executionRecordId,
+    executionRecordReference,
+    insertedExecutionRecordSummary,
+    normalizedExecutionRecordInput,
+    postInsertBoundaryInput: postInsertValidationInput.boundaryInput,
+    postInsertBoundaryResult: postInsertValidationInput.boundaryResult,
+    postInsertValidatorResult: postInsertValidationResult,
+    executionRecordEvidencePresent: true,
+    evidenceProvenancePresent: true,
+    actorSourceMetadataPresent: true,
+    timestampSourceClockMetadataPresent: true,
+    generatedTypesProofPresent: true,
+    migrationProofPresent: true,
+    rlsSecurityProofPresent: true,
+    serverOnlyProofPresent: true,
+    auditSchemaProofPresent: true,
+    sourceReferences: ["action-676-source-event"],
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const idempotency: ExecutionRecordAuditAppendBoundaryInput["idempotency"] = {
+    executionRecordId,
+    auditEventKey: "audit-event-action-676",
+    idempotencyKey: "audit-idempotency-action-676",
+    sourceEventFingerprint: "source-event-action-676",
+    candidateFingerprint: candidate.candidateFingerprint,
+    idempotencyMetadataPresent: true,
+    stableAuditEventKeyPresent: true,
+    sourceEventFingerprintPresent: true,
+    safeToRetry: false,
+    retryRequiresManualReview: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const duplicatePrevention: ExecutionRecordAuditAppendBoundaryInput["duplicatePrevention"] = {
+    duplicatePreventionKey: "audit-duplicate-action-676",
+    duplicatePreventionMetadataPresent: true,
+    duplicateMatches: [],
+    duplicateAuditEventDetected: false,
+    duplicateAuditEventBlocked: true,
+    duplicateLookupRequiredBeforeWrite: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const failureModel: ExecutionRecordAuditAppendBoundaryInput["failureModel"] = {
+    auditBlockedAfterInsertSuccessRepresented: true,
+    auditDuplicateDetectedRepresented: true,
+    auditValidationFailedRepresented: true,
+    futureAuditWriteFailedRepresented: true,
+    auditRetryBlockedWithoutIdempotencyRepresented: true,
+    downstreamActionsRemainBlockedRepresented: true,
+    partialFailureModelPresent: true,
+    hiddenPartialFailureAllowed: false,
+    manualReviewRequiredForPartialFailure: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const dependencies: ExecutionRecordAuditAppendBoundaryInput["dependencies"] = {
+    auditAppendBoundaryContractPresent: true,
+    auditAppendValidatorContractPresent: true,
+    auditAppendValidatorPresent: true,
+    auditAppendImplementationPresent: false,
+    auditWriterPresent: false,
+    auditWritePathPresent: false,
+    productionInsertRouteImplemented: true,
+    productionInsertWritePathPresent: true,
+    postInsertBoundaryContractPresent: true,
+    postInsertValidatorPresent: true,
+    postInsertOrchestratorImplemented: false,
+    generatedTypesPresent: true,
+    migrationApplicationProven: true,
+    rlsSecurityVerified: true,
+    serverOnlyBoundaryVerified: true,
+    auditSchemaProofPresent: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const baseBoundaryInput: ExecutionRecordAuditAppendBoundaryInput = {
+    contractVersion: EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:01:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    executionRecordId,
+    executionRecordReference,
+    insertedExecutionRecordSummary,
+    executionRecordEvidence: evidence,
+    normalizedExecutionRecordInput,
+    postInsertBoundaryInput: postInsertValidationInput.boundaryInput,
+    postInsertBoundaryResult: postInsertValidationInput.boundaryResult,
+    postInsertValidatorResult: postInsertValidationResult,
+    auditEventType: candidate.auditEventType,
+    auditEventSource: candidate.auditEventSource,
+    auditEventPayloadSummary: candidate.auditEventPayloadSummary,
+    actorSourceMetadata: candidate.actorSourceMetadata,
+    timestampSourceClockMetadata: candidate.timestampSourceClockMetadata,
+    idempotencyKey: idempotency.idempotencyKey,
+    duplicatePreventionKey: duplicatePrevention.duplicatePreventionKey,
+    generatedTypesProof: {
+      generatedTypesPresent: true,
+      tableName: "execution_records",
+    },
+    migrationProof: {
+      migrationApplicationProven: true,
+      migrationReference: "action-676-test",
+    },
+    rlsSecurityProof: {
+      rlsSecurityVerified: true,
+    },
+    serverOnlyProof: {
+      serverOnlyBoundaryVerified: true,
+    },
+    auditSchemaProof: {
+      auditSchemaTableVerified: true,
+      tableName: "execution_record_audit_events",
+    },
+    candidate,
+    evidence,
+    idempotency,
+    duplicatePrevention,
+    failureModel,
+    dependencies,
+    authority: EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy: EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...boundaryOverrides,
+  };
+  const baseBoundaryResult: ExecutionRecordAuditAppendBoundaryResult = {
+    contractVersion: EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_CONTRACT_VERSION,
+    status: "audit_append_boundary_contract_only",
+    decisionRecommendation: "contract_only_do_not_append_audit",
+    contractOnly: true,
+    auditAppendImplemented: false,
+    auditWriterImplemented: false,
+    auditAppendAllowed: false,
+    safeToAppendAudit: false,
+    insertSuccessIsAuditAppendApproval: false,
+    postInsertValidatorReadinessIsAuditAppendApproval: false,
+    orchestratorContractReadinessIsAuditAppendApproval: false,
+    auditSuccessApprovesStatsPnlUpdate: false,
+    auditSuccessApprovesTradeMutation: false,
+    auditSuccessApprovesTradeReconciliation: false,
+    auditSuccessApprovesCorrectionRollback: false,
+    auditSuccessApprovesUiUpdate: false,
+    auditSuccessApprovesNotification: false,
+    auditSuccessApprovesBrokerOrderFollowUp: false,
+    auditSuccessApprovesAvanzaBrowserFollowUp: false,
+    candidate: baseBoundaryInput.candidate,
+    evidence: baseBoundaryInput.evidence,
+    idempotency: baseBoundaryInput.idempotency,
+    duplicatePrevention: baseBoundaryInput.duplicatePrevention,
+    failureModel: baseBoundaryInput.failureModel,
+    dependencies: baseBoundaryInput.dependencies,
+    authority: baseBoundaryInput.authority,
+    safetyPolicy: baseBoundaryInput.safetyPolicy,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+  };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_BOUNDARY_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:02:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    auditBoundaryInput: baseBoundaryInput,
+    auditBoundaryResult: baseBoundaryResult,
+    auditEventCandidate: baseBoundaryInput.candidate,
+    executionRecordId,
+    executionRecordReference,
+    insertedExecutionRecordSummary,
+    executionRecordEvidence: baseBoundaryInput.evidence,
+    auditEventType: baseBoundaryInput.auditEventType,
+    auditEventSource: baseBoundaryInput.auditEventSource,
+    auditEventPayloadSummary: baseBoundaryInput.auditEventPayloadSummary,
+    actorSourceMetadata: baseBoundaryInput.actorSourceMetadata,
+    timestampSourceClockMetadata: baseBoundaryInput.timestampSourceClockMetadata,
+    idempotencyKey: baseBoundaryInput.idempotencyKey,
+    duplicatePreventionKey: baseBoundaryInput.duplicatePreventionKey,
+    generatedTypesProof: baseBoundaryInput.generatedTypesProof,
+    migrationProof: baseBoundaryInput.migrationProof,
+    rlsSecurityProof: baseBoundaryInput.rlsSecurityProof,
+    serverOnlyProof: baseBoundaryInput.serverOnlyProof,
+    auditSchemaTableProof: baseBoundaryInput.auditSchemaProof,
+    boundaryAuthority: baseBoundaryInput.authority,
+    boundarySafetyPolicy: baseBoundaryInput.safetyPolicy,
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendBoundaryValidationNoAuthority(
+  result: ExecutionRecordAuditAppendBoundaryValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.auditValidatorImplemented).toBe(false);
+  expect(result.auditValidationReadinessIsAuditAppendExecution).toBe(false);
+  expect(result.auditAppendAllowed).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.auditValidationSuccessApprovesStatsPnlUpdate).toBe(false);
+  expect(result.auditValidationSuccessApprovesTradeMutation).toBe(false);
+  expect(result.auditValidationSuccessApprovesTradeReconciliation).toBe(false);
+  expect(result.auditValidationSuccessApprovesCorrectionRollback).toBe(false);
+  expect(result.auditValidationSuccessApprovesUiUpdate).toBe(false);
+  expect(result.auditValidationSuccessApprovesNotification).toBe(false);
+  expect(result.auditValidationSuccessApprovesBrokerOrderFollowUp).toBe(false);
+  expect(result.auditValidationSuccessApprovesAvanzaBrowserFollowUp).toBe(false);
+  expect(result.authority.validationOnly).toBe(true);
+  expect(result.authority.designOnly).toBe(true);
+  expect(result.authority.auditValidatorImplemented).toBe(false);
+  expect(result.authority.auditAppendImplemented).toBe(false);
+  expect(result.authority.auditWriterImplemented).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.safeToUpdateStats).toBe(false);
+  expect(result.authority.safeToMutateTrade).toBe(false);
+  expect(result.authority.safeToReconcileTrade).toBe(false);
+  expect(result.authority.safeToRollback).toBe(false);
+  expect(result.authority.safeToUpdateUiState).toBe(false);
+  expect(result.authority.safeToNotifyUser).toBe(false);
+  expect(result.authority.safeToRunBrokerAction).toBe(false);
+  expect(result.authority.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.safetyPolicy.auditValidationReadinessIsAuditAppendExecution)
+    .toBe(false);
+  expect(result.safetyPolicy.insertSuccessIsAuditAppendApproval).toBe(false);
+  expect(result.safetyPolicy.postInsertValidatorReadinessIsAuditAppendApproval)
+    .toBe(false);
+  expect(result.safetyPolicy.orchestratorContractReadinessIsAuditAppendApproval)
+    .toBe(false);
+  expect(result.safetyPolicy.auditBoundaryContractReadinessIsAuditAppendApproval)
+    .toBe(false);
+  expect(result.schema.safeToWriteAudit).toBe(false);
+  expect(result.securityServerOnly.safeToWriteFromClient).toBe(false);
+  expect(result.securityServerOnly.safeToUseServiceRoleInClient).toBe(false);
+  expect(result.idempotency.safeToRetry).toBe(false);
+  expect(result.duplicatePrevention.duplicateLookupRequiredBeforeWrite).toBe(
+    true,
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      designReadinessOnly: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendWriterValidationInput(
+  overrides: Partial<ExecutionRecordAuditAppendWriterValidationInput> = {},
+  writerInputOverrides: Partial<ExecutionRecordAuditAppendWriterInput> = {},
+): ExecutionRecordAuditAppendWriterValidationInput {
+  const auditBoundaryValidationInput =
+    buildExecutionRecordAuditAppendBoundaryValidationInput();
+  const auditBoundaryValidationResult =
+    validateExecutionRecordAuditAppendBoundary(auditBoundaryValidationInput);
+  const auditBoundaryInput = auditBoundaryValidationInput.auditBoundaryInput!;
+  const executionRecordId = auditBoundaryInput.executionRecordId!;
+  const executionRecordReference = auditBoundaryInput.executionRecordReference!;
+  const auditEvent: ExecutionRecordAuditAppendWriterInput["auditEvent"] = {
+    auditEventType: auditBoundaryInput.auditEventType,
+    auditEventSource: auditBoundaryInput.auditEventSource,
+    auditEventPayloadSummary: auditBoundaryInput.auditEventPayloadSummary,
+    auditEventCandidate: auditBoundaryInput.candidate,
+    actorSourceMetadata: auditBoundaryInput.actorSourceMetadata,
+    timestampSourceClockMetadata:
+      auditBoundaryInput.timestampSourceClockMetadata,
+    executionRecordId,
+    executionRecordReference,
+    candidateFingerprint: auditBoundaryInput.candidate.candidateFingerprint,
+    payloadExplainable: true,
+    noSecretPayloadExposure: true,
+    noLocalOnlySourceOfTruth: true,
+    noBrokerAvanzaAssumptions: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const evidence: ExecutionRecordAuditAppendWriterInput["evidence"] = {
+    validatedAuditBoundaryInput: auditBoundaryInput,
+    validatedAuditBoundaryResult:
+      auditBoundaryValidationInput.auditBoundaryResult,
+    auditValidatorResult: auditBoundaryValidationResult,
+    executionRecordId,
+    executionRecordReference,
+    executionRecordEvidence: auditBoundaryInput.evidence,
+    normalizedExecutionRecordInput:
+      auditBoundaryInput.normalizedExecutionRecordInput,
+    schemaReference: {
+      tableName: "execution_records",
+      expectedColumnsVersion: "action-686-test",
+      migrationVersion: "action-686-test",
+    },
+    evidencePresent: true,
+    evidenceProvenancePresent: true,
+    sourceReferences: ["action-686-source-event"],
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const idempotency: ExecutionRecordAuditAppendWriterInput["idempotency"] = {
+    idempotencyKey: "audit-writer-idempotency-action-686",
+    auditEventKey: "audit-writer-event-action-686",
+    sourceEventFingerprint: "audit-writer-source-action-686",
+    executionRecordId,
+    executionRecordFingerprint: executionRecordReference.recordFingerprint,
+    candidateFingerprint: auditEvent.candidateFingerprint,
+    idempotencyMetadataPresent: true,
+    stableAuditEventKeyPresent: true,
+    sourceEventFingerprintPresent: true,
+    safeToRetry: false,
+    retryRequiresManualReview: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const duplicatePrevention: ExecutionRecordAuditAppendWriterInput["duplicatePrevention"] = {
+    duplicatePreventionKey: "audit-writer-duplicate-action-686",
+    duplicatePreventionMetadataPresent: true,
+    duplicateMatches: [],
+    duplicateAuditEventDetected: false,
+    duplicateAuditWriteBlocked: true,
+    duplicateLookupRequiredBeforeWrite: true,
+    writeConflictDetected: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const failure: ExecutionRecordAuditAppendWriterInput["failure"] = {
+    validationBlockedBeforeWriterRepresented: true,
+    writerBlockedRepresented: true,
+    duplicateDetectedRepresented: true,
+    writeFailedRepresented: true,
+    unknownWriteStatusRepresented: true,
+    partialFailureAfterWriteRepresented: true,
+    retryPolicyPresent: true,
+    retryRequiresStableIdempotency: true,
+    manualReviewRequired: true,
+    downstreamActionsRemainBlocked: true,
+    hiddenPartialFailureAllowed: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const dependencies: ExecutionRecordAuditAppendWriterInput["dependencies"] = {
+    auditWriterContractPresent: true,
+    auditWriterImplemented: false,
+    auditAppendImplementationPresent: false,
+    auditRouteImplemented: false,
+    auditWritePathPresent: false,
+    auditSchemaTableProven: true,
+    generatedTypesPresent: true,
+    migrationApplicationProven: true,
+    rlsSecurityVerified: true,
+    serverOnlyBoundaryVerified: true,
+    productionInsertRouteImplemented: true,
+    productionInsertWritePathPresent: true,
+    postInsertOrchestratorImplemented: false,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const serverOnlySecurity: ExecutionRecordAuditAppendWriterInput["serverOnlySecurity"] = {
+    serverOnlyExecutionContextPresent: true,
+    serviceRoleExecutionContextPresent: true,
+    serviceRoleSecretExposed: false,
+    serviceRoleSecretValueIncluded: false,
+    clientSideWriteBlocked: true,
+    safeToWriteFromClient: false,
+    safeToUseServiceRoleInClient: false,
+    routeAuthBoundaryVerified: true,
+    rlsSecurityVerified: true,
+    serverOnlyBoundaryVerified: true,
+    safeEvidenceLoggingOnly: true,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+  };
+  const auditWriterContractInput: ExecutionRecordAuditAppendWriterInput = {
+    contractVersion: EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:03:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    validatedAuditBoundaryInput: auditBoundaryInput,
+    validatedAuditBoundaryResult:
+      auditBoundaryValidationInput.auditBoundaryResult,
+    auditValidatorResult: auditBoundaryValidationResult,
+    auditEventCandidate: auditBoundaryInput.candidate,
+    auditEvent,
+    executionRecordId,
+    executionRecordReference,
+    executionRecordEvidence: auditBoundaryInput.evidence,
+    normalizedExecutionRecordInput:
+      auditBoundaryInput.normalizedExecutionRecordInput,
+    auditEventType: auditEvent.auditEventType,
+    auditEventSource: auditEvent.auditEventSource,
+    auditEventPayloadSummary: auditEvent.auditEventPayloadSummary,
+    actorSourceMetadata: auditEvent.actorSourceMetadata,
+    timestampSourceClockMetadata: auditEvent.timestampSourceClockMetadata,
+    idempotencyKey: idempotency.idempotencyKey,
+    duplicatePreventionKey: duplicatePrevention.duplicatePreventionKey,
+    auditSchemaTableProof: {
+      auditSchemaTableProven: true,
+      tableName: "execution_record_audit_events",
+    },
+    generatedTypesProof: {
+      generatedExecutionRecordTypesPresent: true,
+      generatedAuditTypesPresent: true,
+    },
+    migrationProof: {
+      migrationApplicationProven: true,
+    },
+    rlsSecurityProof: {
+      rlsSecurityVerified: true,
+    },
+    serverOnlyProof: {
+      serverOnlyBoundaryVerified: true,
+    },
+    serviceRoleServerOnlyExecutionContext: {
+      context: "server_only_test_fixture",
+      secretIncluded: false,
+    },
+    failureRetryMetadata: {
+      retryPolicyPresent: true,
+    },
+    evidence,
+    idempotency,
+    duplicatePrevention,
+    failure,
+    dependencies,
+    serverOnlySecurity,
+    authority: EXECUTION_RECORD_AUDIT_APPEND_WRITER_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy: EXECUTION_RECORD_AUDIT_APPEND_WRITER_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...writerInputOverrides,
+  };
+  const auditWriterContractResult: ExecutionRecordAuditAppendWriterResult = {
+    contractVersion: EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VERSION,
+    status: "audit_append_writer_contract_only",
+    decisionRecommendation: "contract_only_do_not_write_audit",
+    contractOnly: true,
+    writerImplemented: false,
+    auditAppendImplemented: false,
+    auditRouteImplemented: false,
+    auditWriteExecuted: false,
+    auditWriteAllowed: false,
+    safeToWriteAudit: false,
+    auditAppendAllowed: false,
+    safeToAppendAudit: false,
+    writerContractReadinessIsAuditWriteApproval: false,
+    insertSuccessIsAuditWriteApproval: false,
+    validatorReadinessIsAuditWriteApproval: false,
+    devPreviewDiagnosticsAreAuditWriteApproval: false,
+    orchestratorContractReadinessIsAuditWriteApproval: false,
+    auditWriteSuccessApprovesStatsPnlUpdate: false,
+    auditWriteSuccessApprovesTradeMutation: false,
+    auditWriteSuccessApprovesTradeReconciliation: false,
+    auditWriteSuccessApprovesCorrectionRollback: false,
+    auditWriteSuccessApprovesUiUpdate: false,
+    auditWriteSuccessApprovesNotification: false,
+    auditWriteSuccessApprovesBrokerOrderFollowUp: false,
+    auditWriteSuccessApprovesAvanzaBrowserFollowUp: false,
+    auditWriteSuccessApprovesAutomaticMode: false,
+    auditEvent: auditWriterContractInput.auditEvent,
+    insertedAuditEventReference: null,
+    evidence: auditWriterContractInput.evidence,
+    idempotency: auditWriterContractInput.idempotency,
+    duplicatePrevention: auditWriterContractInput.duplicatePrevention,
+    failure: auditWriterContractInput.failure,
+    dependencies: auditWriterContractInput.dependencies,
+    serverOnlySecurity: auditWriterContractInput.serverOnlySecurity,
+    authority: auditWriterContractInput.authority,
+    safetyPolicy: auditWriterContractInput.safetyPolicy,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+  };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:04:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    auditWriterContractInput,
+    auditWriterContractResult,
+    validatedAuditBoundaryResult:
+      auditBoundaryValidationInput.auditBoundaryResult,
+    auditBoundaryValidatorResult: auditBoundaryValidationResult,
+    auditEventCandidate: auditBoundaryInput.candidate,
+    executionRecordId,
+    executionRecordReference,
+    executionRecordEvidence: auditBoundaryInput.evidence,
+    auditEventType: auditWriterContractInput.auditEventType,
+    auditEventSource: auditWriterContractInput.auditEventSource,
+    auditEventPayloadSummary: auditWriterContractInput.auditEventPayloadSummary,
+    actorSourceMetadata: auditWriterContractInput.actorSourceMetadata,
+    timestampSourceClockMetadata:
+      auditWriterContractInput.timestampSourceClockMetadata,
+    idempotencyKey: auditWriterContractInput.idempotencyKey,
+    duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+    auditSchemaTableProof: auditWriterContractInput.auditSchemaTableProof,
+    generatedTypesProof: auditWriterContractInput.generatedTypesProof,
+    migrationProof: auditWriterContractInput.migrationProof,
+    rlsSecurityProof: auditWriterContractInput.rlsSecurityProof,
+    serverOnlyProof: auditWriterContractInput.serverOnlyProof,
+    serviceRoleServerOnlyExecutionContext:
+      auditWriterContractInput.serviceRoleServerOnlyExecutionContext,
+    failureRetryMetadata: auditWriterContractInput.failureRetryMetadata,
+    readiness: {
+      writerValidationInputPresent: true,
+      auditWriterContractInputPresent: true,
+      auditWriterContractResultPresent: true,
+      validatedAuditBoundaryResultPresent: true,
+      auditBoundaryValidatorResultPresent: true,
+      writerValidatorImplemented: false,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditRouteImplemented: false,
+      auditWriteExecuted: false,
+      readinessIsAuditWriteApproval: false,
+      safeToWriteAudit: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    auditEvent: {
+      auditEventType: auditWriterContractInput.auditEventType,
+      auditEventSource: auditWriterContractInput.auditEventSource,
+      auditEventPayloadSummary:
+        auditWriterContractInput.auditEventPayloadSummary,
+      auditEventCandidate: auditBoundaryInput.candidate,
+      writerAuditEventSummary: auditWriterContractInput.auditEvent,
+      executionRecordId,
+      executionRecordReference,
+      actorSourceMetadata: auditWriterContractInput.actorSourceMetadata,
+      timestampSourceClockMetadata:
+        auditWriterContractInput.timestampSourceClockMetadata,
+      auditEventTypePresent: true,
+      auditEventSourcePresent: true,
+      auditEventPayloadPresent: true,
+      actorSourceMetadataPresent: true,
+      timestampSourceMetadataPresent: true,
+      noSecretPayloadExposure: true,
+      noBrokerAvanzaAssumptions: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurity: {
+      writerServerOnlySecuritySummary:
+        auditWriterContractInput.serverOnlySecurity,
+      serverOnlyProof: auditWriterContractInput.serverOnlyProof,
+      serviceRoleServerOnlyExecutionContext:
+        auditWriterContractInput.serviceRoleServerOnlyExecutionContext,
+      rlsSecurityProof: auditWriterContractInput.rlsSecurityProof,
+      serverOnlyExecutionContextPresent: true,
+      serviceRoleExecutionContextPresent: true,
+      serviceRoleSecretExposed: false,
+      serviceRoleSecretValueIncluded: false,
+      serviceRoleExposureRiskModeled: true,
+      clientSideAuditWriteRisk: false,
+      clientSideWriteBlocked: true,
+      safeToWriteFromClient: false,
+      safeToUseServiceRoleInClient: false,
+      routeAuthBoundaryVerified: true,
+      rlsSecurityVerified: true,
+      serverOnlyBoundaryVerified: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    schemaType: {
+      schemaReference: auditWriterContractInput.evidence.schemaReference,
+      auditSchemaTableProof: auditWriterContractInput.auditSchemaTableProof,
+      generatedTypesProof: auditWriterContractInput.generatedTypesProof,
+      migrationProof: auditWriterContractInput.migrationProof,
+      auditSchemaTableProven: true,
+      generatedTypesPresent: true,
+      generatedExecutionRecordTypesPresent: true,
+      generatedAuditTypesPresent: true,
+      migrationApplicationProven: true,
+      rlsSecurityVerified: true,
+      schemaAssumedWithoutProof: false,
+      auditTableAssumedWithoutProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    idempotency: {
+      writerIdempotencySummary: auditWriterContractInput.idempotency,
+      idempotencyKey: auditWriterContractInput.idempotencyKey,
+      auditEventKey: auditWriterContractInput.idempotency.auditEventKey,
+      sourceEventFingerprint:
+        auditWriterContractInput.idempotency.sourceEventFingerprint,
+      idempotencyKeyPresent: true,
+      idempotencyMetadataPresent: true,
+      stableAuditEventKeyPresent: true,
+      sourceEventFingerprintPresent: true,
+      safeToRetry: false,
+      retryRequiresManualReview: true,
+      retryRequiresStableIdempotency: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    duplicatePrevention: {
+      writerDuplicatePreventionSummary:
+        auditWriterContractInput.duplicatePrevention,
+      duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+      duplicatePreventionKeyPresent: true,
+      duplicatePreventionMetadataPresent: true,
+      duplicateMatches: [],
+      duplicateAuditEventDetected: false,
+      duplicateAuditWriteBlocked: true,
+      duplicateLookupRequiredBeforeWrite: true,
+      writeConflictDetected: false,
+      safeToWriteDuplicateAuditEvent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenance: {
+      writerEvidenceSummary: auditWriterContractInput.evidence,
+      executionRecordReference,
+      executionRecordEvidence: auditBoundaryInput.evidence,
+      auditBoundaryResult: auditBoundaryValidationInput.auditBoundaryResult,
+      auditBoundaryValidationResult,
+      sourceReferences: ["action-686-source-event"],
+      executionRecordReferencePresent: true,
+      executionRecordEvidencePresent: true,
+      evidencePresent: true,
+      evidenceProvenancePresent: true,
+      sourceReferencesPresent: true,
+      provenanceTraceComplete: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    failureRetry: {
+      writerFailureSummary: auditWriterContractInput.failure,
+      failureRetryMetadata: auditWriterContractInput.failureRetryMetadata,
+      validationBlockedBeforeWriterRepresented: true,
+      writerBlockedRepresented: true,
+      duplicateDetectedRepresented: true,
+      writeFailedRepresented: true,
+      unknownWriteStatusRepresented: true,
+      partialFailureAfterWriteRepresented: true,
+      retryPolicyPresent: true,
+      retryRequiresStableIdempotency: true,
+      retryRequiresDuplicatePrevention: true,
+      retryRequiresManualReview: true,
+      downstreamActionsRemainBlocked: true,
+      hiddenPartialFailureAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencies: {
+      auditWriterContractPresent: true,
+      auditWriterValidatorContractPresent: true,
+      auditWriterValidatorImplemented: false,
+      auditWriterImplemented: false,
+      auditAppendImplementationPresent: false,
+      auditRouteImplemented: false,
+      auditWritePathPresent: false,
+      validatedAuditBoundaryResultPresent: true,
+      auditBoundaryValidatorResultPresent: true,
+      productionInsertRouteImplemented: true,
+      productionInsertWritePathPresent: true,
+      postInsertOrchestratorImplemented: false,
+      auditSchemaTableProven: true,
+      generatedTypesPresent: true,
+      migrationApplicationProven: true,
+      rlsSecurityVerified: true,
+      serverOnlyBoundaryVerified: true,
+      dryRunSuccessPresent: true,
+      dryRunSuccessIsAuditWriteApproval: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_VALIDATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendWriterValidationNoAuthority(
+  result: ExecutionRecordAuditAppendWriterValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.writerValidatorImplemented).toBe(false);
+  expect(result.writerImplemented).toBe(false);
+  expect(result.auditAppendImplemented).toBe(false);
+  expect(result.auditRouteImplemented).toBe(false);
+  expect(result.auditWriteExecuted).toBe(false);
+  expect(result.auditWriteAllowed).toBe(false);
+  expect(result.safeToWriteAudit).toBe(false);
+  expect(result.auditAppendAllowed).toBe(false);
+  expect(result.safeToAppendAudit).toBe(false);
+  expect(result.writerValidationReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.writerContractReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.insertSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.auditBoundaryValidatorReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.devPreviewDiagnosticsAreAuditWriteApproval).toBe(false);
+  expect(result.orchestratorReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.productionBoundaryReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.dryRunSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.writerValidationSuccessApprovesStatsPnlUpdate).toBe(false);
+  expect(result.writerValidationSuccessApprovesTradeMutation).toBe(false);
+  expect(result.writerValidationSuccessApprovesTradeReconciliation).toBe(false);
+  expect(result.writerValidationSuccessApprovesCorrectionRollback).toBe(false);
+  expect(result.writerValidationSuccessApprovesUiUpdate).toBe(false);
+  expect(result.writerValidationSuccessApprovesNotification).toBe(false);
+  expect(result.writerValidationSuccessApprovesBrokerOrderFollowUp).toBe(false);
+  expect(result.writerValidationSuccessApprovesAvanzaBrowserFollowUp).toBe(
+    false,
+  );
+  expect(result.writerValidationSuccessApprovesAutomaticMode).toBe(false);
+  expect(result.authority.validationOnly).toBe(true);
+  expect(result.authority.designOnly).toBe(true);
+  expect(result.authority.writerValidatorImplemented).toBe(false);
+  expect(result.authority.writerImplemented).toBe(false);
+  expect(result.authority.auditAppendImplemented).toBe(false);
+  expect(result.authority.auditRouteImplemented).toBe(false);
+  expect(result.authority.auditWriteAllowed).toBe(false);
+  expect(result.authority.safeToWriteAudit).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.safeToUpdateStats).toBe(false);
+  expect(result.authority.safeToMutateTrade).toBe(false);
+  expect(result.authority.safeToReconcileTrade).toBe(false);
+  expect(result.authority.safeToRollback).toBe(false);
+  expect(result.authority.safeToUpdateUiState).toBe(false);
+  expect(result.authority.safeToNotifyUser).toBe(false);
+  expect(result.authority.safeToRunBrokerAction).toBe(false);
+  expect(result.authority.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.serverOnlySecurity.safeToWriteFromClient).toBe(false);
+  expect(result.serverOnlySecurity.safeToUseServiceRoleInClient).toBe(false);
+  expect(result.schemaType.schemaAssumedWithoutProof).toBe(false);
+  expect(result.schemaType.auditTableAssumedWithoutProof).toBe(false);
+  expect(result.idempotency.safeToRetry).toBe(false);
+  expect(result.duplicatePrevention.duplicateLookupRequiredBeforeWrite).toBe(
+    true,
+  );
+  expect(result.duplicatePrevention.safeToWriteDuplicateAuditEvent).toBe(false);
+  expect(result.failureRetry.downstreamActionsRemainBlocked).toBe(true);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      designReadinessOnly: true,
+      noAuditWriter: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noTradeReconciliation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendWriterContractValidationInput(
+  overrides: Partial<ExecutionRecordAuditAppendWriterContractValidationInput> = {},
+): ExecutionRecordAuditAppendWriterContractValidationInput {
+  const writerValidationInput =
+    buildExecutionRecordAuditAppendWriterValidationInput();
+  const writerValidatorResult =
+    validateExecutionRecordAuditAppendWriter(writerValidationInput);
+  const auditWriterContractInput = writerValidationInput.auditWriterContractInput!;
+  const auditWriterContractResult =
+    writerValidationInput.auditWriterContractResult!;
+  const executionRecordReference = writerValidationInput.executionRecordReference!;
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:05:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    auditWriterContractInput,
+    auditWriterContractResult,
+    writerValidatorResult,
+    serverOnlySecurityChecklistStatus: "checked_not_proof",
+    auditSchemaTableProofStatus: "fixture_proof_present",
+    generatedTypesProofStatus: "fixture_generated_types_present",
+    migrationProofStatus: "fixture_migration_present",
+    rlsSecurityProofStatus: "fixture_rls_present",
+    idempotencyMetadata: {
+      idempotencyKey: auditWriterContractInput.idempotencyKey,
+    },
+    duplicatePreventionMetadata: {
+      duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+    },
+    evidenceProvenanceMetadata: {
+      sourceReferences: ["action-696-source-event"],
+    },
+    serviceRoleExposureRiskMetadata: {
+      serviceRoleExposureRisk: false,
+    },
+    clientSideWriteRiskMetadata: {
+      clientSideWriteRisk: false,
+    },
+    downstreamAuthorityMetadata: {
+      downstreamAuthorityPresent: false,
+    },
+    inputShape: {
+      writerContractInputPresent: true,
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      auditEventCandidatePresent: true,
+      evidenceProvenancePresent: true,
+      idempotencyKeyPresent: true,
+      duplicatePreventionKeyPresent: true,
+      serverOnlySecurityPlaceholderPresent: true,
+      auditSchemaTablePlaceholderPresent: true,
+      serviceRoleExposureRiskModeled: true,
+      clientSideWriteRiskModeled: true,
+      noLocalOnlySourceOfTruth: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    resultShape: {
+      writerContractResultPresent: true,
+      statusPresent: true,
+      decisionRecommendationPresent: true,
+      noWriteNoActionStatusPresent: true,
+      authorityFlagsPresent: true,
+      allAuthorityFlagsFalse: true,
+      downstreamNoAuthorityPreserved: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      safeToWriteAudit: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurity: {
+      checklistStatus: "checked_not_proof",
+      checklistStatusPresent: true,
+      checklistStatusTreatedAsProof: false,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      serviceRoleExposureRisk: false,
+      clientSideWriteRisk: false,
+      routeAuthBoundaryProofPresent: true,
+      serviceRoleSecretValuesForbidden: true,
+      clientSideWriteForbidden: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    schemaType: {
+      auditSchemaTableProofPresent: true,
+      generatedTypesProofPresent: true,
+      generatedAuditTypesPresent: true,
+      generatedExecutionRecordTypesPresent: true,
+      generatedExecutionRecordTypesAssumedEnough: false,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      schemaDriftDetected: false,
+      nullableRequiredMismatchDetected: false,
+      schemaTableAssumedWithoutProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    idempotencyDuplicatePrevention: {
+      idempotencyKey: auditWriterContractInput.idempotencyKey,
+      duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+      sourceFingerprint:
+        auditWriterContractInput.idempotency.sourceEventFingerprint,
+      idempotencyKeyPresent: true,
+      duplicatePreventionKeyPresent: true,
+      idempotencyMetadataComplete: true,
+      duplicatePreventionMetadataComplete: true,
+      duplicateMatches: [],
+      duplicateWriteBlocked: true,
+      retrySafetyRepresented: true,
+      unknownWriteStatusRepresented: true,
+      safeToWriteDuplicateAuditEvent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenance: {
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      actorSourceMetadataPresent: true,
+      timestampSourceClockPresent: true,
+      auditEventCandidatePresent: true,
+      sourceReferences: ["action-696-source-event"],
+      noLocalOnlySourceOfTruth: true,
+      provenanceTraceComplete: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    noWriteNoAction: {
+      validationOnly: true,
+      designOnly: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      routeCallAllowed: false,
+      recordCreationAllowed: false,
+      persistenceWriteAllowed: false,
+      supabaseWriteAllowed: false,
+      localStorageWriteAllowed: false,
+      downstreamAuthorityPresent: false,
+      brokerAvanzaActionAllowed: false,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencies: {
+      writerContractInputPresent: true,
+      writerContractResultPresent: true,
+      writerValidatorResultPresent: true,
+      contractValidatorImplemented: false,
+      writerValidatorImplemented: true,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditRouteImplemented: false,
+      auditWritePathPresent: false,
+      productionInsertRouteImplemented: true,
+      productionInsertWritePathPresent: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      auditSchemaTableProofPresent: true,
+      generatedTypesProofPresent: true,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      checklistStatusIsProof: false,
+      devPreviewDiagnosticsAreProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_CONTRACT_VALIDATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendWriterContractValidationNoAuthority(
+  result: ExecutionRecordAuditAppendWriterContractValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.contractValidatorImplemented).toBe(false);
+  expect(result.auditWriteExecuted).toBe(false);
+  expect(result.auditWriteAllowed).toBe(false);
+  expect(result.safeToWriteAudit).toBe(false);
+  expect(result.contractValidationIsAuditWriteApproval).toBe(false);
+  expect(result.contractValidationIsSecurityProof).toBe(false);
+  expect(result.contractValidationIsServerOnlyProof).toBe(false);
+  expect(result.contractValidationIsSchemaProof).toBe(false);
+  expect(result.contractValidationIsGeneratedTypesProof).toBe(false);
+  expect(result.contractValidationIsMigrationProof).toBe(false);
+  expect(result.contractValidationIsRlsSecurityProof).toBe(false);
+  expect(result.checklistStatusIsSecurityProof).toBe(false);
+  expect(result.devPreviewDiagnosticsAreProof).toBe(false);
+  expect(result.devPreviewDiagnosticsAreAuditWriteApproval).toBe(false);
+  expect(result.writerValidatorReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.writerContractReadinessIsAuditWriteApproval).toBe(false);
+  expect(result.insertSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.auditWriteSuccessIsDownstreamApproval).toBe(false);
+  expect(result.contractValidationSuccessApprovesStatsPnlUpdate).toBe(false);
+  expect(result.contractValidationSuccessApprovesTradeMutation).toBe(false);
+  expect(result.contractValidationSuccessApprovesTradeReconciliation).toBe(
+    false,
+  );
+  expect(result.contractValidationSuccessApprovesCorrectionRollback).toBe(false);
+  expect(result.contractValidationSuccessApprovesUiUpdate).toBe(false);
+  expect(result.contractValidationSuccessApprovesNotification).toBe(false);
+  expect(result.contractValidationSuccessApprovesBrokerOrderFollowUp).toBe(
+    false,
+  );
+  expect(result.contractValidationSuccessApprovesAvanzaBrowserFollowUp).toBe(
+    false,
+  );
+  expect(result.contractValidationSuccessApprovesAutomaticMode).toBe(false);
+  expect(result.authority.validationOnly).toBe(true);
+  expect(result.authority.designOnly).toBe(true);
+  expect(result.authority.contractValidatorImplemented).toBe(false);
+  expect(result.authority.writerValidatorImplemented).toBe(false);
+  expect(result.authority.writerImplemented).toBe(false);
+  expect(result.authority.auditAppendImplemented).toBe(false);
+  expect(result.authority.auditRouteImplemented).toBe(false);
+  expect(result.authority.auditWriteAllowed).toBe(false);
+  expect(result.authority.safeToWriteAudit).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.routeCallAllowed).toBe(false);
+  expect(result.authority.recordCreationAllowed).toBe(false);
+  expect(result.authority.persistenceWriteAllowed).toBe(false);
+  expect(result.authority.supabaseWriteAllowed).toBe(false);
+  expect(result.authority.localStorageWriteAllowed).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.safeToUpdateStats).toBe(false);
+  expect(result.authority.safeToMutateTrade).toBe(false);
+  expect(result.authority.safeToReconcileTrade).toBe(false);
+  expect(result.authority.safeToRollback).toBe(false);
+  expect(result.authority.safeToUpdateUiState).toBe(false);
+  expect(result.authority.safeToNotifyUser).toBe(false);
+  expect(result.authority.safeToRunBrokerAction).toBe(false);
+  expect(result.authority.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.noWriteNoAction.auditWriteExecuted).toBe(false);
+  expect(result.noWriteNoAction.auditWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.routeCallAllowed).toBe(false);
+  expect(result.noWriteNoAction.recordCreationAllowed).toBe(false);
+  expect(result.noWriteNoAction.persistenceWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.supabaseWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.localStorageWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.downstreamAuthorityPresent).toBe(false);
+  expect(result.noWriteNoAction.brokerAvanzaActionAllowed).toBe(false);
+  expect(result.noWriteNoAction.automaticModeAllowed).toBe(false);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      designReadinessOnly: true,
+      readyMeansDesignOnlyDoNotWriteAudit: true,
+      noAuditWriter: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noSupabaseWrite: true,
+      noLocalStorageWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noTradeReconciliation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendWriterDryRunValidationInput(
+  overrides: Partial<ExecutionRecordAuditAppendWriterDryRunValidationInput> = {},
+): ExecutionRecordAuditAppendWriterDryRunValidationInput {
+  const writerContractValidationInput =
+    buildExecutionRecordAuditAppendWriterContractValidationInput();
+  const writerContractValidationResult =
+    validateExecutionRecordAuditAppendWriterContract(
+      writerContractValidationInput,
+    );
+  const auditWriterContractInput =
+    writerContractValidationInput.auditWriterContractInput!;
+  const writerValidatorResult =
+    writerContractValidationInput.writerValidatorResult!;
+  const executionRecordReference =
+    writerContractValidationInput.inputShape.executionRecordReference!;
+  const auditEventCandidate =
+    auditWriterContractInput.auditEvent.auditEventCandidate;
+  const evidenceProvenance = {
+    sourceReferences: ["action-706-source-event"],
+    evidenceProvenancePresent: true,
+    provenanceTraceComplete: true,
+  };
+  const idempotencyMetadata = {
+    idempotencyKey: auditWriterContractInput.idempotencyKey,
+  };
+  const duplicatePreventionMetadata = {
+    duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+  };
+  const dryRunInput: ExecutionRecordAuditAppendWriterDryRunInput = {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_RESULT_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:06:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    writerContractValidationResult,
+    writerValidatorResult,
+    auditWriterContractInput,
+    auditEventCandidate,
+    executionRecordReference,
+    evidenceProvenance,
+    idempotencyKey: auditWriterContractInput.idempotencyKey,
+    duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+    serverOnlySecurityProofStatus: "fixture_server_only_present",
+    schemaTableProofStatus: "fixture_schema_table_present",
+    generatedAuditTypesProofStatus: "fixture_audit_types_present",
+    migrationProofStatus: "fixture_migration_present",
+    rlsSecurityProofStatus: "fixture_rls_present",
+    serviceRoleExposureRiskStatus: "risk_absent",
+    clientSideWriteRiskStatus: "risk_absent",
+    manualReviewMetadata: null,
+    failureRetryMetadata: {
+      retryRequiresManualReview: true,
+    },
+    downstreamAuthorityRequestMetadata: {
+      downstreamAuthorityPresent: false,
+    },
+    wouldWriteAuditEvent: {
+      hypotheticalOnly: true,
+      wouldAttemptAuditWrite: true,
+      auditWriteExecuted: false,
+      auditEventCandidatePresent: true,
+      auditEventType: auditWriterContractInput.auditEventType,
+      auditEventSource: auditWriterContractInput.auditEventSource,
+      auditPayloadShape: auditWriterContractInput.auditEventPayloadSummary,
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    wouldUseTableSchema: {
+      auditSchemaTableStatus: "fixture_schema_table_present",
+      auditSchemaTableStatusKnown: true,
+      auditSchemaTableProofPresent: true,
+      generatedAuditTypesStatus: "fixture_audit_types_present",
+      generatedAuditTypesStatusKnown: true,
+      generatedAuditTypesProofPresent: true,
+      generatedExecutionRecordTypesPresent: true,
+      generatedExecutionRecordTypesAssumedEnough: false,
+      migrationStatus: "fixture_migration_present",
+      migrationStatusKnown: true,
+      migrationProofPresent: true,
+      rlsSecurityStatus: "fixture_rls_present",
+      rlsSecurityStatusKnown: true,
+      rlsSecurityProofPresent: true,
+      schemaTableAssumedWithoutProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    wouldUseIdempotency: {
+      idempotencyKey: auditWriterContractInput.idempotencyKey,
+      idempotencyKeyPresent: true,
+      idempotencyMetadataComplete: true,
+      retrySafetyRepresented: true,
+      unknownWriteStatusRepresented: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    duplicatePreventionSimulation: {
+      duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+      duplicatePreventionKeyPresent: true,
+      duplicatePreventionMetadataComplete: true,
+      duplicateMatches: [],
+      duplicateWriteWouldBeBlocked: true,
+      duplicateWriteExecuted: false,
+      safeToWriteDuplicateAuditEvent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenanceSummary: {
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      actorSourceMetadataPresent: true,
+      timestampSourceClockPresent: true,
+      auditEventCandidatePresent: true,
+      sourceReferences: ["action-706-source-event"],
+      noLocalOnlySourceOfTruth: true,
+      provenanceTraceComplete: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurity: {
+      serverOnlySecurityStatus: "fixture_server_only_present",
+      serverOnlySecurityStatusKnown: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      serviceRoleExposureRisk: false,
+      clientSideWriteRisk: false,
+      routeAuthBoundaryProofPresent: true,
+      serviceRoleSecretValuesForbidden: true,
+      clientSideWriteForbidden: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    noWriteNoAction: {
+      validationOnly: true,
+      designOnly: true,
+      dryRunOnly: true,
+      hypotheticalOnly: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      auditAppendAllowed: false,
+      routeCallAllowed: false,
+      recordCreationAllowed: false,
+      persistenceWriteAllowed: false,
+      supabaseWriteAllowed: false,
+      localStorageWriteAllowed: false,
+      statsPnlUpdateAllowed: false,
+      tradeMutationAllowed: false,
+      tradeReconciliationAllowed: false,
+      correctionRollbackAllowed: false,
+      uiStateMutationAllowed: false,
+      userNotificationAllowed: false,
+      brokerAvanzaActionAllowed: false,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencies: {
+      contractValidatorResultPresent: true,
+      writerValidatorResultPresent: true,
+      writerContractInputPresent: true,
+      dryRunImplemented: false,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditRouteImplemented: false,
+      auditWritePathPresent: false,
+      productionInsertRouteImplemented: true,
+      productionInsertWritePathPresent: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      auditSchemaTableProofPresent: true,
+      generatedAuditTypesProofPresent: true,
+      generatedTypesProofPresent: true,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      devPreviewDiagnosticsAreProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+  };
+  const dryRunResult: ExecutionRecordAuditAppendWriterDryRunResult = {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_RESULT_CONTRACT_VERSION,
+    status: "audit_append_writer_dry_run_ready_for_design_only",
+    decisionRecommendation: "design_only_do_not_write_audit",
+    validationOnly: true,
+    designOnly: true,
+    dryRunOnly: true,
+    hypotheticalOnly: true,
+    nonPersistent: true,
+    dryRunImplemented: false,
+    auditWriteExecuted: false,
+    auditWriteAllowed: false,
+    safeToWriteAudit: false,
+    dryRunResultIsAuditWriteApproval: false,
+    dryRunResultIsAuditAppendExecution: false,
+    dryRunResultIsRouteCallApproval: false,
+    dryRunResultIsRecordCreationApproval: false,
+    dryRunResultIsPersistenceWriteApproval: false,
+    dryRunResultIsSupabaseLocalStorageWriteApproval: false,
+    dryRunResultIsSecurityProof: false,
+    dryRunResultIsServerOnlyProof: false,
+    dryRunResultIsSchemaProof: false,
+    dryRunResultIsGeneratedTypesProof: false,
+    dryRunResultIsMigrationProof: false,
+    dryRunResultIsRlsSecurityProof: false,
+    dryRunResultIsDownstreamApproval: false,
+    contractValidatorReadinessIsWriteApproval: false,
+    writerValidatorReadinessIsWriteApproval: false,
+    insertSuccessIsAuditWriteApproval: false,
+    devPreviewDiagnosticsAreWriteApproval: false,
+    wouldWriteAuditEvent: dryRunInput.wouldWriteAuditEvent,
+    wouldUseTableSchema: dryRunInput.wouldUseTableSchema,
+    wouldUseIdempotency: dryRunInput.wouldUseIdempotency,
+    duplicatePreventionSimulation: dryRunInput.duplicatePreventionSimulation,
+    evidenceProvenance: dryRunInput.evidenceProvenanceSummary,
+    serverOnlySecurity: dryRunInput.serverOnlySecurity,
+    noWriteNoAction: dryRunInput.noWriteNoAction,
+    dependencies: dryRunInput.dependencies,
+    authority: dryRunInput.authority,
+    safetyPolicy: dryRunInput.safetyPolicy,
+    referenceWriterContractResult:
+      writerContractValidationInput.auditWriterContractResult,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+  };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:07:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    dryRunResultInput: dryRunInput,
+    dryRunResult,
+    writerContractValidationResult,
+    writerValidatorResult,
+    auditWriterContractInput,
+    auditEventCandidate,
+    executionRecordReference,
+    evidenceProvenance,
+    idempotencyMetadata,
+    duplicatePreventionMetadata,
+    serverOnlySecurityProofStatus: "fixture_server_only_present",
+    schemaTableProofStatus: "fixture_schema_table_present",
+    generatedAuditTypesProofStatus: "fixture_audit_types_present",
+    migrationProofStatus: "fixture_migration_present",
+    rlsSecurityProofStatus: "fixture_rls_present",
+    serviceRoleExposureRiskStatus: "risk_absent",
+    clientSideWriteRiskStatus: "risk_absent",
+    manualReviewMetadata: null,
+    downstreamAuthorityMetadata: {
+      downstreamAuthorityPresent: false,
+    },
+    inputValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunValidationInputPresent: true,
+      dryRunResultInputPresent: true,
+      writerContractValidationResultPresent: true,
+      writerValidatorResultPresent: true,
+      writerContractInputPresent: true,
+      auditEventCandidatePresent: true,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      idempotencyMetadataPresent: true,
+      duplicatePreventionMetadataPresent: true,
+      downstreamAuthorityMetadataPresent: true,
+      unsafeCallablePresent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    resultValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunResultOutputPresent: true,
+      dryRunResultStatus: "audit_append_writer_dry_run_ready_for_design_only",
+      dryRunResultReadyForDesignOnly: true,
+      dryRunResultClaimsWriteApproval: false,
+      dryRunResultClaimsSecurityProof: false,
+      dryRunResultClaimsSchemaProof: false,
+      dryRunResultClaimsDownstreamApproval: false,
+      dryRunResultClaimsAuditWriteExecuted: false,
+      dryRunResultAuthorityFlagsAllFalse: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    wouldWriteAuditEventValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      auditEventCandidatePresent: true,
+      wouldWriteSummaryPresent: true,
+      wouldAttemptAuditWrite: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      safeToWriteAudit: false,
+      executionRecordReferencePresent: true,
+      hypotheticalOnly: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    tableSchemaSimulationValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      schemaTableStatusKnown: true,
+      schemaTableProofPresent: true,
+      generatedAuditTypesStatusKnown: true,
+      generatedAuditTypesProofPresent: true,
+      generatedExecutionRecordTypesPresent: true,
+      generatedExecutionRecordTypesAssumedEnough: false,
+      migrationStatusKnown: true,
+      migrationProofPresent: true,
+      rlsSecurityStatusKnown: true,
+      rlsSecurityProofPresent: true,
+      schemaTableAssumedWithoutProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    idempotencyDuplicatePreventionValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      idempotencyKeyPresent: true,
+      idempotencyMetadataComplete: true,
+      duplicatePreventionKeyPresent: true,
+      duplicatePreventionMetadataComplete: true,
+      retrySafetyRepresented: true,
+      unknownWriteStatusRepresented: true,
+      duplicateMatches: [],
+      duplicateWriteWouldBeBlocked: true,
+      duplicateWriteExecuted: false,
+      safeToWriteDuplicateAuditEvent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenanceValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      actorSourceMetadataPresent: true,
+      timestampSourceClockPresent: true,
+      auditEventCandidatePresent: true,
+      sourceReferences: ["action-706-source-event"],
+      noLocalOnlySourceOfTruth: true,
+      provenanceTraceComplete: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurityDependencyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      serverOnlySecurityStatusKnown: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      serviceRoleExposureRisk: false,
+      clientSideWriteRisk: false,
+      routeAuthBoundaryProofPresent: true,
+      serviceRoleSecretValuesForbidden: true,
+      clientSideWriteForbidden: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    noWriteNoActionSafetyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      validationOnly: true,
+      designOnly: true,
+      dryRunValidationOnly: true,
+      hypotheticalOnly: true,
+      dryRunExecuted: false,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      auditAppendAllowed: false,
+      routeCallAllowed: false,
+      recordCreationAllowed: false,
+      persistenceWriteAllowed: false,
+      supabaseWriteAllowed: false,
+      localStorageWriteAllowed: false,
+      statsPnlUpdateAllowed: false,
+      tradeMutationAllowed: false,
+      tradeReconciliationAllowed: false,
+      correctionRollbackAllowed: false,
+      uiStateMutationAllowed: false,
+      userNotificationAllowed: false,
+      brokerAvanzaActionAllowed: false,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunValidatorImplemented: false,
+      dryRunImplemented: false,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditRouteImplemented: false,
+      auditWritePathPresent: false,
+      productionInsertRouteImplemented: true,
+      productionInsertWritePathPresent: true,
+      contractValidatorResultPresent: true,
+      writerValidatorResultPresent: true,
+      writerContractInputPresent: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      auditSchemaTableProofPresent: true,
+      generatedAuditTypesProofPresent: true,
+      generatedTypesProofPresent: true,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      devPreviewDiagnosticsAreProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_VALIDATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendWriterDryRunValidationNoAuthority(
+  result: ExecutionRecordAuditAppendWriterDryRunValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.dryRunValidationOnly).toBe(true);
+  expect(result.dryRunValidatorImplemented).toBe(false);
+  expect(result.dryRunExecuted).toBe(false);
+  expect(result.dryRunExecutionAllowed).toBe(false);
+  expect(result.auditWriteExecuted).toBe(false);
+  expect(result.auditWriteAllowed).toBe(false);
+  expect(result.safeToWriteAudit).toBe(false);
+  expect(result.validationIsDryRunExecution).toBe(false);
+  expect(result.validationIsAuditWriteApproval).toBe(false);
+  expect(result.validationIsAuditAppendExecution).toBe(false);
+  expect(result.validationIsRouteCallApproval).toBe(false);
+  expect(result.validationIsRecordCreationApproval).toBe(false);
+  expect(result.validationIsPersistenceWriteApproval).toBe(false);
+  expect(result.validationIsSupabaseLocalStorageWriteApproval).toBe(false);
+  expect(result.validationIsSecurityProof).toBe(false);
+  expect(result.validationIsServerOnlyProof).toBe(false);
+  expect(result.validationIsSchemaProof).toBe(false);
+  expect(result.validationIsGeneratedTypesProof).toBe(false);
+  expect(result.validationIsMigrationProof).toBe(false);
+  expect(result.validationIsRlsSecurityProof).toBe(false);
+  expect(result.validationIsDownstreamApproval).toBe(false);
+  expect(result.dryRunResultSuccessIsWriteApproval).toBe(false);
+  expect(result.contractValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.writerValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.insertSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.devPreviewDiagnosticsAreWriteApproval).toBe(false);
+  expect(result.authority.dryRunExecutionAllowed).toBe(false);
+  expect(result.authority.auditWriteAllowed).toBe(false);
+  expect(result.authority.safeToWriteAudit).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.routeCallAllowed).toBe(false);
+  expect(result.authority.recordCreationAllowed).toBe(false);
+  expect(result.authority.persistenceWriteAllowed).toBe(false);
+  expect(result.authority.supabaseWriteAllowed).toBe(false);
+  expect(result.authority.localStorageWriteAllowed).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.dryRunExecuted).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.auditWriteExecuted).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.auditWriteAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.routeCallAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.recordCreationAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.persistenceWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.supabaseWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.localStorageWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.brokerAvanzaActionAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.automaticModeAllowed).toBe(
+    false,
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      designReadinessOnly: true,
+      readyMeansDesignOnlyDoNotWriteAudit: true,
+      noDryRunExecution: true,
+      noAuditWriter: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noTradeReconciliation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput(
+  overrides: Partial<ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput> = {},
+): ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput {
+  const dryRunValidationInput =
+    buildExecutionRecordAuditAppendWriterDryRunValidationInput();
+  const dryRunValidatorResult =
+    validateExecutionRecordAuditAppendWriterDryRun(dryRunValidationInput);
+  const dryRunResultInput = dryRunValidationInput.dryRunResultInput!;
+  const dryRunResult = dryRunValidationInput.dryRunResult!;
+  const writerContractValidationResult =
+    dryRunValidationInput.writerContractValidationResult!;
+  const writerValidatorResult = dryRunValidationInput.writerValidatorResult!;
+  const auditWriterContractInput = dryRunValidationInput.auditWriterContractInput!;
+  const auditEventCandidate = dryRunValidationInput.auditEventCandidate!;
+  const executionRecordReference =
+    dryRunValidationInput.executionRecordReference!;
+  const evidenceProvenance = dryRunValidationInput.evidenceProvenance!;
+  const idempotencyMetadata = dryRunValidationInput.idempotencyMetadata!;
+  const duplicatePreventionMetadata =
+    dryRunValidationInput.duplicatePreventionMetadata!;
+
+  const dryRunExecutionInput: ExecutionRecordAuditAppendWriterDryRunExecutionInput =
+    {
+      contractVersion:
+        EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_CONTRACT_VERSION,
+      requestedAt: "2026-06-11T18:16:00.000Z",
+      requestedBy: "execution-sandbox-test",
+      dryRunValidatorResult,
+      dryRunResultInput,
+      dryRunResult,
+      writerContractValidationResult,
+      writerValidatorResult,
+      auditWriterContractInput,
+      auditEventCandidate,
+      executionRecordReference,
+      evidenceProvenance,
+      idempotencyKey: auditWriterContractInput.idempotencyKey,
+      duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+      serverOnlySecurityProofStatus: "fixture_server_only_present",
+      schemaTableProofStatus: "fixture_schema_table_present",
+      generatedAuditTypesProofStatus: "fixture_audit_types_present",
+      migrationProofStatus: "fixture_migration_present",
+      rlsSecurityProofStatus: "fixture_rls_present",
+      serviceRoleExposureRiskStatus: "risk_absent",
+      clientSideWriteRiskStatus: "risk_absent",
+      manualReviewMetadata: null,
+      failureRetryMetadata: {
+        retryRequiresManualReview: true,
+      },
+      explicitDryRunOnlyExecutionFlag: true,
+      downstreamAuthorityRequestMetadata: {
+        downstreamAuthorityPresent: false,
+      },
+      simulatedAuditEventPayload: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        hypotheticalOnly: true,
+        simulatedPayloadPresent: true,
+        wouldAttemptAuditWrite: true,
+        auditWriteExecuted: false,
+        auditWriteAllowed: false,
+        safeToWriteAudit: false,
+        auditEventCandidatePresent: true,
+        auditEventType: auditWriterContractInput.auditEventType,
+        auditEventSource: auditWriterContractInput.auditEventSource,
+        auditPayloadShape: auditWriterContractInput.auditEventPayloadSummary,
+        executionRecordReference,
+        executionRecordReferencePresent: true,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      simulatedTableSchemaTarget: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        targetTable: "execution_record_audit",
+        targetSchema: "public",
+        schemaTableStatusKnown: true,
+        schemaTableProofPresent: true,
+        generatedAuditTypesStatusKnown: true,
+        generatedAuditTypesProofPresent: true,
+        generatedExecutionRecordTypesPresent: true,
+        generatedExecutionRecordTypesAssumedEnough: false,
+        migrationStatusKnown: true,
+        migrationProofPresent: true,
+        rlsSecurityStatusKnown: true,
+        rlsSecurityProofPresent: true,
+        schemaTableAssumedWithoutProof: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      simulatedIdempotency: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        idempotencyKey: auditWriterContractInput.idempotencyKey,
+        idempotencyKeyPresent: true,
+        idempotencyMetadataComplete: true,
+        retrySafetyRepresented: true,
+        unknownWriteStatusRepresented: true,
+        simulatedWriteIdempotent: true,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      simulatedDuplicatePrevention: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        duplicatePreventionKey:
+          auditWriterContractInput.duplicatePreventionKey,
+        duplicatePreventionKeyPresent: true,
+        duplicatePreventionMetadataComplete: true,
+        duplicateMatches: [],
+        simulatedDuplicateWriteWouldBeBlocked: true,
+        duplicateWriteExecuted: false,
+        safeToWriteDuplicateAuditEvent: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      evidenceProvenanceSummary: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        executionRecordReference,
+        executionRecordReferencePresent: true,
+        evidenceProvenancePresent: true,
+        actorSourceMetadataPresent: true,
+        timestampSourceClockPresent: true,
+        auditEventCandidatePresent: true,
+        sourceReferences: ["action-716-source-event"],
+        noLocalOnlySourceOfTruth: true,
+        provenanceTraceComplete: true,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      serverOnlySecurity: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        serverOnlySecurityStatusKnown: true,
+        serverOnlyProofPresent: true,
+        serviceRoleProofPresent: true,
+        serviceRoleExposureRisk: false,
+        clientSideWriteRisk: false,
+        routeAuthBoundaryProofPresent: true,
+        serviceRoleSecretValuesForbidden: true,
+        clientSideWriteForbidden: true,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      noWriteNoAction: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        validationOnly: true,
+        designOnly: true,
+        dryRunExecutionOnly: true,
+        hypotheticalOnly: true,
+        nonPersistent: true,
+        dryRunExecutedAgainstRealData: false,
+        auditWriteExecuted: false,
+        auditWriteAllowed: false,
+        auditAppendAllowed: false,
+        routeCallAllowed: false,
+        recordCreationAllowed: false,
+        persistenceWriteAllowed: false,
+        supabaseWriteAllowed: false,
+        localStorageWriteAllowed: false,
+        statsPnlUpdateAllowed: false,
+        tradeMutationAllowed: false,
+        tradeReconciliationAllowed: false,
+        correctionRollbackAllowed: false,
+        uiStateMutationAllowed: false,
+        userNotificationAllowed: false,
+        brokerAvanzaActionAllowed: false,
+        automaticModeAllowed: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      dependencies: {
+        statusKnown: true,
+        readyForDesignOnly: true,
+        dryRunValidatorResultPresent: true,
+        dryRunResultInputPresent: true,
+        contractValidatorResultPresent: true,
+        writerValidatorResultPresent: true,
+        writerContractInputPresent: true,
+        dryRunExecutionImplemented: false,
+        dryRunImplemented: false,
+        writerImplemented: false,
+        auditAppendImplemented: false,
+        auditRouteImplemented: false,
+        auditWritePathPresent: false,
+        productionInsertRouteImplemented: true,
+        productionInsertWritePathPresent: true,
+        serverOnlyProofPresent: true,
+        serviceRoleProofPresent: true,
+        auditSchemaTableProofPresent: true,
+        generatedAuditTypesProofPresent: true,
+        generatedTypesProofPresent: true,
+        migrationProofPresent: true,
+        rlsSecurityProofPresent: true,
+        devPreviewDiagnosticsAreProof: false,
+        blockedReasons: [],
+        warnings: [],
+        reviewItems: [],
+      },
+      authority:
+        EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_DEFAULT_AUTHORITY_FLAGS,
+      safetyPolicy:
+        EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_DEFAULT_SAFETY_POLICY,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+      metadata: {
+        testOnly: true,
+      },
+    };
+
+  const dryRunExecutionResult: ExecutionRecordAuditAppendWriterDryRunExecutionResult =
+    {
+      contractVersion:
+        EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_CONTRACT_VERSION,
+      status: "audit_append_writer_dry_run_execution_ready_for_design_only",
+      decisionRecommendation: "design_only_do_not_write_audit",
+      validationOnly: true,
+      designOnly: true,
+      dryRunExecutionOnly: true,
+      hypotheticalOnly: true,
+      nonPersistent: true,
+      dryRunExecutedAgainstRealData: false,
+      dryRunExecutionImplemented: false,
+      dryRunExecutionAllowed: false,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      safeToWriteAudit: false,
+      dryRunExecutionResultIsAuditWriteApproval: false,
+      dryRunExecutionResultIsAuditAppendExecution: false,
+      dryRunExecutionResultIsRouteCallApproval: false,
+      dryRunExecutionResultIsRecordCreationApproval: false,
+      dryRunExecutionResultIsPersistenceWriteApproval: false,
+      dryRunExecutionResultIsSupabaseLocalStorageWriteApproval: false,
+      dryRunExecutionResultIsSecurityProof: false,
+      dryRunExecutionResultIsServerOnlyProof: false,
+      dryRunExecutionResultIsSchemaProof: false,
+      dryRunExecutionResultIsGeneratedTypesProof: false,
+      dryRunExecutionResultIsMigrationProof: false,
+      dryRunExecutionResultIsRlsSecurityProof: false,
+      dryRunExecutionResultIsDownstreamApproval: false,
+      dryRunValidatorReadinessIsExecution: false,
+      dryRunValidatorReadinessIsWriteApproval: false,
+      contractValidatorReadinessIsWriteApproval: false,
+      writerValidatorReadinessIsWriteApproval: false,
+      insertSuccessIsAuditWriteApproval: false,
+      devPreviewDiagnosticsAreWriteApproval: false,
+      simulatedAuditEventPayload:
+        dryRunExecutionInput.simulatedAuditEventPayload,
+      simulatedTableSchemaTarget:
+        dryRunExecutionInput.simulatedTableSchemaTarget,
+      simulatedIdempotency: dryRunExecutionInput.simulatedIdempotency,
+      simulatedDuplicatePrevention:
+        dryRunExecutionInput.simulatedDuplicatePrevention,
+      evidenceProvenance: dryRunExecutionInput.evidenceProvenanceSummary,
+      serverOnlySecurity: dryRunExecutionInput.serverOnlySecurity,
+      noWriteNoAction: dryRunExecutionInput.noWriteNoAction,
+      dependencies: dryRunExecutionInput.dependencies,
+      authority: dryRunExecutionInput.authority,
+      safetyPolicy: dryRunExecutionInput.safetyPolicy,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+      metadata: {
+        testOnly: true,
+      },
+    };
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATOR_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:17:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    dryRunExecutionInput,
+    dryRunExecutionResult,
+    dryRunValidatorResult,
+    dryRunResultInput,
+    writerContractValidationResult,
+    writerValidatorResult,
+    auditWriterContractInput,
+    auditEventCandidate,
+    executionRecordReference,
+    evidenceProvenance,
+    idempotencyMetadata,
+    duplicatePreventionMetadata,
+    serverOnlySecurityProofStatus: "fixture_server_only_present",
+    schemaTableProofStatus: "fixture_schema_table_present",
+    generatedAuditTypesProofStatus: "fixture_audit_types_present",
+    migrationProofStatus: "fixture_migration_present",
+    rlsSecurityProofStatus: "fixture_rls_present",
+    serviceRoleExposureRiskStatus: "risk_absent",
+    clientSideWriteRiskStatus: "risk_absent",
+    explicitDryRunOnlyFlag: true,
+    manualReviewMetadata: null,
+    downstreamAuthorityMetadata: {
+      downstreamAuthorityPresent: false,
+    },
+    inputValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunExecutionValidationInputPresent: true,
+      dryRunExecutionInputPresent: true,
+      dryRunValidatorResultPresent: true,
+      dryRunResultInputPresent: true,
+      writerContractValidationResultPresent: true,
+      writerValidatorResultPresent: true,
+      writerContractInputPresent: true,
+      auditEventCandidatePresent: true,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      idempotencyMetadataPresent: true,
+      duplicatePreventionMetadataPresent: true,
+      explicitDryRunOnlyFlagPresent: true,
+      downstreamAuthorityMetadataPresent: true,
+      unsafeCallablePresent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    resultValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunExecutionResultPresent: true,
+      dryRunExecutionResultStatus:
+        "audit_append_writer_dry_run_execution_ready_for_design_only",
+      dryRunExecutionResultReadyForDesignOnly: true,
+      dryRunExecutionResultClaimsWriteApproval: false,
+      dryRunExecutionResultClaimsSecurityProof: false,
+      dryRunExecutionResultClaimsSchemaProof: false,
+      dryRunExecutionResultClaimsDownstreamApproval: false,
+      dryRunExecutionResultClaimsAuditWriteExecuted: false,
+      dryRunExecutionResultAuthorityFlagsAllFalse: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedAuditEventValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      auditEventCandidatePresent: true,
+      simulatedAuditEventPayloadPresent: true,
+      wouldAttemptAuditWrite: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      safeToWriteAudit: false,
+      executionRecordReferencePresent: true,
+      hypotheticalOnly: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedTableSchemaValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      schemaTableStatusKnown: true,
+      schemaTableProofPresent: true,
+      generatedAuditTypesStatusKnown: true,
+      generatedAuditTypesProofPresent: true,
+      generatedExecutionRecordTypesPresent: true,
+      generatedExecutionRecordTypesAssumedEnough: false,
+      migrationStatusKnown: true,
+      migrationProofPresent: true,
+      rlsSecurityStatusKnown: true,
+      rlsSecurityProofPresent: true,
+      schemaTableAssumedWithoutProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedIdempotencyDuplicatePreventionValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      idempotencyKeyPresent: true,
+      idempotencyMetadataComplete: true,
+      duplicatePreventionKeyPresent: true,
+      duplicatePreventionMetadataComplete: true,
+      retrySafetyRepresented: true,
+      unknownWriteStatusRepresented: true,
+      duplicateMatches: [],
+      simulatedDuplicateWriteWouldBeBlocked: true,
+      duplicateWriteExecuted: false,
+      safeToWriteDuplicateAuditEvent: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenanceValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      executionRecordReference,
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      actorSourceMetadataPresent: true,
+      timestampSourceClockPresent: true,
+      auditEventCandidatePresent: true,
+      sourceReferences: ["action-716-source-event"],
+      noLocalOnlySourceOfTruth: true,
+      provenanceTraceComplete: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurityDependencyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      serverOnlySecurityStatusKnown: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      serviceRoleExposureRisk: false,
+      clientSideWriteRisk: false,
+      routeAuthBoundaryProofPresent: true,
+      serviceRoleSecretValuesForbidden: true,
+      clientSideWriteForbidden: true,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    noWriteNoActionSafetyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      validationOnly: true,
+      designOnly: true,
+      dryRunExecutionValidationOnly: true,
+      hypotheticalOnly: true,
+      nonPersistent: true,
+      dryRunExecuted: false,
+      dryRunExecutedAgainstRealData: false,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      auditAppendAllowed: false,
+      routeCallAllowed: false,
+      recordCreationAllowed: false,
+      persistenceWriteAllowed: false,
+      supabaseWriteAllowed: false,
+      localStorageWriteAllowed: false,
+      statsPnlUpdateAllowed: false,
+      tradeMutationAllowed: false,
+      tradeReconciliationAllowed: false,
+      correctionRollbackAllowed: false,
+      uiStateMutationAllowed: false,
+      userNotificationAllowed: false,
+      brokerAvanzaActionAllowed: false,
+      automaticModeAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencyValidation: {
+      statusKnown: true,
+      readyForDesignOnly: true,
+      dryRunExecutionValidatorImplemented: false,
+      dryRunExecutionImplemented: false,
+      dryRunImplemented: false,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditRouteImplemented: false,
+      auditWritePathPresent: false,
+      productionInsertRouteImplemented: true,
+      productionInsertWritePathPresent: true,
+      dryRunExecutionContractPresent: true,
+      dryRunValidatorResultPresent: true,
+      dryRunResultInputPresent: true,
+      contractValidatorResultPresent: true,
+      writerValidatorResultPresent: true,
+      writerContractInputPresent: true,
+      serverOnlyProofPresent: true,
+      serviceRoleProofPresent: true,
+      auditSchemaTableProofPresent: true,
+      generatedAuditTypesProofPresent: true,
+      generatedTypesProofPresent: true,
+      migrationProofPresent: true,
+      rlsSecurityProofPresent: true,
+      devPreviewDiagnosticsAreProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_VALIDATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendWriterDryRunExecutionValidationNoAuthority(
+  result: ExecutionRecordAuditAppendWriterDryRunExecutionValidationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.dryRunExecutionValidationOnly).toBe(true);
+  expect(result.hypotheticalOnly).toBe(true);
+  expect(result.nonPersistent).toBe(true);
+  expect(result.dryRunExecutionValidatorImplemented).toBe(false);
+  expect(result.dryRunExecutionAllowed).toBe(false);
+  expect(result.dryRunExecutedAgainstRealData).toBe(false);
+  expect(result.dryRunExecutionImplemented).toBe(false);
+  expect(result.dryRunExecuted).toBe(false);
+  expect(result.auditWriteExecuted).toBe(false);
+  expect(result.auditWriteAllowed).toBe(false);
+  expect(result.safeToWriteAudit).toBe(false);
+  expect(result.validationIsDryRunExecution).toBe(false);
+  expect(result.validationIsAuditWriteApproval).toBe(false);
+  expect(result.validationIsAuditAppendExecution).toBe(false);
+  expect(result.validationIsRouteCallApproval).toBe(false);
+  expect(result.validationIsRecordCreationApproval).toBe(false);
+  expect(result.validationIsPersistenceWriteApproval).toBe(false);
+  expect(result.validationIsSupabaseLocalStorageWriteApproval).toBe(false);
+  expect(result.validationIsSecurityProof).toBe(false);
+  expect(result.validationIsServerOnlyProof).toBe(false);
+  expect(result.validationIsSchemaProof).toBe(false);
+  expect(result.validationIsGeneratedTypesProof).toBe(false);
+  expect(result.validationIsMigrationProof).toBe(false);
+  expect(result.validationIsRlsSecurityProof).toBe(false);
+  expect(result.validationIsDownstreamApproval).toBe(false);
+  expect(result.dryRunExecutionSuccessIsWriteApproval).toBe(false);
+  expect(result.dryRunValidatorReadinessIsExecution).toBe(false);
+  expect(result.dryRunValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.contractValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.writerValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.insertSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.devPreviewDiagnosticsAreWriteApproval).toBe(false);
+  expect(result.authority.dryRunExecutionValidatorImplemented).toBe(false);
+  expect(result.authority.dryRunExecutionAllowed).toBe(false);
+  expect(result.authority.auditWriteAllowed).toBe(false);
+  expect(result.authority.safeToWriteAudit).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.routeCallAllowed).toBe(false);
+  expect(result.authority.recordCreationAllowed).toBe(false);
+  expect(result.authority.persistenceWriteAllowed).toBe(false);
+  expect(result.authority.supabaseWriteAllowed).toBe(false);
+  expect(result.authority.localStorageWriteAllowed).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.dryRunExecuted).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.auditWriteExecuted).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.auditWriteAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.routeCallAllowed).toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.recordCreationAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.persistenceWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.supabaseWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.localStorageWriteAllowed).toBe(
+    false,
+  );
+  expect(result.noWriteNoActionSafetyValidation.brokerAvanzaActionAllowed)
+    .toBe(false);
+  expect(result.noWriteNoActionSafetyValidation.automaticModeAllowed).toBe(
+    false,
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validatorPure: true,
+      validatorDeterministic: true,
+      designReadinessOnly: true,
+      readyMeansDesignOnlyDoNotWriteAudit: true,
+      noDryRunExecution: true,
+      noAuditWriter: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noSupabaseWrite: true,
+      noLocalStorageWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noTradeReconciliation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput(
+  overrides: Partial<ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput> = {},
+): ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput {
+  const validationInput =
+    buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput();
+  const dryRunExecutionValidatorResult =
+    validateExecutionRecordAuditAppendWriterDryRunExecution(validationInput);
+  const dryRunExecutionContractInput = validationInput.dryRunExecutionInput!;
+  const dryRunExecutionContractResult = validationInput.dryRunExecutionResult!;
+  const auditWriterContractInput = validationInput.auditWriterContractInput!;
+
+  return {
+    contractVersion:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_CONTRACT_VERSION,
+    requestedAt: "2026-06-11T18:18:00.000Z",
+    requestedBy: "execution-sandbox-test",
+    dryRunExecutionValidatorResult,
+    dryRunExecutionContractInput,
+    dryRunExecutionContractResult,
+    dryRunValidatorResult: validationInput.dryRunValidatorResult!,
+    dryRunResultInput: validationInput.dryRunResultInput!,
+    writerContractValidationResult:
+      validationInput.writerContractValidationResult!,
+    writerValidatorResult: validationInput.writerValidatorResult!,
+    auditWriterContractInput,
+    auditEventCandidate: validationInput.auditEventCandidate!,
+    executionRecordReference: validationInput.executionRecordReference!,
+    evidenceProvenance: validationInput.evidenceProvenance!,
+    idempotencyKey: auditWriterContractInput.idempotencyKey,
+    duplicatePreventionKey: auditWriterContractInput.duplicatePreventionKey,
+    proofStatuses: {
+      serverOnlySecurityProofStatus: "fixture_server_only_present",
+      schemaTableProofStatus: "fixture_schema_table_present",
+      generatedAuditTypesProofStatus: "fixture_audit_types_present",
+      migrationProofStatus: "fixture_migration_present",
+      rlsSecurityProofStatus: "fixture_rls_present",
+    },
+    serverOnlySecurityProofStatus: "fixture_server_only_present",
+    schemaTableProofStatus: "fixture_schema_table_present",
+    generatedAuditTypesProofStatus: "fixture_audit_types_present",
+    migrationProofStatus: "fixture_migration_present",
+    rlsSecurityProofStatus: "fixture_rls_present",
+    serviceRoleExposureRiskStatus: "risk_absent",
+    clientSideWriteRiskStatus: "risk_absent",
+    explicitDryRunOnlyFlag: true,
+    manualReviewMetadata: null,
+    downstreamAuthorityMetadata: {
+      downstreamAuthorityPresent: false,
+    },
+    simulatedAuditEventPayload: {
+      ...dryRunExecutionContractResult.simulatedAuditEventPayload,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.simulatedAuditEventPayload,
+      nonPersistent: true,
+      resultIsAuditWriteApproval: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedTableSchemaTarget: {
+      ...dryRunExecutionContractResult.simulatedTableSchemaTarget,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.simulatedTableSchemaTarget,
+      resultIsSchemaProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedIdempotency: {
+      ...dryRunExecutionContractResult.simulatedIdempotency,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.simulatedIdempotency,
+      idempotentWriteExecuted: false,
+      resultIsWriteApproval: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    simulatedDuplicatePrevention: {
+      ...dryRunExecutionContractResult.simulatedDuplicatePrevention,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.simulatedDuplicatePrevention,
+      resultIsWriteApproval: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    evidenceProvenanceResult: {
+      ...dryRunExecutionContractResult.evidenceProvenance,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.evidenceProvenance,
+      resultIsSecurityProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    serverOnlySecurity: {
+      ...dryRunExecutionContractResult.serverOnlySecurity,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.serverOnlySecurity,
+      resultIsServerOnlyProof: false,
+      resultIsRlsSecurityProof: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    noWriteNoAction: {
+      ...dryRunExecutionContractResult.noWriteNoAction,
+      sourceDryRunExecutionSummary:
+        dryRunExecutionContractResult.noWriteNoAction,
+      dryRunExecutionImplementationImplemented: false,
+      dryRunExecutionAllowed: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    dependencies: {
+      ...dryRunExecutionContractResult.dependencies,
+      dryRunExecutionValidatorResultPresent: true,
+      dryRunExecutionContractInputPresent: true,
+      dryRunExecutionContractResultPresent: true,
+      dryRunExecutionImplementationImplemented: false,
+      blockedReasons: [],
+      warnings: [],
+      reviewItems: [],
+    },
+    authority:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_DEFAULT_AUTHORITY_FLAGS,
+    safetyPolicy:
+      EXECUTION_RECORD_AUDIT_APPEND_WRITER_DRY_RUN_EXECUTION_IMPLEMENTATION_DEFAULT_SAFETY_POLICY,
+    blockedReasons: [],
+    warnings: [],
+    reviewItems: [],
+    metadata: {
+      testOnly: true,
+    },
+    ...overrides,
+  };
+}
+
+function expectAuditAppendWriterDryRunExecutionImplementationNoAuthority(
+  result: ExecutionRecordAuditAppendWriterDryRunExecutionImplementationResult,
+) {
+  expect(result.validationOnly).toBe(true);
+  expect(result.designOnly).toBe(true);
+  expect(result.dryRunExecutionOnly).toBe(true);
+  expect(result.hypotheticalOnly).toBe(true);
+  expect(result.nonPersistent).toBe(true);
+  expect(result.dryRunExecutionImplementationImplemented).toBe(false);
+  expect(result.dryRunExecutionAllowed).toBe(false);
+  expect(result.dryRunExecutedAgainstRealData).toBe(false);
+  expect(result.auditWriteExecuted).toBe(false);
+  expect(result.auditWriteAllowed).toBe(false);
+  expect(result.safeToWriteAudit).toBe(false);
+  expect(result.implementationResultIsAuditWriteApproval).toBe(false);
+  expect(result.implementationResultIsAuditAppendExecution).toBe(false);
+  expect(result.implementationResultIsRouteCallApproval).toBe(false);
+  expect(result.implementationResultIsRecordCreationApproval).toBe(false);
+  expect(result.implementationResultIsPersistenceWriteApproval).toBe(false);
+  expect(result.implementationResultIsSupabaseLocalStorageWriteApproval).toBe(
+    false,
+  );
+  expect(result.implementationResultIsSecurityProof).toBe(false);
+  expect(result.implementationResultIsServerOnlyProof).toBe(false);
+  expect(result.implementationResultIsSchemaProof).toBe(false);
+  expect(result.implementationResultIsGeneratedTypesProof).toBe(false);
+  expect(result.implementationResultIsMigrationProof).toBe(false);
+  expect(result.implementationResultIsRlsSecurityProof).toBe(false);
+  expect(result.implementationResultIsDownstreamApproval).toBe(false);
+  expect(result.dryRunExecutionValidatorReadinessIsExecution).toBe(false);
+  expect(result.dryRunValidatorReadinessIsExecution).toBe(false);
+  expect(result.contractValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.writerValidatorReadinessIsWriteApproval).toBe(false);
+  expect(result.insertSuccessIsAuditWriteApproval).toBe(false);
+  expect(result.devPreviewDiagnosticsAreWriteApproval).toBe(false);
+  expect(result.authority.dryRunExecutionImplementationImplemented).toBe(false);
+  expect(result.authority.dryRunExecutionAllowed).toBe(false);
+  expect(result.authority.auditWriteAllowed).toBe(false);
+  expect(result.authority.safeToWriteAudit).toBe(false);
+  expect(result.authority.auditAppendAllowed).toBe(false);
+  expect(result.authority.safeToAppendAudit).toBe(false);
+  expect(result.authority.routeCallAllowed).toBe(false);
+  expect(result.authority.recordCreationAllowed).toBe(false);
+  expect(result.authority.persistenceWriteAllowed).toBe(false);
+  expect(result.authority.supabaseWriteAllowed).toBe(false);
+  expect(result.authority.localStorageWriteAllowed).toBe(false);
+  expect(result.authority.statsPnlUpdateAllowed).toBe(false);
+  expect(result.authority.tradeMutationAllowed).toBe(false);
+  expect(result.authority.tradeReconciliationAllowed).toBe(false);
+  expect(result.authority.correctionRollbackAllowed).toBe(false);
+  expect(result.authority.uiStateMutationAllowed).toBe(false);
+  expect(result.authority.userNotificationAllowed).toBe(false);
+  expect(result.authority.brokerOrderFollowUpAllowed).toBe(false);
+  expect(result.authority.avanzaBrowserFollowUpAllowed).toBe(false);
+  expect(result.authority.automaticModeAllowed).toBe(false);
+  expect(result.noWriteNoAction.auditWriteExecuted).toBe(false);
+  expect(result.noWriteNoAction.auditWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.routeCallAllowed).toBe(false);
+  expect(result.noWriteNoAction.recordCreationAllowed).toBe(false);
+  expect(result.noWriteNoAction.persistenceWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.supabaseWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.localStorageWriteAllowed).toBe(false);
+  expect(result.noWriteNoAction.statsPnlUpdateAllowed).toBe(false);
+  expect(result.noWriteNoAction.tradeMutationAllowed).toBe(false);
+  expect(result.noWriteNoAction.tradeReconciliationAllowed).toBe(false);
+  expect(result.noWriteNoAction.correctionRollbackAllowed).toBe(false);
+  expect(result.noWriteNoAction.uiStateMutationAllowed).toBe(false);
+  expect(result.noWriteNoAction.userNotificationAllowed).toBe(false);
+  expect(result.noWriteNoAction.brokerAvanzaActionAllowed).toBe(false);
+  expect(result.noWriteNoAction.automaticModeAllowed).toBe(false);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      implementationPure: true,
+      implementationDeterministic: true,
+      dryRunSimulationOnly: true,
+      readyMeansDesignOnlyDoNotWriteAudit: true,
+      noAuditWriter: true,
+      noAuditAppend: true,
+      noAuditWrite: true,
+      noRouteCall: true,
+      noExecutionRecordCreation: true,
+      noPersistenceWrite: true,
+      noSupabaseWrite: true,
+      noLocalStorageWrite: true,
+      noStatsPnlUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noTradeReconciliation: true,
+      noUiUpdate: true,
+      noNotification: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBrowserBehavior: true,
+      noAutomaticMode: true,
+    }),
+  );
+}
+
+function expectProductionInsertRouteBoundaryValidationNoAuthority(
+  result: ExecutionRecordProductionInsertRouteBoundaryValidationResult,
+) {
+  expect(result.authorityFlags.validationOnly).toBe(true);
+  expect(result.authorityFlags.designOnly).toBe(true);
+  expect(result.authorityFlags.productionRouteImplementationAllowed).toBe(
+    false,
+  );
+  expect(result.authorityFlags.productionRouteCallAllowed).toBe(false);
+  expect(result.authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.authorityFlags.safeToPersist).toBe(false);
+  expect(result.authorityFlags.safeToFinalize).toBe(false);
+  expect(result.authorityFlags.safeToAppendAudit).toBe(false);
+  expect(result.authorityFlags.safeToUpdateStats).toBe(false);
+  expect(result.authorityFlags.safeToRollback).toBe(false);
+  expect(result.authorityFlags.safeToMutateTrade).toBe(false);
+  expect(result.authorityFlags.safeToRunBrokerAction).toBe(false);
+  expect(result.authorityFlags.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.authorityFlags.automaticModeAllowed).toBe(false);
+  expect(result.authorityFlags.productionRouteImplementationAttempted).toBe(
+    false,
+  );
+  expect(result.authorityFlags.productionRouteCallAttempted).toBe(false);
+  expect(result.authorityFlags.insertRouteCallAttempted).toBe(false);
+  expect(result.authorityFlags.executionRecordCreationAttempted).toBe(false);
+  expect(result.authorityFlags.persistenceAttempted).toBe(false);
+  expect(result.authorityFlags.auditAppendAttempted).toBe(false);
+  expect(result.authorityFlags.statsUpdateAttempted).toBe(false);
+  expect(result.authorityFlags.rollbackAttempted).toBe(false);
+  expect(result.authorityFlags.tradeMutationAttempted).toBe(false);
+  expect(result.authorityFlags.brokerAutomationAttempted).toBe(false);
+  expect(result.authorityFlags.avanzaAutomationAttempted).toBe(false);
+  expect(result.authorityFlags.browserAutomationAttempted).toBe(false);
+  expect(result.safetyPolicyValidationSummary.noProductionRouteImplementation)
+    .toBe(true);
+  expect(result.safetyPolicyValidationSummary.noProductionRouteCall).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noInsertRouteCall).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noExecutionRecordCreation).toBe(
+    true,
+  );
+  expect(result.safetyPolicyValidationSummary.noPersistenceWrite).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noAuditAppend).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noStatsPnlUpdate).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noRollbackCorrection).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noTradeMutation).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noBrokerOrderBehavior).toBe(true);
+  expect(result.safetyPolicyValidationSummary.noAvanzaBrowserBehavior).toBe(
+    true,
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      validationOnly: true,
+      designOnly: true,
+      productionRouteImplementationApproval: false,
+      productionRouteCallApproval: false,
+      insertRouteCallApproval: false,
+      executionRecordCreationApproval: false,
+      persistenceWriteApproval: false,
+      auditAppendApproval: false,
+      statsUpdateApproval: false,
+      rollbackCorrectionApproval: false,
+      tradeMutationApproval: false,
+      brokerOrderApproval: false,
+      avanzaBrowserApproval: false,
+      automaticModeApproval: false,
+    }),
+  );
+}
+
+test("shapes execution record persistence validator input metadata without writes", () => {
+  const adapterInput = buildPersistenceValidatorAdapterInput();
+  const result = shapeExecutionRecordPersistenceValidatorInput(adapterInput);
+
+  expect(result.status).toBe("persistence_adapter_ready");
+  expect(result.decisionRecommendation).toBe("shape_persistence_input_only");
+  expect(result.proposedInputSummary.proposedPersistenceInput).toBe(
+    adapterInput.proposedPersistenceInput,
+  );
+  expect(result.proposedInputSummary.proposedPersistenceInputComplete).toBe(
+    true,
+  );
+  expect(result.fieldMappingSummary.candidateIdMapped).toBe(true);
+  expect(result.fieldMappingSummary.idempotencyKeysMapped).toBe(true);
+  expect(result.preconditionSummary.canShapeProposedPersistenceInput).toBe(true);
+  expect(result.schemaReadinessSummary.generatedTypesAvailable).toBe(true);
+  expect(result.schemaReadinessSummary.migrationApplicationProven).toBe(true);
+  expect(result.idempotencySummary.duplicatePreventionPresent).toBe(true);
+  expect(result.auditCorrectionSummary.sourceEvidenceChainPresent).toBe(true);
+  expect(result.securitySummary.rlsSecurityProofPresent).toBe(true);
+  expect(result.securitySummary.serverOnlyWriteBoundaryPresent).toBe(true);
+  expect(result.dryRunRouteSummary.dryRunRouteStatusAcknowledged).toBe(true);
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("proposed_persistence_input_only");
+  expect(result.warnings).toContain("persistence_validator_not_called");
+  expect(result.warnings).toContain("insert_route_not_called");
+  expectPersistenceAdapterNoAuthority(result);
+});
+
+test("blocks execution record persistence validator adapter unsafe inputs", () => {
+  const baseInput = buildPersistenceValidatorAdapterInput();
+  const nonCandidateInvocationResult = {
+    ...baseInput.invocationResult!,
+    outputSummary: {
+      ...baseInput.invocationResult!.outputSummary,
+      candidateOutputOnly: false,
+    },
+  } as unknown as ExecutionRecordCandidateBuilderInvocationResult;
+  const unsafeCases: Array<{
+    label: string;
+    input: ExecutionRecordPersistenceValidatorIntegrationAdapterInput;
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing persistence integration result",
+      input: buildPersistenceValidatorAdapterInput({
+        persistenceIntegrationResult: null,
+      }),
+      expectedReason: "missing_persistence_integration_result",
+    },
+    {
+      label: "missing candidate-builder invocation result",
+      input: buildPersistenceValidatorAdapterInput({
+        invocationResult: null,
+      }),
+      expectedReason: "missing_candidate_builder_output",
+    },
+    {
+      label: "missing builder output",
+      input: buildPersistenceValidatorAdapterInput({
+        invocationResult: {
+          ...baseInput.invocationResult!,
+          outputSummary: {
+            ...baseInput.invocationResult!.outputSummary,
+            candidateOutput: null,
+          },
+        },
+        candidateOutput: null,
+        proposedPersistenceInput: {
+          ...baseInput.proposedPersistenceInput!,
+          candidate: null as unknown as ExecutionRecordPersistenceInput["candidate"],
+        },
+      }),
+      expectedReason: "missing_candidate_builder_output",
+    },
+    {
+      label: "non candidate-only builder output",
+      input: buildPersistenceValidatorAdapterInput({
+        invocationResult: nonCandidateInvocationResult,
+        candidateBuilderOutputSummary: nonCandidateInvocationResult.outputSummary,
+      }),
+      expectedReason: "candidate_output_not_candidate_only",
+    },
+    {
+      label: "missing idempotency metadata",
+      input: buildPersistenceValidatorAdapterInput({
+        idempotencySummary: {
+          ...baseInput.idempotencySummary!,
+          idempotencyMetadataPresent: false,
+          idempotencyKey: null,
+        },
+      }),
+      expectedReason: "missing_idempotency_metadata",
+    },
+    {
+      label: "missing audit correction metadata",
+      input: buildPersistenceValidatorAdapterInput({
+        auditCorrectionSummary: {
+          ...baseInput.auditCorrectionSummary!,
+          auditProvenanceMetadataPresent: false,
+          sourceEvidenceChainPresent: false,
+        },
+      }),
+      expectedReason: "missing_audit_correction_metadata",
+    },
+    {
+      label: "schema readiness unknown",
+      input: buildPersistenceValidatorAdapterInput({
+        schemaReadinessSummary: {
+          ...baseInput.schemaReadinessSummary!,
+          schemaReadinessAcknowledged: false,
+        },
+      }),
+      expectedReason: "missing_schema_readiness",
+    },
+    {
+      label: "generated types absent",
+      input: buildPersistenceValidatorAdapterInput({
+        schemaReadinessSummary: {
+          ...baseInput.schemaReadinessSummary!,
+          generatedTypesAvailable: false,
+          generatedTypesReviewed: false,
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration application not proven",
+      input: buildPersistenceValidatorAdapterInput({
+        schemaReadinessSummary: {
+          ...baseInput.schemaReadinessSummary!,
+          migrationApplicationProven: false,
+        },
+      }),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "RLS/security proof missing",
+      input: buildPersistenceValidatorAdapterInput({
+        securitySummary: {
+          ...baseInput.securitySummary!,
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "server-only boundary missing",
+      input: buildPersistenceValidatorAdapterInput({
+        securitySummary: {
+          ...baseInput.securitySummary!,
+          serverOnlyWriteBoundaryPresent: false,
+        },
+      }),
+      expectedReason: "missing_server_only_write_boundary",
+    },
+    {
+      label: "dry-run route status missing",
+      input: buildPersistenceValidatorAdapterInput({
+        dryRunRouteSummary: {
+          ...baseInput.dryRunRouteSummary!,
+          dryRunRouteStatusAcknowledged: false,
+          dryRunRouteKnown: false,
+        },
+      }),
+      expectedReason: "missing_dry_run_route_status",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    const result = shapeExecutionRecordPersistenceValidatorInput(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).not.toBe("persistence_adapter_ready");
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expect(result.proposedInputSummary.proposedPersistenceInputIsReviewOnly).toBe(
+      true,
+    );
+    expect(result.fieldMappingSummary).toBeDefined();
+    expect(result.preconditionSummary).toBeDefined();
+    expect(result.schemaReadinessSummary).toBeDefined();
+    expect(result.idempotencySummary).toBeDefined();
+    expect(result.auditCorrectionSummary).toBeDefined();
+    expect(result.securitySummary).toBeDefined();
+    expect(result.dryRunRouteSummary).toBeDefined();
+    expectPersistenceAdapterNoAuthority(result);
+  });
+});
+
+test("validates execution record persistence integration adapter output without writes", () => {
+  const validationInput = buildPersistenceIntegrationValidationInput();
+  const result =
+    validateExecutionRecordPersistenceIntegration(validationInput);
+
+  expect(result.status).toBe("persistence_integration_validation_valid");
+  expect(result.decisionRecommendation).toBe("validate_readiness_only");
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("validation_only");
+  expect(result.warnings).toContain(
+    "persistence_adapter_ready_not_validator_call_approval",
+  );
+  expect(result.proposedInputValidationSummary.proposedPersistenceInputPresent)
+    .toBe(true);
+  expect(result.readinessValidationSummary.adapterResultPresent).toBe(true);
+  expect(result.schemaReadinessValidationSummary.generatedTypesAvailable)
+    .toBe(true);
+  expect(result.schemaReadinessValidationSummary.migrationApplicationProven)
+    .toBe(true);
+  expect(result.idempotencyValidationSummary.requiredFingerprintsPresent)
+    .toBe(true);
+  expect(result.auditCorrectionValidationSummary.sourceEvidenceChainPresent)
+    .toBe(true);
+  expect(result.securityValidationSummary.rlsSecurityProofPresent).toBe(true);
+  expect(result.securityValidationSummary.serverOnlyWriteBoundaryPresent)
+    .toBe(true);
+  expect(result.dryRunRouteValidationSummary.dryRunRouteKnown).toBe(true);
+  expect(result.safetyPolicyValidationSummary.validationOnly).toBe(true);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      noPersistenceValidatorCall: true,
+      noInsertRouteCall: true,
+      noExecutionRecordCreated: true,
+      noPersistenceAttempted: true,
+      noAuditAppend: true,
+      noStatsUpdate: true,
+      noRollbackOrCorrection: true,
+      noTradeMutation: true,
+      noUiWiring: true,
+      noBrowserOrAvanzaBehavior: true,
+      noBrokerOrOrderBehavior: true,
+    }),
+  );
+  expectPersistenceIntegrationValidationNoAuthority(result);
+});
+
+test("builds execution record persistence validator integration dev preview from fixture data only", async () => {
+  const result =
+    await buildExecutionRecordPersistenceValidatorIntegrationDevFixtureResult();
+
+  expect(result.readyScenario.adapterResult.status).toBe(
+    "persistence_adapter_ready",
+  );
+  expect(result.readyScenario.integrationResult.status).toBe(
+    "persistence_validator_integration_ready",
+  );
+  expect(result.readyScenario.integrationResult.decisionRecommendation).toBe(
+    "readiness_validated_do_not_persist",
+  );
+  expect(result.readyScenario.integrationResult.actualPersistenceValidatorBoundarySummary.status)
+    .toBe("not_called_future_boundary");
+  expect(result.readyScenario.integrationResult.actualPersistenceValidatorBoundarySummary.called)
+    .toBe(false);
+  expect(result.readyScenario.integrationResult.actualPersistenceValidatorCalled)
+    .toBe(false);
+  expect(result.readyScenario.integrationResult.safeToCallPersistenceValidator)
+    .toBe(false);
+  expect(result.readyScenario.integrationResult.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.readyScenario.integrationResult.safeToCreateExecutionRecord)
+    .toBe(false);
+  expect(result.readyScenario.integrationResult.safeToPersist).toBe(false);
+  expect(result.readyScenario.integrationResult.safeToAppendAudit).toBe(false);
+  expect(result.readyScenario.integrationResult.safeToUpdateStats).toBe(false);
+  expect(result.readyScenario.integrationResult.safeToRollback).toBe(false);
+  expect(result.readyScenario.integrationResult.safeToMutateTrade).toBe(false);
+  expect(result.readyScenario.validatorResult.status).toBe(
+    "persistence_integration_validation_valid",
+  );
+  expect(result.readyScenario.adapterResult.persistenceValidatorCallAttempted)
+    .toBe(false);
+  expect(result.readyScenario.adapterResult.insertRouteCallAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.persistenceValidatorCallAttempted)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.insertRouteCallAttempted)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.executionRecordCreationAttempted)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.persistenceAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.auditAppendAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.statsUpdateAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.rollbackAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.tradeMutationAttempted).toBe(false);
+  expect(result.readyScenario.validatorResult.brokerAutomationAttempted)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.avanzaAutomationAttempted)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.browserAutomationAttempted)
+    .toBe(false);
+  expect(result.readyScenario.adapterResult.proposedInputSummary
+    .proposedPersistenceInputIsReviewOnly).toBe(true);
+  expect(result.readyScenario.adapterResult.proposedInputSummary
+    .proposedPersistenceInputPresent).toBe(true);
+  expect(result.readyScenario.adapterResult.fieldMappingSummary
+    .candidateFingerprintMapped).toBe(true);
+  expect(result.readyScenario.validatorResult.proposedInputValidationSummary
+    .proposedPersistenceInputComplete).toBe(true);
+  expect(result.readyScenario.validatorResult.authorityFlags
+    .safeToCallPersistenceValidator).toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags
+    .safeToCreateExecutionRecord).toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToPersist)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToAppendAudit)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToUpdateStats)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToRollback)
+    .toBe(false);
+  expect(result.readyScenario.validatorResult.authorityFlags.safeToMutateTrade)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.status).toBe(
+    "actual_persistence_validator_boundary_validation_valid",
+  );
+  expect(result.readyScenario.boundaryCallValidatorResult.decisionRecommendation)
+    .toBe("may_call_actual_persistence_validator_only");
+  expect(result.readyScenario.boundaryCallValidatorResult.actualValidatorCalled)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult
+    .safeToCreateExecutionRecord).toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToPersist)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToAppendAudit)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToUpdateStats)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToRollback)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToMutateTrade)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.safeToRunBrokerAction)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult
+    .safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult.automaticModeAllowed)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallValidatorResult
+    .postCallBoundaryValidationSummary.noInsertRouteCall).toBe(true);
+  expect(result.readyScenario.boundaryCallValidatorResult
+    .postCallBoundaryValidationSummary.noExecutionRecordCreation).toBe(true);
+  expect(result.readyScenario.boundaryCallValidatorResult
+    .postCallBoundaryValidationSummary.noPersistenceWrite).toBe(true);
+  expect(result.readyScenario.boundaryCallWrapperResult.status).toBe(
+    "actual_persistence_validator_boundary_call_validated",
+  );
+  expect(result.readyScenario.boundaryCallWrapperResult.decisionRecommendation)
+    .toBe("actual_validator_valid_do_not_insert");
+  expect(result.readyScenario.boundaryCallWrapperResult.actualValidatorCalled)
+    .toBe(true);
+  expect(result.readyScenario.boundaryCallWrapperResult.validatorOutputSummary
+    .actualValidatorStatus).toBe("eligible");
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult
+    .safeToCreateExecutionRecord).toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToPersist)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToAppendAudit)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToUpdateStats)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToRollback)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToMutateTrade)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.safeToRunBrokerAction)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult
+    .safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.automaticModeAllowed)
+    .toBe(false);
+  expect(result.readyScenario.boundaryCallWrapperResult.postCallBoundarySummary
+    .noInsertRouteCall).toBe(true);
+  expect(result.readyScenario.boundaryCallWrapperResult.postCallBoundarySummary
+    .noExecutionRecordCreation).toBe(true);
+  expect(result.readyScenario.boundaryCallWrapperResult.postCallBoundarySummary
+    .noPersistenceWrite).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult.status).toBe(
+    "insert_route_readiness_validation_ready",
+  );
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .decisionRecommendation).toBe("may_prepare_insert_route_call_only");
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .routeEligibilityValidationSummary.mayPrepareInsertRouteCallOnly).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .actualValidatorValidationSummary.wrapperDecisionDoNotInsert).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noInsertRouteCall).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noExecutionRecordCreation).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noPersistenceWrite).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noAuditAppend).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noStatsPnlUpdate).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noRollbackCorrection).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noTradeMutation).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noBrokerOrderBehavior).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .safetyPolicyValidationSummary.noAvanzaBrowserBehavior).toBe(true);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToCreateExecutionRecord).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToPersist).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToAppendAudit).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToUpdateStats).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToRollback).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToMutateTrade).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToRunBrokerAction).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.readyScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.automaticModeAllowed).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.status).toBe(
+    "insert_route_call_dry_run_only",
+  );
+  expect(result.readyScenario.insertRouteCallWrapperResult.decisionRecommendation)
+    .toBe("dry_run_only_do_not_persist");
+  expect(result.readyScenario.insertRouteCallWrapperResult.routeOutputSummary
+    .insertRouteCallAttempted).toBe(true);
+  expect(result.readyScenario.insertRouteCallWrapperResult.routeOutputSummary
+    .dryRunResult).toEqual(
+      expect.objectContaining({
+        dryRunOnly: true,
+        productionInsertAttempted: false,
+        supabaseWriteAttempted: false,
+        auditAppendAttempted: false,
+        statsUpdateAttempted: false,
+        tradeMutationAttempted: false,
+      }),
+    );
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToAppendAudit).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToUpdateStats).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToRollback).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToMutateTrade).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToRunBrokerAction).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.postInsertBoundarySummary
+    .safeToRunAvanzaBrowserAction).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.safetyPolicy
+    .safeToCreateExecutionRecord).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.safetyPolicy.safeToPersist)
+    .toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.safetyPolicy
+    .safeToAppendAudit).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.safetyPolicy
+    .safeToUpdateStats).toBe(false);
+  expect(result.readyScenario.insertRouteCallWrapperResult.safetyPolicy
+    .safeToMutateTrade).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult.status,
+  ).toBe("production_insert_route_boundary_validation_ready_for_design_only");
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_implement_route");
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .currentStateValidationSummary.productionRouteImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .currentStateValidationSummary.productionRouteCalled,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .dryRunSeparationValidationSummary.dryRunResultIsProductionInsert,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.productionRouteImplementationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.productionRouteCallAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToCreateExecutionRecord,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToPersist,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToUpdateStats,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToRollback,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToMutateTrade,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToRunBrokerAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.safeToRunAvanzaBrowserAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.automaticModeAllowed,
+  ).toBe(false);
+  expect(result.readyScenario.postInsertBoundaryValidatorResult.status).toBe(
+    "post_insert_boundary_validation_ready_for_design_only",
+  );
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.status,
+  ).toBe("audit_append_boundary_validation_ready_for_design_only");
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_append_audit");
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult
+      .auditValidationReadinessIsAuditAppendExecution,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.auditAppendAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult
+      .auditValidationSuccessApprovesStatsPnlUpdate,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult
+      .auditValidationSuccessApprovesTradeMutation,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.authority
+      .auditAppendAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.authority
+      .safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.authority
+      .safeToRunBrokerAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.authority
+      .safeToRunAvanzaBrowserAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.authority
+      .automaticModeAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.metadata
+      ?.noAuditAppend,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.metadata
+      ?.noAuditWrite,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.evidence
+      .executionRecordReferencePresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.evidence
+      .evidenceProvenancePresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.idempotency
+      .idempotencyKeyPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.duplicatePrevention
+      .duplicatePreventionKeyPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.schema
+      .auditSchemaTableVerified,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendBoundaryValidatorResult.dependencies
+      .auditWritePathPresent,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.status,
+  ).toBe("audit_append_writer_validation_ready_for_design_only");
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_write_audit");
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.readiness
+      .writerValidationInputPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.readiness
+      .validatedAuditBoundaryResultPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .writerValidationReadinessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .writerContractReadinessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .insertSuccessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .auditBoundaryValidatorReadinessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .devPreviewDiagnosticsAreAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .orchestratorReadinessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .productionBoundaryReadinessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult
+      .dryRunSuccessIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.safeToWriteAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .writerValidatorImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .writerImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .safeToWriteAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .safeToRunBrokerAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .safeToRunAvanzaBrowserAction,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.authority
+      .automaticModeAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.evidenceProvenance
+      .evidenceProvenancePresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterValidationResult.dependencies
+      .auditWritePathPresent,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.status,
+  ).toBe("audit_append_writer_contract_validation_ready_for_design_only");
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_write_audit");
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.inputShape
+      .writerContractInputPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.resultShape
+      .writerContractResultPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.dependencies
+      .writerValidatorResultPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .serverOnlySecurity.serverOnlyProofPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.schemaType
+      .generatedAuditTypesPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsSecurityProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsServerOnlyProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsSchemaProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsGeneratedTypesProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsMigrationProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .contractValidationIsRlsSecurityProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult
+      .auditWriteSuccessIsDownstreamApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.noWriteNoAction
+      .routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.noWriteNoAction
+      .persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.noWriteNoAction
+      .supabaseWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.noWriteNoAction
+      .localStorageWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .contractValidatorImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .recordCreationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .supabaseWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .localStorageWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .statsPnlUpdateAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .tradeMutationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .tradeReconciliationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .correctionRollbackAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .uiStateMutationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .userNotificationAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .brokerOrderFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .avanzaBrowserFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterContractValidationResult.authority
+      .automaticModeAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .status,
+  ).toBe(
+    "audit_append_writer_dry_run_execution_validation_ready_for_design_only",
+  );
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_write_audit");
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .validationIsDryRunExecution,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .validationIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .validationIsDownstreamApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .dryRunExecuted,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .auditWriteExecuted,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .inputValidation.dryRunExecutionInputPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .resultValidation.dryRunExecutionResultPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .simulatedAuditEventValidation.simulatedAuditEventPayloadPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .simulatedAuditEventValidation.wouldAttemptAuditWrite,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .dependencyValidation.dryRunExecutionValidatorImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .dependencyValidation.dryRunExecutionImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.dryRunExecutionValidatorImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.dryRunExecutionAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.auditWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.safeToWriteAudit,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.supabaseWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.localStorageWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.brokerOrderFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.avanzaBrowserFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.automaticModeAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .status,
+  ).toBe(
+    "audit_append_writer_dry_run_execution_implementation_ready_for_design_only",
+  );
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .decisionRecommendation,
+  ).toBe("design_only_do_not_write_audit");
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsAuditWriteApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsSecurityProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsServerOnlyProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsSchemaProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsGeneratedTypesProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsMigrationProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsRlsSecurityProof,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .implementationResultIsDownstreamApproval,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .auditWriteExecuted,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .simulatedAuditEventPayload.simulatedPayloadPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .simulatedTableSchemaTarget.targetTable,
+  ).toBe("execution_record_audit");
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .simulatedIdempotency.idempotencyKeyPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .simulatedDuplicatePrevention.duplicatePreventionKeyPresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .evidenceProvenance.evidenceProvenancePresent,
+  ).toBe(true);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .serverOnlySecurity.clientSideWriteRisk,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .noWriteNoAction.auditWriteExecuted,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.dryRunExecutionImplementationImplemented,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.dryRunExecutionAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.auditWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.supabaseWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.localStorageWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.brokerOrderFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.avanzaBrowserFollowUpAllowed,
+  ).toBe(false);
+  expect(
+    result.readyScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.automaticModeAllowed,
+  ).toBe(false);
+  expect(result.reviewScenario.adapterResult.status).not.toBe(
+    "persistence_adapter_ready",
+  );
+  expect(result.reviewScenario.integrationResult.status).toBe(
+    "persistence_validator_integration_blocked",
+  );
+  expect(result.reviewScenario.integrationResult.blockedReasons.length)
+    .toBeGreaterThan(0);
+  expect(result.reviewScenario.integrationResult.actualPersistenceValidatorBoundarySummary.status)
+    .toBe("not_called_future_boundary");
+  expect(result.reviewScenario.validatorResult.status).toBe(
+    "persistence_integration_validation_blocked",
+  );
+  expect(result.reviewScenario.validatorResult.blockedReasons.length)
+    .toBeGreaterThan(0);
+  expect(result.reviewScenario.boundaryCallValidatorResult.status).toBe(
+    "actual_persistence_validator_boundary_validation_blocked",
+  );
+  expect(result.reviewScenario.boundaryCallValidatorResult.blockedReasons.length)
+    .toBeGreaterThan(0);
+  expect(result.reviewScenario.boundaryCallValidatorResult.actualValidatorCalled)
+    .toBe(false);
+  expect(result.reviewScenario.boundaryCallValidatorResult.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.reviewScenario.boundaryCallValidatorResult.safeToPersist)
+    .toBe(false);
+  expect(result.reviewScenario.boundaryCallWrapperResult.status).not.toBe(
+    "actual_persistence_validator_boundary_call_validated",
+  );
+  expect(result.reviewScenario.boundaryCallWrapperResult.actualValidatorCalled)
+    .toBe(false);
+  expect(result.reviewScenario.boundaryCallWrapperResult.blockedReasons.length)
+    .toBeGreaterThan(0);
+  expect(result.reviewScenario.boundaryCallWrapperResult.safeToCallInsertRoute)
+    .toBe(false);
+  expect(result.reviewScenario.boundaryCallWrapperResult.safeToPersist)
+    .toBe(false);
+  expect(result.reviewScenario.insertRouteReadinessValidatorResult.status).not
+    .toBe("insert_route_readiness_validation_ready");
+  expect(result.reviewScenario.insertRouteReadinessValidatorResult
+    .decisionRecommendation).not.toBe("may_prepare_insert_route_call_only");
+  expect(result.reviewScenario.insertRouteReadinessValidatorResult
+    .blockedReasons.length).toBeGreaterThan(0);
+  expect(result.reviewScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToCallInsertRoute).toBe(false);
+  expect(result.reviewScenario.insertRouteReadinessValidatorResult
+    .authorityFlags.safeToPersist).toBe(false);
+  expect(result.reviewScenario.insertRouteCallWrapperResult.status).toBe(
+    "insert_route_call_not_called",
+  );
+  expect(result.reviewScenario.insertRouteCallWrapperResult.routeOutputSummary
+    .insertRouteCallAttempted).toBe(false);
+  expect(result.reviewScenario.insertRouteCallWrapperResult.blockedReasons.length)
+    .toBeGreaterThan(0);
+  expect(result.reviewScenario.insertRouteCallWrapperResult.safetyPolicy
+    .safeToPersist).toBe(false);
+  expect(
+    result.reviewScenario.productionInsertRouteBoundaryValidatorResult.status,
+  ).not.toBe(
+    "production_insert_route_boundary_validation_ready_for_design_only",
+  );
+  expect(
+    result.reviewScenario.productionInsertRouteBoundaryValidatorResult
+      .blockedReasons.length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.productionInsertRouteBoundaryValidatorResult
+      .authorityFlags.productionRouteCallAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendBoundaryValidatorResult.status,
+  ).toBe("audit_append_boundary_validation_blocked");
+  expect(
+    result.reviewScenario.auditAppendBoundaryValidatorResult
+      .decisionRecommendation,
+  ).toBe("blocked_do_not_append_audit");
+  expect(
+    result.reviewScenario.auditAppendBoundaryValidatorResult.blockedReasons
+      .length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.auditAppendBoundaryValidatorResult.safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterValidationResult.status,
+  ).toBe("audit_append_writer_validation_blocked");
+  expect(
+    result.reviewScenario.auditAppendWriterValidationResult
+      .decisionRecommendation,
+  ).toBe("blocked_do_not_write_audit");
+  expect(
+    result.reviewScenario.auditAppendWriterValidationResult.blockedReasons
+      .length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.auditAppendWriterValidationResult.safeToWriteAudit,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterValidationResult.safeToAppendAudit,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult.status,
+  ).toBe("audit_append_writer_contract_validation_blocked");
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult
+      .decisionRecommendation,
+  ).toBe("blocked_do_not_write_audit");
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult
+      .blockedReasons.length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult.authority
+      .auditWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult.authority
+      .routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterContractValidationResult.authority
+      .persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .status,
+  ).toBe("audit_append_writer_dry_run_execution_validation_blocked");
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .decisionRecommendation,
+  ).toBe("blocked_do_not_write_audit");
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .blockedReasons.length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .auditWriteExecuted,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.auditWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionValidationResult
+      .authority.persistenceWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .status,
+  ).toBe("audit_append_writer_dry_run_execution_implementation_blocked");
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .decisionRecommendation,
+  ).toBe("blocked_do_not_write_audit");
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .blockedReasons.length,
+  ).toBeGreaterThan(0);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .auditWriteExecuted,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.auditWriteAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.routeCallAllowed,
+  ).toBe(false);
+  expect(
+    result.reviewScenario.auditAppendWriterDryRunExecutionImplementationResult
+      .authority.persistenceWriteAllowed,
+  ).toBe(false);
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      fixtureOnly: true,
+      explicitTriggerOnly: true,
+      readOnlyPreview: true,
+      usesPureIntegrationComposer: true,
+      actualPersistenceValidatorBoundary: "fixture_wrapper_diagnostics_only",
+      callsOnlyAdapterAndIntegrationValidator: true,
+      callsPureBoundaryCallValidator: true,
+      callsBoundaryCallWrapperWithFixtureCallableOnly: true,
+      actualPersistenceValidatorBoundaryCallValidatorRan: true,
+      actualPersistenceValidatorBoundaryCallWrapperRan: true,
+      persistenceValidatorCalled: true,
+      persistenceValidatorCalledByFixtureWrapperOnly: true,
+      callsInsertRouteReadinessValidator: true,
+      insertRouteReadinessValidatorRan: true,
+      insertRouteReadinessOnly: true,
+      callsInsertRouteCallWrapper: true,
+      insertRouteCallWrapperRan: true,
+      insertRouteCallWrapperDiagnosticsOnly: true,
+      insertRouteCalledByFixtureCallableOnly: true,
+      insertRouteCalled: true,
+      insertRouteProductionCalled: false,
+      callsProductionInsertRouteBoundaryValidator: true,
+      productionInsertRouteBoundaryValidatorRan: true,
+      productionInsertRouteBoundaryDiagnosticsOnly: true,
+      callsPostInsertBoundaryValidator: true,
+      postInsertBoundaryValidatorRan: true,
+      postInsertBoundaryDiagnosticsOnly: true,
+      callsAuditAppendBoundaryValidator: true,
+      auditAppendBoundaryValidatorRan: true,
+      auditAppendBoundaryDiagnosticsOnly: true,
+      callsAuditAppendWriterValidator: true,
+      callsAuditAppendWriterContractValidator: true,
+      auditAppendWriterValidatorRan: true,
+      auditAppendWriterContractValidatorRan: true,
+      auditAppendWriterDryRunValidatorRan: true,
+      auditAppendWriterDryRunExecutionValidatorRan: true,
+      auditAppendWriterDryRunExecutionImplementationRan: true,
+      callsAuditAppendWriterDryRunValidator: true,
+      callsAuditAppendWriterDryRunExecutionValidator: true,
+      auditAppendWriterValidatorDiagnosticsOnly: true,
+      auditAppendWriterContractValidatorDiagnosticsOnly: true,
+      auditAppendWriterDryRunValidatorDiagnosticsOnly: true,
+      auditAppendWriterDryRunExecutionValidatorDiagnosticsOnly: true,
+      auditAppendWriterDryRunExecutionImplementationDiagnosticsOnly: true,
+      auditAppendRan: false,
+      auditWriterRan: false,
+      productionInsertRouteImplemented: false,
+      productionInsertRouteCalled: false,
+      executionRecordCreated: false,
+      executionRecordPersisted: false,
+      noSupabaseWrite: true,
+      noLocalStorageWrite: true,
+      noAuditAppend: true,
+      noStatsUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBehavior: true,
+      noBrowserAutomation: true,
+    }),
+  );
+});
+
+test("blocks execution record persistence integration validation unsafe paths", () => {
+  const readyInput = buildPersistenceIntegrationValidationInput();
+  const readyAdapterResult = readyInput.adapterResult!;
+  const unsafeCases: Array<{
+    label: string;
+    input: ExecutionRecordPersistenceValidatorIntegrationValidationInput;
+    expectedStatus: ExecutionRecordPersistenceValidatorIntegrationValidationResult["status"];
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing adapter result",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: null,
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_adapter_result",
+    },
+    {
+      label: "invalid adapter status",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: {
+          ...readyAdapterResult,
+          status: "not_a_real_status",
+        } as unknown as ExecutionRecordPersistenceValidatorIntegrationAdapterResult,
+      }),
+      expectedStatus: "persistence_integration_validation_invalid",
+      expectedReason: "invalid_adapter_status",
+    },
+    {
+      label: "unsupported adapter result",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: {
+          ...readyAdapterResult,
+          status: "persistence_adapter_unsupported",
+          blockedReasons: ["unsupported_broker"],
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_unsupported",
+      expectedReason: "unsupported_broker",
+    },
+    {
+      label: "blocked adapter result",
+      input: buildPersistenceIntegrationValidationInput({
+        persistenceIntegrationResult: null,
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "invalid_adapter_status",
+    },
+    {
+      label: "needs-review adapter result",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: {
+          ...readyAdapterResult,
+          status: "persistence_adapter_needs_review",
+          blockedReasons: [],
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_needs_review",
+      expectedReason: "adapter_status_review",
+    },
+    {
+      label: "not-ready adapter result",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: {
+          ...readyAdapterResult,
+          status: "persistence_adapter_not_ready",
+          blockedReasons: [],
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "adapter_status_review",
+    },
+    {
+      label: "ready adapter with blocked reasons",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        adapterResult: {
+          ...readyAdapterResult,
+          status: "persistence_adapter_ready",
+          blockedReasons: ["missing_schema_readiness"],
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "adapter_ready_with_blocked_reasons",
+    },
+    {
+      label: "missing proposed persistence input",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        proposedPersistenceInput: null,
+        proposedInputSummary: null,
+        adapterResult: {
+          ...readyAdapterResult,
+          proposedInputSummary: {
+            ...readyAdapterResult.proposedInputSummary,
+            proposedPersistenceInput: null,
+            proposedPersistenceInputPresent: false,
+          },
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_proposed_persistence_input",
+    },
+    {
+      label: "missing readiness summary",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        readinessSummary: null,
+        adapterResult: {
+          ...readyAdapterResult,
+          preconditionSummary: undefined,
+        } as unknown as ExecutionRecordPersistenceValidatorIntegrationAdapterResult,
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_readiness_summary",
+    },
+    {
+      label: "schema readiness absent",
+      input: buildPersistenceIntegrationValidationInput({
+        schemaReadinessSummary: {
+          ...readyInput.adapterInput!.schemaReadinessSummary!,
+          schemaReadinessAcknowledged: false,
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "schema_readiness_absent_or_unknown",
+    },
+    {
+      label: "generated types unknown",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        generatedTypesStatus: "unknown",
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration application not proven",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        migrationApplicationStatus: "not_proven",
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "missing idempotency fingerprint",
+      input: buildPersistenceIntegrationValidationInput({
+        idempotencySummary: {
+          ...readyInput.adapterInput!.idempotencySummary!,
+          requiredFingerprintsPresent: false,
+          recordFingerprint: null,
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_required_fingerprint",
+    },
+    {
+      label: "conflicting fingerprint",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        idempotencySummary: {
+          ...readyAdapterResult.idempotencySummary,
+          conflictingDuplicateRequiresReview: true,
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "conflicting_fingerprint",
+    },
+    {
+      label: "missing audit correction",
+      input: buildPersistenceIntegrationValidationInput({
+        auditCorrectionSummary: {
+          ...readyInput.adapterInput!.auditCorrectionSummary!,
+          auditProvenanceMetadataPresent: false,
+        },
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_audit_correction_summary",
+    },
+    {
+      label: "missing RLS security proof",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        rlsSecurityStatus: "missing",
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "missing server-only boundary",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        serverOnlyWriteBoundaryStatus: "missing",
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_server_only_write_boundary",
+    },
+    {
+      label: "missing dry-run route status",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        dryRunInsertRouteStatus: "missing",
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "missing_dry_run_route_status",
+    },
+    {
+      label: "manual approval missing",
+      input: buildPersistenceIntegrationValidationInput({
+        auditCorrectionSummary: {
+          ...readyInput.adapterInput!.auditCorrectionSummary!,
+          manualApprovalMetadataPresent: false,
+        },
+        manualApprovalContext: null,
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "manual_approval_missing",
+    },
+    {
+      label: "authority violation",
+      input: buildPersistenceIntegrationValidationInput({}, {
+        authorityFlags: {
+          ...readyInput.authorityFlags,
+          validationOnly: true,
+          safeToPersist: true,
+        } as unknown as ExecutionRecordPersistenceValidatorIntegrationValidationInput["authorityFlags"],
+      }),
+      expectedStatus: "persistence_integration_validation_blocked",
+      expectedReason: "safety_policy_authority_violation",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    const result =
+      validateExecutionRecordPersistenceIntegration(unsafeCase.input);
+
+    expect(result.status, unsafeCase.label).toBe(unsafeCase.expectedStatus);
+    if (unsafeCase.expectedReason.endsWith("_review")) {
+      expect(result.reviewItems, unsafeCase.label).toContain(
+        unsafeCase.expectedReason,
+      );
+    } else {
+      expect(result.blockedReasons, unsafeCase.label).toContain(
+        unsafeCase.expectedReason,
+      );
+    }
+    expect(result.proposedInputValidationSummary).toBeDefined();
+    expect(result.readinessValidationSummary).toBeDefined();
+    expect(result.schemaReadinessValidationSummary).toBeDefined();
+    expect(result.idempotencyValidationSummary).toBeDefined();
+    expect(result.auditCorrectionValidationSummary).toBeDefined();
+    expect(result.securityValidationSummary).toBeDefined();
+    expect(result.dryRunRouteValidationSummary).toBeDefined();
+    expect(result.safetyPolicyValidationSummary).toBeDefined();
+    expect(result.warnings).toContain("validation_only");
+    expectPersistenceIntegrationValidationNoAuthority(result);
+  });
+});
+
+test("builds execution record persistence validator integration readiness without writes", () => {
+  const adapterInput = buildPersistenceValidatorAdapterInput();
+  const result = buildExecutionRecordPersistenceValidatorIntegration({
+    requestedAt: "2026-06-11T17:10:00.000Z",
+    adapterInput,
+  });
+
+  expect(result.status).toBe("persistence_validator_integration_ready");
+  expect(result.decisionRecommendation).toBe(
+    "readiness_validated_do_not_persist",
+  );
+  expect(result.adapterResult?.status).toBe("persistence_adapter_ready");
+  expect(result.validationResult?.status).toBe(
+    "persistence_integration_validation_valid",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("readiness_only_not_write_approval");
+  expect(result.warnings).toContain("actual_persistence_validator_not_called");
+  expect(result.warnings).toContain("insert_route_not_called");
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      integrationOnly: true,
+      readinessOnly: true,
+      actualPersistenceValidatorCalled: false,
+      insertRouteCalled: false,
+      executionRecordCreated: false,
+      executionRecordPersisted: false,
+      noSupabaseWrite: true,
+      noLocalStorageWrite: true,
+      noAuditAppend: true,
+      noStatsUpdate: true,
+      noRollbackCorrection: true,
+      noTradeMutation: true,
+      noBrokerOrderBehavior: true,
+      noAvanzaBehavior: true,
+      noBrowserAutomation: true,
+    }),
+  );
+  expectPersistenceValidatorIntegrationNoAuthority(result);
+});
+
+test("blocks execution record persistence validator integration when builder inputs are missing", () => {
+  const baseInput = buildPersistenceValidatorAdapterInput();
+  const unsafeCases: Array<{
+    label: string;
+    adapterInput: ExecutionRecordPersistenceValidatorIntegrationAdapterInput | null;
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing adapter input",
+      adapterInput: null,
+      expectedReason: "missing_adapter_input",
+    },
+    {
+      label: "missing candidate-builder invocation result",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        invocationResult: null,
+      }),
+      expectedReason: "missing_candidate_builder_invocation_result",
+    },
+    {
+      label: "missing candidate-only builder output",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        invocationResult: {
+          ...baseInput.invocationResult!,
+          outputSummary: {
+            ...baseInput.invocationResult!.outputSummary,
+            candidateOutput: null,
+          },
+        },
+        candidateOutput: null,
+        proposedPersistenceInput: {
+          ...baseInput.proposedPersistenceInput!,
+          candidate: null as unknown as ExecutionRecordPersistenceInput["candidate"],
+        },
+      }),
+      expectedReason: "missing_candidate_only_builder_output",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    const result = buildExecutionRecordPersistenceValidatorIntegration({
+      requestedAt: "2026-06-11T17:10:30.000Z",
+      adapterInput: unsafeCase.adapterInput,
+    });
+
+    expect(result.status, unsafeCase.label).toBe(
+      "persistence_validator_integration_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).toBe(
+      "blocked_do_not_call_persistence_validator",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectPersistenceValidatorIntegrationNoAuthority(result);
+  });
+});
+
+test("maps execution record persistence validator integration readiness gaps conservatively", () => {
+  const baseInput = buildPersistenceValidatorAdapterInput();
+  const readinessCases: Array<{
+    label: string;
+    adapterInput: ExecutionRecordPersistenceValidatorIntegrationAdapterInput;
+    expectedReason: string;
+  }> = [
+    {
+      label: "adapter blocked",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        persistenceIntegrationResult: null,
+      }),
+      expectedReason: "adapter_blocked",
+    },
+    {
+      label: "generated types absent or unknown",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        schemaReadinessSummary: {
+          ...baseInput.schemaReadinessSummary!,
+          generatedTypesAvailable: false,
+          generatedTypesReviewed: false,
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration application not proven",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        schemaReadinessSummary: {
+          ...baseInput.schemaReadinessSummary!,
+          migrationApplicationProven: false,
+        },
+      }),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "missing RLS security proof",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        securitySummary: {
+          ...baseInput.securitySummary!,
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "missing server-only write boundary",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        securitySummary: {
+          ...baseInput.securitySummary!,
+          serverOnlyWriteBoundaryPresent: false,
+        },
+      }),
+      expectedReason: "missing_server_only_write_boundary",
+    },
+    {
+      label: "missing dry-run route status",
+      adapterInput: buildPersistenceValidatorAdapterInput({
+        dryRunRouteSummary: {
+          ...baseInput.dryRunRouteSummary!,
+          dryRunRouteKnown: false,
+          dryRunRouteStatusAcknowledged: false,
+        },
+      }),
+      expectedReason: "missing_dry_run_route_status",
+    },
+  ];
+
+  readinessCases.forEach((readinessCase) => {
+    const result = buildExecutionRecordPersistenceValidatorIntegration({
+      requestedAt: "2026-06-11T17:11:00.000Z",
+      adapterInput: readinessCase.adapterInput,
+    });
+
+    expect(result.status, readinessCase.label).not.toBe(
+      "persistence_validator_integration_ready",
+    );
+    expect(result.blockedReasons, readinessCase.label).toContain(
+      readinessCase.expectedReason,
+    );
+    expect(result.validationResult?.safeToPersist, readinessCase.label).toBe(
+      false,
+    );
+    expectPersistenceValidatorIntegrationNoAuthority(result);
+  });
+});
+
+test("keeps execution record persistence validator integration review and invalid paths write-disabled", () => {
+  const adapterInput = buildPersistenceValidatorAdapterInput();
+  const reviewResult = buildExecutionRecordPersistenceValidatorIntegration({
+    requestedAt: "2026-06-11T17:12:00.000Z",
+    adapterInput,
+    validationInputOverrides: {
+      adapterResult: {
+        ...shapeExecutionRecordPersistenceValidatorInput(adapterInput),
+        status: "persistence_adapter_needs_review",
+        blockedReasons: [],
+      },
+    },
+  });
+
+  expect(reviewResult.status).toBe(
+    "persistence_validator_integration_needs_review",
+  );
+  expect(reviewResult.decisionRecommendation).toBe("needs_manual_review");
+  expectPersistenceValidatorIntegrationNoAuthority(reviewResult);
+
+  const invalidResult = buildExecutionRecordPersistenceValidatorIntegration({
+    requestedAt: "2026-06-11T17:12:30.000Z",
+    adapterInput,
+    authorityFlags: {
+      ...reviewResult.authorityFlags,
+      validationOnly: true,
+      safeToPersist: true,
+    } as unknown as ExecutionRecordPersistenceValidatorIntegrationReadinessResult["authorityFlags"],
+  });
+
+  expect(invalidResult.status).toBe(
+    "persistence_validator_integration_invalid",
+  );
+  expect(invalidResult.decisionRecommendation).toBe(
+    "invalid_do_not_call_persistence_validator",
+  );
+  expect(invalidResult.blockedReasons).toContain("authority_violation");
+  expectPersistenceValidatorIntegrationNoAuthority(invalidResult);
+});
+
+test("does not mutate execution record persistence validator integration input data", () => {
+  const adapterInput = buildPersistenceValidatorAdapterInput();
+  const before = {
+    requestedAt: adapterInput.requestedAt,
+    invocationStatus: adapterInput.invocationResult?.status,
+    candidateRecordId: adapterInput.candidateOutput?.recordId,
+    proposedCandidateRecordId:
+      adapterInput.proposedPersistenceInput?.candidate.recordId,
+    generatedTypesAvailable:
+      adapterInput.schemaReadinessSummary?.generatedTypesAvailable,
+    migrationApplicationProven:
+      adapterInput.schemaReadinessSummary?.migrationApplicationProven,
+    rlsSecurityProofPresent:
+      adapterInput.securitySummary?.rlsSecurityProofPresent,
+    dryRunRouteKnown: adapterInput.dryRunRouteSummary?.dryRunRouteKnown,
+  };
+  const candidateReference = adapterInput.candidateOutput;
+  const proposedInputReference = adapterInput.proposedPersistenceInput;
+
+  const result = buildExecutionRecordPersistenceValidatorIntegration({
+    requestedAt: "2026-06-11T17:13:00.000Z",
+    adapterInput,
+  });
+
+  expect(adapterInput.requestedAt).toBe(before.requestedAt);
+  expect(adapterInput.invocationResult?.status).toBe(before.invocationStatus);
+  expect(adapterInput.candidateOutput?.recordId).toBe(before.candidateRecordId);
+  expect(adapterInput.proposedPersistenceInput?.candidate.recordId).toBe(
+    before.proposedCandidateRecordId,
+  );
+  expect(adapterInput.schemaReadinessSummary?.generatedTypesAvailable).toBe(
+    before.generatedTypesAvailable,
+  );
+  expect(adapterInput.schemaReadinessSummary?.migrationApplicationProven).toBe(
+    before.migrationApplicationProven,
+  );
+  expect(adapterInput.securitySummary?.rlsSecurityProofPresent).toBe(
+    before.rlsSecurityProofPresent,
+  );
+  expect(adapterInput.dryRunRouteSummary?.dryRunRouteKnown).toBe(
+    before.dryRunRouteKnown,
+  );
+  expect(adapterInput.candidateOutput).toBe(candidateReference);
+  expect(adapterInput.proposedPersistenceInput).toBe(proposedInputReference);
+  expect(result.actualPersistenceValidatorBoundarySummary.status).toBe(
+    "not_called_future_boundary",
+  );
+  expect(result.actualPersistenceValidatorBoundarySummary.requiresGeneratedTypesProof)
+    .toBe(true);
+  expect(result.actualPersistenceValidatorBoundarySummary
+    .requiresMigrationApplicationProof).toBe(true);
+  expect(result.actualPersistenceValidatorBoundarySummary.requiresRlsSecurityProof)
+    .toBe(true);
+  expect(result.actualPersistenceValidatorBoundarySummary
+    .requiresServerOnlyWriteBoundary).toBe(true);
+  expect(result.actualPersistenceValidatorBoundarySummary.requiresDryRunRouteProof)
+    .toBe(true);
+  expectPersistenceValidatorIntegrationNoAuthority(result);
+});
+
+test("validates actual persistence validator boundary call readiness without downstream authority", () => {
+  const input = buildActualPersistenceValidatorBoundaryCallValidationInput();
+  const result = validateActualPersistenceValidatorBoundaryCall(input);
+
+  expect(result.status).toBe(
+    "actual_persistence_validator_boundary_validation_valid",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "may_call_actual_persistence_validator_only",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.readinessSummary.boundaryInputPresent).toBe(true);
+  expect(result.readinessSummary.mayCallActualPersistenceValidatorOnly).toBe(
+    true,
+  );
+  expect(result.readinessSummary.actualValidatorCallAllowedOnly).toBe(true);
+  expect(result.composerValidationSummary.composerReady).toBe(true);
+  expect(result.composerValidationSummary
+    .composerReportsNotCalledFutureBoundary).toBe(true);
+  expect(result.proposedInputValidationSummary
+    .requiredPersistenceInputFieldsPresent).toBe(true);
+  expect(result.proposedInputValidationSummary.sourceEvidencePresent).toBe(true);
+  expect(result.schemaGeneratedTypesValidationSummary.generatedTypesPresent)
+    .toBe(true);
+  expect(result.migrationValidationSummary.migrationApplicationProven).toBe(
+    true,
+  );
+  expect(result.idempotencyDuplicateValidationSummary
+    .idempotencyMetadataPresent).toBe(true);
+  expect(result.auditCorrectionValidationSummary.sourceEvidenceChainPresent)
+    .toBe(true);
+  expect(result.securityServerOnlyValidationSummary.rlsSecurityProofPresent)
+    .toBe(true);
+  expect(result.securityServerOnlyValidationSummary
+    .serverOnlyBoundaryProofPresent).toBe(true);
+  expect(result.dryRunRouteValidationSummary.dryRunRouteStatusKnown).toBe(true);
+  expect(result.manualApprovalValidationSummary.manualApprovalSatisfied).toBe(
+    true,
+  );
+  expect(result.warnings).toContain("actual_validator_not_called");
+  expect(result.warnings).toContain(
+    "may_call_actual_persistence_validator_only_not_insert_approval",
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      callReadinessOnly: true,
+      mayCallActualPersistenceValidatorOnly: true,
+      insertRouteApproval: false,
+      executionRecordCreationApproval: false,
+      persistenceWriteApproval: false,
+      auditAppendApproval: false,
+      statsUpdateApproval: false,
+      rollbackCorrectionApproval: false,
+      tradeMutationApproval: false,
+      brokerOrderApproval: false,
+      avanzaBrowserApproval: false,
+    }),
+  );
+  expectActualPersistenceBoundaryValidationNoAuthority(result);
+});
+
+test("blocks actual persistence validator boundary call validation unsafe paths", () => {
+  const readyInput = buildActualPersistenceValidatorBoundaryCallValidationInput();
+  const readyBoundaryInput = readyInput.boundaryInput!;
+  const readyProposedInput = readyInput.proposedPersistenceInput!;
+  const readyIdempotencySummary = readyInput.idempotencySummary!;
+  const unsafeCases: Array<{
+    label: string;
+    input: ActualPersistenceValidatorBoundaryCallValidationInput;
+    expectedStatus: ActualPersistenceValidatorBoundaryCallValidationResult["status"];
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing boundary input",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        boundaryInput: null,
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_boundary_input",
+    },
+    {
+      label: "missing composer result",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        composerResult: null,
+        boundaryInput: {
+          ...readyBoundaryInput,
+          composerResult: null,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_composer_result",
+    },
+    {
+      label: "composer not ready",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        composerResult: {
+          ...readyInput.composerResult!,
+          status: "persistence_validator_integration_blocked",
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "composer_not_ready",
+    },
+    {
+      label: "actual validator already called unexpectedly",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        boundaryInput: {
+          ...readyBoundaryInput,
+          safetyPolicy: {
+            ...ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_SAFETY_POLICY,
+            actualPersistenceValidatorCallAttempted: true,
+          } as unknown as typeof ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_SAFETY_POLICY,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_invalid",
+      expectedReason: "actual_validator_already_called_unexpectedly",
+    },
+    {
+      label: "adapter not ready",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        adapterResult: {
+          ...readyInput.adapterResult!,
+          status: "persistence_adapter_blocked",
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "adapter_not_ready",
+    },
+    {
+      label: "integration validation not valid",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        integrationValidationResult: {
+          ...readyInput.integrationValidationResult!,
+          status: "persistence_integration_validation_blocked",
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "integration_validation_not_valid",
+    },
+    {
+      label: "missing proposed persistence input",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        proposedPersistenceInput: null,
+        proposedInputSummary: null,
+        boundaryInput: {
+          ...readyBoundaryInput,
+          proposedPersistenceInput: null,
+          proposedInputSummary: null,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_proposed_persistence_input",
+    },
+    {
+      label: "missing required persistence field",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        proposedPersistenceInput: {
+          ...readyProposedInput,
+          idempotencyKey: "",
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_required_persistence_field",
+    },
+    {
+      label: "missing source evidence",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        sourceEvidenceSummary: {
+          ...readyInput.sourceEvidenceSummary!,
+          sourceEvidencePresent: false,
+        },
+        proposedPersistenceInput: {
+          ...readyProposedInput,
+          auditMetadata: {
+            ...readyProposedInput.auditMetadata,
+            sourceEventIds: [],
+          },
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_source_evidence",
+    },
+    {
+      label: "schema readiness unknown",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        schemaReadinessSummary: {
+          ...readyInput.schemaReadinessSummary!,
+          schemaReadinessKnown: false,
+          schemaReadyForValidation: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "schema_readiness_absent_or_unknown",
+    },
+    {
+      label: "generated types absent",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        generatedTypesSummary: {
+          ...readyInput.generatedTypesSummary!,
+          generatedTypesStatus: "absent",
+          generatedTypesPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        migrationSummary: {
+          ...readyInput.migrationSummary!,
+          migrationApplicationStatus: "not_proven",
+          migrationApplied: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "missing idempotency metadata",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        idempotencySummary: {
+          ...readyIdempotencySummary,
+          idempotencyMetadataPresent: false,
+          requiredFingerprintsPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_idempotency_metadata",
+    },
+    {
+      label: "conflicting fingerprint",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        idempotencySummary: {
+          ...readyIdempotencySummary,
+          conflictingFingerprintsDetected: true,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_invalid",
+      expectedReason: "conflicting_fingerprint",
+    },
+    {
+      label: "missing duplicate prevention metadata",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        duplicatePreventionSummary: {
+          ...readyInput.duplicatePreventionSummary!,
+          duplicatePreventionMetadataPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_duplicate_prevention_metadata",
+    },
+    {
+      label: "missing audit correction metadata",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        auditCorrectionSummary: {
+          ...readyInput.auditCorrectionSummary!,
+          auditCorrectionMetadataPresent: false,
+          sourceEvidenceChainPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_audit_correction_metadata",
+    },
+    {
+      label: "missing RLS security proof",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        securitySummary: {
+          ...readyInput.securitySummary!,
+          rlsSecurityStatus: "missing",
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "missing server-only boundary",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        serverOnlySummary: {
+          ...readyInput.serverOnlySummary!,
+          serverOnlyBoundaryStatus: "missing",
+          serverOnlyBoundaryProofPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_server_only_boundary",
+    },
+    {
+      label: "missing dry-run route status",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        dryRunRouteSummary: {
+          ...readyInput.dryRunRouteSummary!,
+          dryRunRouteStatus: "missing",
+          dryRunRouteMetadataPresent: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "missing_dry_run_route_status",
+    },
+    {
+      label: "manual approval missing",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          manualApprovalMetadataPresent: false,
+          manualApprovalSatisfied: false,
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_blocked",
+      expectedReason: "manual_approval_missing",
+    },
+    {
+      label: "automatic mode enabled",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          automaticModeAllowed: true,
+        } as unknown as ActualPersistenceValidatorBoundaryCallValidationInput["manualApprovalSummary"],
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_invalid",
+      expectedReason: "automatic_mode_enabled",
+    },
+    {
+      label: "authority flags not false",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        authorityFlags: {
+          ...ACTUAL_PERSISTENCE_VALIDATOR_BOUNDARY_DEFAULT_AUTHORITY_FLAGS,
+          safeToPersist: true,
+        } as unknown as ActualPersistenceValidatorBoundaryCallValidationInput["authorityFlags"],
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_invalid",
+      expectedReason: "authority_flags_not_false",
+    },
+    {
+      label: "unsupported source",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        proposedPersistenceInput: {
+          ...readyProposedInput,
+          userContext: {
+            ...readyProposedInput.userContext,
+            sourceEnvironment: "local_dev",
+          },
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_unsupported",
+      expectedReason: "unsupported_source",
+    },
+    {
+      label: "unsupported broker",
+      input: buildActualPersistenceValidatorBoundaryCallValidationInput({
+        proposedPersistenceInput: {
+          ...readyProposedInput,
+          brokerConfirmation: {
+            ...readyProposedInput.brokerConfirmation,
+            broker: "other_broker",
+          } as unknown as ExecutionRecordPersistenceInput["brokerConfirmation"],
+        },
+      }),
+      expectedStatus:
+        "actual_persistence_validator_boundary_validation_unsupported",
+      expectedReason: "unsupported_broker",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    const result = validateActualPersistenceValidatorBoundaryCall(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).toBe(unsafeCase.expectedStatus);
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expect(result.warnings, unsafeCase.label).toContain(
+      "actual_validator_not_called",
+    );
+    expect(result.readinessSummary, unsafeCase.label).toBeDefined();
+    expect(result.composerValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.proposedInputValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.schemaGeneratedTypesValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.migrationValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.idempotencyDuplicateValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.auditCorrectionValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.securityServerOnlyValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.dryRunRouteValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.manualApprovalValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.postCallBoundaryValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expectActualPersistenceBoundaryValidationNoAuthority(result);
+  });
+});
+
+test("calls injected actual persistence validator only after boundary readiness passes", () => {
+  const input = buildActualPersistenceValidatorBoundaryCallImplementationInput();
+  let callCount = 0;
+  const callable = (proposedInput: ExecutionRecordPersistenceInput) => {
+    callCount += 1;
+
+    return validateExecutionRecordPersistenceInput(proposedInput);
+  };
+  const result = callActualPersistenceValidatorBoundary({
+    ...input,
+    actualPersistenceValidatorCallableFunction: callable,
+  });
+
+  expect(callCount).toBe(1);
+  expect(result.status).toBe(
+    "actual_persistence_validator_boundary_call_validated",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "actual_validator_valid_do_not_insert",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.actualValidatorCalled).toBe(true);
+  expect(result.validatorOutputSummary.actualValidatorCalled).toBe(true);
+  expect(result.validatorOutputSummary.actualValidatorStatus).toBe("eligible");
+  expect(result.validatorOutputSummary.actualValidatorResult?.safeToWrite).toBe(
+    true,
+  );
+  expect(result.safetyPolicy.actualPersistenceValidatorCallAttempted).toBe(
+    true,
+  );
+  expect(result.contractOnly).toBe(false);
+  expect(result.implementationCreated).toBe(true);
+  expectActualPersistenceBoundaryCallImplementationNoWriteAuthority(result);
+});
+
+test("blocks actual persistence validator boundary implementation unsafe paths before callable invocation", () => {
+  const readyInput = buildActualPersistenceValidatorBoundaryCallImplementationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input: ActualPersistenceValidatorBoundaryCallImplementationInput;
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing boundary result",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        boundaryCallValidationResult: null,
+      }),
+      expectedReason: "missing_boundary_call_validation_result",
+    },
+    {
+      label: "boundary result not valid",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        boundaryCallValidationResult: {
+          ...readyInput.boundaryCallValidationResult!,
+          status: "actual_persistence_validator_boundary_validation_blocked",
+        },
+      }),
+      expectedReason: "boundary_call_validation_not_valid",
+    },
+    {
+      label: "missing proposed input",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        proposedPersistenceInput: null,
+      }),
+      expectedReason: "missing_proposed_persistence_input",
+    },
+    {
+      label: "missing callable",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        actualPersistenceValidatorCallableFunction: null,
+      }),
+      expectedReason: "missing_actual_persistence_validator_callable",
+    },
+    {
+      label: "generated types absent",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        generatedTypesSummary: {
+          ...readyInput.generatedTypesSummary!,
+          generatedTypesStatus: "absent",
+          generatedTypesPresent: false,
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        migrationSummary: {
+          ...readyInput.migrationSummary!,
+          migrationApplicationStatus: "not_proven",
+          migrationApplied: false,
+        },
+      }),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "schema readiness unknown",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        schemaReadinessSummary: {
+          ...readyInput.schemaReadinessSummary!,
+          schemaReadinessKnown: false,
+          schemaReadyForValidation: false,
+        },
+      }),
+      expectedReason: "schema_readiness_absent_or_unknown",
+    },
+    {
+      label: "missing source evidence",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        sourceEvidenceSummary: {
+          ...readyInput.sourceEvidenceSummary!,
+          sourceEvidencePresent: false,
+        },
+      }),
+      expectedReason: "missing_source_evidence",
+    },
+    {
+      label: "missing idempotency metadata",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        idempotencySummary: {
+          ...readyInput.idempotencySummary!,
+          idempotencyMetadataPresent: false,
+          requiredFingerprintsPresent: false,
+        },
+      }),
+      expectedReason: "missing_idempotency_metadata",
+    },
+    {
+      label: "missing duplicate prevention metadata",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        duplicatePreventionSummary: {
+          ...readyInput.duplicatePreventionSummary!,
+          duplicatePreventionMetadataPresent: false,
+        },
+      }),
+      expectedReason: "missing_duplicate_prevention_metadata",
+    },
+    {
+      label: "missing audit correction metadata",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        auditCorrectionSummary: {
+          ...readyInput.auditCorrectionSummary!,
+          auditCorrectionMetadataPresent: false,
+          sourceEvidenceChainPresent: false,
+        },
+      }),
+      expectedReason: "missing_audit_correction_metadata",
+    },
+    {
+      label: "missing security proof",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        securitySummary: {
+          ...readyInput.securitySummary!,
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "missing server only boundary",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        serverOnlySummary: {
+          ...readyInput.serverOnlySummary!,
+          serverOnlyBoundaryProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_server_only_boundary",
+    },
+    {
+      label: "missing dry run route status",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        dryRunRouteSummary: {
+          ...readyInput.dryRunRouteSummary!,
+          dryRunRouteStatus: "unknown",
+        },
+      }),
+      expectedReason: "missing_dry_run_route_status",
+    },
+    {
+      label: "manual approval missing",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          manualApprovalSatisfied: false,
+        },
+      }),
+      expectedReason: "manual_approval_missing",
+    },
+    {
+      label: "unsafe authority flags",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        boundaryCallValidationResult: {
+          ...readyInput.boundaryCallValidationResult!,
+          authorityFlags: {
+            ...readyInput.boundaryCallValidationResult!.authorityFlags,
+            safeToPersist: true,
+          } as unknown as ActualPersistenceValidatorBoundaryCallValidationResult["authorityFlags"],
+        },
+      }),
+      expectedReason: "authority_flags_not_false",
+    },
+    {
+      label: "automatic mode enabled",
+      input: buildActualPersistenceValidatorBoundaryCallImplementationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          automaticModeAllowed: true,
+        } as unknown as ActualPersistenceValidatorBoundaryCallImplementationInput["manualApprovalSummary"],
+      }),
+      expectedReason: "automatic_mode_not_allowed",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    let callCount = 0;
+    const countingCallable = (proposedInput: ExecutionRecordPersistenceInput) => {
+          callCount += 1;
+
+          return validateExecutionRecordPersistenceInput(proposedInput);
+        };
+    const implementationInput =
+      unsafeCase.expectedReason === "missing_actual_persistence_validator_callable"
+        ? unsafeCase.input
+        : {
+            ...unsafeCase.input,
+            actualPersistenceValidatorCallableFunction: countingCallable,
+          };
+    const result = callActualPersistenceValidatorBoundary(implementationInput);
+
+    expect(callCount, unsafeCase.label).toBe(0);
+    expect(result.status, unsafeCase.label).not.toBe(
+      "actual_persistence_validator_boundary_call_validated",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "actual_validator_valid_do_not_insert",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expect(result.actualValidatorCalled, unsafeCase.label).toBe(false);
+    expect(result.validatorOutputSummary.actualValidatorCalled, unsafeCase.label)
+      .toBe(false);
+    expect(result.safetyPolicy.actualPersistenceValidatorCallAttempted)
+      .toBe(false);
+    expectActualPersistenceBoundaryCallImplementationNoWriteAuthority(result);
+  });
+});
+
+test("returns invalid no-write diagnostics when injected actual persistence validator throws", () => {
+  const input = buildActualPersistenceValidatorBoundaryCallImplementationInput();
+  const result = callActualPersistenceValidatorBoundary({
+    ...input,
+    actualPersistenceValidatorCallableFunction: () => {
+      throw new Error("validator exploded");
+    },
+  });
+
+  expect(result.status).toBe("actual_persistence_validator_boundary_call_invalid");
+  expect(result.decisionRecommendation).toBe("invalid_do_not_insert");
+  expect(result.blockedReasons).toContain("actual_validator_callable_failed");
+  expect(result.actualValidatorCalled).toBe(true);
+  expect(result.validatorOutputSummary.actualValidatorCalled).toBe(true);
+  expect(result.validatorOutputSummary.actualValidatorResult).toBeNull();
+  expect(result.validatorOutputSummary.validationErrors).toContain(
+    "validator exploded",
+  );
+  expect(result.safetyPolicy.actualPersistenceValidatorCallAttempted).toBe(true);
+  expectActualPersistenceBoundaryCallImplementationNoWriteAuthority(result);
+});
+
+test("validates insert route readiness boundary without insert or write authority", () => {
+  const input = buildExecutionRecordInsertRouteReadinessValidationInput();
+  const result = validateExecutionRecordInsertRouteReadiness(input);
+
+  expect(result.status).toBe("insert_route_readiness_validation_ready");
+  expect(result.decisionRecommendation).toBe(
+    "may_prepare_insert_route_call_only",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.routeEligibilityValidationSummary.mayPrepareInsertRouteCallOnly)
+    .toBe(true);
+  expect(result.routeEligibilityValidationSummary.safeToCallInsertRoute).toBe(
+    false,
+  );
+  expect(result.actualValidatorValidationSummary.wrapperResultPresent).toBe(
+    true,
+  );
+  expect(result.actualValidatorValidationSummary.wrapperValidated).toBe(true);
+  expect(result.actualValidatorValidationSummary.wrapperDecisionDoNotInsert)
+    .toBe(true);
+  expect(result.actualValidatorValidationSummary.actualValidatorOutputPresent)
+    .toBe(true);
+  expect(result.actualValidatorValidationSummary
+    .actualValidatorOutputHasBlockingErrors).toBe(false);
+  expect(result.normalizedInputValidationSummary
+    .requiredNormalizedFieldsPresent).toBe(true);
+  expect(result.generatedTypesValidationSummary.generatedTypesPresent).toBe(
+    true,
+  );
+  expect(result.migrationValidationSummary.migrationApplied).toBe(true);
+  expect(result.rlsSecurityValidationSummary.rlsSecurityProofPresent).toBe(
+    true,
+  );
+  expect(result.serverOnlyBoundaryValidationSummary
+    .serverOnlyBoundaryProofPresent).toBe(true);
+  expect(result.idempotencyDuplicateValidationSummary
+    .idempotencyMetadataPresent).toBe(true);
+  expect(result.auditCorrectionValidationSummary
+    .auditCorrectionMetadataPresent).toBe(true);
+  expect(result.evidenceProvenanceValidationSummary.sourceEvidencePresent)
+    .toBe(true);
+  expect(result.manualApprovalValidationSummary.manualApprovalSatisfied).toBe(
+    true,
+  );
+  expect(result.dryRunProductionSeparationValidationSummary
+    .productionRouteSeparatedFromDryRun).toBe(true);
+  expect(result.warnings).toContain("insert_route_not_called");
+  expect(result.warnings).toContain(
+    "may_prepare_insert_route_call_only_not_insert_execution",
+  );
+  expectInsertRouteReadinessValidationNoAuthority(result);
+});
+
+test("blocks insert route readiness boundary unsafe inputs", () => {
+  const readyInput = buildExecutionRecordInsertRouteReadinessValidationInput();
+  const readyReadinessInput = readyInput.readinessInput!;
+  const readyReadinessResult = readyInput.readinessResult!;
+  const readyProposedInput = readyInput.normalizedPersistenceInput!;
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordInsertRouteReadinessValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing readiness input",
+      input: null,
+      expectedReason: "missing_readiness_input",
+    },
+    {
+      label: "missing readiness input on payload",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        readinessInput: null,
+      }),
+      expectedReason: "missing_readiness_input",
+    },
+    {
+      label: "missing actual validator wrapper",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        readinessInput: {
+          ...readyReadinessInput,
+          actualValidatorWrapperResult: null,
+        },
+        readinessResult: {
+          ...readyReadinessResult,
+          actualValidatorSummary: {
+            ...readyReadinessResult.actualValidatorSummary,
+            wrapperResult: null,
+            wrapperResultPresent: false,
+          },
+        },
+        actualValidatorWrapperResult: null,
+        actualValidatorOutputSummary: {
+          ...readyInput.actualValidatorOutputSummary!,
+          wrapperResult: null,
+          wrapperResultPresent: false,
+        },
+      }),
+      expectedReason: "missing_actual_validator_wrapper_result",
+    },
+    {
+      label: "wrapper not validated",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        actualValidatorWrapperResult: {
+          ...readyInput.actualValidatorWrapperResult!,
+          status: "actual_persistence_validator_boundary_call_blocked",
+        },
+      }),
+      expectedReason: "actual_validator_wrapper_not_validated",
+    },
+    {
+      label: "wrapper decision not do not insert",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        actualValidatorWrapperResult: {
+          ...readyInput.actualValidatorWrapperResult!,
+          decisionRecommendation: "invalid_do_not_insert",
+        },
+      }),
+      expectedReason: "actual_validator_decision_not_do_not_insert",
+    },
+    {
+      label: "actual validator output has errors",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        actualValidatorOutputSummary: {
+          ...readyInput.actualValidatorOutputSummary!,
+          actualValidatorOutputHasBlockingErrors: true,
+        },
+      }),
+      expectedReason: "actual_validator_output_has_errors",
+    },
+    {
+      label: "missing normalized persistence input",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        normalizedPersistenceInput: null,
+        readinessInput: {
+          ...readyReadinessInput,
+          proposedNormalizedPersistenceInput: null,
+        },
+        readinessResult: {
+          ...readyReadinessResult,
+          normalizedInputSummary: {
+            ...readyReadinessResult.normalizedInputSummary,
+            proposedPersistenceInput: null,
+          },
+        },
+      }),
+      expectedReason: "missing_normalized_persistence_input",
+    },
+    {
+      label: "missing required normalized field",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        normalizedPersistenceInput: {
+          ...readyProposedInput,
+          idempotencyKey: "",
+        },
+      }),
+      expectedReason: "missing_required_normalized_field",
+    },
+    {
+      label: "generated types absent",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        generatedTypesSummary: {
+          ...readyInput.generatedTypesSummary!,
+          generatedTypesStatus: "absent",
+          generatedTypesPresent: false,
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        migrationSummary: {
+          ...readyInput.migrationSummary!,
+          migrationApplicationStatus: "unproven",
+          migrationApplied: false,
+        },
+      }),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "schema readiness unknown",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        schemaReadinessSummary: {
+          ...readyInput.schemaReadinessSummary!,
+          schemaReadinessKnown: false,
+          schemaReadyForInsertReadiness: false,
+        },
+      }),
+      expectedReason: "schema_readiness_absent_or_unknown",
+    },
+    {
+      label: "missing RLS proof",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        rlsSecuritySummary: {
+          ...readyInput.rlsSecuritySummary!,
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_rls_security_proof",
+    },
+    {
+      label: "missing server only boundary",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        serverOnlyBoundarySummary: {
+          ...readyInput.serverOnlyBoundarySummary!,
+          serverOnlyBoundaryProofPresent: false,
+        },
+      }),
+      expectedReason: "missing_server_only_write_boundary",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        idempotencyDuplicateSummary: {
+          ...readyInput.idempotencyDuplicateSummary!,
+          duplicatePreventionMetadataPresent: false,
+        },
+      }),
+      expectedReason: "missing_duplicate_prevention_metadata",
+    },
+    {
+      label: "missing idempotency metadata",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        idempotencyDuplicateSummary: {
+          ...readyInput.idempotencyDuplicateSummary!,
+          idempotencyMetadataPresent: false,
+        },
+      }),
+      expectedReason: "missing_idempotency_metadata",
+    },
+    {
+      label: "missing audit correction",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        auditCorrectionSummary: {
+          ...readyInput.auditCorrectionSummary!,
+          auditCorrectionMetadataPresent: false,
+        },
+      }),
+      expectedReason: "missing_audit_correction_metadata",
+    },
+    {
+      label: "missing source evidence",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        evidenceProvenanceSummary: {
+          ...readyInput.evidenceProvenanceSummary!,
+          sourceEvidencePresent: false,
+          sourceEvidenceIds: [],
+        },
+      }),
+      expectedReason: "missing_source_evidence",
+    },
+    {
+      label: "missing manual approval",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          manualApprovalSatisfied: false,
+        },
+      }),
+      expectedReason: "missing_manual_approval",
+    },
+    {
+      label: "missing dry run route status",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        dryRunProductionSeparationSummary: {
+          ...readyInput.dryRunProductionSeparationSummary!,
+          dryRunRouteStatus: "unknown",
+        },
+      }),
+      expectedReason: "missing_dry_run_route_status",
+    },
+    {
+      label: "production route not separated",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        dryRunProductionSeparationSummary: {
+          ...readyInput.dryRunProductionSeparationSummary!,
+          productionRouteSeparatedFromDryRun: false,
+        },
+      }),
+      expectedReason: "production_route_not_separated_from_dry_run",
+    },
+    {
+      label: "automatic mode enabled",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        manualApprovalSummary: {
+          ...readyInput.manualApprovalSummary!,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordInsertRouteManualApprovalSummary,
+      }),
+      expectedReason: "automatic_mode_enabled",
+    },
+    {
+      label: "write authority present",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        metadata: {
+          safeToPersist: true,
+        },
+      }),
+      expectedReason: "write_authority_present",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        postInsertBoundarySummary: {
+          ...readyInput.postInsertBoundarySummary!,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordInsertRouteReadinessValidationInput["postInsertBoundarySummary"],
+      }),
+      expectedReason: "trade_mutation_requested",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordInsertRouteReadinessValidationInput({
+        postInsertBoundarySummary: {
+          ...readyInput.postInsertBoundarySummary!,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordInsertRouteReadinessValidationInput["postInsertBoundarySummary"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+    },
+  ];
+
+  unsafeCases.forEach((unsafeCase) => {
+    const result = validateExecutionRecordInsertRouteReadiness(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).not.toBe(
+      "insert_route_readiness_validation_ready",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "may_prepare_insert_route_call_only",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expect(result.routeEligibilityValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.actualValidatorValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.normalizedInputValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.generatedTypesValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.migrationValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.rlsSecurityValidationSummary, unsafeCase.label).toBeDefined();
+    expect(result.serverOnlyBoundaryValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.idempotencyDuplicateValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.auditCorrectionValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.evidenceProvenanceValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.manualApprovalValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.dryRunProductionSeparationValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expect(result.postInsertBoundaryValidationSummary, unsafeCase.label)
+      .toBeDefined();
+    expectInsertRouteReadinessValidationNoAuthority(result);
+  });
+});
+
+test("calls injected execution record insert route callable for dry-run only", async () => {
+  let callCount = 0;
+  const input = buildExecutionRecordInsertRouteCallInput({
+    insertRouteCallable: async (routeCallInput) => {
+      callCount += 1;
+
+      expect(routeCallInput.routeMode).toBe("dry_run");
+
+      return {
+        status: "insert_route_call_dry_run_only",
+        dryRunResult: {
+          accepted: true,
+          dryRunOnly: true,
+        },
+        routeValidationErrors: [],
+      };
+    },
+  });
+  const result = await callExecutionRecordInsertRoute(input);
+
+  expect(callCount).toBe(1);
+  expect(result.status).toBe("insert_route_call_dry_run_only");
+  expect(result.decisionRecommendation).toBe("dry_run_only_do_not_persist");
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.preconditionSummary.readinessValidationReady).toBe(true);
+  expect(result.preconditionSummary.readinessDecisionPrepareOnly).toBe(true);
+  expect(result.routeOutputSummary.insertRouteCallAttempted).toBe(true);
+  expect(result.routeOutputSummary.dryRunResult).toEqual(
+    expect.objectContaining({
+      accepted: true,
+      dryRunOnly: true,
+    }),
+  );
+  expect(result.metadata).toEqual(
+    expect.objectContaining({
+      routeCallableAttempted: true,
+      routeCallableInjected: true,
+    }),
+  );
+  expectInsertRouteCallNoPostInsertAuthority(result);
+});
+
+test("blocks production execution record insert route call without production proof", async () => {
+  let callCount = 0;
+  const input = buildExecutionRecordInsertRouteCallInput({
+    routeMode: "production",
+    routeModeMetadata: {
+      mode: "production",
+      routeName: "/api/execution/records/insert",
+      dryRunRouteName: "/api/execution/records/insert",
+      productionRouteName: "/api/execution/records/insert",
+      serverOnlyRequestContext:
+        buildExecutionRecordInsertRouteReadinessValidationInput()
+          .serverOnlyRequestContext,
+    },
+    insertRouteCallable: () => {
+      callCount += 1;
+
+      return {
+        status: "insert_route_call_prepared",
+        routeValidationErrors: [],
+      };
+    },
+  });
+  const result = await callExecutionRecordInsertRoute(input);
+
+  expect(callCount).toBe(0);
+  expect(result.status).toBe("insert_route_call_not_called");
+  expect(result.decisionRecommendation).toBe("not_called");
+  expect(result.blockedReasons).toContain("production_route_unavailable");
+  expect(result.routeOutputSummary.insertRouteCallAttempted).toBe(false);
+  expect(result.dryRunProductionModeSummary.productionRouteAvailable).toBe(
+    false,
+  );
+  expectInsertRouteCallNoPostInsertAuthority(result);
+});
+
+test("blocks execution record insert route call unsafe inputs before callable", async () => {
+  const baseInput = buildExecutionRecordInsertRouteCallInput();
+  const blockedReadinessInput =
+    buildExecutionRecordInsertRouteReadinessValidationInput({
+      generatedTypesSummary: {
+        ...baseInput.readinessValidationResult!.generatedTypesValidationSummary
+          .sourceSummary!,
+        generatedTypesStatus: "absent",
+        generatedTypesPresent: false,
+      },
+    });
+  const blockedReadinessResult = validateExecutionRecordInsertRouteReadiness(
+    blockedReadinessInput,
+  );
+  const unsafeCases: Array<{
+    label: string;
+    input: ExecutionRecordInsertRouteCallInput;
+    expectedReason: string;
+  }> = [
+    {
+      label: "missing readiness validation",
+      input: buildExecutionRecordInsertRouteCallInput({
+        readinessValidationResult: null,
+      }),
+      expectedReason: "missing_insert_readiness_validation_result",
+    },
+    {
+      label: "readiness not ready",
+      input: buildExecutionRecordInsertRouteCallInput({
+        readinessValidationResult: blockedReadinessResult,
+      }),
+      expectedReason: "insert_readiness_not_ready",
+    },
+    {
+      label: "missing normalized persistence input",
+      input: buildExecutionRecordInsertRouteCallInput({
+        normalizedPersistenceInput: null,
+        readinessValidationResult: {
+          ...baseInput.readinessValidationResult!,
+          normalizedInputValidationSummary: {
+            ...baseInput.readinessValidationResult!
+              .normalizedInputValidationSummary,
+            proposedPersistenceInput: null,
+          },
+        },
+      }),
+      expectedReason: "missing_normalized_persistence_input",
+    },
+    {
+      label: "missing callable",
+      input: buildExecutionRecordInsertRouteCallInput({
+        insertRouteCallable: null,
+      }),
+      expectedReason: "missing_insert_route_callable",
+    },
+    {
+      label: "missing route mode",
+      input: buildExecutionRecordInsertRouteCallInput({
+        routeMode: "not_selected",
+      }),
+      expectedReason: "missing_route_mode",
+    },
+    {
+      label: "generated types absent",
+      input: buildExecutionRecordInsertRouteCallInput({
+        schemaGeneratedTypesMigrationSummary: {
+          expectedTableName: "execution_records",
+          schemaReadyForInsert: true,
+          generatedTypesPresent: false,
+          executionRecordsTableTyped: false,
+          migrationApplicationProven: true,
+          blockedReasons: [],
+          warnings: [],
+          reviewItems: [],
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "unsafe post insert authority",
+      input: buildExecutionRecordInsertRouteCallInput({
+        postInsertBoundarySummary: {
+          ...baseInput.postInsertBoundarySummary,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordInsertRouteCallInput["postInsertBoundarySummary"],
+      }),
+      expectedReason: "post_insert_mutation_not_allowed",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    let callCount = 0;
+    const input =
+      unsafeCase.expectedReason === "missing_insert_route_callable"
+        ? unsafeCase.input
+        : {
+            ...unsafeCase.input,
+            insertRouteCallable: () => {
+              callCount += 1;
+
+              return {
+                status: "insert_route_call_dry_run_only" as const,
+                routeValidationErrors: [],
+              };
+            },
+          };
+    const result = await callExecutionRecordInsertRoute(input);
+
+    expect(callCount, unsafeCase.label).toBe(0);
+    expect(result.status, unsafeCase.label).not.toBe(
+      "insert_route_call_dry_run_only",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expect(result.routeOutputSummary.insertRouteCallAttempted, unsafeCase.label)
+      .toBe(false);
+    expectInsertRouteCallNoPostInsertAuthority(result);
+  }
+});
+
+test("returns invalid diagnostics when injected insert route callable throws", async () => {
+  const input = buildExecutionRecordInsertRouteCallInput({
+    insertRouteCallable: () => {
+      throw new Error("insert route exploded");
+    },
+  });
+  const result = await callExecutionRecordInsertRoute(input);
+
+  expect(result.status).toBe("insert_route_call_invalid");
+  expect(result.decisionRecommendation).toBe(
+    "invalid_do_not_call_insert_route",
+  );
+  expect(result.blockedReasons).toContain("insert_route_callable_failed");
+  expect(result.routeOutputSummary.insertRouteCallAttempted).toBe(true);
+  expect(result.routeOutputSummary.routeValidationErrors).toContain(
+    "insert route exploded",
+  );
+  expectInsertRouteCallNoPostInsertAuthority(result);
+});
+
+test("validates production insert route boundary readiness as design-only", async () => {
+  const input =
+    await buildExecutionRecordProductionInsertRouteBoundaryValidationInput();
+  const result = validateExecutionRecordProductionInsertRouteBoundary(input);
+
+  expect(result.status).toBe(
+    "production_insert_route_boundary_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_implement_route",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("contract_only");
+  expect(result.warnings).toContain("validator_not_implemented");
+  expect(result.currentStateValidationSummary.productionRouteImplemented).toBe(
+    false,
+  );
+  expect(result.currentStateValidationSummary.productionRouteCalled).toBe(
+    false,
+  );
+  expect(result.preconditionValidationSummary.generatedTypesPresent).toBe(true);
+  expect(result.preconditionValidationSummary.migrationApplicationProven).toBe(
+    true,
+  );
+  expect(result.preconditionValidationSummary.serverOnlyBoundaryProven).toBe(
+    true,
+  );
+  expect(result.allowedInputValidationSummary.normalizedInputPresent).toBe(
+    true,
+  );
+  expect(result.allowedOutputValidationSummary.safeSummaryOnly).toBe(true);
+  expect(result.dryRunSeparationValidationSummary.routeModeExplicit).toBe(true);
+  expect(result.schemaGeneratedTypesMigrationValidationSummary
+    .noRuntimeDbWritesInValidation).toBe(true);
+  expect(result.idempotencyDuplicateValidationSummary
+    .duplicateInsertBlockedBeforeProductionInsert).toBe(true);
+  expectProductionInsertRouteBoundaryValidationNoAuthority(result);
+});
+
+test("blocks unsafe production insert route boundary validation inputs", async () => {
+  const baseInput =
+    await buildExecutionRecordProductionInsertRouteBoundaryValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input: ExecutionRecordProductionInsertRouteBoundaryValidationInput;
+    expectedReason: string;
+    expectedStatus?:
+      | "production_insert_route_boundary_validation_blocked"
+      | "production_insert_route_boundary_validation_invalid";
+  }> = [
+    {
+      label: "missing boundary input",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput({
+          boundaryInput: null,
+        }),
+      expectedReason: "missing_boundary_input",
+      expectedStatus: "production_insert_route_boundary_validation_blocked",
+    },
+    {
+      label: "generated types absent",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              generatedTypesPresent: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              generatedTypesSchemaReadinessProofPresent: false,
+            },
+            schemaGeneratedTypesMigrationSummary: {
+              ...baseInput.boundaryInput!
+                .schemaGeneratedTypesMigrationSummary!,
+              generatedTypesPresent: false,
+            },
+          },
+        ),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              migrationApplicationProven: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              migrationProofPresent: false,
+            },
+            schemaGeneratedTypesMigrationSummary: {
+              ...baseInput.boundaryInput!
+                .schemaGeneratedTypesMigrationSummary!,
+              migrationApplicationProven: false,
+            },
+          },
+        ),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "schema unverified",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              executionRecordsSchemaVerified: false,
+            },
+            schemaGeneratedTypesMigrationSummary: {
+              ...baseInput.boundaryInput!
+                .schemaGeneratedTypesMigrationSummary!,
+              executionRecordsSchemaVerified: false,
+            },
+          },
+        ),
+      expectedReason: "execution_records_schema_unverified",
+    },
+    {
+      label: "rls unverified",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              rlsSecurityVerified: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              rlsSecurityProofPresent: false,
+            },
+            securitySummary: {
+              ...baseInput.boundaryInput!.securitySummary!,
+              rlsSecurityProofPresent: false,
+            },
+          },
+        ),
+      expectedReason: "rls_security_unverified",
+    },
+    {
+      label: "server-only boundary missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              serverOnlyBoundaryProven: false,
+            },
+            serverOnlySummary: {
+              ...baseInput.boundaryInput!.serverOnlySummary!,
+              serverOnlyBoundaryProven: false,
+            },
+          },
+        ),
+      expectedReason: "server_only_boundary_missing",
+    },
+    {
+      label: "route auth model missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {
+            routeAuthSecretModelMetadata: null,
+          },
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              routeAuthSecretModelDefined: false,
+            },
+            securitySummary: {
+              ...baseInput.boundaryInput!.securitySummary!,
+              routeAuthSecretModelDefined: false,
+            },
+          },
+        ),
+      expectedReason: "route_auth_secret_model_missing",
+    },
+    {
+      label: "client-side write not blocked",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              clientSideWriteImpossible: false,
+            },
+            securitySummary: {
+              ...baseInput.boundaryInput!.securitySummary!,
+              clientSideWriteBlocked: false,
+            },
+          },
+        ),
+      expectedReason: "client_side_write_not_blocked",
+      expectedStatus: "production_insert_route_boundary_validation_invalid",
+    },
+    {
+      label: "duplicate prevention missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              duplicatePreventionImplemented: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              duplicatePreventionMetadataPresent: false,
+            },
+            idempotencyDuplicateSummary: {
+              ...baseInput.boundaryInput!.idempotencyDuplicateSummary!,
+              duplicatePreventionMetadataPresent: false,
+            },
+          },
+        ),
+      expectedReason: "duplicate_prevention_missing",
+    },
+    {
+      label: "idempotency key missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              idempotencyStrategyImplemented: false,
+            },
+            idempotencyDuplicateSummary: {
+              ...baseInput.boundaryInput!.idempotencyDuplicateSummary!,
+              idempotencyKey: null,
+              idempotencyKeyPresent: false,
+            },
+          },
+        ),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "normalized input missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {
+            normalizedPersistenceInput: null,
+          },
+          {
+            normalizedPersistenceInput: null,
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              normalizedPersistenceInputValidated: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              normalizedPersistenceInput: null,
+              normalizedExecutionRecordInputPresent: false,
+            },
+          },
+        ),
+      expectedReason: "normalized_input_missing",
+    },
+    {
+      label: "evidence provenance missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              evidenceProvenanceComplete: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              evidenceProvenanceChainPresent: false,
+            },
+            evidenceProvenanceSummary: {
+              ...baseInput.boundaryInput!.evidenceProvenanceSummary!,
+              evidenceProvenanceChainPresent: false,
+            },
+          },
+        ),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "audit correction metadata missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              auditCorrectionMetadataComplete: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              auditCorrectionMetadataPresent: false,
+            },
+            auditCorrectionSummary: {
+              ...baseInput.boundaryInput!.auditCorrectionSummary!,
+              auditCorrectionMetadataPresent: false,
+            },
+          },
+        ),
+      expectedReason: "audit_correction_metadata_missing",
+    },
+    {
+      label: "manual approval missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              manualApprovalContextPresent: false,
+            },
+            allowedInputSummary: {
+              ...baseInput.boundaryInput!.allowedInputSummary!,
+              manualApprovalMetadataPresent: false,
+            },
+          },
+        ),
+      expectedReason: "manual_approval_missing",
+    },
+    {
+      label: "dry-run production separation missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            preconditionSummary: {
+              ...baseInput.boundaryInput!.preconditionSummary!,
+              dryRunProductionSeparated: false,
+            },
+            dryRunSeparationSummary: {
+              ...baseInput.boundaryInput!.dryRunSeparationSummary!,
+              productionRouteSeparate: false,
+            },
+          },
+        ),
+      expectedReason: "dry_run_production_separation_missing",
+      expectedStatus: "production_insert_route_boundary_validation_invalid",
+    },
+    {
+      label: "post insert boundary missing",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            postInsertBoundarySummary: null,
+          },
+        ),
+      expectedReason: "post_insert_boundaries_missing",
+    },
+    {
+      label: "production route implementation present",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            currentStateSummary: {
+              ...baseInput.boundaryInput!.currentStateSummary!,
+              productionRouteImplemented: true,
+            } as unknown as ExecutionRecordProductionInsertRouteBoundaryInput["currentStateSummary"],
+          },
+        ),
+      expectedReason: "production_route_implementation_present_unexpectedly",
+      expectedStatus: "production_insert_route_boundary_validation_invalid",
+    },
+    {
+      label: "production route call attempted",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            currentStateSummary: {
+              ...baseInput.boundaryInput!.currentStateSummary!,
+              productionRouteCalled: true,
+            } as unknown as ExecutionRecordProductionInsertRouteBoundaryInput["currentStateSummary"],
+          },
+        ),
+      expectedReason: "production_route_call_attempted",
+      expectedStatus: "production_insert_route_boundary_validation_invalid",
+    },
+    {
+      label: "broker automation authority requested",
+      input:
+        await buildExecutionRecordProductionInsertRouteBoundaryValidationInput(
+          {},
+          {
+            securitySummary: {
+              ...baseInput.boundaryInput!.securitySummary!,
+              brokerAutomationAuthority: true,
+            } as unknown as ExecutionRecordProductionInsertRouteBoundaryInput["securitySummary"],
+          },
+        ),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "production_insert_route_boundary_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordProductionInsertRouteBoundary(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "production_insert_route_boundary_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_implement_route",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectProductionInsertRouteBoundaryValidationNoAuthority(result);
+  }
+});
+
+test("validates post-insert boundary readiness as design-only", async () => {
+  const input = buildExecutionRecordPostInsertBoundaryValidationInput();
+  const result = validateExecutionRecordPostInsertBoundary(input);
+
+  expect(result.status).toBe(
+    "post_insert_boundary_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_run_post_insert_actions",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("contract_only");
+  expect(result.warnings).toContain("validator_not_implemented");
+  expect(result.evidence.executionRecordEvidencePresent).toBe(true);
+  expect(result.evidence.evidenceProvenancePresent).toBe(true);
+  expect(result.evidence.generatedTypesProofPresent).toBe(true);
+  expect(result.evidence.migrationProofPresent).toBe(true);
+  expect(result.evidence.rlsSecurityProofPresent).toBe(true);
+  expect(result.evidence.serverOnlyProofPresent).toBe(true);
+  expect(result.idempotency.idempotencyPresent).toBe(true);
+  expect(result.idempotency.duplicatePreventionPresent).toBe(true);
+  expect(result.dependencies.generatedTypesPresent).toBe(true);
+  expect(result.dependencies.migrationApplicationProven).toBe(true);
+  expect(result.dependencies.rlsSecurityVerified).toBe(true);
+  expect(result.dependencies.serverOnlyBoundaryVerified).toBe(true);
+  expect(result.dependencies.postInsertValidatorImplementationPresent).toBe(
+    false,
+  );
+  expect(result.categoryValidations.auditAppend.readyForDesignOnly).toBe(true);
+  expect(result.categoryValidations.statsPnlUpdate.readyForDesignOnly).toBe(
+    true,
+  );
+  expect(result.categoryValidations.tradeReconciliation.readyForDesignOnly).toBe(
+    true,
+  );
+  expect(result.categoryValidations.brokerOrderFollowUp
+    .disabledUnlessSeparatelyApproved).toBe(true);
+  expect(result.categoryValidations.avanzaBrowserFollowUp
+    .disabledUnlessSeparatelyApproved).toBe(true);
+  expectPostInsertBoundaryValidationNoAuthority(result);
+});
+
+test("blocks unsafe post-insert boundary validation inputs", async () => {
+  const baseInput = buildExecutionRecordPostInsertBoundaryValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordPostInsertBoundaryValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "post_insert_boundary_validation_absent"
+      | "post_insert_boundary_validation_blocked"
+      | "post_insert_boundary_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "post_insert_boundary_input_missing",
+      expectedStatus: "post_insert_boundary_validation_absent",
+    },
+    {
+      label: "missing boundary input",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput({
+        boundaryInput: null,
+      }),
+      expectedReason: "post_insert_boundary_input_missing",
+    },
+    {
+      label: "insert not proven",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {},
+        {
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            insertResultProven: false,
+          },
+        },
+      ),
+      expectedReason: "execution_record_insert_not_proven",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          executionRecordId: null,
+          executionRecordReference: null,
+        },
+        {
+          executionRecordId: null,
+          executionRecordReference: null,
+        },
+      ),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing evidence",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          executionRecordEvidence: null,
+        },
+        {
+          executionRecordEvidence: null,
+        },
+      ),
+      expectedReason: "execution_record_evidence_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {},
+        {
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            executionRecordEvidenceProvenancePresent: false,
+          },
+        },
+      ),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          idempotency: {
+            ...baseInput.idempotency!,
+            idempotencyMetadataPresent: false,
+          },
+        },
+        {
+          idempotency: {
+            ...baseInput.idempotency!,
+            idempotencyMetadataPresent: false,
+          },
+        },
+      ),
+      expectedReason: "idempotency_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          duplicatePrevention: null,
+          idempotency: {
+            ...baseInput.idempotency!,
+            duplicatePreventionMetadataPresent: false,
+            duplicateSideEffectsPrevented: false,
+          },
+        },
+        {
+          duplicatePrevention: null,
+          idempotency: {
+            ...baseInput.idempotency!,
+            duplicatePreventionMetadataPresent: false,
+            duplicateSideEffectsPrevented: false,
+          },
+        },
+      ),
+      expectedReason: "duplicate_prevention_missing",
+    },
+    {
+      label: "generated types absent",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          generatedTypesProof: null,
+        },
+        {
+          generatedTypesProof: null,
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            generatedTypesProofPresent: false,
+          },
+        },
+      ),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          migrationProof: null,
+        },
+        {
+          migrationProof: null,
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            migrationProofPresent: false,
+          },
+        },
+      ),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "RLS unverified",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          rlsSecurityProof: null,
+        },
+        {
+          rlsSecurityProof: null,
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            rlsSecurityProofPresent: false,
+          },
+        },
+      ),
+      expectedReason: "rls_security_unverified",
+    },
+    {
+      label: "server-only unverified",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          serverOnlyProof: null,
+        },
+        {
+          serverOnlyProof: null,
+          executionRecordEvidence: {
+            ...baseInput.executionRecordEvidence!,
+            serverOnlyProofPresent: false,
+          },
+        },
+      ),
+      expectedReason: "server_only_boundary_unverified",
+    },
+    {
+      label: "missing audit boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            auditAppend: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            auditAppend: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "audit_boundary_missing",
+    },
+    {
+      label: "missing stats PnL boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            statsPnlUpdate: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            statsPnlUpdate: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "stats_pnl_boundary_missing",
+    },
+    {
+      label: "missing trade reconciliation boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            tradeReconciliation: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            tradeReconciliation: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "trade_reconciliation_boundary_missing",
+    },
+    {
+      label: "missing correction rollback boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            correctionRollback: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            correctionRollback: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "correction_rollback_boundary_missing",
+    },
+    {
+      label: "missing failure recovery boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            failureRecovery: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            failureRecovery: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "failure_recovery_boundary_missing",
+    },
+    {
+      label: "missing UI state boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            uiStateUpdate: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            uiStateUpdate: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "ui_state_boundary_missing",
+    },
+    {
+      label: "missing notification boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            userNotification: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            userNotification: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "notification_boundary_missing",
+    },
+    {
+      label: "missing broker order boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            brokerOrderFollowUp: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            brokerOrderFollowUp: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "broker_order_boundary_missing",
+    },
+    {
+      label: "missing Avanza browser boundary",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            avanzaBrowserFollowUp: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            avanzaBrowserFollowUp: null,
+          } as unknown as ExecutionRecordPostInsertBoundaryCategorySummaries,
+        },
+      ),
+      expectedReason: "avanza_browser_boundary_missing",
+    },
+    {
+      label: "insert success treated as approval",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput({
+        boundaryResult: {
+          ...baseInput.boundaryResult!,
+          insertSuccessApprovesPostInsertActions: true,
+        } as unknown as ExecutionRecordPostInsertBoundaryResult,
+      }),
+      expectedReason: "insert_success_misinterpreted_as_action_approval",
+      expectedStatus: "post_insert_boundary_validation_invalid",
+    },
+    {
+      label: "post-insert action authority requested",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToAppendAudit: true,
+        } as unknown as ExecutionRecordPostInsertBoundaryValidationInput["authority"],
+      }),
+      expectedReason: "post_insert_action_requested_in_contract_phase",
+      expectedStatus: "post_insert_boundary_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            brokerOrderFollowUp: {
+              ...baseInput.boundaryCategorySummaries!.brokerOrderFollowUp,
+              brokerOrderFollowUpAllowed: true,
+            } as unknown as ExecutionRecordBrokerOrderFollowUpBoundarySummary,
+          },
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            brokerOrderFollowUp: {
+              ...baseInput.boundaryInput!.categorySummaries.brokerOrderFollowUp,
+              brokerOrderFollowUpAllowed: true,
+            } as unknown as ExecutionRecordBrokerOrderFollowUpBoundarySummary,
+          },
+        },
+      ),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "post_insert_boundary_validation_invalid",
+    },
+    {
+      label: "Avanza browser action requested",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput(
+        {
+          boundaryCategorySummaries: {
+            ...baseInput.boundaryCategorySummaries!,
+            avanzaBrowserFollowUp: {
+              ...baseInput.boundaryCategorySummaries!.avanzaBrowserFollowUp,
+              browserActionAllowed: true,
+            } as unknown as ExecutionRecordAvanzaBrowserFollowUpBoundarySummary,
+          },
+        },
+        {
+          categorySummaries: {
+            ...baseInput.boundaryInput!.categorySummaries,
+            avanzaBrowserFollowUp: {
+              ...baseInput.boundaryInput!.categorySummaries
+                .avanzaBrowserFollowUp,
+              browserActionAllowed: true,
+            } as unknown as ExecutionRecordAvanzaBrowserFollowUpBoundarySummary,
+          },
+        },
+      ),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "post_insert_boundary_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordPostInsertBoundaryValidationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordPostInsertBoundaryValidationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus: "post_insert_boundary_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordPostInsertBoundary(unsafeCase.input);
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "post_insert_boundary_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_run_post_insert_actions",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectPostInsertBoundaryValidationNoAuthority(result);
+  }
+});
+
+test("validates audit append boundary readiness as design-only", async () => {
+  const input = buildExecutionRecordAuditAppendBoundaryValidationInput();
+  const result = validateExecutionRecordAuditAppendBoundary(input);
+
+  expect(result.status).toBe(
+    "audit_append_boundary_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_append_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("contract_only");
+  expect(result.warnings).toContain("audit_append_not_implemented");
+  expect(result.warnings).toContain("audit_writer_not_implemented");
+  expect(result.candidate.auditEventTypePresent).toBe(true);
+  expect(result.candidate.auditEventSourcePresent).toBe(true);
+  expect(result.candidate.auditEventPayloadSummaryPresent).toBe(true);
+  expect(result.candidate.actorSourceMetadataPresent).toBe(true);
+  expect(result.candidate.timestampSourceClockMetadataPresent).toBe(true);
+  expect(result.evidence.executionRecordReferencePresent).toBe(true);
+  expect(result.evidence.insertedExecutionRecordSummaryPresent).toBe(true);
+  expect(result.evidence.executionRecordEvidencePresent).toBe(true);
+  expect(result.evidence.evidenceProvenancePresent).toBe(true);
+  expect(result.idempotency.idempotencyKeyPresent).toBe(true);
+  expect(result.idempotency.stableAuditEventKeyPresent).toBe(true);
+  expect(result.duplicatePrevention.duplicatePreventionKeyPresent).toBe(true);
+  expect(result.schema.auditSchemaTableVerified).toBe(true);
+  expect(result.schema.auditGeneratedTypesPresent).toBe(true);
+  expect(result.schema.executionRecordGeneratedTypesPresent).toBe(true);
+  expect(result.schema.migrationApplicationProven).toBe(true);
+  expect(result.securityServerOnly.rlsSecurityVerified).toBe(true);
+  expect(result.securityServerOnly.serverOnlyBoundaryVerified).toBe(true);
+  expect(result.dependencies.auditValidatorImplemented).toBe(false);
+  expect(result.dependencies.auditAppendImplemented).toBe(false);
+  expect(result.dependencies.auditWriterImplemented).toBe(false);
+  expect(result.dependencies.auditWritePathPresent).toBe(false);
+  expect(result.failureModel.downstreamActionsRemainBlockedRepresented).toBe(
+    true,
+  );
+  expectAuditAppendBoundaryValidationNoAuthority(result);
+});
+
+test("blocks and reviews unsafe audit append boundary validation inputs", async () => {
+  const baseInput = buildExecutionRecordAuditAppendBoundaryValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendBoundaryValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_boundary_validation_absent"
+      | "audit_append_boundary_validation_blocked"
+      | "audit_append_boundary_validation_needs_review"
+      | "audit_append_boundary_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "audit_boundary_input_missing",
+      expectedStatus: "audit_append_boundary_validation_absent",
+    },
+    {
+      label: "missing audit boundary input",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        auditBoundaryInput: null,
+      }),
+      expectedReason: "audit_boundary_input_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          executionRecordId: null,
+          executionRecordReference: null,
+        },
+        {
+          executionRecordId: null,
+          executionRecordReference: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            executionRecordId: null,
+            executionRecordReference: null,
+          },
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            executionRecordId: null,
+            executionRecordReference: null,
+          },
+          executionRecordEvidence: {
+            ...baseInput.auditBoundaryInput!.executionRecordEvidence!,
+            executionRecordId: null,
+            executionRecordReference: null,
+          },
+        },
+      ),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing inserted execution record summary",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          insertedExecutionRecordSummary: null,
+        },
+        {
+          insertedExecutionRecordSummary: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            insertedExecutionRecordSummary: null,
+          },
+          executionRecordEvidence: {
+            ...baseInput.auditBoundaryInput!.executionRecordEvidence!,
+            insertedExecutionRecordSummary: null,
+          },
+        },
+      ),
+      expectedReason: "inserted_execution_record_summary_missing",
+    },
+    {
+      label: "missing execution record evidence",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          executionRecordEvidence: null,
+        },
+        {
+          executionRecordEvidence: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            executionRecordEvidencePresent: false,
+          },
+        },
+      ),
+      expectedReason: "execution_record_evidence_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {},
+        {
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            evidenceProvenancePresent: false,
+            sourceReferences: [],
+          },
+        },
+      ),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing audit event type",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          auditEventType: null,
+        },
+        {
+          auditEventType: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            auditEventType: null,
+          },
+        },
+      ),
+      expectedReason: "audit_event_type_missing",
+    },
+    {
+      label: "missing audit event source",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          auditEventSource: null,
+        },
+        {
+          auditEventSource: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            auditEventSource: null,
+          },
+        },
+      ),
+      expectedReason: "audit_event_source_missing",
+    },
+    {
+      label: "missing audit event payload",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          auditEventPayloadSummary: null,
+        },
+        {
+          auditEventPayloadSummary: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            auditEventPayloadSummary: null,
+          },
+        },
+      ),
+      expectedReason: "audit_event_payload_missing",
+    },
+    {
+      label: "missing actor source metadata",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          actorSourceMetadata: null,
+        },
+        {
+          actorSourceMetadata: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            actorSourceMetadata: null,
+          },
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            actorSourceMetadataPresent: false,
+          },
+        },
+      ),
+      expectedReason: "actor_source_metadata_missing",
+    },
+    {
+      label: "missing timestamp source metadata",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          timestampSourceClockMetadata: null,
+        },
+        {
+          timestampSourceClockMetadata: null,
+          candidate: {
+            ...baseInput.auditBoundaryInput!.candidate,
+            timestampSourceClockMetadata: null,
+          },
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            timestampSourceClockMetadataPresent: false,
+          },
+        },
+      ),
+      expectedReason: "timestamp_source_metadata_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          idempotencyKey: null,
+        },
+        {
+          idempotencyKey: null,
+          idempotency: {
+            ...baseInput.auditBoundaryInput!.idempotency,
+            idempotencyKey: null,
+          },
+        },
+      ),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          duplicatePreventionKey: null,
+        },
+        {
+          duplicatePreventionKey: null,
+          duplicatePrevention: {
+            ...baseInput.auditBoundaryInput!.duplicatePrevention,
+            duplicatePreventionKey: null,
+          },
+        },
+      ),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "generated types absent",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          generatedTypesProof: null,
+        },
+        {
+          generatedTypesProof: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            generatedTypesProofPresent: false,
+          },
+          dependencies: {
+            ...baseInput.auditBoundaryInput!.dependencies,
+            generatedTypesPresent: false,
+          },
+        },
+      ),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          migrationProof: null,
+        },
+        {
+          migrationProof: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            migrationProofPresent: false,
+          },
+          dependencies: {
+            ...baseInput.auditBoundaryInput!.dependencies,
+            migrationApplicationProven: false,
+          },
+        },
+      ),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "RLS unverified",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          rlsSecurityProof: null,
+        },
+        {
+          rlsSecurityProof: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            rlsSecurityProofPresent: false,
+          },
+          dependencies: {
+            ...baseInput.auditBoundaryInput!.dependencies,
+            rlsSecurityVerified: false,
+          },
+        },
+      ),
+      expectedReason: "rls_security_unverified",
+    },
+    {
+      label: "server-only unverified",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          serverOnlyProof: null,
+        },
+        {
+          serverOnlyProof: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            serverOnlyProofPresent: false,
+          },
+          dependencies: {
+            ...baseInput.auditBoundaryInput!.dependencies,
+            serverOnlyBoundaryVerified: false,
+          },
+        },
+      ),
+      expectedReason: "server_only_boundary_unverified",
+    },
+    {
+      label: "audit schema table unverified",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput(
+        {
+          auditSchemaTableProof: null,
+        },
+        {
+          auditSchemaProof: null,
+          evidence: {
+            ...baseInput.auditBoundaryInput!.evidence,
+            auditSchemaProofPresent: false,
+          },
+          dependencies: {
+            ...baseInput.auditBoundaryInput!.dependencies,
+            auditSchemaProofPresent: false,
+          },
+        },
+      ),
+      expectedReason: "audit_schema_table_unverified",
+    },
+    {
+      label: "manual review required",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        manualReviewMetadata: {
+          approvalRequired: true,
+          approvalPresent: false,
+          approvalIsWriteAuthority: false,
+          approvalReference: "Action 676 manual review test",
+        },
+      }),
+      expectedReason: "manual_review_required",
+      expectedStatus: "audit_append_boundary_validation_needs_review",
+    },
+    {
+      label: "insert success treated as audit approval",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        auditBoundaryResult: {
+          ...baseInput.auditBoundaryResult!,
+          insertSuccessIsAuditAppendApproval: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryResult,
+      }),
+      expectedReason: "insert_success_misinterpreted_as_audit_approval",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "post-insert readiness treated as audit approval",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        auditBoundaryResult: {
+          ...baseInput.auditBoundaryResult!,
+          postInsertValidatorReadinessIsAuditAppendApproval: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryResult,
+      }),
+      expectedReason:
+        "post_insert_validator_readiness_misinterpreted_as_audit_approval",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "orchestrator readiness treated as audit approval",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        auditBoundaryResult: {
+          ...baseInput.auditBoundaryResult!,
+          orchestratorContractReadinessIsAuditAppendApproval: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryResult,
+      }),
+      expectedReason:
+        "orchestrator_contract_readiness_misinterpreted_as_audit_approval",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "audit boundary readiness treated as audit approval",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundarySafetyPolicy: {
+          ...baseInput.boundarySafetyPolicy!,
+          auditBoundaryContractReadinessIsAuditAppendApproval: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundarySafetyPolicy"],
+      }),
+      expectedReason:
+        "audit_boundary_contract_readiness_misinterpreted_as_audit_approval",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "audit append requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToAppendAudit: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "audit_append_requested_in_validator_phase",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "stats requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToUpdateStats: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "stats_pnl_update_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "trade_mutation_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "trade reconciliation requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToReconcileTrade: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "trade_reconciliation_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "rollback requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToRollback: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "rollback_correction_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "UI update requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToUpdateUiState: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "ui_update_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "notification requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToNotifyUser: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "notification_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "Avanza browser action requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          safeToRunAvanzaBrowserAction: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendBoundaryValidationInput({
+        boundaryAuthority: {
+          ...baseInput.boundaryAuthority!,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendBoundaryValidationInput["boundaryAuthority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus: "audit_append_boundary_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordAuditAppendBoundary(unsafeCase.input);
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_boundary_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_append_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendBoundaryValidationNoAuthority(result);
+  }
+});
+
+test("validates audit append writer readiness as design-only", async () => {
+  const input = buildExecutionRecordAuditAppendWriterValidationInput();
+  const result = validateExecutionRecordAuditAppendWriter(input);
+
+  expect(result.status).toBe(
+    "audit_append_writer_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_write_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain("writer_validator_not_implemented");
+  expect(result.warnings).toContain(
+    "writer_validation_readiness_not_audit_write_approval",
+  );
+  expect(result.readiness.writerValidationInputPresent).toBe(true);
+  expect(result.readiness.auditWriterContractInputPresent).toBe(true);
+  expect(result.readiness.validatedAuditBoundaryResultPresent).toBe(true);
+  expect(result.readiness.auditBoundaryValidatorResultPresent).toBe(true);
+  expect(result.auditEvent.auditEventTypePresent).toBe(true);
+  expect(result.auditEvent.auditEventSourcePresent).toBe(true);
+  expect(result.auditEvent.auditEventPayloadPresent).toBe(true);
+  expect(result.auditEvent.actorSourceMetadataPresent).toBe(true);
+  expect(result.auditEvent.timestampSourceMetadataPresent).toBe(true);
+  expect(result.evidenceProvenance.executionRecordReferencePresent).toBe(true);
+  expect(result.evidenceProvenance.executionRecordEvidencePresent).toBe(true);
+  expect(result.evidenceProvenance.evidenceProvenancePresent).toBe(true);
+  expect(result.idempotency.idempotencyKeyPresent).toBe(true);
+  expect(result.duplicatePrevention.duplicatePreventionKeyPresent).toBe(true);
+  expect(result.schemaType.auditSchemaTableProven).toBe(true);
+  expect(result.schemaType.generatedTypesPresent).toBe(true);
+  expect(result.schemaType.migrationApplicationProven).toBe(true);
+  expect(result.serverOnlySecurity.rlsSecurityVerified).toBe(true);
+  expect(result.serverOnlySecurity.serverOnlyBoundaryVerified).toBe(true);
+  expect(result.dependencies.auditWriterValidatorImplemented).toBe(false);
+  expect(result.dependencies.auditWriterImplemented).toBe(false);
+  expect(result.dependencies.auditAppendImplementationPresent).toBe(false);
+  expect(result.dependencies.auditWritePathPresent).toBe(false);
+  expectAuditAppendWriterValidationNoAuthority(result);
+});
+
+test("blocks unsafe audit append writer validation inputs", async () => {
+  const baseInput = buildExecutionRecordAuditAppendWriterValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendWriterValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_writer_validation_blocked"
+      | "audit_append_writer_validation_needs_review"
+      | "audit_append_writer_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "writer_validation_input_missing",
+    },
+    {
+      label: "missing audit writer contract input",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditWriterContractInput: null,
+      }),
+      expectedReason: "audit_writer_contract_input_missing",
+    },
+    {
+      label: "missing validated audit boundary result",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        validatedAuditBoundaryResult: null,
+      }),
+      expectedReason: "validated_audit_boundary_result_missing",
+    },
+    {
+      label: "missing audit validator result",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditBoundaryValidatorResult: null,
+      }),
+      expectedReason: "audit_validator_result_missing",
+    },
+    {
+      label: "missing audit event candidate",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditEventCandidate: null,
+      }),
+      expectedReason: "audit_event_candidate_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        executionRecordId: null,
+        executionRecordReference: null,
+      }),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing execution record evidence",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        executionRecordEvidence: null,
+      }),
+      expectedReason: "execution_record_evidence_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        evidenceProvenance: {
+          ...baseInput.evidenceProvenance,
+          evidenceProvenancePresent: false,
+          provenanceTraceComplete: false,
+          sourceReferences: [],
+        },
+      }),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing audit event type",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditEventType: null,
+      }),
+      expectedReason: "audit_event_type_missing",
+    },
+    {
+      label: "missing audit event source",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditEventSource: null,
+      }),
+      expectedReason: "audit_event_source_missing",
+    },
+    {
+      label: "missing audit event payload",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditEventPayloadSummary: null,
+      }),
+      expectedReason: "audit_event_payload_missing",
+    },
+    {
+      label: "missing actor source metadata",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        actorSourceMetadata: null,
+      }),
+      expectedReason: "actor_source_metadata_missing",
+    },
+    {
+      label: "missing timestamp source metadata",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        timestampSourceClockMetadata: null,
+      }),
+      expectedReason: "timestamp_source_metadata_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        idempotencyKey: null,
+      }),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        duplicatePreventionKey: null,
+      }),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "audit schema table unverified",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        auditSchemaTableProof: null,
+        schemaType: {
+          ...baseInput.schemaType,
+          auditSchemaTableProven: false,
+        },
+      }),
+      expectedReason: "audit_schema_table_unverified",
+    },
+    {
+      label: "generated types absent",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        generatedTypesProof: null,
+        schemaType: {
+          ...baseInput.schemaType,
+          generatedTypesPresent: false,
+          generatedAuditTypesPresent: false,
+          generatedExecutionRecordTypesPresent: false,
+        },
+      }),
+      expectedReason: "generated_types_absent_or_unknown",
+    },
+    {
+      label: "migration not proven",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        migrationProof: null,
+        schemaType: {
+          ...baseInput.schemaType,
+          migrationApplicationProven: false,
+        },
+      }),
+      expectedReason: "migration_application_not_proven",
+    },
+    {
+      label: "RLS unverified",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        rlsSecurityProof: null,
+        schemaType: {
+          ...baseInput.schemaType,
+          rlsSecurityVerified: false,
+        },
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          rlsSecurityVerified: false,
+        },
+      }),
+      expectedReason: "rls_security_unverified",
+    },
+    {
+      label: "server-only unverified",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        serverOnlyProof: null,
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serverOnlyBoundaryVerified: false,
+        },
+      }),
+      expectedReason: "server_only_boundary_unverified",
+    },
+    {
+      label: "missing service role context",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        serviceRoleServerOnlyExecutionContext: null,
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serviceRoleExecutionContextPresent: false,
+        },
+      }),
+      expectedReason: "service_role_execution_context_missing",
+    },
+    {
+      label: "service role exposure risk",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serviceRoleSecretExposed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["serverOnlySecurity"],
+      }),
+      expectedReason: "service_role_secret_exposure_risk",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "client-side audit write risk",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          clientSideAuditWriteRisk: true,
+        },
+      }),
+      expectedReason: "client_side_audit_write_risk",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "manual review required",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        manualReviewMetadata: {
+          approvalRequired: true,
+          approvalPresent: false,
+          approvalIsWriteAuthority: false,
+          approvalReference: "Action 686 manual review test",
+        },
+        metadata: {
+          manualReviewRequired: true,
+        },
+      }),
+      expectedReason: "manual_review_required",
+      expectedStatus: "audit_append_writer_validation_needs_review",
+    },
+    {
+      label: "writer readiness treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        readiness: {
+          ...baseInput.readiness,
+          writerValidationReadinessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["readiness"],
+      }),
+      expectedReason: "writer_readiness_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "insert success treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          insertSuccessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["safetyPolicy"],
+      }),
+      expectedReason: "insert_success_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "validator readiness treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          auditBoundaryValidatorReadinessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["safetyPolicy"],
+      }),
+      expectedReason: "validator_readiness_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "dev preview diagnostics treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          devPreviewDiagnosticsAreAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["safetyPolicy"],
+      }),
+      expectedReason:
+        "dev_preview_diagnostics_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "orchestrator readiness treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          orchestratorReadinessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["safetyPolicy"],
+      }),
+      expectedReason: "orchestrator_readiness_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "production boundary readiness treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          productionBoundaryReadinessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["safetyPolicy"],
+      }),
+      expectedReason:
+        "production_boundary_readiness_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "dry-run success treated as audit write approval",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        dependencies: {
+          ...baseInput.dependencies,
+          dryRunSuccessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["dependencies"],
+      }),
+      expectedReason: "dry_run_success_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "audit write requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToWriteAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "audit_write_requested_in_validator_phase",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "stats requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateStats: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "stats_pnl_update_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "trade_mutation_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "trade reconciliation requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToReconcileTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "trade_reconciliation_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "rollback requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRollback: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "rollback_correction_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "UI update requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateUiState: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "ui_update_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "notification requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToNotifyUser: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "notification_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "Avanza browser action requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunAvanzaBrowserAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendWriterValidationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterValidationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus: "audit_append_writer_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordAuditAppendWriter(unsafeCase.input);
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_writer_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_write_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendWriterValidationNoAuthority(result);
+  }
+});
+
+test("validates audit append writer contract as design-only", async () => {
+  const input = buildExecutionRecordAuditAppendWriterContractValidationInput();
+  const result = validateExecutionRecordAuditAppendWriterContract(input);
+
+  expect(result.status).toBe(
+    "audit_append_writer_contract_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_write_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain(
+    "contract_validation_not_audit_write_approval",
+  );
+  expect(result.warnings).toContain("contract_validation_not_security_proof");
+  expect(result.inputShape.writerContractInputPresent).toBe(true);
+  expect(result.resultShape.writerContractResultPresent).toBe(true);
+  expect(result.dependencies.writerValidatorResultPresent).toBe(true);
+  expect(result.inputShape.executionRecordReferencePresent).toBe(true);
+  expect(result.inputShape.auditEventCandidatePresent).toBe(true);
+  expect(result.evidenceProvenance.evidenceProvenancePresent).toBe(true);
+  expect(result.idempotencyDuplicatePrevention.idempotencyKeyPresent).toBe(
+    true,
+  );
+  expect(
+    result.idempotencyDuplicatePrevention.duplicatePreventionKeyPresent,
+  ).toBe(true);
+  expect(result.serverOnlySecurity.serverOnlyProofPresent).toBe(true);
+  expect(result.serverOnlySecurity.serviceRoleProofPresent).toBe(true);
+  expect(result.schemaType.auditSchemaTableProofPresent).toBe(true);
+  expect(result.schemaType.generatedAuditTypesPresent).toBe(true);
+  expect(result.schemaType.migrationProofPresent).toBe(true);
+  expect(result.schemaType.rlsSecurityProofPresent).toBe(true);
+  expectAuditAppendWriterContractValidationNoAuthority(result);
+});
+
+test("blocks unsafe audit append writer contract validation inputs", async () => {
+  const baseInput =
+    buildExecutionRecordAuditAppendWriterContractValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendWriterContractValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_writer_contract_validation_absent"
+      | "audit_append_writer_contract_validation_blocked"
+      | "audit_append_writer_contract_validation_needs_review"
+      | "audit_append_writer_contract_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "contract_validation_input_missing",
+      expectedStatus: "audit_append_writer_contract_validation_absent",
+    },
+    {
+      label: "missing writer contract input",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        auditWriterContractInput: null,
+        inputShape: {
+          ...baseInput.inputShape,
+          writerContractInputPresent: false,
+        },
+      }),
+      expectedReason: "writer_contract_input_missing",
+    },
+    {
+      label: "missing writer contract result",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        auditWriterContractResult: null,
+      }),
+      expectedReason: "writer_contract_result_missing",
+    },
+    {
+      label: "missing writer validator result",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        writerValidatorResult: null,
+      }),
+      expectedReason: "writer_validator_result_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          executionRecordReference: null,
+          executionRecordReferencePresent: false,
+        },
+        evidenceProvenance: {
+          ...baseInput.evidenceProvenance,
+          executionRecordReference: null,
+          executionRecordReferencePresent: false,
+        },
+      }),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing audit event candidate",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          auditEventCandidatePresent: false,
+        },
+      }),
+      expectedReason: "audit_event_candidate_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          evidenceProvenancePresent: false,
+        },
+        evidenceProvenance: {
+          ...baseInput.evidenceProvenance,
+          evidenceProvenancePresent: false,
+          provenanceTraceComplete: false,
+          sourceReferences: [],
+        },
+      }),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          idempotencyKeyPresent: false,
+        },
+      }),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          duplicatePreventionKeyPresent: false,
+        },
+      }),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "missing server-only placeholder",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          serverOnlySecurityPlaceholderPresent: false,
+        },
+      }),
+      expectedReason: "server_only_security_placeholder_missing",
+    },
+    {
+      label: "missing audit schema placeholder",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        inputShape: {
+          ...baseInput.inputShape,
+          auditSchemaTablePlaceholderPresent: false,
+        },
+      }),
+      expectedReason: "audit_schema_table_placeholder_missing",
+    },
+    {
+      label: "missing server-only proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serverOnlyProofPresent: false,
+        },
+      }),
+      expectedReason: "server_only_proof_missing",
+    },
+    {
+      label: "missing service-role proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serviceRoleProofPresent: false,
+        },
+      }),
+      expectedReason: "service_role_proof_missing",
+    },
+    {
+      label: "missing schema proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        schemaType: {
+          ...baseInput.schemaType,
+          auditSchemaTableProofPresent: false,
+        },
+      }),
+      expectedReason: "audit_schema_table_proof_missing",
+    },
+    {
+      label: "missing generated audit types",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        schemaType: {
+          ...baseInput.schemaType,
+          generatedTypesProofPresent: false,
+          generatedAuditTypesPresent: false,
+        },
+      }),
+      expectedReason: "generated_audit_types_missing",
+    },
+    {
+      label: "generated execution record types assumed enough",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        schemaType: {
+          ...baseInput.schemaType,
+          generatedExecutionRecordTypesAssumedEnough: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["schemaType"],
+      }),
+      expectedReason: "generated_execution_record_types_assumed_enough",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "missing migration proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        schemaType: {
+          ...baseInput.schemaType,
+          migrationProofPresent: false,
+        },
+      }),
+      expectedReason: "migration_proof_missing",
+    },
+    {
+      label: "missing RLS proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        schemaType: {
+          ...baseInput.schemaType,
+          rlsSecurityProofPresent: false,
+        },
+      }),
+      expectedReason: "rls_security_proof_missing",
+    },
+    {
+      label: "service role exposure risk",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          serviceRoleExposureRisk: true,
+        },
+      }),
+      expectedReason: "service_role_exposure_risk",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "client-side write risk",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          clientSideWriteRisk: true,
+        },
+      }),
+      expectedReason: "client_side_write_risk",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "checklist treated as proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        serverOnlySecurity: {
+          ...baseInput.serverOnlySecurity,
+          checklistStatusTreatedAsProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["serverOnlySecurity"],
+      }),
+      expectedReason: "checklist_misinterpreted_as_security_proof",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "dev preview treated as proof",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        dependencies: {
+          ...baseInput.dependencies,
+          devPreviewDiagnosticsAreProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["dependencies"],
+      }),
+      expectedReason: "dev_preview_diagnostics_misinterpreted_as_proof",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "writer validator readiness treated as write approval",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          writerValidatorReadinessIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["safetyPolicy"],
+      }),
+      expectedReason:
+        "writer_validator_readiness_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "contract validation treated as write approval",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        safetyPolicy: {
+          ...baseInput.safetyPolicy,
+          contractValidationIsAuditWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["safetyPolicy"],
+      }),
+      expectedReason:
+        "contract_validation_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "downstream authority present",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        noWriteNoAction: {
+          ...baseInput.noWriteNoAction,
+          downstreamAuthorityPresent: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["noWriteNoAction"],
+      }),
+      expectedReason: "downstream_authority_present",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "write requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToWriteAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "write_requested_in_contract_validation_phase",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "route call requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          routeCallAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "route_call_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "audit append requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          auditAppendAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "audit_append_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "stats requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateStats: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "stats_pnl_update_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "trade_mutation_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "trade reconciliation requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToReconcileTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "trade_reconciliation_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "rollback requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRollback: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "rollback_correction_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "UI update requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateUiState: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "ui_update_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "notification requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToNotifyUser: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "notification_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendWriterContractValidationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterContractValidationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus: "audit_append_writer_contract_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordAuditAppendWriterContract(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_writer_contract_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_write_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendWriterContractValidationNoAuthority(result);
+  }
+});
+
+test("validates audit append writer dry-run result readiness as design-only", async () => {
+  const input = buildExecutionRecordAuditAppendWriterDryRunValidationInput();
+  const result = validateExecutionRecordAuditAppendWriterDryRun(input);
+
+  expect(result.status).toBe(
+    "audit_append_writer_dry_run_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_write_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain(
+    "dry_run_validation_not_audit_write_approval",
+  );
+  expect(result.warnings).toContain(
+    "dry_run_validation_not_dry_run_execution",
+  );
+  expect(result.inputValidation.dryRunValidationInputPresent).toBe(true);
+  expect(result.inputValidation.dryRunResultInputPresent).toBe(true);
+  expect(result.inputValidation.writerContractValidationResultPresent).toBe(
+    true,
+  );
+  expect(result.inputValidation.writerValidatorResultPresent).toBe(true);
+  expect(result.inputValidation.writerContractInputPresent).toBe(true);
+  expect(result.inputValidation.auditEventCandidatePresent).toBe(true);
+  expect(result.inputValidation.executionRecordReferencePresent).toBe(true);
+  expect(result.inputValidation.evidenceProvenancePresent).toBe(true);
+  expect(result.resultValidation.dryRunResultOutputPresent).toBe(true);
+  expect(result.resultValidation.dryRunResultClaimsWriteApproval).toBe(false);
+  expect(result.resultValidation.dryRunResultClaimsSecurityProof).toBe(false);
+  expect(result.resultValidation.dryRunResultClaimsSchemaProof).toBe(false);
+  expect(result.resultValidation.dryRunResultClaimsDownstreamApproval).toBe(
+    false,
+  );
+  expect(result.wouldWriteAuditEventValidation.auditWriteExecuted).toBe(false);
+  expect(result.wouldWriteAuditEventValidation.auditWriteAllowed).toBe(false);
+  expect(result.tableSchemaSimulationValidation.schemaTableStatusKnown).toBe(
+    true,
+  );
+  expect(
+    result.tableSchemaSimulationValidation.generatedAuditTypesStatusKnown,
+  ).toBe(true);
+  expect(result.idempotencyDuplicatePreventionValidation.idempotencyKeyPresent)
+    .toBe(true);
+  expect(
+    result.idempotencyDuplicatePreventionValidation
+      .duplicatePreventionKeyPresent,
+  ).toBe(true);
+  expect(result.evidenceProvenanceValidation.evidenceProvenancePresent).toBe(
+    true,
+  );
+  expect(
+    result.serverOnlySecurityDependencyValidation
+      .serverOnlySecurityStatusKnown,
+  ).toBe(true);
+  expect(result.dependencyValidation.dryRunValidatorImplemented).toBe(false);
+  expect(result.dependencyValidation.dryRunImplemented).toBe(false);
+  expect(result.dependencyValidation.writerImplemented).toBe(false);
+  expect(result.dependencyValidation.auditAppendImplemented).toBe(false);
+  expect(result.dependencyValidation.auditWritePathPresent).toBe(false);
+  expectAuditAppendWriterDryRunValidationNoAuthority(result);
+});
+
+test("blocks unsafe audit append writer dry-run validation inputs", async () => {
+  const baseInput =
+    buildExecutionRecordAuditAppendWriterDryRunValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendWriterDryRunValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_writer_dry_run_validation_absent"
+      | "audit_append_writer_dry_run_validation_blocked"
+      | "audit_append_writer_dry_run_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "dry_run_validation_input_missing",
+      expectedStatus: "audit_append_writer_dry_run_validation_absent",
+    },
+    {
+      label: "missing dry-run result input",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        dryRunResultInput: null,
+      }),
+      expectedReason: "dry_run_result_input_missing",
+    },
+    {
+      label: "missing dry-run result output",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        dryRunResult: null,
+      }),
+      expectedReason: "dry_run_result_output_missing",
+    },
+    {
+      label: "missing contract validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        writerContractValidationResult: null,
+      }),
+      expectedReason: "contract_validator_result_missing",
+    },
+    {
+      label: "missing writer validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        writerValidatorResult: null,
+      }),
+      expectedReason: "writer_validator_result_missing",
+    },
+    {
+      label: "missing writer contract input",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        auditWriterContractInput: null,
+      }),
+      expectedReason: "writer_contract_input_missing",
+    },
+    {
+      label: "missing audit event candidate",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        auditEventCandidate: null,
+      }),
+      expectedReason: "audit_event_candidate_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        executionRecordReference: null,
+      }),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        evidenceProvenance: null,
+      }),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        idempotencyMetadata: null,
+      }),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        duplicatePreventionMetadata: null,
+      }),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "missing server-only status",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        serverOnlySecurityProofStatus: null,
+      }),
+      expectedReason: "server_only_security_status_missing",
+    },
+    {
+      label: "missing schema status",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        schemaTableProofStatus: null,
+      }),
+      expectedReason: "schema_table_proof_status_missing",
+    },
+    {
+      label: "missing generated audit types status",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        generatedAuditTypesProofStatus: null,
+      }),
+      expectedReason: "generated_audit_types_status_missing",
+    },
+    {
+      label: "missing migration status",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        migrationProofStatus: null,
+      }),
+      expectedReason: "migration_status_missing",
+    },
+    {
+      label: "missing RLS status",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        rlsSecurityProofStatus: null,
+      }),
+      expectedReason: "rls_security_status_missing",
+    },
+    {
+      label: "service role exposure risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        serviceRoleExposureRiskStatus: "risk_present",
+      }),
+      expectedReason: "service_role_exposure_risk",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "client-side write risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        clientSideWriteRiskStatus: "risk_present",
+      }),
+      expectedReason: "client_side_write_risk",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "dry-run success treated as write approval",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunResultClaimsWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["resultValidation"],
+      }),
+      expectedReason: "dry_run_success_misinterpreted_as_write_approval",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "dry-run success treated as security proof",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunResultClaimsSecurityProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["resultValidation"],
+      }),
+      expectedReason: "dry_run_success_misinterpreted_as_security_proof",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "dry-run success treated as schema proof",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunResultClaimsSchemaProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["resultValidation"],
+      }),
+      expectedReason: "dry_run_success_misinterpreted_as_schema_proof",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "dry-run success treated as downstream approval",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunResultClaimsDownstreamApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["resultValidation"],
+      }),
+      expectedReason: "dry_run_success_misinterpreted_as_downstream_approval",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "actual audit write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToWriteAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "actual_audit_write_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "route call requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          routeCallAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "route_call_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "writer execution requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          writerImplemented: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "writer_execution_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "audit append requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          auditAppendAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "audit_append_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "record creation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          recordCreationAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "record_creation_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "persistence write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          persistenceWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "persistence_write_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "Supabase write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          supabaseWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "supabase_write_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "localStorage write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          localStorageWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "local_storage_write_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "stats requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateStats: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "stats_pnl_update_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "trade_mutation_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "trade reconciliation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToReconcileTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "trade_reconciliation_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "rollback requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRollback: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "rollback_correction_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "UI update requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateUiState: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "ui_update_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "notification requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToNotifyUser: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "notification_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "Avanza browser action requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunAvanzaBrowserAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunValidationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunValidationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus: "audit_append_writer_dry_run_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordAuditAppendWriterDryRun(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_writer_dry_run_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_write_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendWriterDryRunValidationNoAuthority(result);
+  }
+});
+
+test("validates audit append writer dry-run execution readiness as design-only", async () => {
+  const input =
+    buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput();
+  const result =
+    validateExecutionRecordAuditAppendWriterDryRunExecution(input);
+
+  expect(result.status).toBe(
+    "audit_append_writer_dry_run_execution_validation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_write_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain(
+    "dry_run_execution_validation_not_audit_write_approval",
+  );
+  expect(result.warnings).toContain(
+    "dry_run_execution_validation_not_dry_run_execution",
+  );
+  expect(result.inputValidation.dryRunExecutionValidationInputPresent).toBe(
+    true,
+  );
+  expect(result.inputValidation.dryRunExecutionInputPresent).toBe(true);
+  expect(result.inputValidation.dryRunValidatorResultPresent).toBe(true);
+  expect(result.inputValidation.dryRunResultInputPresent).toBe(true);
+  expect(result.inputValidation.writerContractValidationResultPresent).toBe(
+    true,
+  );
+  expect(result.inputValidation.writerValidatorResultPresent).toBe(true);
+  expect(result.inputValidation.writerContractInputPresent).toBe(true);
+  expect(result.inputValidation.auditEventCandidatePresent).toBe(true);
+  expect(result.inputValidation.executionRecordReferencePresent).toBe(true);
+  expect(result.inputValidation.evidenceProvenancePresent).toBe(true);
+  expect(result.inputValidation.explicitDryRunOnlyFlagPresent).toBe(true);
+  expect(result.resultValidation.dryRunExecutionResultPresent).toBe(true);
+  expect(result.resultValidation.dryRunExecutionResultClaimsWriteApproval)
+    .toBe(false);
+  expect(result.resultValidation.dryRunExecutionResultClaimsSecurityProof)
+    .toBe(false);
+  expect(result.resultValidation.dryRunExecutionResultClaimsSchemaProof)
+    .toBe(false);
+  expect(result.resultValidation.dryRunExecutionResultClaimsDownstreamApproval)
+    .toBe(false);
+  expect(result.simulatedAuditEventValidation.auditWriteExecuted).toBe(false);
+  expect(result.simulatedAuditEventValidation.auditWriteAllowed).toBe(false);
+  expect(result.simulatedTableSchemaValidation.schemaTableStatusKnown).toBe(
+    true,
+  );
+  expect(
+    result.simulatedTableSchemaValidation.generatedAuditTypesStatusKnown,
+  ).toBe(true);
+  expect(
+    result.simulatedIdempotencyDuplicatePreventionValidation
+      .idempotencyKeyPresent,
+  ).toBe(true);
+  expect(
+    result.simulatedIdempotencyDuplicatePreventionValidation
+      .duplicatePreventionKeyPresent,
+  ).toBe(true);
+  expect(result.evidenceProvenanceValidation.evidenceProvenancePresent).toBe(
+    true,
+  );
+  expect(
+    result.serverOnlySecurityDependencyValidation
+      .serverOnlySecurityStatusKnown,
+  ).toBe(true);
+  expect(result.dependencyValidation.dryRunExecutionValidatorImplemented)
+    .toBe(false);
+  expect(result.dependencyValidation.dryRunExecutionImplemented).toBe(false);
+  expect(result.dependencyValidation.dryRunImplemented).toBe(false);
+  expect(result.dependencyValidation.writerImplemented).toBe(false);
+  expect(result.dependencyValidation.auditAppendImplemented).toBe(false);
+  expect(result.dependencyValidation.auditWritePathPresent).toBe(false);
+  expectAuditAppendWriterDryRunExecutionValidationNoAuthority(result);
+});
+
+test("blocks unsafe audit append writer dry-run execution validation inputs", async () => {
+  const baseInput =
+    buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput();
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_writer_dry_run_execution_validation_absent"
+      | "audit_append_writer_dry_run_execution_validation_blocked"
+      | "audit_append_writer_dry_run_execution_validation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "dry_run_execution_validation_input_missing",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_absent",
+    },
+    {
+      label: "missing dry-run execution input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        dryRunExecutionInput: null,
+      }),
+      expectedReason: "dry_run_execution_input_missing",
+    },
+    {
+      label: "missing dry-run execution result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        dryRunExecutionResult: null,
+      }),
+      expectedReason: "dry_run_execution_result_missing",
+    },
+    {
+      label: "missing dry-run validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        dryRunValidatorResult: null,
+      }),
+      expectedReason: "dry_run_validator_result_missing",
+    },
+    {
+      label: "missing dry-run result input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        dryRunResultInput: null,
+      }),
+      expectedReason: "dry_run_result_input_missing",
+    },
+    {
+      label: "missing contract validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        writerContractValidationResult: null,
+      }),
+      expectedReason: "contract_validator_result_missing",
+    },
+    {
+      label: "missing writer validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        writerValidatorResult: null,
+      }),
+      expectedReason: "writer_validator_result_missing",
+    },
+    {
+      label: "missing writer contract input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        auditWriterContractInput: null,
+      }),
+      expectedReason: "writer_contract_input_missing",
+    },
+    {
+      label: "missing audit event candidate",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        auditEventCandidate: null,
+      }),
+      expectedReason: "audit_event_candidate_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        executionRecordReference: null,
+      }),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        evidenceProvenance: null,
+      }),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        idempotencyMetadata: null,
+      }),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        duplicatePreventionMetadata: null,
+      }),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "missing server-only status",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        serverOnlySecurityProofStatus: null,
+      }),
+      expectedReason: "server_only_security_status_missing",
+    },
+    {
+      label: "missing schema status",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        schemaTableProofStatus: null,
+      }),
+      expectedReason: "schema_table_proof_status_missing",
+    },
+    {
+      label: "missing generated audit types status",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        generatedAuditTypesProofStatus: null,
+      }),
+      expectedReason: "generated_audit_types_status_missing",
+    },
+    {
+      label: "missing migration status",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        migrationProofStatus: null,
+      }),
+      expectedReason: "migration_status_missing",
+    },
+    {
+      label: "missing RLS status",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        rlsSecurityProofStatus: null,
+      }),
+      expectedReason: "rls_security_status_missing",
+    },
+    {
+      label: "explicit dry-run-only flag missing",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        explicitDryRunOnlyFlag: false,
+      }),
+      expectedReason: "explicit_dry_run_only_flag_missing",
+    },
+    {
+      label: "service role exposure risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        serviceRoleExposureRiskStatus: "risk_present",
+      }),
+      expectedReason: "service_role_exposure_risk",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "client-side write risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        clientSideWriteRiskStatus: "risk_present",
+      }),
+      expectedReason: "client_side_write_risk",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "dry-run execution success treated as write approval",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunExecutionResultClaimsWriteApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["resultValidation"],
+      }),
+      expectedReason:
+        "dry_run_execution_success_misinterpreted_as_write_approval",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "dry-run execution success treated as security proof",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunExecutionResultClaimsSecurityProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["resultValidation"],
+      }),
+      expectedReason:
+        "dry_run_execution_success_misinterpreted_as_security_proof",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "dry-run execution success treated as schema proof",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunExecutionResultClaimsSchemaProof: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["resultValidation"],
+      }),
+      expectedReason:
+        "dry_run_execution_success_misinterpreted_as_schema_proof",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "dry-run execution success treated as downstream approval",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        resultValidation: {
+          ...baseInput.resultValidation,
+          dryRunExecutionResultClaimsDownstreamApproval: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["resultValidation"],
+      }),
+      expectedReason:
+        "dry_run_execution_success_misinterpreted_as_downstream_approval",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "actual audit write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToWriteAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "actual_audit_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "route call requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          routeCallAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "route_call_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "writer execution requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          writerImplemented: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "writer_execution_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "audit append requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          auditAppendAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "audit_append_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "persistence write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          persistenceWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "persistence_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "Supabase write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          supabaseWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "supabase_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionValidationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionValidationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_validation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = validateExecutionRecordAuditAppendWriterDryRunExecution(
+      unsafeCase.input,
+    );
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_writer_dry_run_execution_validation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_write_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendWriterDryRunExecutionValidationNoAuthority(result);
+  }
+});
+
+test("executes audit append writer dry-run simulation without writes", async () => {
+  const input =
+    buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput();
+  const result = executeAuditAppendWriterDryRun(input);
+
+  expect(result.status).toBe(
+    "audit_append_writer_dry_run_execution_implementation_ready_for_design_only",
+  );
+  expect(result.decisionRecommendation).toBe(
+    "design_only_do_not_write_audit",
+  );
+  expect(result.blockedReasons).toEqual([]);
+  expect(result.warnings).toContain(
+    "dry_run_execution_implementation_not_audit_write_approval",
+  );
+  expect(result.simulatedAuditEventPayload).toEqual(
+    expect.objectContaining({
+      hypotheticalOnly: true,
+      nonPersistent: true,
+      simulatedPayloadPresent: true,
+      wouldAttemptAuditWrite: true,
+      auditWriteExecuted: false,
+      auditWriteAllowed: false,
+      safeToWriteAudit: false,
+      resultIsAuditWriteApproval: false,
+      auditEventType: input.auditWriterContractInput!.auditEventType,
+      auditEventSource: input.auditWriterContractInput!.auditEventSource,
+      executionRecordReferencePresent: true,
+    }),
+  );
+  expect(result.simulatedTableSchemaTarget).toEqual(
+    expect.objectContaining({
+      targetTable: "execution_record_audit",
+      targetSchema: "public",
+      schemaTableStatusKnown: true,
+      schemaTableProofPresent: true,
+      generatedAuditTypesStatusKnown: true,
+      generatedAuditTypesProofPresent: true,
+      generatedExecutionRecordTypesAssumedEnough: false,
+      migrationStatusKnown: true,
+      migrationProofPresent: true,
+      rlsSecurityStatusKnown: true,
+      rlsSecurityProofPresent: true,
+      schemaTableAssumedWithoutProof: false,
+      resultIsSchemaProof: false,
+    }),
+  );
+  expect(result.simulatedIdempotency).toEqual(
+    expect.objectContaining({
+      idempotencyKey: input.idempotencyKey,
+      idempotencyKeyPresent: true,
+      idempotencyMetadataComplete: true,
+      retrySafetyRepresented: true,
+      unknownWriteStatusRepresented: true,
+      simulatedWriteIdempotent: true,
+      idempotentWriteExecuted: false,
+      resultIsWriteApproval: false,
+    }),
+  );
+  expect(result.simulatedDuplicatePrevention).toEqual(
+    expect.objectContaining({
+      duplicatePreventionKey: input.duplicatePreventionKey,
+      duplicatePreventionKeyPresent: true,
+      duplicatePreventionMetadataComplete: true,
+      duplicateMatches: [],
+      simulatedDuplicateWriteWouldBeBlocked: true,
+      duplicateWriteExecuted: false,
+      safeToWriteDuplicateAuditEvent: false,
+      resultIsWriteApproval: false,
+    }),
+  );
+  expect(result.evidenceProvenance).toEqual(
+    expect.objectContaining({
+      executionRecordReferencePresent: true,
+      evidenceProvenancePresent: true,
+      auditEventCandidatePresent: true,
+      provenanceTraceComplete: true,
+      resultIsSecurityProof: false,
+    }),
+  );
+  expect(result.serverOnlySecurity).toEqual(
+    expect.objectContaining({
+      serverOnlySecurityStatusKnown: true,
+      serverOnlyProofPresent: true,
+      serviceRoleExposureRisk: false,
+      clientSideWriteRisk: false,
+      serviceRoleSecretValuesForbidden: true,
+      clientSideWriteForbidden: true,
+      resultIsServerOnlyProof: false,
+      resultIsRlsSecurityProof: false,
+    }),
+  );
+  expect(result.dependencies).toEqual(
+    expect.objectContaining({
+      dryRunExecutionValidatorResultPresent: true,
+      dryRunExecutionContractInputPresent: true,
+      dryRunExecutionContractResultPresent: true,
+      dryRunExecutionImplementationImplemented: false,
+      dryRunExecutionImplemented: false,
+      dryRunImplemented: false,
+      writerImplemented: false,
+      auditAppendImplemented: false,
+      auditWritePathPresent: false,
+      devPreviewDiagnosticsAreProof: false,
+    }),
+  );
+  expectAuditAppendWriterDryRunExecutionImplementationNoAuthority(result);
+});
+
+test("blocks unsafe audit append writer dry-run execution implementation inputs", async () => {
+  const baseInput =
+    buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput();
+  const blockedValidatorResult = {
+    ...baseInput.dryRunExecutionValidatorResult!,
+    status: "audit_append_writer_dry_run_execution_validation_blocked",
+  } as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["dryRunExecutionValidatorResult"];
+  const unsafeCases: Array<{
+    label: string;
+    input:
+      | ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput
+      | null
+      | undefined;
+    expectedReason: string;
+    expectedStatus?:
+      | "audit_append_writer_dry_run_execution_implementation_absent"
+      | "audit_append_writer_dry_run_execution_implementation_blocked"
+      | "audit_append_writer_dry_run_execution_implementation_invalid";
+  }> = [
+    {
+      label: "absent input",
+      input: null,
+      expectedReason: "dry_run_execution_implementation_input_missing",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_absent",
+    },
+    {
+      label: "missing dry-run execution validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        dryRunExecutionValidatorResult: null,
+      }),
+      expectedReason: "dry_run_execution_validator_result_missing",
+    },
+    {
+      label: "validator not ready",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        dryRunExecutionValidatorResult: blockedValidatorResult,
+      }),
+      expectedReason: "dry_run_execution_validator_result_missing",
+    },
+    {
+      label: "missing dry-run execution contract input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        dryRunExecutionContractInput: null,
+      }),
+      expectedReason: "dry_run_execution_contract_input_missing",
+    },
+    {
+      label: "missing dry-run validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        dryRunValidatorResult: null,
+      }),
+      expectedReason: "dry_run_validator_result_missing",
+    },
+    {
+      label: "missing dry-run result input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        dryRunResultInput: null,
+      }),
+      expectedReason: "dry_run_result_input_missing",
+    },
+    {
+      label: "missing contract validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        writerContractValidationResult: null,
+      }),
+      expectedReason: "contract_validator_result_missing",
+    },
+    {
+      label: "missing writer validator result",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        writerValidatorResult: null,
+      }),
+      expectedReason: "writer_validator_result_missing",
+    },
+    {
+      label: "missing writer contract input",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        auditWriterContractInput: null,
+      }),
+      expectedReason: "writer_contract_input_missing",
+    },
+    {
+      label: "missing audit event candidate",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        auditEventCandidate: null,
+      }),
+      expectedReason: "audit_event_candidate_missing",
+    },
+    {
+      label: "missing execution record reference",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        executionRecordReference: null,
+      }),
+      expectedReason: "execution_record_reference_missing",
+    },
+    {
+      label: "missing evidence provenance",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        evidenceProvenance: null,
+      }),
+      expectedReason: "evidence_provenance_missing",
+    },
+    {
+      label: "missing idempotency",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        idempotencyKey: null,
+      }),
+      expectedReason: "idempotency_key_missing",
+    },
+    {
+      label: "missing duplicate prevention",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        duplicatePreventionKey: null,
+      }),
+      expectedReason: "duplicate_prevention_key_missing",
+    },
+    {
+      label: "missing proof statuses",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        proofStatuses: null,
+        serverOnlySecurityProofStatus: null,
+        schemaTableProofStatus: null,
+        generatedAuditTypesProofStatus: null,
+        migrationProofStatus: null,
+        rlsSecurityProofStatus: null,
+      }),
+      expectedReason: "proof_statuses_missing",
+    },
+    {
+      label: "explicit dry-run-only flag missing",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        explicitDryRunOnlyFlag: false,
+      }),
+      expectedReason: "explicit_dry_run_only_flag_missing",
+    },
+    {
+      label: "service role exposure risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        serviceRoleExposureRiskStatus: "risk_present",
+      }),
+      expectedReason: "service_role_exposure_risk",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "client-side write risk",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        clientSideWriteRiskStatus: "risk_present",
+      }),
+      expectedReason: "client_side_write_risk",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "real write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToWriteAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "real_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "route call requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          routeCallAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "route_call_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "writer execution requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        downstreamAuthorityMetadata: {
+          writerExecutionRequested: true,
+        },
+      }),
+      expectedReason: "writer_execution_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "audit append requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToAppendAudit: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "audit_append_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "record creation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          recordCreationAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "record_creation_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "persistence write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          persistenceWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "persistence_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "Supabase write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          supabaseWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "supabase_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "localStorage write requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          localStorageWriteAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "local_storage_write_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "stats update requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateStats: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "stats_pnl_update_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "trade mutation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToMutateTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "trade_mutation_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "trade reconciliation requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToReconcileTrade: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "trade_reconciliation_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "rollback requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRollback: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "rollback_correction_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "UI update requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToUpdateUiState: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "ui_update_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "notification requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToNotifyUser: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "notification_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "broker action requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunBrokerAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "Avanza action requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          safeToRunAvanzaBrowserAction: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "broker_or_avanza_action_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+    {
+      label: "automatic mode requested",
+      input: buildExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput({
+        authority: {
+          ...baseInput.authority,
+          automaticModeAllowed: true,
+        } as unknown as ExecutionRecordAuditAppendWriterDryRunExecutionImplementationInput["authority"],
+      }),
+      expectedReason: "automatic_mode_requested",
+      expectedStatus:
+        "audit_append_writer_dry_run_execution_implementation_invalid",
+    },
+  ];
+
+  for (const unsafeCase of unsafeCases) {
+    const result = executeAuditAppendWriterDryRun(unsafeCase.input);
+
+    expect(result.status, unsafeCase.label).toBe(
+      unsafeCase.expectedStatus ??
+        "audit_append_writer_dry_run_execution_implementation_blocked",
+    );
+    expect(result.decisionRecommendation, unsafeCase.label).not.toBe(
+      "design_only_do_not_write_audit",
+    );
+    expect(result.blockedReasons, unsafeCase.label).toContain(
+      unsafeCase.expectedReason,
+    );
+    expectAuditAppendWriterDryRunExecutionImplementationNoAuthority(result);
+  }
+});
 
 test("dry-runs execution record insert route without persistence", async ({
   context,
@@ -18018,7 +30020,9 @@ test("renders the main trade UI without touching broker or trade state", async (
 
 test("uses the dev-only execution fixture to QA the handoff modal", async ({
   page,
-}) => {
+}, testInfo) => {
+  testInfo.setTimeout(120_000);
+
   await stubSettingsRemoteReads(page);
   await page.goto("/settings");
   const echoBridgeOption = page.locator("button").filter({
@@ -18066,6 +30070,9 @@ test("uses the dev-only execution fixture to QA the handoff modal", async ({
     ).toBeHidden();
     await expect(
       page.getByText("Finalization Candidate Preview"),
+    ).toBeHidden();
+    await expect(
+      page.getByText("Execution Record Persistence Validator Integration Preview"),
     ).toBeHidden();
     return;
   }
@@ -19070,6 +31077,2184 @@ test("uses the dev-only execution fixture to QA the handoff modal", async ({
   await expect(
     candidateBuilderIntegrationPreviewPanel.getByRole("button", {
       name: /call builder|build execution record candidate|create candidate|create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  const candidateBuilderInvocationPreviewPanel = modal.locator("details").filter({
+    hasText: "Execution Record Candidate Builder Invocation Preview",
+  });
+
+  await expect(candidateBuilderInvocationPreviewPanel).toBeVisible();
+  await candidateBuilderInvocationPreviewPanel.locator("summary").click();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Candidate builder invocation preview only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Controlled fixture only", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Candidate-only output"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Fixture-only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Explicit trigger only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Wrapper invocation only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Does not create execution record",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Not persistence approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Does not mutate trade state",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Does not send to broker"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("No Avanza/browser action"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("automatic mode disabled"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "safeToCallCandidateBuilder=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "safeToCreateExecutionRecordCandidate=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("safeToPersist=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("safeToUpdateStats=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("safeToAppendAudit=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("safeToRollback=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("safeToMutateTrade=false"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByRole("button", {
+      name: "Run candidate builder invocation preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByRole("button", {
+      name: /call builder|build execution record candidate|create candidate|create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  await candidateBuilderInvocationPreviewPanel
+    .getByRole("button", {
+      name: "Run candidate builder invocation preview",
+    })
+    .click();
+
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Invocation status"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "builder invocation needs review",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("needs manual review"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Prerequisite summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Input source summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Output summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Candidate-builder invocation wrapper status",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Candidate-only builder output summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Builder candidate fingerprint and idempotency",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Builder result status"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Candidate-only builder output is displayed for review",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Idempotency summary"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Audit/provenance summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Schema readiness summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Blocked reasons"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Warnings"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Review items"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Builder candidate blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Builder candidate warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Builder candidate review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Invocation validator status",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "builder invocation validation valid",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("validate only"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Prerequisite validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Input source validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Proposed input validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Idempotency validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Audit/provenance validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Schema readiness validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Safety policy validation summary",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Authority flags"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText(
+      "Validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Validator warnings"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByText("Validator review items"),
+  ).toBeVisible();
+  await expect(
+    candidateBuilderInvocationPreviewPanel.getByRole("button", {
+      name: /call builder|build execution record candidate|create candidate|create execution record|persist|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza/i,
+    }),
+  ).toHaveCount(0);
+
+  const persistenceValidatorIntegrationPreviewPanel = modal
+    .locator("details")
+    .filter({
+      hasText: "Execution Record Persistence Validator Integration Preview",
+    });
+
+  await expect(persistenceValidatorIntegrationPreviewPanel).toBeVisible();
+  await persistenceValidatorIntegrationPreviewPanel.locator("summary").click();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Persistence validator integration preview only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Controlled fixture only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Dev preview only"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration readiness only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper diagnostics only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Fixture-injected validator callable only",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Actual Persistence Validator Boundary Call Wrapper diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Proposed persistence input only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Validation-only"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Actual validator wrapper result remains do_not_insert",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Valid diagnostics only - do not insert",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not insert route approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not execution-record creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not persistence/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Does not call insert route",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Does not create execution record",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Does not persist"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Does not mutate trade state",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Does not send to broker",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No Avanza/browser action",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Automatic mode disabled",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToCallPersistenceValidator=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToCallInsertRoute=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToPersist=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToUpdateStats=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToAppendAudit=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRollback=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToMutateTrade=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route wrapper diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Fixture-injected route callable only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run diagnostics only - no production insert",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Design-only do not run post-insert actions",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is not user notification approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is not full workflow completion",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No notification execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Route success is not full persistence workflow completion",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Route success is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Route success is not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Route success is not trade mutation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: "Run persistence validator integration preview",
+    }),
+  ).toBeEnabled();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /call persistence validator|call insert route|create execution record|save|write|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza|KÖP|SÄLJ/i,
+    }),
+  ).toHaveCount(0);
+
+  await persistenceValidatorIntegrationPreviewPanel
+    .getByRole("button", {
+      name: "Run persistence validator integration preview",
+    })
+    .click();
+
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration composer readiness",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistence validator integration ready",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "readiness validated do not persist",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Actual Persistence Validator Boundary Call Readiness",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "actual persistence validator boundary validation valid",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "may call actual persistence validator only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary call validation valid means actual validator call readiness only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary call validation summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary call post-call boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary call authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Actual Persistence Validator Boundary Call Wrapper",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "actual persistence validator boundary call validated",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "actual validator valid do not insert",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper diagnostics use a fixture-injected validator callable only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Wrapper summaries"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert Route Readiness Boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "insert route readiness validation ready",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "may prepare insert route call only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness is preparation-only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Prepare-only, no route call",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness safety policy",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert Route Call Wrapper Diagnostics",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "insert route call dry run only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dry run only do not persist",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dry-run diagnostics only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "no production insert",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Route success is workflow completion",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("false").first(),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route call route output",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run accepted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production insert attempted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Supabase write attempted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append attempted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Stats update attempted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Trade mutation attempted",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route call post-insert boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route call safety policy",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production Insert Route Boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "production insert route boundary validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "design only do not implement route",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production route is not implemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production route is not called",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary ready is not route creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary ready is not route call approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary ready is not execution-record creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary ready is not persistence/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not trade mutation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not broker/order approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No Avanza/browser action",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary validation summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-Insert Boundary Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "post insert boundary validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "design only do not run post insert actions",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert boundary diagnostics only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success approves post-insert actions",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is full workflow completion",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert category validations",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Notification ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Broker follow-up ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Avanza/browser ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert safety policy",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "validationReadinessIsActionExecution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "insertSuccessIsPostInsertApproval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "brokerAvanzaDisabledUnlessApproved",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "postInsertActionsImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "postInsertActionsAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToNotifyUser",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert evidence and dependencies",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert orchestrator present",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert actions implemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Boundary Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append boundary validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "design only do not append audit",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append diagnostics only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit validation readiness is not audit append execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert validator readiness is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Orchestrator contract readiness is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit boundary contract readiness is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit validation success is not downstream action approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append validation summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "auditValidatorImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "auditAppendAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToAppendAudit",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunBrokerAction",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunAvanzaBrowserAction",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "automaticModeAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append boundary blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append boundary warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append boundary review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Writer Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append writer validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "design only do not write audit",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit writer diagnostics only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Design/readiness only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Writer validation readiness is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Writer contract readiness is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert success is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit boundary validator readiness is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dev-preview diagnostics are not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Orchestrator readiness is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary readiness is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run success is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Writer validation success is not downstream action approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No audit write"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No audit append"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No trade mutation/reconciliation",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No UI update"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No notification execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No broker/order action",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No Avanza/browser action",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Automatic mode disabled",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer validation summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "writerValidatorImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("auditWriteAllowed"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("safeToWriteAudit"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer validator warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Writer Contract Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append writer contract validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validator diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not server-only proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not schema/table proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not generated-types proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not migration proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation is not RLS/security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Checklist status is not proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dev-preview diagnostics are not proof/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Writer validator readiness is not write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Writer contract readiness is not write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Contract validation success is not downstream approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No route call"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No record creation"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No Supabase/localStorage write",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer contract validation summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer contract validator authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "contractValidatorImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("routeCallAllowed"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "recordCreationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistenceWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "supabaseWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "localStorageWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "statsPnlUpdateAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "tradeMutationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "tradeReconciliationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "correctionRollbackAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "uiStateMutationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "userNotificationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "brokerOrderFollowUpAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "avanzaBrowserFollowUpAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer contract validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer contract validator warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer contract validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Writer Dry-Run Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append writer dry run validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "design only do not write audit",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run validator diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run validation is not dry-run execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run validation is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run validation is not security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run validation is not downstream approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run result success is not write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run validator summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run validator authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dryRunValidatorImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dryRunExecutionAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("dryRunImplemented"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("writerImplemented"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "auditAppendImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "auditRouteImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("auditWriteAllowed"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("safeToWriteAudit"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("auditAppendAllowed"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("safeToAppendAudit"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("routeCallAllowed"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "recordCreationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistenceWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "supabaseWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "localStorageWriteAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "statsPnlUpdateAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "tradeMutationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "tradeReconciliationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "correctionRollbackAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "uiStateMutationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "userNotificationAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "brokerOrderFollowUpAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "avanzaBrowserFollowUpAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "automaticModeAllowed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run validator warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Writer Dry-Run Execution Validator",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append writer dry run execution validation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run execution validator diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validation is not dry-run execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validation is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validation is not security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validation is not downstream approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run execution success is not write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No dry-run execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No audit write"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("No route call"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution validator summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution validator authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dryRunExecutionValidatorImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dryRunExecutedAgainstRealData",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution validator warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit Append Writer Dry-Run Execution",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "audit append writer dry run execution implementation ready for design only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run execution diagnostics only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Non-persistent would-write simulation only",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not real write",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not audit write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not server-only proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not schema/table proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not generated-types proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not migration proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not RLS/security proof",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Result is not downstream approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Simulated audit event present",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Target table"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Idempotency key present",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Duplicate prevention key present",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Evidence/provenance present",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Server-only status known",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No-write/no-action safety",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "dryRunExecutionImplementationImplemented",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Audit append writer dry-run execution review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /dry-run execution/i,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /audit write/i,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /audit append/i,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /KÖP|SÄLJ|Avanza|broker/i,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "productionRouteImplementationAllowed=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "productionRouteCallAllowed=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToCreateExecutionRecord=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToPersist=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToAppendAudit=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToUpdateStats=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRollback=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToMutateTrade=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunBrokerAction=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunAvanzaBrowserAction=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production boundary review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert boundary blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert boundary warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Post-insert boundary review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "generated types absent or unknown",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "migration application not proven",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route call warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route call blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No insert route call",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No execution record creation",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "No persistence/write",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Dry-run route is not production insert",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Production insert remains separate future boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not execution-record creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not persistence/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not audit append approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not stats/PnL update approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not rollback/correction approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not trade mutation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not broker/order approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Ready result is not Avanza/browser approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Callable status"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("eligible"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary-call validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary-call validator warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Boundary-call validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Insert route readiness review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not insert route approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not execution-record creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Wrapper result is not persistence/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not insert route approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not execution-record creation approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not persistence/write approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Not broker/order approval",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunBrokerAction=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "safeToRunAvanzaBrowserAction=false",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Actual persistence validator boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "not called future boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration summaries",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration authority flags",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration warnings",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Integration review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Adapter status"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistence adapter ready",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Proposed ExecutionRecordPersistenceInput",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Field mapping"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Precondition"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Schema readiness"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Idempotency"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Audit/correction"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Security"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Dry-run route"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Safety policy"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Validator status"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistence integration validation valid",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator proposed input validation",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Validator readiness"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator schema readiness",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator idempotency",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator audit/correction",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Validator security"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator dry-run route",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Safety policy validation",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Authority flags"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator blocked reasons",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText("Validator warnings"),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Validator review items",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Blocked/review fixture path",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistence integration validation blocked",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "persistence validator integration blocked",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "Persistence validator integration preview completed",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "callActualPersistenceValidatorBoundary(...) ran",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "fixture-injected callable only",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "not_called_future_boundary",
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByText(
+      "not insert/create/persist/write approval",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    persistenceValidatorIntegrationPreviewPanel.getByRole("button", {
+      name: /call persistence validator|call insert route|create execution record|save|write|finalize|update stats|update PnL|append audit|rollback|correct|mutate|send to broker|open Avanza|KÖP|SÄLJ/i,
     }),
   ).toHaveCount(0);
 
