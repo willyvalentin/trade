@@ -1669,7 +1669,8 @@ function repairRetainedReviewAudit(
   if (
     reviewBatchFingerprint === null ||
     !hasRetainedOfficialReviewEvidence(input) ||
-    existing.batch_fingerprint !== reviewBatchFingerprint
+    (existing.batch_fingerprint !== null &&
+      existing.batch_fingerprint !== reviewBatchFingerprint)
   ) {
     return existing;
   }
@@ -1730,11 +1731,15 @@ function repairRetainedReviewAudit(
     existing.effective_built_recommendations_count,
     visibleCards,
   );
-  const publishedCount = firstPositiveCount(
-    timelineEntry?.effective_published_count,
-    timelineEntry?.published_count,
-    existing.effective_published_recommendations_count,
-    visibleCards,
+  const rawBuiltCount = count(
+    timelineEntry?.raw_scan_run_built_count ??
+      existing.raw_scan_run_built_count ??
+      timelineEntry?.built_count,
+  );
+  const rawPublishedCount = count(
+    timelineEntry?.raw_scan_run_published_count ??
+      existing.raw_scan_run_published_count ??
+      timelineEntry?.published_count,
   );
   const selectedCount = firstPositiveCount(
     timelineEntry?.selected_count,
@@ -1778,8 +1783,8 @@ function repairRetainedReviewAudit(
       existing.ranked_candidates_count,
     ),
     selectedCandidatesCount: selectedCount,
-    builtRecommendationsCount: builtCount,
-    publishedRecommendationsCount: publishedCount,
+    builtRecommendationsCount: rawBuiltCount,
+    publishedRecommendationsCount: rawPublishedCount,
     persistedRecommendationRowsCount: persistedRecommendationRows,
     persistedSnapshotRowsCount: rawSnapshotRows,
     uniqueSnapshotFingerprintsCount: uniqueSnapshots,
@@ -1839,7 +1844,7 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
     activeTraceBatchFingerprint === reviewBatchFingerprint;
 
   if (activeTraceLinked && activeTraceHasCandidateFunnel) {
-    return buildBatchCandidateAuditSummary({
+    const activeTraceAudit = buildBatchCandidateAuditSummary({
       scanRunFingerprint: activeTraceScanRunFingerprint,
       batchFingerprint:
         activeTraceBatchFingerprint ??
@@ -1908,13 +1913,19 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
       selectedToBuiltDropOff:
         input.active_scan_trace?.final.selected_to_built_drop_off ?? null,
     });
+
+    return repairRetainedReviewAudit(
+      input,
+      activeTraceAudit,
+      reviewBatchFingerprint,
+    );
   }
 
   if (auditMatchesBatch(existing, reviewBatchFingerprint)) {
     return repairRetainedReviewAudit(input, existing, reviewBatchFingerprint);
   }
 
-  return buildBatchCandidateAuditSummary({
+  const fallbackAudit = buildBatchCandidateAuditSummary({
     scanRunFingerprint:
       input.scan_readback?.latest_official_scan_run_fingerprint ??
       input.active_scan_trace?.final.scan_run_fingerprint ??
@@ -2014,6 +2025,8 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
         ? input.active_scan_trace?.final.selected_to_built_drop_off
         : null) ?? null,
   });
+
+  return repairRetainedReviewAudit(input, fallbackAudit, reviewBatchFingerprint);
 }
 
 function pctValue(value: number | null | undefined) {
@@ -2057,21 +2070,28 @@ function buildSections(
           (attempt) => attempt.selected_to_built_drop_off,
         )) ??
     null;
+  const latestReviewBatchDropOff =
+    latestReviewBatchAttempt?.selected_to_built_drop_off ?? null;
   const selectedToBuiltDropOff =
+    latestReviewBatchDropOff ??
     batchCandidateAudit.selected_to_built_drop_off ??
     latestScheduledBuildRejectionAttempt?.selected_to_built_drop_off ??
     null;
-  const selectedToBuiltSource = batchCandidateAudit.selected_to_built_drop_off
-    ? reviewBatchFingerprint
+  const selectedToBuiltSource = latestReviewBatchDropOff
+    ? "latest_official_batch_timeline"
+    : batchCandidateAudit.selected_to_built_drop_off
+      ? reviewBatchFingerprint
       ? "latest_official_batch_audit"
       : "batch_candidate_audit"
-    : latestScheduledBuildRejectionAttempt
-      ? latestReviewBatchAttempt
-        ? "latest_official_batch_timeline"
-        : "latest_attempt_timeline"
-      : "not_observed";
+      : latestScheduledBuildRejectionAttempt
+        ? latestReviewBatchAttempt
+          ? "latest_official_batch_timeline"
+          : "latest_attempt_timeline"
+        : "not_observed";
   const selectedToBuiltPublishedCount =
-    (batchCandidateAudit.selected_to_built_drop_off
+    (latestReviewBatchDropOff
+      ? latestReviewBatchAttempt?.published_count
+      : batchCandidateAudit.selected_to_built_drop_off
       ? batchCandidateAudit.effective_published_recommendations_count
       : latestScheduledBuildRejectionAttempt?.published_count) ??
     batchCandidateAudit.published_recommendations_count;

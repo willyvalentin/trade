@@ -354,8 +354,8 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     rawCandidatesCount: 0,
     rankedCandidatesCount: 0,
     selectedCandidatesCount: 0,
-    builtRecommendationsCount: 6,
-    publishedRecommendationsCount: 6,
+    builtRecommendationsCount: 0,
+    publishedRecommendationsCount: 0,
     persistedRecommendationRowsCount: 0,
     persistedSnapshotRowsCount: 12,
     uniqueSnapshotFingerprintsCount: 12,
@@ -419,7 +419,17 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     batch_fingerprint: "rec_batch_1vxtb7z",
     scan_run_fingerprint: "rec_scan_run_vlz162",
     rejection_summary: null,
-    selected_to_built_drop_off: null,
+    selected_to_built_drop_off: {
+      selected_count: 14,
+      built_count: 6,
+      rejected_count: 8,
+      rejection_counts: { below_publish_threshold: 8 },
+      category_counts: { quality: 8 },
+      examples_by_reason: { below_publish_threshold: ["BAC", "JPM", "MSFT"] },
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "8 selected candidates were below the publish threshold.",
+    },
     selected_candidate_build_diagnostics: [],
     reference_refresh: null,
   };
@@ -514,6 +524,9 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
   expect(auditMetrics.selected_candidates_count).toBe(14);
   expect(auditMetrics.effective_built_recommendations_count).toBe(6);
   expect(auditMetrics.effective_published_recommendations_count).toBe(6);
+  expect(auditMetrics.raw_scan_run_built_count).toBe(0);
+  expect(auditMetrics.raw_scan_run_published_count).toBe(0);
+  expect(auditMetrics.reconciled_from_persisted_rows).toBe(true);
   expect(auditMetrics.persisted_recommendation_rows_count).toBe(6);
   expect(auditMetrics.persisted_snapshot_rows_count).toBe(12);
   expect(auditMetrics.unique_snapshot_fingerprints_count).toBe(6);
@@ -534,7 +547,7 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     "selected_to_built_drop_off",
   );
   expect(selectedToBuiltMetrics.selected_to_built_source).toBe(
-    "latest_official_batch_audit",
+    "latest_official_batch_timeline",
   );
   expect(selectedToBuiltMetrics.scan_run_fingerprint).toBe(
     "rec_scan_run_vlz162",
