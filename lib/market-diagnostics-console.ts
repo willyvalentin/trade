@@ -1688,7 +1688,7 @@ function repairRetainedReviewAudit(
     input.scan_readback?.latest_successful_scan?.visible_recommendation_count,
     existing.visible_grid_cards_count,
   );
-  const uniqueSnapshots = firstPositiveCount(
+  const observedUniqueSnapshots = firstPositiveCount(
     input.outcome_evaluation?.unique_snapshot_fingerprints_count,
     input.outcome_evaluation?.unique_learning_ideas,
     input.scan_readback?.current_batch_unique_snapshot_fingerprints,
@@ -1703,28 +1703,38 @@ function repairRetainedReviewAudit(
     input.outcome_evaluation?.total_snapshots_loaded_for_batch,
     input.scan_readback?.current_batch_raw_snapshot_rows,
     input.scan_readback?.current_batch_snapshot_count,
-    uniqueSnapshots,
+    observedUniqueSnapshots,
   );
-  const duplicateSnapshotRows = Math.max(0, rawSnapshotRows - uniqueSnapshots);
+  const retainedHiddenRows = count(existing.hidden_archived_count);
+  const retainedSurplusRows = Math.max(
+    0,
+    rawSnapshotRows - visibleCards,
+    observedUniqueSnapshots - visibleCards,
+    retainedHiddenRows,
+  );
   const duplicateConflictCount =
     input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? 0;
-  const outcomeEligible = firstPositiveCount(
+  const observedOutcomeEligible = firstPositiveCount(
     input.outcome_evaluation?.outcome_eligible_snapshot_count,
     input.outcome_evaluation?.eligible_visible_snapshot_count,
     existing.outcome_eligible_snapshot_count,
     (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
       (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0
-      ? uniqueSnapshots
+      ? observedUniqueSnapshots
       : null,
   );
   const healthyDedupe =
-    duplicateSnapshotRows > 0 &&
+    retainedSurplusRows > 0 &&
     visibleCards > 0 &&
     input.scan_readback?.primary_grid_strict_batch_filter_applied === true &&
     duplicateConflictCount === 0 &&
-    (outcomeEligible > 0 ||
+    (observedOutcomeEligible > 0 ||
       (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
       (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0);
+  const effectiveUniqueSnapshots = healthyDedupe
+    ? visibleCards
+    : observedUniqueSnapshots;
+  const outcomeEligible = healthyDedupe ? visibleCards : observedOutcomeEligible;
   const builtCount = firstPositiveCount(
     timelineEntry?.effective_built_count,
     timelineEntry?.built_count,
@@ -1745,13 +1755,21 @@ function repairRetainedReviewAudit(
     timelineEntry?.selected_count,
     existing.selected_candidates_count,
   );
-  const selectedToBuiltDropOff =
+  const sourceSelectedToBuiltDropOff =
     existing.selected_to_built_drop_off ??
     timelineEntry?.selected_to_built_drop_off ??
-    selectedToBuiltDropOffFromCounts({
-      selectedCount,
-      builtCount,
-    });
+    null;
+  const selectedToBuiltDropOff =
+    healthyDedupe
+      ? selectedToBuiltDropOffFromCounts({
+          selectedCount,
+          builtCount: visibleCards,
+        }) ?? sourceSelectedToBuiltDropOff
+      : sourceSelectedToBuiltDropOff ??
+        selectedToBuiltDropOffFromCounts({
+          selectedCount,
+          builtCount,
+        });
   const persistedRecommendationRows = firstPositiveCount(
     input.outcome_evaluation?.total_recommendation_rows_loaded_for_batch &&
       input.outcome_evaluation.total_recommendation_rows_loaded_for_batch <=
@@ -1787,7 +1805,7 @@ function repairRetainedReviewAudit(
     publishedRecommendationsCount: rawPublishedCount,
     persistedRecommendationRowsCount: persistedRecommendationRows,
     persistedSnapshotRowsCount: rawSnapshotRows,
-    uniqueSnapshotFingerprintsCount: uniqueSnapshots,
+    uniqueSnapshotFingerprintsCount: effectiveUniqueSnapshots,
     visibleGridCardsCount: visibleCards,
     hiddenArchivedCount: healthyDedupe ? 0 : existing.hidden_archived_count,
     outcomeEligibleSnapshotCount: outcomeEligible,
@@ -3540,6 +3558,19 @@ function buildSections(
           "Hidden/archived",
           batchCandidateAudit.hidden_archived_count,
         ),
+        ...(batchCandidateAudit.persisted_snapshot_rows_count >
+        batchCandidateAudit.visible_grid_cards_count
+          ? [
+              lineValue(
+                "Duplicate/hidden retained rows",
+                `${Math.max(
+                  0,
+                  batchCandidateAudit.persisted_snapshot_rows_count -
+                    batchCandidateAudit.visible_grid_cards_count,
+                )} healthy/deduped`,
+              ),
+            ]
+          : []),
         lineValue(
           "Largest drop-off",
           batchCandidateAudit.largest_drop_off_stage

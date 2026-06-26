@@ -379,8 +379,8 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     raw_count: 0,
     ranked_count: 0,
     selected_count: 7,
-    built_count: 6,
-    published_count: 6,
+    built_count: 12,
+    published_count: 12,
     batch_fingerprint: null,
     scan_run_fingerprint: "rec_scan_run_1b2agwl",
     rejection_summary: null,
@@ -421,7 +421,7 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     rejection_summary: null,
     selected_to_built_drop_off: {
       selected_count: 14,
-      built_count: 6,
+      built_count: 12,
       rejected_count: 8,
       rejection_counts: { below_publish_threshold: 8 },
       category_counts: { quality: 8 },
@@ -442,11 +442,11 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
         latest_official_batch_fingerprint: "rec_batch_1vxtb7z",
         latest_official_scan_run_fingerprint: "rec_scan_run_vlz162",
         current_batch_fingerprint: "rec_batch_1vxtb7z",
-        current_batch_recommendation_count: 6,
+        current_batch_recommendation_count: 12,
         current_batch_snapshot_count: 12,
         current_batch_raw_snapshot_rows: 12,
-        current_batch_unique_snapshot_fingerprints: 6,
-        current_batch_duplicate_snapshot_rows: 6,
+        current_batch_unique_snapshot_fingerprints: 12,
+        current_batch_duplicate_snapshot_rows: 0,
         current_batch_visible_grid_count: 6,
         current_batch_visible_recommendation_count: 6,
         current_batch_learning_snapshot_count: 6,
@@ -482,11 +482,11 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
         grid_cards: 6,
         raw_snapshot_rows: 12,
         total_snapshots_loaded_for_batch: 12,
-        unique_snapshot_fingerprints_count: 6,
-        unique_learning_ideas: 6,
-        duplicate_snapshot_rows: 6,
-        duplicate_snapshot_fingerprints_count: 6,
-        duplicate_snapshot_rows_ignored_count: 6,
+        unique_snapshot_fingerprints_count: 12,
+        unique_learning_ideas: 12,
+        duplicate_snapshot_rows: 0,
+        duplicate_snapshot_fingerprints_count: 0,
+        duplicate_snapshot_rows_ignored_count: 0,
         duplicate_snapshot_conflict_count: 0,
         outcome_eligible_snapshot_count: 6,
         eligible_visible_snapshot_count: 6,
@@ -533,6 +533,7 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
   expect(auditMetrics.outcome_eligible_snapshot_count).toBe(6);
   expect(auditMetrics.batch_completeness).toBe("complete");
   expect(auditMetrics.raw_duplicate_snapshot_rows).toBe(6);
+  expect(auditMetrics.hidden_archived_count).toBe(0);
   expect(auditMetrics.effective_unique_snapshot_rows).toBe(6);
   expect(auditMetrics.healthy_grow_max_dedupe).toBe(true);
   expect(JSON.parse(String(auditMetrics.drop_off_reasons))).toMatchObject({
