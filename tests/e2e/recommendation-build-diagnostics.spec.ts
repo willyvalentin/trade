@@ -351,27 +351,17 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
   const officialAudit = buildBatchCandidateAuditSummary({
     scanRunFingerprint: "rec_scan_run_vlz162",
     batchFingerprint: "rec_batch_1vxtb7z",
-    rawCandidatesCount: 22,
-    rankedCandidatesCount: 22,
-    selectedCandidatesCount: 14,
-    builtRecommendationsCount: 0,
-    publishedRecommendationsCount: 0,
-    persistedRecommendationRowsCount: 6,
+    rawCandidatesCount: 0,
+    rankedCandidatesCount: 0,
+    selectedCandidatesCount: 0,
+    builtRecommendationsCount: 6,
+    publishedRecommendationsCount: 6,
+    persistedRecommendationRowsCount: 0,
     persistedSnapshotRowsCount: 12,
-    uniqueSnapshotFingerprintsCount: 6,
+    uniqueSnapshotFingerprintsCount: 12,
     visibleGridCardsCount: 6,
-    outcomeEligibleSnapshotCount: 6,
-    selectedToBuiltDropOff: {
-      selected_count: 14,
-      built_count: 6,
-      rejected_count: 8,
-      rejection_counts: { below_publish_threshold: 8 },
-      category_counts: { quality: 8 },
-      examples_by_reason: { below_publish_threshold: ["BAC", "JPM", "MSFT"] },
-      output_below_target_reason_category: "healthy_caution",
-      output_below_target_explanation:
-        "8 selected candidates were below the publish threshold.",
-    },
+    hiddenArchivedCount: 6,
+    outcomeEligibleSnapshotCount: 0,
   });
   const laterSkippedAttempt: ScheduledScanTimelineEntry = {
     utc_timestamp: "2026-06-26T19:02:00.000Z",
@@ -388,9 +378,9 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     empty_scan_reason: "empty_initial_tick_retry_allowed",
     raw_count: 0,
     ranked_count: 0,
-    selected_count: 0,
-    built_count: 0,
-    published_count: 0,
+    selected_count: 7,
+    built_count: 6,
+    published_count: 6,
     batch_fingerprint: null,
     scan_run_fingerprint: "rec_scan_run_1b2agwl",
     rejection_summary: null,
@@ -444,8 +434,15 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
         current_batch_fingerprint: "rec_batch_1vxtb7z",
         current_batch_recommendation_count: 6,
         current_batch_snapshot_count: 12,
+        current_batch_raw_snapshot_rows: 12,
+        current_batch_unique_snapshot_fingerprints: 6,
+        current_batch_duplicate_snapshot_rows: 6,
         current_batch_visible_grid_count: 6,
         current_batch_visible_recommendation_count: 6,
+        current_batch_learning_snapshot_count: 6,
+        current_batch_grid_card_count: 6,
+        grow_max_learning_mode: true,
+        primary_grid_strict_batch_filter_applied: true,
         latest_successful_scan: {
           result: "published",
           created_at: "2026-06-26T16:00:00.000Z",
@@ -471,9 +468,41 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
         current_batch_expected_outcomes: 18,
         current_batch_persisted_outcomes: 24,
         batch_candidate_audit: officialAudit,
+        visible_grid_count: 6,
+        grid_cards: 6,
+        raw_snapshot_rows: 12,
+        total_snapshots_loaded_for_batch: 12,
+        unique_snapshot_fingerprints_count: 6,
+        unique_learning_ideas: 6,
+        duplicate_snapshot_rows: 6,
+        duplicate_snapshot_fingerprints_count: 6,
+        duplicate_snapshot_rows_ignored_count: 6,
+        duplicate_snapshot_conflict_count: 0,
+        outcome_eligible_snapshot_count: 6,
+        eligible_visible_snapshot_count: 6,
         evaluated_outcome_count: 24,
         latest_evaluated_batch_rows: 24,
         shadow_entry_trial_count: 12,
+      },
+      live_market_trial_readiness: {
+        ...baseMarketDiagnosticsInput().live_market_trial_readiness,
+        warnings: [
+          {
+            warning_id: "zero_scan_runs",
+            source: "persistence",
+            message: "0 scan runs available for diagnostics",
+          },
+        ],
+      },
+      live_market_trial_runbook: {
+        ...baseMarketDiagnosticsInput().live_market_trial_runbook,
+        warnings: [
+          {
+            warning_id: "zero_snapshots",
+            severity: "warning",
+            message: "0 recommendation snapshots in scope; 0 evaluated",
+          },
+        ],
       },
     }),
   );
@@ -486,8 +515,19 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
   expect(auditMetrics.effective_built_recommendations_count).toBe(6);
   expect(auditMetrics.effective_published_recommendations_count).toBe(6);
   expect(auditMetrics.persisted_recommendation_rows_count).toBe(6);
+  expect(auditMetrics.persisted_snapshot_rows_count).toBe(12);
+  expect(auditMetrics.unique_snapshot_fingerprints_count).toBe(6);
   expect(auditMetrics.outcome_eligible_snapshot_count).toBe(6);
   expect(auditMetrics.batch_completeness).toBe("complete");
+  expect(auditMetrics.raw_duplicate_snapshot_rows).toBe(6);
+  expect(auditMetrics.effective_unique_snapshot_rows).toBe(6);
+  expect(auditMetrics.healthy_grow_max_dedupe).toBe(true);
+  expect(JSON.parse(String(auditMetrics.drop_off_reasons))).toMatchObject({
+    below_publish_threshold: 8,
+    persistence_failed: 0,
+    archived: 0,
+    duplicate_snapshot_fingerprint: 0,
+  });
 
   const selectedToBuiltMetrics = sectionMetrics(
     summary,
@@ -514,6 +554,12 @@ test("closed-market diagnostics keep latest official review batch scope", () => 
     "2026-06-26T19:02:00.000Z",
   );
   expect(timelineMetrics.scheduled_scan_timeline_latest_reason).toBe("empty");
+  expect(summary.copy_payloads.summary_text.content).not.toContain(
+    "0 scan runs available for diagnostics",
+  );
+  expect(summary.copy_payloads.summary_text.content).not.toContain(
+    "0 recommendation snapshots in scope; 0 evaluated",
+  );
 });
 
 test("closed-market outcome panels retain latest evaluated review diagnostics", () => {
@@ -604,6 +650,55 @@ test("closed-market outcome panels retain latest evaluated review diagnostics", 
   );
   expect(summary.copy_payloads.summary_text.content).not.toContain(
     "No active entry tuning proposal is ready for shadow tracking.",
+  );
+});
+
+test("empty closed-market diagnostics still report true zero-scope warnings", () => {
+  const summary = buildMarketDiagnosticsConsoleSummary(
+    baseMarketDiagnosticsInput({
+      scan_readback: {
+        market_closed_readback_mode: true,
+        latest_review_batch_fingerprint: null,
+        latest_successful_scan: null,
+        latest_attempted_scan: null,
+        current_batch_visible_grid_count: 0,
+        current_batch_visible_recommendation_count: 0,
+      },
+      outcome_evaluation: {
+        market_closed_readback_mode: true,
+        latest_review_batch_fingerprint: null,
+        evaluated_outcome_count: 0,
+        latest_evaluated_batch_rows: 0,
+      },
+      live_market_trial_readiness: {
+        ...baseMarketDiagnosticsInput().live_market_trial_readiness,
+        warnings: [
+          {
+            warning_id: "zero_scan_runs",
+            source: "persistence",
+            message: "0 scan runs available for diagnostics",
+          },
+        ],
+      },
+      live_market_trial_runbook: {
+        ...baseMarketDiagnosticsInput().live_market_trial_runbook,
+        warnings: [
+          {
+            warning_id: "zero_snapshots",
+            severity: "warning",
+            message: "0 recommendation snapshots in scope; 0 evaluated",
+          },
+        ],
+      },
+      outcome_learning: null,
+    }),
+  );
+
+  expect(summary.copy_payloads.summary_text.content).toContain(
+    "0 scan runs available for diagnostics",
+  );
+  expect(summary.copy_payloads.summary_text.content).toContain(
+    "0 recommendation snapshots in scope; 0 evaluated",
   );
 });
 

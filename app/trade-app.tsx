@@ -281,6 +281,8 @@ import {
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import {
   inferRecommendationEntryTypeMetadata,
+  summarizeEntryTypeTriggerDiagnostics,
+  type EntryTypeAwareTriggerDiagnostics,
   type EntryTypeTriggerSummary,
   type RecommendationEntryTypeMetadata,
 } from "@/lib/recommendation-entry-type";
@@ -308,7 +310,10 @@ import {
   type DayTradeWindowRecommendationTargetItem,
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
-import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import {
+  summarizePlanPriceFreshness,
+  type PlanPriceFreshnessDiagnostics,
+} from "@/lib/plan-price-freshness";
 import type { BatchCandidateAuditSummary } from "@/lib/batch-candidate-audit";
 import {
   buildRecommendationTierPerformanceSummary,
@@ -3048,6 +3053,30 @@ function planPriceFreshnessFromSnapshotPayload(
     typeof diagnostics === "object" &&
     !Array.isArray(diagnostics)
     ? (diagnostics as PlanPriceFreshnessDiagnostics)
+    : null;
+}
+
+function planPriceFreshnessFromOutcomePayload(
+  outcome: RecommendationOutcome | null | undefined,
+): PlanPriceFreshnessDiagnostics | null {
+  const diagnostics = outcome?.payload_json.plan_price_freshness;
+
+  return diagnostics !== null &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as PlanPriceFreshnessDiagnostics)
+    : null;
+}
+
+function entryTypeTriggerFromOutcomePayload(
+  outcome: RecommendationOutcome | null | undefined,
+): EntryTypeAwareTriggerDiagnostics | null {
+  const diagnostics = outcome?.payload_json.entry_type_trigger_diagnostics;
+
+  return diagnostics !== null &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as EntryTypeAwareTriggerDiagnostics)
     : null;
 }
 
@@ -11536,6 +11565,38 @@ export function TradeApp() {
         : useClosedMarketReviewReadback
           ? latestReviewBatchStoredOutcomes
           : [];
+  const retainedReviewPlanPriceFreshnessSummary =
+    outcomeDiagnosticsStoredOutcomes.length > 0
+      ? summarizePlanPriceFreshness(
+          outcomeDiagnosticsStoredOutcomes.map((outcome) => {
+            const snapshot =
+              outcome.snapshot_fingerprint !== null
+                ? snapshotByFingerprint.get(outcome.snapshot_fingerprint)
+                : undefined;
+
+            return {
+              ticker: outcome.ticker,
+              snapshot_fingerprint: outcome.snapshot_fingerprint,
+              horizon: outcome.horizon,
+              diagnostics:
+                planPriceFreshnessFromOutcomePayload(outcome) ??
+                planPriceFreshnessFromSnapshotPayload(snapshot),
+            };
+          }),
+        )
+      : null;
+  const retainedReviewEntryTypeTriggerSummary =
+    outcomeDiagnosticsStoredOutcomes.length > 0
+      ? summarizeEntryTypeTriggerDiagnostics(
+          outcomeDiagnosticsStoredOutcomes.map((outcome) => ({
+            ticker: outcome.ticker,
+            entryType: parseEntryTypeMetadata(outcome.payload_json),
+            trigger: entryTypeTriggerFromOutcomePayload(outcome),
+            currentRouteTriggered: outcome.entry_triggered,
+            officialTriggered: outcome.entry_triggered,
+          })),
+        )
+      : null;
   const outcomeDiagnosticsEvaluatedCount =
     latestEvaluatedBatchOutcomes.length > 0
       ? latestEvaluatedBatchCompletedOutcomeCount
@@ -14002,11 +14063,18 @@ export function TradeApp() {
                 ? latestReviewBatchOutcomeTickers
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
-          recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
+          recommendationOutcomeEvaluationRun?.plan_price_freshness_summary
+            ?.evaluated_snapshots
+            ? recommendationOutcomeEvaluationRun.plan_price_freshness_summary
+            : retainedReviewPlanPriceFreshnessSummary,
         entry_type_trigger_summary:
-          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
-          recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
-          null,
+          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary
+            ?.total_outcomes
+            ? recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary
+            : recommendationOutcomeEvaluationRun?.entry_type_trigger_summary
+                  ?.total_outcomes
+              ? recommendationOutcomeEvaluationRun.entry_type_trigger_summary
+              : retainedReviewEntryTypeTriggerSummary,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
       entry_tuning_proposal: entryTuningProposal,

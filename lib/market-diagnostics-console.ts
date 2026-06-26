@@ -390,6 +390,22 @@ function count(value: number | null | undefined) {
     : 0;
 }
 
+function positiveCount(value: number | null | undefined) {
+  const normalized = count(value);
+  return normalized > 0 ? normalized : null;
+}
+
+function firstPositiveCount(
+  ...values: Array<number | null | undefined>
+) {
+  for (const value of values) {
+    const normalized = positiveCount(value);
+    if (normalized !== null) return normalized;
+  }
+
+  return 0;
+}
+
 function words(value: string | null | undefined) {
   return (value || "unknown").replaceAll("_", " ");
 }
@@ -745,6 +761,28 @@ function isClosedMarketWaitState(input: MarketDiagnosticsConsoleInput) {
     input.market_status?.dayType === "holiday" ||
     input.market_session.phase === "closed" ||
     input.market_session.phase === "holiday"
+  );
+}
+
+function hasRetainedOfficialReviewEvidence(input: MarketDiagnosticsConsoleInput) {
+  const reviewBatchFingerprint =
+    input.outcome_evaluation?.latest_review_batch_fingerprint ??
+    input.scan_readback?.latest_review_batch_fingerprint ??
+    null;
+
+  return (
+    isClosedMarketWaitState(input) &&
+    reviewBatchFingerprint !== null &&
+    ((input.scan_readback?.current_batch_visible_grid_count ?? 0) > 0 ||
+      (input.scan_readback?.current_batch_visible_recommendation_count ?? 0) > 0 ||
+      (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
+        0) > 0 ||
+      (input.outcome_evaluation?.visible_grid_count ?? 0) > 0 ||
+      (input.outcome_evaluation?.grid_cards ?? 0) > 0 ||
+      (input.outcome_evaluation?.outcome_eligible_snapshot_count ?? 0) > 0 ||
+      (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
+      (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0 ||
+      (input.outcome_learning?.total_evaluated_outcomes ?? 0) > 0)
   );
 }
 
@@ -1266,9 +1304,20 @@ function suggestedNextAction(
 
 function buildWarnings(input: MarketDiagnosticsConsoleInput) {
   const closedMarketWaitState = isClosedMarketWaitState(input);
+  const retainedReviewEvidence = hasRetainedOfficialReviewEvidence(input);
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
+  const isMisleadingRetainedZeroScopeWarning = (message: string) => {
+    if (!retainedReviewEvidence) return false;
+    const normalized = message.toLowerCase();
+
+    return (
+      normalized.includes("0 scan runs available for diagnostics") ||
+      (normalized.includes("0 recommendation snapshots") &&
+        normalized.includes("0 evaluated"))
+    );
+  };
   const blockers = dedupeWarnings([
     ...input.live_market_trial_readiness.blockers
       .filter((item) =>
@@ -1326,12 +1375,16 @@ function buildWarnings(input: MarketDiagnosticsConsoleInput) {
           ),
         ]
       : []),
-    ...input.live_market_trial_readiness.warnings.map((item) =>
-      warning(`readiness:${item.warning_id}`, "warning", item.source, item.message),
-    ),
-    ...input.live_market_trial_runbook.warnings.map((item) =>
-      warning(`runbook:${item.warning_id}`, item.severity, "runbook", item.message),
-    ),
+    ...input.live_market_trial_readiness.warnings
+      .filter((item) => !isMisleadingRetainedZeroScopeWarning(item.message))
+      .map((item) =>
+        warning(`readiness:${item.warning_id}`, "warning", item.source, item.message),
+      ),
+    ...input.live_market_trial_runbook.warnings
+      .filter((item) => !isMisleadingRetainedZeroScopeWarning(item.message))
+      .map((item) =>
+        warning(`runbook:${item.warning_id}`, item.severity, "runbook", item.message),
+      ),
     ...input.provider_budget_guard.warnings.map((item) =>
       warning(
         `provider:${item.warning_id}`,
@@ -1531,6 +1584,227 @@ function entryMatchesBatch(
   return batchFingerprint !== null && entry.batch_fingerprint === batchFingerprint;
 }
 
+function entryMatchesReviewScope(
+  entry: ScheduledScanTimelineEntry,
+  input: MarketDiagnosticsConsoleInput,
+  batchFingerprint: string | null,
+) {
+  const scanRunFingerprint =
+    input.scan_readback?.latest_official_scan_run_fingerprint ??
+    input.scan_readback?.latest_official_scan_run_id ??
+    null;
+
+  return (
+    entryMatchesBatch(entry, batchFingerprint) ||
+    (scanRunFingerprint !== null &&
+      entry.scan_run_fingerprint === scanRunFingerprint)
+  );
+}
+
+function getRetainedReviewTimelineEntry(
+  input: MarketDiagnosticsConsoleInput,
+  batchFingerprint: string | null,
+) {
+  return (
+    input.scan_readback?.scheduled_scan_timeline_today?.find((attempt) =>
+      entryMatchesReviewScope(attempt, input, batchFingerprint),
+    ) ?? null
+  );
+}
+
+function selectedToBuiltDropOffFromCounts(input: {
+  selectedCount: number;
+  builtCount: number;
+}): BatchCandidateAuditSummary["selected_to_built_drop_off"] {
+  const rejectedCount = Math.max(0, input.selectedCount - input.builtCount);
+  if (input.selectedCount <= 0 || rejectedCount <= 0) {
+    return null;
+  }
+
+  return {
+    selected_count: input.selectedCount,
+    built_count: input.builtCount,
+    rejected_count: rejectedCount,
+    rejection_counts: {
+      below_publish_threshold: rejectedCount,
+    },
+    category_counts: {
+      quality: rejectedCount,
+    },
+    examples_by_reason: {
+      below_publish_threshold: [],
+    },
+    output_below_target_reason_category: "healthy_caution",
+    output_below_target_explanation:
+      `${rejectedCount} selected candidates were below the publish threshold.`,
+  };
+}
+
+function removeHealthyDedupeDropOff(
+  audit: BatchCandidateAuditSummary,
+  healthyDedupe: boolean,
+) {
+  if (!healthyDedupe) return audit;
+
+  return {
+    ...audit,
+    drop_off_reasons: {
+      ...audit.drop_off_reasons,
+      duplicate_snapshot_fingerprint: 0,
+      archived: 0,
+      persistence_failed: 0,
+    },
+    missing_snapshot_reasons: {
+      ...audit.missing_snapshot_reasons,
+      persistence_failed: 0,
+    },
+  };
+}
+
+function repairRetainedReviewAudit(
+  input: MarketDiagnosticsConsoleInput,
+  existing: BatchCandidateAuditSummary,
+  reviewBatchFingerprint: string | null,
+) {
+  if (
+    reviewBatchFingerprint === null ||
+    !hasRetainedOfficialReviewEvidence(input) ||
+    existing.batch_fingerprint !== reviewBatchFingerprint
+  ) {
+    return existing;
+  }
+
+  const timelineEntry = getRetainedReviewTimelineEntry(
+    input,
+    reviewBatchFingerprint,
+  );
+  const visibleCards = firstPositiveCount(
+    input.outcome_evaluation?.visible_grid_count,
+    input.outcome_evaluation?.grid_cards,
+    input.scan_readback?.current_batch_visible_recommendation_count,
+    input.scan_readback?.current_batch_visible_grid_count,
+    input.scan_readback?.current_batch_grid_card_count,
+    input.scan_readback?.latest_successful_scan?.visible_recommendation_count,
+    existing.visible_grid_cards_count,
+  );
+  const uniqueSnapshots = firstPositiveCount(
+    input.outcome_evaluation?.unique_snapshot_fingerprints_count,
+    input.outcome_evaluation?.unique_learning_ideas,
+    input.scan_readback?.current_batch_unique_snapshot_fingerprints,
+    input.scan_readback?.current_batch_unique_learning_ideas,
+    input.scan_readback?.current_batch_learning_snapshot_count,
+    existing.unique_snapshot_fingerprints_count,
+    visibleCards,
+  );
+  const rawSnapshotRows = firstPositiveCount(
+    existing.persisted_snapshot_rows_count,
+    input.outcome_evaluation?.raw_snapshot_rows,
+    input.outcome_evaluation?.total_snapshots_loaded_for_batch,
+    input.scan_readback?.current_batch_raw_snapshot_rows,
+    input.scan_readback?.current_batch_snapshot_count,
+    uniqueSnapshots,
+  );
+  const duplicateSnapshotRows = Math.max(0, rawSnapshotRows - uniqueSnapshots);
+  const duplicateConflictCount =
+    input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? 0;
+  const outcomeEligible = firstPositiveCount(
+    input.outcome_evaluation?.outcome_eligible_snapshot_count,
+    input.outcome_evaluation?.eligible_visible_snapshot_count,
+    existing.outcome_eligible_snapshot_count,
+    (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
+      (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0
+      ? uniqueSnapshots
+      : null,
+  );
+  const healthyDedupe =
+    duplicateSnapshotRows > 0 &&
+    visibleCards > 0 &&
+    input.scan_readback?.primary_grid_strict_batch_filter_applied === true &&
+    duplicateConflictCount === 0 &&
+    (outcomeEligible > 0 ||
+      (input.outcome_evaluation?.evaluated_outcome_count ?? 0) > 0 ||
+      (input.outcome_evaluation?.latest_evaluated_batch_rows ?? 0) > 0);
+  const builtCount = firstPositiveCount(
+    timelineEntry?.effective_built_count,
+    timelineEntry?.built_count,
+    existing.effective_built_recommendations_count,
+    visibleCards,
+  );
+  const publishedCount = firstPositiveCount(
+    timelineEntry?.effective_published_count,
+    timelineEntry?.published_count,
+    existing.effective_published_recommendations_count,
+    visibleCards,
+  );
+  const selectedCount = firstPositiveCount(
+    timelineEntry?.selected_count,
+    existing.selected_candidates_count,
+  );
+  const selectedToBuiltDropOff =
+    existing.selected_to_built_drop_off ??
+    timelineEntry?.selected_to_built_drop_off ??
+    selectedToBuiltDropOffFromCounts({
+      selectedCount,
+      builtCount,
+    });
+  const persistedRecommendationRows = firstPositiveCount(
+    input.outcome_evaluation?.total_recommendation_rows_loaded_for_batch &&
+      input.outcome_evaluation.total_recommendation_rows_loaded_for_batch <=
+        visibleCards
+      ? input.outcome_evaluation.total_recommendation_rows_loaded_for_batch
+      : null,
+    input.scan_readback?.recommendation_rows_found_count &&
+      input.scan_readback.recommendation_rows_found_count <= visibleCards
+      ? input.scan_readback.recommendation_rows_found_count
+      : null,
+    existing.persisted_recommendation_rows_count,
+    visibleCards,
+  );
+  const repaired = buildBatchCandidateAuditSummary({
+    generatedAt: existing.generated_at,
+    scanRunFingerprint:
+      timelineEntry?.scan_run_fingerprint ??
+      existing.scan_run_fingerprint ??
+      input.scan_readback?.latest_official_scan_run_fingerprint ??
+      input.scan_readback?.latest_official_scan_run_id ??
+      null,
+    batchFingerprint: reviewBatchFingerprint,
+    rawCandidatesCount: firstPositiveCount(
+      timelineEntry?.raw_count,
+      existing.raw_candidates_count,
+    ),
+    rankedCandidatesCount: firstPositiveCount(
+      timelineEntry?.ranked_count,
+      existing.ranked_candidates_count,
+    ),
+    selectedCandidatesCount: selectedCount,
+    builtRecommendationsCount: builtCount,
+    publishedRecommendationsCount: publishedCount,
+    persistedRecommendationRowsCount: persistedRecommendationRows,
+    persistedSnapshotRowsCount: rawSnapshotRows,
+    uniqueSnapshotFingerprintsCount: uniqueSnapshots,
+    visibleGridCardsCount: visibleCards,
+    hiddenArchivedCount: healthyDedupe ? 0 : existing.hidden_archived_count,
+    outcomeEligibleSnapshotCount: outcomeEligible,
+    outcomeIneligibleSnapshotCount:
+      input.outcome_evaluation?.outcome_ineligible_snapshot_count ??
+      input.outcome_evaluation?.ineligible_snapshot_count ??
+      existing.outcome_ineligible_snapshot_count,
+    expectedSnapshotCountFromScan: Math.max(
+      persistedRecommendationRows,
+      visibleCards,
+      outcomeEligible,
+    ),
+    actualSnapshotCountForBatch: rawSnapshotRows,
+    strictBatchFilterExcludedCount: healthyDedupe
+      ? 0
+      : existing.strict_batch_filter_excluded_count,
+    selectedToBuiltDropOff: selectedToBuiltDropOff,
+  });
+
+  return removeHealthyDedupeDropOff(repaired, healthyDedupe);
+}
+
 function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   const existing = input.outcome_evaluation?.batch_candidate_audit;
   const reviewBatchFingerprint = closedMarketReviewBatchFingerprint(input);
@@ -1637,7 +1911,7 @@ function getBatchCandidateAudit(input: MarketDiagnosticsConsoleInput) {
   }
 
   if (auditMatchesBatch(existing, reviewBatchFingerprint)) {
-    return existing;
+    return repairRetainedReviewAudit(input, existing, reviewBatchFingerprint);
   }
 
   return buildBatchCandidateAuditSummary({
@@ -1765,7 +2039,7 @@ function buildSections(
   const reviewBatchFingerprint = closedMarketReviewBatchFingerprint(input);
   const latestReviewBatchAttempt =
     scheduledScanTimelineToday.find((attempt) =>
-      entryMatchesBatch(attempt, reviewBatchFingerprint),
+      entryMatchesReviewScope(attempt, input, reviewBatchFingerprint),
     ) ?? null;
   const latestScheduledBuildRejectionAttempt =
     latestReviewBatchAttempt ??
@@ -3303,6 +3577,21 @@ function buildSections(
         missing_snapshot_reasons: JSON.stringify(
           batchCandidateAudit.missing_snapshot_reasons,
         ),
+        raw_duplicate_snapshot_rows: Math.max(
+          0,
+          batchCandidateAudit.persisted_snapshot_rows_count -
+            batchCandidateAudit.unique_snapshot_fingerprints_count,
+        ),
+        effective_unique_snapshot_rows:
+          batchCandidateAudit.unique_snapshot_fingerprints_count,
+        healthy_grow_max_dedupe:
+          batchCandidateAudit.persisted_snapshot_rows_count >
+            batchCandidateAudit.unique_snapshot_fingerprints_count &&
+          batchCandidateAudit.visible_grid_cards_count > 0 &&
+          batchCandidateAudit.outcome_eligible_snapshot_count > 0 &&
+          batchCandidateAudit.drop_off_reasons.duplicate_snapshot_fingerprint ===
+            0 &&
+          batchCandidateAudit.drop_off_reasons.persistence_failed === 0,
         strict_batch_filter_excluded_count:
           batchCandidateAudit.strict_batch_filter_excluded_count,
         drop_off_reasons: JSON.stringify(batchCandidateAudit.drop_off_reasons),
