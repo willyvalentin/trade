@@ -359,6 +359,272 @@ test("does not mark Morning completed from synthetic empty readback without an o
   });
 });
 
+test("09:45 empty unknown zero-candidate attempt keeps Morning open", () => {
+  const emptyUnknownRun = {
+    ...scanRun({
+      window: "morning",
+      observedAt: "2026-06-26T13:45:24.367Z",
+      tradingDate: "2026-06-26",
+      visibleCount: 0,
+    }),
+    status: "empty",
+    source: "supabase",
+    raw_candidate_count: 0,
+    scanned_ticker_count: 0,
+    counts: {
+      visible_recommendation_count: 0,
+    },
+    payload_json: {
+      scan_observability: {},
+    },
+  } as unknown as RecommendationScanRun;
+
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T14:01:34.608Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    scanRuns: [emptyUnknownRun],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(summary.active_window).toBe("morning");
+  expect(summary.decision).toBe("should_scan_now");
+  expect(shouldRunOfficialDayTradeScan(summary)).toBe(true);
+  expect(summary.latest_scan_window).toBe("unknown");
+  expect(summary.next_action).toMatchObject({
+    action_id: "wait_for_next_official_tick",
+    label: "Wait for next scheduled tick",
+  });
+  expect(morningStatus).toMatchObject({
+    status: "active",
+    latest_scan_at: null,
+    latest_attempt_at: "2026-06-26T13:45:24.367Z",
+    latest_attempt_classification: "empty_initial_tick_retry_allowed",
+    attempted_today: true,
+  });
+  expect(morningStatus?.explanation).toBe(
+    "Morning in progress - latest attempt empty; waiting for next scheduled tick.",
+  );
+
+  const timeline = buildScheduledScanTimelineToday({
+    attempts: [],
+    scanLogs: [],
+    scanRuns: [emptyUnknownRun],
+    tradingDate: "2026-06-26",
+  });
+  expect(timeline[0]).toMatchObject({
+    official_window: "morning",
+    outcome: "skipped",
+    allowed: null,
+    reason: "empty_initial_tick_retry_allowed",
+    raw_count: 0,
+    ranked_count: 0,
+    selected_count: null,
+    built_count: null,
+    published_count: 0,
+    batch_fingerprint: null,
+  });
+});
+
+test("later same-window tick is allowed after empty unknown first tick", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T14:20:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    lastScanCooldownMinutes: 45,
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "morning",
+          observedAt: "2026-06-26T13:45:24.367Z",
+          tradingDate: "2026-06-26",
+          visibleCount: 0,
+        }),
+        status: "empty",
+        source: "supabase",
+        raw_candidate_count: 0,
+        scanned_ticker_count: 0,
+        counts: {
+          visible_recommendation_count: 0,
+        },
+        payload_json: {
+          scan_observability: {},
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+  });
+
+  expect(summary.active_window).toBe("morning");
+  expect(summary.decision).toBe("should_scan_now");
+  expect(shouldRunOfficialDayTradeScan(summary)).toBe(true);
+});
+
+test("meaningful no-trade-valid scan with ranked diagnostics can serve Morning", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T14:15:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    lastScanCooldownMinutes: 45,
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "morning",
+          observedAt: "2026-06-26T13:45:24.367Z",
+          tradingDate: "2026-06-26",
+          visibleCount: 0,
+        }),
+        status: "empty",
+        source: "supabase",
+        raw_candidate_count: 22,
+        counts: {
+          visible_recommendation_count: 0,
+        },
+        payload_json: {
+          selected_to_built_drop_off: emptyOfficialDropOff,
+          active_scan_trace: {
+            should_scan_now: true,
+            raw_candidates: {
+              raw_candidate_count: 22,
+            },
+            ranking: {
+              ranked_count: 22,
+              selected_count: 18,
+            },
+            final: {
+              no_publish_reason: "empty_due_to_missing_fresh_reference",
+              recommendations_published_count: 0,
+              recommendations_created: 0,
+              recommendations_built_count: 0,
+              selected_to_built_drop_off: emptyOfficialDropOff,
+              selected_candidate_build_diagnostics: [],
+              batch_fingerprint: null,
+              scan_run_fingerprint: "run-no-trade-valid",
+            },
+          },
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(summary.decision).toBe("scan_recently_completed");
+  expect(morningStatus).toMatchObject({
+    status: "completed",
+    latest_scan_at: "2026-06-26T13:45:24.367Z",
+    latest_attempt_classification: "meaningful_no_trade_valid",
+  });
+});
+
+test("published official batch completes the window", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T14:15:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "morning",
+          observedAt: "2026-06-26T13:45:24.367Z",
+          tradingDate: "2026-06-26",
+          visibleCount: 3,
+        }),
+        payload_json: {
+          active_scan_trace: {
+            should_scan_now: true,
+            ranking: {
+              ranked_count: 8,
+              selected_count: 3,
+            },
+            final: {
+              batch_fingerprint: "batch-morning",
+              recommendations_published_count: 3,
+              recommendations_created: 3,
+            },
+          },
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(morningStatus).toMatchObject({
+    status: "completed",
+    latest_scan_at: "2026-06-26T13:45:24.367Z",
+    latest_attempt_classification: "published_official_batch",
+  });
+});
+
+test("after window end empty unknown attempt is reported as ended without batch", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T15:34:00.000Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "morning",
+          observedAt: "2026-06-26T13:45:24.367Z",
+          tradingDate: "2026-06-26",
+          visibleCount: 0,
+        }),
+        status: "empty",
+        source: "supabase",
+        raw_candidate_count: 0,
+        counts: {
+          visible_recommendation_count: 0,
+        },
+        payload_json: {
+          scan_observability: {},
+        },
+      } as unknown as RecommendationScanRun,
+    ],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(summary.missed_windows).toEqual(["morning"]);
+  expect(morningStatus).toMatchObject({
+    status: "missed",
+    latest_scan_at: null,
+    latest_attempt_classification: "empty_initial_tick_retry_allowed",
+  });
+  expect(morningStatus?.explanation).toBe(
+    "Morning ended without an official batch after the latest attempt was empty.",
+  );
+});
+
+test("retained review batch is not treated as a real scan attempt", () => {
+  const summary = buildDayTradeScanOrchestrationSummary({
+    now: "2026-06-26T14:01:34.608Z",
+    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-26" },
+    scanRuns: [
+      {
+        ...scanRun({
+          window: "closed",
+          observedAt: "2026-06-26T20:13:00.000Z",
+          tradingDate: "2026-06-26",
+          visibleCount: 3,
+        }),
+        source: "mixed",
+        payload_json: {},
+      } as unknown as RecommendationScanRun,
+    ],
+  });
+
+  const morningStatus = summary.official_window_statuses.find(
+    (item) => item.window === "morning",
+  );
+  expect(summary.latest_scan_window).toBe("unknown");
+  expect(morningStatus).toMatchObject({
+    status: "active",
+    latest_scan_at: null,
+    latest_attempt_at: null,
+    attempted_today: false,
+  });
+});
+
 test("same-window cooldown has a distinct reason from outside-window gating", () => {
   const scanLog: ScanLogEntry = {
     created_at: "2026-06-25T14:03:00.000Z",

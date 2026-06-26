@@ -8,6 +8,11 @@ import { getNyMarketTime } from "@/lib/market-session";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { ScanLogEntry } from "@/lib/scan-logs";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import {
+  classifyOfficialScanWindowAttempt,
+  officialScanAttemptServesWindow,
+  officialScanRunEvidence,
+} from "@/lib/official-scan-window-completion";
 import type {
   CandidateBuildRejectionCategory,
   CandidateBuildRejectionReason,
@@ -369,6 +374,21 @@ function activeTraceFromPayload(payload: Record<string, unknown>): ActiveScanTra
   return trace ? (trace as ActiveScanTrace) : null;
 }
 
+function referenceRefreshAttempted(
+  referenceRefresh: ReferenceRefreshDiagnostics | null,
+) {
+  return referenceRefresh
+    ? {
+        reference_refresh_attempted_count:
+          referenceRefresh.reference_refresh_attempted_count,
+        reference_refresh_success_count:
+          referenceRefresh.reference_refresh_success_count,
+        reference_refresh_failed_count:
+          referenceRefresh.reference_refresh_failed_count,
+      }
+    : null;
+}
+
 export function buildEmptyScanReason(
   dropOff: SelectedToBuiltDropOffSummary | null,
 ): string | null {
@@ -657,11 +677,44 @@ export function scheduledScanAttemptFromRow(
 function timelineFromAttempt(
   attempt: ScheduledScanAttempt,
 ): ScheduledScanTimelineEntry {
-  const isActualScan =
-    attempt.outcome === "scanned" &&
-    ((attempt.published_count ?? attempt.recommendations_created ?? 0) > 0 ||
-      attempt.batch_fingerprint !== null ||
-      attempt.scan_run_fingerprint !== null);
+  const classification = classifyOfficialScanWindowAttempt({
+    allowed: attempt.allowed,
+    outcome: attempt.outcome,
+    status: attempt.outcome,
+    reason: attempt.skip_reason ?? attempt.empty_scan_reason ?? attempt.message,
+    raw_count: attempt.raw_count,
+    ranked_count: attempt.ranked_count,
+    selected_count: attempt.selected_count,
+    built_count: attempt.built_count,
+    published_count: attempt.published_count,
+    recommendations_created: attempt.recommendations_created,
+    batch_fingerprint: attempt.batch_fingerprint,
+    scan_run_fingerprint: attempt.scan_run_fingerprint,
+    selected_to_built_drop_off: attempt.selected_to_built_drop_off,
+    selected_candidate_build_diagnostics:
+      attempt.selected_candidate_build_diagnostics,
+    reference_refresh: referenceRefreshAttempted(attempt.reference_refresh),
+    active_scan_trace: activeTraceFromPayload(attempt.payload_json),
+  });
+  const isActualScan = officialScanAttemptServesWindow({
+    allowed: attempt.allowed,
+    outcome: attempt.outcome,
+    status: attempt.outcome,
+    reason: attempt.skip_reason ?? attempt.empty_scan_reason ?? attempt.message,
+    raw_count: attempt.raw_count,
+    ranked_count: attempt.ranked_count,
+    selected_count: attempt.selected_count,
+    built_count: attempt.built_count,
+    published_count: attempt.published_count,
+    recommendations_created: attempt.recommendations_created,
+    batch_fingerprint: attempt.batch_fingerprint,
+    scan_run_fingerprint: attempt.scan_run_fingerprint,
+    selected_to_built_drop_off: attempt.selected_to_built_drop_off,
+    selected_candidate_build_diagnostics:
+      attempt.selected_candidate_build_diagnostics,
+    reference_refresh: referenceRefreshAttempted(attempt.reference_refresh),
+    active_scan_trace: activeTraceFromPayload(attempt.payload_json),
+  });
 
   return {
     utc_timestamp: attempt.utc_timestamp,
@@ -674,7 +727,10 @@ function timelineFromAttempt(
     intraday_scan_window: attempt.intraday_scan_window,
     outcome: attempt.outcome,
     allowed: attempt.allowed,
-    reason: attempt.skip_reason ?? attempt.empty_scan_reason ?? attempt.message,
+    reason:
+      classification === "empty_initial_tick_retry_allowed"
+        ? "empty_initial_tick_retry_allowed"
+        : attempt.skip_reason ?? attempt.empty_scan_reason ?? attempt.message,
     raw_count: attempt.raw_count,
     ranked_count: attempt.ranked_count,
     selected_count: attempt.selected_count,
@@ -810,9 +866,15 @@ function timelineFromScanRun(
     (officialWindow === "closed" || officialWindow === "outside_window") &&
     publishedCount > 0 &&
     !trace?.final?.batch_fingerprint;
-  const actualScanProduced =
+  const publishedScanProduced =
     !isRetainedReadback &&
     (publishedCount > 0 || (trace?.final?.batch_fingerprint ?? null) !== null);
+  const actualScanProduced =
+    !isRetainedReadback &&
+    officialScanAttemptServesWindow(officialScanRunEvidence(scanRun));
+  const classification = classifyOfficialScanWindowAttempt(
+    officialScanRunEvidence(scanRun),
+  );
 
   return {
     utc_timestamp: timestamp,
@@ -832,7 +894,7 @@ function timelineFromScanRun(
     outcome:
       isRetainedReadback
         ? "retained_review_batch"
-        : actualScanProduced
+        : publishedScanProduced
         ? "scanned"
         : scanRun.status === "failed"
           ? "failed"
@@ -840,7 +902,9 @@ function timelineFromScanRun(
     allowed: trace?.should_scan_now ?? null,
     reason: isRetainedReadback
       ? "market_closed_retained_batch"
-      : emptyScanReason ?? trace?.final?.no_publish_reason ?? scanRun.status,
+      : classification === "empty_initial_tick_retry_allowed"
+        ? "empty_initial_tick_retry_allowed"
+        : emptyScanReason ?? trace?.final?.no_publish_reason ?? scanRun.status,
     raw_count: scanRun.raw_candidate_count ?? trace?.raw_candidates?.raw_candidate_count ?? null,
     ranked_count:
       trace?.ranking?.ranked_count ??

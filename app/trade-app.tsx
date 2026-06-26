@@ -12803,8 +12803,35 @@ export function TradeApp() {
     message: string | null;
     source: string | null;
   };
+  const latestScheduledTimelineAttempt =
+    scheduledScanTimelineToday.find(
+      (entry) => entry.source_type !== "retained_readback",
+    ) ?? null;
   const latestAttemptedReadbackCandidates = ([
-    latestAttemptedScanLog
+    latestScheduledTimelineAttempt
+      ? {
+          result:
+            latestScheduledTimelineAttempt.outcome === "scanned" &&
+            (latestScheduledTimelineAttempt.published_count ?? 0) > 0
+              ? "recommendation_created"
+              : latestScheduledTimelineAttempt.outcome,
+          created_at: latestScheduledTimelineAttempt.utc_timestamp,
+          scan_window:
+            latestScheduledTimelineAttempt.intraday_scan_window ??
+            String(latestScheduledTimelineAttempt.official_window),
+          ...readbackTimingFields({
+            createdAt: latestScheduledTimelineAttempt.utc_timestamp,
+            scanWindow:
+              latestScheduledTimelineAttempt.intraday_scan_window ??
+              String(latestScheduledTimelineAttempt.official_window),
+          }),
+          visible_recommendation_count:
+            latestScheduledTimelineAttempt.published_count ?? null,
+          message: latestScheduledTimelineAttempt.reason,
+          source: latestScheduledTimelineAttempt.source,
+        }
+      : null,
+    !latestScheduledTimelineAttempt && latestAttemptedScanLog
       ? {
           result: latestAttemptedScanLog.result,
           created_at: latestAttemptedScanLog.created_at,
@@ -12825,6 +12852,7 @@ export function TradeApp() {
           source: "scheduled_scan_runs",
         }
       : null,
+    !latestScheduledTimelineAttempt &&
     latestAttemptedStoredRecommendationScanRun &&
     !isSuccessfulLiveRecommendationScanRun(latestAttemptedStoredRecommendationScanRun)
       ? {
@@ -12846,7 +12874,7 @@ export function TradeApp() {
           source: "recommendation_scan_runs",
         }
       : null,
-    dailyScheduledScanAttempts[0]
+    !latestScheduledTimelineAttempt && dailyScheduledScanAttempts[0]
       ? {
           result:
             dailyScheduledScanAttempts[0].outcome === "scanned" &&

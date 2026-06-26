@@ -71,6 +71,7 @@ import {
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
 import {
   createActiveScanTrace,
   errorType,
@@ -1024,7 +1025,8 @@ function latestScheduledScanForWindow({
         rowScanDate === scanDate &&
         rowSessionType === sessionType &&
         run.scanLog.scan_window === scanWindow &&
-        run.row.status === "completed"
+        run.row.status === "completed" &&
+        officialScanLogServesWindow(run.scanLog)
       );
     }) ?? null
   );
