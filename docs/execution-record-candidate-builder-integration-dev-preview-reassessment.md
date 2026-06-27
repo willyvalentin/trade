@@ -556,3 +556,43 @@ Action 568 verification:
 - `git diff --check`
 
 No runtime validation is required because Action 568 is documentation-only.
+## Action 578 - Invocation Preview Added After Integration Preview
+
+- The integration preview now has a neighboring dev-gated candidate builder invocation preview.
+- The new preview consumes controlled fixture data and validates the future invocation boundary only.
+- The integration preview behavior was not changed, and no builder invocation or write behavior was enabled.
+
+## Action 579 - Downstream Invocation Preview Reassessed
+
+- Reassessment confirms the downstream invocation preview does not change integration preview behavior.
+- Integration output remains fixture lineage for read-only invocation validation only.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Invocation Wrapper Added Downstream
+
+- The new wrapper consumes validated invocation input downstream from integration output.
+- Integration dev preview remains unchanged and still does not call the builder.
+- No persistence/write behavior was added.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the integration dev preview remains upstream of the candidate-builder invocation wrapper.
+- Reconfirmed any future preview integration must remain dev-gated, explicit-trigger-only, read-only, and candidate-only.
+- Reconfirmed no persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior is enabled.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The downstream invocation preview now runs the pure invocation wrapper from controlled fixture data.
+- The integration preview remains separate and still does not call the candidate builder.
+- No persistence/write behavior, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed the invocation preview remains downstream of integration preview data and does not change integration preview behavior.
+- Reconfirmed no persistence/write, record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

@@ -1,0 +1,23 @@
+Action: 782 - Verify Audit Table Remote Schema And RLS
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+
+Command:
+/opt/homebrew/bin/supabase db query --linked -o table "select n.nspname as schema_name, c.relname as table_name, c.relrowsecurity as rls_enabled, c.relforcerowsecurity as force_rls from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname in ('execution_records', 'execution_record_audit_events') and c.relkind = 'r' order by c.relname;"
+
+Command exit code: 0
+
+Output:
+
+schema_name | table_name                    | rls_enabled | force_rls
+public      | execution_record_audit_events | true        | false
+public      | execution_records             | false       | false
+
+Interpretation:
+
+- RLS enabled on `public.execution_record_audit_events`: verified.
+- Force RLS on `public.execution_record_audit_events`: false, matching the migration comment that force RLS was intentionally deferred.
+- RLS on `public.execution_records`: false. This is outside the audit RLS migration, but remains relevant for later execution-record write-path readiness.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

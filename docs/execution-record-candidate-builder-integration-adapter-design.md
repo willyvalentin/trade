@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Integration Adapter Design
 
 ## 1. Purpose
@@ -761,3 +768,42 @@ Adapter design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Invocation Preview Consumer
+
+- The future invocation boundary now has a dev preview that reads adapter-shaped proposed input from controlled fixture data.
+- The adapter design remains pure and candidate-input-shaping-only.
+- No builder invocation, candidate creation, execution-record creation, persistence, audit append, stats/PnL update, rollback/correction, or trade mutation was introduced.
+
+## Action 579 - Adapter Design Reassessment
+
+- Reassessment confirms the adapter remains pure input shaping upstream of the invocation preview.
+- No adapter implementation behavior changed for Action 579.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Adapter Design Relationship
+
+- The invocation wrapper consumes proposed input produced by the adapter path after validation.
+- Adapter design remains candidate-input-shaping-only and no-write.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed adapter design remains proposed-input-only and does not itself call the candidate builder.
+- Reconfirmed the invocation wrapper consumes proposed input only after valid invocation validation and remains candidate-only.
+- Reconfirmed no persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, UI, broker/order, or Avanza/browser behavior is enabled.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The invocation preview now demonstrates adapter-shaped proposed input flowing into validation and candidate-only wrapper output.
+- Adapter design remains non-writing and does not directly call the builder.
+- No execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed adapter design remains non-writing even though downstream preview displays wrapper output.
+- Reconfirmed no persistence/write, audit append, stats/PnL, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

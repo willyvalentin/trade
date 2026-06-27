@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Integration Contract Reassessment
 
 ## 1. Purpose
@@ -685,3 +692,42 @@ Integration contract impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Invocation Preview Lineage
+
+- The candidate builder integration contract remains upstream context for the new invocation preview.
+- The preview displays invocation boundary diagnostics and validator diagnostics without changing integration contract behavior.
+- No runtime write or builder authority was added.
+
+## Action 579 - Integration Contract Reassessment
+
+- Reassessment confirms integration contract lineage remains diagnostic-only in the invocation preview.
+- No integration contract behavior was changed.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Integration Contract Upstream Of Wrapper
+
+- Integration contract output remains upstream lineage for adapter and invocation validation.
+- The wrapper does not bypass integration contract checks.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the integration contract remains upstream of adapter, validation, and invocation boundaries.
+- Reconfirmed candidate-only builder invocation requires valid invocation validation and proposed input.
+- Reconfirmed no execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, UI, broker/order, or Avanza/browser behavior is enabled.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now demonstrates the integration contract path through adapter, validation, and pure candidate-only invocation wrapper output.
+- Integration contract output remains upstream and non-writing.
+- No execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed integration contract path remains upstream and non-writing while the invocation preview shows candidate-only wrapper output.
+- Reconfirmed no execution-record creation or persistence/write authority was added.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

@@ -1,0 +1,33 @@
+Action: 778 - Apply Execution Records Prerequisite Migration Manually
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal under Willy Simonsson approval
+CLI path: /opt/homebrew/bin/supabase
+CLI version: 2.107.0
+Command: /opt/homebrew/bin/supabase migration list
+Command exit code: 0
+
+Output:
+
+Initialising login role...
+Connecting to remote database...
+
+
+   Local          | Remote         | Time (UTC)
+  ----------------|----------------|---------------------
+   20260520000000 |                | 2026-05-20 00:00:00
+   20260528000000 |                | 2026-05-28 00:00:00
+   20260528001000 |                | 2026-05-28 00:10:00
+   20260528002000 |                | 2026-05-28 00:20:00
+   20260528003000 |                | 2026-05-28 00:30:00
+   20260605000000 |                | 2026-06-05 00:00:00
+   20260610000000 |                | 2026-06-10 00:00:00
+   20260614000000 | 20260614000000 | 2026-06-14 00:00:00
+   20260615000000 |                | 2026-06-15 00:00:00
+   20260615001000 |                | 2026-06-15 00:10:00
+
+Interpretation:
+- `20260614000000_create_execution_records.sql` is now applied remotely.
+- `20260615000000_create_execution_record_audit_events.sql` remains not applied.
+- `20260615001000_enable_rls_execution_record_audit_events.sql` remains not applied.
+- Earlier unrelated pending migrations remain not applied.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

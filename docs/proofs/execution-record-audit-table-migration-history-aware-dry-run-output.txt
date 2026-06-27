@@ -1,0 +1,34 @@
+Action: 781 - Retry Audit Migration Apply With History-Aware Temp Workdir
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Linked project ref checked before retry: ekdyopdrrkphlrsilyoo
+Prerequisite proof checked: docs/proofs/execution-records-prerequisite-migration-status-after.txt shows 20260614000000 in both Local and Remote.
+Approved audit migrations:
+- 20260615000000_create_execution_record_audit_events.sql
+- 20260615001000_enable_rls_execution_record_audit_events.sql
+Temporary workdir path pattern: /private/tmp/trade-action-781-audit-history-aware-*
+Temporary migration files:
+- 20260614000000_create_execution_records.sql
+- 20260615000000_create_execution_record_audit_events.sql
+- 20260615001000_enable_rls_execution_record_audit_events.sql
+Command: /opt/homebrew/bin/supabase db push --dry-run --linked --workdir /private/tmp/trade-action-781-audit-history-aware-fRhwL
+Command exit code: 0
+
+Output:
+
+Using workdir /private/tmp/trade-action-781-audit-history-aware-fRhwL
+Initialising login role...
+DRY RUN: migrations will *not* be pushed to the database.
+Connecting to remote database...
+Would push these migrations:
+ • 20260615000000_create_execution_record_audit_events.sql
+ • 20260615001000_enable_rls_execution_record_audit_events.sql
+Finished supabase db push.
+
+Interpretation:
+- Dry run succeeded.
+- Dry run listed exactly the two approved audit migrations as pending.
+- No unrelated pending migrations were listed.
+- No apply had been attempted at the time this dry-run output was captured.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

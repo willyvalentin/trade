@@ -522,3 +522,41 @@ Integration preview design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Downstream Invocation Preview
+
+- A downstream dev-gated invocation preview has been added near the integration preview.
+- It uses controlled fixture data derived from the integration fixture and calls only the invocation validator.
+- It does not alter the integration adapter/validator behavior or enable candidate builder invocation.
+
+## Action 579 - Downstream Preview Reassessment
+
+- Reassessment confirms the invocation preview remains adjacent to integration preview and dev-gated.
+- It remains explicit-trigger-only, fixture-only, and disconnected from writes and builder invocation.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Wrapper Separate From Preview
+
+- The pure invocation wrapper was added separately from the integration dev preview.
+- Integration preview remains diagnostic-only and does not call `invokeExecutionRecordCandidateBuilder(...)`.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the integration preview is still diagnostic-only and separate from candidate builder invocation unless a future explicit dev-preview integration wires it.
+- Reconfirmed future wrapper preview integration must not create execution records, persist, write Supabase/localStorage, append audit, update stats/PnL, mutate trades, or run broker/order behavior.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- Added the downstream dev-preview integration for candidate-only invocation wrapper output.
+- Integration preview design remains unchanged and upstream; the invocation preview now shows wrapper results separately.
+- No create-record, persist, audit, stats/PnL, rollback/correction, trade mutation, broker/order, Avanza/browser, or production write behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed integration preview design remains upstream and non-writing while invocation preview displays downstream wrapper output.
+- Reconfirmed no production write/action control was introduced.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

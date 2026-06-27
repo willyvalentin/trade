@@ -1,0 +1,215 @@
+Action: 842 - Run Controlled Audit Writer Live Smoke Insert
+Workspace: /Users/willysimonsson/Dev/trade
+Project: Trade
+Project ref: ekdyopdrrkphlrsilyoo
+Environment: staging
+Target table: public.execution_record_audit_events
+Controlled execution record id: 5d682086-4195-40ec-ba80-a0a1b39a6923
+
+## 1. Purpose
+
+Run one controlled audit writer live smoke insert through the approved server-only audit writer production write path.
+
+This action is not production rollout, not UI/browser invocation, not market-loop/scanner/automation invocation, not broker/Avanza behavior, not automatic mode, and not downstream trade/stats/PnL mutation.
+
+## 2. Target Summary
+
+- Project: Trade
+- Project ref: ekdyopdrrkphlrsilyoo
+- Environment: staging
+- Table: public.execution_record_audit_events
+- Controlled execution record id: 5d682086-4195-40ec-ba80-a0a1b39a6923
+- Controlled seed proof: docs/proofs/execution-record-audit-writer-controlled-execution-record-seed-proof.txt
+
+## 3. Smoke Payload Summary
+
+- Source: action_842_live_smoke_insert
+- Event type: action_842_live_smoke_insert
+- Request id: action-842-audit-writer-live-smoke-insert:request:5d682086-4195-40ec-ba80-a0a1b39a6923
+- Idempotency key: action-842-audit-writer-live-smoke-insert:idempotency:5d682086-4195-40ec-ba80-a0a1b39a6923
+- Duplicate prevention key: action-842-audit-writer-live-smoke-insert:duplicate:5d682086-4195-40ec-ba80-a0a1b39a6923
+- Evidence/provenance labels: Action 842, controlled seed proof, Codex/local terminal, Willy Simonsson approval.
+- Secrets included: no
+- Broker/Avanza data included: no
+- Real trade execution implied: no
+
+## 4. Insert Result
+
+- Command/path used: local Node runner importing `lib/server/execution-record-audit-writer-production-write-path.ts` with a no-op local `server-only` shim for Node execution.
+- Runtime boundary used: `appendExecutionRecordAuditEventFromProductionWritePath(...)`.
+- Result status: completed
+- Writer result category: unknown_error
+- Writer ok: false
+- Insert attempted: true
+- Inserted: false
+- Inserted audit event id: null
+- Idempotent duplicate: not reported
+- Error category: unknown_error
+- Retry count: 0
+- Service-role value printed: no
+
+Two earlier local runner attempts failed before loading the writer module because the bare `server-only` module and `@/` path alias were unavailable in direct Node execution. Both preflight attempts stopped before the writer call and did not reach a Supabase insert. The final runner resolved those local import issues and made the only live insert attempt.
+
+Sanitized typed result:
+
+```json
+{
+  "ok": false,
+  "status": "completed",
+  "writePathVersion": "execution_record_audit_writer_production_write_path_v1",
+  "writerStatus": "unknown_error",
+  "writerOk": false,
+  "inserted": false,
+  "auditEventId": null,
+  "executionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "retryCount": 0,
+  "insertAttempted": true,
+  "serviceRoleValuePrinted": false,
+  "uiBrowserInvocation": false,
+  "marketLoopInvocation": false,
+  "downstreamMutationPerformed": false,
+  "brokerAvanzaBehavior": false,
+  "automaticMode": false
+}
+```
+
+## 5. Post-Insert Proof
+
+No post-insert select was performed after the failed writer result. No broad table dump was performed. The writer result reported `inserted: false` and no audit event id.
+
+## 6. Not Performed
+
+- no repeated insert
+- no retry
+- no UI/browser/client invocation
+- no market-loop/scanner/automation invocation
+- no broker/Avanza behavior
+- no automatic mode
+- no trade/stats/PnL mutation
+- no update/delete/upsert
+- no production rollout
+- no migrations
+- no type generation
+- no generated type edits
+- no .env.local changes
+- no service-role value printing
+
+## 7. Result Status
+
+Status: audit_writer_live_smoke_insert_failed_no_retry
+
+## 8. Recommended Next Action
+
+Action 843 - Resolve Audit Writer Live Smoke Insert Failure.
+
+## 9. Safety Boundaries
+
+This live smoke insert attempt is not production rollout, not UI/browser approval, not market-loop approval, not broker/Avanza approval, and not automatic-mode approval. Downstream behavior remains unauthorized.
+
+## 10. Action 843 Failure Resolution Addendum
+
+Action 843 created `docs/execution-record-audit-writer-live-smoke-insert-failure-resolution.md`.
+
+Resolution status: audit_writer_live_smoke_insert_failure_resolution_documented_retry_blocked
+
+Leading local hypothesis:
+- `lib/server/execution-record-audit-writer-dry-run.ts` shapes the would-insert payload with `event_status: "dry_run_ready"`.
+- `supabase/migrations/20260615000000_create_execution_record_audit_events.sql` allows only `attempted`, `succeeded`, `failed`, `blocked`, `duplicate`, or `unknown`.
+- A live insert carrying `dry_run_ready` likely violates the audit table check constraint and is then classified by the adapter as `unknown_error`.
+
+Evidence gap:
+- The Action 842 proof did not capture Supabase error code/message/details/hint, Postgres constraint name, adapter status/errorCode, writer errors after envelope normalization, or the normalized insert payload.
+
+No retry, second insert, update/delete/upsert, UI/browser invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was performed in Action 843.
+
+Recommended next action: Action 844 - Add Live Smoke Insert Failure Diagnostic Logging.
+
+## 11. Action 844 Diagnostic Logging Addendum
+
+Action 844 did not rerun the live smoke insert and did not perform any remote
+Supabase operation.
+
+Diagnostic improvements added for a future separately approved retry:
+- dry-run-only event_status `dry_run_ready` is now translated to live insert
+  event_status `attempted` before the service-role adapter call.
+- dry-run metadata still records the original would-insert payload.
+- adapter failure results now include sanitized code/status/message/details/hint,
+  extracted constraint name, diagnostic category, and safe insert summary.
+- schema/check/FK/not-null failures can be classified as `schema_constraint`.
+- writer and production write-path envelopes preserve adapter diagnostics.
+
+Focused regression proof:
+- `tests/e2e/execution-record-audit-writer-live-smoke-insert-diagnostics.spec.ts`
+  was added.
+- Focused Playwright run passed: 31 tests.
+
+No live smoke retry, second insert, Supabase query, remote SQL, data mutation,
+UI/browser/client invocation, market-loop/scanner/automation invocation,
+broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, migration,
+type generation, generated type edit, `.env.local` change, or service-role value
+printing was performed.
+
+Status: audit_writer_live_smoke_insert_diagnostics_added_retry_blocked
+
+Recommended next action: Action 845 - Request Live Smoke Insert Retry Approval.
+
+## 12. Action 845 Retry Approval Request Addendum
+
+Action 845 created
+`docs/execution-record-audit-writer-live-smoke-insert-retry-approval-request.md`.
+
+Approval is absent. No retry was run.
+
+Requested future retry scope:
+- one controlled server-side insert-only retry;
+- controlled execution_record_id
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`;
+- migration-compatible event_status `attempted`;
+- clearly marked smoke-test payload;
+- diagnostic and proof capture enabled;
+- no downstream mutation.
+
+No live smoke retry, insert/update/delete/upsert, Supabase query, remote SQL,
+data mutation, UI/browser/client invocation, market-loop/scanner/automation
+invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation,
+migration, type generation, generated type edit, `.env.local` change, or
+service-role value printing was performed.
+
+Status: audit_writer_live_smoke_insert_retry_approval_requested_blocked
+
+Recommended next action: Action 846 - Provide Live Smoke Insert Retry Approval.
+
+## 13. Action 846 Live Smoke Insert Retry Addendum
+
+Approval was provided by Willy Simonsson at 2026-06-26 04:23 CEST.
+
+Action 846 ran exactly one controlled server-side insert-only retry through
+`appendExecutionRecordAuditEventFromProductionWritePath(...)`.
+
+Retry proof:
+`docs/proofs/execution-record-audit-writer-live-smoke-insert-retry-proof.txt`.
+
+Retry result:
+- status: completed
+- writerStatus: success
+- inserted: true
+- auditEventId: unconfirmed_without_select
+- adapterStatus: success
+- diagnostics: null
+- retryCount: 1
+- serviceRoleValuePrinted: false
+
+Persistence is confirmed by the insert-only Supabase success result. No
+post-insert select or broad table dump was performed, so the generated audit
+event id remains unconfirmed.
+
+No repeated retry, update/delete/upsert, UI/browser/client invocation,
+market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+mode, trade/stats/PnL mutation, production rollout, `.env.local` change,
+migration, type generation, generated type edit, or service-role value printing
+was performed.
+
+Status: audit_writer_live_smoke_insert_retry_succeeded_inserted_true
+
+Recommended next action: Action 847 - Record Live Smoke Insert Retry Completion
+And Production Rollout Blockers.

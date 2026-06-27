@@ -1,0 +1,36 @@
+Action: 779 - Retry Audit Table Migration Apply
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+CLI version: 2.107.0
+Linked project ref checked before retry: ekdyopdrrkphlrsilyoo
+Prerequisite proof checked: docs/proofs/execution-records-prerequisite-migration-status-after.txt shows 20260614000000 in both Local and Remote.
+Approved audit migrations:
+- 20260615000000_create_execution_record_audit_events.sql
+- 20260615001000_enable_rls_execution_record_audit_events.sql
+Temporary workdir path pattern: /private/tmp/trade-action-779-audit-retry-*
+Temporary workdir contents: only the two approved audit migration files plus non-printed Supabase link metadata.
+Command: /opt/homebrew/bin/supabase db push --dry-run --linked --workdir /private/tmp/trade-action-779-audit-retry-51279
+Command exit code: 1
+
+Output:
+
+Using workdir /private/tmp/trade-action-779-audit-retry-51279
+Initialising login role...
+DRY RUN: migrations will *not* be pushed to the database.
+Connecting to remote database...
+Remote migration versions not found in local migrations directory.
+
+Make sure your local git repo is up-to-date. If the error persists, try repairing the migration history table:
+supabase migration repair --status reverted 20260614000000
+
+And update local migrations to match remote database:
+supabase db pull
+
+Interpretation:
+- Dry run did not list the two approved audit migrations.
+- The CLI blocked because remote migration history contains 20260614000000, but the temp workdir intentionally contained only the two approved audit migration files.
+- No audit migration apply was attempted.
+- No unrelated pending migrations were applied.
+- No broad linked-workdir push was run.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

@@ -1,0 +1,34 @@
+Command:
+/opt/homebrew/bin/supabase migration list
+
+Context:
+- Action: 773 - Check Supabase Migration Status Before Apply
+- Project ref: ekdyopdrrkphlrsilyoo
+- Project: Trade
+- Environment: staging
+- Database target: Hosted Supabase Postgres database for Ture staging
+
+Output:
+Initialising login role...
+Connecting to remote database...
+
+  
+   Local          | Remote | Time (UTC)          
+  ----------------|--------|---------------------
+   20260520000000 |        | 2026-05-20 00:00:00 
+   20260528000000 |        | 2026-05-28 00:00:00 
+   20260528001000 |        | 2026-05-28 00:10:00 
+   20260528002000 |        | 2026-05-28 00:20:00 
+   20260528003000 |        | 2026-05-28 00:30:00 
+   20260605000000 |        | 2026-06-05 00:00:00 
+   20260610000000 |        | 2026-06-10 00:00:00 
+   20260614000000 |        | 2026-06-14 00:00:00 
+   20260615000000 |        | 2026-06-15 00:00:00 
+   20260615001000 |        | 2026-06-15 00:10:00 
+
+Interpretation:
+- The command completed successfully.
+- The output did not include token values, database passwords, service-role keys, or connection strings.
+- Intended audit table migration 20260615000000 appears locally with a blank Remote value, so it is pending.
+- Intended RLS migration 20260615001000 appears locally with a blank Remote value, so it is pending.
+- No migration apply, db push, remote SQL, or type-generation command was run.

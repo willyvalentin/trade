@@ -1,0 +1,46 @@
+Action: 841 - Insert Controlled Execution Record Seed
+Workspace: /Users/willysimonsson/Dev/trade
+Operator approval: Willy Simonsson
+Approval timestamp: 2026-06-26 03:50 CEST
+Project: Trade
+Project ref: ekdyopdrrkphlrsilyoo
+Environment: staging
+Target table: public.execution_records
+Allowed operation: one controlled insert
+Max seed count: 1
+
+Command summary:
+- A local Node/Supabase script loaded .env.local without printing values.
+- The script used the hosted staging Supabase client with service-role credentials kept in process memory only.
+- The script generated a local UUID for the seed id before insertion.
+- The script executed exactly one insert into public.execution_records.
+- The row was marked as smoke/test data through is_mock, is_dev, metadata, audit_metadata, validation_warnings, and smoke-specific source labels.
+
+Result:
+- status: controlled_execution_record_seed_inserted
+- selected_execution_record_id: 5d682086-4195-40ec-ba80-a0a1b39a6923
+- payload_label: action-841-controlled-execution-record-seed-5d682086-4195-40ec-ba80-a0a1b39a6923
+- inserted: true
+- audit_event_insert_performed: false
+- downstream_mutation_performed: false
+- secrets_printed: false
+
+Intended follow-up use:
+- Use selected_execution_record_id only as the FK target for the separately approved audit writer live smoke insert.
+- The audit writer live smoke insert was not run in this action.
+
+Not performed:
+- no audit event insert
+- no repeated seed rows
+- no update/delete/upsert
+- no trade/stats/PnL mutation
+- no UI/browser call
+- no market-loop invocation
+- no broker/Avanza behavior
+- no automatic mode
+- no production rollout
+- no .env.local changes
+- no migrations
+- no type generation
+- no generated type edits
+- no service-role value printing

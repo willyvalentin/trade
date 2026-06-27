@@ -45,6 +45,14 @@ import {
   buildExecutionRecordCandidateBuilderIntegrationDevFixtureResult,
   type ExecutionRecordCandidateBuilderIntegrationDevFixtureResult,
 } from "@/lib/execution-record-candidate-builder-integration-dev-fixture";
+import {
+  buildExecutionRecordCandidateBuilderInvocationDevFixtureResult,
+  type ExecutionRecordCandidateBuilderInvocationDevFixtureResult,
+} from "@/lib/execution-record-candidate-builder-invocation-dev-fixture";
+import {
+  buildExecutionRecordPersistenceValidatorIntegrationDevFixtureResult,
+  type ExecutionRecordPersistenceValidatorIntegrationDevFixtureResult,
+} from "@/lib/execution-record-persistence-validator-integration-dev-fixture";
 import { buildFinalizationCandidateDevFixtureResult } from "@/lib/finalization-candidate-dev-fixture";
 import type { FinalizationCandidateBuilderResult } from "@/lib/finalization-candidate-builder-contract";
 import { buildMappedBrokerExecutionResultCandidateDevFixtureResult } from "@/lib/mapped-broker-execution-result-candidate-dev-fixture";
@@ -330,6 +338,30 @@ export function useLatePhasePreviewState({
     setExecutionRecordCandidateBuilderIntegrationPreviewState,
   ] = useState<{
     result: ExecutionRecordCandidateBuilderIntegrationDevFixtureResult | null;
+    isRunning: boolean;
+    message: string;
+  }>({
+    result: null,
+    isRunning: false,
+    message: "",
+  });
+  const [
+    executionRecordCandidateBuilderInvocationPreviewState,
+    setExecutionRecordCandidateBuilderInvocationPreviewState,
+  ] = useState<{
+    result: ExecutionRecordCandidateBuilderInvocationDevFixtureResult | null;
+    isRunning: boolean;
+    message: string;
+  }>({
+    result: null,
+    isRunning: false,
+    message: "",
+  });
+  const [
+    executionRecordPersistenceValidatorIntegrationPreviewState,
+    setExecutionRecordPersistenceValidatorIntegrationPreviewState,
+  ] = useState<{
+    result: ExecutionRecordPersistenceValidatorIntegrationDevFixtureResult | null;
     isRunning: boolean;
     message: string;
   }>({
@@ -766,6 +798,20 @@ export function useLatePhasePreviewState({
   const canRunExecutionRecordCandidateBuilderIntegrationPreview =
     executionDevToolsEnabled &&
     !executionRecordCandidateBuilderIntegrationPreviewState.isRunning;
+  const executionRecordCandidateBuilderInvocationPreviewUnavailableReason =
+    executionDevToolsEnabled
+      ? null
+      : "Execution-record candidate builder invocation preview is hidden unless execution dev tools are enabled.";
+  const canRunExecutionRecordCandidateBuilderInvocationPreview =
+    executionDevToolsEnabled &&
+    !executionRecordCandidateBuilderInvocationPreviewState.isRunning;
+  const executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason =
+    executionDevToolsEnabled
+      ? null
+      : "Execution-record persistence validator integration preview is hidden unless execution dev tools are enabled.";
+  const canRunExecutionRecordPersistenceValidatorIntegrationPreview =
+    executionDevToolsEnabled &&
+    !executionRecordPersistenceValidatorIntegrationPreviewState.isRunning;
 
   const localhostExecutionRecordEligibility =
     localhostExecutionRecordEligibilityResult?.response
@@ -1481,9 +1527,103 @@ export function useLatePhasePreviewState({
     }
   }
 
+  function runExecutionRecordCandidateBuilderInvocationPreview() {
+    setExecutionRecordCandidateBuilderInvocationPreviewState({
+      result: null,
+      isRunning: false,
+      message: "",
+    });
+
+    if (!executionDevToolsEnabled) {
+      setExecutionRecordCandidateBuilderInvocationPreviewState({
+        result: null,
+        isRunning: false,
+        message:
+          "Execution-record candidate builder invocation preview is hidden unless execution dev tools are enabled.",
+      });
+      return;
+    }
+
+    setExecutionRecordCandidateBuilderInvocationPreviewState({
+      result: null,
+      isRunning: true,
+      message:
+        "Running fixture-only candidate builder invocation preview. This calls the pure invocation validator and pure invocation wrapper; builder output remains candidate-only. No record, persistence, audit, stats, rollback, trade, browser, Avanza, broker, or order behavior will run.",
+    });
+
+    try {
+      const result =
+        buildExecutionRecordCandidateBuilderInvocationDevFixtureResult();
+
+      setExecutionRecordCandidateBuilderInvocationPreviewState({
+        result,
+        isRunning: false,
+        message:
+          "Candidate builder invocation preview completed from controlled fixture data. validateExecutionRecordCandidateBuilderInvocation(...) and invokeExecutionRecordCandidateBuilder(...) ran; any builder output is candidate-only and no execution record, persistence, audit, stats, rollback, trade mutation, browser, Avanza, broker, or order behavior occurred.",
+      });
+    } catch (error) {
+      setExecutionRecordCandidateBuilderInvocationPreviewState({
+        result: null,
+        isRunning: false,
+        message:
+          error instanceof Error
+            ? `Candidate builder invocation preview failed safely: ${error.message}`
+            : "Candidate builder invocation preview failed safely. No builder, candidate, record, persistence, audit, stats, rollback, trade mutation, browser, Avanza, broker, or order behavior occurred.",
+      });
+    }
+  }
+
+  async function runExecutionRecordPersistenceValidatorIntegrationPreview() {
+    setExecutionRecordPersistenceValidatorIntegrationPreviewState({
+      result: null,
+      isRunning: false,
+      message: "",
+    });
+
+    if (!executionDevToolsEnabled) {
+      setExecutionRecordPersistenceValidatorIntegrationPreviewState({
+        result: null,
+        isRunning: false,
+        message:
+          "Execution-record persistence validator integration preview is hidden unless execution dev tools are enabled.",
+      });
+      return;
+    }
+
+    setExecutionRecordPersistenceValidatorIntegrationPreviewState({
+      result: null,
+      isRunning: true,
+      message:
+        "Running fixture-only persistence validator integration preview. This calls the pure integration composer, the pure actual persistence validator boundary-call validator, the boundary-call wrapper with a controlled fixture-injected validator callable, the insert route readiness validator, the insert route call wrapper with a controlled fixture-injected route callable, the production insert route boundary validator, the post-insert boundary validator, the audit append boundary validator, and executeAuditAppendWriterDryRun(...) for display-only diagnostics. No production route implementation, production route call, production insert, record creation, persistence, audit append, audit write, stats, rollback, correction, trade mutation or reconciliation, UI source-of-truth update, notification, browser, Avanza, broker, or order behavior will run.",
+    });
+
+    try {
+      const result =
+        await buildExecutionRecordPersistenceValidatorIntegrationDevFixtureResult();
+
+      setExecutionRecordPersistenceValidatorIntegrationPreviewState({
+        result,
+        isRunning: false,
+        message:
+          "Persistence validator integration preview completed from controlled fixture data. buildExecutionRecordPersistenceValidatorIntegration(...), validateActualPersistenceValidatorBoundaryCall(...), callActualPersistenceValidatorBoundary(...), validateExecutionRecordInsertRouteReadiness(...), callExecutionRecordInsertRoute(...), validateExecutionRecordProductionInsertRouteBoundary(...), validateExecutionRecordPostInsertBoundary(...), validateExecutionRecordAuditAppendBoundary(...), and executeAuditAppendWriterDryRun(...) ran for display-only diagnostics; the wrappers used fixture-injected callables only, insert route call output remains dry-run diagnostics only, production boundary ready remains design-only do not implement route, post-insert boundary ready remains design-only do not run post-insert actions, audit append boundary ready remains design-only do not append audit, dry-run execution ready remains design-only do not write audit, and route/dry-run execution success is not full persistence workflow completion, post-insert mutation approval, audit append approval, audit write approval, proof, or downstream approval. No production route implementation, production route call, production insert, execution record creation, persistence, audit append, audit write, stats, rollback, correction, trade mutation or reconciliation, UI source-of-truth update, notification, browser, Avanza, broker, or order behavior occurred.",
+      });
+    } catch (error) {
+      setExecutionRecordPersistenceValidatorIntegrationPreviewState({
+        result: null,
+        isRunning: false,
+        message:
+          error instanceof Error
+            ? `Persistence validator integration preview failed safely: ${error.message}`
+            : "Persistence validator integration preview failed safely. No persistence validator, insert route, record creation, persistence, audit, stats, rollback, correction, trade mutation or reconciliation, UI source-of-truth update, notification, browser, Avanza, broker, or order behavior occurred.",
+      });
+    }
+  }
+
   return {
     canRunMappedBrokerExecutionResultCandidatePreview,
     canRunExecutionRecordCandidateBuilderIntegrationPreview,
+    canRunExecutionRecordCandidateBuilderInvocationPreview,
+    canRunExecutionRecordPersistenceValidatorIntegrationPreview,
     canRunFinalSettlementNoteMatchPreview,
     canRunFinalizationCandidatePreview,
     canRunFinalizationActionPreview,
@@ -1512,6 +1652,16 @@ export function useLatePhasePreviewState({
     executionRecordCandidateBuilderIntegrationPreviewResult:
       executionRecordCandidateBuilderIntegrationPreviewState.result,
     executionRecordCandidateBuilderIntegrationPreviewUnavailableReason,
+    executionRecordCandidateBuilderInvocationPreviewMessage:
+      executionRecordCandidateBuilderInvocationPreviewState.message,
+    executionRecordCandidateBuilderInvocationPreviewResult:
+      executionRecordCandidateBuilderInvocationPreviewState.result,
+    executionRecordCandidateBuilderInvocationPreviewUnavailableReason,
+    executionRecordPersistenceValidatorIntegrationPreviewMessage:
+      executionRecordPersistenceValidatorIntegrationPreviewState.message,
+    executionRecordPersistenceValidatorIntegrationPreviewResult:
+      executionRecordPersistenceValidatorIntegrationPreviewState.result,
+    executionRecordPersistenceValidatorIntegrationPreviewUnavailableReason,
     mappedBrokerExecutionResultCandidatePreviewMessage:
       mappedBrokerExecutionResultCandidatePreviewState.message,
     mappedBrokerExecutionResultCandidatePreviewResult:
@@ -1545,6 +1695,10 @@ export function useLatePhasePreviewState({
       executionRecordInsertDryRunPreviewState.isRunning,
     isExecutionRecordCandidateBuilderIntegrationPreviewRunning:
       executionRecordCandidateBuilderIntegrationPreviewState.isRunning,
+    isExecutionRecordCandidateBuilderInvocationPreviewRunning:
+      executionRecordCandidateBuilderInvocationPreviewState.isRunning,
+    isExecutionRecordPersistenceValidatorIntegrationPreviewRunning:
+      executionRecordPersistenceValidatorIntegrationPreviewState.isRunning,
     isMappedBrokerExecutionResultCandidatePreviewRunning:
       mappedBrokerExecutionResultCandidatePreviewState.isRunning,
     isFinalSettlementNoteMatchPreviewRunning:
@@ -1614,6 +1768,8 @@ export function useLatePhasePreviewState({
     localhostExecutionRecordNoTradeMutation,
     localhostExecutionRecordNotEligible,
     runExecutionRecordCandidateBuilderIntegrationPreview,
+    runExecutionRecordCandidateBuilderInvocationPreview,
+    runExecutionRecordPersistenceValidatorIntegrationPreview,
     runExecutionRecordInsertDryRunPreview,
     runFinalizationActionPreview,
     runFinalizationExecutionRecordBridgePreview,

@@ -23,6 +23,9 @@ import type {
   ExecutionRecordCandidateBuilderIntegrationValidationResult,
 } from "@/lib/execution-record-candidate-builder-integration-validator-contract";
 import type {
+  ExecutionRecordCandidateBuilderInvocationValidationResult,
+} from "@/lib/execution-record-candidate-builder-invocation-validator-contract";
+import type {
   ExecutionRecordCandidate,
   ExecutionRecordCreationInput,
   ExecutionRecordCreationResult,
@@ -72,6 +75,7 @@ export type ExecutionRecordCandidateBuilderInvocationDecisionRecommendation =
 export const EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_BLOCKED_REASONS = [
   "missing_adapter_result",
   "missing_adapter_validation",
+  "missing_invocation_validation",
   "adapter_validation_not_valid",
   "missing_proposed_execution_record_creation_input",
   "missing_required_builder_input_field",
@@ -99,6 +103,7 @@ export const EXECUTION_RECORD_CANDIDATE_BUILDER_INVOCATION_WARNINGS = [
   "contract_only",
   "builder_invocation_not_implemented",
   "candidate_builder_not_called",
+  "candidate_builder_called_candidate_only",
   "candidate_output_would_be_candidate_only",
   "generated_types_required_later",
   "migration_application_required_later",
@@ -148,8 +153,8 @@ export type ExecutionRecordCandidateBuilderInvocationSafetyPolicy = {
   safeToMutateTrade: false;
   safeToRunBrokerAction: false;
   automaticModeAllowed: false;
-  invocationImplemented: false;
-  candidateBuilderInvocationAttempted: false;
+  invocationImplemented: boolean;
+  candidateBuilderInvocationAttempted: boolean;
   executionRecordCandidateCreationAttempted: false;
   executionRecordCreationAttempted: false;
   persistenceAttempted: false;
@@ -261,8 +266,8 @@ export type ExecutionRecordCandidateBuilderInvocationInputSourceSummary = {
 
 export type ExecutionRecordCandidateBuilderInvocationOutputSummary = {
   candidateOutputOnly: true;
-  builderInvocationImplemented: false;
-  candidateBuilderCalled: false;
+  builderInvocationImplemented: boolean;
+  candidateBuilderCalled: boolean;
   candidateBuilderResult?: ExecutionRecordCreationResult | null;
   candidateOutput?: ExecutionRecordCandidate | null;
   candidateOutputWouldBeCandidateOnly: boolean;
@@ -379,6 +384,9 @@ export type ExecutionRecordCandidateBuilderInvocationInput = {
   adapterValidationResult?:
     | ExecutionRecordCandidateBuilderIntegrationValidationResult
     | null;
+  invocationValidationResult?:
+    | ExecutionRecordCandidateBuilderInvocationValidationResult
+    | null;
   proposedCreationInput?: ExecutionRecordCreationInput | null;
   integrationInput?: ExecutionRecordCandidateBuilderIntegrationInput | null;
   integrationResult?: ExecutionRecordCandidateBuilderIntegrationResult | null;
@@ -441,8 +449,8 @@ export type ExecutionRecordCandidateBuilderInvocationResult = {
   safeToMutateTrade: false;
   safeToRunBrokerAction: false;
   automaticModeAllowed: false;
-  invocationImplemented: false;
-  candidateBuilderInvocationAttempted: false;
+  invocationImplemented: boolean;
+  candidateBuilderInvocationAttempted: boolean;
   executionRecordCandidateCreationAttempted: false;
   executionRecordCreationAttempted: false;
   persistenceAttempted: false;

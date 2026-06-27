@@ -1,3 +1,10 @@
+## Action 683 - Audit Append Writer Validator Design
+
+- Created `docs/execution-record-audit-append-writer-validator-design.md` as a documentation-only design for a future audit append writer validator.
+- Documented validator principles, future input/output design, status and decision model, validation rules, invalid/blocked states, server-only/security, schema/type, idempotency/duplicate-prevention, evidence/provenance, failure/retry, downstream separation, dev-preview/production-route relationship, risks, and next action.
+- Reconfirmed writer validator readiness, writer contract readiness, insert success, audit boundary validator readiness, dev-preview diagnostics, orchestrator readiness, production boundary readiness, and dry-run success are not audit write approval; writer validation success does not authorize downstream actions.
+- Recommended next action: Action 684 - Create Audit Append Writer Validator Contract Types.
+
 # Execution Record Candidate Builder Invocation Design
 
 ## 1. Purpose
@@ -480,3 +487,43 @@ Invocation design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Preview Boundary
+
+- A dev-gated candidate builder invocation preview now demonstrates the invocation boundary without invoking the candidate builder.
+- The fixture-shaped invocation result is passed to `validateExecutionRecordCandidateBuilderInvocation(...)` only.
+- The design boundary remains unchanged: no candidate creation, record creation, persistence/write behavior, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order behavior, or Avanza/browser behavior.
+
+## Action 579 - Invocation Preview Reassessment
+
+- Reassessment confirms the preview is a safe readback of invocation design assumptions.
+- Remaining gaps include no builder invocation implementation, no candidate creation from bridge, no persistence validator, no insert route integration, no generated types proof, and no migration proof.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Invocation Wrapper Created
+
+- Created `invokeExecutionRecordCandidateBuilder(...)` as a pure deterministic wrapper.
+- The wrapper may call `buildExecutionRecordCandidate(...)` only after valid invocation validation.
+- Candidate builder output remains candidate-only and separated from persistence validators, insert routes, Supabase writes, audit append, stats/PnL updates, rollback/correction, trade mutation, UI, browser/Avanza, and broker/order behavior.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the implemented wrapper matches the design: pure, deterministic, candidate-only, and gated by valid invocation validation plus proposed input.
+- Reconfirmed unsafe paths return conservative non-builder results.
+- Reconfirmed no execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, UI, browser/Avanza, broker, or order behavior was added.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Dev Preview Integration Added
+
+- Integrated the pure invocation wrapper into the dev-gated preview described by the design.
+- The explicit trigger now renders candidate-only builder output from fixture data after validation.
+- The integration does not add execution-record creation, persistence/write behavior, audit append, stats/PnL update, rollback/correction, trade mutation, browser/Avanza behavior, broker behavior, order behavior, or production runtime behavior.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed the preview integration remains aligned with the invocation design and keeps all write/action boundaries closed.
+- Reconfirmed wrapper output display remains candidate-only and dev-preview-only.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

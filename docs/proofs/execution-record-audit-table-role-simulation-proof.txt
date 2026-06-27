@@ -1,0 +1,47 @@
+Action: 783 - Resolve Audit Table Policy Grant Verification
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+
+Role simulation proof status: not completed.
+
+Planned safe method:
+
+- Use role simulation with `set local role anon` and `set local role authenticated`.
+- Run SELECT checks without printing row data.
+- Run INSERT checks only inside a transaction with guaranteed rollback.
+- Confirm no rows persisted.
+
+Why role simulation was not completed:
+
+- A read-only Supabase CLI confirmation query encountered repeated temp-role authentication failures and a temporary circuit-breaker condition.
+- After that unstable connection state, write-attempt tests were considered unsafe because rollback completion could not be guaranteed by this action.
+
+Catalog evidence still available:
+
+- RLS enabled on `public.execution_record_audit_events`.
+- No audit-table policies returned.
+- Broad anon/authenticated grants returned.
+
+Result:
+
+- Role-simulated anon denial: not verified.
+- Role-simulated authenticated denial: not verified.
+- No write-attempt tests were executed.
+- No rows were inserted by Action 783.
+
+Next proof needed:
+
+- Retry role simulation in a separate action after CLI temp-role connectivity is stable, or use another approved safe method that guarantees rollback and avoids printing secrets.
+
+Safety confirmation:
+
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.
+- No migration, type generation, generated type edit, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was added.
+
+Action 786 update:
+
+- SQL role simulation was not retried.
+- The approved alternative anon-client harness was run instead.
+- Anon SELECT and INSERT denial are captured in `docs/proofs/execution-record-audit-table-anon-denial-proof.txt`.
+- Authenticated denial proof remains a separate blocker.

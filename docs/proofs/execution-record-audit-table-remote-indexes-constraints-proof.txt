@@ -1,0 +1,44 @@
+Action: 782 - Verify Audit Table Remote Schema And RLS
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+
+Constraint command:
+/opt/homebrew/bin/supabase db query --linked -o table "select conrelid::regclass::text as table_name, conname, contype, pg_get_constraintdef(oid) as definition from pg_constraint where conrelid in ('public.execution_record_audit_events'::regclass, 'public.execution_records'::regclass) order by table_name, contype, conname;"
+
+Constraint command exit code: 0
+
+Constraint output summary for `public.execution_record_audit_events`:
+
+- `execution_record_audit_events_pkey`: primary key on `id`
+- `execution_record_audit_events_execution_record_id_fkey`: foreign key from `execution_record_id` to `execution_records(id)` with `ON DELETE RESTRICT`
+- `execution_record_audit_events_event_status_check`: status limited to `attempted`, `succeeded`, `failed`, `blocked`, `duplicate`, `unknown`
+- non-empty checks present for `event_type`, `event_source`, `source_system`, `idempotency_key`, and `schema_version`
+- duplicate-prevention non-empty check present with the PostgreSQL-truncated name `execution_record_audit_events_duplicate_prevention_key_non_empt`
+
+Index command:
+/opt/homebrew/bin/supabase db query --linked -o table "select schemaname, tablename, indexname, indexdef from pg_indexes where schemaname = 'public' and tablename in ('execution_records', 'execution_record_audit_events') order by tablename, indexname;"
+
+Index command exit code: 0
+
+Index output summary for `public.execution_record_audit_events`:
+
+- `execution_record_audit_events_pkey`
+- `execution_record_audit_events_idempotency_key_uidx`
+- `execution_record_audit_events_duplicate_prevention_key_uidx`
+- `execution_record_audit_events_execution_record_id_idx`
+- `execution_record_audit_events_event_type_idx`
+- `execution_record_audit_events_event_status_idx`
+- `execution_record_audit_events_created_at_idx`
+- `execution_record_audit_events_source_fingerprint_idx`
+
+Interpretation:
+
+- Audit table primary key: verified.
+- Audit table FK to `public.execution_records(id)`: verified.
+- Audit table idempotency uniqueness: verified.
+- Audit table duplicate-prevention uniqueness: verified.
+- Audit table expected lookup indexes: verified.
+- Audit table status/non-empty checks: verified.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

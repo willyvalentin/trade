@@ -1,3 +1,10 @@
+## Action 683 - Audit Append Writer Validator Design
+
+- Created `docs/execution-record-audit-append-writer-validator-design.md` as a documentation-only design for a future audit append writer validator.
+- Documented validator principles, future input/output design, status and decision model, validation rules, invalid/blocked states, server-only/security, schema/type, idempotency/duplicate-prevention, evidence/provenance, failure/retry, downstream separation, dev-preview/production-route relationship, risks, and next action.
+- Reconfirmed writer validator readiness, writer contract readiness, insert success, audit boundary validator readiness, dev-preview diagnostics, orchestrator readiness, production boundary readiness, and dry-run success are not audit write approval; writer validation success does not authorize downstream actions.
+- Recommended next action: Action 684 - Create Audit Append Writer Validator Contract Types.
+
 # Execution Record Candidate Builder Invocation Contract Reassessment
 
 ## 1. Purpose
@@ -465,3 +472,43 @@ Invocation contract impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Dev Preview Consumer
+
+- The invocation contract is now displayed in a dev-gated invocation preview with controlled fixture data.
+- The preview shows invocation status, decision recommendation, prerequisites, input source, output, idempotency, audit/provenance, schema readiness, safety policy, blocked reasons, warnings, and review items.
+- This remains contract/readback-only and does not call `buildExecutionRecordCandidate(...)`.
+
+## Action 579 - Invocation Contract Preview Reassessed
+
+- Reassessment confirms `builder_invocation_ready` remains boundary-ready only.
+- The status is not authorization to call the builder, create candidates/records, persist, append audit, update stats/PnL, rollback/correct, mutate trades, send to broker, or run Avanza/browser behavior.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Invocation Contract Implemented As Pure Wrapper
+
+- Added pure invocation implementation returning `ExecutionRecordCandidateBuilderInvocationResult`.
+- Contract was refined to carry invocation validation and to report candidate-only builder output.
+- `builder_invocation_ready` after wrapper invocation still means candidate-only output, not record creation or persistence approval.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed contract fields accurately describe a candidate-only wrapper that can call the builder only after valid invocation validation and proposed input presence.
+- Reconfirmed output summaries are not persistence approval and not execution-record creation approval.
+- Reconfirmed all persistence/write/action authority remains false.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Dev Preview Integration Added
+
+- The dev preview now displays the implemented invocation contract result from the pure wrapper.
+- Candidate builder call status, candidate-only output, idempotency, blockers, warnings, review items, and safety policy are visible.
+- Contract authority remains closed: preview output is not persistence approval and not execution-record creation approval.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed invocation contract fields displayed in the preview remain candidate-only and non-writing.
+- Reconfirmed preview output is not record creation, persistence, audit, stats/PnL, rollback, trade mutation, broker/order, or Avanza/browser approval.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

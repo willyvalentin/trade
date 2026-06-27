@@ -1,0 +1,38 @@
+Action: 786 - Run Anon Denial Verification Harness
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+Harness path: scripts/verify-audit-table-anon-denial.mjs
+
+Command used:
+set -a
+source .env.local
+set +a
+node scripts/verify-audit-table-anon-denial.mjs
+
+Command exit code: 0
+
+Output:
+
+Audit table anon denial harness starting.
+Required env vars are checked by name only. {"required_env":["NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_ANON_KEY"]}
+Anon denial harness result. {"classification":"denied","checks":[{"check":"anon_select","result":"denied","error_code":null,"rows_visible":0},{"check":"anon_insert","result":"denied","error_code":"42501","cleanup":{"attempted":false,"result":"not_needed","error_code":null,"may_have_persisted":false}}],"service_role_used":false,"production_routes_called":false,"app_runtime_mutated":false}
+
+Interpretation:
+
+- Harness execution status: succeeded.
+- Overall classification: `denied`.
+- Anon SELECT classification: `denied`.
+- Anon SELECT evidence: zero visible rows (`rows_visible: 0`) through anon/client access.
+- Anon INSERT classification: `denied`.
+- Anon INSERT evidence: Supabase/Postgres error code `42501`.
+- Same-anon-client cleanup was not needed because INSERT was denied.
+- Row persistence risk reported by harness: `may_have_persisted: false`.
+- Service-role used: false.
+- Production routes called: false.
+- App runtime mutated: false.
+
+Safety confirmation:
+
+- Env values were not printed.
+- Service-role was not used.
+- No migration, type generation, generated type edit, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was added.

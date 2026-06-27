@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Integration Adapter Contract Reassessment
 
 ## 1. Purpose
@@ -649,3 +656,41 @@ Adapter contract impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Adapter Contract Consumption
+
+- The invocation preview consumes adapter contract output as fixture data for validation-only display.
+- The adapter contract remains proposed-input-only and does not authorize builder calls or writes.
+
+## Action 579 - Adapter Contract Reassessment
+
+- Reassessment confirms adapter contract data does not imply builder invocation readiness beyond the dev preview boundary.
+- No candidate creation or persistence authority was added.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Adapter Contract Remains Proposed-Input-Only
+
+- The invocation wrapper may use adapter-shaped input only when invocation validation is valid.
+- Adapter contract data still does not authorize persistence or execution-record creation.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed adapter contract output can feed the invocation wrapper only through validation gates.
+- Reconfirmed candidate-only invocation output is not persistence approval and not execution-record creation approval.
+- Reconfirmed generated types, migration proof, persistence validation, audit append, and stats/trade mutation remain separate future work.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now carries adapter contract output through validation into the pure invocation wrapper.
+- Adapter contract output is still not write authority and still not execution-record creation authority.
+- Candidate-only builder output remains isolated to the dev-gated preview.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed adapter contract output remains non-writing and feeds only fixture preview validation/wrapper output.
+- Reconfirmed candidate-only preview output is not persistence or execution-record creation authority.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

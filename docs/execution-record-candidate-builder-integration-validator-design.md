@@ -743,3 +743,40 @@ Design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Downstream Validation Preview
+
+- The new invocation preview treats integration validation as a prerequisite for future candidate builder invocation review.
+- The preview remains dev-only and controlled-fixture-only, with no builder call and no write behavior.
+
+## Action 579 - Downstream Validation Reassessment
+
+- Reassessment confirms downstream invocation validation remains diagnostic-only.
+- Integration validator design remains unchanged and does not add write or builder authority.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Downstream Wrapper Relationship
+
+- The invocation wrapper sits downstream of integration validation but does not alter integration validator design.
+- Unsafe integration or invocation validation blocks the builder call.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed integration validator output remains validation-only and upstream of the invocation wrapper.
+- Reconfirmed the wrapper's valid path is candidate-only and unsafe paths do not call the builder.
+- Reconfirmed no record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, UI, browser/Avanza, broker, or order behavior is enabled.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- Downstream invocation preview integration now renders candidate-only wrapper output after validation.
+- The integration validator design remains validation-only and does not become a write, audit, stats, rollback, trade mutation, broker/order, or Avanza/browser boundary.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed integration validator design remains validation-only while downstream preview renders wrapper output.
+- Reconfirmed no write/action boundary was opened by the preview integration.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

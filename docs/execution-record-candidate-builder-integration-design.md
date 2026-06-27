@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Integration Design
 
 ## 1. Purpose
@@ -862,3 +869,42 @@ Integration design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Downstream Invocation Preview
+
+- The integration design now has a downstream dev preview that shows future candidate builder invocation readiness.
+- The downstream preview is explicit-trigger, dev-gated, validation-only, and controlled-fixture-only.
+- The integration design remains disconnected from builder invocation and persistence.
+
+## Action 579 - Integration Design Reassessment
+
+- Reassessment confirms the downstream invocation preview preserves integration design safety boundaries.
+- The integration design remains disconnected from builder calls, candidate creation, record creation, and writes.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Integration Design Downstream Wrapper
+
+- A pure wrapper now exists downstream of integration validation.
+- Integration design remains no-write and does not directly invoke builder or persistence paths.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the integration design feeds a gated candidate-only invocation path rather than a write path.
+- Reconfirmed valid invocation validation plus proposed input is the only builder-call condition.
+- Reconfirmed persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, UI, broker/order, and Avanza/browser boundaries remain closed.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now shows the designed downstream candidate-only invocation wrapper result.
+- Integration remains a non-writing chain and does not enable production runtime behavior.
+- No persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed the integration design remains a non-writing chain into a dev-only invocation preview.
+- Reconfirmed candidate-only output display does not advance persistence/write integration.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

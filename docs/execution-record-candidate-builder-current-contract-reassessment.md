@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Current Contract Reassessment
 
 ## 1. Purpose
@@ -846,3 +853,43 @@ Builder contract impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Builder Still Not Invoked
+
+- The new invocation dev preview explicitly displays that `buildExecutionRecordCandidate(...)` was not called.
+- The candidate builder contract remains unchanged, with no bridge/UI invocation and no execution-record candidate creation path enabled.
+- The preview is validation-only and uses controlled fixture data.
+
+## Action 579 - Builder Contract Still Unchanged
+
+- Reassessment confirms the invocation dev preview still does not call `buildExecutionRecordCandidate(...)`.
+- The current builder contract remains candidate-only and uninvoked from the bridge/UI preview path.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Builder Invoked Through Pure Wrapper Only
+
+- `buildExecutionRecordCandidate(...)` is now callable through `invokeExecutionRecordCandidateBuilder(...)` after valid invocation validation.
+- Builder output remains candidate-only and `safeToPersist=false`.
+- No execution-record creation, persistence, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order behavior, or Avanza/browser behavior was added.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed `buildExecutionRecordCandidate(...)` remains candidate-only when reached through the invocation wrapper.
+- Reconfirmed wrapper gating prevents builder calls for missing, blocked, needs-review, invalid, unsupported, and missing proposed-input paths.
+- Reconfirmed builder candidate output is not execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now displays `buildExecutionRecordCandidate(...)` output only through the pure invocation wrapper's valid gate.
+- Builder output is displayed as candidate-only and not persisted.
+- The builder contract remains candidate-only and no execution-record creation, persistence/write, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed builder output reaches the preview only through the pure wrapper's gated logic.
+- Reconfirmed displayed output remains candidate-only and not persisted or treated as an execution record.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

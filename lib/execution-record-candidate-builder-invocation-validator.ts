@@ -113,6 +113,7 @@ function mapInvocationBlockedReason(
     case "missing_adapter_result":
       return "missing_invocation_result";
     case "missing_adapter_validation":
+    case "missing_invocation_validation":
       return "missing_adapter_validation";
     case "adapter_validation_not_valid":
       return "adapter_validation_not_valid";
@@ -830,6 +831,7 @@ export function validateExecutionRecordCandidateBuilderInvocation(
       case "contract_only":
       case "builder_invocation_not_implemented":
       case "candidate_builder_not_called":
+      case "candidate_builder_called_candidate_only":
       case "candidate_output_would_be_candidate_only":
         pushUnique(warnings, "validation_only");
         break;

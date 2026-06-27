@@ -643,3 +643,41 @@ Adapter-validator contract impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Upstream Contract Use
+
+- The invocation dev fixture references the existing integration validator result as upstream validation metadata.
+- This is display and validation-only; it does not extend integration validator authority or enable persistence.
+
+## Action 579 - Upstream Contract Reassessment
+
+- Reassessment confirms the integration validator contract remains upstream metadata for the invocation preview only.
+- It does not authorize builder invocation, candidate creation, record creation, or persistence.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Upstream Contract Still Non-Writing
+
+- The invocation wrapper does not change the integration validator contract.
+- Upstream validation remains a prerequisite signal, not persistence or record-creation approval.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the integration validator contract remains upstream evidence for invocation validation, not a direct builder-call or write authority.
+- Reconfirmed candidate-only invocation still requires valid invocation validation and proposed input.
+- Reconfirmed no persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior is enabled.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now uses invocation validation output to drive pure wrapper display.
+- Integration validator contracts remain upstream contract evidence only and do not enable persistence or record creation.
+- Candidate-only wrapper output remains explicit and non-writing.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed integration validator contract output remains upstream evidence only.
+- Reconfirmed invocation preview output remains candidate-only and does not enable persistence/write behavior.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

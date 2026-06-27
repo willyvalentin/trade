@@ -1,3 +1,10 @@
+## Action 695 - Audit Append Writer Contract Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-contract-validator-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, future-boundary-only, and disconnected from contract validator implementation, writer implementation, audit append implementation, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Recommended next action: Action 696 - Create Audit Append Writer Contract Validator.
+
 # Execution Record Candidate Builder Integration Adapter Reassessment
 
 ## 1. Purpose
@@ -670,3 +677,42 @@ Adapter impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Adapter Output In Preview Fixture
+
+- The invocation dev fixture uses adapter output as controlled input to a future invocation boundary preview.
+- Adapter behavior was not changed; it still only shapes proposed `ExecutionRecordCreationInput`.
+- No candidate builder invocation, candidate creation, record creation, or persistence was enabled.
+
+## Action 579 - Adapter Boundary Reconfirmed
+
+- Reassessment confirms adapter output is used only as controlled fixture lineage in the invocation preview.
+- Adapter remains proposed-input-only and no-write.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Adapter Output Feeds Wrapper Input
+
+- The wrapper can consume adapter-shaped proposed input only after invocation validation is valid.
+- Adapter behavior remains pure proposed-input shaping and no-write.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed adapter output remains proposed-input shaping for later validation and candidate-only invocation.
+- Reconfirmed the invocation wrapper calls the builder only after valid invocation validation and proposed input presence.
+- Reconfirmed adapter output and wrapper output do not create records, persist, append audit, update stats/PnL, rollback/correct, mutate trades, or run broker/order behavior.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now uses adapter-shaped fixture input through validation and pure invocation wrapper output.
+- Adapter behavior remains proposed-input shaping only; wrapper output remains candidate-only.
+- No persistence/write, record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed adapter-shaped fixture input feeds the dev preview through validation and the pure wrapper only.
+- Reconfirmed adapter behavior remains proposed-input shaping and does not create/write execution records.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

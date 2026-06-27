@@ -1,3 +1,10 @@
+## Action 683 - Audit Append Writer Validator Design
+
+- Created `docs/execution-record-audit-append-writer-validator-design.md` as a documentation-only design for a future audit append writer validator.
+- Documented validator principles, future input/output design, status and decision model, validation rules, invalid/blocked states, server-only/security, schema/type, idempotency/duplicate-prevention, evidence/provenance, failure/retry, downstream separation, dev-preview/production-route relationship, risks, and next action.
+- Reconfirmed writer validator readiness, writer contract readiness, insert success, audit boundary validator readiness, dev-preview diagnostics, orchestrator readiness, production boundary readiness, and dry-run success are not audit write approval; writer validation success does not authorize downstream actions.
+- Recommended next action: Action 684 - Create Audit Append Writer Validator Contract Types.
+
 # Execution Record Candidate Builder Invocation Validator Design
 
 ## 1. Purpose
@@ -466,3 +473,43 @@ Validator design impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Preview Usage
+
+- The validator design now has a dev preview consumer that runs `validateExecutionRecordCandidateBuilderInvocation(...)` from controlled fixture data.
+- The preview is explicit-trigger, dev-gated, read-only, and validation-only.
+- It does not call the candidate builder and does not create, persist, audit, update stats/PnL, rollback/correct, mutate trades, send to broker, or interact with Avanza/browser state.
+
+## Action 579 - Preview Design Reassessment
+
+- Reassessment confirms the validator remains a pure diagnostic boundary in the dev preview.
+- The preview displays validation sections and authority flags without adding runtime validator behavior or builder calls.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Wrapper Gate Design
+
+- The invocation wrapper uses validator status as the mandatory gate before calling `buildExecutionRecordCandidate(...)`.
+- Unsafe validator statuses do not call the builder and return blocked/review/unsupported/not-ready invocation results.
+- The wrapper keeps all write/action authority false.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the designed validator gate is used by the wrapper before any candidate builder call.
+- Reconfirmed the wrapper returns candidate-only output and no write-side effect.
+- Reconfirmed persistence, audit append, stats/PnL, rollback/correction, trade mutation, UI, broker/order, and Avanza/browser behavior remain out of scope.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Dev Preview Integration Added
+
+- The dev preview now follows the designed validation-before-wrapper sequence.
+- It renders validator output beside candidate-only wrapper output so the gate and result are visible together.
+- The preview remains read-only, fixture-only, explicit-trigger-only, and disconnected from persistence, audit append, stats/PnL, rollback/correction, trade mutation, broker/order, and Avanza/browser behavior.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed the preview follows the designed validation-before-wrapper sequence.
+- Reconfirmed candidate-only output display does not add persistence/write, audit append, stats/PnL, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

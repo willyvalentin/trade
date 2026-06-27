@@ -47,35 +47,12 @@ import {
 } from "@/lib/data-mode-clarity";
 import {
   DEFAULT_EXECUTION_MODE,
-  EXECUTION_MODE_STORAGE_KEY,
-  getExecutionAuthorityForMode,
-  getExecutionTriggerPriority,
-  isAutomaticExecutionModeFeatureEnabled,
   isExecutionDevToolsEnabled,
-  normalizeExecutionMode,
-  type ExecutionAction,
-  type ExecutionIntent,
-  type ExecutionMode,
-  type ExecutionTriggerType,
 } from "@/lib/execution";
 import {
-  appendExecutionAuditEvent,
-  clearExecutionAuditEvents,
-  createExecutionAuditEvent,
-  readExecutionEventLog,
   type ExecutionAuditEvent,
   type ExecutionEventLogReadResult,
 } from "@/lib/execution-event-log";
-import {
-  appendExecutionRecord,
-  clearExecutionRecords,
-  readExecutionRecordStoreResult,
-  type ExecutionRecordStoreReadResult,
-  type StoredExecutionRecord,
-} from "@/lib/execution-record-store";
-import {
-  buildTureExecutionRecord,
-} from "@/lib/broker-execution-capture";
 import {
   buildAvanzaAgentProgressEvent,
 } from "@/lib/avanza-agent-adapter";
@@ -90,12 +67,6 @@ import {
   transitionExecutionLifecycle,
 } from "@/lib/execution-state-machine";
 import {
-  clearDevMockBrokerResults,
-  readDevMockBrokerResultStoreResult,
-  type DevMockBrokerResultStoreReadResult,
-  type StoredDevMockBrokerExecutionResult,
-} from "@/lib/dev-mock-broker-result-store";
-import {
   clearSafeBrowserActionDiagnostics,
   readSafeBrowserActionDiagnosticsStoreResult,
   type SafeBrowserActionDiagnosticsStoreReadResult,
@@ -106,19 +77,6 @@ import {
   summarizeBrowserRunnerCapabilityValidation,
   validateBrowserRunnerCapability,
 } from "@/lib/browser-runner-capability-gate";
-import {
-  buildDevMockCaptureDuplicateKey,
-  convertDevMockBrokerResultToBrokerExecutionResult,
-  findLocalExecutionRecordsForDevMockCapture,
-  isDevMockCaptureDuplicateKeyCertain,
-} from "@/lib/dev-mock-to-broker-execution-result";
-import {
-  buildExecutionServerCaptureRequest,
-  validateExecutionServerCaptureRequest,
-} from "@/lib/execution-server-capture-contract";
-import {
-  postExecutionServerCaptureRequest,
-} from "@/lib/execution-server-capture-client";
 import {
   EXECUTION_AUDIT_PERSISTENCE_CONTRACT_VERSION,
   type ExecutionAuditPersistenceResponse,
@@ -164,6 +122,24 @@ import {
 } from "@/lib/avanza-localhost-bridge-client";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import {
+  ExecutionSettingsPanel,
+} from "@/components/execution/execution-settings-panel";
+import {
+  ExecutionAuditLogViewer,
+} from "@/components/execution/execution-audit-log-viewer";
+import {
+  ExecutionLocalRecordsViewer,
+} from "@/components/execution/execution-local-records-viewer";
+import {
+  DevMockBrokerResultsPanel,
+} from "@/components/execution/execution-dev-mock-broker-results-panel";
+import {
+  useExecutionLocalPersistenceViewers,
+} from "@/hooks/execution/useExecutionLocalPersistenceViewers";
+import {
+  useExecutionSettingsState,
+} from "@/hooks/execution/useExecutionSettingsState";
 
 type UserSettingsRow = {
   id: string | number;
@@ -616,20 +592,8 @@ function buildAgentAdapterDiagnosticsEntries(
   );
 }
 
-function readExecutionEventLogForSettings(): ExecutionEventLogReadResult {
-  return readExecutionEventLog();
-}
-
-function readExecutionRecordsForSettings(): ExecutionRecordStoreReadResult {
-  return readExecutionRecordStoreResult();
-}
-
 function readAvanzaAgentRunsForSettings(): AvanzaAgentRunStoreReadResult {
   return readAvanzaAgentRunStoreResult();
-}
-
-function readDevMockBrokerResultsForSettings(): DevMockBrokerResultStoreReadResult {
-  return readDevMockBrokerResultStoreResult();
 }
 
 function readSafeBrowserActionDiagnosticsForSettings(): SafeBrowserActionDiagnosticsStoreReadResult {
@@ -765,111 +729,6 @@ function formatExecutionRecordNumber(value: number | null | undefined) {
     maximumFractionDigits: 4,
   }).format(value);
 }
-
-function executionRecordTriggerType(record: StoredExecutionRecord) {
-  return record.intent?.trigger_type ?? null;
-}
-
-function executionRecordRawBrokerSummary(record: StoredExecutionRecord) {
-  const brokerResult = record.brokerResult as
-    | (Record<string, unknown> & { rawBrokerSummary?: unknown })
-    | null;
-
-  return typeof brokerResult?.rawBrokerSummary === "string"
-    ? brokerResult.rawBrokerSummary
-    : null;
-}
-
-function sanitizeDevMockCaptureIdPart(value: string | null | undefined) {
-  return value?.trim().replace(/[^a-zA-Z0-9_-]+/g, "_") || "unknown";
-}
-
-function createDevMockCaptureIntentId(
-  result: StoredDevMockBrokerExecutionResult,
-) {
-  return [
-    "dev_mock_capture_intent",
-    sanitizeDevMockCaptureIdPart(result.requestId),
-    sanitizeDevMockCaptureIdPart(result.orderId),
-    sanitizeDevMockCaptureIdPart(result.createdAt),
-  ].join("_");
-}
-
-function buildDevMockCaptureIntent(
-  result: StoredDevMockBrokerExecutionResult,
-  createdAt: string,
-): ExecutionIntent | null {
-  const action = result.action === "buy" || result.action === "sell"
-    ? (result.action as ExecutionAction)
-    : null;
-  const quantity =
-    typeof result.quantity === "number" && Number.isFinite(result.quantity)
-      ? result.quantity
-      : null;
-
-  if (!action || !result.ticker.trim() || quantity === null || quantity <= 0) {
-    return null;
-  }
-
-  const mode = DEFAULT_EXECUTION_MODE;
-  const triggerType: ExecutionTriggerType =
-    action === "sell" ? "manual_exit_requested" : "manual_entry_requested";
-  const intendedPrice = result.requestedPrice ?? result.executedPrice ?? null;
-
-  return {
-    intent_version: "1.0",
-    intent_id: result.intentId ?? createDevMockCaptureIntentId(result),
-    created_at: createdAt,
-    mode,
-    authority: getExecutionAuthorityForMode(mode),
-    action,
-    trigger_type: triggerType,
-    trigger_priority: getExecutionTriggerPriority(triggerType),
-    broker_hint: "AVANZA",
-    source: "manual",
-    trading_package: {
-      package_version: "1.0",
-      recommendation_id: result.recommendationId ?? null,
-      live_position_id: result.positionId ?? null,
-      ticker: result.ticker,
-      market: "US",
-      quantity,
-      order_type: "market",
-      limit_price: intendedPrice,
-      stop_loss: null,
-      target_price: null,
-      expires_at: null,
-      payload_id: result.requestId ?? null,
-      payload_fingerprint: null,
-    },
-    safety_warnings: [
-      "DEV MOCK CAPTURE - local diagnostics only. Not a real Avanza execution.",
-      "Does not update trades, Supabase, History, or Statistics.",
-    ],
-    broker_result: null,
-  };
-}
-
-type DevMockCaptureUiResult = {
-  ok: boolean;
-  message: string;
-  recordId?: string;
-  captureStatus?: string;
-  brokerStatus?: string | null;
-  errors: string[];
-  warnings: string[];
-};
-
-type DevMockServerCaptureStubUiResult = {
-  ok: boolean;
-  message: string;
-  statusCode: number | null;
-  responseStatus?: string;
-  idempotencyKey?: string | null;
-  completedAt: string;
-  errors: string[];
-  warnings: string[];
-};
 
 type ExecutionAuditPersistenceStubUiResult = {
   ok: boolean;
@@ -1099,27 +958,6 @@ function writeRiskControlsSettings(settings: RiskControlsSettings) {
   );
 }
 
-function readExecutionModePreference(): ExecutionMode {
-  if (typeof window === "undefined") {
-    return DEFAULT_EXECUTION_MODE;
-  }
-
-  try {
-    return normalizeExecutionMode(
-      window.localStorage.getItem(EXECUTION_MODE_STORAGE_KEY),
-      {
-        automaticEnabled: isAutomaticExecutionModeFeatureEnabled(),
-      },
-    );
-  } catch {
-    return DEFAULT_EXECUTION_MODE;
-  }
-}
-
-function writeExecutionModePreference(mode: ExecutionMode) {
-  window.localStorage.setItem(EXECUTION_MODE_STORAGE_KEY, mode);
-}
-
 function logRiskControlsSettingsEvent(
   type: "risk_controls_saved" | "risk_controls_reset",
   settings: RiskControlsSettings,
@@ -1247,33 +1085,43 @@ export default function SettingsPage() {
     readRiskControlsSettings(),
   );
   const [riskControlsMessage, setRiskControlsMessage] = useState("");
-  const [executionMode, setExecutionMode] = useState<ExecutionMode>(() =>
-    readExecutionModePreference(),
-  );
-  const [executionModeMessage, setExecutionModeMessage] = useState("");
-  const [executionEventLog, setExecutionEventLog] =
-    useState<ExecutionEventLogReadResult>(() => readExecutionEventLogForSettings());
-  const [executionEventLogMessage, setExecutionEventLogMessage] = useState("");
-  const [executionRecordStore, setExecutionRecordStore] =
-    useState<ExecutionRecordStoreReadResult>(() =>
-      readExecutionRecordsForSettings(),
-    );
-  const [executionRecordStoreMessage, setExecutionRecordStoreMessage] =
-    useState("");
+  const executionSettingsState = useExecutionSettingsState();
+  const {
+    automaticExecutionEnabled,
+    executionAuthority,
+    executionMode,
+    executionModeMessage,
+    updateExecutionModePreference,
+  } = executionSettingsState;
+  const executionLocalPersistenceViewers =
+    useExecutionLocalPersistenceViewers();
+  const {
+    clearExecutionEventLog,
+    clearLocalDevMockBrokerResults,
+    clearLocalExecutionRecords,
+    devMockBrokerResultStore,
+    devMockBrokerResultStoreMessage,
+    executionEventLog,
+    executionEventLogMessage,
+    executionRecordStore,
+    executionRecordStoreMessage,
+    latestDevMockBrokerResults,
+    latestDevMockBrokerResultTimestamp,
+    latestExecutionAuditEvents,
+    latestExecutionAuditTimestamp,
+    latestExecutionRecords,
+    latestExecutionRecordTimestamp,
+    refreshAfterDevMockBrokerCapture,
+    refreshDevMockBrokerResults,
+    refreshExecutionEventLog,
+    refreshExecutionRecords,
+  } = executionLocalPersistenceViewers;
   const [avanzaAgentRunStore, setAvanzaAgentRunStore] =
     useState<AvanzaAgentRunStoreReadResult>(() =>
       readAvanzaAgentRunsForSettings(),
     );
   const [avanzaAgentRunStoreMessage, setAvanzaAgentRunStoreMessage] =
     useState("");
-  const [devMockBrokerResultStore, setDevMockBrokerResultStore] =
-    useState<DevMockBrokerResultStoreReadResult>(() =>
-      readDevMockBrokerResultsForSettings(),
-    );
-  const [
-    devMockBrokerResultStoreMessage,
-    setDevMockBrokerResultStoreMessage,
-  ] = useState("");
   const [
     safeBrowserActionDiagnosticsStore,
     setSafeBrowserActionDiagnosticsStore,
@@ -1335,21 +1183,7 @@ export default function SettingsPage() {
     () => validateAvanzaVerificationNotes(avanzaNotesState),
     [avanzaNotesState],
   );
-  const automaticExecutionEnabled = isAutomaticExecutionModeFeatureEnabled();
   const executionDevToolsEnabled = isExecutionDevToolsEnabled();
-  const executionAuthority = useMemo(
-    () => getExecutionAuthorityForMode(executionMode),
-    [executionMode],
-  );
-  const latestExecutionAuditEvents = useMemo(
-    () =>
-      [...executionEventLog.events]
-        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-        .slice(0, 50),
-    [executionEventLog.events],
-  );
-  const latestExecutionAuditTimestamp =
-    latestExecutionAuditEvents[0]?.createdAt ?? null;
   const agentAdapterDiagnosticsEntries = useMemo(
     () => buildAgentAdapterDiagnosticsEntries(executionEventLog.events),
     [executionEventLog.events],
@@ -1376,15 +1210,6 @@ export default function SettingsPage() {
       ).size,
     [agentAdapterDiagnosticsEntries],
   );
-  const latestExecutionRecords = useMemo(
-    () =>
-      [...executionRecordStore.records]
-        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-        .slice(0, 50),
-    [executionRecordStore.records],
-  );
-  const latestExecutionRecordTimestamp =
-    latestExecutionRecords[0]?.createdAt ?? null;
   const latestAvanzaAgentRuns = useMemo(
     () =>
       [...avanzaAgentRunStore.runs]
@@ -1394,15 +1219,6 @@ export default function SettingsPage() {
   );
   const latestAvanzaAgentRunTimestamp =
     latestAvanzaAgentRuns[0]?.createdAt ?? null;
-  const latestDevMockBrokerResults = useMemo(
-    () =>
-      [...devMockBrokerResultStore.results]
-        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-        .slice(0, 50),
-    [devMockBrokerResultStore.results],
-  );
-  const latestDevMockBrokerResultTimestamp =
-    latestDevMockBrokerResults[0]?.createdAt ?? null;
   const latestSafeBrowserActionDiagnostics = useMemo(
     () =>
       [...safeBrowserActionDiagnosticsStore.diagnostics]
@@ -1492,10 +1308,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setExecutionEventLog(readExecutionEventLogForSettings());
-      setExecutionRecordStore(readExecutionRecordsForSettings());
       setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
-      setDevMockBrokerResultStore(readDevMockBrokerResultsForSettings());
       setSafeBrowserActionDiagnosticsStore(
         readSafeBrowserActionDiagnosticsForSettings(),
       );
@@ -1531,85 +1344,9 @@ export default function SettingsPage() {
     setSuccessMessage("");
   }
 
-  function updateExecutionModePreference(nextMode: ExecutionMode) {
-    if (nextMode === "automatic" && !automaticExecutionEnabled) {
-      setExecutionModeMessage(
-        "Automatic mode is locked. Set NEXT_PUBLIC_ENABLE_AUTOMATIC_EXECUTION=true to enable the advanced opt-in.",
-      );
-      return;
-    }
-
-    try {
-      writeExecutionModePreference(nextMode);
-      setExecutionMode(nextMode);
-      setExecutionModeMessage(
-        nextMode === "automatic"
-          ? "Automatic execution mode saved locally. Broker automation is still not connected in this build."
-          : "Semi-automatic execution mode saved locally.",
-      );
-    } catch {
-      setExecutionModeMessage("Could not save execution mode locally.");
-    }
-  }
-
-  function refreshExecutionEventLog() {
-    setExecutionEventLog(readExecutionEventLogForSettings());
-    setExecutionEventLogMessage("Execution event log refreshed.");
-  }
-
-  function clearExecutionEventLog() {
-    const confirmed =
-      typeof window === "undefined" ||
-      window.confirm(
-        "Clear the local execution event log in this browser? This does not affect trades or broker state.",
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const cleared = clearExecutionAuditEvents();
-    setExecutionEventLog(readExecutionEventLogForSettings());
-    setExecutionEventLogMessage(
-      cleared
-        ? "Local execution event log cleared."
-        : "Could not clear the local execution event log.",
-    );
-  }
-
-  function refreshExecutionRecords() {
-    setExecutionRecordStore(readExecutionRecordsForSettings());
-    setExecutionRecordStoreMessage("Execution records refreshed.");
-  }
-
-  function clearLocalExecutionRecords() {
-    const confirmed =
-      typeof window === "undefined" ||
-      window.confirm(
-        "Clear local execution records in this browser? This does not affect trades, broker state, History, or Statistics.",
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const cleared = clearExecutionRecords();
-    setExecutionRecordStore(readExecutionRecordsForSettings());
-    setExecutionRecordStoreMessage(
-      cleared
-        ? "Local execution records cleared."
-        : "Could not clear local execution records.",
-    );
-  }
-
   function refreshAvanzaAgentRuns() {
     setAvanzaAgentRunStore(readAvanzaAgentRunsForSettings());
     setAvanzaAgentRunStoreMessage("Avanza agent runs refreshed.");
-  }
-
-  function refreshDevMockBrokerResults() {
-    setDevMockBrokerResultStore(readDevMockBrokerResultsForSettings());
-    setDevMockBrokerResultStoreMessage("Dev mock broker results refreshed.");
   }
 
   function refreshSafeBrowserActionDiagnostics() {
@@ -1770,26 +1507,6 @@ export default function SettingsPage() {
     );
   }
 
-  function clearLocalDevMockBrokerResults() {
-    const confirmed =
-      typeof window === "undefined" ||
-      window.confirm(
-        "Clear local dev mock broker results in this browser? This only removes the mock diagnostics key and does not affect trades, broker state, History, or Statistics.",
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const cleared = clearDevMockBrokerResults();
-    setDevMockBrokerResultStore(readDevMockBrokerResultsForSettings());
-    setDevMockBrokerResultStoreMessage(
-      cleared
-        ? "Local dev mock broker results cleared."
-        : "Could not clear local dev mock broker results.",
-    );
-  }
-
   function clearLocalSafeBrowserActionDiagnostics() {
     const confirmed =
       typeof window === "undefined" ||
@@ -1810,11 +1527,6 @@ export default function SettingsPage() {
         ? "Safe browser action diagnostics cleared."
         : "Could not clear safe browser action diagnostics.",
     );
-  }
-
-  function refreshAfterDevMockBrokerCapture() {
-    setExecutionRecordStore(readExecutionRecordsForSettings());
-    setExecutionEventLog(readExecutionEventLogForSettings());
   }
 
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
@@ -2440,131 +2152,13 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            <section className="mt-6 rounded-lg border border-emerald-300/15 bg-emerald-300/[0.035] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-emerald-100">
-                    Execution Mode
-                  </h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                    Choose how Ture labels future Avanza handoffs. This build
-                    is read-only: no broker connection, order preparation, or
-                    KÖP/SÄLJ submission is implemented.
-                  </p>
-                </div>
-                <span className="inline-flex w-fit items-center rounded-full border border-white/10 bg-black/25 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                  {executionMode === "automatic" ? "Automatic" : "Semi-auto"}
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <button
-                  type="button"
-                  aria-pressed={executionMode === "semi_automatic"}
-                  onClick={() => updateExecutionModePreference("semi_automatic")}
-                  className={`rounded-md border p-4 text-left transition ${
-                    executionMode === "semi_automatic"
-                      ? "border-emerald-300/45 bg-emerald-300/10"
-                      : "border-white/10 bg-black/25 hover:border-white/25"
-                  }`}
-                >
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-white">
-                      Semi-automatic
-                    </span>
-                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100">
-                      Default
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                      Recommended
-                    </span>
-                  </span>
-                  <span className="mt-3 block text-sm leading-6 text-zinc-400">
-                    Ture may prepare Avanza order details in the future, but the
-                    user must manually press final KÖP/SÄLJ.
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  aria-pressed={executionMode === "automatic"}
-                  disabled={!automaticExecutionEnabled}
-                  onClick={() => updateExecutionModePreference("automatic")}
-                  className={`rounded-md border p-4 text-left transition ${
-                    executionMode === "automatic"
-                      ? "border-amber-300/45 bg-amber-300/10"
-                      : "border-white/10 bg-black/25 hover:border-white/25"
-                  } ${
-                    automaticExecutionEnabled
-                      ? ""
-                      : "cursor-not-allowed opacity-60"
-                  }`}
-                >
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-white">
-                      Automatic
-                    </span>
-                    <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-                      Advanced
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                      Experimental
-                    </span>
-                    {!automaticExecutionEnabled && (
-                      <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                        Locked
-                      </span>
-                    )}
-                  </span>
-                  <span className="mt-3 block text-sm leading-6 text-zinc-400">
-                    Ture may later be allowed to submit final KÖP/SÄLJ
-                    automatically when safety checks pass.
-                  </span>
-                </button>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
-                <div className="rounded-md border border-white/10 bg-black/25 p-3">
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Authority
-                  </div>
-                  <div className="mt-1 text-zinc-200">
-                    {executionAuthority.final_confirmation_actor === "agent"
-                      ? "Agent final confirmation"
-                      : "Human final confirmation"}
-                  </div>
-                </div>
-                <div className="rounded-md border border-white/10 bg-black/25 p-3">
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Prepare Order
-                  </div>
-                  <div className="mt-1 text-zinc-200">
-                    {executionAuthority.can_prepare_broker_form ? "Allowed" : "Blocked"}
-                  </div>
-                </div>
-                <div className="rounded-md border border-white/10 bg-black/25 p-3">
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Final Submit
-                  </div>
-                  <div className="mt-1 text-zinc-200">
-                    {executionAuthority.allowFinalSubmit ? "Allowed by mode" : "Manual only"}
-                  </div>
-                </div>
-              </div>
-
-              {!automaticExecutionEnabled && (
-                <p className="mt-3 text-xs leading-5 text-zinc-500">
-                  Automatic mode is visible for planning, but locked unless
-                  NEXT_PUBLIC_ENABLE_AUTOMATIC_EXECUTION is set to true.
-                </p>
-              )}
-
-              {executionModeMessage && (
-                <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-                  {executionModeMessage}
-                </p>
-              )}
-            </section>
+            <ExecutionSettingsPanel
+              automaticExecutionEnabled={automaticExecutionEnabled}
+              executionAuthority={executionAuthority}
+              executionMode={executionMode}
+              executionModeMessage={executionModeMessage}
+              onSelectExecutionMode={updateExecutionModePreference}
+            />
 
             {executionDevToolsEnabled ? (
               <>
@@ -2599,7 +2193,7 @@ export default function SettingsPage() {
                   }
                 />
 
-                <ExecutionEventLogPanel
+                <ExecutionAuditLogViewer
                   readResult={executionEventLog}
                   visibleEvents={latestExecutionAuditEvents}
                   latestTimestamp={latestExecutionAuditTimestamp}
@@ -2653,7 +2247,7 @@ export default function SettingsPage() {
                   onCaptureComplete={refreshAfterDevMockBrokerCapture}
                 />
 
-                <ExecutionRecordsPanel
+                <ExecutionLocalRecordsViewer
                   readResult={executionRecordStore}
                   visibleRecords={latestExecutionRecords}
                   latestTimestamp={latestExecutionRecordTimestamp}
@@ -3371,178 +2965,6 @@ function AvanzaAgentBridgeDiagnosticsPanel({
         ) : null}
       </div>
     </section>
-  );
-}
-
-function ExecutionEventLogPanel({
-  readResult,
-  visibleEvents,
-  latestTimestamp,
-  message,
-  onRefresh,
-  onClear,
-}: {
-  readResult: ExecutionEventLogReadResult;
-  visibleEvents: ExecutionAuditEvent[];
-  latestTimestamp: string | null;
-  message: string;
-  onRefresh: () => void;
-  onClear: () => void;
-}) {
-  const hasEvents = readResult.events.length > 0;
-
-  return (
-    <section className="mt-6 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-cyan-100">
-            Execution Event Log
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Local browser audit data for execution handoff diagnostics. No
-            broker orders are executed from this log.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-cyan-300/30 hover:text-cyan-100"
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            disabled={!readResult.storageAvailable}
-            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-          >
-            Clear execution event log
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Total Events
-          </div>
-          <div className="mt-1 text-zinc-200">{readResult.events.length}</div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Latest Event
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {formatDateTime(latestTimestamp)}
-          </div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Storage
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-3 text-xs leading-5 text-zinc-500">
-        Stored locally in this browser. Refresh reads the current local log;
-        clear removes only execution audit events.
-      </p>
-
-      {readResult.error && (
-        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
-          Event log could not be parsed safely: {readResult.error}
-        </p>
-      )}
-
-      {readResult.discardedCount > 0 && (
-        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
-          Ignored {readResult.discardedCount} malformed execution audit event
-          {readResult.discardedCount === 1 ? "" : "s"}.
-        </p>
-      )}
-
-      {message && (
-        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-          {message}
-        </p>
-      )}
-
-      <div className="mt-4 space-y-2">
-        {!hasEvents ? (
-          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
-            No execution audit events are stored in this browser yet.
-          </div>
-        ) : (
-          visibleEvents.map((event) => (
-            <ExecutionEventLogRow event={event} key={event.eventId} />
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
-function ExecutionEventLogRow({ event }: { event: ExecutionAuditEvent }) {
-  const status = event.handoffStatus ?? event.brokerStatus;
-
-  return (
-    <article className="rounded-md border border-white/10 bg-black/20 p-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-              {event.type}
-            </span>
-            {status && (
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                {status}
-              </span>
-            )}
-          </div>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {event.message ?? "Execution audit event recorded locally."}
-          </p>
-        </div>
-        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
-          {formatDateTime(event.createdAt)}
-        </time>
-      </div>
-
-      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
-        <AuditDetail label="Ticker" value={event.ticker} />
-        <AuditDetail label="Action" value={event.action} />
-        <AuditDetail label="Mode" value={event.mode} />
-        <AuditDetail label="Trigger" value={event.triggerType} />
-        <AuditDetail
-          label="Intent"
-          value={shortExecutionAuditId(event.intentId)}
-        />
-        <AuditDetail
-          label="Position"
-          value={shortExecutionAuditId(event.positionId)}
-        />
-        <AuditDetail
-          label="Recommendation"
-          value={shortExecutionAuditId(event.recommendationId)}
-        />
-        <AuditDetail label="Broker" value={event.broker} />
-      </div>
-
-      {event.metadata && (
-        <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-          <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-            Metadata
-          </summary>
-          <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-            {JSON.stringify(event.metadata, null, 2)}
-          </pre>
-        </details>
-      )}
-    </article>
   );
 }
 
@@ -4484,682 +3906,6 @@ function AvanzaAgentRunRow({ run }: { run: StoredAvanzaAgentRun }) {
   );
 }
 
-function DevMockBrokerResultsPanel({
-  readResult,
-  visibleResults,
-  latestTimestamp,
-  executionRecords,
-  message,
-  onRefresh,
-  onClear,
-  onCaptureComplete,
-}: {
-  readResult: DevMockBrokerResultStoreReadResult;
-  visibleResults: StoredDevMockBrokerExecutionResult[];
-  latestTimestamp: string | null;
-  executionRecords: StoredExecutionRecord[];
-  message: string;
-  onRefresh: () => void;
-  onClear: () => void;
-  onCaptureComplete: () => void;
-}) {
-  const hasResults = readResult.results.length > 0;
-
-  return (
-    <section className="mt-6 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-cyan-100">
-            Dev Mock Broker Results
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Local mock results parsed from mock confirmation pages. Not real
-            BrokerExecutionResult. Not broker confirmations.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-cyan-300/30 hover:text-cyan-100"
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            disabled={!readResult.storageAvailable}
-            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-          >
-            Clear dev mock results
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Total Results
-          </div>
-          <div className="mt-1 text-zinc-200">{readResult.results.length}</div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Latest Result
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {formatDateTime(latestTimestamp)}
-          </div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Storage
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-3 text-xs leading-5 text-zinc-500">
-        Refresh reads only the dev mock broker result key; clear removes only
-        that mock diagnostics key and does not affect execution records.
-      </p>
-
-      {readResult.error && (
-        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
-          Dev mock broker results could not be parsed safely: {readResult.error}
-        </p>
-      )}
-
-      {readResult.discardedCount > 0 && (
-        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
-          Ignored {readResult.discardedCount} malformed dev mock broker result
-          {readResult.discardedCount === 1 ? "" : "s"}.
-        </p>
-      )}
-
-      {message && (
-        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-          {message}
-        </p>
-      )}
-
-      <div className="mt-4 space-y-2">
-        {!hasResults ? (
-          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
-            No local dev mock broker results are stored in this browser yet.
-          </div>
-        ) : (
-          visibleResults.map((result) => (
-            <DevMockBrokerResultRow
-              key={`${result.createdAt}_${result.requestId ?? result.orderId ?? result.ticker}`}
-              result={result}
-              executionRecords={executionRecords}
-              onCaptureComplete={onCaptureComplete}
-            />
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DevMockBrokerResultRow({
-  result,
-  executionRecords,
-  onCaptureComplete,
-}: {
-  result: StoredDevMockBrokerExecutionResult;
-  executionRecords: StoredExecutionRecord[];
-  onCaptureComplete: () => void;
-}) {
-  const [captureResult, setCaptureResult] =
-    useState<DevMockCaptureUiResult | null>(null);
-  const [serverCaptureStubResult, setServerCaptureStubResult] =
-    useState<DevMockServerCaptureStubUiResult | null>(null);
-  const [serverCaptureStubPending, setServerCaptureStubPending] =
-    useState(false);
-  const brokerResultPreview =
-    convertDevMockBrokerResultToBrokerExecutionResult(result);
-  const duplicateKey = buildDevMockCaptureDuplicateKey(result);
-  const duplicateKeyCertain = isDevMockCaptureDuplicateKeyCertain(result);
-  const existingCaptureRecords = useMemo(
-    () =>
-      findLocalExecutionRecordsForDevMockCapture(result, executionRecords),
-    [executionRecords, result],
-  );
-  const hasExistingCertainCapture =
-    duplicateKeyCertain && existingCaptureRecords.length > 0;
-  const captureBlocked = hasExistingCertainCapture || captureResult?.ok === true;
-
-  function captureMockResultLocally() {
-    if (hasExistingCertainCapture) {
-      setCaptureResult({
-        ok: false,
-        message: "This mock result already has a local capture record.",
-        recordId: existingCaptureRecords[0]?.recordId,
-        captureStatus: existingCaptureRecords[0]?.captureStatus,
-        brokerStatus: existingCaptureRecords[0]?.brokerStatus,
-        errors: [],
-        warnings: [
-          "Duplicate guard checks localStorage only. No Supabase upsert or broker order dedupe was performed.",
-        ],
-      });
-      return;
-    }
-
-    const confirmed =
-      typeof window === "undefined" ||
-      window.confirm(
-        "Capture this dev mock result as another local diagnostic execution record? This does not update trades, Supabase, History, or Statistics.",
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const createdAt = new Date().toISOString();
-    const conversion = convertDevMockBrokerResultToBrokerExecutionResult(
-      result,
-      {
-        convertedAt: createdAt,
-        mode: DEFAULT_EXECUTION_MODE,
-      },
-    );
-    const intent = buildDevMockCaptureIntent(result, createdAt);
-    const warnings = [...conversion.warnings];
-    const errors = [...conversion.errors];
-
-    if (!conversion.ok || !conversion.brokerResult) {
-      setCaptureResult({
-        ok: false,
-        message: "Dev mock capture was not created because conversion failed.",
-        errors,
-        warnings,
-      });
-      return;
-    }
-
-    if (!intent) {
-      setCaptureResult({
-        ok: false,
-        message: "Dev mock capture was not created because intent data is incomplete.",
-        errors: [
-          ...errors,
-          "Dev mock capture intent requires buy/sell action, ticker, and positive quantity.",
-        ],
-        warnings,
-      });
-      return;
-    }
-
-    const capture = buildTureExecutionRecord(
-      intent,
-      conversion.brokerResult,
-      {
-        createdAt,
-        recordId: [
-          "dev_mock_capture",
-          sanitizeDevMockCaptureIdPart(result.requestId),
-          sanitizeDevMockCaptureIdPart(result.orderId),
-          sanitizeDevMockCaptureIdPart(createdAt),
-        ].join("_"),
-      },
-    );
-    const captureErrors = [
-      ...capture.intentErrors,
-      ...capture.resultErrors,
-      ...capture.mismatchReasons,
-    ];
-    const saved = appendExecutionRecord({
-      ...capture.record,
-      reason: `DEV MOCK CAPTURE - local diagnostics only. Not a real Avanza execution. ${capture.reason}`,
-    });
-    const auditSaved = appendExecutionAuditEvent(
-      createExecutionAuditEvent({
-        type: "dev_mock_broker_capture_stub",
-        createdAt,
-        intentId: capture.record.intentId,
-        recommendationId: capture.record.recommendationId,
-        positionId: capture.record.positionId,
-        ticker: capture.record.ticker,
-        action: capture.record.action,
-        mode: capture.record.mode,
-        triggerType: intent.trigger_type,
-        broker: "avanza",
-        brokerStatus: capture.record.brokerStatus,
-        message:
-          "DEV MOCK CAPTURE - local TureExecutionRecord created from mock result. Not real broker execution. No Supabase/trade update.",
-        metadata: {
-          local_diagnostics_only: true,
-          not_real_broker_execution: true,
-          no_supabase_write: true,
-          no_trade_mutation: true,
-          no_history_statistics_update: true,
-          mock_result_source: result.source,
-          mock_result_status: result.status,
-          mock_order_id: result.orderId ?? null,
-          mock_request_id: result.requestId ?? null,
-          duplicate_key: duplicateKey,
-          capture_status: capture.captureStatus,
-          record_id: capture.record.recordId,
-          append_record_ok: saved,
-        },
-      }),
-    );
-
-    setCaptureResult({
-      ok: saved,
-      message: saved
-        ? "DEV MOCK CAPTURE - local execution record created. Not real broker execution."
-        : "Dev mock capture record could not be stored locally.",
-      recordId: capture.record.recordId,
-      captureStatus: capture.captureStatus,
-      brokerStatus: capture.record.brokerStatus,
-      errors: saved ? captureErrors : [...captureErrors, "Local record append failed."],
-      warnings: [
-        ...warnings,
-        auditSaved
-          ? "Local audit event appended."
-          : "Local audit event could not be appended.",
-        "This may create another local diagnostic record if clicked again.",
-      ],
-    });
-    onCaptureComplete();
-  }
-
-  async function testServerCaptureStub() {
-    const createdAt = new Date().toISOString();
-    const conversion = convertDevMockBrokerResultToBrokerExecutionResult(
-      result,
-      {
-        convertedAt: createdAt,
-        mode: DEFAULT_EXECUTION_MODE,
-      },
-    );
-    const intent = buildDevMockCaptureIntent(result, createdAt);
-    const errors = [...conversion.errors];
-    const warnings = [...conversion.warnings];
-
-    if (!conversion.ok || !conversion.brokerResult) {
-      setServerCaptureStubResult({
-        ok: false,
-        message:
-          "Server capture stub test was not sent because conversion failed.",
-        statusCode: null,
-        completedAt: createdAt,
-        errors,
-        warnings,
-      });
-      return;
-    }
-
-    if (!intent) {
-      setServerCaptureStubResult({
-        ok: false,
-        message:
-          "Server capture stub test was not sent because intent data is incomplete.",
-        statusCode: null,
-        completedAt: createdAt,
-        errors: [
-          ...errors,
-          "Server capture stub test requires buy/sell action, ticker, and positive quantity.",
-        ],
-        warnings,
-      });
-      return;
-    }
-
-    const captureRequest = buildExecutionServerCaptureRequest({
-      environment: "local_dev",
-      source: "mock",
-      isMock: true,
-      isDev: true,
-      submittedAt: createdAt,
-      intent,
-      brokerResult: conversion.brokerResult,
-      authoritySnapshot: intent.authority,
-      safetyChecks: intent.authority.required_safety_checks,
-      metadata: {
-        path: "settings_dev_mock_broker_result_server_capture_stub",
-        local_diagnostics_only: true,
-        no_supabase_write_expected: true,
-        no_trade_mutation_expected: true,
-        no_execution_record_expected: true,
-        mock_result_source: result.source,
-        mock_result_status: result.status,
-        mock_order_id: result.orderId ?? null,
-        mock_request_id: result.requestId ?? null,
-        duplicate_key: duplicateKey,
-      },
-    });
-    const localValidation =
-      validateExecutionServerCaptureRequest(captureRequest);
-
-    if (!localValidation.ok) {
-      setServerCaptureStubResult({
-        ok: false,
-        message:
-          "Server capture stub test was not sent because local validation failed.",
-        statusCode: null,
-        idempotencyKey: localValidation.idempotencyKey,
-        completedAt: createdAt,
-        errors: localValidation.errors,
-        warnings: [...warnings, ...localValidation.warnings],
-      });
-      return;
-    }
-
-    setServerCaptureStubPending(true);
-
-    try {
-      const postResult = await postExecutionServerCaptureRequest(captureRequest);
-
-      setServerCaptureStubResult({
-        ok: postResult.ok,
-        message:
-          postResult.response?.message ??
-          (postResult.ok
-            ? "Server capture stub accepted the request."
-            : "Server capture stub request failed."),
-        statusCode: postResult.statusCode,
-        responseStatus: postResult.response?.status,
-        idempotencyKey:
-          postResult.response?.idempotencyKey ?? captureRequest.idempotencyKey,
-        completedAt: postResult.completedAt,
-        errors: postResult.errors,
-        warnings: postResult.warnings,
-      });
-    } finally {
-      setServerCaptureStubPending(false);
-    }
-  }
-
-  return (
-    <article className="rounded-md border border-white/10 bg-black/20 p-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-              {result.status}
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-              {result.isMock ? "Mock result" : "Not mock"}
-            </span>
-            <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-              Not BrokerExecutionResult
-            </span>
-          </div>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {result.message ??
-              "Dev mock broker result stored without real broker confirmation."}
-          </p>
-        </div>
-        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
-          {formatDateTime(result.createdAt)}
-        </time>
-      </div>
-
-      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
-        <AuditDetail label="Status" value={result.status} />
-        <AuditDetail label="Ticker" value={result.ticker} />
-        <AuditDetail label="Action" value={result.action} />
-        <AuditDetail
-          label="Quantity"
-          value={formatExecutionRecordNumber(result.quantity)}
-        />
-        <AuditDetail
-          label="Requested"
-          value={formatExecutionRecordNumber(result.requestedPrice)}
-        />
-        <AuditDetail
-          label="Executed"
-          value={formatExecutionRecordNumber(result.executedPrice)}
-        />
-        <AuditDetail label="Order" value={result.orderId} />
-        <AuditDetail
-          label="Request"
-          value={shortExecutionAuditId(result.requestId)}
-        />
-        <AuditDetail label="Intent" value={shortExecutionAuditId(result.intentId)} />
-        <AuditDetail
-          label="Position"
-          value={shortExecutionAuditId(result.positionId)}
-        />
-        <AuditDetail
-          label="Recommendation"
-          value={shortExecutionAuditId(result.recommendationId)}
-        />
-        <AuditDetail label="Source" value={result.source} />
-        <AuditDetail label="isMock" value={result.isMock} />
-        <AuditDetail label="Errors" value={result.errors.length} />
-        <AuditDetail label="Warnings" value={result.warnings.length} />
-      </div>
-
-      <div className="mt-3 rounded-md border border-emerald-300/15 bg-emerald-300/[0.045] p-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-100">
-              Server capture route stub
-            </p>
-            <p className="mt-2 text-xs leading-5 text-zinc-400">
-              Dev-only route validation. No Supabase write. No trade update. No
-              local execution record is created by this test.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => void testServerCaptureStub()}
-            disabled={!brokerResultPreview.ok || serverCaptureStubPending}
-            className="w-fit rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-200/50 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-          >
-            {serverCaptureStubPending
-              ? "Testing capture stub"
-              : "Test server capture stub"}
-          </button>
-        </div>
-        {serverCaptureStubResult && (
-          <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-300">
-            <p className="font-semibold text-zinc-100">
-              {serverCaptureStubResult.message}
-            </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AuditDetail
-                label="Stub OK"
-                value={serverCaptureStubResult.ok}
-              />
-              <AuditDetail
-                label="HTTP"
-                value={serverCaptureStubResult.statusCode ?? "—"}
-              />
-              <AuditDetail
-                label="Response"
-                value={serverCaptureStubResult.responseStatus ?? "—"}
-              />
-              <AuditDetail
-                label="Completed"
-                value={formatDateTime(serverCaptureStubResult.completedAt)}
-              />
-            </div>
-            <AuditDetail
-              label="Idempotency"
-              value={serverCaptureStubResult.idempotencyKey ?? "—"}
-            />
-            {serverCaptureStubResult.errors.length > 0 && (
-              <p className="mt-3 rounded-md border border-rose-300/20 bg-rose-300/[0.08] p-3 text-rose-100">
-                {serverCaptureStubResult.errors.join(" ")}
-              </p>
-            )}
-            {serverCaptureStubResult.warnings.length > 0 && (
-              <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-amber-100">
-                {serverCaptureStubResult.warnings.join(" ")}
-              </p>
-            )}
-            <p className="mt-3 text-zinc-500">
-              Route stub validation only. No Supabase write, execution record,
-              trade update, History update, or Statistics update was created.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 rounded-md border border-cyan-300/15 bg-cyan-300/[0.045] p-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-100">
-              Local capture test
-            </p>
-            <p className="mt-2 text-xs leading-5 text-zinc-400">
-              Creates a local TureExecutionRecord from dev mock data only. Does
-              not update trades or Supabase. Duplicate guard checks localStorage
-              only and is not broker order dedupe.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={captureMockResultLocally}
-            disabled={!brokerResultPreview.ok || captureBlocked}
-            className="w-fit rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-200/50 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-          >
-            {captureBlocked ? "Captured locally" : "Capture mock result locally"}
-          </button>
-        </div>
-        {hasExistingCertainCapture && (
-          <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.08] p-3 text-xs leading-5 text-amber-100">
-            This mock result already has a local capture record. Duplicate guard
-            checks localStorage only and does not write Supabase or dedupe real
-            broker orders.
-          </p>
-        )}
-        {!duplicateKeyCertain && (
-          <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
-            Duplicate detection has limited identity for this mock result because
-            order, request, and intent ids are missing. Capture remains manual.
-          </p>
-        )}
-        {captureResult && (
-          <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-300">
-            <p className="font-semibold text-zinc-100">{captureResult.message}</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AuditDetail label="Captured" value={captureResult.ok} />
-              <AuditDetail label="Record" value={captureResult.recordId} />
-              <AuditDetail
-                label="Capture Status"
-                value={captureResult.captureStatus}
-              />
-              <AuditDetail label="Broker Status" value={captureResult.brokerStatus} />
-            </div>
-            {captureResult.errors.length > 0 && (
-              <p className="mt-3 rounded-md border border-rose-300/20 bg-rose-300/[0.08] p-3 text-rose-100">
-                {captureResult.errors.join(" ")}
-              </p>
-            )}
-            {captureResult.warnings.length > 0 && (
-              <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-amber-100">
-                {captureResult.warnings.join(" ")}
-              </p>
-            )}
-            <p className="mt-3 text-zinc-500">
-              View in Execution Records diagnostics. No real broker
-              confirmation, Supabase write, trade update, History update, or
-              Statistics update was created.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-          Dev mock result details
-        </summary>
-        <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2">
-          <AuditDetail
-            label="Warnings"
-            value={
-              result.warnings.length > 0 ? result.warnings.join("; ") : "—"
-            }
-          />
-          <AuditDetail
-            label="Errors"
-            value={result.errors.length > 0 ? result.errors.join("; ") : "—"}
-          />
-        </div>
-        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-          {JSON.stringify(
-            {
-              rawPayload: result.rawPayload,
-              result,
-            },
-            null,
-            2,
-          )}
-        </pre>
-      </details>
-
-      <details className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.04] p-3">
-        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
-          BrokerExecutionResult preview
-        </summary>
-        <p className="mt-3 text-xs leading-5 text-amber-100">
-          Preview only - not saved, not real, not TureExecutionRecord.
-        </p>
-        <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
-          <AuditDetail label="Preview OK" value={brokerResultPreview.ok} />
-          <AuditDetail label="Source" value={brokerResultPreview.source} />
-          <AuditDetail
-            label="Mock Conversion"
-            value={brokerResultPreview.isMockConversion}
-          />
-          <AuditDetail
-            label="Converted"
-            value={formatDateTime(brokerResultPreview.convertedAt)}
-          />
-          <AuditDetail
-            label="Broker"
-            value={brokerResultPreview.brokerResult?.broker ?? "—"}
-          />
-          <AuditDetail
-            label="Status"
-            value={brokerResultPreview.brokerResult?.status ?? "—"}
-          />
-          <AuditDetail
-            label="Ticker"
-            value={brokerResultPreview.brokerResult?.ticker ?? "—"}
-          />
-          <AuditDetail
-            label="Quantity"
-            value={formatExecutionRecordNumber(
-              brokerResultPreview.brokerResult?.quantity,
-            )}
-          />
-          <AuditDetail
-            label="Order"
-            value={brokerResultPreview.brokerResult?.broker_order_id ?? "—"}
-          />
-          <AuditDetail
-            label="Raw Summary"
-            value={brokerResultPreview.brokerResult?.rawBrokerSummary ?? "—"}
-          />
-        </div>
-        {brokerResultPreview.warnings.length > 0 && (
-          <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
-            {brokerResultPreview.warnings.join(" ")}
-          </p>
-        )}
-        {brokerResultPreview.errors.length > 0 && (
-          <p className="mt-3 rounded-md border border-rose-300/20 bg-rose-300/[0.08] p-3 text-xs leading-5 text-rose-100">
-            {brokerResultPreview.errors.join(" ")}
-          </p>
-        )}
-        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-          {JSON.stringify(brokerResultPreview, null, 2)}
-        </pre>
-      </details>
-    </article>
-  );
-}
-
 function AuditDetail({
   label,
   value,
@@ -5176,190 +3922,6 @@ function AuditDetail({
         {executionAuditValue(value)}
       </div>
     </div>
-  );
-}
-
-function ExecutionRecordsPanel({
-  readResult,
-  visibleRecords,
-  latestTimestamp,
-  message,
-  onRefresh,
-  onClear,
-}: {
-  readResult: ExecutionRecordStoreReadResult;
-  visibleRecords: StoredExecutionRecord[];
-  latestTimestamp: string | null;
-  message: string;
-  onRefresh: () => void;
-  onClear: () => void;
-}) {
-  const hasRecords = readResult.records.length > 0;
-
-  return (
-    <section className="mt-6 rounded-lg border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-fuchsia-100">
-            Execution Records
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Stored locally in this browser. Stub/dev records are not proof of
-            real broker execution and do not affect History, Statistics, or live
-            trades.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="rounded-full border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300 transition hover:border-fuchsia-300/30 hover:text-fuchsia-100"
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            disabled={!readResult.storageAvailable}
-            className="rounded-full border border-rose-300/25 bg-rose-300/10 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 transition hover:border-rose-200/40 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-zinc-600"
-          >
-            Clear execution records
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-400 md:grid-cols-3">
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Total Records
-          </div>
-          <div className="mt-1 text-zinc-200">{readResult.records.length}</div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Latest Record
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {formatDateTime(latestTimestamp)}
-          </div>
-        </div>
-        <div className="rounded-md border border-white/10 bg-black/25 p-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Storage
-          </div>
-          <div className="mt-1 text-zinc-200">
-            {readResult.storageAvailable ? "Local browser" : "Unavailable"}
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-3 text-xs leading-5 text-zinc-500">
-        Refresh reads the current local records store; clear removes only the
-        local execution records key.
-      </p>
-
-      {readResult.error && (
-        <p className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/[0.08] p-3 text-sm leading-6 text-amber-100">
-          Execution records could not be parsed safely: {readResult.error}
-        </p>
-      )}
-
-      {readResult.discardedCount > 0 && (
-        <p className="mt-3 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm leading-6 text-amber-100">
-          Ignored {readResult.discardedCount} malformed execution record
-          {readResult.discardedCount === 1 ? "" : "s"}.
-        </p>
-      )}
-
-      {message && (
-        <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-sm leading-6 text-zinc-300">
-          {message}
-        </p>
-      )}
-
-      <div className="mt-4 space-y-2">
-        {!hasRecords ? (
-          <div className="rounded-md border border-dashed border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-500">
-            No local execution records are stored in this browser yet.
-          </div>
-        ) : (
-          visibleRecords.map((record) => (
-            <ExecutionRecordRow key={record.recordId} record={record} />
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
-function ExecutionRecordRow({ record }: { record: StoredExecutionRecord }) {
-  const triggerType = executionRecordTriggerType(record);
-  const rawBrokerSummary = executionRecordRawBrokerSummary(record);
-
-  return (
-    <article className="rounded-md border border-white/10 bg-black/20 p-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-fuchsia-100">
-              {record.captureStatus}
-            </span>
-            {record.brokerStatus && (
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-                {record.brokerStatus}
-              </span>
-            )}
-          </div>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {record.reason}
-          </p>
-        </div>
-        <time className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
-          {formatDateTime(record.createdAt)}
-        </time>
-      </div>
-
-      <div className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
-        <AuditDetail label="Ticker" value={record.ticker} />
-        <AuditDetail label="Action" value={record.action} />
-        <AuditDetail label="Mode" value={record.mode} />
-        <AuditDetail label="Trigger" value={triggerType} />
-        <AuditDetail label="Quantity" value={formatExecutionRecordNumber(record.quantity)} />
-        <AuditDetail
-          label="Requested"
-          value={formatExecutionRecordNumber(record.requestedPrice)}
-        />
-        <AuditDetail
-          label="Executed"
-          value={formatExecutionRecordNumber(record.executedPrice)}
-        />
-        <AuditDetail label="Order" value={record.orderId} />
-        <AuditDetail label="Intent" value={shortExecutionAuditId(record.intentId)} />
-        <AuditDetail
-          label="Position"
-          value={shortExecutionAuditId(record.positionId)}
-        />
-        <AuditDetail
-          label="Recommendation"
-          value={shortExecutionAuditId(record.recommendationId)}
-        />
-        <AuditDetail label="Record" value={shortExecutionAuditId(record.recordId)} />
-      </div>
-
-      <details className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
-        <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-          Broker result / record JSON
-        </summary>
-        {rawBrokerSummary && (
-          <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-100">
-            {rawBrokerSummary}
-          </p>
-        )}
-        <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-zinc-400">
-          {JSON.stringify(record, null, 2)}
-        </pre>
-      </details>
-    </article>
   );
 }
 

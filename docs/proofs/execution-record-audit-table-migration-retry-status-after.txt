@@ -1,0 +1,23 @@
+Action: 779 - Retry Audit Table Migration Apply
+Workspace: /Users/willysimonsson/Dev/trade
+
+Status-after command status: not run.
+
+Reason:
+- The dry run failed before listing the two approved audit migrations.
+- No audit migration apply was attempted.
+- A status-after command is reserved for a retry path where the dry run succeeds and the apply is attempted.
+
+Known status from existing proof:
+- docs/proofs/execution-records-prerequisite-migration-status-after.txt shows 20260614000000 applied remotely.
+- Before this blocked retry, audit migrations 20260615000000 and 20260615001000 were still unapplied.
+
+Safety confirmation:
+- No broad pending migration push was run.
+- No unrelated migrations were applied.
+- No audit migrations were applied in Action 779.
+- No remote SQL was run.
+- No type generation was run.
+- No generated type files were modified.
+- No service-role code, writer, route, route call, runtime write path, Supabase/localStorage runtime write, audit append implementation, stats/PnL update, trade mutation, broker/Avanza behavior, or automatic mode was added.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

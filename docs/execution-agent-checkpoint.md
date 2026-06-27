@@ -1,4 +1,2918 @@
+## Action 931 - Create Live Position Execution UI Coupling Inventory
+
+- Created `docs/live-position-execution-ui-coupling-inventory.md`.
+- Inventoried live-position execution UI coupling in `app/trade-app.tsx`,
+  including `ActivePositionCard`, `LiveExecutionStatusSurface`, the
+  live-position `ExecutionHandoffPreviewModal` open/close path,
+  `LiveTradeDetailsModal`, close/reset wiring, and close/partial-close
+  mutation-adjacent behavior.
+- Documented state/callback dependencies, helper/adapter dependencies,
+  handler/effect coupling, candidate component boundaries, extraction safety
+  boundaries, staged sequence, first recommended seam, and risks.
+- Checkpoint status: `live_position_execution_ui_coupling_inventory_created`.
+- Recommended next action: Action 932 - Add Live Position Execution UI Baseline
+  Tests.
+- Documentation-only action: no runtime code, JSX, handlers, effects, state
+  mutation, helper wiring, lifecycle adapter broadening, modal helper wiring,
+  local/settings persistence helper wiring, audit writer runtime path, rollout
+  flags, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic order submission enablement,
+  automatic mode enablement, trade/stats/PnL mutation, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, or `.env.local` change was
+  performed.
+- Validation passed: runtime denial harness syntax checks passed; audit writer
+  runtime path UI/app-shell import search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; route/fetch scan
+  returned expected existing app fetches and audit-writer guardrail tests only;
+  service-role leakage scan returned only new boundary documentation and
+  existing test guardrail literals, with no secret values; live-position
+  unsafe import/write scan returned expected existing app-wide Supabase,
+  localStorage, fetch, and close-flow mutation references plus the existing
+  `LiveTradeDetailsModal` Escape-key `window` listener; automatic-mode/broker/
+  scanner scan returned expected existing app/settings/test references and new
+  inventory safety notes only; `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `.env.local` diff check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 930 - Create Execution UI Component Extraction Summary
+
+- Created `docs/execution-ui-component-extraction-summary.md`.
+- Summarized Actions 924-929: extraction inventory, baseline tests, sandbox
+  fixture card extraction, handoff preview modal extraction, execution settings
+  panel extraction, and local persistence viewer extraction.
+- Documented the current extracted component map for
+  `ExecutionSandboxFixtureCard`, `ExecutionHandoffPreviewModal`,
+  `ExecutionSettingsPanel`, `ExecutionAuditLogViewer`, and
+  `ExecutionLocalRecordsViewer`.
+- Documented current parent ownership in `app/trade-app.tsx` and
+  `app/settings/page.tsx`, test coverage, safety boundaries, remaining gaps,
+  and recommended next direction.
+- Checkpoint status: `execution_ui_component_extraction_summary_created`.
+- Recommended next action: Action 931 - Create Live Position Execution UI
+  Coupling Inventory.
+- Documentation-only action: no runtime code, JSX, handlers, effects, state
+  mutation, helper wiring, lifecycle adapter wiring, audit writer runtime path,
+  rollout flags, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic order submission enablement,
+  automatic mode enablement, trade/stats/PnL mutation, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, or `.env.local` change was
+  performed.
+- Validation passed: runtime denial harness syntax checks passed; audit writer
+  runtime path UI/app-shell import search returned no matches; route/fetch scan
+  returned expected existing app fetches and test guardrails only with no audit
+  writer runtime invocation added; `NEXT_PUBLIC_*SERVICE*` exposure search
+  returned no matches; service-role leakage and automatic-mode/broker/scanner
+  scans returned expected existing docs/tests/server-boundary references only;
+  component-extraction-specific scan returned only the existing handoff modal
+  Escape-key `window` listener; broad env/client/write scan against the summary
+  returned docs-only safety text; `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `.env.local` diff check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 929 - Extract Execution Local Persistence Viewer Components
+
+- Added `components/execution/execution-audit-log-viewer.tsx`.
+- Added `components/execution/execution-local-records-viewer.tsx`.
+- Extracted the execution event log viewer and local execution records viewer
+  from `app/settings/page.tsx` into dedicated client-safe presentational
+  components.
+- Kept event-log state, records-store state, visible item derivation, latest
+  timestamp derivation, refresh callbacks, clear callbacks, local persistence
+  helper imports/calls, effects, and message handling parent-owned in
+  `app/settings/page.tsx`.
+- Kept `DevMockBrokerResultsPanel` inline and unchanged because dev/mock broker
+  controls were outside the approved Action 929 viewer scope.
+- Updated source-characterization tests to prove both viewer component paths,
+  parent imports, parent-owned refresh/clear callbacks, preserved local-only
+  and no-real-broker copy, unchanged helper wiring, unchanged dev/mock control
+  seam, and no server write-path imports.
+- Created
+  `docs/execution-local-persistence-viewer-components-extraction.md`.
+- Checkpoint status: `execution_local_persistence_viewers_extracted`.
+- Recommended next action: Action 930 - Continue Execution UI Component
+  Extraction With Remaining Approved Seam.
+- No broad component extraction, dev/mock broker result control extraction,
+  live position UI extraction, storage behavior change, storage key rename,
+  new localStorage usage, handler/effect/state mutation behavior change,
+  settings persistence helper wiring change, modal helper wiring change,
+  lifecycle UI adapter broadening, audit writer path change, rollout flag
+  change, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic order submission enablement,
+  automatic mode enablement, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or trade/stats/PnL mutation was
+  performed.
+- Validation passed: focused Action 929 local persistence viewer extraction
+  bundle passed with 27 tests; broader execution settings/local storage/modal/
+  lifecycle regression bundle passed with 82 tests; runtime denial harness
+  syntax checks passed; extracted viewer unsafe import/storage/write-path scan
+  returned no matches; audit writer runtime path UI/app-shell import search
+  returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned no
+  matches; route invocation and service-role scans returned expected existing
+  docs/tests and approved route/harness references only; automatic-mode/broker/
+  scanner scan returned expected existing settings/docs/tests references and
+  preserved no-real-broker viewer copy only; `./node_modules/.bin/tsc --noEmit`
+  passed; `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, `.env.local` diff check, and `npm run lint` passed.
+  Lint emitted the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 928 - Extract Execution Settings Panel Component
+
+- Added `components/execution/execution-settings-panel.tsx`.
+- Extracted the execution settings panel from `app/settings/page.tsx` into the
+  new client-safe component path.
+- Kept execution mode state, automatic-mode feature-gate evaluation,
+  execution authority derivation, settings persistence helper calls,
+  save/status message handling, settings load/save effects, audit/local records
+  viewers, and dev/mock controls parent-owned in `app/settings/page.tsx`.
+- Updated source-characterization tests to prove the extracted settings panel
+  path, parent import, parent-owned `updateExecutionModePreference(...)`
+  callback, preserved semi-auto/default copy, automatic-mode gating copy,
+  disabled/locked behavior, deferred viewers, and no server write-path imports.
+- Created `docs/execution-settings-panel-extraction.md`.
+- Checkpoint status: `execution_settings_panel_extracted`.
+- Recommended next action: Action 929 - Extract Execution Local Persistence
+  Viewer Components.
+- No broad component extraction, audit/local viewer extraction, dev/mock control
+  extraction, live position UI extraction, runtime behavior change beyond
+  component relocation, handler/effect/state mutation behavior change, settings
+  read/write behavior change, settings persistence helper wiring change, modal
+  helper behavior change, local persistence helper wiring change, lifecycle UI
+  adapter broadening, audit writer path change, rollout flag change,
+  UI/browser/client audit writer invocation, market-loop/scanner invocation,
+  broker/Avanza behavior, automatic order submission enablement, automatic mode
+  enablement, live proof, live insert, select/query/remote SQL, service-role
+  adapter call, cleanup/backout, migration, type generation, generated type
+  edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: focused Action 928 settings/component extraction bundle
+  passed with 21 tests; broader execution settings/local storage/modal/
+  lifecycle regression bundle passed with 82 tests; runtime denial harness
+  syntax checks passed; audit writer runtime path UI/app-shell import search
+  returned no matches; route invocation search returned expected existing
+  route/harness/test references only; settings-component unsafe import scan
+  returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned no
+  matches; service-role leakage scan returned boundary documentation/test
+  guardrails and existing non-secret settings copy only; automatic mode safety
+  scan confirmed existing feature-flag/authority references and extracted
+  locked-copy display; deferred seam scan confirmed audit/local records viewers
+  and dev/mock controls remain outside the new component; market-loop/scanner
+  scan returned expected existing settings/dev-tool copy only; `git diff
+  --check`, touched-file trailing whitespace scan, zero-byte docs check,
+  `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 927 - Extract Execution Handoff Preview Modal Component
+
+- Added `components/execution/execution-handoff-preview-modal.tsx`.
+- Extracted `ExecutionHandoffPreviewModal` from `app/trade-app.tsx` into the
+  new client-safe component path.
+- Kept sandbox fixture panel, live position cards, settings surfaces,
+  audit/local viewers, app-level state, and app-level routing in their existing
+  files.
+- Moved modal-local state, Escape-key effect, modal copy/readiness usage,
+  prepare/capture helper usage, dev mock capture behavior, and dev preview
+  composition with the modal.
+- Updated source-characterization tests to prove the extracted modal path,
+  parent import, preserved sandbox/live modal render paths, modal helper
+  behavior, lifecycle UI adapter output, deferred seams, and no server
+  write-path imports.
+- Created `docs/execution-handoff-preview-modal-extraction.md`.
+- Checkpoint status: `execution_handoff_preview_modal_extracted`.
+- Recommended next action: Action 928 - Extract Execution Settings Panel
+  Component.
+- No broad component extraction, live position UI extraction, settings UI
+  extraction, audit/local viewer extraction, runtime behavior change beyond
+  component relocation, handler/effect/state mutation behavior change, modal
+  helper behavior change, local/settings persistence helper wiring change,
+  lifecycle UI adapter broadening, audit writer path change, rollout flag
+  change, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic order submission enablement,
+  automatic mode enablement, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or trade/stats/PnL mutation was
+  performed.
+- Validation passed: focused Action 927 modal/source-characterization bundle
+  passed with 47 tests; broader execution settings/local storage/modal/
+  lifecycle regression bundle passed with 82 tests; runtime denial harness
+  syntax checks passed; audit writer runtime path UI/app-shell import search
+  returned no matches; route invocation search returned expected existing
+  route/harness/test references only; component-specific unsafe import scan
+  returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned no
+  matches; service-role leakage scan returned boundary documentation/test
+  guardrails and existing non-secret app copy only; automatic mode safety scan
+  confirmed existing feature-flag/authority references; deferred seam scan
+  confirmed live/settings/viewer surfaces remain outside the new component;
+  broad env/client/write scan returned expected test/docs guardrails and the
+  modal Escape-key listener only; `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `.env.local` diff check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 926 - Extract Read-Only Execution Sandbox Fixture Card Component
+
+- Added
+  `components/execution/execution-sandbox-fixture-card.tsx`.
+- Extracted `ExecutionSandboxFixtureCard` from `app/trade-app.tsx` into the new
+  client-safe component path.
+- Kept the sandbox fixture panel, fixture list, and
+  `ExecutionHandoffPreviewModal` implementation in `app/trade-app.tsx`.
+- Passed the existing modal render through `renderHandoffPreviewModal`, so the
+  modal was not extracted in this action.
+- Updated
+  `tests/e2e/execution-ui-component-extraction-baseline.spec.ts` to prove the
+  extraction path, parent import, preserved card copy/status/modal-helper
+  wiring, deferred live/settings/viewer seams, and no server write-path imports.
+- Created `docs/execution-sandbox-fixture-card-extraction.md`.
+- Checkpoint status: `execution_sandbox_fixture_card_extracted`.
+- Recommended next action: Action 927 - Extract Execution Handoff Preview Modal
+  Component.
+- No broad component extraction, handoff modal extraction, live position UI
+  extraction, settings UI extraction, audit/local viewer extraction, runtime
+  behavior change beyond JSX relocation, handler/effect/state mutation behavior
+  change, modal helper behavior change, local/settings persistence helper
+  wiring change, lifecycle UI adapter broadening, audit writer path change,
+  rollout flag change, UI/browser/client audit writer invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: focused Action 926 extraction baseline spec passed with 8
+  tests; broader execution settings/local storage/modal/lifecycle regression
+  bundle passed with 82 tests; runtime denial harness syntax checks passed;
+  audit writer runtime path UI/app-shell import search returned no matches;
+  route invocation search returned expected existing route/harness/test
+  references only; component-specific unsafe import scan returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage scan returned boundary documentation/test guardrails and existing
+  non-secret app copy only; market-loop/scanner/broker scan returned
+  documentation/test safety assertions and existing app copy only; automatic
+  mode safety scan confirmed existing feature-flag/authority references; deferred
+  seam scan confirmed modal/live/settings/viewer surfaces remain outside the new
+  component; `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, `.env.local` diff check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 925 - Add Execution UI Component Extraction Baseline Tests
+
+- Added `tests/e2e/execution-ui-component-extraction-baseline.spec.ts`.
+- Created `docs/execution-ui-component-extraction-baseline-tests.md`.
+- Baseline tests lock the selected first extraction seam,
+  `ExecutionSandboxFixtureCard`, before moving JSX.
+- Coverage includes current sandbox fixture panel/card copy, fixture data,
+  status surface behavior, lifecycle UI adapter output, modal open/close helper
+  behavior, modal copy/readiness output, prepare/capture helper behavior where
+  testable, manual/semi-auto and automatic boundaries, deferred live/settings/
+  local viewer seams, and client-safe/no-server-write-path boundaries.
+- Checkpoint status:
+  `execution_ui_component_extraction_baseline_tests_added`.
+- Recommended next action: Action 926 - Extract Read-Only Execution Sandbox
+  Fixture Card Component.
+- No runtime behavior, JSX movement, component extraction, handler/effect/state
+  mutation, modal helper wiring, local persistence helper wiring, settings
+  persistence helper wiring, lifecycle UI adapter wiring, audit writer runtime
+  path, rollout flag, UI/browser/client audit writer invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: focused Action 925 baseline spec passed; settings
+  persistence helper/baseline tests, local storage helper/event log/modal
+  helper/open path/baseline tests, and lifecycle UI adapter/baseline tests
+  passed in the broader regression bundle; runtime denial harness syntax checks
+  passed; audit writer runtime path UI/app-shell import search returned no
+  matches; route invocation search returned expected existing route/harness/test
+  references only; market-loop/scanner scan returned documented safety
+  boundaries, fixture copy, and existing app/settings automation-gating
+  references only; `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches;
+  service-role leakage and component-extraction unsafe scans returned boundary
+  documentation/test guardrails and existing non-secret app copy only; automatic
+  mode safety scan confirmed the existing feature-flag gate, authority model,
+  and lock copy; `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, `.env.local` diff check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 924 - Create Execution UI Component Extraction Inventory
+
+- Created `docs/execution-ui-component-extraction-inventory.md`.
+- Inventoried current execution UI surfaces: sandbox fixture card, handoff
+  preview modal, active-position execution area, live-position execution status
+  surface, settings execution mode section, execution audit log viewer, local
+  execution records viewer, dev/mock broker result controls, and adjacent
+  execution dev tools.
+- Documented file/location, responsibilities, state dependencies, helper
+  dependencies, handler dependencies, effect dependencies, category, extraction
+  candidates, dependency map, handler/effect coupling, safety boundaries, risk,
+  first recommended seam, and suggested extraction sequence.
+- First recommended seam: `ExecutionSandboxFixtureCard`, after Action 925 adds
+  baseline tests.
+- Checkpoint status:
+  `execution_ui_component_extraction_inventory_created`.
+- Recommended next action: Action 925 - Add Execution UI Component Extraction
+  Baseline Tests.
+- No runtime code, JSX extraction, component move, handler/effect/state
+  mutation change, modal helper wiring change, local/settings persistence helper
+  wiring change, lifecycle UI adapter wiring change, audit writer runtime path
+  change, rollout flag change, route call, UI/browser/client audit writer
+  invocation, market-loop/scanner invocation, broker/Avanza behavior, automatic
+  order submission, automatic mode enablement, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer/lifecycle/proof/monitoring/cleanup/rollout scan returned no
+  matches; route invocation scan returned expected existing route/harness/test
+  references only; broad market/scanner scan returned existing app/settings/
+  component broker/Avanza and automation copy plus test safety assertions only;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned documentation boundary/historical notes, tests, and
+  existing non-secret app copy only with no values printed; broad env/client/
+  write scan returned the new inventory boundary statements plus expected
+  existing settings/app Supabase/env/fetch references; automatic-mode safety
+  scan confirmed existing exact-string gating, disabled-by-default
+  normalization, settings lock copy, and authority model references; `git diff
+  --check`, touched-file trailing whitespace scan, zero-byte docs check,
+  `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 923 - Create Execution Settings Persistence Refactor Summary
+
+- Created `docs/execution-settings-persistence-refactor-summary.md`.
+- Summarized Actions 919-922: settings persistence coupling inventory,
+  baseline tests, client-safe helper implementation, and read/write wiring.
+- Documented current helper scope, current wiring scope, test coverage, safety
+  boundaries, remaining gaps, and recommended next refactor direction.
+- Updated settings persistence helper/wiring/baseline/coupling docs, local
+  persistence summary, event-log/localStorage inventory, lifecycle UI adapter
+  summary, lifecycle UX/state plan, modal state summary, audit-writer
+  handoff/readiness docs, checkpoint, and QA notes.
+- Checkpoint status:
+  `execution_settings_persistence_refactor_summary_created`.
+- Recommended next action: Action 924 - Create Execution UI Component
+  Extraction Inventory.
+- No runtime code, helper wiring, key/default/allowed-value behavior,
+  invalid/missing fallback, automatic-mode gating, reset path, automatic mode
+  enablement, handler/effect/state mutation, modal helper wiring, local
+  persistence helper wiring, component extraction, lifecycle UI adapter
+  broadening, audit writer path, rollout flag, audit writer UI/browser/client/
+  market/scanner invocation, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, service-role value printing,
+  broker/Avanza behavior, automatic order submission enablement, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer/lifecycle/proof/monitoring/cleanup/rollout scan returned no
+  matches; route invocation scan returned expected existing route/harness/
+  regression references plus settings spec negative assertions only;
+  `NEXT_PUBLIC_*SERVICE*` exposure scan returned docs-only historical validation
+  notes and no public service-role env exposure; service-role leakage scan
+  returned documentation boundary/historical notes, existing non-secret settings
+  and app copy, and negative assertions only with no values printed;
+  settings-persistence-specific unsafe scan returned no new Action 923 code
+  unsafe matches plus expected existing settings/app Supabase/env/fetch refs
+  outside this documentation-only action, existing `lib/execution.ts` env refs,
+  and test/doc negative assertions; automatic-mode safety scan confirmed
+  exact-string gating, disabled-by-default normalization, settings lock copy, and
+  modeled authority boundaries; focused market/scanner scan returned existing
+  app/settings automation and broker/Avanza copy plus docs/test safety copy
+  only. `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 922 - Wire Execution Settings Helpers Into Read/Write Paths
+
+- Wired `app/trade-app.tsx` `readExecutionModePreferenceForTradeApp()` to the
+  client-safe execution settings helper.
+- Wired `app/settings/page.tsx` `readExecutionModePreference()` and
+  `writeExecutionModePreference(...)` to the same helper module while preserving
+  the existing settings save error path.
+- Added `docs/execution-settings-persistence-helper-wiring.md`.
+- Updated execution settings helper/baseline/coupling docs, local persistence
+  summary, event-log/localStorage inventory, lifecycle UI adapter summary,
+  lifecycle UX/state plan, modal state summary, audit-writer handoff/readiness
+  docs, checkpoint, and QA notes.
+- Updated execution settings baseline/helper tests to prove the read/write paths
+  are helper-backed and still preserve key/default/fallback/gating/authority and
+  client-safe boundaries.
+- Checkpoint status: `execution_settings_persistence_helpers_wired`.
+- Recommended next action: Action 923 - Create Execution Settings Persistence
+  Refactor Summary.
+- No key rename, default/allowed-value behavior change, invalid/missing fallback
+  change, automatic-mode gating change, automatic mode enablement, reset path,
+  broad UI wiring, component extraction, modal helper wiring change, local
+  persistence helper wiring change, lifecycle UI adapter broadening, audit
+  writer path change, audit writer UI/browser/client/market/scanner invocation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, service-role value printing, broker/Avanza behavior,
+  automatic order submission enablement, or trade/stats/PnL mutation was
+  performed.
+- Validation passed: execution settings helper and baseline specs passed with
+  13 tests; related settings persistence, local storage, event log, modal,
+  lifecycle UI, lifecycle service, lifecycle caller, and lifecycle hook
+  regression bundle passed with 105 tests. Runtime denial harness syntax checks
+  passed; UI/app-shell audit writer/lifecycle/proof/monitoring/cleanup/rollout
+  scan returned no matches; route invocation scan returned expected existing
+  route/harness/regression references plus settings spec negative assertions
+  only; helper import scan confirmed the new helper is imported only by
+  `app/trade-app.tsx` and `app/settings/page.tsx` in non-API app surfaces;
+  `NEXT_PUBLIC_*SERVICE*` exposure scan returned docs-only historical validation
+  notes and no public service-role env exposure; service-role leakage scan
+  returned docs boundary/historical notes, existing non-secret settings copy, and
+  negative assertions only with no values printed; settings-persistence-specific
+  unsafe scan returned no helper-source unsafe matches plus expected existing
+  settings/app Supabase/env/fetch refs outside this execution-mode seam,
+  existing `lib/execution.ts` env refs, and test/doc negative assertions;
+  automatic-mode safety scan confirmed exact-string gating,
+  disabled-by-default normalization, settings lock copy, and modeled authority
+  boundaries; focused market/scanner scan returned existing app/settings
+  automation and broker/Avanza copy plus docs/test safety copy only. `git diff
+  --check`, touched-file trailing whitespace scan, zero-byte docs check,
+  `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 921 - Implement Client-Safe Execution Settings Persistence Helpers
+
+- Added `lib/execution-settings-persistence-helpers.ts`.
+- Added `tests/e2e/execution-settings-persistence-helpers.spec.ts`.
+- Created `docs/execution-settings-persistence-helpers-implementation.md`.
+- Updated execution settings baseline/coupling docs, local persistence summary,
+  event-log/localStorage inventory, lifecycle UI adapter summary, lifecycle
+  UX/state plan, modal state summary, audit-writer handoff/readiness docs,
+  checkpoint, and QA notes.
+- Helpers preserve `ture_execution_mode`, semi-automatic default, allowed
+  values, missing/invalid fallback, automatic-mode gating, exact-string feature
+  flag interaction, read/write behavior, no reset path, authority relationship,
+  deterministic storage dependency behavior, and no broker/Avanza/order
+  submission implication.
+- Checkpoint status:
+  `execution_settings_persistence_helpers_implemented_client_safe`.
+- Recommended next action: Action 922 - Wire Execution Settings Helpers Into
+  Read/Write Paths.
+- No runtime wiring, key rename, default/allowed-value behavior change,
+  automatic-mode behavior change, handler/effect/state mutation change,
+  component extraction, modal helper wiring change, local persistence helper
+  wiring change, lifecycle UI adapter broadening, audit writer path change,
+  audit writer UI/browser/client/market/scanner invocation, DB/query/live proof,
+  live insert, migration, type generation, generated type edit, `.env.local`
+  change, service-role value printing, broker/Avanza behavior, automatic order
+  submission enablement, or trade/stats/PnL mutation was performed.
+- Validation passed: new execution settings persistence helper spec passed with
+  8 tests after rerunning outside the sandbox because the sandbox blocked
+  Playwright's local listener with `EPERM`; related settings persistence, local
+  storage, event log, modal, lifecycle UI, lifecycle service, lifecycle caller,
+  and lifecycle hook regression bundle passed with 105 tests. Runtime denial
+  harness syntax checks passed; UI/app-shell audit writer/lifecycle/proof/
+  monitoring/cleanup/rollout scan returned no matches; route invocation scan
+  returned expected existing route/harness/regression references plus settings
+  spec negative assertions only; `NEXT_PUBLIC_*SERVICE*` exposure scan returned
+  no public service-role env exposure; service-role leakage scan returned docs
+  boundary/historical notes and negative assertions only with no values printed;
+  settings-persistence-specific unsafe scan returned no helper-source unsafe
+  matches plus expected existing settings-page Supabase/env refs, existing
+  `lib/execution.ts` env refs, and test/doc negative assertions; unwired
+  runtime scan returned no app/settings/components/hooks imports of the helper;
+  automatic-mode safety scan confirmed exact-string gating,
+  disabled-by-default normalization, settings lock copy, and modeled authority
+  boundaries; focused market/scanner scan returned existing settings-page
+  automation UI refs and docs/test safety copy only. Final whitespace, zero-byte
+  docs, `.env.local` diff, TypeScript, and lint checks are recorded in QA notes.
+
+## Action 920 - Add Execution Settings Persistence Baseline Tests
+
+- Added `tests/e2e/execution-settings-persistence-baseline.spec.ts`.
+- Created `docs/execution-settings-persistence-baseline-tests.md`.
+- Updated execution settings coupling inventory, local persistence summary,
+  event-log/localStorage inventory, lifecycle UI adapter summary, lifecycle
+  UX/state plan, modal state summary, audit-writer handoff/readiness docs,
+  checkpoint, and QA notes.
+- Baseline tests lock `ture_execution_mode`, semi-automatic default, invalid
+  and missing fallback, automatic-mode feature flag normalization, fixture-local
+  read/write behavior, inline settings/trade-app storage surfaces, modeled
+  orchestrator authority relationship, settings safety copy, absence of reset
+  path, and client-safe boundaries.
+- Checkpoint status: `execution_settings_persistence_baseline_tests_added`.
+- Recommended next action: Action 921 - Implement Client-Safe Execution
+  Settings Persistence Helpers.
+- No runtime code, settings helper extraction, defaults/key/read/write/reset
+  behavior change, handler/effect/state mutation change, modal helper wiring
+  change, local persistence helper wiring change, component extraction,
+  lifecycle UI adapter broadening, audit writer runtime persistence path change,
+  rollout flag change, UI/browser/client audit writer invocation,
+  market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order submission enablement, live proof,
+  live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: new execution settings persistence baseline spec passed
+  with 5 tests after rerunning outside the sandbox because the sandbox blocked
+  Playwright's local listener with `EPERM`; related local storage, event log,
+  records, dev mock, modal helper, modal open path, lifecycle UI adapter,
+  lifecycle baseline, lifecycle service, lifecycle caller, and lifecycle hook
+  regression bundle passed with 97 tests; runtime denial harness syntax checks
+  passed; UI/app-shell audit writer/lifecycle/proof/monitoring/cleanup/rollout
+  scan returned no matches; route invocation scan returned expected existing
+  route/harness/regression references plus the new baseline's negative
+  assertions only; `NEXT_PUBLIC_*SERVICE*` exposure scan returned no new public
+  service-role env exposure; service-role leakage scan returned documentation
+  boundary statements, historical action notes, and new negative assertions only
+  with no values printed; settings-persistence-specific unsafe scan returned
+  expected existing settings-page Supabase/automation references outside the
+  execution-mode seam and no new unsafe helper target imports; automatic-mode
+  safety scan confirmed exact-string feature flag gating, disabled-by-default
+  normalization, settings lock copy, and modeled authority boundaries; focused
+  market/scanner scan returned existing settings-page automation UI references
+  and documentation/test safety copy only; `git diff --check`, touched-file
+  trailing whitespace scan, zero-byte docs check, and `.env.local` diff check
+  passed; TypeScript no-emit and `npm run lint` passed. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+
+## Action 919 - Create Execution Settings Persistence Coupling Inventory
+
+- Created `docs/execution-settings-persistence-coupling-inventory.md`.
+- Documented execution settings persistence coupling for `ture_execution_mode`,
+  automatic-mode feature flag gating, the current `app/trade-app.tsx`
+  read/refresh flow, adjacent paper-session protocol and risk-control settings
+  stores, settings UI coupling, runtime coupling, boundary risks, proposed
+  extraction seams, safety boundaries, result status, and recommended next
+  action.
+- Updated local persistence, event-log/localStorage inventory, lifecycle UI
+  adapter, lifecycle UX/state, modal state, audit-writer handoff/readiness,
+  checkpoint, and QA docs.
+- Checkpoint status: `execution_settings_persistence_coupling_inventory_created`.
+- Recommended next action: Action 920 - Add Execution Settings Persistence
+  Baseline Tests.
+- No runtime code, settings helper extraction, settings default change,
+  execution mode behavior change, automatic-mode gating change, localStorage key
+  rename, read/write/reset behavior change, handler/effect/state mutation
+  change, modal helper wiring change, local persistence helper wiring change,
+  component extraction, lifecycle UI adapter broadening, audit writer runtime
+  persistence path change, rollout flag change, UI/browser/client audit writer
+  invocation, market-loop/scanner audit writer invocation, broker/Avanza
+  behavior, automatic mode enablement, live proof/insert/query, service-role
+  adapter call, cleanup/backout, migration, type generation, generated type
+  edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer/lifecycle/proof/monitoring/cleanup/rollout scan returned no
+  matches; route invocation scan returned only expected existing route,
+  harness, and regression test references; focused market/scanner scan for the
+  Action 919 settings surface returned existing settings-page automation UI
+  references plus documentation boundary statements only; `NEXT_PUBLIC_*SERVICE*`
+  exposure scan returned no matches; service-role leakage scan returned
+  documentation boundary statements and historical action notes only with no
+  values printed; settings-persistence-specific unsafe import scan found
+  existing settings Supabase reads/writes unrelated to this Action 919
+  inventory plus no new server-only/service-role helper target imports;
+  automatic-mode safety scan confirmed the existing disabled-by-default feature
+  flag gate, settings lock message, and modeled authority boundary; broad
+  env/client/write scan returned expected documentation and existing
+  settings/localStorage/env references only; `git diff --check`, touched-file
+  trailing whitespace scan, and zero-byte docs check passed; TypeScript no-emit
+  and `npm run lint` passed. Lint emitted the existing Babel deopt note for
+  large `app/trade-app.tsx`.
+
+## Action 918 - Create Execution Local Persistence Refactor Summary
+
+- Created `docs/execution-local-persistence-refactor-summary.md`.
+- Summarized Actions 912-917: localStorage coupling inventory, baseline tests,
+  client-safe local storage helper implementation, event log helper wiring,
+  execution records helper wiring, and dev mock broker result helper wiring.
+- Documented current helper scope, current wiring scope, test coverage, safety
+  boundaries, remaining gaps, and the recommended next refactor direction.
+- Checkpoint status: `execution_local_persistence_refactor_summary_created`.
+- Recommended next action: Action 919 - Create Execution Settings Persistence
+  Coupling Inventory.
+- No runtime code, helper wiring, localStorage key change, event log behavior
+  change, execution records behavior change, dev mock broker result behavior
+  change, handler/effect/state mutation change, modal helper wiring change,
+  component extraction, lifecycle UI adapter broadening, audit writer runtime
+  persistence path change, rollout flag change, UI/browser/client audit writer
+  invocation, market-loop/scanner invocation, broker/Avanza behavior, automatic
+  mode behavior, live proof/insert, select/query/remote SQL, service-role
+  adapter call, cleanup/backout, migration, type generation, generated type
+  edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer/lifecycle/proof/monitoring/cleanup/rollout scan returned no
+  matches; route invocation scan returned only expected existing route,
+  harness, and regression test references; focused market/scanner scan for the
+  Action 918 local persistence surface returned only the documented boundary
+  statement in the summary; `NEXT_PUBLIC_*SERVICE*` exposure scan returned no
+  matches; service-role leakage scan returned documentation boundary statements
+  only with no values printed; local-storage/event-log-specific unsafe import
+  scan returned no matches; `git diff --check`, touched-file trailing
+  whitespace scan, and zero-byte docs check passed; TypeScript no-emit and
+  `npm run lint` passed. Lint emitted the existing Babel deopt
+  note for large `app/trade-app.tsx`.
+
+## Action 917 - Wire Dev Mock Broker Result Store Helpers Into Read/Write/Clear Paths
+
+- Updated `lib/dev-mock-broker-result-store.ts` so dev mock broker result read,
+  append/write, and remove-clear paths delegate to
+  `lib/execution-local-storage-helpers.ts`.
+- Updated `tests/e2e/execution-local-storage-helpers.spec.ts` to prove event
+  log helper wiring remains in place, execution records store helper wiring
+  remains in place, and dev mock broker result store helper wiring is now
+  present.
+- Created `docs/dev-mock-broker-result-store-helper-wiring.md`.
+- Checkpoint status: `dev_mock_broker_result_store_helpers_wired`.
+- No event log helper wiring change, execution records helper wiring change,
+  storage key rename, dev mock broker result read behavior change, dev mock
+  broker result append/write behavior change, dev mock broker result
+  remove-clear behavior change, ordering change, max-size behavior change,
+  malformed/missing/unavailable storage behavior change, result payload shape
+  change, local-only/server-audit distinction change, settings/dev viewer
+  behavior change, handler/effect/state mutation change beyond
+  helper-equivalent dev mock broker result store replacement, modal helper
+  wiring change, component extraction, lifecycle UI adapter broadening, audit
+  writer runtime persistence path change, rollout flag change, UI/browser/client
+  audit writer invocation, market-loop/scanner invocation, broker/Avanza
+  behavior, automatic mode behavior, live proof/insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or trade/stats/PnL mutation was
+  performed.
+- Validation passed: focused execution local-storage helper and event-log
+  baseline specs passed with 14 tests; broader helper/modal/open-path/lifecycle
+  UI adapter bundle passed with 61 tests; related lifecycle service/caller/hook
+  bundle passed with 31 tests; runtime denial harness syntax checks passed;
+  UI/app-shell audit writer/lifecycle scans returned no matches; route
+  invocation scan returned only expected existing route, harness, and
+  regression test references; local-storage/event-log/record-store/dev-mock
+  specific unsafe import scan returned no matches; market-loop/scanner and
+  `NEXT_PUBLIC_*SERVICE*` exposure scans returned no matches; service-role
+  leakage scan returned documentation/test guard references only with no values
+  printed; broad env/client/write scan returned expected helper/test/doc
+  references only; `git diff --check`, touched-file trailing whitespace scan,
+  and `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 918 - Create Execution Local Persistence
+  Refactor Summary.
+
+## Action 916 - Wire Execution Records Store Helpers Into Read/Write/Clear Paths
+
+- Updated `lib/execution-record-store.ts` so execution records read,
+  append/write, and clear paths delegate to
+  `lib/execution-local-storage-helpers.ts`.
+- Updated `tests/e2e/execution-local-storage-helpers.spec.ts` to prove event
+  log helper wiring remains in place, execution records store helper wiring is
+  now present, and dev mock broker result store paths remain unwired.
+- Created `docs/execution-records-store-helper-wiring.md`.
+- Checkpoint status: `execution_records_store_helpers_wired`.
+- No dev mock broker result helper wiring, event log helper wiring change,
+  storage key rename, execution records read behavior change, execution records
+  append/write behavior change, execution records clear behavior change,
+  ordering change, max-size behavior change, malformed/missing/unavailable
+  storage behavior change, record payload shape change, local-only/server-audit
+  distinction change, settings behavior change, handler/effect/state mutation
+  change beyond helper-equivalent records store replacement, modal helper wiring
+  change, component extraction, lifecycle UI adapter broadening, audit writer
+  runtime persistence path change, rollout flag change, UI/browser/client audit
+  writer invocation, market-loop/scanner invocation, broker/Avanza behavior,
+  automatic mode behavior, live proof/insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or trade/stats/PnL mutation was
+  performed.
+- Validation passed: focused execution local-storage helper and event-log
+  baseline specs passed with 14 tests; broader helper/modal/open-path/lifecycle
+  UI adapter bundle passed with 61 tests; related lifecycle service/caller/hook
+  bundle passed with 31 tests; runtime denial harness syntax checks passed;
+  UI/app-shell audit writer/lifecycle scans returned no matches; route
+  invocation scan returned only expected existing route, harness, and
+  regression test references; local-storage/event-log/record-store-specific
+  unsafe import scan returned no matches; market-loop/scanner and
+  `NEXT_PUBLIC_*SERVICE*` exposure scans returned no matches; service-role
+  leakage scan returned documentation/test guard references only with no values
+  printed; broad env/client/write scan returned expected helper/test/doc
+  references only; `git diff --check`, touched-file trailing whitespace scan,
+  and `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 917 - Wire Dev Mock Broker Result Store
+  Helpers Into Read/Write/Clear Paths.
+
+## Action 911 - Create Modal Open Path Wiring Summary
+
+- Created `docs/execution-modal-open-path-wiring-summary.md`.
+- Summarized Actions 907-910: open path wiring plan, baseline tests, sandbox
+  open helper wiring, and live-position open helper wiring.
+- Documented current open path helper scope:
+  `ExecutionSandboxFixtureCard` uses `openExecutionModalState(...)` with
+  `source: "fixture"` and `ActivePositionCard` uses
+  `openExecutionModalState(...)` with `source: "live_position"`.
+- Documented current full modal helper wiring scope: sandbox open,
+  live-position open, close/reset, prepare result, and capture result.
+- Documented current test coverage, safety boundaries, remaining gaps, and the
+  recommended next refactor direction.
+- Updated modal open-path, modal helper, lifecycle UI adapter, UX/state
+  refactor, audit-writer handoff/readiness, checkpoint, and QA docs.
+- No runtime code, modal helper wiring, sandbox open path, live-position open
+  path, close/reset wiring, prepare/capture wiring, handlers, effects, state
+  mutation behavior, component extraction, lifecycle UI adapter broadening,
+  audit writer runtime persistence path, rollout flag, audit writer
+  UI/browser/client invocation, market/scanner invocation, broker/Avanza
+  behavior, automatic mode, trade/stats/PnL behavior, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  service-role value printing was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI
+  audit/lifecycle import search returned no matches; route invocation search
+  returned only the existing approved route, harness, and regression tests;
+  market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches;
+  modal-helper-specific unsafe scan returned no matches; service-role leakage
+  scan returned expected boundary documentation/test guard references and
+  existing non-secret app copy only; `git diff --check`, touched-file trailing
+  whitespace scan, and `find docs -type f -size 0` passed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_open_path_wiring_summary_created`.
+- Recommended next action: Action 912 - Create Execution Event Log/Local
+  Storage Coupling Inventory.
+
+## Action 910 - Wire Modal Helpers Into Live Position Open Path
+
+- Created `docs/execution-modal-open-path-live-position-wiring.md`.
+- Updated `app/trade-app.tsx` so `ActivePositionCard` uses
+  `openExecutionModalState({ result: liveExecutionOrchestratorResult, source:
+  "live_position" })` in its open handler and preserves the existing local
+  visibility boolean by applying `opened.isOpen`.
+- Preserved existing live-position modal render guards:
+  `isExecutionPreviewOpen`, `liveExecutionStatus?.visible`, and
+  `liveExecutionOrchestratorResult?.selectedIntent`.
+- Preserved existing live-position modal props:
+  `ExecutionHandoffPreviewModal` still receives
+  `result={liveExecutionOrchestratorResult}`, the same
+  `status={liveExecutionStatus}`, and the same close handler.
+- Preserved sandbox open helper wiring from Action 909.
+- Preserved close/reset helper wiring from Action 904.
+- Preserved prepare/capture helper wiring from Action 905.
+- Updated `tests/e2e/execution-modal-open-path-baseline.spec.ts`,
+  `tests/e2e/execution-modal-state-helpers.spec.ts`, and
+  `tests/e2e/execution-modal-state-baseline.spec.ts` to prove both open paths
+  use helper output while modal behavior remains unchanged.
+- Updated modal open-path, modal helper, lifecycle UI adapter, UX/state
+  refactor, audit-writer handoff/readiness, checkpoint, and QA docs.
+- No effects, component extraction, lifecycle UI adapter broadening, audit
+  writer runtime persistence path change, rollout flag change, audit writer
+  UI/browser/client invocation, market/scanner invocation, broker/Avanza
+  behavior addition, automatic mode enablement, trade/stats/PnL behavior
+  change, live proof, live insert, select/query/remote SQL, service-role
+  adapter call, cleanup/backout, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Validation passed: open-path baseline spec passed with 8 tests; focused
+  modal/helper/adapter baseline suite passed with 47 tests; related lifecycle
+  service/caller/hook suite passed with 31 tests; runtime denial harness syntax
+  checks passed; UI audit/lifecycle import search returned no matches; route
+  invocation search returned only the existing approved route, harness, and
+  regression tests; market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches;
+  modal-helper-specific unsafe scan returned no matches; service-role leakage
+  scan returned expected test guard strings, documentation boundary notes, and
+  existing non-secret app copy only; broad env/client/write scan returned
+  expected test guard strings and pre-existing app references only;
+  `git diff --check`, touched-file trailing whitespace scan, and
+  `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_open_path_live_position_wired`.
+- Recommended next action: Action 911 - Create Modal Open Path Wiring Summary.
+
+## Action 909 - Wire Modal Helpers Into Sandbox Open Path
+
+- Created `docs/execution-modal-open-path-sandbox-wiring.md`.
+- Updated `app/trade-app.tsx` so `ExecutionSandboxFixtureCard` uses
+  `openExecutionModalState({ result: orchestratorResult, source: "fixture" })`
+  in its open handler and preserves the existing local visibility boolean by
+  applying `opened.isOpen`.
+- Preserved existing modal render guards: `isExecutionPreviewOpen`,
+  `uiStatus.visible`, and `orchestratorResult.selectedIntent`.
+- Preserved existing modal props: `ExecutionHandoffPreviewModal` still receives
+  `result={orchestratorResult}`, the same `status={uiStatus}`, and the same
+  close handler.
+- Updated `tests/e2e/execution-modal-open-path-baseline.spec.ts`,
+  `tests/e2e/execution-modal-state-helpers.spec.ts`, and
+  `tests/e2e/execution-modal-state-baseline.spec.ts` to prove sandbox helper
+  usage, unchanged sandbox behavior, and deferred live-position wiring.
+- Updated modal open-path, modal helper, lifecycle UI adapter, UX/state
+  refactor, audit-writer handoff/readiness, checkpoint, and QA docs.
+- Live-position open path remains unwired and deferred for Action 910.
+- Close/reset helper wiring remains unchanged.
+- Prepare/capture helper wiring remains unchanged.
+- No effects, component extraction, lifecycle UI adapter broadening, audit
+  writer runtime persistence path change, rollout flag change, audit writer
+  UI/browser/client invocation, market/scanner invocation, broker/Avanza
+  behavior addition, automatic mode enablement, trade/stats/PnL behavior
+  change, live proof, live insert, select/query/remote SQL, service-role
+  adapter call, cleanup/backout, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Validation passed: open-path baseline spec passed with 8 tests after
+  rerunning outside the sandbox because the sandbox blocked Playwright's local
+  listener; focused modal/helper/adapter baseline suite passed with 47 tests;
+  related lifecycle service/caller/hook suite passed with 31 tests; runtime
+  denial harness syntax checks passed; UI audit/lifecycle import search
+  returned no matches; route invocation search returned only the existing
+  approved route, harness, and regression tests; market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; modal-helper-specific unsafe scan returned no
+  matches; open-path-specific scan returned expected test guard strings plus
+  existing app-wide Supabase/localStorage/env references only; service-role
+  leakage scan returned expected test guard strings, documentation boundary
+  notes, and existing non-secret app copy only; broad env/client/write scan
+  returned expected test guard strings and pre-existing app references only;
+  `git diff --check`, touched-file trailing whitespace scan, and
+  `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_open_path_sandbox_wired`.
+- Recommended next action: Action 910 - Wire Modal Helpers Into Live Position
+  Open Path.
+
+## Action 908 - Add Execution Modal Open Path Baseline Tests
+
+- Created `tests/e2e/execution-modal-open-path-baseline.spec.ts`.
+- Created `docs/execution-modal-open-path-baseline-tests.md`.
+- Added baseline coverage for the selected first open-path seam,
+  `ExecutionSandboxFixtureCard`, before wiring modal helpers into the open path.
+- The tests lock current inline sandbox open behavior:
+  `LiveExecutionStatusSurface` calls `setIsExecutionPreviewOpen(true)`, the
+  modal renders from `isExecutionPreviewOpen`, and
+  `ExecutionHandoffPreviewModal` receives the existing `orchestratorResult`.
+- The tests document the live-position open path as the later seam and confirm
+  it remains inline and unwired.
+- The tests lock helper-equivalent fixture open state: selected payload,
+  selected handoff, lifecycle snapshot pass-through, idle preparation/capture
+  states, dev/mock capture defaults, modal-copy compatibility, semi-automatic
+  readiness boundaries, and automatic-mode non-executing baseline.
+- The tests confirm close/reset helper wiring and prepare/capture helper wiring
+  remain present while production open path wiring remains absent.
+- No runtime code, open path wiring, close/reset wiring change,
+  prepare/capture wiring change, handler change, effect change, state mutation
+  behavior change, component extraction, adapter wiring broadening, audit writer
+  runtime persistence path change, rollout flag change, audit writer
+  UI/browser/client invocation, market/scanner invocation, broker/Avanza
+  behavior addition, automatic mode enablement, trade/stats/PnL behavior
+  change, live proof, live insert, select/query/remote SQL, service-role adapter
+  call, cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or service-role value printing was performed.
+- Validation passed: new open-path baseline spec passed with 8 tests after
+  rerunning outside the sandbox because the sandbox blocked Playwright's local
+  listener; focused modal/helper/adapter baseline suite passed with 47 tests;
+  related lifecycle service/caller/hook suite passed with 31 tests; runtime
+  denial harness syntax checks passed; UI audit/lifecycle import search
+  returned no matches; route invocation search returned only the existing
+  approved route, harness, and regression tests; market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; modal-helper-specific unsafe scan returned no
+  matches; open-path-specific scan returned expected test guard strings only;
+  service-role leakage search returned existing proof docs/tests/redaction
+  references only with no secret values printed; broad env/client/write scan
+  returned existing scripts/docs/tests and pre-existing app references only;
+  `git diff --check`, touched-file trailing whitespace scan, and
+  `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_open_path_baseline_tests_added`.
+- Recommended next action: Action 909 - Wire Modal Helpers Into Sandbox Open
+  Path.
+
+## Action 907 - Create Execution Modal Open Path Wiring Plan
+
+- Created `docs/execution-modal-open-path-wiring-plan.md`.
+- Documented the current modal open path inventory in `app/trade-app.tsx`:
+  `ExecutionSandboxFixtureCard` and `ActivePositionCard` each own a local
+  `isExecutionPreviewOpen` boolean and open their preview via
+  `LiveExecutionStatusSurface` `onViewHandoff`.
+- Documented selected payload/handoff setup, preview visibility setup,
+  prepare/capture initial state setup, dev/mock capture initial state setup,
+  modal copy/readiness relationship to the lifecycle UI adapter, and lifecycle
+  snapshot pass-through.
+- Documented current helper readiness: `openExecutionModalState(...)` already
+  models selected intent, selected handoff, initial lifecycle, source, and
+  default preparation/capture/dev/mock capture shape, but production callers
+  currently hold only boolean visibility.
+- Proposed staged strategy: Action 908 baseline tests, Action 909 wire one open
+  path, Action 910 wire the remaining open path, Action 911 summary.
+- Selected first seam: `ExecutionSandboxFixtureCard`, because it is the lower
+  risk fixture/dev-preview path and can prove helper-owned open visibility
+  without changing live trade behavior.
+- No runtime code, open path wiring, close/reset wiring change,
+  prepare/capture wiring change, handler change, effect change, state mutation
+  behavior change, component extraction, adapter wiring broadening, audit writer
+  runtime persistence path change, rollout flag change, audit writer
+  UI/browser/client invocation, market/scanner invocation, broker/Avanza
+  behavior addition, automatic mode enablement, trade/stats/PnL behavior
+  change, live proof, live insert, select/query/remote SQL, service-role adapter
+  call, cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or service-role value printing was performed.
+- Validation passed: runtime denial harness syntax checks; UI audit/lifecycle
+  import search returned no matches; route invocation search returned only the
+  existing approved route, harness, and regression tests; market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; modal-helper-specific unsafe scan returned no
+  matches; service-role leakage search returned existing proof docs/tests/
+  redaction references only with no secret values printed; broad
+  env/client/write scan returned existing scripts/docs/tests and pre-existing
+  app references only; `git diff --check`, touched-file trailing whitespace
+  scan, and `find docs -type f -size 0` passed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_open_path_wiring_plan_created`.
+- Recommended next action: Action 908 - Add Execution Modal Open Path Baseline
+  Tests.
+
+## Action 906 - Create Execution Modal State Refactor Summary
+
+- Created `docs/execution-modal-state-refactor-summary.md`.
+- Summarized the execution modal state refactor completed across Actions
+  901-905: helper extraction planning, modal baseline tests, client-safe helper
+  implementation, close/reset wiring, and prepare/capture result wiring.
+- Current helper scope is documented: closed/open/close state helpers,
+  preparation result helpers, capture result helpers, dev/mock capture fields,
+  deterministic helper transitions, debug-safe summaries, and support for
+  already-computed lifecycle snapshot inputs.
+- Current wiring scope is documented as exactly close/reset, prepare result,
+  and capture result paths in `app/trade-app.tsx`.
+- Remaining gaps are documented: open path remains inline, modal rendering
+  remains in `app/trade-app.tsx`, event/effect coupling remains, local
+  storage/event-log coupling remains a future seam, and broader state/effects
+  refactor work remains substantial.
+- No runtime code, new modal helper wiring, open path change, handler change,
+  effect change, state mutation behavior change, component extraction, adapter
+  wiring broadening, audit writer runtime persistence path change, rollout flag
+  change, audit writer UI/browser/client invocation, market/scanner invocation,
+  broker/Avanza behavior addition, automatic mode enablement, trade/stats/PnL
+  behavior change, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: runtime denial harness syntax checks; UI audit/lifecycle
+  import search returned no matches; route invocation search returned only the
+  existing approved route, harness, and regression tests; market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; service-role leakage search returned existing
+  proof docs/tests/redaction references only with no secret values printed;
+  broad env/client/write scan returned existing scripts/docs/tests and
+  pre-existing app references only; modal-helper-specific unsafe scan returned
+  no matches; `git diff --check`, touched-file trailing whitespace scan, and
+  `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Result status:
+  `execution_modal_state_refactor_summary_created`.
+- Recommended next action: Action 907 - Create Execution Modal Open Path Wiring
+  Plan.
+
+## Action 905 - Wire Modal Helpers Into Prepare/Capture Result Path
+
+- Created `docs/execution-modal-state-helpers-prepare-capture-wiring.md`.
+- Updated `lib/execution-modal-state-helpers.ts` so
+  `applyExecutionPrepareResult(...)` and `applyExecutionCaptureResult(...)`
+  can accept already-computed production lifecycle snapshots from the existing
+  modal handlers.
+- Updated `app/trade-app.tsx` so `ExecutionHandoffPreviewModal` uses the modal
+  helpers to shape prepare/capture result state after the existing transition
+  and capture side effects have produced their results.
+- Prepare failure, prepare follow-up failure, prepare success, capture
+  transition failure, capture terminal success, and capture terminal failure now
+  route modal-local message/error/snapshot state through the helper output.
+- Existing preparation and capture side effects remain in their prior order:
+  lifecycle transitions, audit event appends, diagnostics runner behavior,
+  local dev record storage, broker/dev/mock capture behavior, async handler
+  order, and effects are preserved.
+- Action 904 close/reset helper wiring remains in place.
+- Open behavior remains unchanged; no `openExecutionModalState(...)` production
+  wiring was added.
+- Updated `tests/e2e/execution-modal-state-helpers.spec.ts` and
+  `tests/e2e/execution-modal-state-baseline.spec.ts` to prove prepare/capture
+  helper wiring is present and open behavior remains unwired.
+- Updated modal helper implementation, baseline, extraction, close/reset,
+  adapter summary, UX resumption, audit-writer handoff/readiness docs to record
+  the Action 905 prepare/capture wiring.
+- No component extraction, adapter broadening, audit writer runtime persistence
+  path change, rollout flag change, audit writer UI/browser/client invocation,
+  market/scanner invocation, broker/Avanza behavior addition, automatic mode
+  enablement, trade/stats/PnL behavior change, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  service-role value printing was performed.
+- Validation passed: modal helper and modal baseline specs with 20 tests;
+  focused helper/modal/adapter/baseline suite with 39 tests; related lifecycle
+  transition service, lifecycle caller, and lifecycle hook suite with 31 tests;
+  runtime denial harness syntax checks; helper-specific unsafe scan returned no
+  matches; UI audit/lifecycle import search returned no matches; focused
+  market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned existing app/script fetches and the approved server-only
+  harness literal; broad env/client/write scan returned documentation and
+  test-guard references plus existing app references only.
+- Result status:
+  `execution_modal_state_helpers_prepare_capture_wired`.
+- Recommended next action: Action 906 - Create Execution Modal State Refactor
+  Summary.
+
+## Action 904 - Wire Modal Helpers Into Close/Reset Path
+
+- Created `docs/execution-modal-state-helpers-close-reset-wiring.md`.
+- Updated `app/trade-app.tsx` to use
+  `closeExecutionModalState().isOpen` in the two existing execution preview
+  close handlers:
+  `ExecutionSandboxFixtureCard` and `ActivePositionCard`.
+- Updated `tests/e2e/execution-modal-state-helpers.spec.ts` and
+  `tests/e2e/execution-modal-state-baseline.spec.ts` to prove production
+  wiring is limited to close/reset.
+- Close/reset behavior remains equivalent to the previous
+  `setIsExecutionPreviewOpen(false)` path. Selected payload/handoff,
+  preparation, capture, and dev/mock capture state still clear through modal
+  unmount.
+- Open path remains unchanged and still uses `setIsExecutionPreviewOpen(true)`.
+- Prepare/capture result paths remain unwired to
+  `applyExecutionPrepareResult(...)` and `applyExecutionCaptureResult(...)`.
+- No effects, modal visible behavior, selected payload/handoff semantics,
+  prepare/capture handlers, component extraction, adapter wiring, audit writer
+  runtime persistence path, rollout flag, audit writer UI/browser/market/scanner
+  invocation, broker behavior, automatic mode, trade/stats/PnL behavior, live
+  proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or service-role value printing was performed.
+- Updated modal helper implementation, baseline, extraction, adapter summary,
+  UX resumption, audit-writer handoff/readiness docs to record the Action 904
+  close/reset wiring.
+- Validation passed: modal helper and modal baseline specs with 20 tests;
+  focused helper/modal/adapter/baseline suite with 38 tests; related lifecycle
+  transition service, lifecycle caller, and lifecycle hook suite with 31 tests;
+  runtime denial harness syntax checks; helper-specific unsafe scan returned no
+  matches; UI audit/lifecycle import search returned no matches; focused
+  market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned existing app/script fetches and the approved server-only
+  harness literal; broad env/client/write scan returned documentation and
+  test-guard references plus existing app references only.
+- Result status:
+  `execution_modal_state_helpers_close_reset_wired`.
+- Recommended next action: Action 905 - Wire Modal Helpers Into Prepare/Capture
+  Result Path.
+
+## Action 903 - Implement Execution Modal State Helpers
+
+- Created `lib/execution-modal-state-helpers.ts`.
+- Created `tests/e2e/execution-modal-state-helpers.spec.ts`.
+- Created `docs/execution-modal-state-helpers-implementation.md`.
+- Implemented client-safe pure helpers for closed/reset modal state, open modal
+  state, close/reset state, preparation pending/success/failure state, capture
+  pending/success/failure state, dev/mock capture field shape, deterministic
+  output, and debug-safe summaries.
+- The helpers preserve the Action 902 baseline behavior and keep automatic mode
+  limited to the existing broker-order-submitting placeholder state; no runtime
+  execution behavior was enabled.
+- The production modal remains unwired to the helper module. No
+  `app/trade-app.tsx` runtime behavior, modal open/close behavior,
+  prepare/capture handler, effect, state mutation, component extraction, adapter
+  wiring, audit writer runtime persistence path, rollout flag, route call,
+  service-role/env/database access, broker behavior, automatic mode,
+  trade/stats/PnL behavior, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Updated modal helper implementation, baseline, extraction, adapter,
+  refactor, coupling, UX resumption, audit-writer handoff/readiness docs to
+  record the Action 903 helper-only implementation step.
+- Validation passed: new helper spec
+  `tests/e2e/execution-modal-state-helpers.spec.ts` with 10 tests; focused
+  helper/modal/adapter/baseline suite with 38 tests; related lifecycle
+  transition service, lifecycle caller, and lifecycle hook suite with 31 tests;
+  runtime denial harness syntax checks; helper-specific unsafe scan returned no
+  matches; UI audit/lifecycle import search returned no matches; focused
+  market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned existing app/script fetches and the approved server-only
+  harness literal; broad env/client/write scan returned documentation and
+  test-guard references plus existing app references only; `git diff --check`,
+  touched-file trailing whitespace scan, `find docs -type f -size 0`,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for the large `app/trade-app.tsx` file.
+- Result status:
+  `execution_modal_state_helpers_implemented_client_safe`.
+- Recommended next action: Action 904 - Wire Modal Helpers Into Close/Reset
+  Path.
+
+## Action 902 - Add Execution Modal State Baseline Tests
+
+- Created `tests/e2e/execution-modal-state-baseline.spec.ts`.
+- Created `docs/execution-modal-state-baseline-tests.md`.
+- Added baseline coverage for fixture-local modal state shape before
+  implementing `lib/execution-modal-state-helpers.ts`.
+- Locked closed/reset state, open state with selected intent/handoff,
+  close/reset clearing behavior, semi-automatic preparation success,
+  automatic preparation shape without runtime execution enablement,
+  preparation failure shape, capture success/failure shape, debug-safe modal
+  summary output, and current inline modal-state coupling in
+  `app/trade-app.tsx`.
+- The test uses fixture-local state helpers and source characterization because
+  production modal state remains inline until Action 903.
+- Updated modal helper plan, adapter integration, modal copy, duplicated logic,
+  refactor, coupling, UX resumption, audit-writer handoff/readiness docs to
+  record the Action 902 baseline test step.
+- No runtime code, modal helper extraction, component extraction, modal
+  open/close behavior, prepare/capture handler, effect, state mutation, adapter
+  wiring, audit writer runtime persistence path, rollout flag, route call,
+  service-role/env/Supabase usage, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL behavior, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: focused modal baseline test
+  `tests/e2e/execution-modal-state-baseline.spec.ts` with 10 tests; focused
+  modal/adapter/baseline suite with 28 tests; related lifecycle transition
+  service, lifecycle caller, and lifecycle hook suite with 31 tests; runtime
+  denial harness syntax checks; UI audit/lifecycle import search returned no
+  matches; focused market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; adapter/modal
+  unsafe scan returned only expected test guard strings and the current
+  `app/trade-app.tsx` `window.addEventListener("keydown")` source
+  characterization assertion, with no adapter source hits; service-role leakage
+  search returned only existing redaction fixtures/tests; route/fetch search
+  returned only existing app fetches and the approved server-only harness
+  literal; broad env/client/write scan returned existing app references plus
+  documentation/test-guard references only; `git diff --check`, touched-file
+  trailing whitespace scan, `find docs -type f -size 0`,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for the large `app/trade-app.tsx` file.
+- Result status:
+  `execution_modal_state_baseline_tests_added`.
+- Recommended next action: Action 903 - Implement Execution Modal State
+  Helpers.
+
+## Action 901 - Create Execution Modal State Helper Extraction Plan
+
+- Created `docs/execution-modal-state-helper-extraction-plan.md`.
+- Planned future extraction of execution modal state/helpers from the dense
+  `app/trade-app.tsx` modal area.
+- Documented current modal/state coupling: fixture/live modal open state,
+  selected orchestrator payload/handoff state, `localLifecycle`,
+  `captureBaseLifecycle`, preparation runner state, capture stub state, agent
+  progress stub state, adapter modal copy, dev preview hooks, and local
+  event-log/localStorage coupling.
+- Defined candidate helper responsibilities: modal state shape, initial state,
+  open action builders, close/reset helpers, preparation/capture result helpers,
+  debug-safe modal summary, and action availability/readiness flags.
+- Defined non-responsibilities: service-role calls, audit writer server calls,
+  Supabase/query/mutation, route/fetch calls, broker/Avanza execution,
+  automatic mode, market/scanner invocation, trade/stats/PnL mutation, browser
+  storage, and UI rendering.
+- Proposed future client-safe module boundary:
+  `lib/execution-modal-state-helpers.ts`.
+- Proposed state/action contract, reset behavior, prepare/capture transition
+  behavior, debug-safe summaries, test strategy, implementation stages, risk
+  analysis, and safety boundaries.
+- Updated adapter integration, modal copy, duplicated logic, refactor,
+  coupling, UX resumption, audit-writer handoff/readiness docs to record the
+  Action 901 planning step.
+- No runtime code, modal helper extraction, component extraction, modal
+  open/close behavior, prepare/capture handler, effect, state mutation, adapter
+  wiring, audit writer runtime persistence path, rollout flag, route call,
+  service-role/env/Supabase usage, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL behavior, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: runtime denial harness syntax checks; UI audit/lifecycle
+  import search returned no matches; focused market/scanner audit invocation
+  search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned
+  no matches; adapter-specific unsafe scan returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned only existing app fetches and the approved server-only
+  harness literal; broad env/client/write scan returned existing app
+  references plus documentation/test-guard references only; `git diff --check`,
+  touched-file trailing whitespace scan, `find docs -type f -size 0`,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for the large `app/trade-app.tsx` file.
+- Result status:
+  `execution_modal_state_helper_extraction_plan_created`.
+- Recommended next action: Action 902 - Add Execution Modal State Baseline
+  Tests.
+
+## Action 900 - Create Execution Lifecycle UI Adapter Integration Summary
+
+- Created
+  `docs/execution-lifecycle-ui-state-adapter-integration-summary.md`.
+- Summarized the Actions 895-899 adapter sequence: baseline tests,
+  client-safe adapter implementation, one read-only sandbox fixture wiring,
+  one modal core summary copy/readiness wiring, and duplicated inline
+  `uiStatusForSurface` removal.
+- Documented current adapter scope: status labels, severity, CTA metadata,
+  disabled/blocked reasons, manual confirmation CTA split, `statusSurface`,
+  modal copy/readiness output, debug-safe metadata, and summary rows.
+- Documented current wiring scope as exactly
+  `ExecutionSandboxFixtureCard` and `ExecutionHandoffPreviewModal` core
+  summary props.
+- Documented that the live position status path remains unchanged and no broad
+  UI wiring has been performed.
+- Documented current coverage, safety boundaries, remaining gaps, and the next
+  recommended planning step.
+- Updated adapter/read-only/modal/baseline/refactor/coupling/readiness/handoff
+  docs to reference the Action 900 summary.
+- No runtime code, adapter wiring, handlers, effects, state mutation, component
+  extraction, audit writer runtime persistence path, rollout flags, route call,
+  service-role/env/Supabase usage, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL behavior, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: runtime denial harness syntax checks; UI audit/lifecycle
+  import search returned no matches; focused market/scanner audit invocation
+  search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned
+  no matches; adapter-specific unsafe scan returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned only existing app fetches and the approved server-only
+  harness literal; broad env/client/write scan returned existing app
+  references plus documentation/test-guard references only; `git diff --check`,
+  touched-file trailing whitespace scan, `find docs -type f -size 0`,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for the large `app/trade-app.tsx` file.
+- Result status:
+  `execution_lifecycle_ui_state_adapter_integration_summary_created`.
+- Recommended next action: Action 901 - Create Execution Modal State Helper
+  Extraction Plan.
+
+## Action 899 - Remove Duplicated Inline Derived UI Logic
+
+- Added adapter-owned `statusSurface` output to
+  `lib/execution-lifecycle-ui-state-adapter.ts`.
+- Removed the duplicated inline `uiStatusForSurface` mapping from
+  `ExecutionSandboxFixtureCard` in `app/trade-app.tsx`.
+- `ExecutionSandboxFixtureCard` now passes `uiState.statusSurface` to
+  `LiveExecutionStatusSurface`.
+- Created
+  `docs/execution-lifecycle-ui-state-adapter-duplicated-inline-logic-removal.md`.
+- Updated adapter/read-only/modal/baseline/refactor/coupling/readiness/handoff
+  docs to record the Action 899 cleanup.
+- Updated `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` to prove
+  the adapter preserves the status-surface fields, the card uses
+  `uiState.statusSurface`, and the removed inline mapping is absent.
+- Existing Action 897 and Action 898 adapter surfaces remain the only approved
+  UI surfaces.
+- No modal broadening, live position status broadening, component extraction,
+  handlers, effects, state mutation, localStorage behavior, runtime behavior,
+  lifecycle transition semantics, audit writer path, rollout flags, route call,
+  service-role/env/Supabase usage, broker/Avanza behavior, automatic mode,
+  live proof, live insert, select/query/remote SQL, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: adapter and baseline suites
+  `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` and
+  `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` with 18 tests;
+  related lifecycle transition service, lifecycle caller, and lifecycle hook
+  suite with 31 tests; runtime denial harness syntax checks; UI audit/lifecycle
+  import search returned no matches; focused market/scanner audit invocation
+  search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure search returned
+  no matches; adapter-specific unsafe scan returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; route/fetch
+  search returned only existing app fetches and the approved server-only
+  harness literal; broad env/client/write scan returned existing app
+  references plus documentation/test-guard references only; `git diff --check`,
+  touched-file trailing whitespace scan, `find docs -type f -size 0`,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint emitted
+  the existing Babel deopt note for the large `app/trade-app.tsx` file.
+- Result status:
+  `execution_lifecycle_ui_state_adapter_duplicated_inline_logic_removed`.
+- Recommended next action: Action 900 - Create Execution Lifecycle UI Adapter
+  Integration Summary.
+
+## Action 898 - Expand Adapter Coverage To Modal Copy
+
+- Added `buildExecutionLifecycleModalCopy(...)` to
+  `lib/execution-lifecycle-ui-state-adapter.ts`.
+- Wired modal-copy output into exactly one modal/readiness surface:
+  `ExecutionHandoffPreviewModal` core summary props in `app/trade-app.tsx`.
+- Created
+  `docs/execution-lifecycle-ui-state-adapter-modal-copy-wiring.md`.
+- Updated `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` to prove
+  modal core summary copy and readiness output are preserved and wired into
+  one modal surface.
+- Updated `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` to lock the
+  pre-existing modal core summary copy source values.
+- Existing Action 897 sandbox fixture adapter wiring remains in place.
+- Visible modal status label, title, and description are unchanged.
+- No modal open/close behavior, handlers, effects, state mutation, lifecycle
+  transitions, component extraction, broad UI wiring, audit writer path,
+  rollout flags, audit writer client/UI/market/scanner invocation,
+  broker/Avanza behavior, automatic mode enablement, trade/stats/PnL mutation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or service-role value printing was performed.
+- Validation passed: adapter and baseline suites
+  `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` and
+  `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` with 18 tests;
+  related lifecycle transition service, lifecycle caller, and lifecycle hook
+  suite with 31 tests; runtime denial harness syntax checks; route invocation
+  search returned only existing app fetches and the approved server-only
+  harness literal; UI import/search for audit writer route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms returned no matches; focused market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; service-role leakage search returned only
+  existing redaction fixtures/tests; adapter-specific unsafe scan returned no
+  matches; broad env/client/write scan was documentation and test-guard noise
+  only; `git diff --check`; touched-file trailing whitespace scan; zero-byte
+  docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 899 - Remove Duplicated Inline Derived UI
+  Logic.
+- Status:
+  `execution_lifecycle_ui_state_adapter_modal_copy_wired_one_surface`.
+
+## Action 897 - Wire Adapter Into One Read-Only UI Surface
+
+- Wired `buildExecutionLifecycleUiState(...)` into exactly one read-only UI
+  surface: `ExecutionSandboxFixtureCard` in `app/trade-app.tsx`.
+- Created
+  `docs/execution-lifecycle-ui-state-adapter-read-only-wiring.md`.
+- Updated `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` with a
+  source-boundary regression proving the adapter is imported into
+  `app/trade-app.tsx`, called from the sandbox fixture card, and only feeds
+  that fixture card's `LiveExecutionStatusSurface`.
+- The live position status surface remains on the previous direct
+  `liveExecutionStatus` path.
+- The wiring preserves current visible status labels, severity, badge tone,
+  title, description, CTA type/label, and readiness flags for the selected
+  surface.
+- No handlers, effects, local state, persistence, lifecycle transitions,
+  component extraction, broad UI wiring, audit writer path, rollout flags,
+  audit writer client/UI/market/scanner invocation, broker/Avanza behavior,
+  automatic mode enablement, trade/stats/PnL mutation, live proof, live insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  service-role value printing was performed.
+- Validation passed: adapter and baseline suites
+  `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` and
+  `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` with 15 tests;
+  related lifecycle transition service, lifecycle caller, and lifecycle hook
+  suite with 31 tests; runtime denial harness syntax checks; route invocation
+  search returned only existing app fetches and the approved server-only
+  harness literal; UI import/search for audit writer route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms returned no matches; focused market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; service-role leakage search returned only
+  existing redaction fixtures/tests; adapter-specific unsafe scan returned no
+  matches; broad env/client/write scan was documentation and test-guard noise
+  only; `git diff --check`; touched-file trailing whitespace scan; zero-byte
+  docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 898 - Expand Adapter Coverage To Modal Copy.
+- Status:
+  `execution_lifecycle_ui_state_adapter_wired_one_read_only_surface`.
+
+## Action 896 - Implement Execution Lifecycle UI State Adapter
+
+- Created `lib/execution-lifecycle-ui-state-adapter.ts`.
+- Created `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts`.
+- Created `docs/execution-lifecycle-ui-state-adapter-implementation.md`.
+- Updated `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` to confirm
+  the adapter boundary is now implemented and remains client-safe.
+- The adapter is a client-safe pure helper for current baseline-tested
+  lifecycle UI-derived state.
+- Adapter scope includes status labels, lifecycle labels, severity, badge tone,
+  CTA metadata, disabled/enabled state, blocked/disabled reason, manual
+  confirmation CTA split, readiness hints, summary rows, and debug-safe
+  metadata.
+- Adapter inputs support existing `ExecutionUiStatus`, lifecycle snapshots, and
+  orchestrator results.
+- Adapter tests prove baseline behavior reproduction, manual-confirmation CTA
+  split preservation, blocked/invalid reason preservation, deterministic
+  output, debug-safe metadata, and no unsafe server/write-path/browser/global
+  imports.
+- No broad UI wiring, runtime behavior change, component extraction,
+  handler/effect change, localStorage change, local event-log change, audit
+  writer path change, rollout flag change, audit writer client/UI/market/
+  scanner invocation, broker/Avanza behavior, automatic mode enablement,
+  trade/stats/PnL mutation, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Recommended next action: Action 897 - Wire Adapter Into One Read-Only UI
+  Surface.
+- Validation passed: adapter and baseline suites
+  `tests/e2e/execution-lifecycle-ui-state-adapter.spec.ts` and
+  `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` with 14 tests;
+  related lifecycle transition service, lifecycle caller, and lifecycle hook
+  suite with 31 tests; runtime denial harness syntax checks; route invocation
+  search returned only existing app fetches and the approved server-only
+  harness literal; UI import/search for audit writer route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms returned no matches; focused market/scanner audit
+  invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; service-role leakage search returned only
+  existing redaction fixtures/tests; adapter-specific unsafe scan returned no
+  matches; broad env/client/write scan was documentation and test-guard noise
+  only; `git diff --check`; touched-file trailing whitespace scan; zero-byte
+  docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `execution_lifecycle_ui_state_adapter_implemented_client_safe`.
+
+## Action 895 - Add Execution Lifecycle UI State Baseline Tests
+
+- Created `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts`.
+- Created `docs/execution-lifecycle-ui-state-baseline-tests.md`.
+- The action is tests/docs only and adds baseline characterization before the
+  future `lib/execution-lifecycle-ui-state-adapter.ts` extraction.
+- Baseline coverage locks current importable pure lifecycle UI-derived labels,
+  severity, badge tone, CTA metadata, enabled/disabled state, blocked reasons,
+  readiness/copy exposed through status titles/descriptions,
+  manual-confirmation buy/sell CTA distinction, debug-safe output shape,
+  client-safe helper import boundaries, and lifecycle state-machine semantics.
+- Helpers characterized include `buildExecutionUiStatusFromLifecycle(...)`,
+  `buildExecutionUiStatusFromOrchestratorResult(...)`,
+  `createExecutionLifecycleSnapshot(...)`,
+  `transitionExecutionLifecycle(...)`,
+  `getExecutionLifecycleDisplayLabel(...)`, and
+  `runExecutionOrchestrator(...)`.
+- Gaps documented: full modal copy/readiness text, modal-local progress/
+  preparation/capture messages, local event-log display grouping, debug panel
+  grouping, and modal-local disabled reasons remain inline in
+  `app/trade-app.tsx` and were not extracted.
+- The planned adapter module remains unimplemented and absent until Action 896.
+- Recommended next action: Action 896 - Implement Execution Lifecycle UI State
+  Adapter.
+- No runtime behavior, component/helper extraction, state behavior, effect
+  behavior, audit writer runtime persistence path, rollout flag, audit writer
+  client/UI/market/scanner invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type, `.env.local`, or service-role value was changed.
+- Validation passed: new baseline test suite
+  `tests/e2e/execution-lifecycle-ui-state-baseline.spec.ts` with 7 tests;
+  related lifecycle transition service, lifecycle caller, and lifecycle hook
+  suite with 31 tests; runtime denial harness syntax checks; audit writer
+  runtime path import search; route invocation search with only existing app
+  fetches and the approved server-only harness literal; UI import/search for
+  audit writer route invocation, lifecycle hook/caller, transition boundary,
+  proof harnesses, monitoring, cleanup, and rollout terms returned no matches;
+  focused market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; broad
+  env/client/write scan was documentation and test-guard noise only;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `execution_lifecycle_ui_state_baseline_tests_added`.
+
+## Action 894 - Create Execution Lifecycle State Adapter Refactor Plan
+
+- Created `docs/execution-lifecycle-state-adapter-refactor-plan.md`.
+- The plan is documentation-only and defines the smallest safe future
+  extraction for a client-safe execution lifecycle state adapter/view-model.
+- The plan summarizes Action 893 inventory findings: key lifecycle state reads,
+  lifecycle state writes, effects and local event-log coupling, derived
+  helpers, and major risk hotspots.
+- Proposed future boundary recorded:
+  `lib/execution-lifecycle-ui-state-adapter.ts`.
+- Proposed boundary rules recorded: no `server-only`, no service-role imports,
+  no Supabase client imports, no audit writer server module imports, no route
+  or fetch calls, no storage access, deterministic input/output, pure functions
+  where possible, and safe UI imports.
+- Proposed adapter responsibilities recorded: display labels, severity/status
+  mapping, CTA state, disabled/enabled state, modal-visible/readiness hints,
+  safe lifecycle summaries, debug-safe metadata, and optional local event-log
+  display summaries from already client-safe inputs.
+- Out-of-scope responsibilities recorded: service-role calls, production
+  write-path calls, audit writer calls, DB queries/mutations, broker/Avanza
+  behavior, automatic mode, market/scanner invocation, trade/stats/PnL
+  mutation, localStorage writes, lifecycle mutation, retry loops, and
+  cleanup/backout behavior.
+- Test strategy recorded: baseline tests first, adapter pure-function tests,
+  no audit writer/server import tests, no service-role/env/Supabase tests, no
+  broker/Avanza/automatic enablement tests, and visible-state regression tests.
+- Recommended implementation stages recorded: Action 895 baseline tests,
+  Action 896 adapter implementation, Action 897 one read-only UI surface,
+  Action 898 modal copy coverage, and Action 899 duplicated inline derived
+  logic removal.
+- Recommended next action: Action 895 - Add Execution Lifecycle UI State
+  Baseline Tests.
+- No runtime code, component/helper extraction, state behavior change, effect
+  change, audit writer path change, rollout flag change, audit writer client/
+  UI/market/scanner invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, `.env.local` change, or service-role value printing was
+  performed.
+- Validation passed: runtime denial harness syntax checks; audit writer runtime
+  path import search; route invocation search with only existing app fetches
+  and the approved server-only harness literal; UI import/search for audit
+  writer route invocation, lifecycle hook/caller, transition boundary, proof
+  harnesses, monitoring, cleanup, and rollout terms returned no matches;
+  focused market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; broad
+  env/client/write scan was documentation-only action-trail noise;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `execution_lifecycle_state_adapter_refactor_plan_created`.
+
+## Action 893 - Inventory Execution Lifecycle UI/State Coupling
+
+- Created `docs/execution-lifecycle-ui-state-coupling-inventory.md`.
+- The inventory is documentation-only and identifies where execution lifecycle
+  state is read, derived, mutated, displayed, persisted, and connected to
+  modals/cards/debug surfaces in `app/trade-app.tsx` and related helpers.
+- Files inspected include `app/trade-app.tsx`,
+  `lib/execution-state-machine.ts`, `lib/execution-event-log.ts`,
+  `lib/execution-ui-status.ts`, `lib/execution-orchestrator.ts`,
+  `lib/server/execution-lifecycle-transition-service.ts`,
+  `lib/server/execution-record-audit-writer-lifecycle-caller.ts`,
+  `lib/server/execution-record-audit-writer-lifecycle-hook.ts`, related
+  execution UI components, execution hooks, and relevant regression-test
+  surfaces.
+- Current lifecycle concepts, state reads, state writes/mutations, effects and
+  side effects, derived adapters/helpers, coupling map, risk hotspots, and
+  ranked refactor seam candidates were documented.
+- Recommended first extraction path recorded: plan a pure lifecycle UI state
+  view-model before moving runtime code.
+- Recommended next action: Action 894 - Create Execution Lifecycle State
+  Adapter Refactor Plan.
+- No runtime code, component/helper extraction, state behavior change, effect
+  change, audit writer path change, rollout flag change, audit writer client/
+  UI/market/scanner invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL behavior mutation, live proof, live insert, select/query/
+  remote SQL, service-role adapter call, cleanup/backout, migration, type
+  generation, generated type edit, `.env.local` change, or service-role value
+  printing was performed.
+- Validation passed: runtime denial harness syntax checks; audit writer runtime
+  path import search; route invocation search with only existing app fetches
+  and the approved server-only harness literal; UI import/search for audit
+  writer route invocation, lifecycle hook/caller, transition boundary, proof
+  harnesses, monitoring, cleanup, and rollout terms returned no matches;
+  market/scanner audit invocation search returned no matches;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned only existing redaction fixtures/tests; broad
+  env/client/write scan was documentation-only action-trail noise;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `execution_lifecycle_ui_state_coupling_inventory_created`.
+
+## Action 892 - Resume Execution Lifecycle UX/State Refactor Planning
+
+- Created
+  `docs/execution-lifecycle-ux-state-refactor-resumption-plan.md`.
+- The plan is documentation-only and resumes execution lifecycle UX/state
+  refactor planning after the audit writer runtime persistence project handoff.
+- Completed audit writer dependency recorded: runtime persistence is complete
+  for the approved server-only, audit-only, insert-only scope; rollout remains
+  limited to the approved server-only path; monitoring is enabled; and
+  UI/browser/market/scanner/broker/automatic behavior remains unauthorized.
+- Current project posture recorded: audit persistence is no longer the main
+  blocker; `app/trade-app.tsx` remains very large at approximately 40,376
+  lines; the existing Babel deopt note remains tied to the large app file;
+  state/effects refactor remains substantial; and smaller UI decomposition
+  pockets remain open.
+- Refactor objectives recorded: reduce `app/trade-app.tsx` complexity, isolate
+  execution lifecycle state transitions, reduce effect coupling, improve
+  testability, preserve the semi-auto model, preserve audit writer boundaries,
+  and avoid new broker/Avanza behavior.
+- Candidate refactor seams evaluated: lifecycle state adapter/view-model, trade
+  card execution status adapter, modal lifecycle state extraction,
+  settings/audit/debug panel extraction, lifecycle transition UI event
+  handlers, localStorage/event-log helpers, and monitoring/status display
+  adapters.
+- Recommended first seam recorded: begin with a docs/tests-only inventory, then
+  plan a small pure lifecycle UI state/view-model adapter before any runtime
+  extraction.
+- Safety boundaries recorded: no audit writer client/UI/market/scanner
+  invocation, no broker/Avanza behavior, no automatic mode, no trade/stats/PnL
+  mutation changes without separate approval, no service-role exposure, no
+  migrations/typegen/generated type edits, and no live proof/insert/query.
+- No runtime code, audit writer rollout flag, audit writer runtime persistence
+  path, UI/browser/client invocation, market-loop/scanner invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, live proof,
+  live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or service-role value printing was performed.
+- Validation passed: runtime denial harness syntax checks; runtime/static
+  writer/adapter/mock/fixture/harness/production caller/lifecycle hook/
+  lifecycle caller/transition boundary/proof harness/monitoring import search;
+  route invocation search with only existing app fetches and the approved
+  server-only harness literal; UI import/search for audit writer route
+  invocation, lifecycle hook/caller, transition boundary, proof harnesses,
+  monitoring, cleanup, and rollout terms returned no matches; market/scanner
+  audit invocation search returned no matches; `NEXT_PUBLIC_*SERVICE*` exposure
+  search returned no matches; service-role leakage search returned only
+  existing redaction fixtures/tests; broad env/client/write scan was limited to
+  documentation references; `git diff --check`; touched-file trailing
+  whitespace scan; zero-byte docs check; `./node_modules/.bin/tsc --noEmit`;
+  and `npm run lint` with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Status:
+  `execution_lifecycle_ux_state_refactor_resumption_plan_created`.
+- Recommended next action: Action 893 - Inventory Execution Lifecycle UI/State
+  Coupling.
+
+## Action 891 - Create Audit Writer Runtime Persistence Project Handoff Summary
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-project-handoff-summary.md`.
+- The handoff is documentation-only and summarizes the full audit writer
+  runtime persistence project track for a new chat or development session.
+- Executive summary recorded: audit writer runtime persistence is implemented,
+  verified, monitored, and rolled out for the approved server-only path; the
+  path remains server-only/audit-only/insert-only; no UI/browser/market/
+  scanner/broker/automatic behavior was introduced; and cleanup/backout
+  decision is to retain proof rows.
+- Final rolled-out chain recorded:
+  `transitionExecutionLifecycleOnServer(...)` to
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)` to lifecycle hook to
+  production write-path to audit writer to service-role adapter to
+  `public.execution_record_audit_events` to runtime monitoring.
+- Key implementation files, relevant tests, proof/validation layers, final
+  rollout state, safety boundaries, remaining caveats/blockers, and evidence
+  locations were documented.
+- Final rollout state remains `productionRolloutApproved: true`,
+  `productionRolloutApproval: "action_887_approved_server_only_path"`,
+  monitoring enabled, and proof rows retained.
+- Recommended next project direction recorded: shift focus away from audit
+  writer persistence because the track is complete for the approved scope; next
+  safe direction is execution lifecycle UX/state refactor planning or
+  operational monitoring review after real usage.
+- No runtime code, rollout flag change, cleanup/backout, live proof, live
+  insert, select/query/remote SQL, data mutation, real service-role adapter
+  call, UI/browser/client invocation, app-shell import, market-loop/scanner/
+  automation invocation, broker/Avanza behavior, automatic mode, migration,
+  type generation, generated type edit, `.env.local` change, or service-role
+  value printing was performed.
+- Validation passed: runtime denial harness syntax checks; runtime/static
+  import search; route invocation search with only existing app fetches and the
+  approved server-only harness literal; UI import/search for route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms; market/scanner import search; `NEXT_PUBLIC_*SERVICE*`
+  exposure search; service-role leakage scan with only existing redaction
+  fixtures/tests; broad env/client/write scan limited to documentation
+  references; `git diff --check`; touched-file trailing whitespace scan;
+  zero-byte docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint`
+  with the existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `audit_writer_runtime_persistence_project_handoff_summary_created`.
+- Recommended next action: Action 892 - Resume Execution Lifecycle UX/State
+  Refactor Planning.
+
+## Action 890 - Decide Cleanup/Backout Path
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-cleanup-backout-decision.md`.
+- Decision recorded: no cleanup/backout now.
+- Proof/smoke rows are retained as audit evidence.
+- Rollout state remains unchanged.
+- The decision explicitly does not perform a narrow select, does not
+  delete/update rows, and does not change rollout flags.
+- Rationale recorded: proof rows are useful audit evidence; deletion would
+  require row identification and additional database operation risk; rollout is
+  healthy and server-only; monitoring review documents stop conditions; and
+  there is no current reason to back out.
+- Options considered: no cleanup/retain proof rows, narrow select-only
+  identification, proof row cleanup, controlled execution record seed cleanup,
+  rollout flag backout, and combined cleanup/backout.
+- Future approval paths remain available only under separate explicit approval:
+  narrow proof row identification, proof row cleanup, controlled seed cleanup,
+  rollout flag backout, and combined cleanup/backout.
+- No cleanup, backout, rollout flag change, select/query/remote SQL, row
+  delete/update, live proof, live insert, data mutation, real service-role
+  adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, migration, type generation, generated type edit, `.env.local` change,
+  or service-role value printing was performed.
+- Validation passed: runtime denial harness syntax checks; runtime/static
+  import search; route invocation search with only existing app fetches and the
+  approved server-only harness literal; UI import/search for route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms; market/scanner import search; `NEXT_PUBLIC_*SERVICE*`
+  exposure search; service-role leakage scan with only existing redaction
+  fixtures/tests; broad env/client/write scan limited to documentation
+  references; `git diff --check`; touched-file trailing whitespace scan;
+  zero-byte docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint`
+  with the existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `audit_writer_runtime_persistence_cleanup_backout_decision_retain_proof_rows`.
+- Recommended next action: Action 891 - Create Audit Writer Runtime Persistence
+  Project Handoff Summary.
+
+## Action 889 - Create Audit Writer Runtime Persistence Cleanup/Backout Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-cleanup-backout-approval-request.md`.
+- The request is documentation-only and asks for future explicit approval
+  before any optional cleanup/backout of audit writer runtime persistence proof
+  data or rollout state.
+- Current state recorded: approved server-only rollout completed,
+  post-rollout monitoring review exists, proof/smoke data exists, audit event
+  row id remains unconfirmed without a separately approved narrow select, and
+  no cleanup/backout is currently approved.
+- Possible future scopes recorded: proof/smoke audit row cleanup, controlled
+  execution record seed cleanup, narrow select/read to identify proof row ids,
+  rollout flag/gate backout, and docs-only archival with no database cleanup.
+- Cleanup/backout options recorded: no cleanup, narrow select-only
+  identification, proof/smoke audit row cleanup, controlled execution record
+  seed cleanup if safe, rollout flag/gate backout only, and combined
+  cleanup/backout sequence.
+- Recommended default recorded: no cleanup by default; retain proof rows as
+  audit evidence unless there is a clear reason to delete them; start with
+  narrow select/read approval if cleanup is desired; do not delete/update
+  without known row ids and explicit approval.
+- Approval fields and exact templates were documented for narrow proof row
+  identification, proof row cleanup, and rollout flag backout.
+- No cleanup, backout, rollout flag change, select/query/remote SQL, row
+  delete/update, live proof, live insert, data mutation, real service-role
+  adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, migration, type generation, generated type edit, `.env.local` change,
+  or service-role value printing was performed.
+- Validation passed: runtime denial harness syntax checks; runtime/static
+  import search; route invocation search with only existing app fetches and the
+  approved server-only harness literal; UI import/search for route invocation,
+  lifecycle hook/caller, transition boundary, proof harnesses, monitoring,
+  cleanup, and rollout terms; market/scanner import search; `NEXT_PUBLIC_*SERVICE*`
+  exposure search; service-role leakage scan with only existing redaction
+  fixtures/tests; broad env/client/write scan limited to documentation
+  references; `git diff --check`; touched-file trailing whitespace scan;
+  zero-byte docs check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint`
+  with the existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `audit_writer_runtime_persistence_cleanup_backout_approval_requested_blocked`.
+- Recommended next action: Action 890 - Decide Cleanup/Backout Path.
+
+## Action 888 - Create Audit Writer Runtime Persistence Post-Rollout Monitoring Review
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-post-rollout-monitoring-review.md`.
+- The review is documentation-only and reviews the Action 887 approved
+  server-only audit writer runtime persistence rollout.
+- Rollout summary recorded: server-only lifecycle transition boundary to audit
+  lifecycle caller to lifecycle hook to production write-path to audit writer to
+  service-role adapter to `public.execution_record_audit_events`, with runtime
+  monitoring enabled.
+- Monitoring coverage recorded: safe status categories, counters, inserted
+  true/false, writer/adapter status categories, sanitized diagnostics,
+  service-role availability booleans only, no retry loop, and no secret
+  exposure.
+- Healthy signals, stop conditions, rollback/backout posture, remaining
+  caveats/blockers, and evidence locations were documented.
+- No runtime code, rollout flag change, live proof, live insert, Supabase
+  query, remote SQL, data mutation, real service-role adapter call,
+  UI/browser/client invocation, app-shell import, market-loop/scanner/
+  automation invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation, migration, type generation, generated type edit, or
+  `.env.local` change was performed.
+- Validation passed: runtime denial harness syntax checks; runtime/static
+  import scan; route invocation scan with only existing app fetches and the
+  approved server-only harness literal; UI import/search; market/scanner import
+  search; `NEXT_PUBLIC_*SERVICE*` exposure search; service-role leakage scan
+  with only existing redaction fixtures/tests; broad env/client/write scan
+  limited to documentation references; `git diff --check`; touched-file
+  trailing whitespace scan; zero-byte docs check; `./node_modules/.bin/tsc
+  --noEmit`; and `npm run lint` with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Status:
+  `audit_writer_runtime_persistence_post_rollout_monitoring_review_created`.
+- Recommended next action: Action 889 - Create Audit Writer Runtime Persistence
+  Cleanup/Backout Approval Request.
+
+## Action 887 - Roll Out Audit Writer Runtime Persistence Path
+
+- Approval was provided by Willy Simonsson to roll out the verified server-only
+  audit writer runtime persistence path.
+- Approval timestamp recorded by Codex: `2026-06-26 23:05 CEST`.
+- Rollout target: Trade / `ekdyopdrrkphlrsilyoo` / staging /
+  `public.execution_record_audit_events`.
+- Updated the existing server-only lifecycle transition boundary to audit
+  lifecycle caller to lifecycle hook metadata so successful audit payloads carry
+  `productionRolloutApproved: true` and
+  `productionRolloutApproval: "action_887_approved_server_only_path"`.
+- Runtime monitoring remains enabled through the production write-path.
+- Added
+  `tests/e2e/execution-record-audit-writer-runtime-persistence-rollout.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-production-rollout.md`.
+- Preserved server-only, audit-only, insert-only behavior; diagnostics;
+  no-retry behavior; service-role value redaction; and no downstream mutation.
+- No UI/browser/client invocation, app-shell import, market-loop/scanner/
+  automation invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation from the audit writer, update/delete/upsert/select,
+  broad table dump, schema change/migration, cleanup/backout of proof rows,
+  additional call site rollout, `.env.local` change, type generation, or
+  generated type edit was performed.
+- Validation passed: focused rollout/lifecycle/write-path/monitoring
+  regression suite with 53 tests; runtime denial harness syntax checks;
+  runtime/static import scans; route invocation scan with only existing app
+  fetches and approved harness references; UI import/search; market/scanner
+  import search; `NEXT_PUBLIC_*SERVICE*` exposure search; service-role leakage
+  scan with only existing redaction fixtures/tests; broad env/client/write scan;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `./node_modules/.bin/tsc --noEmit`; and `npm run lint` with the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Status:
+  `audit_writer_runtime_persistence_production_rollout_completed_server_only_path`.
+- Recommended next action: Action 888 - Create Audit Writer Runtime Persistence
+  Post-Rollout Monitoring Review.
+
+## Action 886 - Create Audit Writer Runtime Persistence Production Rollout Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-production-rollout-approval-request.md`.
+- The request is documentation-only and asks for future explicit approval before
+  any broader production rollout of the verified audit writer runtime
+  persistence path.
+- Current readiness summary recorded: direct live smoke write-path success,
+  Stage A in-memory proof, Stage B dry-run proof, Stage C controlled live
+  runtime proof, Stage C success regression coverage, runtime monitoring
+  implementation/regression coverage, and final readiness report.
+- Proposed future rollout scope is limited to the existing server-only lifecycle
+  transition boundary to audit lifecycle caller to lifecycle hook to production
+  write-path to audit writer to service-role adapter path, insert-only to
+  `public.execution_record_audit_events`, with monitoring enabled,
+  diagnostics/no-retry preserved, service-role values redacted, and no
+  downstream mutation.
+- Decision: approval absent/blocked.
+- Status:
+  `audit_writer_runtime_persistence_production_rollout_approval_requested_blocked`.
+- No rollout, code addition, live proof, live insert, Supabase query, remote
+  SQL, data mutation, real service-role adapter call, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, migration, type generation, generated
+  type edit, or `.env.local` change was performed.
+- Recommended next action: Action 887 - Provide Audit Writer Runtime
+  Persistence Production Rollout Approval.
+
+## Action 885 - Create Audit Writer Runtime Persistence Final Readiness Report
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-final-readiness-report.md`.
+- Final readiness verdict: audit writer runtime persistence is verified for the
+  currently approved server-only, audit-only, insert-only scope.
+- Verified proof layers recorded: direct staging live smoke write-path proof,
+  Stage A in-memory proof, Stage B dry-run proof, Stage C controlled live proof,
+  Stage C success regression, runtime monitoring implementation, and runtime
+  monitoring regression coverage.
+- Remaining caveats recorded: audit event row id remains unconfirmed without a
+  separately approved narrow select; broader production rollout is not approved;
+  UI/browser and market/scanner integrations are not approved; proof-data
+  cleanup/backout is not approved; monitoring storage/export beyond current safe
+  monitoring remains separate.
+- No live proof, live insert, Supabase query, remote SQL, data mutation, real
+  service-role adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, migration, type generation, generated type edit, or `.env.local` change
+  was performed.
+- Status:
+  `audit_writer_runtime_persistence_final_readiness_report_created`.
+- Recommended next action: Action 886 - Create Audit Writer Runtime Persistence
+  Production Rollout Approval Request.
+
+## Action 884 - Add Audit Writer Runtime Monitoring Regression Coverage
+
+- Added stronger tests/docs-only regression coverage for the Action 883
+  server-only runtime monitoring implementation.
+- Created
+  `docs/execution-record-audit-writer-runtime-monitoring-regression-tests.md`.
+- Extended
+  `tests/e2e/execution-record-audit-writer-runtime-monitoring.spec.ts`.
+- Extended
+  `tests/e2e/execution-record-audit-writer-production-write-path.spec.ts`.
+- Coverage locks server-only monitoring, absence of Supabase helper imports,
+  absence of insert/update/delete/upsert/select/fetch/env/browser APIs, safe
+  status categories, counters, inserted true/false, writer/adapter statuses,
+  sanitized diagnostics, service-role availability booleans, no-retry behavior,
+  no trade/stats/PnL mutation, and no broker/Avanza/automatic behavior.
+- No live proof, live insert, Supabase query, remote SQL, data mutation, real
+  service-role adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, migration, type generation, generated type edit, or `.env.local` change
+  was performed.
+- Status:
+  `audit_writer_runtime_monitoring_regression_tests_added`.
+- Recommended next action: Action 885 - Create Audit Writer Runtime Persistence
+  Final Readiness Report.
+
+## Action 883 - Implement Audit Writer Runtime Monitoring
+
+- Approval was provided by Willy Simonsson for server-only runtime monitoring
+  of the audit writer runtime persistence path.
+- Approval timestamp recorded by Codex: `2026-06-26 22:24 CEST`.
+- Created
+  `lib/server/execution-record-audit-writer-runtime-monitoring.ts`.
+- Updated
+  `lib/server/execution-record-audit-writer-production-write-path.ts` to record
+  one safe monitoring event for blocked/completed production write-path calls.
+- Added
+  `tests/e2e/execution-record-audit-writer-runtime-monitoring.spec.ts`.
+- Updated
+  `tests/e2e/execution-record-audit-writer-production-write-path.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-runtime-monitoring-implementation.md`.
+- Monitoring records safe status categories, success/failure/blocked counters,
+  inserted true/false, writer/adapter status categories, sanitized diagnostics
+  category/code/message, no-retry behavior, and service-role availability
+  booleans only.
+- No database write, Supabase query/select, remote SQL, broad table dump, live
+  proof, live insert, service-role value exposure, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, schema
+  change, migration, type generation, generated type edit, or `.env.local`
+  change was performed.
+- Status:
+  `audit_writer_runtime_monitoring_implemented_server_only_safe_observability`.
+- Recommended next action: Action 884 - Add Audit Writer Runtime Monitoring
+  Operational Review Or Approval Request.
+
+## Action 882 - Create Audit Writer Runtime Monitoring Implementation Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-runtime-monitoring-implementation-approval-request.md`.
+- The request is documentation-only and asks for future explicit approval before
+  any server-only audit writer runtime monitoring implementation.
+- Proposed future scope: safe server-only monitoring/observability for status
+  categories, success/failure counters, inserted true/false, diagnostics
+  category/code/message without secrets, no-retry behavior, and service-role
+  availability booleans only.
+- Default decision: approval absent/blocked.
+- Status:
+  `audit_writer_runtime_monitoring_implementation_approval_requested_blocked`.
+- No monitoring code, logging behavior, live proof, live insert, Supabase
+  query, remote SQL, data mutation, service-role adapter call, `.env.local`
+  change, migration, type generation, or generated type edit was performed.
+- Recommended next action: Action 883 - Provide Audit Writer Runtime Monitoring
+  Implementation Approval.
+
+## Action 881 - Create Audit Writer Runtime Persistence Completion Summary
+
+- Created
+  `docs/execution-record-audit-writer-runtime-persistence-completion-summary.md`.
+- The completion summary records the verified proof layers: direct staging live
+  smoke write-path proof, Stage A in-memory runtime proof, Stage B dry-run
+  runtime proof, Stage C controlled live runtime proof, and Action 880 success
+  regression coverage.
+- Final verified chain documented:
+  `transitionExecutionLifecycleOnServer(...)`,
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)`, lifecycle hook,
+  production write-path, audit writer, service-role adapter, and
+  `public.execution_record_audit_events`.
+- Final success result recorded: `boundaryStatus: transition_completed`,
+  writer `success`, adapter `success`, `inserted: true`,
+  `auditEventId: unconfirmed_without_select`, boolean-only env precheck, no
+  retry loop, no UI/browser/scanner path, no broker/Avanza/automatic behavior,
+  and no downstream mutation.
+- Remaining caveats recorded: row id remains unconfirmed without separately
+  approved narrow select; no broader production rollout; no UI/browser
+  integration; no market-loop/scanner integration; no smoke/proof cleanup; and
+  monitoring implementation remains separate.
+- No live proof, live insert, Supabase query, remote SQL, data mutation,
+  service-role adapter call, `.env.local` change, migration, type generation,
+  or generated type edit was performed.
+- Validation passed: runtime denial harness syntax checks; UI/app-shell import
+  search; market-loop/scanner import search; `NEXT_PUBLIC_*SERVICE*` exposure
+  search; service-role leakage scan with only existing redaction fixtures/tests;
+  broad env/client/write scan with existing app/runtime references only;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `tsc --noEmit`; and `npm run lint` with the existing Babel deopt note.
+- Status:
+  `audit_writer_runtime_persistence_completion_summary_created`.
+- Recommended next action: Action 882 - Create Audit Writer Runtime Monitoring
+  Implementation Approval Request.
+
+## Action 880 - Add Controlled Live Runtime Proof Success Regression Coverage
+
+- Created
+  `tests/e2e/execution-record-audit-writer-controlled-live-runtime-proof-success-regression.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-success-regression-tests.md`.
+- The new regression coverage locks the Action 879 success envelope:
+  `boundaryStatus: transition_completed`, writer `success`, adapter `success`,
+  `inserted: true`, and `auditEventId: unconfirmed_without_select`.
+- The coverage verifies no post-insert select/table dump, boolean-only env
+  proof, no service-role value exposure, no retry loop, server-only boundary,
+  insert-only/audit-only writer path, and no UI/browser/client/app-shell,
+  market/scanner/automation, broker/Avanza, automatic, or downstream mutation
+  path.
+- No controlled live proof was rerun. No live insert, Supabase query, remote
+  SQL, data mutation, real service-role adapter call, `.env.local` change,
+  migration, type generation, or generated type edit was performed.
+- Validation passed: focused Action 880 regression spec with 8 tests; Stage A
+  in-memory proof tests; Stage B dry-run proof tests; lifecycle transition
+  boundary tests; lifecycle caller tests; lifecycle hook tests; production
+  write-path tests; live smoke success regression tests; live smoke diagnostic
+  tests; runtime denial harness syntax checks; UI/app-shell import search;
+  market-loop/scanner import search; `NEXT_PUBLIC_*SERVICE*` exposure search;
+  service-role leakage scan with only existing redaction fixtures/tests;
+  `git diff --check`; touched-file trailing whitespace scan; zero-byte docs
+  check; `tsc --noEmit`; and `npm run lint` with the existing Babel deopt note.
+- Status:
+  `controlled_live_runtime_proof_success_regression_tests_added`.
+- Recommended next action: Action 881 - Create Audit Writer Runtime Persistence
+  Completion Summary.
+
+## Action 879 - Run Controlled Live Runtime Proof Final Retry
+
+- Approval was provided by Willy Simonsson for one final controlled Stage C live
+  runtime proof retry after the Action 874 actor-id validation fix and Action
+  877 service-availability diagnostics fix.
+- Approval timestamp recorded by Codex:
+  `2026-06-26 21:38 CEST`.
+- Required Supabase/service-role env presence was verified as booleans only
+  before execution:
+  `NEXT_PUBLIC_SUPABASE_URL` present: yes; one accepted service-role alias
+  present: yes; service-role value printed: no.
+- Ran exactly one proof invocation through
+  `transitionExecutionLifecycleOnServer(...)`.
+- Controlled execution record/FK target:
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- The lifecycle transition completed from `idle` to `intent_created`.
+- The audit caller, lifecycle hook, production write-path, writer, and adapter
+  completed.
+- Writer status: `success`.
+- Adapter status: `success`.
+- Inserted: `true`.
+- Audit event id: `unconfirmed_without_select` because no broad table dump or
+  post-insert select was approved or run.
+- Checkpoint status:
+  `controlled_live_runtime_proof_final_retry_completed_success_inserted_no_select`.
+- No repeated insert/retry, Supabase query/select, broad table dump,
+  update/delete/upsert/select, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation beyond existing transition semantics,
+  service-role value printing, `.env.local` change, migration, type generation,
+  generated type edit, or broader production rollout was performed.
+- Validation passed: runtime denial harness syntax/import checks; UI/app-shell
+  import/search; market-loop/scanner import search; source-only
+  `NEXT_PUBLIC_*SERVICE*` exposure search; service-role leakage search; broad
+  env/client/write scan; `git diff --check`; touched-file trailing whitespace
+  scan; zero-byte docs check; `./node_modules/.bin/tsc --noEmit`; and
+  `npm run lint`. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 878 - Create Controlled Live Runtime Proof Final Retry Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-final-retry-approval-request.md`.
+- The request covers one future final controlled Stage C live runtime proof retry
+  after the Action 874 actor-id normalization fix and Action 877
+  service-availability diagnostics fix.
+- The request requires boolean-only Supabase/service-role env-presence proof
+  before any future proof execution and requires stopping before adapter
+  execution if env is missing.
+- The controlled FK target is fixed to
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`; no guessed IDs, new seed rows, or
+  narrow lookup/select are allowed without separate approval.
+- Approval is absent.
+- Checkpoint status:
+  `controlled_live_runtime_proof_final_retry_approval_requested_blocked`.
+- No controlled live runtime proof retry, live insert, Supabase query, remote
+  SQL, data mutation, real service-role adapter call, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation beyond
+  existing transition semantics, `.env.local` change, migration, type
+  generation, generated type edit, or service-role value printing was performed.
+- Validation passed: runtime denial harness syntax/import checks; runtime
+  writer/adapter/mock/fixture/harness/production caller/lifecycle hook/lifecycle
+  caller/transition boundary/in-memory proof harness/dry-run proof harness
+  import search; UI/app-shell import/search; market-loop/scanner import search;
+  source-only `NEXT_PUBLIC_*SERVICE*` exposure search; service-role leakage
+  search; broad env/client/write scan; `git diff --check`; touched-file
+  trailing whitespace scan; zero-byte docs check;
+  `./node_modules/.bin/tsc --noEmit`; and `npm run lint`. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 879 - Provide Controlled Live Runtime Proof
+  Final Retry Approval.
+
+## Action 877 - Resolve Controlled Live Runtime Proof Service Availability
+
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-service-availability-resolution.md`.
+- Analyzed the Action 876 `service_unavailable` result without running another
+  live proof retry and without performing a live insert.
+- Root cause: Action 876 reached the writer/adapter boundary with a
+  dry-run-ready payload, then
+  `insertExecutionRecordAuditEventWithServiceRole(...)` returned
+  `service_unavailable` because the service-role client factory returned
+  `client: null`.
+- Likely unavailable source: the standalone Action 876 proof process did not
+  load `.env.local`, so the required Supabase/service-role env was not available
+  in that process.
+- Local fix: service-role adapter now returns sanitized
+  `service_unavailable` diagnostics when the client is unavailable before
+  insert.
+- Updated regression coverage in service-role adapter, live smoke success
+  regression, and service-role adapter mock tests.
+- Checkpoint status:
+  `controlled_live_runtime_proof_service_availability_resolved_retry_blocked`.
+- No controlled live runtime proof retry, live insert, Supabase query, remote
+  SQL, data mutation, real service-role adapter write, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation beyond
+  existing transition semantics, `.env.local` change, migration, type generation,
+  generated type edit, or service-role value printing was performed.
+- Validation passed: focused service-availability/service-role regression tests
+  with 26 tests; broader runtime/audit regression bundle with 97 tests; runtime
+  denial harness syntax/import checks; runtime/server import scans;
+  UI/app-shell, market/scanner, route invocation, public service-role exposure,
+  and service-role leakage scans; `git diff --check`; touched-file trailing
+  whitespace scan; zero-byte docs check; `./node_modules/.bin/tsc --noEmit`;
+  and `npm run lint`. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 878 - Create Controlled Live Runtime Proof
+  Final Retry Approval Request.
+
+## Action 876 - Run Controlled Live Runtime Proof Retry
+
+- Approval was provided by Willy Simonsson at `2026-06-26 21:08 CEST` for one
+  controlled Stage C live runtime proof retry only.
+- Ran exactly one proof through `transitionExecutionLifecycleOnServer(...)`
+  using controlled execution record id
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- The lifecycle transition completed from `idle` to `intent_created`.
+- The audit caller, lifecycle hook, and production write-path envelopes were
+  reached.
+- Actor-id normalization worked: the dry-run insert summary preserved
+  `actorType: "operator"` and normalized `actorId` to `null`.
+- Writer dry-run status was `ready`.
+- The writer returned `service_unavailable`; `inserted` was `false`.
+- Adapter status was `service_unavailable`; `auditEventId` was `null`.
+- Checkpoint status:
+  `controlled_live_runtime_proof_retry_completed_service_unavailable_no_insert`.
+- No repeated insert/retry, broad select/table dump, update/delete/upsert/select,
+  UI/browser/client invocation, app-shell import, market-loop/scanner/
+  automation invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation beyond existing transition semantics, service-role
+  value printing, `.env.local` change, migration, type generation, or generated
+  type edit was performed.
+- Proof artifact updated:
+  `docs/proofs/execution-record-audit-writer-controlled-live-runtime-proof.txt`.
+- Recommended next action: Action 877 - Resolve Controlled Live Runtime Proof
+  Service Availability.
+
+## Action 875 - Create Controlled Live Runtime Proof Retry Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-retry-approval-request.md`.
+- The request documents the Action 873 failure, Action 874 actor-id fix,
+  proposed single retry scope, controlled FK target, prerequisites, required
+  approval fields, exact Action 876 approval statement, blocked decision, and
+  safety boundaries.
+- Checkpoint status:
+  `controlled_live_runtime_proof_retry_approval_requested_blocked`.
+- No retry proof code, controlled live runtime proof retry, live insert,
+  Supabase query, remote SQL, data mutation, service-role adapter call,
+  UI/browser/client invocation, app-shell import, market-loop/scanner/
+  automation invocation, broker/Avanza behavior, automatic mode,
+  trade/stats/PnL mutation beyond existing transition semantics, `.env.local`
+  change, migration, type generation, generated type edit, or service-role value
+  printing was performed.
+- Recommended next action: Action 876 - Provide Controlled Live Runtime Proof
+  Retry Approval.
+
+## Action 874 - Resolve Controlled Live Runtime Proof Validation Failure
+
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-validation-failure-resolution.md`.
+- Updated `lib/server/execution-record-audit-writer-lifecycle-hook.ts`.
+- Updated
+  `tests/e2e/execution-record-audit-writer-lifecycle-hook.spec.ts`.
+- Root cause identified: the Action 873 proof payload provided
+  `actor.actorId: "willy_simonsson"`, which writer validation rejected as
+  `actor_id_invalid_uuid`.
+- Local fix: lifecycle hook now preserves actor type but maps non-UUID actor ids
+  to `null` before writer validation.
+- Writer validation remains strict and is not bypassed.
+- Checkpoint status:
+  `controlled_live_runtime_proof_validation_failure_resolved_retry_blocked`.
+- No live retry, live insert, Supabase query, remote SQL, data mutation,
+  service-role adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation beyond existing transition semantics,
+  `.env.local` change, migration, type generation, generated type edit, or
+  service-role value printing was performed.
+- Validation passed: focused lifecycle hook regression test with 9 tests;
+  requested regression bundle with 65 tests; runtime denial harness
+  syntax/import checks; runtime import search; UI/app-shell import search;
+  market-loop/scanner import search; route invocation search; source-only
+  public service-role exposure search; service-role leakage scan; `git diff
+  --check`; touched-file trailing whitespace scan; zero-byte docs check;
+  `./node_modules/.bin/tsc --noEmit`; and `npm run lint`. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 875 - Create Controlled Live Runtime Proof
+  Retry Approval Request.
+
+## Action 873 - Run Controlled Live Runtime Proof
+
+- Approval was provided by Willy Simonsson at `2026-06-26 20:42 CEST` for one
+  controlled Stage C live runtime proof only.
+- Ran one proof through `transitionExecutionLifecycleOnServer(...)` using
+  controlled execution record id `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- The lifecycle transition completed from `idle` to `intent_created`.
+- The audit caller, lifecycle hook, and production write-path envelopes were
+  reached.
+- The writer returned `validation_failed`; `inserted` was `false`.
+- The service-role adapter was not called and `adapterStatus` was `null`.
+- Created proof artifact
+  `docs/proofs/execution-record-audit-writer-controlled-live-runtime-proof.txt`.
+- Checkpoint status:
+  `controlled_live_runtime_proof_completed_writer_validation_failed_no_insert`.
+- No retry, insert, select, broad table dump, update/delete/upsert, UI/browser/
+  client invocation, app-shell import, market-loop/scanner/automation
+  invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation
+  beyond existing transition semantics, service-role value printing,
+  `.env.local` change, migration, type generation, or generated type edit was
+  performed.
+- Validation passed: runtime denial harness syntax/import checks, runtime import
+  search, UI/app-shell import search, market-loop/scanner import search, route
+  invocation search, source-only public service-role exposure search,
+  service-role leakage scan, `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `./node_modules/.bin/tsc --noEmit`,
+  and `npm run lint`. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 874 - Resolve Controlled Live Runtime Proof
+  Validation Failure.
+
+## Action 872 - Create Controlled Live Runtime Proof Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-controlled-live-runtime-proof-approval-request.md`.
+- Updated related dry-run proof, in-memory proof, boundary, lifecycle,
+  operational, persistence, readiness, checkpoint, and QA docs.
+- The approval request defines Stage C controlled live runtime proof purpose,
+  current proof summary, future allowed scope, exclusions, prerequisites,
+  controlled FK target rules, required approval fields, exact Action 873
+  approval statement template, default blocked decision, safety boundaries, and
+  validation plan.
+- Known controlled FK target is recorded as
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`, with explicit rules that reuse,
+  new seed insertion, or narrow FK lookup/select each requires separate
+  approval and that IDs must not be guessed.
+- Checkpoint status:
+  `controlled_live_runtime_proof_approval_requested_blocked`.
+- No live proof, live insert, Supabase query, remote SQL, insert/update/delete/
+  upsert/select, data mutation, real service-role adapter call, UI/browser/
+  client invocation, app-shell import, market-loop/scanner/automation
+  invocation, broker/Avanza behavior, automatic mode, production rollout,
+  service-role exposure, `.env.local` change, migration, type generation, or
+  generated type edit was performed.
+- Validation passed: runtime denial harness syntax/import checks, runtime
+  import search, route invocation search, UI/app-shell import search,
+  market-loop/scanner import search, source-only public service-role exposure
+  search, service-role leakage search, broad docs env/client/write scan,
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `./node_modules/.bin/tsc --noEmit`, and `npm run lint`. Lint emitted
+  the existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 873 - Provide Controlled Live Runtime Proof
+  Approval.
+
+## Action 871 - Add Dry-Run Runtime Proof Regression Coverage
+
+- Extended
+  `tests/e2e/execution-record-audit-writer-dry-run-runtime-proof-harness.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-dry-run-runtime-proof-regression-tests.md`.
+- Updated dry-run proof, lifecycle proof, Stage A proof, boundary, runtime
+  integration, operational, readiness, checkpoint, and QA docs.
+- Regression coverage now verifies server-only/dry-run-only harness shape,
+  injected dry-run append behavior only, no real service-role adapter import or
+  call, no Supabase helper/table methods, no route/fetch/env/browser access,
+  successful-transition would-write payload, failed-transition zero payload
+  before any dry-run writer call, approval-gate zero payload before any dry-run
+  writer call, `wouldWrite: false`, redacted/non-mutating payload summary,
+  deterministic bounded idempotency, diagnostics, warnings, no-retry behavior,
+  no trade/stats/PnL mutation beyond existing transition semantics, and absence
+  from UI/app-shell, route handlers, market/scanner/automation paths, broker/
+  Avanza behavior, and automatic mode behavior.
+- Focused regression validation passed:
+  `npx playwright test tests/e2e/execution-record-audit-writer-dry-run-runtime-proof-harness.spec.ts`
+  returned 10 passed tests.
+- Checkpoint status:
+  `dry_run_runtime_proof_regression_tests_added`.
+- No live insert, Supabase query, remote SQL, insert/update/delete/upsert/
+  select, data mutation, real service-role adapter call, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, production rollout, service-role
+  exposure, `.env.local` change, migration, type generation, or generated type
+  edit was performed.
+- Recommended next action: Action 872 - Create Controlled Live Runtime Proof
+  Approval Request.
+
+## Action 870 - Implement And Run Dry-Run Runtime Proof
+
+- Approval was provided by Willy Simonsson to implement and run one dry-run
+  runtime proof for the server-only lifecycle audit chain.
+- Approval timestamp recorded by Codex:
+  `2026-06-26 20:10 CEST`.
+- Created
+  `lib/server/execution-record-audit-writer-dry-run-runtime-proof-harness.ts`.
+- Created
+  `tests/e2e/execution-record-audit-writer-dry-run-runtime-proof-harness.spec.ts`.
+- Created
+  `docs/proofs/execution-record-audit-writer-dry-run-runtime-proof.txt`.
+- Updated dry-run approval, lifecycle proof plan, readiness matrix,
+  reassessment, checkpoint, and QA docs.
+- The dry-run proof uses injected dry-run audit writer behavior only. A
+  successful server-only lifecycle transition produced exactly one would-write
+  audit payload, while a failed transition and a missing approval gate produced
+  no would-write payload.
+- The proof confirms dry-run `wouldWrite: false`, payload preservation,
+  deterministic bounded idempotency, diagnostics propagation, warning
+  propagation, no-retry behavior, no database write, no Supabase query, no live
+  insert, no real service-role adapter call, no UI/browser/client path, no
+  app-shell import, no market-loop/scanner/automation path, no broker/Avanza
+  behavior, no automatic mode, no production rollout, and no downstream
+  mutation beyond existing lifecycle transition semantics.
+- Focused proof validation passed:
+  `npx playwright test tests/e2e/execution-record-audit-writer-dry-run-runtime-proof-harness.spec.ts`
+  returned 6 passed tests.
+- Checkpoint status:
+  `dry_run_runtime_proof_verified_no_write`.
+- No live insert, Supabase query, remote SQL, real service-role adapter call,
+  insert/update/delete/upsert/select, UI/browser/client invocation, app-shell
+  import, market-loop/scanner/automation invocation, broker/Avanza behavior,
+  automatic mode, production rollout, service-role exposure, `.env.local`
+  change, migration, type generation, or generated type edit was performed.
+- Recommended next action: Action 871 - Request Controlled Live Runtime Proof
+  Approval, if a future live runtime proof is needed.
+
+## Action 869 - Create Dry-Run Runtime Proof Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-dry-run-runtime-proof-approval-request.md`.
+- Updated related in-memory proof, lifecycle proof, readiness, checkpoint, and
+  QA docs to record that Stage B dry-run runtime proof remains approval-blocked.
+- The approval request documents current proof summary, proposed future dry-run
+  scope, not-approved scope, required design choices, required approval fields,
+  exact Action 870 approval statement template, blocked decision, and safety
+  boundaries.
+- Checkpoint status:
+  `dry_run_runtime_proof_approval_requested_blocked`.
+- No dry-run runtime proof code was implemented. No dry-run proof was run. No
+  live insert, Supabase query, remote SQL, insert/update/delete/upsert/select,
+  data mutation, real service-role adapter call, UI/browser/client invocation,
+  app-shell import, market-loop/scanner/automation invocation, broker/Avanza
+  behavior, automatic mode, trade/stats/PnL mutation beyond existing transition
+  semantics, production rollout, service-role exposure, `.env.local` change,
+  migration, type generation, or generated type edit was performed.
+- Recommended next action: Action 870 - Provide Dry-Run Runtime Proof Approval.
+
+## Action 868 - Add Runtime Proof Regression Coverage
+
+- Extended
+  `tests/e2e/execution-record-audit-writer-in-memory-runtime-proof-harness.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-in-memory-runtime-proof-regression-tests.md`.
+- Updated related readiness and action-trail docs for Action 868.
+- The regression coverage now verifies server-only harness shape,
+  in-memory-only behavior, no service-role adapter/Supabase/env/route/browser
+  access, injected mocked append behavior, successful-transition append intent,
+  failed-transition no append, missing approval gate no append, payload summary
+  without secrets, deterministic bounded idempotency source, diagnostics,
+  warnings, no-retry behavior, and no downstream/broker/Avanza/automatic
+  behavior enablement.
+- Checkpoint status:
+  `in_memory_runtime_proof_regression_tests_added`.
+- No live insert, Supabase query, remote SQL, data mutation, real service-role
+  adapter call, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, production rollout, trade/stats/PnL mutation beyond existing transition
+  semantics, `.env.local` change, migration, type generation, or generated type
+  edit was performed.
+- Recommended next action: Action 869 - Create Dry-Run Runtime Proof Approval
+  Request.
+
+## Action 823 - Server-Only Audit Writer Integration
+
+- Approval was provided by Willy Simonsson for Action 823 with target project `Trade`, project ref `ekdyopdrrkphlrsilyoo`, environment `staging`, target table `public.execution_record_audit_events`, operation `insert-only`, service-role alias `SUPABASE_SERVICE_ROLE_KEY`, approval timestamp `25 juni 2026, 23:35`, rollback/backout reviewed, and Willy Simonsson as verification reviewer.
+- Updated `lib/server/execution-record-audit-writer.ts`.
+- The server-only writer now calls `insertExecutionRecordAuditEventWithServiceRole(...)` only for validated dry-run-ready input.
+- Invalid input and blocked dry-run input still return before adapter invocation.
+- Updated focused writer/adapter/readiness/boundary tests to reflect the approved server-only writer import while preserving route/UI/runtime import blocks.
+- Created `docs/execution-record-audit-writer-integration-implementation.md`.
+- No route, route call, UI wiring, browser/client runtime path, production write path, live smoke insert, runtime app audit append outside this server-only writer, update/delete/upsert/select behavior, trade/stats/PnL mutation, broker/Avanza behavior, automatic mode, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Status: `audit_writer_integrated_with_live_adapter_server_only_route_blocked`.
+- Recommended next action: Action 824 - Add Audit Writer Integration Boundary Regression Tests.
+
+## Action 822 - Audit Writer Integration Approval Request
+
+- Created `docs/execution-record-audit-writer-integration-approval-request.md`.
+- The approval request asks for explicit approval before a later action may integrate `insertExecutionRecordAuditEventWithServiceRole(...)` into the server-only writer skeleton.
+- The requested future scope is limited to `lib/server/execution-record-audit-writer.ts`, validated/dry-run-ready inputs, insert-only audit appends to `public.execution_record_audit_events`, typed result mapping, server-only boundary preservation, invalid-input blocking, and no downstream mutation.
+- The request explicitly excludes routes, route calls, UI wiring, browser/client runtime paths, production write paths, live smoke inserts, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select behavior, migrations, type generation, generated type edits, and `.env.local` changes.
+- Approval is absent, so writer integration remains blocked.
+- No writer integration, live Supabase call, service-role value read/print, route, route call, UI wiring, runtime write path, audit append from app code, live smoke insert, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_integration_approval_requested_blocked`.
+- Recommended next action: Action 823 - Provide Audit Writer Integration Approval.
+
+## Action 821 - Live Audit Writer Adapter Boundary Regression Tests
+
+- Created `tests/e2e/execution-record-audit-writer-live-adapter-boundary-regression.spec.ts`.
+- Created `docs/execution-record-audit-writer-live-adapter-boundary-regression-tests.md`.
+- Regression tests prove the live audit writer service-role adapter remains server-only, approved-import-only, audit-table insert-only, route-free, UI-free, production-shell-free, writer-disconnected, and no-downstream-mutation.
+- Error mapping remains covered for success, duplicate/idempotency conflict, permission/security failure, service unavailable, unknown error, and unavailable-client outcomes using injected mock clients only.
+- The writer skeleton remains write-blocked and disconnected.
+- No live smoke insert, route, route call, UI wiring, writer connection, runtime write path, audit append from app code, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, or automatic mode was added.
+- Status: `live_audit_writer_adapter_boundary_regression_tests_added_writer_still_blocked`.
+- Recommended next action: Action 822 - Create Audit Writer Integration Approval Request.
+
+## Action 820 - Live Audit Writer Service-Role Adapter Implementation
+
+- Approval was provided by Willy Simonsson for Action 820 with target project `Trade`, project ref `ekdyopdrrkphlrsilyoo`, environment `staging`, target table `public.execution_record_audit_events`, operation `insert-only`, service-role alias `SUPABASE_SERVICE_ROLE_KEY`, approval timestamp `25 jun, 2026 - 21:33`, rollback/backout reviewed, and Willy Simonsson as verification reviewer.
+- Updated `lib/server/execution-record-audit-writer-service-role-adapter.ts`.
+- Added `insertExecutionRecordAuditEventWithServiceRole(...)` behind the existing server-only helper/service-role boundary.
+- The live adapter performs only `insert` to `public.execution_record_audit_events` and maps success, duplicate/idempotency conflict, permission/security failure, service unavailable, and unknown error outcomes.
+- Updated `tests/e2e/execution-record-audit-writer-service-role-adapter.spec.ts` and `tests/e2e/execution-record-audit-writer-service-role-readiness.spec.ts`.
+- Created `docs/execution-record-audit-writer-live-service-role-adapter-implementation.md` and updated live adapter/readiness docs.
+- Writer skeleton remains write-blocked and disconnected; no runtime audit append, route, route call, UI wiring, production write path, live smoke insert, update/delete/upsert/select behavior, trade/stats/PnL mutation, broker/Avanza behavior, or automatic mode was added.
+- No `.env.local` change, migration, type generation, generated type edit, service-role value printing, or committed secret was added.
+- Status: `live_audit_writer_service_role_adapter_implemented_writer_still_blocked`.
+- Recommended next action: Action 821 - Add Live Audit Writer Adapter Boundary Regression Tests.
+
+## Action 816 - Audit Writer Mock Integration Preview Fixtures
+
+- Created `lib/server/execution-record-audit-writer-mock-integration-preview-fixtures.ts`.
+- Created `tests/e2e/execution-record-audit-writer-mock-integration-preview-fixtures.spec.ts`.
+- Created `docs/execution-record-audit-writer-mock-integration-preview-fixtures.md`.
+- Preview fixtures cover success, duplicate/idempotency conflict, permission/security failure, service unavailable, unknown error, validation failed, and blocked outcomes.
+- Every fixture preserves `realSupabaseCalled: false`, `serviceRoleUsed: false`, `writePerformed: false`, `remoteMutated: false`, `wouldWrite: false`, and `inserted: false`.
+- Invalid and blocked fixtures keep `mockAdapterInvoked: false`.
+- Tests verify suspicious payload strings are not echoed into fixture results.
+- The writer skeleton remains write-blocked and does not import the preview fixtures.
+- No live Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_mock_integration_preview_fixtures_added_live_writer_blocked`.
+- Recommended next action: Action 817 - Create Audit Writer Live Implementation Readiness Gate.
+
+## Action 815 - Audit Writer Mock Integration Harness
+
+- Created `lib/server/execution-record-audit-writer-mock-integration-harness.ts`.
+- Created `tests/e2e/execution-record-audit-writer-mock-integration-harness.spec.ts`.
+- Created `docs/execution-record-audit-writer-mock-integration-harness.md`.
+- The harness builds the existing audit writer dry-run result and invokes the mock adapter only when `allowMockAdapter: true`.
+- Invalid inputs and `allowMockAdapter: false` return without invoking the mock adapter.
+- Harness results preserve `realSupabaseCalled: false`, `serviceRoleUsed: false`, `writePerformed: false`, `remoteMutated: false`, and `wouldWrite: false`.
+- Tests verify success, duplicate/idempotency conflict, permission/security failure, service unavailable, invalid input, blocked mock authorization, suspicious payload non-echoing, and input immutability.
+- The writer skeleton remains write-blocked and does not import the harness.
+- No live Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_mock_integration_harness_created_live_writer_blocked`.
+- Recommended next action: Action 816 - Add Audit Writer Mock Integration Preview Fixtures.
+
+## Action 814 - Audit Writer Service-Role Adapter Mock Mapping Tests
+
+- Created `tests/e2e/execution-record-audit-writer-service-role-adapter-mock-mapping.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-mock-mapping-tests.md`.
+- Mapping tests prove injected success, duplicate/idempotency conflict, permission/security failure, service-unavailable, and thrown-error outcomes map to expected mock result categories.
+- Every mapping result preserves `realSupabaseCalled: false`, `serviceRoleUsed: false`, `writePerformed: false`, and `remoteMutated: false`.
+- Tests verify suspicious insert payload strings are not echoed into adapter results and the supplied insert object is not mutated.
+- The writer skeleton remains write-blocked and does not import the mock adapter.
+- No live Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_mock_mapping_tests_added_writer_blocked`.
+- Recommended next action: Action 815 - Create Audit Writer Mock Integration Harness.
+
+## Action 807 - Audit Writer Service-Role Adapter Skeleton
+
+- Created `lib/server/execution-record-audit-writer-service-role-adapter.ts`.
+- Created `tests/e2e/execution-record-audit-writer-service-role-adapter.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-skeleton.md`.
+- The adapter skeleton starts with `import "server-only";`.
+- The adapter skeleton imports only the generated `Database` type from `@/lib/supabase-database.types`.
+- The adapter skeleton returns blocked readiness metadata with `clientCreated: false`, `queryPerformed: false`, `writePerformed: false`, and `serviceRoleValuePrinted: false`.
+- The adapter skeleton does not import `lib/supabase-server.ts`, read env values, create clients, query, write, or print values.
+- The write-blocked writer skeleton does not import the adapter yet and remains `wouldWrite: false`.
+- No Supabase client creation, Supabase call, service-role use, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_skeleton_created_writer_blocked`.
+- Recommended next action: Action 808 - Add Audit Writer Service-Role Adapter Readiness Tests.
+
+## Action 808 - Audit Writer Service-Role Adapter Readiness Tests
+
+- Created `tests/e2e/execution-record-audit-writer-service-role-readiness.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-readiness-tests.md`.
+- Verified the adapter remains server-only, type-boundary-only, blocked, non-querying, non-writing, and disconnected from runtime UI imports.
+- Verified the writer skeleton remains write-blocked and does not import the adapter.
+- Verified tracked source does not expose public-prefixed service-role env assignments or service-role-like secret assignments.
+- No Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_readiness_tests_added_writer_blocked`.
+- Recommended next action: Action 809 - Create Audit Writer Service-Role Adapter Dry-Run Contract.
+
+## Action 809 - Audit Writer Service-Role Adapter Dry-Run Contract
+
+- Created `lib/server/execution-record-audit-writer-service-role-adapter-contract.ts`.
+- Created `tests/e2e/execution-record-audit-writer-service-role-adapter-dry-run-contract.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-dry-run-contract.md`.
+- The contract defines readiness statuses and no-query/no-write result shapes for a future service-role adapter dry-run.
+- The contract starts with `import "server-only";`.
+- The contract does not import Supabase clients, import `lib/supabase-server.ts`, read env values, call routes, query, or write.
+- The writer skeleton remains write-blocked and does not import the adapter contract.
+- No Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_dry_run_contract_created_writer_blocked`.
+- Recommended next action: Action 810 - Implement Audit Writer Service-Role Adapter Dry-Run.
+
+## Action 810 - Audit Writer Service-Role Adapter Dry-Run
+
+- Updated `lib/server/execution-record-audit-writer-service-role-adapter.ts`.
+- Added `buildExecutionRecordAuditServiceRoleAdapterDryRun(input)`.
+- Updated `tests/e2e/execution-record-audit-writer-service-role-adapter.spec.ts`.
+- The dry-run classifies supplied readiness summaries only.
+- Ready requires exactly one summarized alias, no public exposure, no leakage, and completed checks.
+- Missing alias, multiple aliases, public exposure/leakage, invalid summary, and incomplete checks return blocker states.
+- Every result keeps no-query/no-write flags and `secretsPrinted: false`.
+- The writer skeleton remains write-blocked and does not import the adapter.
+- No Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_dry_run_implemented_writer_blocked`.
+- Recommended next action: Action 811 - Add Audit Writer Service-Role Adapter Dry-Run Fixture Proof.
+
+## Action 811 - Audit Writer Service-Role Adapter Dry-Run Fixture Proof
+
+- Created `lib/server/execution-record-audit-writer-service-role-adapter-fixtures.ts`.
+- Created `tests/e2e/execution-record-audit-writer-service-role-adapter-fixtures.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-dry-run-fixture-proof.md`.
+- Fixtures cover ready, missing-env, multiple-alias, unsafe-public-exposure, leakage-detected, and incomplete-check states.
+- Fixture summaries use placeholder alias labels only and contain no service-role values.
+- Every fixture result keeps no-query/no-write flags and `secretsPrinted: false`.
+- The writer skeleton remains write-blocked and does not import the adapter fixtures.
+- No Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_dry_run_fixtures_added_writer_blocked`.
+- Recommended next action: Action 812 - Create Audit Writer Live Adapter Design.
+
+## Action 812 - Audit Writer Live Service-Role Adapter Design
+
+- Created `docs/execution-record-audit-writer-live-service-role-adapter-design.md`.
+- The design summarizes the current schema/RLS/denial/typegen/service-role/dry-run fixture proof chain.
+- The design defines future live adapter boundary, env handling, query/write constraints, error/result mapping, required tests, live implementation gates, and safety boundaries.
+- No live Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- The writer skeleton remains write-blocked.
+- Status: `audit_writer_live_service_role_adapter_design_documented_writer_blocked`.
+- Recommended next action: Action 813 - Create Audit Writer Service-Role Adapter Mock Implementation.
+
+## Action 813 - Audit Writer Service-Role Adapter Mock Implementation
+
+- Created `lib/server/execution-record-audit-writer-service-role-adapter-mock.ts`.
+- Created `tests/e2e/execution-record-audit-writer-service-role-adapter-mock.spec.ts`.
+- Created `docs/execution-record-audit-writer-service-role-adapter-mock-implementation.md`.
+- The mock adapter models success, duplicate/idempotency conflict, permission/security failure, service-unavailable, and unknown-error outcomes using injected mock behavior only.
+- Every mock result records `realSupabaseCalled: false`, `serviceRoleUsed: false`, `writePerformed: false`, and `remoteMutated: false`.
+- The writer skeleton remains write-blocked and does not import the mock adapter.
+- No live Supabase client creation, Supabase call, service-role env read, service-role value printing, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_adapter_mock_created_writer_blocked`.
+- Recommended next action: Action 814 - Add Audit Writer Service-Role Adapter Mock Mapping Tests.
+
+## Action 806 - Audit Writer Service-Role Env Provisioning Proof
+
+- Created `docs/execution-record-audit-writer-service-role-env-provisioning-proof.md`.
+- Rechecked accepted service-role aliases without printing values.
+- Confirmed exactly one accepted alias is present: `SUPABASE_SERVICE_ROLE_KEY`.
+- Confirmed the accepted alias is present in ignored `.env.local` and absent from the current process env.
+- Confirmed `.env.local` is ignored by `.gitignore` using the `.env*.local` rule.
+- Confirmed `.env.local` is not tracked or staged.
+- Confirmed no `NEXT_PUBLIC_*SERVICE*` env alias is present in `.env.local`.
+- No service-role value was printed or committed.
+- No Supabase client creation, Supabase call, service-role use, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_env_provided_writer_still_blocked`.
+- Recommended next action: Action 807 - Create Audit Writer Service-Role Adapter Skeleton.
+
+## Action 805 - Audit Writer Service-Role Env Readiness Proof
+
+- Created `docs/execution-record-audit-writer-service-role-env-readiness-proof.md`.
+- Inspected `lib/supabase-server.ts` and confirmed it starts with `import "server-only";`.
+- Confirmed the existing server-only helper expects the public Supabase URL env name.
+- Confirmed the accepted service-role aliases are `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SERVICE_ROLE`, and `SUPABASE_SERVICE_ROLE_SECRET`.
+- Checked env presence without printing values.
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are present in `.env.local`; neither was exported in the current process env.
+- `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SERVICE_ROLE`, and `SUPABASE_SERVICE_ROLE_SECRET` are absent from process env and `.env.local`.
+- No service-role value was printed or committed.
+- No `.env.local` changes, Supabase client creation, Supabase call, service-role use, route, route call, runtime write path, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_service_role_env_missing_writer_blocked`.
+- Recommended next action: Action 806 - Provide Server-Only Service-Role Environment.
+
+## Action 804 - Audit Writer Implementation Skeleton
+
+- Created `lib/server/execution-record-audit-writer.ts` as a server-only audit writer implementation skeleton.
+- Created `tests/e2e/execution-record-audit-writer-skeleton.spec.ts`.
+- Created `docs/execution-record-audit-writer-implementation-skeleton.md`.
+- The skeleton imports only contract types/constants, validation helper, and dry-run builder.
+- The skeleton validates input, builds dry-run metadata, returns `validation_failed` for invalid input, and returns blocked dry-run-only output for valid ready input.
+- Ready-path blocked output uses reason `writer_not_implemented`, error `writer_implementation_not_enabled`, and `wouldWrite: false`.
+- No Supabase client, `lib/supabase-server.ts` import, env read, service-role code, route, route call, runtime write path, localStorage/sessionStorage write, audit append, live writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_implementation_skeleton_created_write_blocked`.
+- Recommended next action: Action 805 - Prove Audit Writer Service-Role Env Readiness.
+
+## Action 803 - Audit Writer Dev Preview UI Boundary Decision
+
+- Created `docs/execution-record-audit-writer-dev-preview-ui-boundary-decision.md`.
+- Inspected existing diagnostics/UI patterns in `app/trade-app.tsx`, `components/execution/ExecutionHandoffModalComposition.tsx`, `components/execution/ExecutionRecordPersistenceValidatorIntegrationPreview.tsx`, `components/execution/ExecutionRecordCandidateBuilderIntegrationPreview.tsx`, `components/execution/ExecutionRecordCandidateBuilderInvocationPreview.tsx`, and `components/execution/FinalizationExecutionRecordBridgePreview.tsx`.
+- Confirmed the active app shell is client-side and must not import `lib/server` audit writer modules.
+- Confirmed no existing server-rendered diagnostics boundary was found that is already wired and safe for importing server-only audit writer preview modules.
+- Selected future client diagnostics that import only the static serializable fixture adapter from Action 802.
+- No UI wiring, Supabase client, env read, service-role code, route, route call, runtime write path, localStorage/sessionStorage write, audit append, audit writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_dev_preview_ui_boundary_safe_fixture_path_selected`.
+- Recommended next action: Action 804 - Add Fixture-Only Audit Writer Dev Preview UI.
+
+## Action 802 - Audit Writer Dry-Run Dev Preview Fixture
+
+- Created `lib/execution-record-audit-writer-dry-run-dev-preview-fixture.ts` as static, fixture-only, read-only display data for future audit writer dry-run dev preview work.
+- Created `tests/e2e/execution-record-audit-writer-dry-run-dev-preview.spec.ts`.
+- Created `docs/execution-record-audit-writer-dry-run-dev-preview.md`.
+- The fixture adapter includes ready, validation-failed, and blocked states; required labels `Audit Writer Dry-Run Preview`, `Fixture only`, `No write performed`, and `Writer blocked`; and no-write fields `wouldWrite: false`, `notWritten: true`, and `approvalImplied: false`.
+- The ready fixture includes event type, source, authority mode, execution record id, request/idempotency keys, and sanitized payload/evidence/provenance summaries.
+- UI integration remains blocked because no approved client/server display boundary exists for server-only dry-run preview data.
+- No Supabase client, env read, service-role code, route, route call, runtime write path, localStorage/sessionStorage write, audit append, audit writer implementation, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Status: `audit_writer_dry_run_dev_preview_adapter_ready_ui_blocked`.
+- Recommended next action: Action 803 - Resolve Audit Writer Dev Preview UI Boundary.
+
+## Action 717 - Audit Append Writer Dry-Run Execution Validator Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-execution-validator-reassessment.md as a documentation-only reassessment of the Action 716 validator.
+- Reconfirmed validateExecutionRecordAuditAppendWriterDryRunExecution remains pure, deterministic, conservative, diagnostics/readiness-only, and disconnected from dry-run execution, audit writer execution, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed ready means only audit_append_writer_dry_run_execution_validation_ready_for_design_only with decision design_only_do_not_write_audit; it is not dry-run execution, audit write approval, audit append execution, route approval, persistence/write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion.
+- Reconfirmed all dry-run execution, writer, audit append, route, record creation, persistence, Supabase/localStorage, stats/PnL, trade, rollback, UI, notification, broker/Avanza, and automatic-mode authority flags remain false.
+- Validation: git diff --check passed; find docs -type f -size 0 returned no files.
+- Recommended next action: Action 718 - Integrate Audit Append Writer Dry-Run Execution Validator into Dev Preview.
+
+## Action 716 - Audit Append Writer Dry-Run Execution Validator
+
+- Created lib/execution-record-audit-append-writer-dry-run-execution-validator.ts as a pure deterministic validator for audit append writer dry-run execution readiness.
+- Validator output remains design/readiness-only: a ready result may only recommend design_only_do_not_write_audit.
+- The validator does not execute dry-run logic, write audit data, execute writer logic, call routes, create records, persist/write, update stats/PnL, mutate/reconcile trades, roll back/correct, update UI, notify users, run broker/order behavior, run Avanza/browser behavior, or enable automatic mode.
+- Dry-run execution validation success is not dry-run execution, audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, or downstream approval; all action authority flags remain false.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed; git diff --check passed; find docs -type f -size 0 returned no files; npm run test:e2e was initially sandbox-blocked before app logic by listen EPERM on 0.0.0.0:3010, then passed with escalation (137 passed).
+- Recommended next action: Action 717 - Reassess Audit Append Writer Dry-Run Execution Validator.
+
 # Execution Agent Checkpoint
+
+## Action 779 - Audit Table Migration Retry Dry-Run Blocked
+
+- Confirmed linked project ref `ekdyopdrrkphlrsilyoo`.
+- Confirmed prerequisite proof shows `20260614000000` applied remotely.
+- Created a temporary Supabase workdir containing only the two approved audit migrations plus non-printed link metadata.
+- Dry run command failed before listing migrations because remote migration history contains `20260614000000`, but the temp workdir intentionally contained only `20260615000000` and `20260615001000`.
+- No audit migration apply was attempted.
+- Removed the temporary workdir after the blocked dry run.
+- Proof artifacts:
+  - `docs/proofs/execution-record-audit-table-migration-retry-dry-run-output.txt`
+  - `docs/proofs/execution-record-audit-table-migration-retry-apply-output.txt`
+  - `docs/proofs/execution-record-audit-table-migration-retry-status-after.txt`
+- No broad pending migration push, unrelated migration apply, audit migration apply, remote SQL, type generation, generated type edit, service-role code, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was performed.
+- Status: `audit_migration_retry_dry_run_blocked_remote_history_mismatch`.
+- Recommended next action: Action 780 - Resolve Audit Migration Retry Dry-Run Remote History Mismatch.
+
+## Action 778 - Execution Records Prerequisite Migration Applied
+
+- Willy Simonsson explicitly approved applying only `20260614000000_create_execution_records.sql` to `ekdyopdrrkphlrsilyoo` / staging / Hosted Supabase Postgres database for Ture staging.
+- Confirmed Supabase CLI version `2.107.0`, linked project ref `ekdyopdrrkphlrsilyoo`, and local prerequisite migration presence.
+- Created a temporary Supabase workdir containing only `20260614000000_create_execution_records.sql`; copied link metadata without printing connection-oriented contents.
+- Dry run listed exactly `20260614000000_create_execution_records.sql`.
+- Apply succeeded for `20260614000000_create_execution_records.sql`.
+- Status-after proof shows `20260614000000` present in both Local and Remote.
+- Removed the temporary workdir after apply.
+- Proof artifacts:
+  - `docs/proofs/execution-records-prerequisite-migration-dry-run-output.txt`
+  - `docs/proofs/execution-records-prerequisite-migration-apply-output.txt`
+  - `docs/proofs/execution-records-prerequisite-migration-status-after.txt`
+- Audit migrations remain unapplied, and no type generation, generated type edit, service-role code, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was added.
+- Status: `execution_records_prerequisite_migration_applied`.
+- Recommended next action: Action 779 - Retry Audit Table Migration Apply.
+
+## Action 777 - Execution Records Prerequisite Migration Approval Record
+
+- Created `docs/execution-records-prerequisite-migration-target-approval-record.md`.
+- The record identifies `20260614000000_create_execution_records.sql` as the prerequisite migration requiring separate approval before the audit table migration can be retried.
+- Target context is recorded as Trade / `ekdyopdrrkphlrsilyoo` / staging / Hosted Supabase Postgres database for Ture staging.
+- Approval remains blocked because operator identity, approval timestamp, backup/snapshot decision, rollback/backout acknowledgement, command operator, verification reviewer, and the exact prerequisite approval statement are not recorded.
+- Prior audit migration approval was not treated as prerequisite approval.
+- No migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, migration edit, service-role code, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was performed.
+- Status: `prerequisite_migration_approval_blocked`.
+- Recommended next action: Action 778 - Provide Execution Records Prerequisite Migration Approval.
+
+## Action 776 - Execution Records Migration Dependency Inventory
+
+- Created `docs/execution-records-migration-dependency-inventory-for-audit-table.md`.
+- Identified `supabase/migrations/20260614000000_create_execution_records.sql` as the local prerequisite migration for the audit table FK.
+- Confirmed it creates `public.execution_records` with `id uuid primary key default gen_random_uuid()`.
+- Confirmed no direct local table references or `references public...` clauses were found in the prerequisite migration.
+- Confirmed status proof shows `20260614000000` remains pending remotely and was unapproved for Action 774.
+- Confirmed broad linked-workdir push remains disallowed because it would apply unrelated pending migrations.
+- No migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, migration edit, service-role code, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was performed.
+- Status: `execution_records_dependency_inventory_documented`.
+- Recommended next action: Action 777 - Request/Record Execution Records Prerequisite Migration Approval.
+
+## Action 775 - Audit Migration Apply Failure Resolution
+
+- Created `docs/execution-record-audit-migration-apply-failure-resolution.md` as a documentation-only failure-resolution analysis.
+- Inspected Action 774 apply/status proof artifacts and confirmed the audit migrations remain unapplied remotely.
+- Confirmed `20260615000000_create_execution_record_audit_events.sql` depends on `public.execution_records(id)`.
+- Identified local migration `20260614000000_create_execution_records.sql` as the migration that creates `public.execution_records`.
+- Status evidence shows `20260614000000` is pending remotely and is one of the eight additional unapproved pending migrations from the broad linked-workdir dry run.
+- Recommended safe path is to identify and approve the execution-record prerequisite migration(s) separately before retrying audit migration application.
+- No migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, migration edit, service-role code, writer, route, route call, runtime write path, audit append, broker/Avanza behavior, or automatic mode was performed.
+- Status: `audit_migration_apply_failure_resolution_documented`.
+- Recommended next action: Action 776 - Identify Execution Records Migration Dependency For Audit Table.
+
+## Action 774 - Audit Table Migration Apply Attempt Failed
+
+- Confirmed Supabase CLI path `/opt/homebrew/bin/supabase`, version `2.107.0`, and linked project ref `ekdyopdrrkphlrsilyoo`.
+- Confirmed `docs/proofs/execution-record-audit-table-migration-status-before.txt` exists before apply.
+- A normal linked-workdir `supabase db push --dry-run --linked` would have applied eight additional unapproved pending migrations before the two audit migrations, so no broad push was run.
+- Created a temporary Supabase workdir under `/private/tmp` containing only `20260615000000_create_execution_record_audit_events.sql` and `20260615001000_enable_rls_execution_record_audit_events.sql`; copied link metadata without printing connection-oriented contents.
+- Selective dry run confirmed only the two approved audit migrations would be pushed.
+- Apply failed on `20260615000000_create_execution_record_audit_events.sql` because remote relation `public.execution_records` does not exist; `20260615001000_enable_rls_execution_record_audit_events.sql` was not reached.
+- Captured apply output in `docs/proofs/execution-record-audit-table-migration-apply-output.txt`.
+- Captured status-after output in `docs/proofs/execution-record-audit-table-migration-status-after.txt`; both approved audit migrations remain unapplied remotely.
+- No Supabase type generation, generated type edit, service-role code, audit writer, audit route, route call, runtime persistence/write path, Supabase/localStorage runtime write, audit append implementation, stats/PnL update, trade mutation, broker/Avanza behavior, or automatic mode was added.
+- Status: `migration_apply_failed`.
+- Recommended next action: Action 775 - Resolve Audit Migration Apply Failure.
+
+## Action 715 - Audit Append Writer Dry-Run Execution Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-execution-validator-contract-reassessment.md as a documentation-only reassessment of the Action 714 dry-run execution validator contract types.
+- Verified the contract remains type-only/constants-only, contract-only, dry-run-execution-validator-contract-only, future-boundary-only, and disconnected from dry-run execution validation logic, dry-run execution, writer logic, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed dry-run execution validation success is not dry-run execution, audit write approval, route approval, persistence/write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 716 - Create Audit Append Writer Dry-Run Execution Validator.
+
+
+## Action 714 - Audit Append Writer Dry-Run Execution Validator Contract Types
+
+- Created lib/execution-record-audit-append-writer-dry-run-execution-validator-contract.ts with pure TypeScript contract types/constants for future no-write Audit Append Writer Dry-Run Execution Validator diagnostics.
+- Defined validation input/result/status/decision, safety policy, all-false authority flags, blocked reasons, warnings, review items, dry-run execution input/result validation, simulated audit event/table-schema/idempotency/duplicate-prevention validation, evidence/provenance validation, server-only/security dependency validation, no-write/no-action validation, and dependency validation summaries.
+- Reconfirmed the contract is type-only/constants-only and does not implement dry-run execution validation logic, dry-run execution, writer logic, audit writes, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit append, downstream actions, broker/Avanza behavior, or automatic mode.
+- Validation: tsc --noEmit passed; npm run lint passed with the existing Babel large-file note; git diff --check passed; find docs -type f -size 0 returned no files; npm run test:e2e initially hit sandbox EPERM on 0.0.0.0:3010, then passed 135/135 when rerun with approved escalation.
+- Recommended next action: Action 715 - Reassess Audit Append Writer Dry-Run Execution Validator Contract Types.
+
+
+## Action 713 - Audit Append Writer Dry-Run Execution Validator Design
+
+- Created docs/execution-record-audit-append-writer-dry-run-execution-validator-design.md as a documentation-only design for a future no-write Audit Append Writer Dry-Run Execution Validator.
+- Defined validator principles, future inputs, outputs, statuses, decisions, validation rules, blocked/invalid states, all-false authority flags, and relationships to the dry-run execution contract, dry-run validator, audit writer implementation, dev preview, and production insert route.
+- Reconfirmed dry-run execution validation does not execute dry-run, write audit data, execute writer logic, call routes, create records, persist/write, write Supabase/localStorage, authorize downstream behavior, trigger broker/Avanza behavior, or enable automatic mode.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 714 - Create Audit Append Writer Dry-Run Execution Validator Contract Types.
+
+
+## Action 712 - Audit Append Writer Dry-Run Execution Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-execution-contract-reassessment.md as a documentation-only reassessment of the Action 711 dry-run execution contract types.
+- Verified the contract remains type-only/constants-only, contract-only, dry-run-execution-contract-only, future-boundary-only, and disconnected from dry-run execution logic, audit writer logic, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed dry-run execution result success is not audit write approval, route approval, persistence/write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 713 - Create Audit Append Writer Dry-Run Execution Validator Design.
+
+
+## Action 711 - Audit Append Writer Dry-Run Execution Contract Types
+
+- Created lib/execution-record-audit-append-writer-dry-run-execution-contract.ts with pure TypeScript contract types/constants for future no-write Audit Append Writer Dry-Run Execution.
+- Defined statuses, decision recommendations, blocked reasons, warnings, review items, default all-false authority flags, safety policy, simulated audit event/table/idempotency/duplicate/evidence/security/no-write/dependency summaries, input, and result shapes.
+- Reconfirmed this is contract-only and does not implement dry-run execution, audit writer behavior, audit append behavior, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, or automatic mode.
+- Validation: tsc --noEmit passed; npm run lint passed with the existing Babel large-file note; git diff --check passed; find docs -type f -size 0 returned no files.
+- Recommended next action: Action 712 - Reassess Audit Append Writer Dry-Run Execution Contract Types.
+
+
+## Action 710 - Audit Append Writer Dry-Run Execution Design
+
+- Created docs/execution-record-audit-append-writer-dry-run-execution-design.md as a documentation-only design for future no-write Audit Append Writer Dry-Run Execution.
+- Defined future dry-run execution principles, inputs, outputs, status and decision model, required gates, blocked/invalid states, all-false authority flags, and relationships to the dry-run validator, audit writer implementation, production insert route, and dev preview.
+- Reconfirmed dry-run execution would not write audit data, call the audit writer, call routes, create execution records, persist/write, write Supabase/localStorage, authorize downstream behavior, trigger broker/Avanza behavior, or enable automatic mode.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 711 - Create Audit Append Writer Dry-Run Execution Contract Types.
+
+
+## Action 709 - Audit Append Writer Dry-Run Validator Dev Preview Wiring Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-validator-dev-preview-wiring-reassessment.md to verify the Action 708 dry-run validator dev-preview wiring.
+- Reconfirmed the wiring is fixture-only, dev-gated, explicit-trigger, read-only, visually separate, and diagnostics-only; it displays dry-run validator status, design_only_do_not_write_audit, validation summaries, false authority flags, blocked reasons, warnings, review items, and no-write/no-action safety labels.
+- Reconfirmed no dry-run execution, audit writer execution, audit append, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, or automatic mode were introduced.
+- Carried forward Action 708 validation: tsc noEmit, npm run lint, git diff --check, zero-byte doc check, targeted dry-run preview e2e coverage, fixture preview e2e coverage, and full e2e 135/135 passed; the broad dry-run validator grep found no matching test names.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 710 - Create Audit Append Writer Dry-Run Execution Design.
+
+
+## Action 708 - Integrate Audit Append Writer Dry-Run Validator into Dev Preview
+
+- Integrated validateExecutionRecordAuditAppendWriterDryRun(...) into the dev-gated persistence validator integration fixture and preview as fixture-only, explicit-trigger, read-only diagnostics.
+- The preview now renders a visually separate Audit Append Writer Dry-Run Validator section with status, decision recommendation, validation summaries, no-write/no-action safety, authority flags, blocked reasons, warnings, and review items.
+- Reconfirmed the integration does not execute dry-run logic, execute an audit writer, append audit data, call routes, create records, persist/write, write Supabase/localStorage, update stats/PnL, rollback/correct, mutate/reconcile trades, notify users, trigger broker/order behavior, trigger Avanza/browser behavior, or enable automatic mode.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing Babel large-file note for app/trade-app.tsx; git diff --check passed; find docs -type f -size 0 returned 0; targeted npm run test:e2e -- -g "dry-run validator" found no matching test names; targeted npm run test:e2e -- -g "audit append writer dry-run" passed 2/2; targeted npm run test:e2e -- -g "uses the dev-only execution fixture" passed 1/1; full npm run test:e2e passed 135/135.
+- Recommended next action: Action 709 - Reassess Audit Append Writer Dry-Run Validator Dev Preview Integration.
+
+
+## Action 707 - Audit Append Writer Dry-Run Validator Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-validator-reassessment.md as a documentation-only reassessment of validateExecutionRecordAuditAppendWriterDryRun(...).
+- Reconfirmed the validator remains pure, deterministic, design/readiness-only, conservative, and disconnected from dry-run execution, audit writer execution, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed ready status audit_append_writer_dry_run_validation_ready_for_design_only only means design_only_do_not_write_audit and is not dry-run execution, audit write approval, route approval, persistence/write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream action approval, or full workflow completion.
+- Documented ready/review/blocked/invalid/absent behavior, all-false authority flags, unsafe paths, Action 706 test results, remaining gaps, risks, and recommended next action.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 708 - Integrate Audit Append Writer Dry-Run Validator into Dev Preview.
+
+
+## Action 706 - Audit Append Writer Dry-Run Validator
+
+- Created lib/execution-record-audit-append-writer-dry-run-validator.ts with pure deterministic validateExecutionRecordAuditAppendWriterDryRun(...) diagnostics for future audit append writer dry-run validation.
+- The validator evaluates dry-run validation input, dry-run result input/output, writer contract validation result, writer validator result, writer contract input, audit event candidate, execution-record reference, evidence/provenance, idempotency, duplicate prevention, server-only/security status, schema/table status, generated audit types status, migration status, RLS/security status, service-role/client-write risks, dry-run success confusion, write/route/writer/audit append/record creation/persistence/Supabase/localStorage/downstream authority requests, and all-false authority flags.
+- Reconfirmed validator output is design/readiness-only: ready can only mean design_only_do_not_write_audit and is not dry-run execution, audit write approval, audit append execution, route call approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion.
+- Reconfirmed the validator does not execute dry-run logic, execute an audit writer, append/write audit data, call routes, create records, persist/write, write Supabase/localStorage, update stats/PnL, rollback/correct, mutate/reconcile trades, update UI, notify users, trigger broker/order behavior, trigger Avanza/browser behavior, or enable automatic mode; all action authority flags remain false.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing Babel large-file note for app/trade-app.tsx; git diff --check passed; find docs -type f -size 0 returned 0; sandboxed npm run test:e2e was blocked before app logic by listen EPERM 0.0.0.0:3010; escalated npm run test:e2e initially hit transient ECONNREFUSED after the pure validator tests, targeted server-backed isolation passed, and rerun escalated npm run test:e2e passed 135/135.
+- Recommended next action: Action 707 - Reassess Audit Append Writer Dry-Run Validator.
+
+
+## Action 705 - Audit Append Writer Dry-Run Validator Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-validator-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-dry-run-validator-contract.ts.
+- Verified the dry-run validator contract remains type-only/constants-only, contract-only, dry-run-validator-contract-only, future-boundary-only, and disconnected from dry-run validation logic, dry-run execution, writer logic, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed dry-run validation success is not dry-run execution, audit write approval, audit append execution, route call approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Reconfirmed audit schema/table proof, generated audit table types, migration proof, RLS/security proof, server-only proof, service-role proof, route/auth boundary proof, writer implementation, dry-run implementation, dry-run validator implementation, production insert route, and production insert/write path remain absent/unproven blockers.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 706 - Create Audit Append Writer Dry-Run Validator.
+
+
+## Action 704 - Audit Append Writer Dry-Run Validator Contract Types
+
+- Created lib/execution-record-audit-append-writer-dry-run-validator-contract.ts with pure TypeScript types/constants for a future Audit Append Writer Dry-Run Validator.
+- The contract models dry-run validation input, result, status, decision recommendation, safety policy, all-false authority flags, blocked reasons, warnings, review items, dry-run input/result validation summaries, would-write event validation, table/schema simulation validation, idempotency/duplicate-prevention validation, evidence/provenance validation, server-only/security dependency validation, no-write/no-action safety validation, and dependency validation.
+- Reconfirmed the contract is type-only/constants-only and does not implement dry-run validation logic, dry-run execution, audit writer logic, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notifications, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, migration application, or audit schema/table assumptions.
+- Reconfirmed dry-run validation success is not dry-run execution, audit write approval, audit append execution, route call approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing Babel large-file note for app/trade-app.tsx; git diff --check passed; find docs -type f -size 0 returned 0; sandboxed npm run test:e2e was blocked before app logic by listen EPERM 0.0.0.0:3010; escalated npm run test:e2e passed 133/133.
+- Recommended next action: Action 705 - Reassess Audit Append Writer Dry-Run Validator Contract Types.
+
+
+## Action 703 - Audit Append Writer Dry-Run Validator Design
+
+- Created docs/execution-record-audit-append-writer-dry-run-validator-design.md as a documentation-only design for a future Audit Append Writer Dry-Run Validator.
+- Defined the validator purpose, current state, dry-run validator principle, future inputs and outputs, status/decision model, validation rules, blocked/invalid states, all-false authority model, and relationships to the dry-run result contract, audit writer implementation, dev preview, and production insert route.
+- Reconfirmed dry-run validation does not write audit data, execute a writer, append audit events, call routes, create execution records, persist/write, write Supabase/localStorage, update stats/PnL, mutate/reconcile trades, update UI source of truth, notify users, trigger broker/order behavior, trigger Avanza/browser behavior, or enable automatic mode.
+- Reconfirmed dry-run validation success is not dry-run execution, audit write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, production insert success, downstream approval, or full workflow completion.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 704 - Create Audit Append Writer Dry-Run Validator Contract Types.
+
+
+## Action 702 - Audit Append Writer Dry-Run Result Contract Reassessment
+
+- Created docs/execution-record-audit-append-writer-dry-run-result-contract-reassessment.md as a documentation-only reassessment of lib/execution-record-audit-append-writer-dry-run-result-contract.ts.
+- Verified the contract remains type-only/constants-only, contract-only, dry-run-contract-only, future-boundary-only, and disconnected from dry-run logic, writer logic, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Reconfirmed dry-run result success is not audit write approval, audit append execution, route call approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; all action authority flags remain false.
+- Reconfirmed audit schema/table proof, generated audit table types, migration proof, RLS/security proof, server-only proof, service-role proof, route/auth boundary proof, writer implementation, dry-run implementation, production insert route, and production insert/write path remain absent/unproven blockers.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 703 - Create Audit Append Writer Dry-Run Validator Design.
+
+
+## Action 701 - Audit Append Writer Dry-Run Result Contract Types
+
+- Created lib/execution-record-audit-append-writer-dry-run-result-contract.ts with pure TypeScript types/constants for a future no-write audit append writer dry-run result.
+- The contract models dry-run input, result, status, decision recommendation, safety policy, all-false authority flags, blocked reasons, warnings, review items, would-write audit event summary, would-use table/schema summary, idempotency summary, duplicate-prevention simulation, evidence/provenance summary, server-only/security dependency summary, no-write/no-action safety summary, and dependency summary.
+- Reconfirmed the contract is type-only/constants-only and does not implement dry-run logic, writer logic, audit append execution, audit route calls, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, or migration application.
+- Reconfirmed dry-run result success is not audit write approval, audit append execution, route call approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, production insert success, or full workflow completion; all action authority flags remain false.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing Babel large-file note for app/trade-app.tsx; git diff --check passed; find docs -type f -size 0 returned 0; sandboxed npm run test:e2e was blocked before app logic by listen EPERM 0.0.0.0:3010; escalated npm run test:e2e passed 133/133.
+- Recommended next action: Action 702 - Reassess Audit Append Writer Dry-Run Result Contract Types.
+
+
+## Action 700 - Audit Append Writer Dry-Run Result Design
+
+- Created docs/execution-record-audit-append-writer-dry-run-result-design.md as a documentation-only design for a future no-write audit append writer dry-run result.
+- Defined the dry-run principle, future input/output shape, status and decision model, validation gates, blocked/invalid states, all-false authority flags, validator relationships, writer implementation relationship, production insert route relationship, dev-preview relationship, risks, and next action.
+- Reconfirmed dry-run result success is not audit write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, production insert success, or full workflow completion.
+- Reconfirmed no runtime code, dry-run implementation, dry-run contract types, audit writer, audit append implementation, audit route, route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, or migration application was added.
+- Validation: git diff --check passed; find docs -type f -size 0 returned 0.
+- Recommended next action: Action 701 - Create Audit Append Writer Dry-Run Result Contract Types.
+
+
+## Action 699 - Audit Append Writer Contract Validator Dev Preview Wiring Reassessment
+
+- Created docs/execution-record-audit-append-writer-contract-validator-dev-preview-wiring-reassessment.md as a documentation-only reassessment of the Action 698 dev-preview wiring.
+- Verified the fixture calls validateExecutionRecordAuditAppendWriterContract(...) with controlled fixture-only data and the preview displays status, design_only_do_not_write_audit, shape/security/schema/idempotency/evidence/no-write/dependency summaries, authority flags, blocked reasons, warnings, review items, and visible no-proof/no-write safety labels.
+- Verified the Action 698 documentation repair state: tracked docs were restored from HEAD with the Action 698 breadcrumb, untracked docs were restored with Action 698 repair notes, and no zero-byte docs remain.
+- Reconfirmed the wiring remains dev-gated, fixture-first, explicit-trigger, read-only, visually separate, and disconnected from audit writer execution, audit append execution, route calls, record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, notification execution, broker/order behavior, Avanza/browser behavior, and automatic mode.
+- Validation: git diff --check passed for Action 699.
+- Recommended next action: Action 700 - Create Audit Append Writer Dry-Run Result Design.
+
+
+## Action 698 - Audit Append Writer Contract Validator Dev Preview Integration
+
+- Integrated validateExecutionRecordAuditAppendWriterContract(...) into the dev-gated persistence validator integration fixture and preview.
+- The preview now displays a visually separate Audit Append Writer Contract Validator section with status, decision, summaries, authority flags, blocked reasons, warnings, review items, and visible no-proof/no-write safety labels.
+- This remains fixture-only, explicit-trigger, read-only, diagnostics/readiness-only: no audit writer execution, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond fixture diagnostics display, notification execution, broker/order behavior, Avanza/browser behavior, or automatic mode was added.
+- Reconfirmed contract validation success is not audit write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion; checklist/dev-preview/writer validator readiness remain not proof/write approval; all action authority flags remain false.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing Babel large-file note for app/trade-app.tsx; git diff --check passed; npm run test:e2e -- -g "contract validator" found no matching tests after the sandbox listen EPERM rerun; matching selector npm run test:e2e -- -g "audit append writer contract" passed 2/2; npm run test:e2e passed 133/133.
+- Recommended next action: Action 699 - Reassess Audit Append Writer Contract Validator Dev Preview Wiring.
+
 
 Last updated: Action 577
 
@@ -13254,3 +16168,2319 @@ Verification:
 Recommended next action:
 
 **Action 559 - Create Execution Record Candidate Builder Integration Adapter**
+
+## Action 718 - Audit Append Writer Dry-Run Execution Validator Dev Preview Wiring
+
+- Integrated the audit append writer dry-run execution validator into the dev-gated persistence integration preview using fixture-only data from the existing dry-run validator, writer validator, contract validator, audit event candidate, execution-record reference, evidence/provenance, idempotency, duplicate-prevention, proof-status, and authority metadata.
+- The preview now renders the validator status, decision, input/result validation summaries, simulated audit event/table/idempotency/evidence/server-only/no-write/dependency summaries, authority flags, blocked reasons, warnings, and review items.
+- Output remains diagnostics/readiness-only; a ready result may only mean design_only_do_not_write_audit and is not dry-run execution, audit writer execution, audit append execution, route approval, record creation, persistence/write approval, Supabase/localStorage write approval, security/server-only/schema/generated-types/migration/RLS proof, downstream approval, or workflow completion.
+- No dry-run execution, audit write, audit append, route call, execution-record creation, persistence/write, Supabase/localStorage write, stats/PnL update, trade mutation/reconciliation, rollback/correction, UI update beyond fixture diagnostics, notification, broker/order action, Avanza/browser action, automatic mode, type generation, migration application, or audit schema/table assumption was added.
+- All dry-run execution, audit/write/route/creation/persistence/Supabase/localStorage/stats/trade/rollback/UI/notification/broker/Avanza/automatic authority flags remain false; the dev preview remains explicit-trigger, read-only, visually separate, and fixture-first.
+- Validation target: tsc, lint, git diff --check, zero-byte docs check, full e2e, and focused dry-run execution e2e coverage.
+- Recommended next action: Action 719 - Reassess Audit Append Writer Dry-Run Execution Validator Dev Preview Wiring.
+
+## Action 719 - Audit Append Writer Dry-Run Execution Validator Dev Preview Wiring Reassessment
+
+- Created the documentation-only reassessment for the audit append writer dry-run execution validator dev-preview wiring.
+- Verified the fixture calls validateExecutionRecordAuditAppendWriterDryRunExecution(...) with controlled fixture-only data and stores the result for ready/review scenarios.
+- Verified the dev preview displays the Audit Append Writer Dry-Run Execution Validator section, status, decision, validation summaries, authority flags, blocked reasons, warnings, and review items.
+- Confirmed the preview remains dev-gated, fixture-first, explicit-trigger, read-only, visually separate, diagnostics-only, and disconnected from dry-run execution, audit writer execution, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, and automatic mode.
+- Confirmed no runtime code changes, refactor, behavior changes, dry-run execution, audit writer, route call, execution-record creation, persistence/write, Supabase/localStorage write, or audit append implementation were added.
+- Recommended next action: Action 720 - Create Audit Append Writer Dry-Run Execution Implementation Design.
+
+## Action 720 - Audit Append Writer Dry-Run Execution Implementation Design
+
+- Created the documentation-only implementation design for a future audit append writer dry-run execution function.
+- Defined the non-persistent simulation principle, future inputs, outputs, deterministic algorithm, blocked/invalid states, all-false authority model, validator relationship, audit writer relationship, production route relationship, dev preview relationship, future test strategy, risks, and next action.
+- Confirmed this action does not implement dry-run execution, audit writer execution, audit append, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit writes, stats/PnL updates, rollback/correction, trade mutation/reconciliation, UI updates, notifications, broker/order behavior, Avanza/browser behavior, automatic mode, type generation, migration application, or audit schema/table assumptions.
+- Documented that future dry-run execution success must not be interpreted as audit write approval, proof, route approval, persistence approval, downstream approval, or workflow completion.
+- Recommended next action: Action 721 - Create Audit Append Writer Dry-Run Execution Implementation Contract Types.
+
+## Action 721 - Audit Append Writer Dry-Run Execution Implementation Contract Types
+
+Action 721 added lib/execution-record-audit-append-writer-dry-run-execution-implementation-contract.ts as type-only/constants-only contract metadata for a future audit append writer dry-run execution implementation. The contract describes implementation input/result/status/decision/safety policy/authority flags/blocked reasons/warnings/review items and simulated audit payload, table-schema target, idempotency, duplicate-prevention, evidence provenance, server-only security, no-write/no-action, and dependency summaries.
+
+No dry-run execution implementation, audit writer logic, route calls, execution-record creation, audit append, persistence/write behavior, Supabase/localStorage write, stats/PnL update, trade mutation/reconciliation, rollback/correction, UI update, notification, broker/Avanza behavior, automatic mode, Supabase type generation, migration application, or schema/table assumption was added. Contract result success remains non-authoritative: it is not audit write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, or downstream approval.
+
+All action authority flags remain false. No zero-byte docs should remain after validation. Recommended next action: Action 722 - Reassess Audit Append Writer Dry-Run Execution Implementation Contract Types.
+
+## Action 722 - Audit Append Writer Dry-Run Execution Implementation Contract Types Reassessment
+
+Action 722 added docs/execution-record-audit-append-writer-dry-run-execution-implementation-contract-reassessment.md as a documentation-only reassessment of the Action 721 contract types. It verifies the contract remains type-only/constants-only, contract-only, dry-run-execution-implementation-contract-only, future-boundary-only, and disconnected from runtime dry-run execution, writer logic, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, audit append execution, downstream actions, broker/Avanza behavior, and automatic mode.
+
+The reassessment confirms contract result success is not audit write approval, audit append execution, route approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion. All action authority flags remain false.
+
+Remaining blockers are unchanged: audit schema/table proof, generated audit table types, migration proof, RLS/security proof, server-only/service-role/route-auth proof, writer implementation, dry-run execution implementation, production insert route, and production insert/write path remain absent or unproven. Recommended next action: Action 723 - Create Audit Append Writer Dry-Run Execution Implementation.
+
+## Action 723 - Audit Append Writer Dry-Run Execution Implementation
+
+Action 723 added lib/execution-record-audit-append-writer-dry-run-execution-implementation.ts with executeAuditAppendWriterDryRun as a pure deterministic dry-run simulation only. The implementation inspects validated contract inputs and returns a non-persistent would-write diagnostic result with simulated audit event payload, table/schema target, idempotency, duplicate-prevention, evidence/provenance, server-only/security dependency, no-write/no-action, and dependency summaries.
+
+No audit writer execution, audit append, audit route, production route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update, notification execution, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, migration application, or audit schema/table assumption was added. Ready-for-design-only remains design_only_do_not_write_audit and is not audit write approval, route approval, persistence/write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or full workflow completion.
+
+Focused e2e coverage was added for ready simulation output, deterministic summaries, all-false authority flags, missing prerequisite blockers, unsafe authority invalidation, and no write/route/Supabase/localStorage side effects. Remaining blockers are unchanged for real audit writes: audit schema/table proof, generated audit table types, migration proof, RLS/security proof, server-only/service-role/route-auth proof, audit writer implementation, production insert route, and production insert/write path remain absent or unproven.
+
+
+## Action 724 - Audit Append Writer Dry-Run Execution Implementation Reassessment
+
+Action 724 added docs/execution-record-audit-append-writer-dry-run-execution-implementation-reassessment.md as a documentation-only reassessment of executeAuditAppendWriterDryRun(...). The reassessment verifies the implementation remains pure, deterministic, non-persistent, diagnostics/readiness-only, and disconnected from audit writer execution, audit append execution, route calls, execution-record creation, persistence/write behavior, Supabase/localStorage writes, downstream actions, broker/Avanza behavior, and automatic mode.
+
+It confirms ready-for-design-only is design_only_do_not_write_audit and is not a real write, audit write approval, audit append execution, route approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema/table proof, generated-types proof, migration proof, RLS/security proof, downstream action approval, or full workflow completion. All action authority flags remain false, and remaining blockers for real audit writes are unchanged.
+
+Action 723 validation evidence remains: tsc passed, lint passed, git diff check passed, zero-byte docs check passed, sandbox e2e hit the known EPERM 0.0.0.0:3010 blocker before app logic, and escalated full e2e passed 139/139. Recommended next action: Action 725 - Integrate Audit Append Writer Dry-Run Execution Diagnostics into Dev Preview.
+
+
+## Action 725 - Audit Append Writer Dry-Run Execution Diagnostics Dev Preview Integration
+
+Action 725 integrated audit append writer dry-run execution diagnostics into the existing dev-gated persistence validator integration preview. The fixture now shapes fixture-only dry-run execution implementation input from existing validator, contract, dry-run, audit event, execution-record reference, evidence/provenance, idempotency, duplicate-prevention, proof-status, risk-status, manual-review, and downstream-authority artifacts, then calls executeAuditAppendWriterDryRun(...) for display-only diagnostics.
+
+The preview now displays a visually separate Audit Append Writer Dry-Run Execution section with status, decision recommendation, deterministic simulated audit event payload, table/schema target, idempotency, duplicate-prevention, evidence/provenance, server-only/security dependency, no-write/no-action safety, dependency summary, authority flags, blocked reasons, warnings, and review items. The preview explicitly states the dry-run execution result remains non-persistent would-write diagnostics only and is not real write, audit write approval, audit append execution, route approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or workflow completion.
+
+All action authority flags remain false. No real dry-run against production data, audit writer execution, audit append execution, route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, stats/PnL update, rollback/correction, trade mutation/reconciliation, source-of-truth UI update, notification, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, migration application, or audit schema/table assumption was added. Recommended next action: Action 726 - Reassess Audit Append Writer Dry-Run Execution Diagnostics Dev Preview Wiring.
+
+
+### Action 725 Validation Results
+
+Validation for Action 725: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed; git diff --check passed; find docs -type f -size 0 passed with no output. Sandboxed npm run test:e2e and sandboxed npm run test:e2e -- -g "dry-run execution" both failed before app test logic with the known EPERM 0.0.0.0:3010 web-server bind blocker. Escalated npm run test:e2e passed 139/139, and escalated npm run test:e2e -- -g "dry-run execution" passed 5/5.
+
+
+## Action 726 - Audit Append Writer Dry-Run Execution Diagnostics Dev Preview Wiring Reassessment
+
+Action 726 added docs/execution-record-audit-append-writer-dry-run-execution-diagnostics-dev-preview-wiring-reassessment.md as a documentation-only reassessment of the Action 725 dev-preview wiring. The reassessment verifies that the persistence validator integration dev preview displays executeAuditAppendWriterDryRun(...) output from fixture-only data, remains dev-gated, explicit-trigger, read-only, visually separate, and non-persistent diagnostics-only.
+
+It confirms the preview displays dry-run execution implementation status, design_only_do_not_write_audit decision, deterministic simulated audit event payload, table/schema target, idempotency, duplicate-prevention, evidence/provenance, server-only/security dependency, no-write/no-action safety, dependency summary, authority flags, blocked reasons, warnings, and review items. It also confirms visible safety labels state the dry-run execution result is not real write, audit write approval, audit append execution, route approval, record creation approval, persistence/write approval, Supabase/localStorage write approval, security proof, server-only proof, schema proof, generated-types proof, migration proof, RLS/security proof, downstream approval, or workflow completion.
+
+No runtime behavior was changed for Action 726. No real dry-run execution against real data, audit writer execution, audit append, route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, stats/PnL update, rollback/correction, trade mutation/reconciliation, notification, broker/order behavior, Avanza/browser behavior, automatic mode, type generation, migration application, or audit schema/table assumption was added. Recommended next action: Action 727 - Create Audit Writer Proof Artifact Checklist.
+
+
+## Action 727 - Audit Writer Proof Artifact Checklist
+
+Action 727 added docs/execution-record-audit-writer-proof-artifact-checklist.md as a documentation-only checklist for proof artifacts required before any real audit writer, audit route, audit append, production insert route link, or write path can be implemented. The checklist inventories required evidence for audit schema/table proof, migration proof, generated audit table types, remote environment verification, RLS/security, service-role/server-only boundaries, client-bundle scans, route/auth boundaries, idempotency and duplicate prevention, evidence/provenance, logging/error safety, downstream no-authority, no broker/Avanza/automatic behavior, rollback/unknown-status handling, manual review, dry-run chain limits, and production insert route separation.
+
+The checklist is not proof by itself. It explicitly states that dry-run/dev-preview diagnostics are not proof, are not write approval, and cannot replace schema, security, route, idempotency, or remote environment evidence.
+
+No runtime behavior was changed for Action 727. No audit writer, audit route, route call, production route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, migration application, or audit schema/table assumption was added. Recommended next action: Action 728 - Reassess Audit Writer Proof Artifact Checklist.
+
+
+## Action 728 - Audit Writer Proof Artifact Checklist Reassessment
+
+Action 728 added docs/execution-record-audit-writer-proof-artifact-checklist-reassessment.md as a documentation-only reassessment of the Action 727 proof artifact checklist. The reassessment verifies that the checklist remains documentation-only, is not proof by itself, and only inventories proof requirements for audit schema/table design, migration, generated audit table types, remote environment, RLS/security, service-role/server-only boundaries, client-bundle scans, route/auth boundaries, idempotency and duplicate prevention, evidence/provenance, logging/error safety, downstream no-authority, no broker/Avanza/automatic behavior, rollback/unknown-status handling, manual review, dry-run chain limits, production insert route separation, blocker registry, and reviewer/date/blocker evidence fields.
+
+The reassessment confirms the checklist does not create schema proof, migration proof, generated types proof, RLS proof, server-only proof, service-role proof, route/auth proof, idempotency proof, duplicate-prevention proof, evidence/provenance proof, downstream no-authority proof, or dry-run/dev-preview proof. Dry-run diagnostics and dev-preview visibility remain not proof and not write approval.
+
+No runtime behavior was changed for Action 728. No audit writer, audit route, route call, production route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, Supabase type generation, migration application, or audit schema/table assumption was added. Recommended next action: Action 729 - Create Audit Schema/Table Design.
+
+
+## Action 729 - Audit Schema/Table Design
+
+Action 729 added docs/execution-record-audit-schema-table-design.md as a documentation-only design for a future audit writer table. The design proposes public.execution_record_audit_events as a future append-only audit event table and documents proposed table identity, columns, constraints/indexes, idempotency and duplicate-prevention model, evidence/provenance model, RLS/security considerations, generated type requirements, migration requirements, relationships to the audit writer, production insert route, and dry-run diagnostics, open questions, remaining proof artifacts, risks, and next action.
+
+The design is not schema proof, does not prove the table exists remotely, does not create or apply a migration, does not generate Supabase types, and does not approve any audit writer, route, route call, write path, audit append, persistence/write behavior, Supabase/localStorage write, downstream action, broker/Avanza behavior, or automatic mode. Dry-run/dev-preview diagnostics may reference the design only as a hypothetical target and remain not proof or write approval.
+
+No runtime behavior was changed for Action 729. No migration file, migration application, generated types, audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or remote schema assumption was added. Recommended next action: Action 730 - Reassess Audit Schema/Table Design.
+
+
+## Action 730 - Audit Schema/Table Design Reassessment
+
+Action 730 added docs/execution-record-audit-schema-table-design-reassessment.md as a documentation-only reassessment of the Action 729 audit schema/table design. The reassessment verifies that docs/execution-record-audit-schema-table-design.md remains a non-proof design artifact for proposed public.execution_record_audit_events and covers table identity, the full column matrix, constraints/indexes, idempotency and duplicate-prevention, evidence/provenance, RLS/security considerations, generated type requirements, migration requirements, relationships to the audit writer, production insert route, and dry-run diagnostics, open questions, remaining proof gaps, and risks.
+
+The reassessment confirms the design is not schema proof, not remote table proof, does not create or apply a migration, does not generate types, does not implement writer/route/write behavior, and does not close migration, generated-type, RLS/security, server-only/service-role, route/auth, idempotency, duplicate-prevention, or evidence/provenance proof gaps.
+
+No runtime behavior was changed for Action 730. No migration file, migration application, generated types, audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or remote schema assumption was added. Recommended next action: Action 731 - Create Audit Table Migration Design.
+
+
+## Action 731 - Audit Table Migration Design
+
+Action 731 added docs/execution-record-audit-table-migration-design.md as a documentation-only migration design for future public.execution_record_audit_events. The design translates the Action 729 schema/table design into proposed migration identity, intended operations, a clearly marked draft/non-applied SQL skeleton, idempotency and duplicate-prevention migration details, evidence/provenance fields, RLS/security considerations, generated type requirements, remote verification requirements, rollback/backout considerations, relationships to the audit writer, dry-run diagnostics, and production insert route, open questions, remaining proof artifacts, risks, and next action.
+
+The migration design is not a migration file, is not migration proof, is not schema proof, does not prove the table exists remotely, does not apply anything, and does not generate Supabase types. Dry-run/dev-preview diagnostics may reference the proposed migration target only as hypothetical and remain not migration proof or write approval.
+
+No runtime behavior was changed for Action 731. No migration file, migration application, generated types, audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or remote schema assumption was added. Recommended next action: Action 732 - Reassess Audit Table Migration Design.
+
+
+## Action 732 - Audit Table Migration Design Reassessment
+
+Action 732 added docs/execution-record-audit-table-migration-design-reassessment.md as a documentation-only reassessment of the Action 731 audit table migration design. The reassessment verifies that docs/execution-record-audit-table-migration-design.md remains a non-proof migration-design artifact for future public.execution_record_audit_events and covers proposed migration identity, path pattern, target schema/table, dependency on execution_records, intended SQL operations, draft SQL skeleton, idempotency and duplicate-prevention design, evidence/provenance design, RLS/security considerations, generated type requirements, remote verification requirements, rollback/backout considerations, relationships to the audit writer, dry-run diagnostics, and production insert route, open questions, proof gaps, and risks.
+
+The reassessment confirms the migration design is not a migration file, not migration proof, not schema proof, not remote table proof, does not create or apply a migration, does not generate types, does not implement writer/route/write behavior, and does not close migration, generated-type, RLS/security, server-only/service-role, route/auth, idempotency, duplicate-prevention, or evidence/provenance proof gaps.
+
+No runtime behavior was changed for Action 732. No migration file, migration application, generated types, audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit write, audit append execution, stats/PnL update, rollback/correction, trade mutation/reconciliation, UI update beyond existing diagnostics display, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or remote schema assumption was added. Recommended next action: Action 733 - Create Audit Table Migration File.
+
+
+## Action 733 - Audit Table Migration File
+
+Action 733 added supabase/migrations/20260615000000_create_execution_record_audit_events.sql as the local Supabase migration file for future public.execution_record_audit_events. The migration creates the audit event table with execution_record_id, event type/source/status fields, JSONB event/evidence/metadata payloads, actor/source/request/trace fields, idempotency and duplicate-prevention fields, timestamps, schema/writer version fields, non-empty checks for required text values, event_status allowlist, idempotency uniqueness, partial duplicate-prevention uniqueness, execution_record_id/event_type/event_status/created_at/source_fingerprint indexes, FK reference to public.execution_records(id), and safety comments.
+
+The migration file is local only and was not applied. Remote table proof remains absent, generated audit table types were not generated, RLS/security/server-only/service-role proof remains missing, and no audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write behavior, audit append implementation, stats/PnL update, rollback/correction, trade mutation/reconciliation, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or remote schema assumption was added. The migration intentionally creates no permissive client write policy and leaves RLS/policy proof as a blocker before writer/route implementation.
+
+Validation requested for Action 733 includes tsc, lint, git diff check, zero-byte docs check, and e2e. Recommended next action: Action 734 - Reassess Audit Table Migration File.
+
+
+## Action 733 Validation Results
+
+Action 733 validation completed after creating the local migration file supabase/migrations/20260615000000_create_execution_record_audit_events.sql. No migration was applied and no Supabase types were generated.
+
+Validation results:
+
+- ./node_modules/.bin/tsc --noEmit: passed.
+- npm run lint: passed with the existing Babel large-file note for app/trade-app.tsx.
+- git diff --check: passed.
+- find docs -type f -size 0: passed with no output.
+- npm run test:e2e: initial sandbox run failed before app logic with listen EPERM on 0.0.0.0:3010; escalated rerun passed 139/139.
+
+
+## Action 734 - Audit Table Migration File Reassessment
+
+Action 734 added docs/execution-record-audit-table-migration-file-reassessment.md as a documentation-only reassessment of the local audit table migration file supabase/migrations/20260615000000_create_execution_record_audit_events.sql. The reassessment verifies the migration file creates public.execution_record_audit_events locally with the expected columns, JSONB payloads, FK to public.execution_records(id), idempotency uniqueness, partial duplicate-prevention uniqueness, indexes, status/check constraints, safety comments, no permissive client write policies, and RLS/policy proof left as a blocker.
+
+The reassessment confirms the migration file exists locally only, was not applied, does not prove the remote table exists, does not generate audit table types, does not prove RLS/security/server-only/service-role/route-auth safety, and does not create audit writer, audit route, production route, route call, insert route call, execution-record creation, persistence/write behavior, Supabase/localStorage write behavior, audit append implementation, stats/PnL update, rollback/correction, trade mutation/reconciliation, notification, broker/order behavior, Avanza/browser behavior, automatic mode, or downstream authority. Dry-run/dev-preview diagnostics remain not proof.
+
+Action 733 validation evidence remains: tsc passed, lint passed, git diff check passed, zero-byte docs check passed, sandbox e2e hit the known EPERM 0.0.0.0:3010 blocker before app logic, and escalated full e2e passed 139/139. Recommended next action: Action 735 - Create Audit Table Migration Application Verification Plan.
+
+## Action 735 - Audit Table Migration Application Verification Plan
+
+- Added docs/execution-record-audit-table-migration-application-verification-plan.md as the documentation-only plan for future verification of supabase/migrations/20260615000000_create_execution_record_audit_events.sql.
+- The plan defines preconditions, future/manual application commands, remote table verification, RLS/security verification, generated audit type follow-up, rollback/failure handling, evidence artifacts with reviewer/date/pass-fail/blocker fields, safety boundaries, remaining blockers, risks, and verification.
+- No migration was applied, no Supabase mutation commands were run, no generated audit types were produced, no remote table/RLS/security proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 736 - Reassess Audit Table Migration Application Verification Plan.
+
+## Action 736 - Audit Table Migration Application Verification Plan Reassessment
+
+- Added docs/execution-record-audit-table-migration-application-verification-plan-reassessment.md as the documentation-only reassessment of the Action 735 audit table migration application verification plan.
+- The reassessment verifies the plan remains future/manual and non-proof, covers preconditions, command planning, remote table inspection, RLS/security checks, generated audit type follow-up, failure/rollback handling, evidence artifact fields, safety boundaries, remaining blockers, risks, and a concrete next action.
+- No migration was applied, no Supabase mutation commands were run, no generated audit types were created, no remote table/RLS/security proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 737 - Create Audit Table Generated Types Plan.
+
+## Action 737 - Audit Table Generated Types Plan
+
+- Added docs/execution-record-audit-table-generated-types-plan.md as the documentation-only plan for future Supabase TypeScript type generation and verification for public.execution_record_audit_events after the audit migration is applied and proven.
+- The plan defines preconditions, future/manual generation commands, expected Row/Insert/Update/Relationships shape, verification checklist, type drift/blocker rules, relationships to audit writer, RLS/security, and migration proof, evidence artifacts, safety boundaries, risks, and next action.
+- No migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no generated audit type proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 738 - Reassess Audit Table Generated Types Plan.
+
+## Action 738 - Audit Table Generated Types Plan Reassessment
+
+- Added docs/execution-record-audit-table-generated-types-plan-reassessment.md as the documentation-only reassessment of the Action 737 generated types plan for public.execution_record_audit_events.
+- The reassessment verifies the plan remains future/manual and non-proof, covers preconditions, type-generation command planning, expected Row/Insert/Update/Relationships shape, verification checklist, drift/blocker rules, writer/RLS/security/migration relationships, evidence artifacts, safety boundaries, remaining blockers, risks, and a concrete next action.
+- No migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no generated audit type proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 739 - Create RLS/Security Policy Design.
+
+## Action 739 - RLS/Security Policy Design
+
+- Added docs/execution-record-audit-rls-security-policy-design.md as the documentation-only RLS/security policy design for the future public.execution_record_audit_events table and audit writer path.
+- The design defines desired security posture, RLS stance options, proposed policy model, server-only/service-role requirements, route/auth requirements, verification requirements, evidence artifacts, relationships to migration/generated types/audit writer/production insert route, remaining blockers, risks, and next action.
+- No RLS policies were created or applied, no migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS/security/server-only/service-role/route-auth proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 740 - Reassess RLS/Security Policy Design.
+
+## Action 740 - RLS/Security Policy Design Reassessment
+
+- Added docs/execution-record-audit-rls-security-policy-design-reassessment.md as the documentation-only reassessment of the Action 739 RLS/security policy design for public.execution_record_audit_events.
+- The reassessment verifies the design remains non-proof and covers desired security posture, RLS stance options, proposed policy model, server-only/service-role requirements, route/auth requirements, verification/evidence coverage, relationships, remaining blockers, risks, and a concrete next action.
+- No RLS policies were created or applied, no migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS/security/server-only/service-role/route-auth proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 741 - Create Server-Only Service Role Proof Plan.
+
+## Action 741 - Server-Only Service Role Proof Plan
+
+- Added docs/execution-record-audit-server-only-service-role-proof-plan.md as the documentation-only proof plan for future server-only/service-role usage by an audit writer or route.
+- The plan defines server-only boundary requirements, service-role secret requirements, writer/route placement rules, future verification commands/artifacts, evidence checklist, blocker rules, relationships to RLS/security design, audit writer, dev preview/dry-run, and production insert route, remaining blockers, risks, and next action.
+- No service-role usage was implemented, no service-role client was created, no migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no server-only/service-role/route-auth/RLS proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 742 - Reassess Server-Only Service Role Proof Plan.
+
+## Action 742 - Server-Only Service Role Proof Plan Reassessment
+
+- Added docs/execution-record-audit-server-only-service-role-proof-plan-reassessment.md as the documentation-only reassessment of the Action 741 server-only service-role proof plan.
+- The reassessment verifies the proof plan remains non-proof and covers server-only boundary requirements, service-role secret requirements, writer/route placement rules, verification artifact coverage, evidence checklist, blocker rules, relationships, remaining blockers, risks, and a concrete next action.
+- No service-role usage was implemented, no service-role client was created, no migration was applied, no Supabase mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no server-only/service-role/route-auth/RLS proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 743 - Create Audit Table Migration Application Checklist.
+
+## Action 743 - Audit Table Migration Application Checklist
+
+- Added docs/execution-record-audit-table-migration-application-checklist.md as the documentation-only future manual checklist for applying and verifying supabase/migrations/20260615000000_create_execution_record_audit_events.sql.
+- The checklist includes pre-flight checks, do-not-run warnings, future application steps, remote verification, RLS/security checks, generated types checks, failure/rollback checks, evidence artifact table, safety boundaries, remaining blockers, risks, and next action.
+- No migration was applied, no Supabase migration/mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no remote table/generated types/RLS/server-only proof is claimed, and no service-role code, writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 744 - Reassess Audit Table Migration Application Checklist.
+
+## Action 744 - Audit Table Migration Application Checklist Reassessment
+
+- Added docs/execution-record-audit-table-migration-application-checklist-reassessment.md as the documentation-only reassessment of the Action 743 audit table migration application checklist.
+- The reassessment verifies the checklist remains future/manual and non-proof, covers pre-flight, application, remote verification, RLS/security, generated types, failure/rollback, evidence artifacts, safety boundaries, remaining blockers, risks, and a concrete next action.
+- No migration was applied, no Supabase migration/mutation commands were run, no type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no remote table/generated types/RLS/server-only proof is claimed, and no service-role code, writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 745 - Create Route/Auth Boundary Proof Plan.
+
+## Action 745 - Route/Auth Boundary Proof Plan
+
+- Added docs/execution-record-audit-route-auth-boundary-proof-plan.md as the documentation-only proof plan for future audit route/auth boundaries before any audit route can accept requests or trigger writer behavior.
+- The plan defines desired route/auth posture, route boundary requirements, authentication and authorization requirements, payload validation, service-role boundaries, no-downstream-authority requirements, verification artifacts, evidence checklist, blocker rules, relationships to server-only/service-role proof, RLS/security, audit writer, and production insert route, remaining blockers, risks, and next action.
+- No route was implemented, no writer/write path was created, no migration was applied, no Supabase mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no route/auth/server-only/service-role/RLS proof is claimed, and no service-role code, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 746 - Reassess Route/Auth Boundary Proof Plan.
+
+## Action 746 - Route/Auth Boundary Proof Plan Reassessment
+
+- Added docs/execution-record-audit-route-auth-boundary-proof-plan-reassessment.md as the documentation-only reassessment of the Action 745 route/auth boundary proof plan.
+- The reassessment verifies the plan remains non-proof and covers route/auth posture, route boundaries, authentication, authorization, payload validation, service-role boundaries, no-downstream-authority, verification artifacts, evidence checklist, blocker rules, relationships to server-only/service-role proof, RLS/security, audit writer, and production insert route, remaining blockers, risks, and next action.
+- No route was implemented, no writer/write path was created, no route calls were added, no migration was applied, no Supabase mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no route/auth/server-only/service-role/RLS proof is claimed, and no service-role code, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 747 - Create RLS Policy Migration Design.
+
+## Action 747 - RLS Policy Migration Design
+
+- Added docs/execution-record-audit-rls-policy-migration-design.md as the documentation-only design for a future RLS policy migration for public.execution_record_audit_events.
+- The design defines desired RLS stance, future migration identity, draft/non-executed SQL skeleton, proposed restrictive policy model, verification requirements, evidence artifacts, rollback/backout considerations, relationships to audit table migration, generated types, server-only/service-role proof, and route/auth proof, remaining blockers, risks, and next action.
+- No RLS policy migration file was created, no RLS policies were created/applied, no migration was applied, no Supabase mutation/type-generation commands were run, no generated type files were modified, no RLS/security/route-auth/server-only/service-role/migration/generated-types proof is claimed, and no service-role code, writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 748 - Reassess RLS Policy Migration Design.
+
+## Action 748 - RLS Policy Migration Design Reassessment
+
+- Added docs/execution-record-audit-rls-policy-migration-design-reassessment.md as the documentation-only reassessment of the Action 747 RLS policy migration design.
+- The reassessment verifies the design remains non-proof and covers desired RLS stance, future migration identity, draft/non-executed SQL skeleton, proposed restrictive policy model, verification requirements, evidence artifacts, rollback/backout considerations, relationships to audit table migration, generated types, server-only/service-role proof, and route/auth proof, remaining blockers, risks, and next action.
+- No RLS policy migration file was created, no RLS policies were created/applied, no migration was applied, no Supabase mutation/type-generation commands were run, no generated type files were modified, no RLS/security/route-auth/server-only/service-role/migration/generated-types proof is claimed, and no service-role code, writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 749 - Create RLS Policy Migration File.
+
+## Action 749 - RLS Policy Migration File
+
+- Added supabase/migrations/20260615001000_enable_rls_execution_record_audit_events.sql as the local RLS policy migration file for public.execution_record_audit_events.
+- The migration enables row level security and intentionally creates no permissive anon/authenticated/client insert, update, delete, or select policies; it grants no client/browser write access and creates no writer, route, function, trigger, service-role client, or runtime write path.
+- The migration was not applied, no Supabase migration/mutation/type-generation commands were run, no generated type files were modified, no RLS/security/route-auth/server-only/service-role/migration/generated-types proof is claimed, and no service-role code, writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Validation: ./node_modules/.bin/tsc --noEmit passed; npm run lint passed with the existing large app/trade-app.tsx Babel note; git diff --check passed; find docs -type f -size 0 passed with no output; sandboxed npm run test:e2e failed before app logic with listen EPERM on 0.0.0.0:3010; escalated npm run test:e2e passed 139/139.
+- Recommended next action: Action 750 - Reassess RLS Policy Migration File.
+## Action 750 - RLS Policy Migration File Reassessment
+
+- Added docs/execution-record-audit-rls-policy-migration-file-reassessment.md as the documentation-only reassessment of the local RLS policy migration file supabase/migrations/20260615001000_enable_rls_execution_record_audit_events.sql.
+- The reassessment verifies the file exists locally, targets public.execution_record_audit_events, enables row level security, creates no permissive anon/authenticated/client write or read policies, grants no client/browser access, creates no writer/route functions, adds no service-role code, and preserves service-role/server-only, route/auth, generated-types, migration-application, and RLS-proof blockers.
+- The RLS migration file remains local and unapplied; no Supabase migration/mutation/type-generation commands were run, no generated type files were modified, no RLS/security/route-auth/server-only/service-role/migration/generated-types proof is claimed, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 751 - Create Audit Writer Implementation Readiness Matrix.
+
+## Action 751 - Audit Writer Implementation Readiness Matrix
+
+- Added docs/execution-record-audit-writer-implementation-readiness-matrix.md as the documentation-only readiness matrix for any future execution-record audit writer implementation.
+- The matrix consolidates proof gates for schema/table design, table migration file, migration application proof, remote table proof, generated audit table types, RLS policy migration file, RLS application and remote policy proof, anon/client denial proof, server-only/service-role proof, route/auth proof, idempotency, duplicate prevention, evidence/provenance, payload validation, downstream no-authority, audit writer design, audit route contract design, production insert separation, broker/Avanza no-action, and automatic-mode disabled proof.
+- Current readiness is explicitly blocked for audit writer implementation, audit route implementation, and production write-path implementation because required proof artifacts remain missing. No migration was applied, no migration file was edited, no Supabase migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no service-role code/client was added, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 752 - Reassess Audit Writer Implementation Readiness Matrix.
+
+## Action 752 - Audit Writer Implementation Readiness Matrix Reassessment
+
+- Added docs/execution-record-audit-writer-implementation-readiness-matrix-reassessment.md as the documentation-only reassessment of docs/execution-record-audit-writer-implementation-readiness-matrix.md.
+- The reassessment verifies the matrix remains documentation-only, non-proof, no-runtime, and no-write; verifies audit writer implementation readiness, audit route implementation readiness, and production write-path readiness are blocked; and confirms missing proof artifacts remain the blocker reason.
+- It verifies readiness gate coverage, proof dependency order, critical blockers, false-positive readiness traps, downstream authority protections, relationships to existing docs, risk posture, and the next proof-producing action. No migration was applied, no migration file was edited, no Supabase migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no service-role code/client was added, and no writer, route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 753 - Apply Audit Table Migration Manually.
+
+## Action 753 - Audit Table Migration Application Blocked
+
+- Added docs/execution-record-audit-table-migration-application-proof.md as the Action 753 migration-application proof/blocker record.
+- Action 753 was blocked before any Supabase command or migration application because the intended Supabase project/environment was not explicitly confirmed by the operator; target environment and approval remain required before migration status, migration apply, or remote verification commands may run.
+- No migration was applied, no migration file was edited, no Supabase migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, no proof artifacts were generated under docs/proofs, and remote table/RLS/policy proof remains missing.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 754 - Resolve Audit Table Migration Application Blocker.
+
+## Action 754 - Audit Table Migration Application Blocker Resolution
+
+- Added docs/execution-record-audit-table-migration-application-blocker-resolution.md as the documentation-only blocker-resolution checklist for Action 753.
+- The blocker remains unresolved because no explicit Supabase project name, project ref, environment type, database target, approving operator, approval timestamp, backup/snapshot decision, or rollback/backout acknowledgement was provided in the current operator context.
+- No migration was applied, no migration file was edited, no Supabase migration/status/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, and no remote table/RLS/policy proof or docs/proofs command artifacts were created.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 755 - Request/Record Audit Table Migration Target Approval.
+
+## Action 755 - Audit Table Migration Target Approval Record
+
+- Added docs/execution-record-audit-table-migration-target-approval-record.md as the documentation-only target approval record/template for the audit table migration.
+- The approval record keeps migration application blocked because Supabase project name/ref, environment type, database target, approving operator, approval timestamp, backup/snapshot decision, rollback/backout acknowledgement, command operator, verification reviewer, and exact approval statement are not recorded.
+- No migration was applied, no migration file was edited, no Supabase status/migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, and no remote table/RLS/policy proof or docs/proofs command artifacts were created.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 756 - Provide Audit Table Migration Target Approval.
+
+## Action 756 - Audit Table Migration Target Approval Re-Check
+
+- Updated docs/execution-record-audit-table-migration-target-approval-record.md with an Action 756 approval re-check.
+- Approval remains blocked because Supabase project name/ref, environment type, database target, approving operator, approval timestamp, backup/snapshot decision, rollback/backout acknowledgement, command operator, verification reviewer, and the exact target-specific approval statement were not provided in the current operator context.
+- No migration was applied, no migration file was edited, no Supabase status/migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, and no remote table/RLS/policy proof or docs/proofs command artifacts were created.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 757 - Provide Missing Audit Table Migration Target Approval Fields.
+
+## Action 757 - Missing Audit Table Migration Target Approval Fields
+
+- Updated docs/execution-record-audit-table-migration-target-approval-record.md with an Action 757 missing-field re-check and copyable operator approval request template.
+- Approval remains blocked because Supabase project name/ref, environment type, database target, approving operator, approval timestamp, backup/snapshot decision, rollback/backout acknowledgement, command operator, verification reviewer, and exact target-specific approval statement are still missing from the current operator context.
+- No migration was applied, no migration file was edited, no Supabase status/migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, and no remote table/RLS/policy proof or docs/proofs command artifacts were created.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 758 - Record Audit Table Migration Target Approval From Operator.
+
+## Action 758 - Audit Table Migration Target Approval Recording Attempt
+
+- Updated docs/execution-record-audit-table-migration-target-approval-record.md with an Action 758 operator approval recording attempt.
+- Approval remains blocked because the current operator context still does not provide Supabase project name/ref, environment type, database target, approving operator, approval timestamp, backup/snapshot decision, rollback/backout acknowledgement, command operator, verification reviewer, or the exact target-specific approval statement.
+- No migration was applied, no migration file was edited, no Supabase status/migration/mutation/type-generation commands were run, no generated type files were modified, no RLS policies were created/applied, and no remote table/RLS/policy proof or docs/proofs command artifacts were created.
+- No service-role code/client, audit writer, audit route, route call, insert path, execution-record creation, persistence/write behavior, Supabase/localStorage write, audit append, stats/PnL update, rollback/correction, trade mutation, UI notification, broker behavior, Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 759 - Provide Complete Audit Table Migration Approval.
+
+## Action 759 - Complete Audit Table Migration Approval
+
+- Recorded complete operator approval for audit table migrations `20260615000000_create_execution_record_audit_events.sql` and `20260615001000_enable_rls_execution_record_audit_events.sql` targeting Supabase project `Trade`, project ref `ekdyopdrrkphlrsilyoo`, staging environment, and hosted Supabase Postgres database for Ture staging.
+- Updated docs/execution-record-audit-table-migration-target-approval-record.md and docs/execution-record-audit-table-migration-application-proof.md.
+- Approval is now recorded, including operator, timestamp, backup/snapshot decision, rollback/backout acknowledgement, expected command operator, verification reviewer, and exact approval statement.
+- Migration application did not proceed because the current execution environment lacks migration-capable tooling/credentials: no Supabase CLI, no local Supabase project link, no cached Supabase auth, no `psql`, no DB URL/Postgres password/service-role key/Supabase access token, and no local `pg`/`postgres` Node driver.
+- No migration was applied, no Supabase migration/status/mutation/type-generation command was executed, no remote table/RLS/policy proof was produced, no generated types were modified, and no writer/route/write-path/runtime behavior was added.
+- Recommended next action: Action 760 - Resolve Audit Table Migration Tooling Access Blocker.
+
+## Action 760 - Audit Table Migration Tooling Access Blocker Resolution
+
+- Added docs/execution-record-audit-table-migration-tooling-access-blocker-resolution.md as the documentation-only blocker-resolution plan for migration tooling/access.
+- The plan records that Action 759 approval is complete for Supabase project `Trade`, project ref `ekdyopdrrkphlrsilyoo`, staging environment, and Hosted Supabase Postgres database for Ture staging, but migration application remains blocked.
+- It compares acceptable migration-capable paths and recommends Supabase CLI availability with explicit login/token, explicit project link to `ekdyopdrrkphlrsilyoo`, status-before capture, operator confirmation of the exact apply command, status-after capture, and remote schema/RLS/policy proof.
+- No migration was applied, no Supabase or `psql` command was run, no migration file or generated type file was modified, no proof artifact was created, and no service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 761 - Install/Configure Supabase Migration Tooling.
+
+## Action 761 - Supabase Migration Tooling Configuration Proof
+
+- Added docs/execution-record-audit-table-migration-tooling-configuration-proof.md as the documentation-only tooling inspection record.
+- Non-mutating inspection found no Supabase CLI/version, no `.supabase` project link, no linked project ref, no cached Supabase auth directory, no `psql`, and no Node Postgres drivers `pg` or `postgres`.
+- Both approved migration files are present locally, but migration-capable path status remains blocked.
+- No migration was applied, no remote SQL was run, no Supabase type generation was run, no secret was requested/printed/committed, `.env.local` was not modified, no proof artifact was created, and no service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 762 - Complete Supabase CLI Auth/Link Setup.
+
+## Action 762 - Supabase CLI Auth/Link Setup Attempt
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the Action 762 setup attempt/status.
+- Non-mutating local checks found Homebrew 5.1.14 and npm 10.9.2 available, but Supabase CLI remains unavailable; pnpm, `.supabase` link, cached Supabase auth, `psql`, and Node Postgres drivers `pg`/`postgres` remain absent.
+- Install/link was not performed because no explicit operator-approved Supabase CLI install method was provided, and linking requires installed CLI plus explicit project-link approval for `ekdyopdrrkphlrsilyoo`.
+- No migration was applied, no `supabase db push` command was run, no remote SQL was run, no Supabase type generation was run, no secret was requested/printed/committed, `.env.local` was not modified, no proof artifact was created, and no service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 763 - Install Supabase CLI Locally.
+
+## Action 763 - Install Supabase CLI Locally
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the operator-approved Homebrew Supabase CLI install result.
+- Installed Supabase CLI via `brew install supabase`; verified `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Homebrew formula version is `supabase 2.107.0`.
+- A sandboxed `supabase --version` failed because the CLI attempted to create `/Users/willysimonsson/.supabase`; an escalated non-mutating `/opt/homebrew/bin/supabase --version` succeeded.
+- `.supabase` project link remains absent; `~/.supabase/access-token` and `~/.supabase/config.toml` were absent after the version check.
+- No Supabase login, project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, secret request/printing/commit, `.env.local` modification, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 764 - Authenticate Supabase CLI.
+
+## Action 764 - Authenticate Supabase CLI
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the CLI auth readiness check.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Did not run `supabase login` because no safe operator-present interactive login path was available in this turn.
+- Auth remains blocked: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent; `.supabase` project link remains absent.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, secret request/printing/commit, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 765 - Complete Operator Supabase CLI Login.
+
+## Action 765 - Complete Operator Supabase CLI Login
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the CLI auth attempt/status.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Did not run `supabase login` because no operator-present interactive login path was available in this turn.
+- Auth remains blocked: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent; `.supabase` project link remains absent.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, secret request/printing/commit, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 766 - Complete Operator Supabase CLI Login.
+
+## Action 766 - Complete Operator Supabase CLI Login
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the CLI auth attempt/status.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Did not run `supabase login` because no operator-present interactive login path was available in this turn.
+- Auth remains blocked: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent; `.supabase` project link remains absent.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, secret request/printing/commit, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 767 - Complete Operator Supabase CLI Login.
+
+## Action 767 - Complete Operator Supabase CLI Login
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the CLI auth attempt/status.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Did not run `supabase login` because no operator-present interactive login path was available in this turn.
+- Auth remains blocked: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent; `.supabase` project link remains absent.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, secret request/printing/commit, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 768 - Complete Operator Supabase CLI Login.
+
+## Action 768 - Verify Supabase CLI Auth And Prepare Project Link
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the Action 768 auth verification.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Auth remains absent by non-secret indicators: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent.
+- `.supabase` project link remains absent.
+- No token values were printed or committed.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 769 - Complete Operator Supabase CLI Login.
+
+## Action 769 - Verify Supabase CLI Auth After Operator Login
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the Action 769 auth verification.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Auth remains absent by non-secret indicators: `~/.supabase/access-token` and `~/.supabase/config.toml` are absent.
+- `.supabase` project link remains absent.
+- No token values were printed or committed.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 770 - Complete Operator Supabase CLI Login.
+
+## Action 770 - Verify Supabase CLI Auth After Operator Login
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the Action 770 auth verification.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Local token/config files remain absent at the checked paths, but `supabase projects list` succeeded as a non-mutating authenticated read.
+- The authenticated read showed project `Trade` with ref `ekdyopdrrkphlrsilyoo` and `linked:false`.
+- No token values were printed or committed.
+- No Supabase project link, migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 771 - Link Supabase Project.
+
+## Action 771 - Link Supabase Project
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with the Action 771 link result.
+- Ran `supabase link --project-ref ekdyopdrrkphlrsilyoo`; it succeeded and returned project ref `ekdyopdrrkphlrsilyoo`.
+- Local link metadata exists under `supabase/.temp/`; `supabase/.temp/project-ref` confirms `ekdyopdrrkphlrsilyoo`.
+- `.supabase` directory is absent for this CLI version; `supabase/.temp/linked-project.json` is present.
+- Added `.gitignore` entry `supabase/.temp/` to prevent local link metadata from being accidentally committed.
+- No token values or connection-oriented file contents were printed or committed.
+- No migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 772 - Verify Supabase Project Link.
+
+## Action 772 - Verify Supabase Project Link
+
+- Updated docs/execution-record-audit-table-migration-tooling-configuration-proof.md with verified project-link status.
+- Verified Supabase CLI path `/opt/homebrew/bin/supabase` and version `2.107.0`.
+- Verified `supabase/.temp/project-ref` exists and contains approved project ref `ekdyopdrrkphlrsilyoo`.
+- Confirmed `.supabase` directory is absent for this CLI version.
+- Confirmed `supabase/.temp/` is ignored by `.gitignore` and no `supabase/.temp/*` files are tracked by git.
+- No connection-oriented file contents or secrets were printed or committed.
+- No migration status, migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, proof artifact creation, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 773 - Check Supabase Migration Status Before Apply.
+
+## Action 773 - Check Supabase Migration Status Before Apply
+
+- Ran read-only Supabase migration status command `/opt/homebrew/bin/supabase migration list`.
+- Captured proof artifact at `docs/proofs/execution-record-audit-table-migration-status-before.txt`.
+- The command succeeded and output contained no token values, database passwords, service-role keys, or connection strings.
+- Intended audit table migration `20260615000000` appears locally with blank Remote value and is pending apply.
+- Intended RLS migration `20260615001000` appears locally with blank Remote value and is pending apply.
+- No migration apply, `supabase db push`, remote SQL, Supabase type generation, `.env.local` modification, generated type edit, migration file edit, service-role code, writer, route, write path, stats/PnL update, rollback/correction, trade mutation, UI behavior, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- Recommended next action: Action 774 - Apply Audit Table Migration Manually.
+
+## Action 779 - Retry Audit Table Migration Apply
+
+- Confirmed the linked Supabase project ref remains `ekdyopdrrkphlrsilyoo` and prerequisite proof shows `20260614000000_create_execution_records.sql` is applied remotely.
+- Prepared a temporary Supabase workdir containing only the approved audit migration files `20260615000000_create_execution_record_audit_events.sql` and `20260615001000_enable_rls_execution_record_audit_events.sql`.
+- Ran the required dry-run command with the temporary workdir; it failed before listing the two approved audit migrations because the remote history includes `20260614000000`, which was not present in the two-file temporary migration directory.
+- Captured proof artifacts at `docs/proofs/execution-record-audit-table-migration-retry-dry-run-output.txt`, `docs/proofs/execution-record-audit-table-migration-retry-apply-output.txt`, and `docs/proofs/execution-record-audit-table-migration-retry-status-after.txt`.
+- No audit migration apply was attempted after the dry-run blocker, and the temporary workdir was removed.
+- Status: `audit_migration_retry_dry_run_blocked_remote_history_mismatch`.
+- No broad `supabase db push`, unrelated migration apply, remote SQL outside the dry-run, Supabase type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 780 - Resolve Audit Migration Retry Dry-Run Remote History Mismatch.
+
+## Action 780 - Resolve Audit Migration Retry Dry-Run Remote History Mismatch
+
+- Created `docs/execution-record-audit-migration-retry-dry-run-history-mismatch-resolution.md`.
+- Inspected Action 779 proof artifacts and current local migration ordering.
+- Determined that Supabase CLI requires remote-applied `20260614000000` to be present in the local migration directory used by the dry-run.
+- Recommended a history-aware temporary workdir containing exactly `20260614000000_create_execution_records.sql`, `20260615000000_create_execution_record_audit_events.sql`, and `20260615001000_enable_rls_execution_record_audit_events.sql`.
+- The next retry must dry-run first and proceed only if exactly the two approved audit migrations are listed as pending.
+- Status: `audit_migration_retry_resolution_documented`.
+- No migration apply, broad `supabase db push`, remote SQL, Supabase type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 781 - Retry Audit Migration Apply With History-Aware Temp Workdir.
+
+## Action 781 - Retry Audit Migration Apply With History-Aware Temp Workdir
+
+- Confirmed linked project ref `ekdyopdrrkphlrsilyoo` and prerequisite proof for remote-applied `20260614000000`.
+- Created a temporary Supabase workdir containing exactly `20260614000000_create_execution_records.sql`, `20260615000000_create_execution_record_audit_events.sql`, and `20260615001000_enable_rls_execution_record_audit_events.sql`.
+- Dry-run listed exactly the two approved audit migrations.
+- Apply succeeded for the two approved audit migrations.
+- Status-after proof shows `20260615000000` and `20260615001000` applied remotely.
+- Proof artifacts were created for dry-run, apply, status-after, and schema/RLS/policy follow-up placeholders.
+- Temporary workdir was removed.
+- Status: `audit_migrations_applied_remote_status_verified`.
+- No broad `supabase db push`, unrelated migration apply, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 782 - Verify Audit Table Remote Schema And RLS.
+
+## Action 782 - Verify Audit Table Remote Schema And RLS
+
+- Confirmed linked project ref `ekdyopdrrkphlrsilyoo` and migration status proof for `20260614000000`, `20260615000000`, and `20260615001000`.
+- Ran read-only `supabase db query --linked` catalog queries for columns, constraints, indexes, RLS, policies, and anon/authenticated/public grants.
+- Verified `public.execution_records` and `public.execution_record_audit_events` exist remotely.
+- Verified audit table core columns, JSONB evidence/provenance fields, timestamps, primary key, FK to `execution_records(id)`, check constraints, idempotency/duplicate-prevention indexes, and expected lookup indexes.
+- Verified RLS is enabled on `public.execution_record_audit_events`.
+- Verified no audit-table policies were returned.
+- Grant query returned broad anon/authenticated table grants, so explicit anon/client denial proof remains required before policy/grant posture is considered complete.
+- Status: `audit_table_remote_schema_rls_verified_policy_unclear`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 783 - Resolve Audit Table Policy Grant Verification.
+
+## Action 783 - Resolve Audit Table Policy Grant Verification
+
+- Confirmed linked project ref `ekdyopdrrkphlrsilyoo`.
+- Re-confirmed policy and grant posture from catalog proof: RLS enabled, no audit-table policies, broad anon/authenticated grants present.
+- Considered rollback-based role simulation for anon/authenticated SELECT/INSERT denial testing.
+- Did not run write-attempt tests because one Supabase CLI temp-role connection entered repeated authentication/circuit-breaker failures and rollback safety could not be guaranteed.
+- Created denial/blocker proof artifacts for anon, authenticated, and role simulation.
+- No persistent rows were inserted.
+- Status: `audit_table_policy_grant_denial_verification_blocked`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 784 - Resolve Audit Table Denial Verification Blocker.
+
+## Action 784 - Resolve Audit Table Denial Verification Blocker
+
+- Created `docs/execution-record-audit-table-denial-verification-blocker-resolution.md`.
+- Inspected Action 783 anon/authenticated/role-simulation/policy/grant proof artifacts.
+- Documented why CLI temp-role role simulation is currently unsafe: repeated authentication/circuit-breaker failures and unproven rollback safety.
+- Compared safe verification options and recommended a local explicit anon-key denial harness as the safest next path.
+- No denial write-attempt tests were run.
+- No rows were inserted.
+- Status: `audit_table_denial_verification_blocker_resolution_documented`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 785 - Create Anon Denial Verification Harness.
+
+## Action 785 - Create Anon Denial Verification Harness
+
+- Created `scripts/verify-audit-table-anon-denial.mjs`.
+- Created `docs/execution-record-audit-table-anon-denial-harness-plan.md`.
+- The harness is explicit-trigger only, dev/test-only, and not imported by runtime app code.
+- The harness uses only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- The harness does not use service-role keys and redacts/avoids printing env values.
+- The harness can later check anon SELECT and INSERT denial, classify results, and attempt same-anon-client cleanup if INSERT is unexpectedly allowed.
+- The harness was not run.
+- No denial write-attempt tests were run and no rows were inserted.
+- Status: `anon_denial_verification_harness_created_not_run`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 786 - Run Anon Denial Verification Harness.
+
+## Action 786 - Run Anon Denial Verification Harness
+
+- Confirmed `scripts/verify-audit-table-anon-denial.mjs` exists.
+- Confirmed no runtime app code imports the harness.
+- Ran the explicit anon denial harness using existing local environment values without printing env values.
+- Captured output in `docs/proofs/execution-record-audit-table-anon-denial-proof.txt`.
+- Overall classification: `denied`.
+- Anon SELECT classification: `denied`; zero rows were visible.
+- Anon INSERT classification: `denied`; error code `42501`.
+- Same-anon-client cleanup was not needed.
+- Harness reported `may_have_persisted: false`.
+- Status: `audit_table_anon_denial_verified`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 787 - Create Authenticated Denial Verification Harness.
+
+## Action 787 - Create Authenticated Denial Verification Harness
+
+- Created `scripts/verify-audit-table-authenticated-denial.mjs`.
+- Created `docs/execution-record-audit-table-authenticated-denial-harness-plan.md`.
+- The harness is explicit-trigger only, dev/test-only, and not imported by runtime app code.
+- The harness uses `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` plus either safe password-based test credentials or an existing safe test session.
+- The harness does not use service-role keys and avoids printing env/token values.
+- The harness can later check authenticated SELECT and INSERT denial, classify results, and attempt same-authenticated-client cleanup if INSERT is unexpectedly allowed.
+- The harness was not run.
+- No denial write-attempt tests were run and no rows were inserted.
+- Status: `authenticated_denial_verification_harness_created_not_run`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 788 - Provide Safe Authenticated Denial Harness Environment.
+
+## Action 788 - Provide Safe Authenticated Denial Harness Environment
+
+- Confirmed `scripts/verify-audit-table-authenticated-denial.mjs` exists.
+- Confirmed no runtime app code imports the harness.
+- Checked env var presence without printing values.
+- Public Supabase env is present: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Authenticated test env is missing: no complete email/password pair and no complete access/refresh token pair.
+- Ran `node scripts/verify-audit-table-authenticated-denial.mjs --allow-missing-auth`; it classified as `config_missing` and stopped before SELECT/INSERT tests.
+- Created `docs/execution-record-audit-table-authenticated-denial-environment-proof.md`.
+- No authenticated SELECT or INSERT tests were run.
+- No rows were inserted.
+- Status: `authenticated_denial_harness_auth_config_missing`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, `.env.local` modification, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 789 - Provide Authenticated Test User Or Session.
+
+## Action 789 - Provide Authenticated Test User Or Session
+
+- Created `docs/execution-record-audit-table-authenticated-denial-test-session-setup.md`.
+- Re-checked env var presence without printing values.
+- Public Supabase env remains present.
+- Authenticated test env remains missing.
+- Documented placeholder-only temporary shell export commands for email/password and access/refresh token modes.
+- No authenticated SELECT or INSERT tests were run.
+- No rows were inserted.
+- No `.env.local` changes were made.
+- Status: `authenticated_denial_test_env_setup_documented_auth_missing`.
+- No migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 790 - Operator Provides Authenticated Test Environment.
+
+## Action 790 - Verify Authenticated Test Environment And Run Harness If Ready
+
+- Confirmed `scripts/verify-audit-table-authenticated-denial.mjs` exists.
+- Confirmed no runtime app code imports the authenticated harness.
+- Re-checked env var presence without printing values.
+- Public Supabase env remains present.
+- Authenticated test env remains missing: no complete email/password pair and no complete access/refresh token pair.
+- Ran only `node scripts/verify-audit-table-authenticated-denial.mjs --allow-missing-auth`.
+- Captured proof in `docs/proofs/execution-record-audit-table-authenticated-denial-proof.txt`.
+- Harness classification: `config_missing`.
+- No authenticated SELECT or INSERT tests were run.
+- No rows were inserted, cleanup was not needed, and no row may have persisted from this action.
+- Status: `authenticated_denial_test_env_still_missing`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 791 - Operator Provides Authenticated Test Environment.
+
+## Action 791 - Run Authenticated Denial Verification Harness
+
+- Confirmed `scripts/verify-audit-table-authenticated-denial.mjs` exists.
+- Confirmed no runtime app code imports the authenticated harness.
+- Re-checked env var presence without printing values.
+- Public Supabase env remains present.
+- Authenticated test env remains missing in the Codex execution environment: no complete email/password pair and no complete access/refresh token pair.
+- Full authenticated denial harness command was not run.
+- Updated proof in `docs/proofs/execution-record-audit-table-authenticated-denial-proof.txt`.
+- No authenticated SELECT or INSERT tests were run.
+- No rows were inserted, cleanup was not needed, and no row may have persisted from this action.
+- Status: `authenticated_denial_test_env_still_missing`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 792 - Operator Provides Authenticated Test Environment.
+
+## Action 792 - Record Authenticated Denial Verification Proof
+
+- Recorded the manual operator authenticated denial harness result in `docs/proofs/execution-record-audit-table-authenticated-denial-proof.txt`.
+- Codex did not rerun the harness in this action.
+- Manual command: `node scripts/verify-audit-table-authenticated-denial.mjs`.
+- Manual overall classification: `denied`.
+- Auth mode: password.
+- Authenticated SELECT result: `denied`, `rows_visible: 0`, `error_code: null`.
+- Authenticated INSERT result: `denied`, `error_code: 42501`, cleanup not needed, `may_have_persisted: false`.
+- Service-role used: false; production routes called: false; app runtime mutated: false.
+- No secrets were included in the pasted manual output summary.
+- Status: `audit_table_authenticated_denial_verified_manual_operator_proof`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 793 - Generate Audit Table Supabase Types.
+
+## Action 793 - Generate Audit Table Supabase Types
+
+- Confirmed linked project ref from `supabase/.temp/project-ref`: `ekdyopdrrkphlrsilyoo`.
+- Searched for an existing generated Supabase database type target.
+- No established generated DB type target was found.
+- Prior generated-types plan confirms no established generated DB type destination and says to choose a destination in a separate action if none exists.
+- Supabase type generation was not run.
+- No random generated type target was created.
+- Created proof artifacts:
+  - `docs/proofs/execution-record-audit-table-generated-types-output.txt`
+  - `docs/proofs/execution-record-audit-table-generated-types-verification.txt`
+- Status: `audit_table_typegen_target_unknown`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 794 - Resolve Supabase Generated Types Target.
+
+## Action 794 - Resolve Supabase Generated Types Target
+
+- Created `docs/supabase-generated-types-target-decision.md`.
+- Searched for existing generated Supabase type files and `Database` imports.
+- Confirmed no existing generated Supabase database type file exists.
+- Confirmed no existing generated `Database` imports exist.
+- Confirmed Supabase client helpers are currently untyped.
+- Selected canonical generated Supabase database type target: `lib/supabase-database.types.ts`.
+- The target file does not exist yet and was not created.
+- Supabase type generation was not run.
+- Status: `supabase_generated_types_target_selected`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, type generation, generated type edit, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 795 - Generate Supabase Types To Selected Target.
+
+## Action 795 - Generate Supabase Types To Selected Target
+
+- Confirmed selected target: `lib/supabase-database.types.ts`.
+- Confirmed linked project ref: `ekdyopdrrkphlrsilyoo`.
+- Ran `supabase gen types typescript --linked --schema public > lib/supabase-database.types.ts`.
+- Generated file exists and is non-empty.
+- Verified generated types include `Database`, `execution_records`, `execution_record_audit_events`, and audit table `Row`, `Insert`, and `Update` types.
+- Verified generated output contains no common secret/token/connection-string patterns.
+- Proof artifacts:
+  - `docs/proofs/execution-record-audit-table-generated-types-output.txt`
+  - `docs/proofs/execution-record-audit-table-generated-types-verification.txt`
+- Status: `audit_table_generated_types_verified`.
+- No `.env.local` changes, migration apply, broad `supabase db push`, service-role code, writer, route, runtime write path, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 796 - Prove Audit Writer Server-Only Service-Role Boundary.
+
+## Action 796 - Prove Audit Writer Server-Only Service-Role Boundary
+
+- Created `docs/execution-record-audit-writer-server-only-service-role-boundary-proof.md`.
+- Inventoried Supabase helpers: `lib/supabase.ts` is public anon-key only, and `lib/supabase-server.ts` is an existing server-only helper guarded by `import "server-only";`.
+- Recorded that existing execution-audit persistence files target older audit tables and do not approve future `execution_record_audit_events` append behavior.
+- Recommended future server-only writer placement resolved to
+  `lib/server/execution-record-audit-writer.ts`, with mandatory
+  `import "server-only";` and generated type usage.
+- Targeted service-role exposure search found no `NEXT_PUBLIC_*SERVICE*` exposure pattern.
+- Status: `server_only_service_role_boundary_documented_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role code, writer, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 797 - Create Audit Writer Server-Only Contract.
+
+## Action 797 - Create Audit Writer Server-Only Contract
+
+- Created `lib/server/execution-record-audit-writer-contract.ts`.
+- Created `docs/execution-record-audit-writer-server-only-contract.md`.
+- The contract imports generated `Database` and `Json` types from `@/lib/supabase-database.types`.
+- The contract defines audit table `Row`, `Insert`, and `Update` aliases, execution-record `Row`, future writer input, validation result, result union, authority modes, authority boundaries, and contract safety notes.
+- The contract starts with `import "server-only";`.
+- Status: `audit_writer_server_only_contract_created_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role client code, writer implementation, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 798 - Add Audit Writer Contract Tests.
+
+## Action 798 - Add Audit Writer Contract Tests
+
+- Created `tests/e2e/execution-record-audit-writer-contract.spec.ts`.
+- Created `docs/execution-record-audit-writer-contract-tests.md`.
+- Tests verify representative audit writer input, generated audit table aliases, result classifications, validation union, JSON payload/evidence/provenance, and authority boundaries.
+- Static source tests verify the server-only contract remains marked with `import "server-only";` and does not contain Supabase client creation, env reads, route calls, insert calls, or browser storage writes.
+- Tests import only contract types from the server-only contract and do not import Supabase clients or `lib/supabase-server.ts`.
+- Status: `audit_writer_contract_tests_added_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role client code, writer implementation, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 799 - Create Audit Writer Validation Helper.
+
+## Action 799 - Create Audit Writer Validation Helper
+
+- Created `lib/server/execution-record-audit-writer-validation.ts`.
+- Created `tests/e2e/execution-record-audit-writer-validation.spec.ts`.
+- Created `docs/execution-record-audit-writer-validation-helper.md`.
+- The helper starts with `import "server-only";` and imports only contract types/constants.
+- The helper validates required fields, UUID-like ids, authority mode, JSON-compatible payload/evidence/provenance/metadata, and optional timestamp shape.
+- Tests verify representative valid input type shape, invalid classification labels, static no-write constraints, server-only boundary, and deterministic no-side-effect constraints.
+- Status: `audit_writer_validation_helper_created_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role client code, writer implementation, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 800 - Add Audit Writer Dry-Run Builder.
+
+## Action 800 - Add Audit Writer Dry-Run Builder
+
+- Created `lib/server/execution-record-audit-writer-dry-run.ts`.
+- Created `tests/e2e/execution-record-audit-writer-dry-run.spec.ts`.
+- Created `docs/execution-record-audit-writer-dry-run-builder.md`.
+- The dry-run builder starts with `import "server-only";` and imports only contract types/constants plus the validation helper.
+- The builder validates input first, returns `ready`, `validation_failed`, or `blocked`, and always includes `wouldWrite: false`.
+- Ready dry-runs include typed `wouldInsert` shaped as `ExecutionRecordAuditEventInsert`.
+- Tests verify ready/invalid result shapes, expected insert fields, static no-write constraints, server-only boundary, and deterministic no-side-effect constraints.
+- Status: `audit_writer_dry_run_builder_created_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role client code, writer implementation, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 801 - Add Audit Writer Dry-Run Preview Adapter.
+
+## Action 801 - Add Audit Writer Dry-Run Preview Adapter
+
+- Created `lib/server/execution-record-audit-writer-dry-run-preview.ts`.
+- Created `tests/e2e/execution-record-audit-writer-dry-run-preview.spec.ts`.
+- Created `docs/execution-record-audit-writer-dry-run-preview-adapter.md`.
+- The preview adapter starts with `import "server-only";` and imports only dry-run result types.
+- The adapter converts dry-run results into display-safe summaries with status label, severity, validation summary, sanitized insert preview, `wouldWrite: false`, `notWritten: true`, and `approvalImplied: false`.
+- Tests verify ready/invalid/blocked preview shapes, sensitive-key redaction, static no-write constraints, server-only boundary, and deterministic no-side-effect constraints.
+- Status: `audit_writer_dry_run_preview_adapter_created_writer_blocked`.
+- No service-role values were read or printed.
+- No `.env.local` changes, migration apply, broad `supabase db push`, remote SQL, type generation, generated type edit, service-role client code, writer implementation, route, route call, runtime write path, Supabase/localStorage write, audit append implementation, broker/Avanza behavior, UI behavior, or automatic mode was added.
+- Recommended next action: Action 802 - Add Audit Writer Dry-Run Dev Preview.
+
+## Action 817 - Create Audit Writer Live Implementation Readiness Gate
+
+- Created `docs/execution-record-audit-writer-live-implementation-readiness-gate.md`.
+- Aggregated the migration, remote schema, RLS, anon/authenticated denial, generated types, server-only boundary, service-role env, contract/validation/dry-run, service-role adapter dry-run, mock adapter, mock mapping, mock integration, and mock preview fixture proof chain.
+- Documented relevant passing test chain and static no-write/no-client/no-env scans.
+- Current decision: `live_audit_writer_implementation_requires_approval`.
+- Current blockers: live adapter not implemented, live writer not implemented, route/auth not implemented, route/write path not implemented, no live insert test approval, no production write-path approval, and no downstream mutation authorization.
+- Status: `audit_writer_live_implementation_readiness_gate_created_requires_approval`.
+- No live Supabase client, Supabase call, service-role env read, service-role value printing, live writer, route, route call, runtime write path, audit append, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 818 - Create Live Audit Writer Adapter Implementation Plan.
+
+## Action 818 - Create Live Audit Writer Adapter Implementation Plan
+
+- Created `docs/execution-record-audit-writer-live-adapter-implementation-plan.md`.
+- Defined the minimal future code scope for a later approved live adapter implementation, centered on `lib/server/execution-record-audit-writer-service-role-adapter.ts`.
+- Defined future live adapter behavior: server-only typed service-role client, insert-only to `public.execution_record_audit_events`, typed `ExecutionRecordAuditEventInsert`, mapped results, fail-closed env readiness, and no other table mutation.
+- Documented required approval fields before implementation: target table, operation, env alias policy, operator, timestamp, target environment, rollback/backout posture, live test posture, secret handling, and route/write-path scope.
+- Documented required tests, live smoke test policy, route/write-path separation, and remaining blockers.
+- Status: `audit_writer_live_adapter_implementation_plan_created_requires_approval`.
+- No live Supabase client, Supabase call, service-role env read, service-role value printing, live writer, route, route call, runtime write path, audit append, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 819 - Request Live Audit Writer Adapter Implementation Approval.
+
+## Action 819 - Request Live Audit Writer Adapter Implementation Approval
+
+- Created `docs/execution-record-audit-writer-live-adapter-implementation-approval-request.md`.
+- Documented current proof summary, proposed future implementation scope, disallowed behavior, required approval fields, exact approval statement template, decision, safety boundaries, and validation requirements.
+- Approval is currently absent because target project/ref/environment, service-role alias, approving operator, approval timestamp, live smoke posture, rollback/backout review, verification reviewer, and exact approval statement were not provided.
+- Status: `live_audit_writer_adapter_implementation_approval_requested_blocked`.
+- No live Supabase client, Supabase call, service-role env read, service-role value printing, live writer, route, route call, runtime write path, audit append, migration, type generation, generated type edit, broker/Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 820 - Provide Live Audit Writer Adapter Implementation Approval.
+
+## Action 824 - Add Audit Writer Integration Boundary Regression Tests
+
+- Created `tests/e2e/execution-record-audit-writer-integration-boundary-regression.spec.ts`.
+- Created `docs/execution-record-audit-writer-integration-boundary-regression-tests.md`.
+- Updated integration implementation, live adapter boundary regression, live service-role adapter implementation, implementation skeleton, server-only service-role boundary proof, readiness matrix, readiness reassessment, checkpoint, and QA notes.
+- Regression tests verify the integrated server-only writer remains isolated from routes, UI components, hooks, app runtime files, browser/client bundle paths, direct Supabase table calls, service-role exposure, downstream mutation paths, broker/Avanza behavior, and automatic behavior.
+- Regression tests verify ready input calls an injected adapter only after validation and dry-run readiness; invalid and blocked inputs do not call the adapter.
+- Regression tests verify success, duplicate/idempotency conflict, permission/security failure, service unavailable, and unknown-error mappings without live Supabase inserts.
+- Status: `audit_writer_integration_boundary_regression_tests_added_route_blocked`.
+- No route, route call, UI wiring, browser/client runtime path, production write path, live smoke insert, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 825 - Create Audit Writer Route Approval Request.
+
+## Action 825 - Create Audit Writer Route Approval Request
+
+- Created `docs/execution-record-audit-writer-route-approval-request.md`.
+- The approval request defines proposed future server-only route scope, current proof summary, auth/gating expectations, required approval fields, exact approval statement template, decision, safety boundaries, and validation requirements.
+- Approval is absent, so route implementation and route calls remain blocked.
+- Status: `audit_writer_route_approval_requested_blocked`.
+- No route, route handler, route call, UI wiring, browser/client runtime path, runtime write path, production write path, live smoke insert, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, or automatic mode was added.
+- Recommended next action: Action 826 - Provide Audit Writer Route Approval.
+
+## Action 826 - Create Audit Writer Route Boundary
+
+- Created `app/api/execution/audit/writer/route.ts`.
+- Created `tests/e2e/execution-record-audit-writer-route-boundary.spec.ts`.
+- Created `docs/execution-record-audit-writer-route-boundary-implementation.md`.
+- Updated Action 824 integration boundary regression tests to allow exactly the approved route boundary to import the server-only writer.
+- The route is dev-gated, auth-gated, validates request shape, and calls `appendExecutionRecordAuditEvent(...)` only after gates pass.
+- The route returns typed writer result metadata and safety flags.
+- Status: `audit_writer_route_boundary_created_runtime_invocation_blocked`.
+- No UI wiring, browser/client invocation path, automatic invocation, production write-path approval, live smoke insert, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, or route-level update/delete/upsert/select behavior was added.
+- Recommended next action: Action 827 - Add Audit Writer Route Boundary Regression Tests.
+
+## Action 827 - Add Audit Writer Route Boundary Regression Tests
+
+- Strengthened `tests/e2e/execution-record-audit-writer-route-boundary.spec.ts`.
+- Created `docs/execution-record-audit-writer-route-boundary-regression-tests.md`.
+- Regression tests now verify the approved route file exists, imports the server-only writer but not the live adapter, does not directly import Supabase clients or call Supabase table methods, gates on dev-tools and auth, validates JSON/request shape, validates route and writer contract metadata, blocks invalid route path/method before writer invocation, returns a typed response envelope, exposes no service-role value, and has no UI/hooks/app-runtime route invocation.
+- Status: `audit_writer_route_boundary_regression_tests_added_write_path_blocked`.
+- No UI wiring, browser/client invocation path, route call from app runtime, live smoke insert, production write-path approval, trade/stats/PnL mutation, broker/Avanza behavior, automatic mode, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Recommended next action: Action 828 - Create Audit Writer Route Invocation Approval Request.
+
+## Action 828 - Create Audit Writer Route Invocation Approval Request
+
+- Created `docs/execution-record-audit-writer-route-invocation-approval-request.md`.
+- The request asks for exact approval before any controlled dev-only/manual/test-only invocation harness or app-runtime route call can be added.
+- Proposed future scope is explicit-trigger only, must preserve existing dev/auth gates, may use fixture/test payloads only if separately safe, and must not become production UI or automatic runtime behavior.
+- Status: `audit_writer_route_invocation_approval_requested_blocked`.
+- No invocation harness, UI wiring, browser/client invocation path, route call from app runtime, live smoke insert, production write-path approval, trade/stats/PnL mutation, broker/Avanza behavior, automatic mode, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Recommended next action: Action 829 - Provide Audit Writer Route Invocation Approval.
+
+## Action 829 - Create Controlled Audit Writer Route Invocation Harness
+
+- Approval was provided by Willy Simonsson.
+- Approval timestamp: 2026-06-26 00:26 CEST.
+- Created `lib/server/execution-record-audit-writer-route-invocation-harness.ts`.
+- Created `tests/e2e/execution-record-audit-writer-route-invocation-harness.spec.ts`.
+- Created `docs/execution-record-audit-writer-route-invocation-harness.md`.
+- Updated `tests/e2e/execution-record-audit-writer-route-boundary.spec.ts` to allow the approved server-only harness as the only additional non-test source containing the route literal.
+- The harness uses fixture/test payloads only, requires explicit trigger, requires dev/manual/test mode, requires mocked route-handler provenance, preserves route dev/auth gates, and captures typed route response behavior.
+- Status: `audit_writer_route_invocation_harness_created_dev_only_write_path_blocked`.
+- No production UI, browser/client runtime path, automatic invocation, market-loop invocation, live smoke insert, production write-path approval, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, route gate bypass, normal app runtime route call, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Recommended next action: Action 830 - Add Audit Writer Route Invocation Harness Boundary Regression Tests.
+
+## Action 830 - Add Audit Writer Route Invocation Harness Regression Tests
+
+- Strengthened `tests/e2e/execution-record-audit-writer-route-invocation-harness.spec.ts`.
+- Created `docs/execution-record-audit-writer-route-invocation-harness-regression-tests.md`.
+- Regression tests verify the harness starts with `import "server-only";`, is absent from UI/hooks/app-runtime/scripts, uses no `fetch(...)`, does not call Supabase directly, does not import the live adapter directly, does not mutate browser storage, blocks missing or false explicit trigger, blocks non-fixture payload source, blocks missing mocked handler provenance, blocks live-smoke and production-write flags, preserves route dev/auth gates, creates local `Request` objects only, preserves typed route response envelopes, and keeps the route literal limited to approved server-only sources.
+- Status: `audit_writer_route_invocation_harness_regression_tests_added_write_path_blocked`.
+- No UI wiring, browser/client invocation path, normal app runtime route call, live smoke insert, production write path, trade/stats/PnL mutation, broker/Avanza behavior, automatic mode, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Recommended next action: Action 831 - Create Audit Writer Route Auth Hardening Plan.
+
+## Action 831 - Create Audit Writer Route Auth Hardening Plan
+
+- Created `docs/execution-record-audit-writer-route-auth-hardening-plan.md`.
+- Checkpoint status: `audit_writer_route_auth_hardening_plan_created_write_path_blocked`.
+- The plan inventories current route gates: execution dev-tools enablement, trade auth cookie, JSON/request-shape validation, route contract metadata, writer contract metadata, server-only writer call, and typed response envelope.
+- The plan defines desired auth cookie/session semantics, dev-tools behavior, dev-only versus production behavior, allowed caller model, request identity/audit metadata expectations, idempotency/request key expectations, fail-closed behavior, gate order, failure behavior, tests required before route invocation expansion, route invocation policy, remaining blockers, and safety boundaries.
+- No route behavior changed.
+- No UI wiring, browser/client invocation path, normal app runtime route call, live smoke insert, production write path, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, automatic mode, or trade/stats/PnL mutation was added.
+- Recommended next action: Action 832 - Add Audit Writer Route Auth Hardening Tests.
+
+## Action 832 - Add Audit Writer Route Auth Hardening Tests
+
+- Created `tests/e2e/execution-record-audit-writer-route-auth-hardening.spec.ts`.
+- Created `docs/execution-record-audit-writer-route-auth-hardening-tests.md`.
+- Checkpoint status: `audit_writer_route_auth_hardening_tests_added_write_path_blocked`.
+- Tests verify missing dev-tools, missing auth cookie, invalid auth cookie, missing auth env, malformed JSON, invalid request shape, invalid route contract metadata, invalid writer contract metadata, invalid method metadata, valid fixture writer reachability only after gates, writer failure typed envelope preservation, no direct live adapter import, no direct Supabase call, no UI/runtime route invocation, and no route literal spread beyond approved server-only sources.
+- No route behavior changed.
+- No UI wiring, browser/client invocation path, normal app runtime route call, live smoke insert, production write path, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, automatic mode, or trade/stats/PnL mutation was added.
+- Recommended next action: Action 833 - Create Audit Writer Production Write Path Approval Request.
+
+## Action 833 - Create Audit Writer Production Write Path Approval Request
+
+- Created `docs/execution-record-audit-writer-production-write-path-approval-request.md`.
+- Checkpoint status: `audit_writer_production_write_path_approval_requested_blocked`.
+- The request documents current proof summary, proposed future production write-path planning scope, excluded scope, required approval fields, exact approval statement template, blocked decision, safety boundaries, and validation requirements.
+- Approval is absent, so production write-path planning and implementation remain blocked.
+- No production write-path approval, implementation, UI wiring, browser/client invocation path, normal app runtime route call, live smoke insert, migration, type generation, generated type edit, `.env.local` change, service-role value printing, broker/Avanza behavior, automatic mode, or trade/stats/PnL mutation was added.
+- Recommended next action: Action 834 - Provide Production Write Path Planning Approval.
+
+## Action 834 - Create Audit Writer Production Write Path Planning Document
+
+- Planning approval was provided by Willy Simonsson.
+- Approval timestamp: 2026-06-26 01:58 CEST.
+- Created `docs/execution-record-audit-writer-production-write-path-planning.md`.
+- Checkpoint status: `audit_writer_production_write_path_planning_document_created_implementation_blocked`.
+- The plan evaluates how a future server-side runtime caller could safely call `app/api/execution/audit/writer/route.ts` for insert-only audit event appends to `public.execution_record_audit_events`, while preserving route auth gates, validation, typed writer result, and no downstream mutation.
+- Production write-path implementation remains blocked.
+- No implementation, UI wiring, browser/client runtime invocation, automatic invocation, market-loop invocation, live smoke insert, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, route behavior change, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was added.
+- Recommended next action: Action 835 - Create Audit Writer Production Write Path Implementation Approval Request.
+
+## Action 835 - Create Audit Writer Production Write Path Implementation Approval Request
+
+- Created `docs/execution-record-audit-writer-production-write-path-implementation-approval-request.md`.
+- Checkpoint status: `audit_writer_production_write_path_implementation_approval_requested_blocked`.
+- The request defines exact future implementation scope, required gates, prohibited behavior, approval fields, exact approval statement template, blocked decision, and safety boundaries.
+- Approval is absent, so production write-path implementation remains blocked.
+- No implementation, UI wiring, browser/client runtime invocation, normal app runtime route call, live smoke insert, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, route behavior change, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was added.
+- Recommended next action: Action 836 - Provide Production Write Path Implementation Approval.
+
+## Action 836 - Implement Production Audit Writer Write Path
+
+- Approval was provided by Willy Simonsson.
+- Approval timestamp: 2026-06-26 03:09 CEST.
+- Created `lib/server/execution-record-audit-writer-production-write-path.ts`.
+- Created `tests/e2e/execution-record-audit-writer-production-write-path.spec.ts`.
+- Updated `tests/e2e/execution-record-audit-writer-integration-boundary-regression.spec.ts`.
+- Created `docs/execution-record-audit-writer-production-write-path-implementation.md`.
+- Updated production write-path planning, approval, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_production_write_path_implemented_server_only_boundary`.
+- The production write path is a server-only caller that accepts only validated server-side audit payloads, requires explicit production-write approval, rejects live-smoke-approved inputs, delegates to the internal writer boundary, and preserves typed writer result handling.
+- No browser/client call, UI button, market-loop automatic invocation, live smoke insert, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, service-role exposure, `.env.local` change, migration, type generation, or generated type edit was added.
+- Recommended next action: Action 837 - Reassess Production Audit Writer Write Path Implementation.
+
+## Action 837 - Add Production Write Path Boundary Regression Tests
+
+- Extended `tests/e2e/execution-record-audit-writer-production-write-path.spec.ts`.
+- Created `docs/execution-record-audit-writer-production-write-path-boundary-regression-tests.md`.
+- Updated production write-path implementation, approval, planning, route auth-hardening, route boundary, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_production_write_path_boundary_regression_tests_added`.
+- Tests now prove the caller remains server-only, audit-only, insert-only, approval-gated, live-smoke-blocked, validated-server-payload-only, direct-Supabase-free, route-call-free, UI/browser/app-shell/runtime-free, scanner/automation-free, and service-role-exposure-free.
+- No runtime behavior, UI wiring, browser/client invocation path, market-loop invocation, live smoke insert, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, service-role exposure, `.env.local` change, migration, type generation, or generated type edit was added.
+- Recommended next action: Action 838 - Create Audit Writer Live Smoke Insert Approval Request.
+
+## Action 838 - Create Audit Writer Live Smoke Insert Approval Request
+
+- Created `docs/execution-record-audit-writer-live-smoke-insert-approval-request.md`.
+- Updated production write-path boundary regression, implementation, approval, planning, route auth-hardening, route boundary, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_live_smoke_insert_approval_requested_blocked`.
+- The request defines a future single controlled server-side insert-only smoke test to `public.execution_record_audit_events`, required approval fields, exact approval statement template, blocked decision, and safety boundaries.
+- Approval is absent, so no live smoke insert was run.
+- No UI wiring, browser/client invocation path, market-loop invocation, production rollout approval, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, migration, type generation, generated type edit, `.env.local` change, or service-role value printing was added.
+- Recommended next action: Action 839 - Provide Live Smoke Insert Approval.
+
+## Action 839 - Live Smoke Insert FK Lookup
+
+- Live smoke insert approval was provided by Willy Simonsson at 2026-06-26 03:33 CEST.
+- A narrowly scoped one-row read-only lookup approval was provided by Willy Simonsson at 2026-06-26 03:38 CEST.
+- Created `docs/proofs/execution-record-audit-writer-live-smoke-insert-fk-lookup-proof.txt`.
+- Updated live smoke approval, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_live_smoke_insert_fk_lookup_no_execution_record_available`.
+- The lookup selected only `id` from `public.execution_records` with `limit 1` and returned no row.
+- No audit writer live smoke insert was attempted, so the approved single insert remains unspent.
+- No insert, update/delete/upsert, broad table dump, UI/browser call, market-loop invocation, broker/Avanza behavior, automatic mode, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 840 - Provide Controlled Execution Record FK Target For Live Smoke Insert.
+
+## Action 840 - Request Controlled Execution Record Seed Approval
+
+- Created `docs/execution-record-audit-writer-controlled-execution-record-seed-approval-request.md`.
+- Updated live smoke approval, production write-path follow-up, readiness, checkpoint, and QA docs.
+- Checkpoint status: `controlled_execution_record_seed_approval_requested_blocked`.
+- The request asks for future approval to insert exactly one controlled smoke-test row into `public.execution_records` as the FK target for the already-approved audit writer smoke insert.
+- Approval is absent, so no controlled execution record seed was inserted and no audit writer smoke insert was run.
+- No seed insert, audit event insert, update/delete/upsert, trade/stats/PnL mutation, UI/browser call, market-loop invocation, broker/Avanza behavior, automatic mode, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 841 - Provide Controlled Execution Record Seed Approval.
+
+## Action 841 - Insert Controlled Execution Record Seed
+
+- Controlled seed approval was provided by Willy Simonsson at 2026-06-26 03:50 CEST.
+- Created `docs/proofs/execution-record-audit-writer-controlled-execution-record-seed-proof.txt`.
+- Updated controlled seed approval, live smoke approval, readiness, checkpoint, and QA docs.
+- Checkpoint status: `controlled_execution_record_seed_inserted_audit_smoke_ready`.
+- Inserted exactly one controlled smoke-test row into `public.execution_records`.
+- Controlled execution record id: `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- The row was marked as smoke/test data where the schema allows.
+- No audit event insert was performed in this action.
+- No repeated seed rows, update/delete/upsert, trade/stats/PnL mutation, UI/browser call, market-loop invocation, broker/Avanza behavior, automatic mode, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 842 - Run Controlled Audit Writer Live Smoke Insert.
+
+## Action 842 - Run Controlled Audit Writer Live Smoke Insert
+
+- Created `docs/proofs/execution-record-audit-writer-live-smoke-insert-proof.txt`.
+- Updated live smoke approval, controlled seed approval, production write-path follow-up, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_live_smoke_insert_failed_no_retry`.
+- Used controlled execution record id `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Ran one live writer insert attempt through `appendExecutionRecordAuditEventFromProductionWritePath(...)`.
+- Result: write path `completed`; writer result `unknown_error`; `inserted: false`; audit event id `null`.
+- No retry was performed.
+- No UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 843 - Resolve Audit Writer Live Smoke Insert Failure.
+
+## Action 843 - Resolve Audit Writer Live Smoke Insert Failure
+
+- Created `docs/execution-record-audit-writer-live-smoke-insert-failure-resolution.md`.
+- Updated `docs/proofs/execution-record-audit-writer-live-smoke-insert-proof.txt` with an Action 843 failure-resolution addendum.
+- Updated live smoke approval, production write-path follow-up, readiness, checkpoint, and QA docs.
+- Checkpoint status: `audit_writer_live_smoke_insert_failure_resolution_documented_retry_blocked`.
+- Leading hypothesis: the live insert attempted `event_status: "dry_run_ready"`, while the audit table migration allows only `attempted`, `succeeded`, `failed`, `blocked`, `duplicate`, or `unknown`.
+- Immediate blocker: Action 842 did not capture Supabase error code/message/details/hint, constraint name, adapter status/errorCode, writer errors after envelope normalization, or normalized insert payload.
+- No retry, second insert, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 844 - Add Live Smoke Insert Failure Diagnostic Logging.
+
+## Action 844 - Add Live Smoke Insert Failure Diagnostic Logging
+
+- Created `docs/execution-record-audit-writer-live-smoke-insert-diagnostic-logging.md`.
+- Added `tests/e2e/execution-record-audit-writer-live-smoke-insert-diagnostics.spec.ts`.
+- Updated `lib/server/execution-record-audit-writer-service-role-adapter.ts` to capture sanitized adapter diagnostics and classify schema/check/FK/not-null failures as `schema_constraint`.
+- Updated `lib/server/execution-record-audit-writer.ts` so live adapter inserts use `event_status: "attempted"` while dry-run metadata remains `dry_run_ready`.
+- Updated `lib/server/execution-record-audit-writer-production-write-path.ts` to preserve writer diagnostics in the production write-path envelope.
+- Checkpoint status: `audit_writer_live_smoke_insert_diagnostics_added_retry_blocked`.
+- Focused Playwright diagnostics/boundary run passed: 31 tests.
+- No live smoke retry, second insert, Supabase query, remote SQL, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 845 - Request Live Smoke Insert Retry Approval.
+
+## Action 845 - Request Live Smoke Insert Retry Approval
+
+- Created `docs/execution-record-audit-writer-live-smoke-insert-retry-approval-request.md`.
+- The request asks for one future controlled live smoke insert retry only, using the approved server-only production write path, controlled execution record id `5d682086-4195-40ec-ba80-a0a1b39a6923`, migration-compatible `event_status: "attempted"`, and diagnostic proof capture.
+- Approval is absent.
+- Checkpoint status: `audit_writer_live_smoke_insert_retry_approval_requested_blocked`.
+- No live smoke retry, insert/update/delete/upsert, Supabase query, remote SQL, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 846 - Provide Live Smoke Insert Retry Approval.
+
+## Action 846 - Run Controlled Audit Writer Live Smoke Insert Retry
+
+- Approval was provided by Willy Simonsson at 2026-06-26 04:23 CEST.
+- Created `docs/proofs/execution-record-audit-writer-live-smoke-insert-retry-proof.txt`.
+- Ran exactly one controlled server-side insert-only retry through `appendExecutionRecordAuditEventFromProductionWritePath(...)`.
+- Controlled execution record id: `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Result: write path `completed`; writer `success`; inserted `true`; adapter status `success`; diagnostics `null`.
+- Audit event id remains `unconfirmed_without_select` because no post-insert select or broad table dump was performed.
+- Checkpoint status: `audit_writer_live_smoke_insert_retry_succeeded_inserted_true`.
+- No repeated retry, update/delete/upsert, broad select/table dump, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 847 - Record Live Smoke Insert Retry Completion And Production Rollout Blockers.
+
+## Action 847 - Add Live Smoke Insert Success Regression Proof
+
+- Created `docs/execution-record-audit-writer-live-smoke-insert-success-regression-proof.md`.
+- Added `tests/e2e/execution-record-audit-writer-live-smoke-success-regression.spec.ts`.
+- Updated the Action 846 retry proof, retry approval, live smoke approval, diagnostic logging, failure resolution, production write-path, readiness, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_live_smoke_insert_success_regression_proof_added`.
+- The regression proof locks the successful envelope: production write path `completed`, writer `success`, inserted `true`, adapter `success`, diagnostics `null`, and audit event id `unconfirmed_without_select`.
+- The regression proof confirms no post-insert select confirmation, no retry loop, no update/delete/upsert/select introduction, no UI/browser/app-shell import, no route import, and no market-loop/scanner/automation import.
+- No live insert rerun, select/query/remote SQL, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 848 - Create Audit Writer Persistence Readiness Summary.
+
+## Action 848 - Create Audit Writer Persistence Readiness Summary
+
+- Created `docs/execution-record-audit-writer-persistence-readiness-summary.md`.
+- Updated readiness, production write-path, live smoke proof, retry approval, diagnostic logging, failure resolution, live smoke approval, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_persistence_readiness_summary_created`.
+- The summary records the verified chain from remote execution/audit tables, migrations, schema/RLS, anon/authenticated denial, generated types, service-role boundary, live adapter, server-only writer, production write path, controlled seed, live failure diagnostics, successful retry, and success regression proof.
+- Current persistence status: staging persistence is verified through the approved server-only boundary; the insert-only success result confirms persistence; audit event row id remains `unconfirmed_without_select` because no post-insert select/table dump was run.
+- Remaining blockers: production rollout approval, operational monitoring/rollback plan, UI/browser integration approval, market-loop/scanner integration approval, downstream execution lifecycle integration approval, optional row-id select approval, and optional smoke-data cleanup/backout approval.
+- No live insert, select/query/remote SQL, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 849 - Create Audit Writer Operational Monitoring And Rollback Plan.
+
+## Action 849 - Create Audit Writer Operational Monitoring And Rollback Plan
+
+- Created `docs/execution-record-audit-writer-operational-monitoring-and-rollback-plan.md`.
+- Updated persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_operational_monitoring_and_rollback_plan_created`.
+- The plan defines future monitoring signals, failure classes, stop conditions, rollback/backout options, recovery procedure, proof locations, and remaining approvals for the audit writer persistence path.
+- Runtime monitoring implementation remains unapproved and unimplemented.
+- No runtime monitoring code, logging behavior, live insert, select/query/remote SQL, data mutation, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 850 - Create Audit Writer Runtime Integration Design.
+
+## Action 850 - Create Audit Writer Runtime Integration Design
+
+- Created `docs/execution-record-audit-writer-runtime-integration-design.md`.
+- Updated operational monitoring/rollback, persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_runtime_integration_design_created`.
+- The design defines future server-only candidate integration points, explicit exclusions, payload ownership, gates/approvals, error handling, monitoring hooks, test strategy, rollout strategy, and non-goals.
+- Runtime integration implementation remains unapproved and unimplemented.
+- No runtime integration code, production write-path import from app/runtime files, live insert, select/query/remote SQL, data mutation, logging behavior, runtime monitoring code, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 851 - Create Audit Writer Runtime Integration Approval Request.
+
+## Action 851 - Create Audit Writer Runtime Integration Approval Request
+
+- Created `docs/execution-record-audit-writer-runtime-integration-approval-request.md`.
+- Updated runtime integration design, operational monitoring/rollback, persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_runtime_integration_approval_requested_blocked`.
+- The approval request defines the exact proposed future implementation scope, required server-only integration point choice, required approval fields, exact approval statement template, decision state, and safety boundaries.
+- Approval is absent, so runtime integration implementation remains blocked until Action 852 provides exact approval.
+- No runtime integration code, production write-path import from app/runtime files, live insert, select/query/remote SQL, data mutation, logging behavior, runtime monitoring code, UI/browser/client invocation, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 852 - Provide Audit Writer Runtime Integration Approval.
+
+## Action 852 - Implement Server-Only Audit Writer Runtime Integration
+
+- Approval was provided by Willy Simonsson at `26 juni 2026, 16:32` for one server-only execution lifecycle audit hook targeting `public.execution_record_audit_events` in Trade staging project `ekdyopdrrkphlrsilyoo`.
+- Created `lib/server/execution-record-audit-writer-lifecycle-hook.ts`.
+- Created `tests/e2e/execution-record-audit-writer-lifecycle-hook.spec.ts`.
+- Created `docs/execution-record-audit-writer-runtime-integration-implementation.md`.
+- Updated runtime integration design/approval docs, operational monitoring/rollback, persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_runtime_integration_lifecycle_hook_implemented_server_only`.
+- The hook is server-only, requires the approved lifecycle integration point, accepts successful lifecycle transition results, constructs validated server-side audit payloads, and delegates insert-only audit appends through the approved production write-path/writer boundary.
+- Focused lifecycle hook regression coverage passed.
+- No UI/browser/client invocation, app-shell import, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, update/delete/upsert/select in the integration path, production rollout, live smoke insert, Supabase query/remote SQL, data mutation, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 853 - Add Runtime Integration Boundary Regression Coverage.
+
+## Action 853 - Add Runtime Integration Boundary Regression Coverage
+
+- Created `docs/execution-record-audit-writer-runtime-integration-boundary-regression-tests.md`.
+- Extended `tests/e2e/execution-record-audit-writer-lifecycle-hook.spec.ts`.
+- Updated runtime integration implementation/approval/design docs, operational monitoring/rollback, persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_runtime_integration_boundary_regression_tests_added`.
+- Regression coverage now verifies direct Supabase helper absence, no Supabase table method calls, no fetch/route calls, no disallowed runtime imports, wrong integration point blocking, failed transition blocking, bounded deterministic idempotency keys, diagnostics propagation, no retry, and no downstream mutation.
+- Existing production write-path and live smoke success regression tests remain part of the validation set.
+- No actual lifecycle caller wiring, live insert, select/query/remote SQL, data mutation, UI/browser/client invocation, app-shell import, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 854 - Create Lifecycle Caller Wiring Approval Request.
+
+## Action 854 - Create Lifecycle Caller Wiring Approval Request
+
+- Created `docs/execution-record-audit-writer-lifecycle-caller-wiring-approval-request.md`.
+- Updated runtime integration boundary regression, implementation, approval, design, operational monitoring/rollback, persistence readiness, readiness matrix/reassessment, production write-path docs, success regression proof, checkpoint, and QA notes.
+- Checkpoint status: `audit_writer_lifecycle_caller_wiring_approval_requested_blocked`.
+- The approval request defines the future scope for wiring exactly one server-only lifecycle transition caller to the existing lifecycle audit hook.
+- Approval is absent, so no caller wiring was added.
+- No lifecycle caller wiring, hook invocation from existing lifecycle code, live insert, select/query/remote SQL, data mutation, UI/browser/client invocation, app-shell import, market-loop/scanner/automation invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation, production rollout, `.env.local` change, migration, type generation, generated type edit, or service-role value printing was performed.
+- Recommended next action: Action 855 - Provide Lifecycle Caller Wiring Approval.
+
+## Action 855 - Wire Server-Only Lifecycle Caller To Audit Hook
+
+- Approval was provided by Willy Simonsson; approval timestamp recorded by Codex:
+  `2026-06-26 17:42 CEST`.
+- Created `lib/server/execution-record-audit-writer-lifecycle-caller.ts`.
+- Created `tests/e2e/execution-record-audit-writer-lifecycle-caller.spec.ts`.
+- Created `docs/execution-record-audit-writer-lifecycle-caller-wiring-implementation.md`.
+- Updated runtime integration, approval, design, operational monitoring,
+  persistence readiness, readiness matrix/reassessment, production write-path,
+  live smoke success proof, checkpoint, and QA notes.
+- Checkpoint status:
+  `audit_writer_lifecycle_caller_wired_server_only_blocked_for_rollout`.
+- The caller applies a server-side lifecycle transition and invokes the lifecycle
+  hook only after a successful transition.
+- No existing UI/runtime lifecycle transition call site was wired.
+- No production rollout, live smoke insert, select/query/remote SQL, data
+  mutation, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation, update/delete/upsert/select, `.env.local`
+  change, migration, type generation, generated type edit, or service-role value
+  printing was performed.
+- Recommended next action: Action 856 - Create Lifecycle Caller Production
+  Rollout Approval Request.
+
+## Action 856 - Create Lifecycle Caller Production Rollout Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-lifecycle-caller-production-rollout-approval-request.md`.
+- Updated lifecycle caller wiring, runtime integration, operational monitoring,
+  persistence readiness, readiness matrix/reassessment, production write-path,
+  live smoke success proof, checkpoint, and QA notes.
+- Checkpoint status:
+  `audit_writer_lifecycle_caller_production_rollout_approval_requested_blocked`.
+- The approval request defines a future rollout scope limited to exactly one
+  approved real server-side lifecycle transition call site.
+- Approval is absent, so production rollout remains blocked.
+- No rollout, real runtime call-site wiring, live insert, select/query, remote
+  SQL, data mutation, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation, update/delete/upsert/select, `.env.local`
+  change, migration, type generation, generated type edit, or service-role value
+  printing was performed.
+- Recommended next action: Action 857 - Provide Lifecycle Caller Production
+  Rollout Approval.
+
+## Action 857 - Lifecycle Caller Production Rollout Candidate Review
+
+- Action 857 approval was received from Willy Simonsson at 2026-06-26 18:00
+  CEST.
+- Created
+  `docs/execution-record-audit-writer-lifecycle-caller-production-rollout-candidate-review.md`.
+- Candidate review found no eligible existing real server-only lifecycle
+  transition call site.
+- The only server-only lifecycle transition call is the approved lifecycle caller
+  boundary itself, so it is not a real rollout call site.
+- Real lifecycle transition holders remain in UI/app-shell-imported runtime code
+  and were not eligible under the approval boundary.
+- Checkpoint status:
+  `audit_writer_lifecycle_caller_rollout_blocked_no_eligible_server_only_call_site`.
+- No rollout, runtime code change, live insert, select/query, remote SQL, data
+  mutation, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation, update/delete/upsert/select, `.env.local`
+  change, migration, type generation, generated type edit, or service-role value
+  printing was performed.
+- Recommended next action: Action 858 - Create Server-Only Lifecycle Transition
+  Call Site Design.
+
+## Action 858 - Server-Only Lifecycle Transition Call Site Design
+
+- Created
+  `docs/execution-record-audit-writer-server-only-lifecycle-transition-call-site-design.md`.
+- The design documents the current blocker: no eligible existing real
+  server-only lifecycle transition call site exists; `lib/execution-orchestrator.ts`
+  holds real transition behavior but is imported by `app/trade-app.tsx`.
+- The design evaluates three future architecture options:
+  - Option A: new `lib/server/execution-lifecycle-transition-service.ts`;
+  - Option B: new API route/server action boundary;
+  - Option C: split `lib/execution-orchestrator.ts` into client-safe and
+    server-only modules.
+- Recommended first step: Option A, with Option B requiring separate approval if
+  UI initiation is required.
+- Checkpoint status:
+  `server_only_lifecycle_transition_call_site_design_created`.
+- No runtime code, server-only boundary implementation, lifecycle caller wiring,
+  live insert, select/query, remote SQL, data mutation, logging behavior, runtime
+  monitoring code, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Recommended next action: Action 859 - Create Server-Only Lifecycle Transition
+  Boundary Approval Request.
+
+## Action 859 - Server-Only Lifecycle Transition Boundary Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-server-only-lifecycle-transition-boundary-approval-request.md`.
+- The request asks for exact approval before implementing one new server-only
+  lifecycle transition boundary/service.
+- Default decision: approval absent and implementation blocked.
+- Checkpoint status:
+  `server_only_lifecycle_transition_boundary_approval_requested_blocked`.
+- The request does not approve audit lifecycle caller wiring, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, production rollout, live insert,
+  service-role exposure, migrations, type generation, or generated type edits.
+- No runtime code, server-only boundary implementation, lifecycle caller wiring,
+  live insert, select/query, remote SQL, data mutation, logging behavior, runtime
+  monitoring code, UI/browser/client invocation, app-shell import,
+  market-loop/scanner/automation invocation, broker/Avanza behavior, automatic
+  mode, trade/stats/PnL mutation, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Recommended next action: Action 860 - Provide Server-Only Lifecycle Transition
+  Boundary Approval.
+
+## Action 860 - Implement Server-Only Lifecycle Transition Boundary
+
+- Approval was provided by Willy Simonsson for Action 860 with target project
+  `Trade`, project ref `ekdyopdrrkphlrsilyoo`, environment `staging`, new
+  boundary `lib/server/execution-lifecycle-transition-service.ts`, audit caller
+  wiring not approved, production rollout not approved, rollback/backout
+  reviewed, and Willy Simonsson as verification reviewer.
+- Created
+  `lib/server/execution-lifecycle-transition-service.ts`.
+- Created
+  `tests/e2e/execution-lifecycle-transition-service.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-server-only-lifecycle-transition-boundary-implementation.md`.
+- The service starts with `import "server-only";`.
+- The service exposes `transitionExecutionLifecycleOnServer(...)`.
+- Implementation strategy: wrap existing transition semantics from
+  `lib/execution-state-machine.ts`; no logic was moved or duplicated from
+  `lib/execution-orchestrator.ts`.
+- Checkpoint status:
+  `server_only_lifecycle_transition_boundary_implemented_audit_caller_wiring_blocked`.
+- No audit lifecycle caller wiring, call to
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)`, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation beyond
+  existing transition semantics, live insert, Supabase query, remote SQL,
+  update/delete/upsert/select in the audit writer path, production rollout,
+  service-role exposure, `.env.local` change, migration, type generation, or
+  generated type edit was performed.
+- Recommended next action: Action 861 - Add Server-Only Lifecycle Transition
+  Boundary Regression Coverage.
+
+## Action 861 - Add Server-Only Lifecycle Transition Boundary Regression Coverage
+
+- Updated
+  `tests/e2e/execution-lifecycle-transition-service.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-server-only-lifecycle-transition-boundary-regression-tests.md`.
+- Regression coverage now locks server-only import, approved export surface,
+  state-machine-only transition semantics, no orchestrator import, no large
+  orchestrator logic duplication, no audit lifecycle caller import, no
+  production write-path/lifecycle hook/writer/service-role adapter import, no
+  direct Supabase/table operations, no route/fetch calls, no UI/app-shell/route
+  imports, no market/scanner/automation imports, approval gates, and
+  success/failure transition semantics.
+- Checkpoint status:
+  `server_only_lifecycle_transition_boundary_regression_tests_added`.
+- No audit lifecycle caller wiring, call to
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)`, live insert, Supabase
+  query, remote SQL, data mutation, UI/browser/client invocation, app-shell
+  import, market-loop/scanner/automation invocation, broker/Avanza behavior,
+  automatic mode, trade/stats/PnL mutation beyond existing transition semantics,
+  migration, type generation, generated type edit, `.env.local` change, or
+  service-role value printing was performed.
+- Recommended next action: Action 862 - Create Boundary-To-Audit-Caller Wiring
+  Approval Request.
+
+## Action 862 - Boundary-To-Audit-Caller Wiring Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-boundary-to-audit-caller-wiring-approval-request.md`.
+- The request asks for exact approval before wiring
+  `lib/server/execution-lifecycle-transition-service.ts` to the existing
+  server-only audit lifecycle caller.
+- Proposed future scope is limited to server-only wiring after successful
+  lifecycle transitions, preserving existing transition semantics, caller/hook
+  gates, diagnostics, deterministic bounded idempotency, no retry loop, and
+  insert-only audit appends to `public.execution_record_audit_events` through
+  the approved production write path.
+- Checkpoint status:
+  `boundary_to_audit_caller_wiring_approval_requested_blocked`.
+- No boundary-to-audit-caller wiring, call to
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)`, change to
+  `lib/execution-orchestrator.ts`, live insert, Supabase query, remote SQL, data
+  mutation, logging behavior, runtime monitoring code, UI/browser/client
+  invocation, app-shell import, market-loop/scanner/automation invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation beyond
+  existing transition semantics, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Recommended next action: Action 863 - Provide Boundary-To-Audit-Caller Wiring
+  Approval.
+
+## Action 863 - Wire Server-Only Lifecycle Boundary To Audit Caller
+
+- Approval was provided by Willy Simonsson for Action 863 with target project
+  `Trade`, project ref `ekdyopdrrkphlrsilyoo`, environment `staging`, boundary
+  module `lib/server/execution-lifecycle-transition-service.ts`, audit caller
+  module `lib/server/execution-record-audit-writer-lifecycle-caller.ts`, target
+  table `public.execution_record_audit_events`, insert-only operation through
+  the approved boundary, approval timestamp `2026-06-26 19:01 CEST`,
+  rollback/backout reviewed, and Willy Simonsson as verification reviewer.
+- Updated `lib/server/execution-lifecycle-transition-service.ts`.
+- Updated `tests/e2e/execution-lifecycle-transition-service.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-boundary-to-audit-caller-wiring-implementation.md`.
+- The boundary now validates boundary and audit-caller wiring gates, then calls
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)` with a validated
+  server-side payload targeting `public.execution_record_audit_events`.
+- Checkpoint status:
+  `boundary_to_audit_caller_wiring_implemented_server_only_rollout_limited`.
+- No UI/browser/client invocation, app-shell import, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation
+  beyond existing transition semantics, update/delete/upsert/select in the
+  boundary, direct Supabase call from the boundary, route/fetch call,
+  service-role exposure, live smoke insert, broader production rollout,
+  `.env.local` change, migration, type generation, or generated type edit was
+  performed.
+- Recommended next action: Action 864 - Add Boundary-To-Audit-Caller Wiring
+  Regression Coverage.
+
+## Action 864 - Add Boundary-To-Audit-Caller Wiring Regression Coverage
+
+- Updated `tests/e2e/execution-lifecycle-transition-service.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-boundary-to-audit-caller-wiring-regression-tests.md`.
+- Regression coverage now locks approved caller import only, no direct
+  production write-path/hook/writer/service-role adapter import, no direct
+  Supabase/table operations, no route/fetch/env/browser storage access, no
+  UI/app-shell/route imports, no market/scanner/automation imports,
+  `auditCallerWiringApproved` gate behavior, failed-transition no-append-hook
+  behavior through the real lifecycle caller, successful-transition caller
+  payload mapping, deterministic source fingerprint/request fields, diagnostics
+  propagation, and no-retry/no-downstream-mutation safety.
+- Checkpoint status:
+  `boundary_to_audit_caller_wiring_regression_tests_added`.
+- No new runtime call site, live insert, Supabase query, remote SQL, data
+  mutation, UI/browser/client invocation, market-loop/scanner invocation,
+  broker/Avanza behavior, automatic mode, trade/stats/PnL mutation beyond
+  existing transition semantics, migration, type generation, generated type
+  edit, `.env.local` change, or service-role value printing was performed.
+- Recommended next action: Action 865 - Create Server-Only Lifecycle Audit
+  Runtime Proof Plan.
+
+## Action 865 - Create Server-Only Lifecycle Audit Runtime Proof Plan
+
+- Created
+  `docs/execution-record-audit-writer-server-only-lifecycle-audit-runtime-proof-plan.md`.
+- The plan documents the chain under proof:
+  `transitionExecutionLifecycleOnServer(...)`,
+  `transitionExecutionLifecycleAndAppendAuditEvent(...)`, lifecycle hook,
+  production write path, audit writer, service-role adapter, and
+  `public.execution_record_audit_events`.
+- The plan separates Stage A in-memory proof, Stage B dry-run proof, and Stage C
+  optional controlled live proof, with live proof requiring separate approval.
+- Checkpoint status:
+  `server_only_lifecycle_audit_runtime_proof_plan_created`.
+- No runtime proof code, live insert, Supabase query, remote SQL, data mutation,
+  UI/browser/client invocation, app-shell import, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic mode, trade/stats/PnL mutation
+  beyond existing transition semantics, migration, type generation, generated
+  type edit, `.env.local` change, or service-role value printing was performed.
+- Recommended next action: Action 866 - Create In-Memory Runtime Proof Harness
+  Approval Request.
+
+## Action 866 - Create In-Memory Runtime Proof Harness Approval Request
+
+- Created
+  `docs/execution-record-audit-writer-in-memory-runtime-proof-harness-approval-request.md`.
+- The request asks for explicit approval before implementing one no-database-write
+  in-memory runtime proof harness for the server-only lifecycle audit chain.
+- Checkpoint status:
+  `in_memory_runtime_proof_harness_approval_requested_blocked`.
+- No in-memory proof harness, runtime proof code, proof execution, live insert,
+  Supabase query, remote SQL, data mutation, UI/browser/client invocation,
+  app-shell import, market-loop/scanner/automation invocation, broker/Avanza
+  behavior, automatic mode, trade/stats/PnL mutation beyond existing transition
+  semantics, migration, type generation, generated type edit, `.env.local`
+  change, or service-role value printing was performed.
+- Recommended next action: Action 867 - Provide In-Memory Runtime Proof Harness
+  Approval.
+
+## Action 867 - Implement In-Memory Runtime Proof Harness
+
+- Approval was provided by Willy Simonsson with project `Trade`, project ref
+  `ekdyopdrrkphlrsilyoo`, environment `staging`, proof stage
+  `Stage A - in-memory runtime proof`, database writes allowed `no`, Supabase
+  query allowed `no`, live insert allowed `no`, production rollout not approved,
+  approval timestamp `2026-06-26 19:40 CEST`, rollback/backout reviewed, and
+  Willy Simonsson as verification reviewer.
+- Created
+  `lib/server/execution-record-audit-writer-in-memory-runtime-proof-harness.ts`.
+- Created
+  `tests/e2e/execution-record-audit-writer-in-memory-runtime-proof-harness.spec.ts`.
+- Created
+  `docs/execution-record-audit-writer-in-memory-runtime-proof-harness-implementation.md`.
+- The harness proves successful lifecycle transitions create audit append intent,
+  failed transitions create no append intent, and payload/idempotency/
+  diagnostics/warnings/no-retry behavior are preserved using in-memory injected
+  append behavior only.
+- Checkpoint status:
+  `in_memory_runtime_proof_harness_implemented`.
+- No live insert, Supabase query, remote SQL, real service-role adapter call,
+  insert/update/delete/upsert/select, UI/browser/client invocation, app-shell
+  import, market-loop/scanner/automation invocation, broker/Avanza behavior,
+  automatic mode, production rollout, service-role exposure, trade/stats/PnL
+  mutation beyond existing transition semantics, `.env.local` change, migration,
+  type generation, or generated type edit was performed.
+- Validation passed: focused in-memory runtime proof harness test, lifecycle
+  service/caller/hook/production write-path/in-memory proof harness regression
+  bundle, runtime denial harness import/syntax checks, UI/app-shell scan,
+  market-loop/scanner scan, public service-role exposure scan, code-only
+  service-role leakage scan, harness env/client/write scan, `git diff --check`,
+  touched-file trailing whitespace scan, zero-byte docs check,
+  `./node_modules/.bin/tsc --noEmit`, and `npm run lint`. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 868 - Add Runtime Proof Regression Coverage.
+
+## Action 912 - Create Execution Event Log/Local Storage Coupling Inventory
+
+- Created
+  `docs/execution-event-log-local-storage-coupling-inventory.md`.
+- Inventory covers:
+  `ture_execution_event_log_v1`, `ture_execution_records_v1`,
+  `ture_dev_mock_broker_results_v1`, `trade-management-events`,
+  `ture_execution_mode`, paper-session protocol storage, demo storage,
+  dismissed warning storage, and mock broker latest fill storage.
+- Inventory records producer paths in `app/trade-app.tsx` and
+  `hooks/execution/useLocalhostBridgeControlsState.ts`, consumer/clear paths in
+  `app/settings/page.tsx`, derived timeline reads in `lib/execution-timeline.ts`,
+  modal/helper coupling, settings/UI coupling, risks, and proposed extraction
+  seams.
+- Checkpoint status:
+  `execution_event_log_local_storage_coupling_inventory_created`.
+- No runtime code, tests, migrations, generated type edits, `.env.local`
+  changes, Supabase query, remote SQL, service-role code, audit writer path
+  change, route/fetch call, UI/browser audit writer invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic mode
+  behavior, live proof/insert, or trade/stats/PnL mutation was performed.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer import scan returned no matches; route invocation scan returned
+  only existing approved route, harness, and regression test references;
+  source-only `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches;
+  local storage/event-log helper safety scan returned no matches; touched-file
+  service-role scan returned documentation-only boundary phrases with no secret
+  values; `git diff --check`, touched-file trailing whitespace scan, and
+  zero-byte docs check passed; `./node_modules/.bin/tsc --noEmit` passed;
+  `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 913 - Add Execution Event Log/Local Storage
+  Baseline Tests.
+
+## Action 913 - Add Execution Event Log/Local Storage Baseline Tests
+
+- Created
+  `tests/e2e/execution-event-log-local-storage-baseline.spec.ts`.
+- Created
+  `docs/execution-event-log-local-storage-baseline-tests.md`.
+- Baseline coverage locks current importable behavior for
+  `ture_execution_event_log_v1`, `ture_execution_records_v1`,
+  `ture_dev_mock_broker_results_v1`, `trade-management-events`,
+  `ture_execution_mode`, and `trade-mock-broker-latest-fill`.
+- Coverage includes append/read/order/filter/clear behavior, malformed JSON
+  fallback, missing key behavior, browser/localStorage unavailable behavior,
+  max-size bounding behavior, lifecycle-event audit mapping, settings static
+  read/clear coupling, local-only/server-audit distinction, and client-safe
+  no-server/no-Supabase/no-service-role/no-route boundaries.
+- Checkpoint status:
+  `execution_event_log_local_storage_baseline_tests_added`.
+- No runtime behavior change, localStorage helper extraction, event log helper
+  extraction, storage key rename, handler/effect/state mutation change, modal
+  helper wiring change, component extraction, lifecycle UI adapter broadening,
+  audit writer runtime persistence path change, rollout flag change,
+  UI/browser/client audit writer invocation, market-loop/scanner invocation,
+  broker/Avanza behavior, automatic mode behavior, live proof/insert,
+  select/query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, type generation, generated type edit, `.env.local` change, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: focused event log/localStorage baseline spec passed with
+  7 tests after rerunning outside the sandbox because Playwright's configured
+  local web server was blocked on port 3010; modal/helper/open-path/lifecycle UI
+  adapter baseline bundle passed with 54 tests; server-only lifecycle
+  service/caller/hook bundle passed with 31 tests; runtime denial harness syntax
+  checks passed; UI/app-shell audit writer lifecycle/proof/monitoring/cleanup/
+  rollout search returned no matches; route invocation search returned only
+  existing approved route, harness, and regression test references; production
+  localStorage module unsafe scan returned no matches; service-role scan
+  returned expected guard/documentation references only and no service-role
+  values; `git diff --check`, touched-file trailing whitespace scan, zero-byte
+  docs check, `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed.
+  Lint emitted the existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 914 - Implement Client-Safe Execution Local
+  Storage Helpers.
+
+## Action 914 - Implement Client-Safe Execution Local Storage Helpers
+
+- Created `lib/execution-local-storage-helpers.ts`.
+- Created `tests/e2e/execution-local-storage-helpers.spec.ts`.
+- Created `docs/execution-local-storage-helpers-implementation.md`.
+- Helper coverage includes dependency-injected storage handling, browser storage
+  resolution, generic JSON array read/write/clear helpers, event log
+  read/append/clear helpers, execution record read/write/append/clear helpers,
+  dev mock broker result read/write/append/remove-clear helpers, missing key
+  behavior, malformed JSON behavior, unavailable storage behavior, max-size
+  bounds, key preservation, and deterministic memory storage for tests.
+- Checkpoint status:
+  `execution_local_storage_helpers_implemented_client_safe`.
+- No runtime wiring, storage key rename, existing read/write/clear behavior
+  change, event log append behavior change, execution record store behavior
+  change, settings viewer behavior change, handler/effect/state mutation
+  change, modal helper wiring change, component extraction, lifecycle UI adapter
+  broadening, audit writer runtime persistence path change, rollout flag
+  change, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic mode behavior, live
+  proof/insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: helper plus Action 913 baseline bundle passed with 13
+  tests; helper/baseline/modal/open-path/lifecycle UI adapter bundle passed with
+  60 tests; server-only lifecycle service/caller/hook bundle passed with 31
+  tests; anonymous and authenticated denial harness syntax checks passed;
+  UI/app-shell audit writer lifecycle/proof/monitoring/cleanup/rollout search
+  returned no matches; route invocation search returned only existing approved
+  route, harness, and regression test references; source-only
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; helper/local
+  storage unsafe import scan returned no matches for production helper modules;
+  service-role scan returned expected guard/documentation references only and
+  no service-role values; broad env/client/write scan returned expected helper
+  browser storage access and test guard strings only for Action 914 surfaces;
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `./node_modules/.bin/tsc --noEmit`, and `npm run lint` passed. Lint
+  emitted the existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 915 - Wire Event Log Helpers Into Read/Append
+  Paths.
+
+## Action 915 - Wire Event Log Helpers Into Read/Append Paths
+
+- Updated `lib/execution-event-log.ts` so event log read, append, and clear
+  paths delegate to `lib/execution-local-storage-helpers.ts`.
+- Updated `tests/e2e/execution-local-storage-helpers.spec.ts` to prove the
+  execution event log module is wired to helper read/append/clear paths while
+  `lib/execution-record-store.ts` and `lib/dev-mock-broker-result-store.ts`
+  remain unwired.
+- Created `docs/execution-event-log-helper-read-append-wiring.md`.
+- Checkpoint status:
+  `execution_event_log_helpers_read_append_wired`.
+- No execution records helper wiring, dev mock broker result helper wiring,
+  storage key rename, event log behavior change, event ordering change,
+  max-size behavior change, malformed/missing/unavailable storage behavior
+  change, event payload shape change, settings behavior change, handler/effect/
+  state mutation change beyond helper-equivalent event log path replacement,
+  modal helper wiring change, component extraction, lifecycle UI adapter
+  broadening, audit writer runtime persistence path change, rollout flag
+  change, UI/browser/client audit writer invocation, market-loop/scanner
+  invocation, broker/Avanza behavior, automatic mode behavior, live
+  proof/insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit,
+  `.env.local` change, or trade/stats/PnL mutation was performed.
+- Validation passed: focused execution local-storage helper and event-log
+  baseline specs passed with 14 tests; broader helper/modal/open-path/lifecycle
+  UI adapter bundle passed with 61 tests; related lifecycle service/caller/hook
+  bundle passed with 31 tests; runtime denial harness syntax checks passed;
+  audit-writer/runtime route invocation scans returned only expected existing
+  route, harness, and test references; local-storage/event-log-specific unsafe
+  import scan returned no matches; service-role leakage scan returned
+  documentation/test guard references only with no values printed; broad
+  env/client/write scan returned expected helper/test guard references only;
+  `git diff --check`, touched-file trailing whitespace scan, and
+  `find docs -type f -size 0` passed; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 916 - Wire Execution Records Store Helpers
+  Into Read/Write/Clear Paths.
+
+## Action 932 - Add Live Position Execution UI Baseline Tests
+
+- Created `docs/live-position-execution-ui-baseline-tests.md`.
+- Added `tests/e2e/live-position-execution-ui-baseline.spec.ts`.
+- Baseline coverage locks the current read-only live-position execution status
+  surface, helper-backed live-position handoff modal open/close behavior,
+  close/reset ownership, prepare/capture modal adjacency, extracted execution
+  component adjacency, and client-safe/no-audit-writer boundaries.
+- The selected first extraction seam remains the read-only live position
+  execution status surface currently rendered from `ActivePositionCard`.
+- Checkpoint status: `live_position_execution_ui_baseline_tests_added`.
+- No runtime code, JSX, handlers, effects, state/helper wiring, audit writer
+  path, route invocation, broker/Avanza behavior, automatic mode behavior,
+  data mutation, migration, typegen, generated type edit, or `.env.local`
+  change was performed.
+- Focused validation passed:
+  `npx playwright test tests/e2e/live-position-execution-ui-baseline.spec.ts`
+  passed with 10 tests. Broader validation for Action 932 is recorded in QA
+  notes.
+- Recommended next action: Action 933 - Extract Read-Only Live Position
+  Execution Status Surface.
+
+## Action 933 - Extract Read-Only Live Position Execution Status Surface
+
+- Created
+  `components/execution/live-position-execution-status-surface.tsx`.
+- Added `LivePositionExecutionStatusSurface` as a client-safe presentational
+  component that receives already-derived `ExecutionUiStatus` and renders the
+  read-only live-position status display.
+- Updated `app/trade-app.tsx` so `ActivePositionCard` renders
+  `LivePositionExecutionStatusSurface` while keeping the `View handoff` button,
+  `openExecutionPreviewModal`, `closeExecutionPreviewModal`, modal state,
+  orchestrator result, and close/reset paths parent-owned.
+- Kept `components/live-day-trades/LiveExecutionStatusSurface.tsx` as a thin
+  compatibility wrapper for existing sandbox fixture usage.
+- Updated `tests/e2e/live-position-execution-ui-baseline.spec.ts` and
+  `tests/e2e/execution-ui-component-extraction-baseline.spec.ts` to prove the
+  read-only status surface is extracted and interactive controls remain
+  deferred.
+- Created `docs/live-position-execution-status-surface-extraction.md`.
+- Checkpoint status:
+  `live_position_execution_status_surface_extracted`.
+- No handlers, effects, state mutation behavior, modal helper wiring, local
+  persistence helper wiring, settings persistence helper wiring, lifecycle UI
+  adapter wiring, audit writer runtime persistence path, rollout flags,
+  UI/browser/client audit writer invocation, market-loop/scanner invocation,
+  broker/Avanza behavior, automatic order submission behavior, live proof,
+  live insert, query/remote SQL, service-role adapter call, cleanup/backout,
+  migration, typegen, generated type edit, `.env.local` change, or
+  trade/stats/PnL mutation was performed.
+- Focused validation passed:
+  `npx playwright test tests/e2e/live-position-execution-ui-baseline.spec.ts tests/e2e/execution-ui-component-extraction-baseline.spec.ts`
+  passed with 18 tests. Broader validation for Action 933 is recorded in QA
+  notes.
+- Recommended next action: Action 934 - Extract Live Position Handoff
+  CTA/Controls Surface.
+
+## Action 934 - Extract Live Position Handoff CTA/Controls Surface
+
+- Created `components/execution/live-position-handoff-controls.tsx`.
+- Added `LivePositionHandoffControls` as a client-safe presentational component
+  for the live-position `View handoff` CTA/control UI.
+- Updated `app/trade-app.tsx` so `ActivePositionCard` renders
+  `LivePositionHandoffControls` through the existing
+  `LivePositionExecutionStatusSurface` `footerAction` slot.
+- Kept `openExecutionPreviewModal`, modal open/close state,
+  lifecycle/orchestrator state, prepare/capture behavior, close/reset behavior,
+  and position/trade/PnL mutation-adjacent callbacks parent-owned.
+- Updated `components/live-day-trades/LiveExecutionStatusSurface.tsx` so the
+  sandbox compatibility wrapper delegates its optional handoff button to the
+  extracted controls component.
+- Updated live-position baseline, execution UI component extraction baseline,
+  and modal open-path baseline tests for the new control seam.
+- Created `docs/live-position-handoff-controls-extraction.md`.
+- Checkpoint status: `live_position_handoff_controls_extracted`.
+- No full live-position panel extraction, handler/effect/state mutation change,
+  modal helper wiring change, persistence helper wiring change, settings
+  helper wiring change, lifecycle UI adapter broadening, audit writer runtime
+  persistence path change, rollout flag change, UI/browser/client audit writer
+  invocation, market-loop/scanner invocation, broker/Avanza behavior, automatic
+  order submission behavior, live proof, live insert, query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, typegen, generated
+  type edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Focused validation passed:
+  `npx playwright test tests/e2e/live-position-execution-ui-baseline.spec.ts tests/e2e/execution-ui-component-extraction-baseline.spec.ts tests/e2e/execution-modal-open-path-baseline.spec.ts`
+  passed with 26 tests. Broader validation for Action 934 is recorded in QA
+  notes.
+- Recommended next action: Action 935 - Create Live Position Execution UI
+  Extraction Summary.
+
+## Action 935 - Create Live Position Execution UI Extraction Summary
+
+- Created `docs/live-position-execution-ui-extraction-summary.md`.
+- Summarized live-position execution UI extraction work across Actions 931-934:
+  coupling inventory, baseline tests, read-only status surface extraction, and
+  handoff controls extraction.
+- Documented the current extracted live-position component map for
+  `LivePositionExecutionStatusSurface` and `LivePositionHandoffControls`.
+- Documented current parent ownership in `ActivePositionCard`, including modal
+  open/close state, lifecycle/orchestrator state, prepare/capture behavior,
+  close/reset behavior, and position/trade/PnL mutation-adjacent callbacks.
+- Documented test coverage, static safety scans, remaining gaps, and the
+  recommended next refactor direction.
+- Checkpoint status:
+  `live_position_execution_ui_extraction_summary_created`.
+- No runtime code, JSX movement, handler/effect/state mutation change, modal
+  helper wiring change, persistence helper wiring change, settings helper
+  wiring change, lifecycle UI adapter broadening, audit writer runtime
+  persistence path change, rollout flag change, UI/browser/client audit writer
+  invocation, market-loop/scanner invocation, broker/Avanza behavior, automatic
+  order submission behavior, live proof, live insert, query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, typegen, generated
+  type edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Recommended next action: Action 936 - Create Dev Mock Broker Controls
+  Coupling Inventory.
+
+## Action 936 - Create Dev Mock Broker Controls Coupling Inventory
+
+- Created `docs/dev-mock-broker-controls-coupling-inventory.md`.
+- Inventoried the inline Settings dev/mock broker controls:
+  `DevMockBrokerResultsPanel` and `DevMockBrokerResultRow` in
+  `app/settings/page.tsx`.
+- Documented state dependencies, callback dependencies, local persistence store
+  helpers, execution records/event log adjacency, local capture behavior, server
+  capture stub behavior, handler/effect coupling, candidate component boundary,
+  safety boundaries, staged extraction sequence, first recommended seam, and
+  risks.
+- Checkpoint status:
+  `dev_mock_broker_controls_coupling_inventory_created`.
+- No runtime code, JSX movement, handler/effect/state mutation change, modal
+  helper wiring change, local persistence helper wiring change, settings helper
+  wiring change, lifecycle UI adapter broadening, audit writer runtime
+  persistence path change, rollout flag change, UI/browser/client audit writer
+  invocation, market-loop/scanner invocation, broker/Avanza behavior, automatic
+  order submission behavior, live proof, live insert, query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, typegen, generated
+  type edit, `.env.local` change, or trade/stats/PnL mutation was performed.
+- Recommended next action: Action 937 - Add Dev Mock Broker Controls Baseline
+  Tests.
+
+## Action 937 - Add Dev Mock Broker Controls Baseline Tests
+
+- Created `tests/e2e/dev-mock-broker-controls-baseline.spec.ts`.
+- Created `docs/dev-mock-broker-controls-baseline-tests.md`.
+- Added source-characterization coverage for the inline
+  `DevMockBrokerResultsPanel` and `DevMockBrokerResultRow` before extraction.
+- Locked panel copy, row detail fields, server capture route stub copy, local
+  capture copy, parent-owned refresh/clear/capture-complete callbacks, helper
+  behavior, local-only/server-audit distinction, and safety boundaries.
+- Confirmed existing extracted Settings/live-position/local persistence
+  components remain intact while dev/mock controls remain deferred.
+- Checkpoint status: `dev_mock_broker_controls_baseline_tests_added`.
+- No runtime code, JSX movement, component extraction, handler/effect/state
+  mutation change, modal helper wiring change, local persistence helper wiring
+  change, settings helper wiring change, lifecycle UI adapter broadening, audit
+  writer runtime persistence path change, rollout flag change, UI/browser/client
+  audit writer invocation, market-loop/scanner invocation, broker/Avanza
+  behavior, automatic order submission behavior, live proof, live insert,
+  query/remote SQL, service-role adapter call, cleanup/backout, migration,
+  typegen, generated type edit, `.env.local` change, or trade/stats/PnL
+  mutation was performed.
+- Focused validation passed:
+  `npx playwright test tests/e2e/dev-mock-broker-controls-baseline.spec.ts`
+  passed with 8 tests after rerunning outside the sandbox because the sandbox
+  blocked Playwright's local listener.
+- Recommended next action: Action 938 - Extract Dev Mock Broker Results Panel
+  Component.
+## Action 938 — Dev Mock Broker Results Panel Extraction
+
+Status: `dev_mock_broker_results_panel_extracted`
+
+- Extracted the Settings dev mock broker results panel and result row UI into
+  `components/execution/execution-dev-mock-broker-results-panel.tsx`.
+- Kept `app/settings/page.tsx` as the owner of dev mock broker result store
+  state, visible result selection, latest timestamp, messages, refresh/clear
+  callbacks, and capture-complete refresh callback.
+- Preserved existing panel labels, row fields, local-only diagnostics copy,
+  server capture route stub copy, and broker-result preview copy.
+- Did not add audit writer route invocation, service-role code, Supabase table
+  access, broker/Avanza behavior, automatic mode, migrations, type generation,
+  generated type edits, or `.env.local` changes.
+- Added extraction proof in
+  `docs/dev-mock-broker-results-panel-extraction.md`.
+- Recommended next action: Action 939 — Create Dev Mock Broker Controls
+  Extraction Summary.
+## Action 939 — Dev Mock Broker Controls Extraction Summary
+
+Status: `dev_mock_broker_controls_extraction_summary_created`
+
+- Created `docs/dev-mock-broker-controls-extraction-summary.md` as a
+  documentation-only summary of Actions 936-938.
+- Summarized the dev/mock broker controls coupling inventory, baseline tests,
+  extracted panel/row component map, parent ownership, test coverage, safety
+  boundaries, remaining gaps, and next refactor direction.
+- Confirmed no runtime code, JSX, handlers, effects, state mutation, helper
+  wiring, audit writer runtime path, rollout flags, broker/Avanza behavior,
+  automatic mode behavior, migrations, type generation, generated types,
+  live proof/query/insert, service-role adapter call, or `.env.local` changes
+  were performed for Action 939.
+- Recommended next action: Action 940 — Create Execution State/Effects
+  Coupling Inventory.
+
+## Action 940 - Execution State/Effects Coupling Inventory
+
+- Result status: `execution_state_effects_coupling_inventory_created`.
+- Created `docs/execution-state-effects-coupling-inventory.md`.
+- Documented state, effect, and handler coupling across `app/trade-app.tsx`, `app/settings/page.tsx`, extracted execution components, execution modal helpers, execution settings persistence helpers, local persistence helpers, and lifecycle UI adapter usage.
+- First recommended seam is test-first: Action 941 — Add Execution State/Effects Baseline Tests. The first extraction seam after tests is Action 942 — Extract Execution Modal State Container Hook.
+- Not performed: runtime code changes, handler/effect rewrites, JSX rewiring, audit writer changes, route invocation, live proof, live insert, Supabase query, remote SQL, migration, type generation, generated type edit, service-role access, broker/Avanza behavior, automatic mode changes, or `.env.local` edits.
+- Recommended next action: Action 941 — Add Execution State/Effects Baseline Tests.
+
+## Action 941 - Execution State/Effects Baseline Tests
+
+- Result status: `execution_state_effects_baseline_tests_added`.
+- Added `tests/e2e/execution-state-effects-baseline.spec.ts`.
+- Added `docs/execution-state-effects-baseline-tests.md`.
+- Baseline coverage locks modal state container behavior, prepare/capture adjacency, local persistence viewer boundaries, settings persistence boundaries, live-position execution UI boundaries, and client-safe/no-audit-writer safety boundaries before extraction.
+- Not performed: runtime code changes, hook extraction, reducer extraction, state container extraction, handler/effect rewrites, JSX movement, component extraction, audit writer changes, route/fetch additions, live proof, live insert, Supabase query, remote SQL, migration, type generation, generated type edit, service-role access, broker/Avanza behavior, automatic mode changes, trade/stats/PnL mutation behavior changes, or `.env.local` edits.
+- Recommended next action: Action 942 — Extract Execution Modal State Container Hook.
+
+## Action 942 - Execution Modal State Container Hook Extraction
+
+- Result status: `execution_modal_state_container_hook_extracted`.
+- Added `hooks/execution/useExecutionModalState.ts`.
+- Added `docs/execution-modal-state-container-hook-extraction.md`.
+- Wired the hook into the sandbox fixture card and the live-position handoff
+  preview path to centralize modal visibility and selected preview result state.
+- Preserved modal helper behavior, sandbox/live-position open semantics,
+  close/reset semantics, selected handoff/result semantics, prepare/capture
+  adjacency, parent-owned side effects, lifecycle/orchestrator state, local and
+  settings persistence, and mutation-adjacent callbacks.
+- Not performed: reducer extraction, JSX movement, component extraction, audit
+  writer path change, route/fetch addition, live proof, live insert,
+  Supabase query, remote SQL, migration, type generation, generated type edit,
+  service-role access, broker/Avanza behavior, automatic mode change,
+  trade/stats/PnL mutation behavior change, or `.env.local` edit.
+- Validation passed: Action 941 baseline spec passed with 6 tests; the broader
+  related baseline/helper pack passed with 106 tests; runtime denial import
+  checks, static safety scans, `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `.env.local` diff check,
+  `tsc --noEmit`, and `npm run lint` passed. Lint emitted the existing Babel
+  deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 943 — Extract Execution Local Persistence
+  Viewer State Hook.
+
+## Action 943 - Execution Local Persistence Viewer State Hook Extraction
+
+- Result status: `execution_local_persistence_viewer_state_hook_extracted`.
+- Added `hooks/execution/useExecutionLocalPersistenceViewers.ts`.
+- Added `docs/execution-local-persistence-viewer-state-hook-extraction.md`.
+- Wired Settings local execution event log, local execution records, and dev
+  mock broker result viewer state through the new hook.
+- Preserved refresh/clear messages, confirmation prompts, visible-list sorting,
+  timestamp derivation, storage keys, persisted shapes, local-only/server-audit
+  distinction, Settings persistence, modal state hook wiring, lifecycle UI
+  adapter wiring, and extracted viewer component boundaries.
+- Not performed: JSX movement, component extraction, storage behavior change,
+  storage key change, persisted shape change, audit writer path change,
+  route/fetch addition, live proof, live insert, Supabase query, remote SQL,
+  migration, type generation, generated type edit, service-role access,
+  broker/Avanza behavior, automatic mode change, trade/stats/PnL mutation
+  behavior change, or `.env.local` edit.
+- Validation passed: focused baseline specs passed with 14 tests; the broader
+  related baseline/helper pack passed with 106 tests; runtime denial import
+  checks, static safety scans, `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, `.env.local` diff check,
+  `tsc --noEmit`, and `npm run lint` passed. Lint emitted the existing Babel
+  deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 944 — Extract Execution Settings State Hook.
+
+## Action 944 - Execution Settings State Hook Extraction
+
+- Result status: `execution_settings_state_hook_extracted`.
+- Added `hooks/execution/useExecutionSettingsState.ts`.
+- Added `docs/execution-settings-state-hook-extraction.md`.
+- Wired Settings execution mode preference state through the new hook while
+  preserving helper-backed read/write behavior, semi-auto default,
+  invalid/missing fallback, automatic-mode gating, save messages, authority
+  derivation, hydration refresh behavior, and `ExecutionSettingsPanel` output.
+- Not performed: JSX movement, component extraction, storage key/shape change,
+  modal state hook wiring change, local persistence viewer hook wiring change,
+  lifecycle UI adapter broadening, audit writer path change, route/fetch
+  addition, live proof, live insert, Supabase query, remote SQL, migration,
+  type generation, generated type edit, service-role access, broker/Avanza
+  behavior, automatic order submission enablement, trade/stats/PnL mutation
+  behavior change, or `.env.local` edit.
+- Validation passed: focused settings/state specs and the broader related
+  baseline/helper pack passed; runtime denial import checks, static safety
+  scans, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, `.env.local` diff check, `tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 945 — Extract Execution Live Position
+  Handoff State Hook.
+
+## Action 945 - Execution Live Position Handoff State Hook Extraction
+
+- Result status: `execution_live_position_handoff_state_hook_extracted`.
+- Added `hooks/execution/useExecutionLivePositionHandoffState.ts`.
+- Added `docs/execution-live-position-handoff-state-hook-extraction.md`.
+- Wired `app/trade-app.tsx` live-position handoff preview/status state through
+  the new hook while preserving live-position status, handoff controls, modal
+  open path, selected preview/result semantics, prepare/capture adjacency, and
+  lifecycle/orchestrator semantics.
+- Mutation-adjacent callbacks, close-position behavior, details modal state,
+  EOD acknowledgement, position/trade/PnL mutation logic, persistence, and side
+  effects remain parent-owned.
+- Not performed: JSX movement, component extraction, broad reducer/state
+  refactor, audit writer path change, route/fetch addition, live proof, live
+  insert, Supabase query, remote SQL, migration, type generation, generated type
+  edit, service-role access, broker/Avanza behavior, automatic order submission
+  enablement, trade/stats/PnL mutation behavior change, or `.env.local` edit.
+- Validation passed: focused state/live-position specs passed with 16 tests;
+  affected modal/component baseline pack passed with 37 tests; broader related
+  baseline/helper pack passed with 106 tests; runtime denial import checks,
+  static safety scans, `git diff --check`, zero-byte docs check, `.env.local`
+  diff check, `tsc --noEmit`, and `npm run lint` passed. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`; the automatic-order
+  scan matched only existing human-confirmation guardrail copy.
+- Recommended next action: Action 946 — Create Execution State/Effects Refactor
+  Summary.
+
+## Action 946 - Execution State/Effects Refactor Summary
+
+- Result status: `execution_state_effects_refactor_summary_created`.
+- Created `docs/execution-state-effects-refactor-summary.md`.
+- Summarized Actions 940-945: state/effects coupling inventory, baseline tests,
+  modal state hook extraction, local persistence viewer hook extraction,
+  settings state hook extraction, and live-position handoff state hook
+  extraction.
+- Documented the current hook map, current parent ownership, extracted
+  component map, test coverage, safety boundaries, remaining gaps, and
+  recommended next direction.
+- Not performed: runtime code modification, hook extraction, reducer
+  introduction, JSX movement, component extraction, handler/effect/state
+  mutation behavior change, modal/local/settings/live-position hook wiring
+  change, persistence helper wiring change, lifecycle adapter broadening, audit
+  writer runtime persistence path change, rollout flag change, audit writer
+  UI/browser/client invocation, market-loop/scanner invocation, broker/Avanza
+  behavior, automatic order submission enablement, automatic mode enablement,
+  trade/stats/PnL mutation, live proof, live insert, select/query/remote SQL,
+  service-role adapter call, cleanup/backout, migration, type generation,
+  generated type edit, or `.env.local` edit.
+- Validation passed: runtime denial harness import checks; audit writer runtime
+  path import search; route invocation search; UI import/search for audit
+  writer route invocation, lifecycle hook/caller, transition boundary, proof
+  harness, monitoring, cleanup, and rollout terms; market-loop/scanner import
+  search; `NEXT_PUBLIC_*SERVICE*` exposure search; service-role leakage search;
+  broad env/client/write scan; state-effects-summary-specific unsafe import
+  scan; automatic-mode safety scan; `git diff --check`; touched-file trailing
+  whitespace scan; zero-byte docs check; `.env.local` diff check;
+  `./node_modules/.bin/tsc --noEmit`; and `npm run lint`. Lint emitted the
+  existing Babel deopt note for large `app/trade-app.tsx`.
+- Recommended next action: Action 947 — Create Final Execution Refactor Handoff
+  Summary.
+
+## Action 947 - Final Execution Refactor Handoff Summary
+
+- Result status: `final_execution_refactor_handoff_summary_created`.
+- Created `docs/final-execution-refactor-handoff-summary.md`.
+- Updated the requested execution refactor, hook extraction, component
+  extraction, local persistence, settings persistence, lifecycle UI adapter,
+  audit writer readiness, checkpoint, and QA documents with Action 947 handoff
+  links.
+- The final handoff consolidates Actions 895-946, with focus on Actions
+  924-946: extracted component map, extracted hook map, current parent-owned
+  boundaries, server-only audit writer posture, local-only persistence posture,
+  safety boundaries, validation posture, known warnings, deferred seams, staged
+  future roadmap, and stop/go recommendation.
+- Stop/go recommendation: stop the low-risk extraction phase after Actions
+  947-949; do not keep extracting blindly from `app/trade-app.tsx`; move to
+  product/live-trial readiness or start a new explicitly scoped high-risk
+  inventory if more refactor is needed.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, modal/local/settings/
+  live-position hook wiring change, local/settings persistence helper wiring
+  change, lifecycle UI adapter broadening, audit writer runtime persistence
+  path change, rollout flag change, audit writer UI/browser/client invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, trade/stats/PnL mutation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit, or
+  `.env.local` edit.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches returned only existing approved server/test
+  audit writer guardrails and existing scanner modules; `NEXT_PUBLIC_*SERVICE*`
+  exposure search returned no matches; service-role leakage search returned
+  existing approved server env alias code and existing test guardrails only,
+  with no service-role values printed; final-summary-specific scan returned
+  documentation-only safety boundary terms; automatic-mode safety scan returned
+  existing human-confirmation copy and new documentation-only safety notes;
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 948 — Final Repo Safety Sweep and Dead-Doc
+  Link Check.
+
+## Action 948 - Final Repo Safety Sweep and Dead-Doc Link Check
+
+- Result status: `final_execution_refactor_repo_safety_sweep_completed`.
+- Created `docs/final-execution-refactor-repo-safety-sweep.md`.
+- Verified required recent docs exist, including final handoff, state/effects
+  summary, hook extraction docs, component extraction summaries, checkpoint/QA,
+  audit writer runtime persistence handoff, and audit writer readiness docs.
+- Verified required final status strings are represented in the recent trail:
+  `final_execution_refactor_handoff_summary_created`,
+  `execution_state_effects_refactor_summary_created`,
+  `execution_live_position_handoff_state_hook_extracted`,
+  `execution_settings_state_hook_extracted`,
+  `execution_local_persistence_viewer_state_hook_extracted`, and
+  `execution_modal_state_container_hook_extracted`.
+- Verified recent markdown links and backticked docs-path references in the
+  checked handoff/readiness set do not point to missing recent docs.
+- Verified current extracted hook paths exist.
+- Verified extracted component paths exist, with live-position components under
+  `components/execution/` and `DevMockBrokerResultRow` recorded as an internal
+  component in `components/execution/execution-dev-mock-broker-results-panel.tsx`.
+- Historical older next-action references were intentionally retained as action
+  trail history; Action 948 now recommends Action 949 - Create Post-Refactor
+  Architecture Diagram/Index.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, modal/local/settings/
+  live-position hook wiring change, local/settings persistence helper wiring
+  change, lifecycle UI adapter broadening, audit writer runtime persistence
+  path change, rollout flag change, audit writer UI/browser/client invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, trade/stats/PnL mutation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit, or
+  `.env.local` edit.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches returned only existing approved server/test
+  audit writer guardrails and existing server audit writer modules;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned existing approved server env alias code and existing
+  test guardrails only, with no service-role values printed; final-sweep-
+  specific scan returned documentation-only safety boundary terms;
+  automatic-mode safety scan returned existing human-confirmation copy and new
+  documentation-only safety notes; dead-doc/path scan returned no missing
+  recent docs references after removing generic placeholder wording that could
+  be misread as a literal path; status and next-action consistency scans
+  passed; `git diff --check`, touched-file trailing whitespace scan, zero-byte
+  docs check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 949 — Create Post-Refactor Architecture
+  Diagram/Index.
+
+## Action 949 - Post-Refactor Execution Architecture Index
+
+- Result status: `post_refactor_execution_architecture_index_created`.
+- Created `docs/post-refactor-execution-architecture-index.md`.
+- Updated the final handoff, final repo safety sweep, execution state/effects
+  summary, refactor resumption plan, audit writer handoff/readiness docs,
+  checkpoint, and QA notes with Action 949 links.
+- Corrected the final handoff extracted component path map to the Action 948
+  verified paths: live-position extracted components live under
+  `components/execution/`, and `DevMockBrokerResultRow` is internal to
+  `components/execution/execution-dev-mock-broker-results-panel.tsx`.
+- The architecture index documents runtime ownership, extracted component
+  index, extracted hook index, helper/store index, server-only audit writer
+  index, local-only persistence index, test index, future safety checklist,
+  deferred/higher-risk seams, and how to continue.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, modal/local/settings/
+  live-position hook wiring change, local/settings persistence helper wiring
+  change, lifecycle UI adapter broadening, audit writer runtime persistence
+  path change, rollout flag change, audit writer UI/browser/client invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, trade/stats/PnL mutation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit, or
+  `.env.local` edit.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches returned only existing approved server/test
+  audit writer guardrails and existing server audit writer modules;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned existing approved server env alias code and existing
+  test guardrails only, with no service-role values printed; architecture-
+  index-specific scan returned documentation-only safety boundary terms;
+  automatic-mode safety scan returned existing human-confirmation copy and new
+  documentation-only safety notes; dead-doc/path scan returned no missing
+  recent docs/code references after correcting stale handoff/checkpoint
+  references; status and next-action consistency scans passed;
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 950 — Decide Whether to Stop Refactor Phase
+  or Start New High-Risk Inventory.
+
+## Action 950 - Execution Refactor Phase Stop/Go Decision
+
+- Result status: `execution_refactor_phase_stop_go_decision_created`.
+- Created `docs/execution-refactor-phase-stop-go-decision.md`.
+- Decision: stop the low-risk execution refactor phase.
+- Rationale: low-risk component/hook/helper seams are complete enough, the
+  handoff/safety sweep/architecture index are in place, and remaining work is
+  high-risk or mutation-adjacent enough to require a new inventory and baseline
+  cycle.
+- Next direction: return to product/live-trial readiness, or create a
+  separately scoped high-risk inventory only if a concrete product reason
+  appears.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, modal/local/settings/
+  live-position hook wiring change, local/settings persistence helper wiring
+  change, lifecycle UI adapter broadening, audit writer runtime persistence
+  path change, rollout flag change, audit writer UI/browser/client invocation,
+  market-loop/scanner invocation, broker/Avanza behavior, automatic order
+  submission enablement, automatic mode enablement, trade/stats/PnL mutation,
+  live proof, live insert, select/query/remote SQL, service-role adapter call,
+  cleanup/backout, migration, type generation, generated type edit, or
+  `.env.local` edit.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches returned only existing approved server/test
+  audit writer guardrails and existing server audit writer modules;
+  `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches; service-role
+  leakage search returned existing approved server env alias code and existing
+  test guardrails only, with no service-role values printed; stop/go-decision-
+  specific scan returned documentation-only safety boundary terms;
+  automatic-mode safety scan returned existing human-confirmation copy and new
+  documentation-only safety notes; dead-doc/path scan returned no missing
+  recent docs/code references; status and next-action consistency scans
+  passed; `git diff --check`, touched-file trailing whitespace scan, zero-byte
+  docs check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 951 — Resume Product/Live-Trial Readiness
+  Review.
+
+## Action 951 - Product/Live-Trial Readiness Review
+
+- Result status: `product_live_trial_readiness_review_created`.
+- Created `docs/product-live-trial-readiness-review.md`.
+- Updated the stop/go decision, architecture index, final handoff, checkpoint,
+  and QA notes to point from the stopped refactor phase to product/live-trial
+  readiness.
+- Review scope was documentation/readiness only, based on existing docs, code,
+  and tests.
+- The review covers product readiness, market/provider readiness, execution
+  readiness, risk/safety readiness, persistence readiness, deployment/env
+  readiness, test posture, blockers/warnings, and an explicit product/live-
+  trial recommendation.
+- Recommendation: Ture is ready to resume product/live-trial readiness work,
+  but should first run a non-live dry-run checklist before any market-window
+  trial or live session preparation.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, scan scheduling behavior
+  change, provider call, market scan, route invocation, live proof/query/insert,
+  data mutation, audit writer runtime path change, broker/Avanza behavior,
+  automatic order submission enablement, migration, type generation, generated
+  type edit, or `.env.local` change.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches were static only and returned only existing
+  approved server/test guardrails; `NEXT_PUBLIC_*SERVICE*` exposure search
+  returned no matches; service-role leakage search returned existing approved
+  server/test guardrails only, with no values printed; product-readiness scans
+  returned existing route/helper/localStorage/docs references only; automatic-
+  mode safety scan returned existing human-confirmation copy and documentation-
+  only safety notes; dead-doc/path, status, and next-action scans passed;
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 952 — Create Live-Trial Dry-Run Checklist.
+
+## Action 952 - Live-Trial Dry-Run Checklist
+
+- Result status: `live_trial_dry_run_checklist_created`.
+- Created `docs/live-trial-dry-run-checklist.md`.
+- Updated the product/live-trial readiness review, stop/go decision,
+  architecture index, final handoff, checkpoint, and QA notes to advance the
+  readiness trail.
+- Checklist scope is documentation/checklist only. It translates Action 951
+  into a concrete manual pre-live-trial workflow without provider calls, route
+  calls, live scans, database reads/writes, broker/Avanza behavior, or
+  automatic order behavior.
+- The checklist covers trial scope, pre-session review, recommendation dry-run
+  review, execution dry-run review, paper/mock boundaries, risk/safety review,
+  monitoring/live-position review, non-live test pack, manual observation log,
+  blockers/warnings, and go/no-go criteria.
+- Not performed: runtime code modification, hook/reducer/component extraction,
+  JSX movement, handler/effect/state mutation change, scan scheduling behavior
+  change, provider call, market scan, route invocation, live proof/query/insert,
+  data mutation, audit writer runtime path change, broker/Avanza behavior,
+  automatic order submission enablement, migration, type generation, generated
+  type edit, or `.env.local` change.
+- Validation passed: runtime denial harness syntax checks passed; UI/app-shell
+  audit writer route/lifecycle import search returned no matches for
+  `app/trade-app.tsx`, `components`, and `hooks`; route invocation and
+  market-loop/scanner searches were static only and returned only existing
+  approved server/test guardrails; `NEXT_PUBLIC_*SERVICE*` exposure search
+  returned no matches; service-role leakage search returned existing approved
+  server/test guardrails only, with no values printed; live-trial-checklist
+  scans returned existing route/helper/localStorage/docs references only;
+  automatic-mode safety scan returned existing human-confirmation copy and
+  documentation-only safety notes; dead-doc/path, status, and next-action scans
+  passed; `git diff --check`, touched-file trailing whitespace scan, zero-byte
+  docs check, `.env.local` diff check, `./node_modules/.bin/tsc --noEmit`, and
+  `npm run lint` passed. Lint emitted the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+- Recommended next action: Action 953 — Run Non-Live Test Pack for Live-Trial
+  Readiness.
+
+## Action 953 - Non-Live Test Pack for Live-Trial Readiness
+
+- Result status: `live_trial_non_live_test_pack_passed_with_warnings`.
+- Created `docs/live-trial-non-live-test-pack-results.md`.
+- Updated the live-trial dry-run checklist, product/live-trial readiness
+  review, checkpoint, and QA notes to record the test-pack result.
+- Scope was non-live validation/documentation only. Existing tests/static
+  checks were run; no runtime code was changed.
+- TypeScript passed with `./node_modules/.bin/tsc --noEmit`.
+- Lint passed with `npm run lint`; the existing Babel deopt note for large
+  `app/trade-app.tsx` remains.
+- Runtime denial harness syntax checks passed. The denial harnesses were not
+  executed against Supabase.
+- Static safety scans passed with expected existing hits for server/test
+  guardrails, app Supabase/localStorage paths, and human-confirmation safety
+  copy. No unsafe audit writer UI/app-shell/market/scanner invocation was
+  found.
+- Focused Playwright baseline pack passed with 106 tests. The initial sandboxed
+  run could not bind the local server on port 3010; the same focused command
+  passed after escalation only for local server binding.
+- Not performed: provider call, route invocation, scheduled scan, Generate More
+  route call, live market scan, Supabase query, DB read/write, service-role
+  adapter call, live proof/insert/query, broker/Avanza automation, automatic
+  order behavior, audit writer runtime persistence path change, UI/browser/
+  client audit writer invocation, market-loop/scanner invocation, handler/
+  effect/state mutation change, JSX movement, hook/component/reducer
+  extraction, migration, type generation, generated type edit, or `.env.local`
+  change.
+- Recommended next action: Action 954 — Complete Manual Live-Trial Dry-Run
+  Checklist.
+
+## Action 954 - Manual Live-Trial Dry-Run Checklist
+
+- Result status: `live_trial_manual_dry_run_passed_with_warnings`.
+- Created `docs/live-trial-manual-dry-run-results.md`.
+- Updated the live-trial dry-run checklist, non-live test pack results,
+  product/live-trial readiness review, checkpoint, and QA notes to record the
+  manual dry-run outcome.
+- Scope was documentation/manual review only, based on existing local docs,
+  static code/test evidence, and Action 953 results.
+- Dry-run environment: local working tree docs/tests/static review only. No
+  deployed Preview/Staging or Production environment was opened.
+- Manual checklist outcome: pre-session, recommendation UI, execution UI,
+  paper/mock/local persistence, risk/safety, and monitoring/live-position
+  sections passed with warnings.
+- Deployment recommendation: go for Preview/Staging deploy after Action 954.
+  Production deploy remains no-go until Preview/Staging is verified,
+  provider/env readiness is confirmed, deployed UI review is complete, and no
+  go/no-go blockers remain.
+- Warnings: existing Babel deopt note for large `app/trade-app.tsx`; Action
+  953 local Playwright port 3010 sandbox binding note; provider capacity/
+  headroom still needs manual confirmation; Netlify Preview/Staging not yet
+  verified; market-open validation remains separately pending; no real broker
+  integration is approved; automatic mode must remain gated.
+- Not performed: runtime code modification, provider call, route invocation,
+  scheduled scan, Generate More route call, live market scan, Supabase query,
+  DB read/write, service-role adapter call, live proof/insert/query,
+  broker/Avanza automation, automatic order behavior, deployment, Production
+  rollout, audit writer runtime persistence path change, UI/browser/client
+  audit writer invocation, market-loop/scanner invocation, handler/effect/state
+  mutation change, JSX movement, hook/component/reducer extraction, migration,
+  type generation, generated type edit, or `.env.local` change.
+- Recommended next action: Action 955 — Deploy Preview/Staging for Live-Trial
+  Verification.

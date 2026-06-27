@@ -1,0 +1,25 @@
+Action: 778 - Apply Execution Records Prerequisite Migration Manually
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal under Willy Simonsson approval
+CLI path: /opt/homebrew/bin/supabase
+CLI version: 2.107.0
+Linked project ref checked before apply: ekdyopdrrkphlrsilyoo
+Approved prerequisite migration: 20260614000000_create_execution_records.sql
+Command: /opt/homebrew/bin/supabase db push --dry-run --linked --workdir /private/tmp/trade-action-778-supabase-prereq-50688
+Command exit code: 0
+
+Output:
+
+Using workdir /private/tmp/trade-action-778-supabase-prereq-50688
+Initialising login role...
+DRY RUN: migrations will *not* be pushed to the database.
+Connecting to remote database...
+Would push these migrations:
+ • 20260614000000_create_execution_records.sql
+Finished supabase db push.
+
+Interpretation:
+- Dry run listed exactly one migration.
+- The listed migration matched the approved prerequisite migration.
+- No broad pending migration set was included.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

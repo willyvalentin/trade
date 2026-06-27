@@ -1,3 +1,10 @@
+## Action 683 - Audit Append Writer Validator Design
+
+- Created `docs/execution-record-audit-append-writer-validator-design.md` as a documentation-only design for a future audit append writer validator.
+- Documented validator principles, future input/output design, status and decision model, validation rules, invalid/blocked states, server-only/security, schema/type, idempotency/duplicate-prevention, evidence/provenance, failure/retry, downstream separation, dev-preview/production-route relationship, risks, and next action.
+- Reconfirmed writer validator readiness, writer contract readiness, insert success, audit boundary validator readiness, dev-preview diagnostics, orchestrator readiness, production boundary readiness, and dry-run success are not audit write approval; writer validation success does not authorize downstream actions.
+- Recommended next action: Action 684 - Create Audit Append Writer Validator Contract Types.
+
 # Execution Record Candidate Builder Invocation Validator Contract Reassessment
 
 ## 1. Purpose
@@ -345,3 +352,42 @@ Contract reassessment impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Dev Preview Contract Coverage
+
+- The invocation validator contract is represented in the new dev-gated invocation preview.
+- The preview surfaces validator status, decision recommendation, authority flags, safety policy validation, blocked reasons, warnings, and review items from controlled fixture data.
+- No runtime write authority or builder invocation authority was added.
+
+## Action 579 - Contract Status Reassessment
+
+- Reassessment confirms validator contract status display is read-only and fixture-only.
+- No authority flags were promoted to builder invocation or write authority.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Validator Contract Consumed
+
+- `ExecutionRecordCandidateBuilderInvocationInput` now carries an optional invocation validation result for the pure wrapper boundary.
+- The validator contract remains validation-only and does not itself invoke the builder or authorize writes.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed invocation validation status is the controlling gate for the wrapper's candidate builder call.
+- Reconfirmed unsafe validation states keep the builder uncalled and all write/action authority false.
+- Reconfirmed the validator contract remains validation-only and does not create records, persist, append audit, update stats/PnL, rollback/correct, mutate trades, or run broker/order behavior.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Dev Preview Integration Added
+
+- The invocation dev preview now consumes validator output as the gate into the pure invocation wrapper.
+- Validator contract semantics remain unchanged: validation enables candidate-only wrapper review, not persistence or record creation.
+- Candidate-builder output shown in the preview remains candidate-only and all write/action authority remains false.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed validator contract output remains validation-only evidence for the dev preview and not persistence or execution-record creation authority.
+- Reconfirmed all write/action authority remains false in the preview integration.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

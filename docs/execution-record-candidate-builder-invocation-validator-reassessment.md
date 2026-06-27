@@ -1,3 +1,10 @@
+## Action 683 - Audit Append Writer Validator Design
+
+- Created `docs/execution-record-audit-append-writer-validator-design.md` as a documentation-only design for a future audit append writer validator.
+- Documented validator principles, future input/output design, status and decision model, validation rules, invalid/blocked states, server-only/security, schema/type, idempotency/duplicate-prevention, evidence/provenance, failure/retry, downstream separation, dev-preview/production-route relationship, risks, and next action.
+- Reconfirmed writer validator readiness, writer contract readiness, insert success, audit boundary validator readiness, dev-preview diagnostics, orchestrator readiness, production boundary readiness, and dry-run success are not audit write approval; writer validation success does not authorize downstream actions.
+- Recommended next action: Action 684 - Create Audit Append Writer Validator Contract Types.
+
 # Execution Record Candidate Builder Invocation Validator Reassessment
 
 ## 1. Purpose
@@ -351,3 +358,44 @@ Action 576 verification:
 
 No runtime tests are required because Action 576 is documentation-only and makes
 no runtime code changes.
+## Action 578 - Dev Preview Readback
+
+- The invocation validator is now exercised by a dev-gated UI preview using controlled fixture data only.
+- The preview remains validation-only and does not grant approval to call `buildExecutionRecordCandidate(...)`, create candidates/records, persist, append audit, update stats/PnL, rollback/correct, mutate trade state, send to broker, or run browser/Avanza behavior.
+- The validator result is displayed with prerequisite, input source, proposed input, idempotency, audit/provenance, schema readiness, safety policy, authority flag, blocked reason, warning, and review-item sections.
+
+## Action 579 - Validator Preview Boundary Reconfirmed
+
+- Reassessment confirms the invocation dev preview calls only `validateExecutionRecordCandidateBuilderInvocation(...)`.
+- `builder_invocation_validation_valid` remains validation-only and is not builder-call, candidate-creation, record-creation, persistence, audit, stats/PnL, rollback, trade-mutation, broker, or Avanza/browser approval.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Validator Gate Used By Wrapper
+
+- The new wrapper requires a present invocation validator result.
+- `buildExecutionRecordCandidate(...)` is called only when validation status is `builder_invocation_validation_valid` and proposed input is present.
+- Blocked, invalid, unsupported, needs-review, missing-validation, and missing-input paths return conservatively without calling the builder.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed the invocation wrapper depends on valid invocation validation before calling the candidate builder.
+- Reconfirmed missing, blocked, needs-review, invalid, unsupported, and missing proposed-input paths do not call the builder.
+- Reconfirmed validator output remains a gate for candidate-only invocation and not a write or record-creation approval.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Dev Preview Integration Added
+
+- The dev preview now validates fixture invocation data before invoking the pure wrapper.
+- Valid invocation validation allows the wrapper to call the candidate builder and display candidate-only output.
+- Unsafe validation behavior remains covered separately and must not call the builder.
+- The preview remains non-writing and does not create execution records, append audit, update stats/PnL, rollback/correct, mutate trades, or run broker/order/Avanza behavior.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed invocation validation remains the gate before wrapper invocation in the dev preview.
+- Reconfirmed validation output is displayed as gate metadata only and does not grant write, creation, audit, stats, rollback, trade mutation, broker/order, or Avanza/browser authority.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.

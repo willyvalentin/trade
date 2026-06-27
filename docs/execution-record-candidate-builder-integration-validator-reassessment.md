@@ -550,3 +550,42 @@ Adapter-validator impact:
 Next recommended action:
 
 **Action 578 - Create Execution Record Candidate Builder Invocation Dev Preview**
+## Action 578 - Invocation Preview Relationship
+
+- The integration validator remains the upstream gate for the invocation dev fixture.
+- The new invocation preview displays that validated adapter output can be shaped for invocation review without calling the candidate builder.
+- No integration validator behavior, threshold, or write authority was changed.
+
+## Action 579 - Upstream Validator Role Reconfirmed
+
+- Reassessment confirms integration validation remains prerequisite context only for invocation preview.
+- No integration validator authority changed and no bridge-to-builder bypass was introduced.
+- Recommended next action: Action 580 - Create Execution Record Candidate Builder Invocation.
+
+## Action 580 - Upstream Validation Still Required
+
+- The invocation wrapper depends on invocation validation, which itself depends on valid upstream integration validation.
+- Integration validator behavior and authority remain unchanged.
+- Recommended next action: Action 581 - Reassess Execution Record Candidate Builder Invocation.
+
+## Action 581 - Invocation Wrapper Reassessed
+
+- Added `docs/execution-record-candidate-builder-invocation-reassessment.md`.
+- Reconfirmed integration validation remains upstream of invocation validation and candidate-only builder invocation.
+- Reconfirmed the invocation wrapper does not treat integration validation alone as sufficient for a builder call.
+- Reconfirmed write, audit, stats, rollback, trade mutation, UI, broker/order, and Avanza/browser boundaries remain closed.
+- Recommended next action: Action 582 - Create Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 582 - Invocation Preview Integrated
+
+- The dev preview now shows downstream invocation wrapper output after invocation validation.
+- Integration validation remains upstream and does not itself call the builder or grant write authority.
+- No persistence/write, execution-record creation, audit append, stats/PnL update, rollback/correction, trade mutation, broker/order, or Avanza/browser behavior was added.
+- Recommended next action: Action 583 - Reassess Execution Record Candidate Builder Invocation Dev Preview Integration.
+
+## Action 583 - Dev Preview Integration Reassessed
+
+- Created `docs/execution-record-candidate-builder-invocation-dev-preview-integration-reassessment.md`.
+- Reconfirmed integration validation remains upstream of invocation preview output and does not itself call the builder or grant write authority.
+- Reconfirmed preview integration remains candidate-only and non-writing.
+- Recommended next action: Action 584 - Reassess Supabase Execution Records Migration Checklist.
