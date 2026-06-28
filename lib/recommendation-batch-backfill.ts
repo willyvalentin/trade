@@ -1,5 +1,7 @@
-export const RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE = 10;
-export const RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP = 100;
+export const RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE = 5;
+export const RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP = 20;
+export const MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS =
+  RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP;
 
 export type RecommendationBatchBackfillChunkFetchResult<Row> = {
   data?: readonly Row[] | null;
@@ -16,6 +18,7 @@ export type RecommendationBatchBackfillResult<Row> = {
   requestedFingerprintCount: number;
   cappedFingerprintCount: number;
   fingerprintsCapped: boolean;
+  backfillSkipped: boolean;
   chunkSize: number;
   cap: number;
   chunks: string[][];
@@ -49,7 +52,8 @@ export function buildRecommendationBatchBackfillChunks(
         .filter((fingerprint) => fingerprint.length > 0),
     ),
   );
-  const cappedFingerprints = normalizedFingerprints.slice(0, cap);
+  const backfillSkipped = normalizedFingerprints.length > cap;
+  const cappedFingerprints = backfillSkipped ? [] : normalizedFingerprints;
   const chunks: string[][] = [];
 
   for (let index = 0; index < cappedFingerprints.length; index += chunkSize) {
@@ -59,7 +63,8 @@ export function buildRecommendationBatchBackfillChunks(
   return {
     requestedFingerprintCount: normalizedFingerprints.length,
     cappedFingerprintCount: cappedFingerprints.length,
-    fingerprintsCapped: normalizedFingerprints.length > cappedFingerprints.length,
+    fingerprintsCapped: backfillSkipped,
+    backfillSkipped,
     chunkSize,
     cap,
     chunks,

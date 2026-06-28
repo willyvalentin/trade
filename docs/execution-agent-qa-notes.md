@@ -23532,5 +23532,35 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   migration, typegen, generated type edit, audit writer path change,
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   trade/stats/PnL behavior change, or `.env.local` change was performed.
-- QA confirms recommended next action is Action 963 — Triage Production
-  `recommendation_snapshots` 500.
+- QA confirms completed follow-up is Action 963 — Patch Recommendation Batch
+  Backfill to Fail-Soft Before Timeout.
+
+## Action 963 QA Notes
+
+- Result status: `recommendation_batch_backfill_fail_soft_patch_implemented`.
+- QA confirms `docs/recommendation-batch-backfill-fail-soft-patch.md` exists.
+- QA confirms the action corrects the latest Production interpretation:
+  `recommendation_batches` scan-run timeout remains active, and
+  `recommendation_snapshots` is not the current recommended next triage target.
+- QA confirms the runtime change is limited to recommendation batch backfill
+  fail-soft helper behavior, count-only warning metadata, and related tests.
+- QA confirms `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` is now `5`.
+- QA confirms `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` is now `20`.
+- QA confirms `MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS` is now present
+  as the explicit fail-soft threshold.
+- QA confirms oversized normalized scan-run lists skip before querying and do
+  not call the injected chunk fetcher.
+- QA confirms warning metadata is count-only and includes `backfillSkipped`.
+- QA confirms empty-list no-query behavior, small-list bounded chunk behavior,
+  deterministic merge behavior, failed-chunk fail-soft behavior, and
+  dependency-free/client-safe helper boundaries remain covered.
+- QA confirms `scheduled_scan_attempts` was not changed.
+- QA confirms `batch_fingerprint` backfill remains documented as a secondary
+  risk and was not changed in this action.
+- QA confirms no live DB read/write, Supabase manual call, provider call, route
+  invocation, scan invocation, service-role adapter call, migration, typegen,
+  generated type edit, audit writer path change, broker/Avanza behavior,
+  automatic mode enablement, automatic order behavior, trade/stats/PnL behavior
+  change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 964 — Verify Recommendation
+  Batch Fail-Soft Patch in Production.

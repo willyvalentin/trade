@@ -24,8 +24,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 No broker/Avanza behavior or automatic order behavior is introduced by this
 verification action.
@@ -113,6 +117,10 @@ Action 962 follow-up verified with warnings: the latest Production screenshot
 did not show the previous recommendation batch scan-run timeout, but
 `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404
 remain.
+
+Action 963 correction: later Production evidence showed the recommendation
+batch scan-run timeout still active. Action 963 adds a pre-query skip guard for
+oversized scan-run backfill lists.
 
 ## Remaining Known Issue: scheduled_scan_attempts 404
 

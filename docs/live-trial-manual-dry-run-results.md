@@ -41,8 +41,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -206,6 +210,9 @@ No-go conditions remain:
 - Action 962 verified Production with warnings: the prior recommendation batch
   scan-run timeout was not visible, but `recommendation_snapshots` HTTP 500 and
   `scheduled_scan_attempts` HTTP 404 remain no-go blockers.
+- Action 963 corrected that later Production evidence still shows the
+  recommendation batch scan-run timeout, and fail-softs oversized scan-run
+  backfill lists before querying.
 
 ## Validation Results
 

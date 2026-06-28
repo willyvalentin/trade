@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   buildRecommendationBatchBackfillChunks,
   fetchChunkedRecommendationBatchBackfillRows,
+  MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS,
   RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
   RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
 } from "../../lib/recommendation-batch-backfill";
@@ -22,6 +23,7 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     expect(result.ok).toBe(true);
     expect(result.chunks).toEqual([]);
     expect(result.rows).toEqual([]);
+    expect(result.backfillSkipped).toBe(false);
     expect(queriedChunks).toEqual([]);
   });
 
@@ -42,6 +44,7 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     );
 
     expect(result.ok).toBe(true);
+    expect(result.backfillSkipped).toBe(false);
     expect(result.chunks).toEqual([["scan-a", "scan-b"]]);
     expect(queriedChunks).toEqual([["scan-a", "scan-b"]]);
     expect(result.rows).toEqual([
@@ -66,6 +69,7 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     );
 
     expect(result.ok).toBe(true);
+    expect(result.backfillSkipped).toBe(false);
     expect(result.chunks).toHaveLength(2);
     expect(result.chunks[0]).toHaveLength(
       RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
@@ -79,8 +83,11 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     });
   });
 
-  test("splits 50 missing fingerprints into five conservative chunks", async () => {
-    const fingerprints = Array.from({ length: 50 }, (_, index) => `scan-${index}`);
+  test("splits 20 missing fingerprints into four conservative chunks", async () => {
+    const fingerprints = Array.from(
+      { length: MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS },
+      (_, index) => `scan-${index}`,
+    );
     const queriedChunks: string[][] = [];
 
     const result = await fetchChunkedRecommendationBatchBackfillRows(
@@ -91,15 +98,17 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
       },
     );
 
-    expect(RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE).toBe(10);
+    expect(RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE).toBe(5);
+    expect(MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS).toBe(20);
     expect(result.ok).toBe(true);
-    expect(result.chunks).toHaveLength(5);
-    expect(result.chunks.every((chunk) => chunk.length === 10)).toBe(true);
+    expect(result.backfillSkipped).toBe(false);
+    expect(result.chunks).toHaveLength(4);
+    expect(result.chunks.every((chunk) => chunk.length === 5)).toBe(true);
     expect(queriedChunks).toEqual(result.chunks);
-    expect(result.rows).toHaveLength(50);
+    expect(result.rows).toHaveLength(20);
   });
 
-  test("caps oversized missing fingerprint lists before querying", async () => {
+  test("skips oversized missing fingerprint lists before querying", async () => {
     const fingerprints = Array.from(
       { length: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP + 4 },
       (_, index) => `scan-${index}`,
@@ -118,17 +127,33 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     expect(result.requestedFingerprintCount).toBe(
       RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP + 4,
     );
-    expect(result.cappedFingerprintCount).toBe(
-      RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
-    );
+    expect(result.cappedFingerprintCount).toBe(0);
     expect(result.fingerprintsCapped).toBe(true);
-    expect(queriedFingerprints).toHaveLength(
-      RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
+    expect(result.backfillSkipped).toBe(true);
+    expect(result.chunks).toEqual([]);
+    expect(result.rows).toEqual([]);
+    expect(queriedFingerprints).toEqual([]);
+  });
+
+  test("skip metadata stays count-only for oversized lists", () => {
+    const plan = buildRecommendationBatchBackfillChunks([
+      "scan-a",
+      "scan-b",
+      ...Array.from(
+        { length: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP },
+        (_, index) => `scan-extra-${index}`,
+      ),
+    ]);
+
+    expect(plan.requestedFingerprintCount).toBe(
+      RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP + 2,
     );
-    expect(queriedFingerprints.at(0)).toBe("scan-0");
-    expect(queriedFingerprints.at(-1)).toBe(
-      `scan-${RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP - 1}`,
-    );
+    expect(plan.cappedFingerprintCount).toBe(0);
+    expect(plan.cap).toBe(RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP);
+    expect(plan.chunkSize).toBe(RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE);
+    expect(plan.fingerprintsCapped).toBe(true);
+    expect(plan.backfillSkipped).toBe(true);
+    expect(plan.chunks).toEqual([]);
   });
 
   test("normalizes and de-duplicates fingerprints while preserving first-seen order", () => {
@@ -142,6 +167,7 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     ]);
 
     expect(plan.requestedFingerprintCount).toBe(3);
+    expect(plan.backfillSkipped).toBe(false);
     expect(plan.chunks).toEqual([["scan-a", "scan-b", "scan-c"]]);
   });
 
@@ -155,6 +181,7 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     );
 
     expect(result.ok).toBe(false);
+    expect(result.backfillSkipped).toBe(false);
     expect(result.error).toBe(error);
     expect(result.rows).toEqual([]);
   });

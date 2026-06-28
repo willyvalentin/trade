@@ -13,8 +13,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 The patch is read-only and app-side. It reduces request/query pressure for the
 scan-run recommendation batch backfill path without changing Supabase schema,
@@ -105,6 +109,11 @@ Action 962 follow-up: the latest Production screenshot no longer showed the
 previous `recommendation_batches?select=*&scan_run_fingerprint=in.(...)`
 timeout, but Production still has data-health warnings:
 `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404.
+
+Action 963 correction: later Production evidence showed the
+`recommendation_batches` scan-run timeout still active. Action 963 adds a
+fail-soft guard that skips scan-run backfill entirely when normalized missing
+fingerprints exceed `20`.
 
 ## Not Performed
 

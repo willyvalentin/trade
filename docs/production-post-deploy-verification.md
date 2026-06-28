@@ -36,8 +36,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and
@@ -162,6 +166,8 @@ error fix plan, not broker/live trading.
   `recommendation_batches` scan-run timeout was not visible, but
   `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404
   remain.
+- Action 963 corrected that the recommendation batch scan-run timeout is still
+  active in later Production evidence and added a fail-soft skip guard.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the

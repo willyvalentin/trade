@@ -18720,10 +18720,45 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   app shell/core Recommendations UI breaks, service-role/env exposure appears,
   or unsafe broker/automatic behavior appears.
 - Live market trial remains no-go because Production data health is not clean.
-- Recommended next action: Action 963 — Triage Production
-  `recommendation_snapshots` 500.
+- Completed follow-up: Action 963 — Patch Recommendation Batch Backfill to
+  Fail-Soft Before Timeout.
 - Not performed: no runtime code change, live DB read/write, manual Supabase
   call, provider call, route invocation, scan invocation, service-role adapter
   call, migration, typegen, generated type edit, `.env.local` change, audit
   writer path change, broker/Avanza behavior, automatic mode enablement,
   automatic order behavior, or trade/stats/PnL behavior change.
+
+## Action 963 - Recommendation Batch Backfill Fail-Soft Patch
+
+- Result status: `recommendation_batch_backfill_fail_soft_patch_implemented`.
+- Created `docs/recommendation-batch-backfill-fail-soft-patch.md`.
+- Corrected the Action 962 interpretation: latest Production evidence still
+  shows the `recommendation_batches?select=*&scan_run_fingerprint=in.(...)`
+  HTTP 500 statement timeout from `select_outcome_scan_run_batch_backfill`.
+- Updated `lib/recommendation-batch-backfill.ts` to reduce
+  `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` from `10` to `5`.
+- Updated `lib/recommendation-batch-backfill.ts` to reduce
+  `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` from `100` to `20`.
+- Added `MAX_RECOMMENDATION_BATCH_BACKFILL_FINGERPRINTS` as the explicit
+  pre-query fail-soft threshold.
+- Oversized normalized scan-run backfill lists now return `ok: true`,
+  `rows: []`, `chunks: []`, `fingerprintsCapped: true`, and
+  `backfillSkipped: true` without calling the injected chunk fetcher.
+- Updated `app/trade-app.tsx` warning metadata to include
+  `backfillSkipped`, while keeping warning data count-only.
+- Updated `tests/e2e/recommendation-batch-backfill.spec.ts` for threshold,
+  chunking, skip, count-only metadata, empty-list, small-list, deterministic
+  merge, failed-chunk, and dependency-free/client-safe behavior.
+- `scheduled_scan_attempts` 404 path was not changed.
+- `batch_fingerprint` backfill remains a documented secondary risk and was not
+  changed in this action.
+- Production can remain online with warnings if UI stays usable and errors
+  remain readback/diagnostic only.
+- Live market trial remains no-go.
+- Recommended next action: Action 964 — Verify Recommendation Batch Fail-Soft
+  Patch in Production.
+- Not performed: no live DB read/write, manual Supabase call, provider call,
+  route invocation, scan invocation, service-role adapter call, migration,
+  typegen, generated type edit, `.env.local` change, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  `scheduled_scan_attempts` fix, or trade/stats/PnL behavior change.

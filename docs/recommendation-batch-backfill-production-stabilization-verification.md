@@ -8,12 +8,23 @@ recommendation batch backfill stabilization patch.
 Result status:
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 This action is documentation/verification only. It is not live market trial
 approval. It introduces no broker/Avanza behavior and no automatic order
 behavior.
+
+Correction after latest Production screenshot: the previous Action 962
+interpretation was too optimistic. The latest screenshot again shows the
+`recommendation_batches?select=*&scan_run_fingerprint=in.(...)` HTTP 500
+statement timeout. The active blocker is still the recommendation batch
+scan-run backfill timeout. `recommendation_snapshots` is not the current
+recommended next triage target.
 
 ## Deployment Context
 
@@ -60,6 +71,21 @@ This is not a full Production data-health green state because other Supabase
 read errors remain. Continue monitoring for recurrence of
 `recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeouts after
 normal load/refresh and Recommendations page use.
+
+## Latest Correction: recommendation_batches Timeout Still Active
+
+Latest operator-provided Production evidence after this verification shows:
+
+- `recommendation_batches?select=*&scan_run_fingerprint=in.(...)`
+- HTTP 500
+- `canceling statement due to statement timeout`
+- dashboard log source `Supabase.recommendation_batches`
+- dashboard log operation `select_outcome_scan_run_batch_backfill`
+
+This contradicts the earlier conclusion that the recommendation batch timeout
+was likely improved or removed. Action 963 therefore implements a fail-soft
+guard to skip oversized scan-run backfill lists before any Supabase query is
+attempted.
 
 ## Active Blocker: recommendation_snapshots 500
 

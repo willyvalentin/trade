@@ -8957,6 +8957,7 @@ export function TradeApp() {
                 backfilledScanRunBatchesResult.cappedFingerprintCount,
               cap: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
               chunkSize: RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+              backfillSkipped: backfilledScanRunBatchesResult.backfillSkipped,
             });
           }
 

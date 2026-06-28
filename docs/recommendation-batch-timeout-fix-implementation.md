@@ -25,8 +25,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 The implementation is read-only and app-side. It does not change Supabase
 schema, environment configuration, provider calls, routes, audit writer paths,
@@ -117,6 +121,10 @@ Action 961 follow-up implemented that stabilization by reducing chunk size from
 Action 962 follow-up: Production no longer showed the previous
 `recommendation_batches` scan-run timeout in the latest screenshot, but
 `recommendation_snapshots` HTTP 500 is now the next targeted blocker.
+
+Action 963 correction: later Production evidence showed
+`recommendation_batches` scan-run timeout still active. Action 963 implements a
+pre-query skip guard for oversized scan-run backfill lists.
 
 Live market trial remains no-go until Production verification passes and the
 remaining readiness gates are complete.

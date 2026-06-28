@@ -52,8 +52,12 @@ Follow-up status: Action 962 created
 with result status
 `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Follow-up status: Action 963 implemented
+`docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
+`recommendation_batch_backfill_fail_soft_patch_implemented`.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -226,6 +230,11 @@ Action 962 update: Production verification passed with warnings. The prior
 screenshot, but `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts`
 HTTP 404 keep live market trial blocked.
 
+Action 963 correction: later Production evidence showed the
+`recommendation_batches` scan-run timeout still active. Action 963 fail-softs
+oversized scan-run backfill lists before querying. Live market trial remains
+no-go.
+
 ## Current Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -293,8 +302,11 @@ Size and Cap.
 Completed follow-up: Action 962 - Verify Stabilized Recommendation Batch
 Backfill in Production.
 
-Recommended next action: Action 963 - Triage Production
-`recommendation_snapshots` 500.
+Completed follow-up: Action 963 - Patch Recommendation Batch Backfill to
+Fail-Soft Before Timeout.
+
+Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
+Patch in Production.
 
 ## Validation Results
 
