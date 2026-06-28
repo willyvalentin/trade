@@ -241,6 +241,9 @@ observation evidence, not broker/live trading.
   the prior `recommendation_batches` timeout is gone. The remaining Production
   console blocker is `recommendation_snapshots` HTTP 500 for operation
   `select_recent_recommendation_snapshots`.
+- Action 973 implemented the recent recommendation readback stabilization
+  patch for `recommendation_snapshots` and `recommendation_outcomes`.
+  Production console verification after deploy is required next.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the

@@ -24,8 +24,12 @@ Follow-up status: Action 972 created
 `docs/recommendation-snapshots-500-production-triage.md` with result status
 `recommendation_snapshots_500_production_triage_created`.
 
-Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
-Read Limit and Add Fail-Soft Guard.
+Follow-up status: Action 973 created
+`docs/recent-recommendation-readback-stabilization-patch.md` with result
+status `recent_recommendation_readback_stabilization_patch_implemented`.
+
+Recommended next action: Action 974 - Verify Recent Recommendation Readback
+Stabilization in Production.
 
 ## Pre-Migration Review
 
@@ -282,6 +286,15 @@ operation `select_recent_recommendation_snapshots`.
 
 Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
 Read Limit and Add Fail-Soft Guard.
+
+## Action 973 Follow-Up
+
+Action 973 result status:
+`recent_recommendation_readback_stabilization_patch_implemented`.
+
+The scheduled scan attempts migration remains unchanged. Action 973 only
+stabilized recent recommendation readback limits and fail-soft fallback
+behavior for `recommendation_snapshots` and `recommendation_outcomes`.
 
 ## Validation Results
 

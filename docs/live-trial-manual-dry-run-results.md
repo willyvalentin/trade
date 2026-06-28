@@ -285,6 +285,10 @@ No-go conditions remain:
   prior `recommendation_batches` timeout is gone. Live market trial remains
   blocked by `recommendation_snapshots` HTTP 500 for operation
   `select_recent_recommendation_snapshots`.
+- Action 973 reduced recent `recommendation_snapshots` and
+  `recommendation_outcomes` readback limits to `100` and added warning-level
+  fail-soft fallback behavior. Live market trial remains blocked pending
+  Production verification after deploy.
 
 ## Validation Results
 

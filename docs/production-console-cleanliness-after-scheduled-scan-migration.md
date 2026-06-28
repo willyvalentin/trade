@@ -21,8 +21,12 @@ Follow-up status: Action 972 created
 `docs/recommendation-snapshots-500-production-triage.md` with result status
 `recommendation_snapshots_500_production_triage_created`.
 
-Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
-Read Limit and Add Fail-Soft Guard.
+Follow-up status: Action 973 created
+`docs/recent-recommendation-readback-stabilization-patch.md` with result
+status `recent_recommendation_readback_stabilization_patch_implemented`.
+
+Recommended next action: Action 974 - Verify Recent Recommendation Readback
+Stabilization in Production.
 
 ## Verification Context
 
@@ -171,6 +175,16 @@ reported console issue is `recommendation_snapshots` HTTP 500 for operation
 
 Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
 Read Limit and Add Fail-Soft Guard.
+
+## Action 973 Follow-Up
+
+Action 973 result status:
+`recent_recommendation_readback_stabilization_patch_implemented`.
+
+Action 973 reduced the broad recent `recommendation_snapshots` and
+`recommendation_outcomes` readback limits to `100`, preserved sort order, and
+added warning-level fail-soft fallback handling. Production console cleanliness
+must be rechecked after deploy.
 
 ## Validation Results
 

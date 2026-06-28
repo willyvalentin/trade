@@ -15,6 +15,10 @@ performed.
 Result status:
 `recommendation_snapshots_500_production_triage_created`
 
+Follow-up status: Action 973 created
+`docs/recent-recommendation-readback-stabilization-patch.md` with result
+status `recent_recommendation_readback_stabilization_patch_implemented`.
+
 Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
 Read Limit and Add Fail-Soft Guard.
 
@@ -250,20 +254,11 @@ resolved or explicitly accepted with a documented risk decision.
 
 ## Recommended Next Action
 
-Action 973 - Reduce recommendation_snapshots Recent Read Limit and Add
-Fail-Soft Guard.
+Action 974 - Verify Recent Recommendation Readback Stabilization in Production.
 
-The recommended next implementation should stay narrow:
-
-- reduce the broad initial `recommendation_snapshots` recent read;
-- preserve local fallback;
-- preserve typed mapping and diagnostics;
-- avoid provider calls, scan route calls, migrations, type generation,
-  generated type edits, service-role adapter calls, broker/Avanza behavior,
-  automatic mode, and `.env.local` changes.
-
-If Action 973 does not resolve the 500, create a separate read-only Production
-schema/index verification action before any migration.
+Action 973 implemented the app-side stabilization patch by reducing both
+recent readback limits to `100` and adding warning-level fail-soft fallback
+handling. The next step is Production console verification after deploy.
 
 ## Validation Results
 

@@ -19064,6 +19064,47 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   behavior, broker/Avanza behavior, automatic mode enablement, automatic order
   behavior, or trade/stats/PnL behavior change.
 
+## Action 973 - Reduce Recent Recommendation Readback Limits and Add Fail-Soft Guards
+
+- Result status:
+  `recent_recommendation_readback_stabilization_patch_implemented`.
+- Created `docs/recent-recommendation-readback-stabilization-patch.md`.
+- Added `lib/recent-recommendation-readback.ts` with read-only constants and a
+  generic fail-soft fallback resolver.
+- Updated `app/trade-app.tsx` to reduce the recent
+  `recommendation_snapshots` read limit from `1000` to `100`.
+- Updated `app/trade-app.tsx` to reduce the recent
+  `recommendation_outcomes` read limit from `750` to `100`.
+- Preserved snapshot sort order: `created_at` descending.
+- Preserved outcome sort order: `evaluated_at` descending.
+- Changed only the two recent readback error paths to warning-level
+  `recent_recommendation_readback_unavailable` logging with safe source,
+  operation, fallback source, fallback count, read limit, and normalized error.
+- Initial-load failures fall back to local storage.
+- Post-initial failures preserve previous in-memory state.
+- Outcome fallback still runs through existing readback dedupe diagnostics.
+- Removed island-error marking for these two non-critical recent readback
+  failures so they do not turn Recommendations, diagnostics, or history
+  islands into blockers.
+- Added
+  `tests/e2e/recent-recommendation-readback-stabilization.spec.ts`.
+- Focused stabilization test passed after rerunning with approval for local
+  Playwright server binding: `5 passed`.
+- Production decision: deploy stabilization patch directly to Production after
+  tests pass because Ture is not publicly released and Production is being used
+  as the verification environment.
+- Live market trial remains no-go pending Production console verification.
+- Recommended next action: Action 974 - Verify Recent Recommendation Readback
+  Stabilization in Production.
+- Not performed: no live DB read/write, manual Supabase call, provider call,
+  scan route invocation, route invocation, live market scan, service-role
+  adapter call, migration, typegen, generated type edit, `.env.local` change,
+  audit writer runtime persistence change, audit writer UI/browser/client
+  invocation, market-loop/scanner audit writer invocation,
+  `scheduled_scan_attempts` change, broker/Avanza behavior, automatic mode
+  enablement, automatic order behavior, or trade/stats/PnL mutation beyond
+  preserving readback fallback behavior.
+
 ## Action 971 - Provide Production App URL And Manual Console Observation After scheduled_scan_attempts Migration
 
 - Result status: `production_console_manual_observation_blocked`.

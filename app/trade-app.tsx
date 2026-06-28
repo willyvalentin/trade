@@ -248,6 +248,11 @@ import {
   RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
 } from "@/lib/recommendation-batch-backfill";
 import {
+  RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
+  RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
+  resolveRecentRecommendationReadbackFailure,
+} from "@/lib/recent-recommendation-readback";
+import {
   buildRecommendationBatchPerformanceSummary,
   recommendationBatchPerformanceSummaryJson,
   type RecommendationBatchPerformanceItem,
@@ -8466,12 +8471,12 @@ export function TradeApp() {
             .from("recommendation_snapshots")
             .select("*")
             .order("created_at", { ascending: false })
-            .limit(1000),
+            .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
           supabase
             .from("recommendation_outcomes")
             .select("*")
             .order("evaluated_at", { ascending: false })
-            .limit(750),
+            .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
           supabase
             .from("market_regime_snapshots")
             .select("*")
@@ -8688,18 +8693,21 @@ export function TradeApp() {
       }
 
       if (recommendationSnapshotsResult.error) {
-      console.error("[trade-app] dashboard_data_load_error", {
-        source: "supabase.recommendation_snapshots",
-        operation: "select_recent_recommendation_snapshots",
-        error: normalizeUnknownError(recommendationSnapshotsResult.error),
-      });
-        noteIslandError("market_diagnostics", recommendationSnapshotsResult.error);
-        noteIslandError("recommendations", recommendationSnapshotsResult.error);
-        if (isInitialLoad) {
-          loadedRecommendationSnapshotsForReadback =
-            readRecommendationSnapshotsFromLocalStorage();
-          setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
-        }
+        const fallback = resolveRecentRecommendationReadbackFailure({
+          isInitialLoad,
+          localItems: readRecommendationSnapshotsFromLocalStorage(),
+          previousItems: storedRecommendationSnapshots,
+        });
+        loadedRecommendationSnapshotsForReadback = fallback.items;
+        setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+        console.warn("[trade-app] recent_recommendation_readback_unavailable", {
+          source: "supabase.recommendation_snapshots",
+          operation: "select_recent_recommendation_snapshots",
+          fallbackSource: fallback.source,
+          fallbackCount: fallback.items.length,
+          readLimit: RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
+          error: normalizeUnknownError(recommendationSnapshotsResult.error),
+        });
       } else {
       const loadedSnapshots = ((recommendationSnapshotsResult.data ?? []) as Array<
         Record<string, unknown>
@@ -8720,23 +8728,27 @@ export function TradeApp() {
       }
 
       if (recommendationOutcomesResult.error) {
-      console.error("[trade-app] dashboard_data_load_error", {
-        source: "supabase.recommendation_outcomes",
-        operation: "select_recent_recommendation_outcomes",
-        error: normalizeUnknownError(recommendationOutcomesResult.error),
-      });
-        noteIslandError("market_diagnostics", recommendationOutcomesResult.error);
-        noteIslandError("history_statistics", recommendationOutcomesResult.error);
-        if (isInitialLoad) {
-          const dedupedLocalOutcomes = dedupeRecommendationOutcomesForReadback(
-            readRecommendationOutcomesFromLocalStorage(),
-          );
-          loadedRecommendationOutcomesForReadback = dedupedLocalOutcomes.outcomes;
-          setRecommendationOutcomeDedupeDiagnostics(
-            dedupedLocalOutcomes.diagnostics,
-          );
-          setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
-        }
+        const fallback = resolveRecentRecommendationReadbackFailure({
+          isInitialLoad,
+          localItems: readRecommendationOutcomesFromLocalStorage(),
+          previousItems: storedRecommendationOutcomes,
+        });
+        const dedupedFallbackOutcomes = dedupeRecommendationOutcomesForReadback(
+          fallback.items,
+        );
+        loadedRecommendationOutcomesForReadback = dedupedFallbackOutcomes.outcomes;
+        setRecommendationOutcomeDedupeDiagnostics(
+          dedupedFallbackOutcomes.diagnostics,
+        );
+        setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
+        console.warn("[trade-app] recent_recommendation_readback_unavailable", {
+          source: "supabase.recommendation_outcomes",
+          operation: "select_recent_recommendation_outcomes",
+          fallbackSource: fallback.source,
+          fallbackCount: loadedRecommendationOutcomesForReadback.length,
+          readLimit: RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
+          error: normalizeUnknownError(recommendationOutcomesResult.error),
+        });
       } else {
       const loadedOutcomes = ((recommendationOutcomesResult.data ?? []) as Array<
         Record<string, unknown>

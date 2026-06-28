@@ -432,6 +432,21 @@ blocker is `recommendation_snapshots` HTTP 500 for operation
 Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
 Read Limit and Add Fail-Soft Guard.
 
+Completed follow-up: Action 973 - Reduce Recent Recommendation Readback Limits
+and Add Fail-Soft Guards.
+
+Action 973 result status:
+`recent_recommendation_readback_stabilization_patch_implemented`.
+
+Action 973 reduced recent `recommendation_snapshots` and
+`recommendation_outcomes` readback limits to `100` and added warning-level
+fail-soft fallback handling. Live market trial remains no-go until the patch is
+deployed and Production console/readiness is verified clean or accepted with
+documented risk.
+
+Recommended next action: Action 974 - Verify Recent Recommendation Readback
+Stabilization in Production.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.

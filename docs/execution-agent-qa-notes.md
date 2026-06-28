@@ -23818,6 +23818,46 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   or trade/stats/PnL behavior change was performed.
 
+## Action 973 QA Notes
+
+- Result status:
+  `recent_recommendation_readback_stabilization_patch_implemented`.
+- QA confirms `docs/recent-recommendation-readback-stabilization-patch.md`
+  exists.
+- QA confirms `lib/recent-recommendation-readback.ts` exists and is read-only,
+  client-safe helper code.
+- QA confirms `app/trade-app.tsx` uses
+  `RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT` for the
+  `recommendation_snapshots` recent read and the value is `100`.
+- QA confirms `app/trade-app.tsx` uses
+  `RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT` for the
+  `recommendation_outcomes` recent read and the value is `100`.
+- QA confirms snapshot sort order remains `created_at` descending.
+- QA confirms outcome sort order remains `evaluated_at` descending.
+- QA confirms snapshot and outcome recent read failures use warning-level
+  `recent_recommendation_readback_unavailable` logging.
+- QA confirms initial-load failures fall back to local storage.
+- QA confirms post-initial failures preserve previous in-memory state.
+- QA confirms outcome fallback preserves existing dedupe diagnostics.
+- QA confirms the two recent readback failures no longer mark app islands as
+  errored.
+- QA confirms
+  `tests/e2e/recent-recommendation-readback-stabilization.spec.ts` exists and
+  covers limits, fail-soft fallback, source wiring, and client-safe/read-only
+  boundaries.
+- QA confirms the focused stabilization test passed after approved local
+  server binding: `5 passed`.
+- QA confirms recommended next action is Action 974 - Verify Recent
+  Recommendation Readback Stabilization in Production.
+- QA confirms no live DB read/write, manual Supabase call, provider call, scan
+  route invocation, route invocation, live market scan, service-role adapter
+  call, migration, typegen, generated type edit, `.env.local` change, audit
+  writer runtime persistence change, audit writer UI/browser/client
+  invocation, market-loop/scanner audit writer invocation,
+  `scheduled_scan_attempts` change, broker/Avanza behavior, automatic mode
+  enablement, automatic order behavior, or trade/stats/PnL mutation beyond
+  preserving readback fallback behavior was performed.
+
 ## Action 971 QA Notes
 
 - Result status: `production_console_manual_observation_blocked`.
