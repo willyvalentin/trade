@@ -22,7 +22,16 @@ Follow-up status: Action 955 created
 Follow-up status: Action 975 created `docs/market-window-dry-run-plan.md`
 with result status `market_window_dry_run_plan_created`.
 
-Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
+Follow-up status: Action 976 created
+`docs/market-window-dry-run-observation.md` with result status
+`market_window_dry_run_blocked`.
+
+Follow-up status: Action 977 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 978 - Provide Production URL And Run
+Open-Session Market-Window Dry Run Observation.
 
 This is documentation/checklist only. No provider call, route call, live scan,
 database read/write, Supabase call, service-role adapter call, broker/Avanza
@@ -198,6 +207,19 @@ observation, pass/warn/block, and go/no-go checklist. The dry run remains
 observation-only and does not approve broker/Avanza behavior, automatic order
 submission, provider abuse, manual route invocation, manual scan invocation,
 Supabase/DB access, service-role adapter calls, or trade/stats/PnL mutation.
+
+Action 976 update: `docs/market-window-dry-run-observation.md` records the
+attempt as blocked. The action ran on Sunday, June 28, 2026, with no regular
+US market window available, and the Production URL was not available in local
+repo context. No browser observation, console observation, provider call,
+route invocation, scan invocation, Supabase/DB access, service-role call,
+broker/Avanza behavior, automatic order behavior, real trade, or
+trade/stats/PnL mutation was performed.
+
+Action 977 update: the open-session retry remains blocked. It still ran on
+Sunday, June 28, 2026, outside a regular US market session, and the Production
+URL was still not available in local repo context. The next step must include
+the Production URL and occur during an actual open US market session.
 
 ## Manual Observation Log Template
 

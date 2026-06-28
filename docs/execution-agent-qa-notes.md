@@ -23924,6 +23924,86 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   automatic order submission enablement, or trade/stats/PnL mutation was
   performed.
 
+## Action 976 QA Notes
+
+- Result status: `market_window_dry_run_blocked`.
+- QA confirms `docs/market-window-dry-run-observation.md` exists.
+- QA confirms Action 976 is documentation/observation tracking only.
+- QA confirms observation environment is documented:
+  - Date: 2026-06-28.
+  - Local time: 14:53:58 CEST.
+  - NY time: 08:53:58 EDT.
+  - Market session state: closed / no regular US market window.
+  - Browser used: not opened.
+  - Console cleared before observation: no.
+- QA confirms the dry-run observation was blocked because the action ran on
+  Sunday, June 28, 2026, with no regular US market window available, and the
+  Production URL was not available in local repo context.
+- QA confirms Production UI observation is documented as not freshly observed
+  in Action 976.
+- QA confirms recommendation behavior observation is documented as not freshly
+  observed in Action 976.
+- QA confirms execution/handoff safety observation is documented as blocked
+  except for pass confirmations that no Avanza/browser automation, broker path,
+  or order behavior was invoked.
+- QA confirms risk/EOD safety observation is documented as not freshly
+  observed, with no trade/stats/PnL mutation performed.
+- QA confirms console/network observation is documented as not freshly
+  observed, with no service-role/env exposure, audit writer client invocation,
+  broker/Avanza action, or automatic order behavior invoked.
+- QA confirms go/no-go conclusion is explicit:
+  `market_window_dry_run_blocked`.
+- QA confirms recommended next action is Action 977 - Run Market-Window Dry
+  Run Observation During Open US Market Session.
+- QA confirms no browser observation, runtime code change, provider API call,
+  route invocation, scan invocation, live market scan, database write, manual
+  Supabase call, service-role adapter call, migration, typegen, generated type
+  edit, `.env.local` change, service-role value printing, audit writer
+  UI/browser/client invocation, audit writer runtime persistence path change,
+  market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order submission enablement, real trade,
+  or trade/stats/PnL mutation was performed.
+
+## Action 977 QA Notes
+
+- Result status: `market_window_dry_run_blocked`.
+- QA confirms `docs/market-window-dry-run-observation.md` was updated.
+- QA confirms Action 977 is documentation/observation tracking only.
+- QA confirms observation environment is documented:
+  - Date: 2026-06-28.
+  - Local time: 15:17:05 CEST.
+  - NY time: 09:17:05 EDT.
+  - Market session state: closed / no regular US market window.
+  - Browser used: not opened.
+  - Console cleared before observation: no.
+- QA confirms the dry-run observation retry remained blocked because it still
+  ran on Sunday, June 28, 2026, with no regular US market window available,
+  and the Production URL was still not available in local repo context.
+- QA confirms Production UI observation is documented as not freshly observed
+  in Action 977.
+- QA confirms recommendation behavior observation is documented as not freshly
+  observed in Action 977.
+- QA confirms execution/handoff safety observation is documented as blocked
+  except for pass confirmations that no Avanza/browser automation, broker path,
+  or order behavior was invoked.
+- QA confirms risk/EOD safety observation is documented as not freshly
+  observed, with no trade/stats/PnL mutation performed.
+- QA confirms console/network observation is documented as not freshly
+  observed, with no service-role/env exposure, audit writer client invocation,
+  broker/Avanza action, or automatic order behavior invoked.
+- QA confirms go/no-go conclusion remains explicit:
+  `market_window_dry_run_blocked`.
+- QA confirms recommended next action is Action 978 - Provide Production URL
+  And Run Open-Session Market-Window Dry Run Observation.
+- QA confirms no browser observation, runtime code change, provider API call,
+  route invocation, scan invocation, live market scan, database write, manual
+  Supabase call, service-role adapter call, migration, typegen, generated type
+  edit, `.env.local` change, service-role value printing, audit writer
+  UI/browser/client invocation, audit writer runtime persistence path change,
+  market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order submission enablement, real trade,
+  or trade/stats/PnL mutation was performed.
+
 ## Action 971 QA Notes
 
 - Result status: `production_console_manual_observation_blocked`.

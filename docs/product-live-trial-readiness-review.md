@@ -478,6 +478,32 @@ semi-auto/human-confirmed execution and must not introduce broker/Avanza
 behavior, automatic order submission, provider abuse, DB mutation, manual route
 invocation, or unapproved scan invocation.
 
+Completed follow-up: Action 976 - Run Market-Window Dry Run Observation.
+
+Action 976 result status: `market_window_dry_run_blocked`.
+
+The market-window observation could not be completed because the action ran on
+Sunday, June 28, 2026, outside a regular US market session, and the Production
+URL was not available in local repo context. No fresh Production browser,
+console, recommendation, handoff, or risk/EOD evidence was collected.
+
+Live market trial remains no-go. The smallest next step is Action 977 - Run
+Market-Window Dry Run Observation During Open US Market Session with the
+Production URL available.
+
+Completed follow-up: Action 977 - Run Market-Window Dry Run Observation During
+Open US Market Session.
+
+Action 977 result status: `market_window_dry_run_blocked`.
+
+Action 977 remained blocked because it still ran on Sunday, June 28, 2026,
+outside a regular US market session, and the Production URL remained
+unavailable in local repo context. No fresh Production browser, console,
+recommendation, handoff, or risk/EOD evidence was collected.
+
+Live market trial remains no-go. The smallest next step is Action 978 -
+Provide Production URL And Run Open-Session Market-Window Dry Run Observation.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.

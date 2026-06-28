@@ -301,6 +301,18 @@ No-go conditions remain:
   no broker/Avanza behavior, automatic order submission, provider abuse,
   manual route invocation, manual scan invocation, Supabase/DB access,
   service-role adapter call, or trade/stats/PnL mutation is approved.
+- Action 976 created `docs/market-window-dry-run-observation.md` with result
+  status `market_window_dry_run_blocked`. The observation could not complete
+  because it ran on Sunday, June 28, 2026, outside a regular US market
+  session, and the Production URL was not available in local repo context.
+  Live market trial remains no-go pending an open-session Production dry-run
+  observation.
+- Action 977 updated `docs/market-window-dry-run-observation.md`; result
+  status remains `market_window_dry_run_blocked`. The retry still ran on
+  Sunday, June 28, 2026, outside a regular US market session, and the
+  Production URL was still unavailable in local repo context. The smallest next
+  step is Action 978 - Provide Production URL And Run Open-Session
+  Market-Window Dry Run Observation.
 
 ## Validation Results
 

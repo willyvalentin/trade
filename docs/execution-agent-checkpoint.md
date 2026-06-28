@@ -19173,6 +19173,82 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   writer invocation, broker/Avanza behavior, automatic mode enablement,
   automatic order submission enablement, or trade/stats/PnL mutation.
 
+## Action 976 - Run Market-Window Dry Run Observation
+
+- Result status: `market_window_dry_run_blocked`.
+- Created `docs/market-window-dry-run-observation.md`.
+- Updated `docs/market-window-dry-run-plan.md`,
+  `docs/recent-recommendation-readback-production-verification.md`,
+  `docs/product-live-trial-readiness-review.md`,
+  `docs/live-trial-dry-run-checklist.md`, and
+  `docs/live-trial-manual-dry-run-results.md`.
+- Documented observation environment:
+  - Date: 2026-06-28.
+  - Local time: 14:53:58 CEST.
+  - NY time: 08:53:58 EDT.
+  - Market session state: closed / no regular US market window.
+  - Browser used: not opened; observation blocked before browser step.
+  - Console cleared before observation: no; browser observation did not start.
+- Documented blocking reasons:
+  - Sunday, June 28, 2026 is not a regular US market session.
+  - No appropriate US market window was available.
+  - Production URL was not available in local repo context.
+- Recorded that no fresh Production browser, console, recommendation,
+  execution/handoff, or risk/EOD evidence was collected in Action 976.
+- Preserved the last known Production readiness evidence from Action 974:
+  Production UI loads, Recommendations tab renders, previous red Supabase
+  404/500 blockers are no longer visible, and the remaining
+  `recommendation_batch_backfill_capped` warning is expected and non-fatal.
+- Live market trial remains no-go.
+- Recommended next action: Action 977 - Run Market-Window Dry Run Observation
+  During Open US Market Session.
+- Not performed: no browser observation, runtime code change, provider API
+  call, route invocation, scan invocation, live market scan, database write,
+  manual Supabase call, service-role adapter call, migration, typegen,
+  generated type edit, `.env.local` change, service-role value printing, audit
+  writer UI/browser/client invocation, audit writer runtime persistence path
+  change, market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order submission enablement, real trade,
+  or trade/stats/PnL mutation.
+
+## Action 977 - Run Market-Window Dry Run Observation During Open US Market Session
+
+- Result status: `market_window_dry_run_blocked`.
+- Updated `docs/market-window-dry-run-observation.md`.
+- Updated `docs/market-window-dry-run-plan.md`,
+  `docs/recent-recommendation-readback-production-verification.md`,
+  `docs/product-live-trial-readiness-review.md`,
+  `docs/live-trial-dry-run-checklist.md`, and
+  `docs/live-trial-manual-dry-run-results.md`.
+- Documented Action 977 observation environment:
+  - Date: 2026-06-28.
+  - Local time: 15:17:05 CEST.
+  - NY time: 09:17:05 EDT.
+  - Market session state: closed / no regular US market window.
+  - Browser used: not opened; observation blocked before browser step.
+  - Console cleared before observation: no; browser observation did not start.
+- Documented blocking reasons:
+  - Sunday, June 28, 2026 is not a regular US market session.
+  - No appropriate US market window was available.
+  - Production URL was still not available in local repo context.
+- Recorded that no fresh Production browser, console, recommendation,
+  execution/handoff, or risk/EOD evidence was collected in Action 977.
+- Preserved the last known Production readiness evidence from Action 974:
+  Production UI loads, Recommendations tab renders, previous red Supabase
+  404/500 blockers are no longer visible, and the remaining
+  `recommendation_batch_backfill_capped` warning is expected and non-fatal.
+- Live market trial remains no-go.
+- Recommended next action: Action 978 - Provide Production URL And Run
+  Open-Session Market-Window Dry Run Observation.
+- Not performed: no browser observation, runtime code change, provider API
+  call, route invocation, scan invocation, live market scan, database write,
+  manual Supabase call, service-role adapter call, migration, typegen,
+  generated type edit, `.env.local` change, service-role value printing, audit
+  writer UI/browser/client invocation, audit writer runtime persistence path
+  change, market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order submission enablement, real trade,
+  or trade/stats/PnL mutation.
+
 ## Action 971 - Provide Production App URL And Manual Console Observation After scheduled_scan_attempts Migration
 
 - Result status: `production_console_manual_observation_blocked`.

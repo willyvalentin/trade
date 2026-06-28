@@ -16,7 +16,16 @@ trade/stats/PnL behavior is changed by this action.
 
 Result status: `market_window_dry_run_plan_created`
 
-Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
+Follow-up status: Action 976 created
+`docs/market-window-dry-run-observation.md` with result status
+`market_window_dry_run_blocked`.
+
+Follow-up status: Action 977 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 978 - Provide Production URL And Run
+Open-Session Market-Window Dry Run Observation.
 
 ## Current Production Readiness State
 
@@ -205,6 +214,33 @@ No-go if:
 ## Recommended Next Action
 
 Action 976 - Run Market-Window Dry Run Observation.
+
+Completed follow-up: Action 976 - Run Market-Window Dry Run Observation.
+
+Action 976 result status: `market_window_dry_run_blocked`.
+
+Action 976 could not complete the market-window observation because the action
+ran on Sunday, June 28, 2026, when no regular US market window was available,
+and the Production URL was not available in local repo context. No browser,
+provider, route, scan, Supabase, database, service-role, broker/Avanza,
+automatic order, or real trade path was invoked.
+
+Recommended next action: Action 977 - Run Market-Window Dry Run Observation
+During Open US Market Session.
+
+Completed follow-up: Action 977 - Run Market-Window Dry Run Observation During
+Open US Market Session.
+
+Action 977 result status: `market_window_dry_run_blocked`.
+
+Action 977 remained blocked because it still ran on Sunday, June 28, 2026,
+with no regular US market window available, and the Production URL was still
+not available in local repo context. No browser, provider, route, scan,
+Supabase, database, service-role, broker/Avanza, automatic order, or real
+trade path was invoked.
+
+Recommended next action: Action 978 - Provide Production URL And Run
+Open-Session Market-Window Dry Run Observation.
 
 ## Validation Results
 

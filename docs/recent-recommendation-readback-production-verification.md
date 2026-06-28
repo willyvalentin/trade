@@ -19,7 +19,16 @@ Result status:
 Follow-up status: Action 975 created `docs/market-window-dry-run-plan.md`
 with result status `market_window_dry_run_plan_created`.
 
-Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
+Follow-up status: Action 976 created
+`docs/market-window-dry-run-observation.md` with result status
+`market_window_dry_run_blocked`.
+
+Follow-up status: Action 977 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 978 - Provide Production URL And Run
+Open-Session Market-Window Dry Run Observation.
 
 ## Deployment Context
 
@@ -156,6 +165,33 @@ observation log template. Live market trial remains pending until the
 market-window dry run is actually observed.
 
 Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
+
+Completed follow-up: Action 976 - Run Market-Window Dry Run Observation.
+
+Action 976 result status: `market_window_dry_run_blocked`.
+
+Action 976 did not produce fresh market-window UI/console evidence because the
+action ran on Sunday, June 28, 2026, with no regular US market window
+available, and the Production URL was not available in local repo context.
+Live market trial remains no-go pending a real open-session dry-run
+observation.
+
+Recommended next action: Action 977 - Run Market-Window Dry Run Observation
+During Open US Market Session.
+
+Completed follow-up: Action 977 - Run Market-Window Dry Run Observation During
+Open US Market Session.
+
+Action 977 result status: `market_window_dry_run_blocked`.
+
+Action 977 did not produce fresh market-window UI/console evidence because it
+still ran on Sunday, June 28, 2026, with no regular US market window
+available, and the Production URL was still unavailable in local repo context.
+Live market trial remains no-go pending a real open-session dry-run
+observation.
+
+Recommended next action: Action 978 - Provide Production URL And Run
+Open-Session Market-Window Dry Run Observation.
 
 ## Validation Results
 
