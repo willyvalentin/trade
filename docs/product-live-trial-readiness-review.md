@@ -462,6 +462,22 @@ is prepared and completed.
 
 Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
+Completed follow-up: Action 975 - Prepare Market-Window Dry Run.
+
+Action 975 result status: `market_window_dry_run_plan_created`.
+
+Action 975 created `docs/market-window-dry-run-plan.md`. The plan defines the
+next market-window observation scope, timing checklist, Production UI checks,
+recommendation quality checks, execution/handoff safety checks, risk/EOD
+safety checks, console/network safety checks, observation log template, and
+go/no-go criteria.
+
+Live market trial remains pending. The next approved step is observation only:
+Action 976 - Run Market-Window Dry Run Observation. The dry run must preserve
+semi-auto/human-confirmed execution and must not introduce broker/Avanza
+behavior, automatic order submission, provider abuse, DB mutation, manual route
+invocation, or unapproved scan invocation.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.

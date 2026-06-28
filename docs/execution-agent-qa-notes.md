@@ -23890,6 +23890,40 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   automatic mode enablement, automatic order behavior, or trade/stats/PnL
   mutation was performed.
 
+## Action 975 QA Notes
+
+- Result status: `market_window_dry_run_plan_created`.
+- QA confirms `docs/market-window-dry-run-plan.md` exists.
+- QA confirms Action 975 is documentation/readiness only.
+- QA confirms current Production readiness state is documented: Production UI
+  loads, Recommendations tab renders, previous red Supabase 404/500 blockers
+  are no longer visible, and the remaining
+  `recommendation_batch_backfill_capped` warning is expected, count-only, and
+  non-fatal.
+- QA confirms dry-run scope is explicit: US market observation only, no real
+  trades, no broker/Avanza behavior, no automatic order submission, no manual
+  provider calls, no manual route calls, no manual scan invocations, no manual
+  Supabase/DB access, and no service-role adapter calls.
+- QA confirms timing checklist exists for pre-market, market open, first active
+  trading window, optional midday, and optional near-close/EOD observation.
+- QA confirms Production UI observation checklist exists.
+- QA confirms recommendation quality checklist exists.
+- QA confirms execution/handoff safety checklist exists.
+- QA confirms risk/EOD safety checklist exists.
+- QA confirms console/network safety checklist exists.
+- QA confirms observation log template exists.
+- QA confirms go/no-go criteria are explicit.
+- QA confirms recommended next action is Action 976 - Run Market-Window Dry Run
+  Observation.
+- QA confirms no runtime code change, provider call, route invocation, scan
+  invocation, live market scan, manual Supabase/DB read or write, service-role
+  adapter call, migration, typegen, generated type edit, `.env.local` change,
+  service-role value printing, audit writer UI/browser/client invocation,
+  audit writer runtime persistence path change, market-loop/scanner audit
+  writer invocation, broker/Avanza behavior, automatic mode enablement,
+  automatic order submission enablement, or trade/stats/PnL mutation was
+  performed.
+
 ## Action 971 QA Notes
 
 - Result status: `production_console_manual_observation_blocked`.

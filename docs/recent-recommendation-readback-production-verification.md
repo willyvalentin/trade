@@ -16,7 +16,10 @@ approved by this verification.
 Result status:
 `recent_recommendation_readback_production_verified_with_expected_warning`
 
-Recommended next action: Action 975 - Prepare Market-Window Dry Run.
+Follow-up status: Action 975 created `docs/market-window-dry-run-plan.md`
+with result status `market_window_dry_run_plan_created`.
+
+Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
 
 ## Deployment Context
 
@@ -140,6 +143,19 @@ A market-window dry run remains required before live-trial go.
 ## Recommended Next Action
 
 Action 975 - Prepare Market-Window Dry Run.
+
+Completed follow-up: Action 975 - Prepare Market-Window Dry Run.
+
+Action 975 result status: `market_window_dry_run_plan_created`.
+
+Action 975 created `docs/market-window-dry-run-plan.md` to define
+pre-market/open-market/active-market observation timing, Production UI checks,
+recommendation quality checks, execution/handoff safety checks, risk/EOD
+safety checks, console/network safety checks, pass/warn/block criteria, and an
+observation log template. Live market trial remains pending until the
+market-window dry run is actually observed.
+
+Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
 
 ## Validation Results
 

@@ -295,6 +295,12 @@ No-go conditions remain:
   are no longer visible. The remaining `recommendation_batch_backfill_capped`
   warning is expected and non-fatal. Live market trial remains pending a
   market-window dry run.
+- Action 975 created `docs/market-window-dry-run-plan.md` with result status
+  `market_window_dry_run_plan_created`. The active next step is Action 976 -
+  Run Market-Window Dry Run Observation. The next step is observation-only:
+  no broker/Avanza behavior, automatic order submission, provider abuse,
+  manual route invocation, manual scan invocation, Supabase/DB access,
+  service-role adapter call, or trade/stats/PnL mutation is approved.
 
 ## Validation Results
 

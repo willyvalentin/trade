@@ -19138,6 +19138,41 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   automatic mode enablement, automatic order behavior, or trade/stats/PnL
   mutation.
 
+## Action 975 - Prepare Market-Window Dry Run
+
+- Result status: `market_window_dry_run_plan_created`.
+- Created `docs/market-window-dry-run-plan.md`.
+- Updated `docs/recent-recommendation-readback-production-verification.md`,
+  `docs/product-live-trial-readiness-review.md`,
+  `docs/live-trial-dry-run-checklist.md`,
+  `docs/live-trial-manual-dry-run-results.md`, and
+  `docs/production-post-deploy-verification.md`.
+- Documented current Production readiness state from Action 974: Production UI
+  loads, Recommendations tab renders, previous red Supabase 404/500 blockers
+  are no longer visible, and the remaining
+  `recommendation_batch_backfill_capped` warning is expected, count-only, and
+  non-fatal.
+- Prepared the market-window dry-run scope for US market observation only.
+- Added timing guidance for pre-market, market open, first active trading
+  window, optional midday, and optional near-close/EOD checks, with New York
+  time as source of truth and local time recorded separately.
+- Added pass/warn/block checklists for Production UI, recommendation quality,
+  execution/handoff safety, risk/EOD safety, and console/network safety.
+- Added observation log fields for date, local time, NY time, market session
+  state, market tab state, console status, recommendation count, best
+  candidate, selective/no-trade reason, handoff preview test status, warnings,
+  pass/warn/block result, notes, and follow-up action.
+- Defined go/no-go criteria after the market-window dry run.
+- Live market trial remains pending; the next step is observation only.
+- Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
+- Not performed: no runtime code change, provider call, route invocation, scan
+  invocation, live market scan, manual Supabase/DB read or write, service-role
+  adapter call, migration, typegen, generated type edit, `.env.local` change,
+  service-role value printing, audit writer UI/browser/client invocation,
+  audit writer runtime persistence path change, market-loop/scanner audit
+  writer invocation, broker/Avanza behavior, automatic mode enablement,
+  automatic order submission enablement, or trade/stats/PnL mutation.
+
 ## Action 971 - Provide Production App URL And Manual Console Observation After scheduled_scan_attempts Migration
 
 - Result status: `production_console_manual_observation_blocked`.

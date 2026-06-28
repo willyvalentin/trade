@@ -248,6 +248,13 @@ observation evidence, not broker/live trading.
   red Supabase 404/500 console blockers are no longer visible, and the
   remaining `recommendation_batch_backfill_capped` warning is expected and
   non-fatal.
+- Action 975 created `docs/market-window-dry-run-plan.md` with result status
+  `market_window_dry_run_plan_created`. Production remains online with the
+  expected warning, and the next step is Action 976 - Run Market-Window Dry
+  Run Observation. That step remains observation-only and does not approve
+  broker/Avanza behavior, automatic order submission, provider abuse, manual
+  route invocation, manual scan invocation, Supabase/DB access, service-role
+  adapter calls, or trade/stats/PnL mutation.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the

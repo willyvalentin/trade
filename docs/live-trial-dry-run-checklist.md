@@ -19,7 +19,10 @@ Follow-up status: Action 955 created
 `docs/production-post-deploy-verification.md` with result status
 `production_post_deploy_verification_passed_with_warnings`.
 
-Recommended next action: Action 956 - Create Production UI Observation Log.
+Follow-up status: Action 975 created `docs/market-window-dry-run-plan.md`
+with result status `market_window_dry_run_plan_created`.
+
+Recommended next action: Action 976 - Run Market-Window Dry Run Observation.
 
 This is documentation/checklist only. No provider call, route call, live scan,
 database read/write, Supabase call, service-role adapter call, broker/Avanza
@@ -186,6 +189,15 @@ Action 955 update: Production was manually deployed before Preview/Staging.
 The post-deploy verification keeps Production online with warnings, does not
 perform another deploy or rollback, and keeps live market trial no-go. Direct
 Production UI observation remains the next required step.
+
+Action 975 update: Production data health is now acceptable for a controlled
+market-window dry-run observation after Action 974 verified that the previous
+red Supabase 404/500 blockers are no longer visible. Use
+`docs/market-window-dry-run-plan.md` for the active market-window timing,
+observation, pass/warn/block, and go/no-go checklist. The dry run remains
+observation-only and does not approve broker/Avanza behavior, automatic order
+submission, provider abuse, manual route invocation, manual scan invocation,
+Supabase/DB access, service-role adapter calls, or trade/stats/PnL mutation.
 
 ## Manual Observation Log Template
 
