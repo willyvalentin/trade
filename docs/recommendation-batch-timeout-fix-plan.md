@@ -12,8 +12,16 @@ Follow-up status: Action 958 implemented
 `docs/recommendation-batch-timeout-fix-implementation.md` with result status
 `recommendation_batch_timeout_chunking_implemented`.
 
-Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
-in Production.
+Follow-up status: Action 959 created
+`docs/recommendation-batch-timeout-production-verification.md` with result
+status `recommendation_batch_timeout_production_verification_blocked`.
+
+Follow-up status: Action 960 created
+`docs/recommendation-batch-timeout-remaining-error-triage.md` with result
+status `recommendation_batch_remaining_error_triage_created`.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 This action is a fix plan only. No runtime code, Supabase call, live DB
 read/write, provider call, route call, scan, service-role adapter call,
@@ -147,6 +155,15 @@ Action 958 should implement the smallest runtime fix:
 8. Keep live market trial no-go until Production console verification,
    `scheduled_scan_attempts` schema triage, provider/env readiness, and
    market-window checklist are complete.
+
+## Action 960 Follow-Up
+
+Action 960 documented that Production still shows a
+`recommendation_batches` timeout for `scan_run_fingerprint=in.(...)`.
+Current source is already chunked for the scan-run path, with chunk size `50`
+and cap `250`, so the next lowest-risk adjustment is reducing those bounds.
+The separate `batch_fingerprint` backfill remains an unchunked read-only risk,
+but it does not match the operator-reported failing endpoint pattern.
 
 ## Deferred Work
 

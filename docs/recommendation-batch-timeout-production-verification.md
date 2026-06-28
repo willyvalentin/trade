@@ -11,8 +11,12 @@ This action is still not live market trial approval.
 
 Result status: `recommendation_batch_timeout_production_verification_blocked`
 
-Recommended next action: Action 960 - Complete Production Deploy Access and
-Verify Recommendation Batch Timeout Fix.
+Follow-up status: Action 960 created
+`docs/recommendation-batch-timeout-remaining-error-triage.md` with result
+status `recommendation_batch_remaining_error_triage_created`.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 No broker/Avanza behavior or automatic order behavior is introduced by this
 verification action.
@@ -73,6 +77,24 @@ Production URL/browser-console access were unavailable in this terminal.
 | No blank-screen/runtime crash | Block | Not verified in Production. |
 | No broker/Avanza behavior appears | Block | Not verified in Production; local/static safety scans remain clean. |
 | No automatic order behavior appears | Block | Not verified in Production; local/static safety scans remain clean. |
+
+## Action 960 Follow-Up
+
+Operator Production observation after Action 959 reported that Production UI
+still loads and the Recommendations tab shows fallback/selective state, but
+the browser console still shows a `recommendation_batches` HTTP 500 timeout for
+`scan_run_fingerprint=in.(...)`.
+
+Action 960 statically verified that the current source has the Action 958
+chunking helper wired into `select_outcome_scan_run_batch_backfill` and that no
+direct old `.in("scan_run_fingerprint", missingScanRunFingerprints)` call
+remains in `app/trade-app.tsx`.
+
+The remaining Production timeout is therefore triaged as either stale deployed
+bundle/cache/deploy mismatch, current chunk size/cap still being too large for
+Production, or a deeper Production DB/index/data-shape issue. The separate
+unchunked `batch_fingerprint` backfill path remains documented as a secondary
+risk if Production later shows `batch_fingerprint=in.(...)` timeouts.
 
 ## Remaining Known Issue: scheduled_scan_attempts 404
 

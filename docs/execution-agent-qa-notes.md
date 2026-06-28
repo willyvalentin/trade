@@ -23446,3 +23446,35 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   change was performed.
 - QA confirms recommended next action is Action 960 — Complete Production Deploy
   Access and Verify Recommendation Batch Timeout Fix.
+
+## Action 960 QA Notes
+
+- Result status: `recommendation_batch_remaining_error_triage_created`.
+- QA confirms `docs/recommendation-batch-timeout-remaining-error-triage.md`
+  exists.
+- QA confirms the action is static/code triage and documentation only.
+- QA confirms the operator-reported Production observation is recorded:
+  Production UI still loads, Recommendations shows fallback/selective state,
+  `recommendation_batches` still times out for
+  `scan_run_fingerprint=in.(...)`, and `scheduled_scan_attempts` still returns
+  HTTP 404.
+- QA confirms current source wiring is documented:
+  `select_outcome_scan_run_batch_backfill` uses
+  `fetchChunkedRecommendationBatchBackfillRows(...)`, and the Supabase
+  `.in("scan_run_fingerprint", ...)` receives a `fingerprintChunk`.
+- QA confirms no direct old
+  `.in("scan_run_fingerprint", missingScanRunFingerprints)` call remains in
+  `app/trade-app.tsx`.
+- QA confirms current chunk size `50` and cap `250` are documented as possible
+  remaining Production pressure.
+- QA confirms the unchunked `batch_fingerprint` backfill path is documented as
+  a secondary risk, not the reported `scan_run_fingerprint` endpoint.
+- QA confirms `scheduled_scan_attempts` 404 remains separate.
+- QA confirms live market trial remains no-go.
+- QA confirms no runtime behavior change, live DB read/write, Supabase manual
+  call, provider call, scan route invocation, service-role adapter call,
+  migration, typegen, generated type edit, audit writer path change,
+  broker/Avanza behavior, automatic order behavior, trade/stats/PnL behavior
+  change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 961 — Reduce Recommendation
+  Batch Backfill Chunk Size and Cap.

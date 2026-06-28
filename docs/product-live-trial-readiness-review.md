@@ -39,8 +39,12 @@ Follow-up status: Action 959 created
 `docs/recommendation-batch-timeout-production-verification.md` with result
 status `recommendation_batch_timeout_production_verification_blocked`.
 
-Recommended next action: Action 960 - Complete Production Deploy Access and
-Verify Recommendation Batch Timeout Fix.
+Follow-up status: Action 960 created
+`docs/recommendation-batch-timeout-remaining-error-triage.md` with result
+status `recommendation_batch_remaining_error_triage_created`.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -198,6 +202,12 @@ Preview/Staging. Action 955 keeps Production online with warnings after
 local/static post-deploy verification and recommends controlled Production UI
 observation next. Live market trial remains no-go.
 
+Action 960 update: Production still reports a
+`recommendation_batches` timeout for `scan_run_fingerprint=in.(...)`. Current
+source is chunked for that path, but the remaining timeout keeps live market
+trial blocked until the chunk-size/cap follow-up or a documented acceptance
+decision is complete. `scheduled_scan_attempts` 404 remains separate.
+
 ## Current Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -256,8 +266,11 @@ Backfill Query.
 Completed follow-up: Action 959 - Deploy and Verify Recommendation Batch
 Timeout Fix in Production.
 
-Recommended next action: Action 960 - Complete Production Deploy Access and
-Verify Recommendation Batch Timeout Fix.
+Completed follow-up: Action 960 - Triage Remaining Recommendation Batch Errors
+After Chunking.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 ## Validation Results
 

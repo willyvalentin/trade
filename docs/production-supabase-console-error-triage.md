@@ -19,8 +19,12 @@ Follow-up status: Action 959 created
 `docs/recommendation-batch-timeout-production-verification.md` with result
 status `recommendation_batch_timeout_production_verification_blocked`.
 
-Recommended next action: Action 960 - Complete Production Deploy Access and
-Verify Recommendation Batch Timeout Fix.
+Follow-up status: Action 960 created
+`docs/recommendation-batch-timeout-remaining-error-triage.md` with result
+status `recommendation_batch_remaining_error_triage_created`.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 Review timestamp: `2026-06-28 01:42:33 CEST`
 
@@ -169,6 +173,13 @@ Do not jump directly to migrations or runtime changes from this triage alone.
 Action 957 follow-up: `docs/recommendation-batch-timeout-fix-plan.md`
 recommends Option A, chunking the client readback `.in("scan_run_fingerprint",
 ...)` request with a defensive cap, as the next implementation step.
+
+Action 960 follow-up:
+`docs/recommendation-batch-timeout-remaining-error-triage.md` documents that
+Production still reports the `scan_run_fingerprint=in.(...)` timeout after the
+Action 958 fix. Static review confirms the current source is chunked for that
+path, so Action 961 should reduce chunk size and total cap before considering
+schema/index or server-side redesign work.
 
 ## Validation Results
 

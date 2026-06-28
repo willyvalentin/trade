@@ -12,8 +12,12 @@ Follow-up status: Action 959 created
 `docs/recommendation-batch-timeout-production-verification.md` with result
 status `recommendation_batch_timeout_production_verification_blocked`.
 
-Recommended next action: Action 960 - Complete Production Deploy Access and
-Verify Recommendation Batch Timeout Fix.
+Follow-up status: Action 960 created
+`docs/recommendation-batch-timeout-remaining-error-triage.md` with result
+status `recommendation_batch_remaining_error_triage_created`.
+
+Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
+Chunk Size and Cap.
 
 The implementation is read-only and app-side. It does not change Supabase
 schema, environment configuration, provider calls, routes, audit writer paths,
@@ -90,6 +94,13 @@ Production is currently online with warnings from the earlier accidental
 Production deploy. This fix should be deployed only after non-live validation
 passes. After deploy, verify the Production browser console no longer reports
 the `recommendation_batches` statement timeout for the scan-run backfill path.
+
+Action 960 follow-up: Production still reported
+`recommendation_batches?scan_run_fingerprint=in.(...)` timing out. Static
+review confirmed the current source is chunked for scan-run backfill, so the
+remaining risk is stale deployed bundle/cache/deploy mismatch, chunk size/cap
+still being too large, or a deeper Production DB/index/data-shape issue. The
+recommended next implementation is to reduce the chunk size and total cap.
 
 Live market trial remains no-go until Production verification passes and the
 remaining readiness gates are complete.

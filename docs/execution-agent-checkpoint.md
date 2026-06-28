@@ -18629,3 +18629,37 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   invocation, manual DB/Supabase query, service-role adapter call, migration,
   typegen, generated type edit, service-role value printing, broker/Avanza
   behavior, automatic order behavior, or `.env.local` change.
+
+## Action 960 - Remaining Recommendation Batch Error Triage
+
+- Result status: `recommendation_batch_remaining_error_triage_created`.
+- Created `docs/recommendation-batch-timeout-remaining-error-triage.md`.
+- Operator Production observation after deploy: Production UI still loads,
+  Recommendations shows fallback/selective state, browser console still shows
+  `recommendation_batches` HTTP 500 timeout for
+  `scan_run_fingerprint=in.(...)`, and `scheduled_scan_attempts` still returns
+  HTTP 404.
+- Static code review confirms the current source imports and uses
+  `fetchChunkedRecommendationBatchBackfillRows(...)` for
+  `select_outcome_scan_run_batch_backfill`.
+- Static code review confirms no direct old
+  `.in("scan_run_fingerprint", missingScanRunFingerprints)` call remains in
+  `app/trade-app.tsx`.
+- Current bounds are documented: scan-run chunk size `50` and total cap `250`.
+- Remaining timeout interpretation: stale deployed bundle/cache/deploy
+  mismatch, current chunk size/cap still too large for Production, or deeper
+  Production DB/index/data-shape issue.
+- Secondary risk documented: `select_outcome_batch_backfill` still uses an
+  unchunked `.in("batch_fingerprint", missingBatchFingerprints)` read, but it
+  does not match the reported `scan_run_fingerprint=in.(...)` endpoint.
+- `scheduled_scan_attempts` 404 remains a separate schema/REST exposure issue.
+- Production can remain online with warnings if UI stays usable and errors
+  remain readback/diagnostic only.
+- Live market trial remains no-go.
+- Recommended next action: Action 961 — Reduce Recommendation Batch Backfill
+  Chunk Size and Cap.
+- Not performed: no runtime behavior change, Production bundle/cache/deploy
+  inspection, live DB read/write, Supabase manual call, provider call, scan
+  route invocation, service-role adapter call, migration, typegen, generated
+  type edit, `.env.local` change, audit writer path change, broker/Avanza
+  behavior, automatic order behavior, or trade/stats/PnL behavior change.
