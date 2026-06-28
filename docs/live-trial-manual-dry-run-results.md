@@ -54,8 +54,13 @@ Follow-up status: Action 965 created
 `docs/scheduled-scan-attempts-404-production-triage.md` with result status
 `scheduled_scan_attempts_404_production_triage_created`.
 
-Recommended next action: Action 966 - Create scheduled_scan_attempts Production
-Schema Verification Plan.
+Follow-up status: Action 966 created
+`docs/scheduled-scan-attempts-production-schema-verification-plan.md` with
+result status
+`scheduled_scan_attempts_production_schema_verification_plan_created`.
+
+Recommended next action: Action 967 - Verify scheduled_scan_attempts
+Production Schema in Supabase Dashboard.
 
 Latest Production follow-up: the latest operator-provided screenshot after the
 Action 963 fail-soft deploy no longer shows the recommendation batch timeout
@@ -66,6 +71,10 @@ Action 965 follow-up: static triage found a migration-backed expectation for
 `public.scheduled_scan_attempts` and confirmed that the normal app load reads
 it for diagnostics. Production schema verification is the next recommended
 step.
+
+Action 966 follow-up: the Production schema verification plan is documented;
+live market trial remains no-go until dashboard verification or explicit
+acceptance resolves the remaining 404.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter

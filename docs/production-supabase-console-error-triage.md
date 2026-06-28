@@ -45,8 +45,13 @@ Follow-up status: Action 965 created
 `docs/scheduled-scan-attempts-404-production-triage.md` with result status
 `scheduled_scan_attempts_404_production_triage_created`.
 
-Recommended next action: Action 966 - Create scheduled_scan_attempts Production
-Schema Verification Plan.
+Follow-up status: Action 966 created
+`docs/scheduled-scan-attempts-production-schema-verification-plan.md` with
+result status
+`scheduled_scan_attempts_production_schema_verification_plan_created`.
+
+Recommended next action: Action 967 - Verify scheduled_scan_attempts
+Production Schema in Supabase Dashboard.
 
 Latest Production follow-up: after the Action 963 fail-soft deploy, the latest
 operator-provided screenshot no longer shows the recommendation batch timeout
@@ -58,6 +63,11 @@ Action 965 follow-up: static triage found
 client read path in `app/trade-app.tsx`, and the server upsert path in
 `app/api/automation/run-scan/route.ts`. The next recommended step is Production
 schema verification for the expected `public.scheduled_scan_attempts` table.
+
+Action 966 follow-up: the Production schema verification plan is now documented
+at `docs/scheduled-scan-attempts-production-schema-verification-plan.md` and
+recommends dashboard verification before any migration, env, policy, or runtime
+change.
 
 Review timestamp: `2026-06-28 01:42:33 CEST`
 

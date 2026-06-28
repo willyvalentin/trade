@@ -18827,10 +18827,47 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   safety low.
 - Recommendation: Action 966 — Create scheduled_scan_attempts Production Schema
   Verification Plan.
+- Completed follow-up: Action 966 — Create scheduled_scan_attempts Production
+  Schema Verification Plan.
 - Production can remain online with warnings because the app shell and
   Recommendations page remain usable and no unsafe execution behavior appears.
 - Live market trial remains no-go until `scheduled_scan_attempts` is fixed,
   reduced, or explicitly accepted as non-critical.
+- Not performed: no runtime code change, live DB read/write, manual Supabase
+  call, migration status/apply, typegen, generated type edit, `.env.local`
+  change, provider call, route invocation, scan invocation, service-role
+  adapter call, audit writer path change, broker/Avanza behavior, automatic
+  mode enablement, automatic order behavior, or trade/stats/PnL behavior
+  change.
+
+## Action 966 - scheduled_scan_attempts Production Schema Verification Plan
+
+- Result status:
+  `scheduled_scan_attempts_production_schema_verification_plan_created`.
+- Created
+  `docs/scheduled-scan-attempts-production-schema-verification-plan.md`.
+- Documented the Production problem summary: `scheduled_scan_attempts` REST
+  read still returns HTTP 404 while recommendation batch timeout and
+  `recommendation_snapshots` HTTP 500 are no longer visible.
+- Summarized expected schema from
+  `supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql`.
+- Expected object is table `public.scheduled_scan_attempts`.
+- Expected primary key is `id`; expected unique/upsert conflict target is
+  `attempt_fingerprint`.
+- Expected indexes are `trading_date desc`, `utc_timestamp desc`, and
+  `(official_window, outcome)`.
+- Static migration review found no explicit RLS enablement, policies, grants,
+  or REST exposure statements in that migration file.
+- Documented the client read query in `app/trade-app.tsx` and the server
+  upsert query in `app/api/automation/run-scan/route.ts`.
+- Created manual dashboard verification checklist for table existence, columns,
+  constraints, indexes, RLS/policies, REST exposure, schema cache, project/env,
+  and migration history.
+- Created decision tree for missing table, missing migration history, REST 404
+  despite table existence, RLS block, wrong project/env, optional diagnostics,
+  and conflict target mismatch.
+- Recommended next action: Action 967 — Verify scheduled_scan_attempts
+  Production Schema in Supabase Dashboard.
 - Not performed: no runtime code change, live DB read/write, manual Supabase
   call, migration status/apply, typegen, generated type edit, `.env.local`
   change, provider call, route invocation, scan invocation, service-role

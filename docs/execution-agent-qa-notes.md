@@ -23617,8 +23617,41 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - QA confirms fix options are compared and the recommended next action is
   Action 966 — Create scheduled_scan_attempts Production Schema Verification
   Plan.
+- QA confirms completed follow-up is Action 966 — Create
+  scheduled_scan_attempts Production Schema Verification Plan.
 - QA confirms keep/rollback decision is explicit and live market trial remains
   no-go.
+- QA confirms no runtime code change, live DB read/write, Supabase manual call,
+  provider call, route invocation, scan invocation, service-role adapter call,
+  migration, typegen, generated type edit, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  trade/stats/PnL behavior change, or `.env.local` change was performed.
+
+## Action 966 QA Notes
+
+- Result status:
+  `scheduled_scan_attempts_production_schema_verification_plan_created`.
+- QA confirms
+  `docs/scheduled-scan-attempts-production-schema-verification-plan.md` exists.
+- QA confirms this action is documentation/schema-verification planning only.
+- QA confirms the plan summarizes the Production problem: REST 404 for
+  `scheduled_scan_attempts` while recommendation batch timeout and
+  `recommendation_snapshots` HTTP 500 are no longer visible.
+- QA confirms expected migration schema is documented from
+  `supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql`.
+- QA confirms the expected object is `public.scheduled_scan_attempts`.
+- QA confirms columns, primary key, unique `attempt_fingerprint`, indexes, and
+  upsert conflict target are documented.
+- QA confirms the plan records that static migration review found no explicit
+  RLS enablement, policies, grants, or REST exposure statements in the
+  migration file.
+- QA confirms app read expectations and server upsert expectations are
+  documented.
+- QA confirms the manual dashboard verification checklist is explicit.
+- QA confirms the decision tree is explicit.
+- QA confirms risk assessment is explicit and live market trial remains no-go.
+- QA confirms recommended next action is Action 967 — Verify
+  scheduled_scan_attempts Production Schema in Supabase Dashboard.
 - QA confirms no runtime code change, live DB read/write, Supabase manual call,
   provider call, route invocation, scan invocation, service-role adapter call,
   migration, typegen, generated type edit, audit writer path change,

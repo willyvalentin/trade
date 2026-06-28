@@ -12,8 +12,13 @@ and does not approve live market trial.
 
 Result status: `scheduled_scan_attempts_404_production_triage_created`
 
-Recommended next action: Action 966 - Create scheduled_scan_attempts Production
-Schema Verification Plan.
+Follow-up status: Action 966 created
+`docs/scheduled-scan-attempts-production-schema-verification-plan.md` with
+result status
+`scheduled_scan_attempts_production_schema_verification_plan_created`.
+
+Recommended next action: Action 967 - Verify scheduled_scan_attempts
+Production Schema in Supabase Dashboard.
 
 ## Latest Production Observation
 
@@ -169,7 +174,11 @@ Most likely causes, from static evidence and the Production REST 404:
 Because static evidence shows a migration creating the expected table and both
 client/server paths depend on that object, the safest next action is:
 
-Action 966 - Create scheduled_scan_attempts Production Schema Verification Plan.
+Completed follow-up: Action 966 - Create scheduled_scan_attempts Production
+Schema Verification Plan.
+
+Recommended next action: Action 967 - Verify scheduled_scan_attempts
+Production Schema in Supabase Dashboard.
 
 ## Production Decision
 
