@@ -30,8 +30,12 @@ Follow-up status: Action 977 updated
 `docs/market-window-dry-run-observation.md`; result status remains
 `market_window_dry_run_blocked`.
 
-Recommended next action: Action 978 - Provide Production URL And Run
-Open-Session Market-Window Dry Run Observation.
+Follow-up status: Action 978 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 979 - Provide Production URL And Operator
+Open-Session Evidence.
 
 This is documentation/checklist only. No provider call, route call, live scan,
 database read/write, Supabase call, service-role adapter call, broker/Avanza
@@ -221,6 +225,12 @@ Sunday, June 28, 2026, outside a regular US market session, and the Production
 URL was still not available in local repo context. The next step must include
 the Production URL and occur during an actual open US market session.
 
+Action 978 update: the Production URL/operator observation path remains
+blocked. The request still did not provide Production URL/operator evidence and
+still ran on Sunday, June 28, 2026, outside a regular US market session. The
+next step must include the Production URL plus operator evidence collected
+during an actual US market session, pre-market window, or open-market window.
+
 ## Manual Observation Log Template
 
 Use this template during dry-run review or a later approved market-window
@@ -328,3 +338,12 @@ No-go if:
 - No audit writer UI/browser/client invocation, market-loop/scanner invocation,
   broker/Avanza behavior, automatic mode enablement, automatic order
   submission enablement, or trade/stats/PnL mutation behavior was added.
+
+## Action 1002 Monday Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- Use the handoff doc for Monday/open-session timing, evidence requirements,
+  observation steps, and pass/warn/block criteria.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

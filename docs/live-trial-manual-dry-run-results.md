@@ -313,6 +313,11 @@ No-go conditions remain:
   Production URL was still unavailable in local repo context. The smallest next
   step is Action 978 - Provide Production URL And Run Open-Session
   Market-Window Dry Run Observation.
+- Action 978 updated `docs/market-window-dry-run-observation.md`; result
+  status remains `market_window_dry_run_blocked`. The request still did not
+  provide Production URL/operator evidence and still ran on Sunday, June 28,
+  2026, outside a regular US market session. The smallest next step is Action
+  979 - Provide Production URL And Operator Open-Session Evidence.
 
 ## Validation Results
 
@@ -350,3 +355,12 @@ Validation was run after documentation updates:
   market-loop/scanner invocation, handlers/effects/state mutation, JSX, hooks,
   components, reducers, migrations, generated types, typegen output, or
   `.env.local` values were changed.
+
+## Action 1002 Monday Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- The Production market-window dry run remains parked until Monday/open US
+  market session and operator evidence exists.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

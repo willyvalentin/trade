@@ -27,8 +27,12 @@ Follow-up status: Action 977 updated
 `docs/market-window-dry-run-observation.md`; result status remains
 `market_window_dry_run_blocked`.
 
-Recommended next action: Action 978 - Provide Production URL And Run
-Open-Session Market-Window Dry Run Observation.
+Follow-up status: Action 978 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 979 - Provide Production URL And Operator
+Open-Session Evidence.
 
 ## Deployment Context
 
@@ -193,6 +197,20 @@ observation.
 Recommended next action: Action 978 - Provide Production URL And Run
 Open-Session Market-Window Dry Run Observation.
 
+Completed follow-up: Action 978 - Provide Production URL And Run Open-Session
+Market-Window Dry Run Observation.
+
+Action 978 result status: `market_window_dry_run_blocked`.
+
+Action 978 did not produce fresh market-window UI/console evidence because the
+request still did not provide a Production URL/operator observation and still
+ran on Sunday, June 28, 2026, with no regular US market session available.
+Live market trial remains no-go pending a real open-session dry-run
+observation.
+
+Recommended next action: Action 979 - Provide Production URL And Operator
+Open-Session Evidence.
+
 ## Validation Results
 
 - `./node_modules/.bin/tsc --noEmit` passed.
@@ -232,3 +250,12 @@ Open-Session Market-Window Dry Run Observation.
 - No automatic mode enablement.
 - No automatic order behavior.
 - No trade/stats/PnL mutation.
+
+## Action 1002 Monday Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- Recent recommendation readback blockers remain resolved enough for the next
+  Monday/open-session Production market-window observation.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

@@ -14,6 +14,12 @@ import {
   buildAvanzaDryRunOrderInputFromExecutionIntent,
 } from "@/lib/execution-intent-to-avanza-dry-run";
 import {
+  buildSemiAutoAgentHandoffPreview,
+} from "@/lib/semi-auto-agent-handoff-preview";
+import type {
+  SemiAutoAgentResultCaptureStubResult,
+} from "@/lib/semi-auto-agent-result-capture-stub";
+import {
   createAvanzaAgentBridgeRunnerFromConfig,
   createAvanzaAgentBridgeFromConfig,
 } from "@/lib/avanza-agent-bridge-factory";
@@ -561,6 +567,30 @@ export function ExecutionHandoffPreviewModal({
       },
     });
   }, [result.handoff, result.selectedIntent]);
+  const semiAutoAgentHandoffPreview = useMemo(
+    () =>
+      buildSemiAutoAgentHandoffPreview({
+        handoff: result.handoff,
+        selectedIntent: result.selectedIntent,
+      }),
+    [result.handoff, result.selectedIntent],
+  );
+  const [
+    semiAutoAgentResultCaptureStubState,
+    setSemiAutoAgentResultCaptureStubState,
+  ] = useState<{
+    previewKey: string;
+    result: SemiAutoAgentResultCaptureStubResult | null;
+  }>({ previewKey: "unavailable:none", result: null });
+  const semiAutoAgentPreviewPayloadId =
+    semiAutoAgentHandoffPreview.payloadResult?.payload.payload_id ?? null;
+  const semiAutoAgentPreviewKey = `${semiAutoAgentHandoffPreview.status}:${
+    semiAutoAgentPreviewPayloadId ?? "none"
+  }`;
+  const semiAutoAgentResultCaptureStubResult =
+    semiAutoAgentResultCaptureStubState.previewKey === semiAutoAgentPreviewKey
+      ? semiAutoAgentResultCaptureStubState.result
+      : null;
   const executionDevToolsEnabled = isExecutionDevToolsEnabled();
   const avanzaAgentRequest = avanzaAgentRequestPreview.request;
   const avanzaAgentRequestValidation = avanzaAgentRequestPreview.validation;
@@ -2357,6 +2387,32 @@ export function ExecutionHandoffPreviewModal({
           showLocalhostBridgeEchoControls:
             executionDevToolsEnabled &&
             Boolean(avanzaAgentRequest && avanzaAgentBridgeEnvelope),
+        }}
+        semiAutoAgentHandoffPreviewProps={{
+          agentCommandValue,
+          formatCurrency,
+          formatShares,
+          preview: semiAutoAgentHandoffPreview,
+          shortPayloadId,
+        }}
+        semiAutoAgentDevFlowReviewPanelProps={{
+          agentCommandValue,
+          captureResult: semiAutoAgentResultCaptureStubResult,
+          formatShares,
+          preview: semiAutoAgentHandoffPreview,
+          shortPayloadId,
+        }}
+        semiAutoAgentResultCaptureStubProps={{
+          agentCommandValue,
+          formatShares,
+          onResultChange: (nextResult) =>
+            setSemiAutoAgentResultCaptureStubState({
+              previewKey: semiAutoAgentPreviewKey,
+              result: nextResult,
+            }),
+          preview: semiAutoAgentHandoffPreview,
+          result: semiAutoAgentResultCaptureStubResult,
+          shortPayloadId,
         }}
         sessionDetectionPreviewProps={{
           canCheck: canCheckLocalhostSessionDetection,

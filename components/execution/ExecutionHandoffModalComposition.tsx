@@ -21,6 +21,9 @@ import { FutureAgentRequestPreview } from "@/components/execution/FutureAgentReq
 import { HandoffCoreSummary } from "@/components/execution/HandoffCoreSummary";
 import { LocalhostBridgeControls } from "@/components/execution/LocalhostBridgeControls";
 import { MappedBrokerExecutionResultCandidatePreview } from "@/components/execution/MappedBrokerExecutionResultCandidatePreview";
+import { SemiAutoAgentDevFlowReviewPanel } from "@/components/execution/SemiAutoAgentDevFlowReviewPanel";
+import { SemiAutoAgentHandoffPreview } from "@/components/execution/SemiAutoAgentHandoffPreview";
+import { SemiAutoAgentResultCaptureStub } from "@/components/execution/SemiAutoAgentResultCaptureStub";
 import { AdvancedFormFillPreview } from "@/components/execution/stub-previews/AdvancedFormFillPreview";
 import { BrokerConfirmationCapturePreview } from "@/components/execution/stub-previews/BrokerConfirmationCapturePreview";
 import { BrokerExecutionResultEligibilityPreview } from "@/components/execution/stub-previews/BrokerExecutionResultEligibilityPreview";
@@ -109,6 +112,15 @@ export type ExecutionHandoffModalCompositionProps = {
     typeof LocalhostBridgeControls
   >;
   sessionDetectionPreviewProps: ComponentProps<typeof SessionDetectionPreview>;
+  semiAutoAgentHandoffPreviewProps: ComponentProps<
+    typeof SemiAutoAgentHandoffPreview
+  >;
+  semiAutoAgentDevFlowReviewPanelProps: ComponentProps<
+    typeof SemiAutoAgentDevFlowReviewPanel
+  >;
+  semiAutoAgentResultCaptureStubProps: ComponentProps<
+    typeof SemiAutoAgentResultCaptureStub
+  >;
   statusReadbacksProps: ComponentProps<typeof ExecutionHandoffStatusReadbacks>;
 };
 
@@ -144,6 +156,9 @@ export function ExecutionHandoffModalComposition({
   searchOnlyPreviewProps,
   secondaryLocalhostBridgeControlsProps,
   sessionDetectionPreviewProps,
+  semiAutoAgentDevFlowReviewPanelProps,
+  semiAutoAgentHandoffPreviewProps,
+  semiAutoAgentResultCaptureStubProps,
   statusReadbacksProps,
 }: ExecutionHandoffModalCompositionProps) {
   return (
@@ -151,6 +166,16 @@ export function ExecutionHandoffModalComposition({
       <HandoffCoreSummary {...coreSummaryProps} />
 
       <FutureAgentRequestPreview {...futureAgentRequestPreviewProps} />
+
+      <SemiAutoAgentHandoffPreview {...semiAutoAgentHandoffPreviewProps} />
+
+      <SemiAutoAgentDevFlowReviewPanel
+        {...semiAutoAgentDevFlowReviewPanelProps}
+      />
+
+      <SemiAutoAgentResultCaptureStub
+        {...semiAutoAgentResultCaptureStubProps}
+      />
 
       {executionDevToolsEnabled && avanzaDryRunRequestPreviewProps && (
         <AvanzaDryRunRequestPreview {...avanzaDryRunRequestPreviewProps} />

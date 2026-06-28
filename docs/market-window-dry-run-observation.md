@@ -4,7 +4,8 @@
 
 Action 976 attempted to run the market-window dry-run observation prepared in
 Action 975 and was blocked. Action 977 attempted the open-session retry and
-remains blocked for the same concrete constraints.
+remained blocked. Action 978 attempted to use the Production URL/operator
+observation path and also remains blocked for the same concrete constraints.
 
 This is documentation/observation only. It is not live trade approval,
 production rollout approval, provider invocation approval, route invocation
@@ -18,10 +19,30 @@ performed.
 
 Latest result status: `market_window_dry_run_blocked`
 
-Latest recommended next action: Action 978 - Provide Production URL And Run
-Open-Session Market-Window Dry Run Observation.
+Latest recommended next action: Action 979 - Provide Production URL And
+Operator Open-Session Evidence.
+
+Follow-up planning track: Action 980 created
+`docs/semi-automatic-avanza-agent-integration-inventory.md` with result status
+`semi_automatic_avanza_agent_integration_inventory_created`. This planning
+track does not unblock the market-window dry run and does not approve browser
+automation, Avanza integration, broker behavior, automatic order submission, or
+full-auto mode.
 
 ## Observation Environment
+
+### Action 978 Attempt
+
+| Field | Value |
+| --- | --- |
+| Production URL/environment | Production URL/operator evidence not provided in the Action 978 request. |
+| Date | 2026-06-28 |
+| Local time | 15:26:09 CEST |
+| NY time | 09:26:09 EDT |
+| Market session state | Closed / no regular US market window. |
+| Browser used | Not opened; observation blocked before browser step. |
+| Console cleared before observation | No; browser observation did not start. |
+| Operator evidence/screenshots provided | None in Action 978 request. |
 
 ### Action 977 Attempt
 
@@ -59,37 +80,42 @@ Because Action 977 requires an appropriate US market window and the Production
 URL, Codex did not open a browser, call routes, call providers, run scans,
 query Supabase, or perform any database access.
 
+Action 978 also required Production URL/operator evidence and an actual US
+market session or pre-market/open-market window. Those prerequisites were not
+available, so Codex again did not open a browser, call routes, call providers,
+run scans, query Supabase, or perform any database access.
+
 ## Production UI Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| App shell loads | Block | Not observed in Action 977 because no regular US market window and no Production URL were available. |
-| Recommendations tab renders | Block | Not observed in Action 977. Last known Action 974 operator evidence says it rendered. |
-| Live Day Trades tab available | Block | Not observed in Action 977. |
-| Stats Today tab available | Block | Not observed in Action 977. |
-| Settings navigation available | Block | Not observed in Action 977. |
+| App shell loads | Block | Not observed in Action 978 because no regular US market window and no Production URL/operator evidence were available. |
+| Recommendations tab renders | Block | Not observed in Action 978. Last known Action 974 operator evidence says it rendered. |
+| Live Day Trades tab available | Block | Not observed in Action 978. |
+| Stats Today tab available | Block | Not observed in Action 978. |
+| Settings navigation available | Block | Not observed in Action 978. |
 | Header market status appears correct | Block | Cannot verify during a market-window observation while the US market is closed. |
 | Day trade window status appears correct | Block | Cannot verify during a market-window observation while the US market is closed. |
-| Refresh/loading state resolves | Block | Not observed in Action 977. |
-| No blank screen/runtime crash | Block | Not observed in Action 977. |
+| Refresh/loading state resolves | Block | Not observed in Action 978. |
+| No blank screen/runtime crash | Block | Not observed in Action 978. |
 
 Last known Production readiness remains Action 974: Production UI loads,
 Recommendations tab renders, and previous red Supabase 404/500 blockers are no
-longer visible. Action 976 and Action 977 do not add fresh browser evidence.
+longer visible. Actions 976, 977, and 978 do not add fresh browser evidence.
 
 ## Recommendation Behavior Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Recommendations render or selective empty state renders | Block | Not observed in Action 977. |
-| Recommendation count is limited | Block | Not observed in Action 977. |
-| Ticker/side/entry/stop/target visible when recommendation exists | Block | Not observed in Action 977. |
-| Confidence visible when recommendation exists | Block | Not observed in Action 977. |
-| Risk/reward visible when recommendation exists | Block | Not observed in Action 977. |
-| Reasoning/explanation visible when recommendation exists | Block | Not observed in Action 977. |
-| Freshness/stale/expiry visible | Block | Not observed in Action 977. |
-| "Ture is staying selective" empty state acceptable | Block | Not observed in Action 977. |
-| Minimal-analysis UX remains intact | Block | Not observed in Action 977. |
+| Recommendations render or selective empty state renders | Block | Not observed in Action 978. |
+| Recommendation count is limited | Block | Not observed in Action 978. |
+| Ticker/side/entry/stop/target visible when recommendation exists | Block | Not observed in Action 978. |
+| Confidence visible when recommendation exists | Block | Not observed in Action 978. |
+| Risk/reward visible when recommendation exists | Block | Not observed in Action 978. |
+| Reasoning/explanation visible when recommendation exists | Block | Not observed in Action 978. |
+| Freshness/stale/expiry visible | Block | Not observed in Action 978. |
+| "Ture is staying selective" empty state acceptable | Block | Not observed in Action 978. |
+| Minimal-analysis UX remains intact | Block | Not observed in Action 978. |
 
 No recommendation UI behavior was newly verified because the dry-run
 observation was blocked before browser access.
@@ -98,36 +124,37 @@ observation was blocked before browser access.
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Execution mode default remains semi-auto | Block | Not observed in Action 977. |
-| Automatic mode remains gated/advanced | Block | Not observed in Action 977. |
-| No automatic submit behavior appears | Block | Not observed in Action 977; no behavior was triggered. |
+| Execution mode default remains semi-auto | Block | Not observed in Action 978. |
+| Automatic mode remains gated/advanced | Block | Not observed in Action 978. |
+| No automatic submit behavior appears | Block | Not observed in Action 978; no behavior was triggered. |
 | Handoff preview opens only as preview/prepare | Block | Not observed or opened. |
-| Manual confirmation copy is clear | Block | Not observed in Action 977. |
+| Manual confirmation copy is clear | Block | Not observed in Action 978. |
 | No Avanza/browser automation exists | Pass | No browser automation or Avanza path was invoked by this action. |
 | No real broker execution path exists | Pass | No broker execution path was invoked by this action. |
-| Local/mock/dev labels remain clear | Block | Not observed in Action 977. |
+| Local/mock/dev labels remain clear | Block | Not observed in Action 978. |
 
-Action 976 and Action 977 did not perform any handoff preview, browser
+Actions 976, 977, and 978 did not perform any handoff preview, browser
 automation, broker operation, or real trade.
 
 ## Risk/EOD Safety Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Risk controls visible where relevant | Block | Not observed in Action 977. |
-| Stale/expired recommendation warnings appear where relevant | Block | Not observed in Action 977. |
+| Risk controls visible where relevant | Block | Not observed in Action 978. |
+| Stale/expired recommendation warnings appear where relevant | Block | Not observed in Action 978. |
 | EOD safety warnings appear near close if observable | Block | Not observable because there was no regular US market session. |
-| No overnight-risk ambiguity | Block | Not observed in Action 977. |
+| No overnight-risk ambiguity | Block | Not observed in Action 978. |
 | No trade/stats/PnL mutation outside intended safe observation | Pass | No runtime UI observation or mutation path was executed. |
 
-No risk/EOD UI surface was freshly verified in Action 976 or Action 977.
+No risk/EOD UI surface was freshly verified in Action 976, Action 977, or
+Action 978.
 
 ## Console/Network Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
 | No red Supabase 4xx/5xx errors | Block | Not freshly observed because browser observation did not start. |
-| Expected `recommendation_batch_backfill_capped` warning remains non-fatal | Block | Not freshly observed in Action 977. |
+| Expected `recommendation_batch_backfill_capped` warning remains non-fatal | Block | Not freshly observed in Action 978. |
 | No audit writer client errors | Pass | No browser/client path was invoked. |
 | No service-role/env exposure | Pass | No secret values were printed; no service-role adapter was called. |
 | No broker/Avanza references/actions | Pass | No broker/Avanza behavior was invoked. |
@@ -143,7 +170,7 @@ before browser access.
 | Recommendation count | Not observed. |
 | Best candidate shown | Not observed. |
 | No-trade/selective reason | Not observed. |
-| Warnings observed | Not observed in Action 977. Latest prior warning remains Action 974 `recommendation_batch_backfill_capped`. |
+| Warnings observed | Not observed in Action 978. Latest prior warning remains Action 974 `recommendation_batch_backfill_capped`. |
 | User decision | Do not proceed to live-trial scope decision yet. |
 | Follow-up action | Run the market-window dry-run observation during an open US market session with the Production URL available. |
 
@@ -154,19 +181,20 @@ Result status: `market_window_dry_run_blocked`
 Reason:
 
 - No appropriate US market window was available on Sunday, June 28, 2026.
-- The Production URL was not available in local repo context.
+- The Production URL/operator evidence was not provided in the Action 978
+  request.
 - Therefore the market-window UI/console observation could not be performed.
 
-Live market trial remains no-go. Action 976 and Action 977 do not provide
+Live market trial remains no-go. Actions 976, 977, and 978 do not provide
 fresh UI, recommendation, console, handoff, or risk/EOD evidence.
 
 ## Recommended Next Action
 
-Action 978 - Provide Production URL And Run Open-Session Market-Window Dry Run
-Observation.
+Action 979 - Provide Production URL And Operator Open-Session Evidence.
 
-The next attempt should include the Production URL and should be run during an
-actual US market session, using the checklist in
+The next attempt should include the Production URL and operator evidence from
+an actual US market session, pre-market window, or open-market window, using
+the checklist in
 `docs/market-window-dry-run-plan.md`.
 
 ## Validation Results
@@ -222,3 +250,12 @@ actual US market session, using the checklist in
 - No automatic mode enablement.
 - No real trade.
 - No trade/stats/PnL mutation.
+
+## Action 1002 Monday Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- No Production market-window observation was run in Action 1002 because the
+  dry run remains parked until Monday/open US market session.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

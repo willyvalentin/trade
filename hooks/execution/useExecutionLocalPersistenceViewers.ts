@@ -20,6 +20,12 @@ import {
   type ExecutionRecordStoreReadResult,
   type StoredExecutionRecord,
 } from "@/lib/execution-record-store";
+import {
+  clearSemiAutoAgentLocalDevFlowEvents,
+  readSemiAutoAgentLocalDevFlowEvents,
+  type SemiAutoAgentLocalDevFlowEvent,
+  type SemiAutoAgentLocalDevFlowReadResult,
+} from "@/lib/semi-auto-agent-local-dev-flow-store";
 
 export type ExecutionLocalPersistenceViewers = {
   executionEventLog: ExecutionEventLogReadResult;
@@ -34,12 +40,18 @@ export type ExecutionLocalPersistenceViewers = {
   devMockBrokerResultStoreMessage: string;
   latestDevMockBrokerResults: StoredDevMockBrokerExecutionResult[];
   latestDevMockBrokerResultTimestamp: string | null;
+  semiAutoAgentLocalDevFlowStore: SemiAutoAgentLocalDevFlowReadResult;
+  semiAutoAgentLocalDevFlowStoreMessage: string;
+  latestSemiAutoAgentLocalDevFlowEvents: SemiAutoAgentLocalDevFlowEvent[];
+  latestSemiAutoAgentLocalDevFlowTimestamp: string | null;
   refreshExecutionEventLog: () => void;
   clearExecutionEventLog: () => void;
   refreshExecutionRecords: () => void;
   clearLocalExecutionRecords: () => void;
   refreshDevMockBrokerResults: () => void;
   clearLocalDevMockBrokerResults: () => void;
+  refreshSemiAutoAgentLocalDevFlowEvents: () => void;
+  clearSemiAutoAgentLocalDevFlowHistory: () => void;
   refreshAfterDevMockBrokerCapture: () => void;
 };
 
@@ -53,6 +65,10 @@ function readExecutionRecordsForViewers(): ExecutionRecordStoreReadResult {
 
 function readDevMockBrokerResultsForViewers(): DevMockBrokerResultStoreReadResult {
   return readDevMockBrokerResultStoreResult();
+}
+
+function readSemiAutoAgentLocalDevFlowForViewers(): SemiAutoAgentLocalDevFlowReadResult {
+  return readSemiAutoAgentLocalDevFlowEvents();
 }
 
 export function useExecutionLocalPersistenceViewers(): ExecutionLocalPersistenceViewers {
@@ -73,12 +89,25 @@ export function useExecutionLocalPersistenceViewers(): ExecutionLocalPersistence
     devMockBrokerResultStoreMessage,
     setDevMockBrokerResultStoreMessage,
   ] = useState("");
+  const [
+    semiAutoAgentLocalDevFlowStore,
+    setSemiAutoAgentLocalDevFlowStore,
+  ] = useState<SemiAutoAgentLocalDevFlowReadResult>(() =>
+    readSemiAutoAgentLocalDevFlowForViewers(),
+  );
+  const [
+    semiAutoAgentLocalDevFlowStoreMessage,
+    setSemiAutoAgentLocalDevFlowStoreMessage,
+  ] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setExecutionEventLog(readExecutionEventLogForViewers());
       setExecutionRecordStore(readExecutionRecordsForViewers());
       setDevMockBrokerResultStore(readDevMockBrokerResultsForViewers());
+      setSemiAutoAgentLocalDevFlowStore(
+        readSemiAutoAgentLocalDevFlowForViewers(),
+      );
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -111,6 +140,15 @@ export function useExecutionLocalPersistenceViewers(): ExecutionLocalPersistence
   );
   const latestDevMockBrokerResultTimestamp =
     latestDevMockBrokerResults[0]?.createdAt ?? null;
+  const latestSemiAutoAgentLocalDevFlowEvents = useMemo(
+    () =>
+      [...semiAutoAgentLocalDevFlowStore.items]
+        .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+        .slice(0, 25),
+    [semiAutoAgentLocalDevFlowStore.items],
+  );
+  const latestSemiAutoAgentLocalDevFlowTimestamp =
+    latestSemiAutoAgentLocalDevFlowEvents[0]?.created_at ?? null;
 
   function refreshExecutionEventLog() {
     setExecutionEventLog(readExecutionEventLogForViewers());
@@ -187,6 +225,33 @@ export function useExecutionLocalPersistenceViewers(): ExecutionLocalPersistence
     );
   }
 
+  function refreshSemiAutoAgentLocalDevFlowEvents() {
+    setSemiAutoAgentLocalDevFlowStore(readSemiAutoAgentLocalDevFlowForViewers());
+    setSemiAutoAgentLocalDevFlowStoreMessage(
+      "Semi-auto local dev flow history refreshed.",
+    );
+  }
+
+  function clearSemiAutoAgentLocalDevFlowHistory() {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        "Clear semi-auto local dev flow history in this browser? This only removes local dev history and does not affect Supabase, audit records, broker state, trades, History, or Statistics.",
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const cleared = clearSemiAutoAgentLocalDevFlowEvents();
+    setSemiAutoAgentLocalDevFlowStore(readSemiAutoAgentLocalDevFlowForViewers());
+    setSemiAutoAgentLocalDevFlowStoreMessage(
+      cleared
+        ? "Semi-auto local dev flow history cleared."
+        : "Could not clear semi-auto local dev flow history.",
+    );
+  }
+
   function refreshAfterDevMockBrokerCapture() {
     setExecutionRecordStore(readExecutionRecordsForViewers());
     setExecutionEventLog(readExecutionEventLogForViewers());
@@ -205,12 +270,18 @@ export function useExecutionLocalPersistenceViewers(): ExecutionLocalPersistence
     devMockBrokerResultStoreMessage,
     latestDevMockBrokerResults,
     latestDevMockBrokerResultTimestamp,
+    semiAutoAgentLocalDevFlowStore,
+    semiAutoAgentLocalDevFlowStoreMessage,
+    latestSemiAutoAgentLocalDevFlowEvents,
+    latestSemiAutoAgentLocalDevFlowTimestamp,
     refreshExecutionEventLog,
     clearExecutionEventLog,
     refreshExecutionRecords,
     clearLocalExecutionRecords,
     refreshDevMockBrokerResults,
     clearLocalDevMockBrokerResults,
+    refreshSemiAutoAgentLocalDevFlowEvents,
+    clearSemiAutoAgentLocalDevFlowHistory,
     refreshAfterDevMockBrokerCapture,
   };
 }

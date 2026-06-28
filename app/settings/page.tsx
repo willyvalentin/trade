@@ -132,6 +132,9 @@ import {
   ExecutionLocalRecordsViewer,
 } from "@/components/execution/execution-local-records-viewer";
 import {
+  SemiAutoAgentLocalDevFlowHistoryViewer,
+} from "@/components/execution/SemiAutoAgentLocalDevFlowHistoryViewer";
+import {
   DevMockBrokerResultsPanel,
 } from "@/components/execution/execution-dev-mock-broker-results-panel";
 import {
@@ -1099,6 +1102,7 @@ export default function SettingsPage() {
     clearExecutionEventLog,
     clearLocalDevMockBrokerResults,
     clearLocalExecutionRecords,
+    clearSemiAutoAgentLocalDevFlowHistory,
     devMockBrokerResultStore,
     devMockBrokerResultStoreMessage,
     executionEventLog,
@@ -1111,10 +1115,15 @@ export default function SettingsPage() {
     latestExecutionAuditTimestamp,
     latestExecutionRecords,
     latestExecutionRecordTimestamp,
+    latestSemiAutoAgentLocalDevFlowEvents,
+    latestSemiAutoAgentLocalDevFlowTimestamp,
     refreshAfterDevMockBrokerCapture,
     refreshDevMockBrokerResults,
     refreshExecutionEventLog,
     refreshExecutionRecords,
+    refreshSemiAutoAgentLocalDevFlowEvents,
+    semiAutoAgentLocalDevFlowStore,
+    semiAutoAgentLocalDevFlowStoreMessage,
   } = executionLocalPersistenceViewers;
   const [avanzaAgentRunStore, setAvanzaAgentRunStore] =
     useState<AvanzaAgentRunStoreReadResult>(() =>
@@ -2245,6 +2254,15 @@ export default function SettingsPage() {
                   onRefresh={refreshDevMockBrokerResults}
                   onClear={clearLocalDevMockBrokerResults}
                   onCaptureComplete={refreshAfterDevMockBrokerCapture}
+                />
+
+                <SemiAutoAgentLocalDevFlowHistoryViewer
+                  readResult={semiAutoAgentLocalDevFlowStore}
+                  visibleEvents={latestSemiAutoAgentLocalDevFlowEvents}
+                  latestTimestamp={latestSemiAutoAgentLocalDevFlowTimestamp}
+                  message={semiAutoAgentLocalDevFlowStoreMessage}
+                  onRefresh={refreshSemiAutoAgentLocalDevFlowEvents}
+                  onClear={clearSemiAutoAgentLocalDevFlowHistory}
                 />
 
                 <ExecutionLocalRecordsViewer

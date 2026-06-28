@@ -24,8 +24,19 @@ Follow-up status: Action 977 updated
 `docs/market-window-dry-run-observation.md`; result status remains
 `market_window_dry_run_blocked`.
 
-Recommended next action: Action 978 - Provide Production URL And Run
-Open-Session Market-Window Dry Run Observation.
+Follow-up status: Action 978 updated
+`docs/market-window-dry-run-observation.md`; result status remains
+`market_window_dry_run_blocked`.
+
+Recommended next action: Action 979 - Provide Production URL And Operator
+Open-Session Evidence.
+
+Separate planning follow-up: Action 980 created
+`docs/semi-automatic-avanza-agent-integration-inventory.md` with result status
+`semi_automatic_avanza_agent_integration_inventory_created`. This inventory is
+documentation-only and does not change the market-window dry-run blocker,
+Production observation requirement, broker boundary, or automatic-order
+boundary.
 
 ## Current Production Readiness State
 
@@ -242,6 +253,20 @@ trade path was invoked.
 Recommended next action: Action 978 - Provide Production URL And Run
 Open-Session Market-Window Dry Run Observation.
 
+Completed follow-up: Action 978 - Provide Production URL And Run Open-Session
+Market-Window Dry Run Observation.
+
+Action 978 result status: `market_window_dry_run_blocked`.
+
+Action 978 remained blocked because the request still did not provide a
+Production URL/operator observation and still ran on Sunday, June 28, 2026,
+with no regular US market session available. No browser, provider, route,
+scan, Supabase, database, service-role, broker/Avanza, automatic order, or
+real trade path was invoked.
+
+Recommended next action: Action 979 - Provide Production URL And Operator
+Open-Session Evidence.
+
 ## Validation Results
 
 - `./node_modules/.bin/tsc --noEmit` passed.
@@ -294,3 +319,12 @@ Open-Session Market-Window Dry Run Observation.
 - No automatic order submission enablement.
 - No automatic mode enablement.
 - No trade/stats/PnL mutation.
+
+## Action 1002 Monday Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- The Production market-window dry run remains parked until Monday/open US
+  market session and operator evidence exists.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

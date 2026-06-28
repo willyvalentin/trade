@@ -90,6 +90,79 @@ Follow-up status: Action 971 created
 `docs/production-console-manual-observation-after-scheduled-scan-migration.md`
 with result status `production_console_manual_observation_blocked`.
 
+Follow-up status: Action 986 added
+`docs/semi-auto-agent-dev-flow-state-machine.md`,
+`lib/semi-auto-agent-dev-flow-state-machine.ts`, and
+`tests/e2e/semi-auto-agent-dev-flow-state-machine.spec.ts` with result status
+`semi_auto_agent_dev_flow_state_machine_added`.
+
+Follow-up status: Action 987 added
+`docs/semi-auto-agent-dev-flow-review-panel.md`,
+`lib/semi-auto-agent-dev-flow-review.ts`,
+`components/execution/SemiAutoAgentDevFlowReviewPanel.tsx`, and
+`tests/e2e/semi-auto-agent-dev-flow-review-panel.spec.ts` with result status
+`semi_auto_agent_dev_flow_review_panel_added`.
+
+Follow-up status: Action 988 added
+`docs/semi-auto-agent-local-dev-flow-persistence.md`,
+`lib/semi-auto-agent-local-dev-flow-store.ts`, and
+`tests/e2e/semi-auto-agent-local-dev-flow-persistence.spec.ts` with result
+status `semi_auto_agent_local_dev_flow_persistence_added`.
+
+Follow-up status: Action 989 added
+`docs/semi-auto-agent-local-dev-flow-history-viewer.md`,
+`components/execution/SemiAutoAgentLocalDevFlowHistoryViewer.tsx`, and
+`tests/e2e/semi-auto-agent-local-dev-flow-history-viewer.spec.ts` with result
+status `semi_auto_agent_local_dev_flow_history_viewer_added`.
+
+Follow-up status: Action 990 created
+`docs/semi-auto-agent-dev-flow-end-to-end-qa.md` with result status
+`semi_auto_agent_dev_flow_e2e_qa_passed_with_warnings`.
+
+Follow-up status: Action 991 created
+`docs/semi-auto-agent-real-browser-automation-feasibility-review.md` with
+result status
+`semi_auto_agent_real_browser_automation_feasibility_review_created`.
+
+Follow-up status: Action 992 created
+`docs/browser-automation-safety-boundary-spec.md` and
+`tests/e2e/browser-automation-safety-boundary.spec.ts` with result status
+`browser_automation_safety_boundary_spec_created`.
+
+Follow-up status: Action 993 added `app/sandbox-broker/page.tsx`,
+`components/execution/SandboxBrokerOrderForm.tsx`,
+`tests/e2e/sandbox-broker-page.spec.ts`, and
+`docs/sandbox-broker-page-for-semi-auto-agent-poc.md` with result status
+`sandbox_broker_page_for_semi_auto_agent_poc_added`.
+
+Follow-up status: Action 994 added `lib/sandbox-browser-agent-adapter.ts`,
+`tests/e2e/sandbox-browser-agent-adapter.spec.ts`, and
+`docs/sandbox-browser-agent-adapter-poc.md` with result status
+`sandbox_browser_agent_adapter_poc_added`.
+
+Follow-up status: Action 995 added
+`tests/e2e/human-final-confirmation-guard.spec.ts` and
+`docs/human-final-confirmation-guard-tests.md` with result status
+`human_final_confirmation_guard_tests_added`.
+
+Follow-up status: Action 996 added
+`tests/e2e/sandbox-browser-agent-fill-only-poc.spec.ts` and
+`docs/sandbox-browser-agent-fill-only-playwright-poc.md` with result status
+`sandbox_browser_agent_fill_only_playwright_poc_added`.
+
+Follow-up status: Action 997 created
+`docs/sandbox-agent-fill-only-operator-dry-run-checklist.md` with result
+status `sandbox_agent_fill_only_operator_dry_run_checklist_created`.
+
+Follow-up status: Action 998 created
+`docs/sandbox-agent-fill-only-operator-dry-run-results.md` with result status
+`sandbox_agent_fill_only_operator_dry_run_passed`.
+
+Follow-up status: Action 999 added
+`tests/e2e/sandbox-agent-fill-only-result-capture-dry-run.spec.ts` and
+`docs/sandbox-agent-fill-only-result-capture-dry-run.md` with result status
+`sandbox_agent_fill_only_result_capture_dry_run_passed`.
+
 Recommended next action: Action 972 - Provide Production Console Manual
 Observation Evidence.
 
@@ -153,6 +226,26 @@ change, or `.env.local` change was performed.
   and execution settings remain local-only helper-backed persistence paths.
 - Broker/Avanza behavior remains absent from the production runtime path.
 - Automatic order submission remains not enabled.
+- Semi-auto agent foundation now includes a pure local/dev-only state machine
+  from payload creation to mock prepare, manual-confirmation waiting, local
+  result capture, and terminal local outcomes. This does not add production
+  broker/Avanza behavior.
+- The handoff modal now includes a read-only/local-only dev flow review panel
+  for that chain. This remains non-executing and does not change production
+  broker/Avanza readiness.
+- The review panel can now manually save bounded browser-local-only dev flow
+  snapshots. This is not Supabase persistence, not audit persistence, and not
+  broker/Avanza capture.
+- A documentation-only real-browser automation feasibility review now exists
+  for the semi-auto agent track. It keeps real Avanza access, browser
+  automation, broker behavior, automatic submit, provider/route/scan calls,
+  Supabase writes, and production behavior unimplemented.
+- A browser automation safety boundary spec and static guard test now exist
+  for the semi-auto agent track. The guard is local/static only and does not
+  launch a browser, call routes/providers/scans, access Avanza, or write data.
+- A fake local sandbox broker page now exists for future semi-auto
+  browser-agent POC work. It is not Avanza, not a broker, and not a production
+  execution path.
 
 ## Product Readiness Checklist
 
@@ -504,6 +597,154 @@ recommendation, handoff, or risk/EOD evidence was collected.
 Live market trial remains no-go. The smallest next step is Action 978 -
 Provide Production URL And Run Open-Session Market-Window Dry Run Observation.
 
+Completed follow-up: Action 978 - Provide Production URL And Run Open-Session
+Market-Window Dry Run Observation.
+
+Action 978 result status: `market_window_dry_run_blocked`.
+
+Action 978 remained blocked because the request still did not provide a
+Production URL/operator observation and still ran on Sunday, June 28, 2026,
+outside a regular US market session. No fresh Production browser, console,
+recommendation, handoff, or risk/EOD evidence was collected.
+
+Live market trial remains no-go. The smallest next step is Action 979 -
+Provide Production URL And Operator Open-Session Evidence.
+
+Separate planning follow-up: Action 980 - Create Semi-Automatic Avanza Agent
+Integration Inventory.
+
+Action 980 result status:
+`semi_automatic_avanza_agent_integration_inventory_created`.
+
+Action 980 created
+`docs/semi-automatic-avanza-agent-integration-inventory.md`. The inventory
+defines the semi-auto product intent, handoff payload contract, agent authority
+model, Avanza/browser boundaries, UI requirements, safety gates,
+capture/result model, testing strategy, deferred full-auto risks, and first
+safe implementation seam. It is documentation-only and does not approve
+browser automation, Avanza integration, broker behavior, automatic order
+submission, full-auto mode, provider calls, scans, Supabase/DB writes,
+service-role calls, or live-trial execution.
+
+Completed follow-up recommendation for the semi-auto track: Action 981 - Add
+Semi-Auto Avanza Agent Payload Contract Tests.
+
+Completed follow-up: Action 981 - Add Semi-Auto Avanza Agent Payload Contract
+Tests.
+
+Action 981 result status:
+`semi_auto_avanza_agent_payload_contract_tests_added`.
+
+Action 981 created `docs/semi-auto-avanza-agent-payload-contract-tests.md`,
+added `lib/semi-auto-agent-payload-contract.ts`, and added focused coverage in
+`tests/e2e/semi-auto-avanza-agent-payload-contract.spec.ts`. The contract tests
+lock down required payload fields, buy and sell/exit compatibility, human final
+confirmation, automatic-submit false, stale/expired blocking, invalid
+ticker/quantity/side/action blocking, deterministic identity, and
+no-automation source boundaries.
+
+This does not change Production runtime behavior and does not add browser
+automation, Avanza integration, broker behavior, automatic order submission,
+automatic mode enablement, provider calls, routes, scans, Supabase/DB writes,
+service-role calls, migrations, type generation, generated type edits, or
+trade/stats/PnL mutation.
+
+Completed follow-up recommendation for the semi-auto track: Action 982 -
+Add Semi-Auto Avanza Agent Payload Builder.
+
+Completed follow-up: Action 982 - Add Semi-Auto Avanza Agent Payload Builder.
+
+Action 982 result status:
+`semi_auto_avanza_agent_payload_builder_added`.
+
+Action 982 created `docs/semi-auto-avanza-agent-payload-builder.md`, added
+`lib/semi-auto-agent-payload-builder.ts`, and added focused coverage in
+`tests/e2e/semi-auto-avanza-agent-payload-builder.spec.ts`. The builder
+supports recommendation/buy inputs and live-position sell/exit inputs,
+normalizes required contract fields, composes contract validation, returns
+blocked results for invalid or stale inputs, preserves deterministic identity,
+and keeps human final confirmation required with automatic submit false.
+
+This does not change Production runtime behavior and does not add runtime UI
+wiring, browser automation, Avanza integration, broker behavior, automatic
+order submission, automatic mode enablement, provider calls, routes, scans,
+Supabase/DB writes, service-role calls, migrations, type generation, generated
+type edits, or trade/stats/PnL mutation.
+
+Completed follow-up recommendation for the semi-auto track: Action 983 -
+Add Mock Semi-Auto Browser Agent Adapter.
+
+Completed follow-up: Action 983 - Add Mock Semi-Auto Browser Agent Adapter.
+
+Action 983 result status:
+`mock_semi_auto_browser_agent_adapter_added`.
+
+Action 983 created `docs/mock-semi-auto-browser-agent-adapter.md`, added
+`lib/mock-semi-auto-browser-agent-adapter.ts`, and added focused coverage in
+`tests/e2e/mock-semi-auto-browser-agent-adapter.spec.ts`. The adapter consumes
+semi-auto payloads, returns deterministic prepare-only results, maps valid buy
+and sell/exit payloads to `waiting_for_manual_confirmation`, blocks
+stale/invalid/authority-violating payloads, keeps human final confirmation
+required, keeps automatic submit false, and does not mutate payloads.
+
+This does not change Production runtime behavior and does not add runtime UI
+wiring, browser automation, Avanza integration, broker behavior, automatic
+order submission, automatic mode enablement, provider calls, routes, scans,
+Supabase/DB writes, service-role calls, migrations, type generation, generated
+type edits, or trade/stats/PnL mutation.
+
+Completed follow-up recommendation for the semi-auto track: Action 984 -
+Add Semi-Auto Agent Handoff Preview Wiring.
+
+Completed follow-up: Action 984 - Add Semi-Auto Agent Handoff Preview Wiring.
+
+Action 984 result status:
+`semi_auto_agent_handoff_preview_wiring_added`.
+
+Action 984 created `docs/semi-auto-agent-handoff-preview-wiring.md`, added
+`lib/semi-auto-agent-handoff-preview.ts`, added
+`components/execution/SemiAutoAgentHandoffPreview.tsx`, wired that component
+through the existing handoff modal composition, and added focused coverage in
+`tests/e2e/semi-auto-agent-handoff-preview-wiring.spec.ts`. The UI can now
+show a mock, non-executing semi-auto prepare preview for valid buy and
+sell/exit handoffs, including `waiting_for_manual_confirmation`, manual final
+confirmation required, automatic submit attempted false, and automatic submit
+allowed false.
+
+This does not add real browser automation, Avanza integration, broker
+behavior, automatic order submission, automatic mode enablement, provider
+calls, routes, scans, Supabase/DB writes, service-role calls, migrations, type
+generation, generated type edits, or trade/stats/PnL mutation.
+
+Recommended next action for the semi-auto track: Action 985 - Add Semi-Auto
+Agent Result Capture UI Stub.
+
+Completed follow-up recommendation for the semi-auto track: Action 985 -
+Add Semi-Auto Agent Result Capture UI Stub.
+
+Completed follow-up: Action 985 - Add Semi-Auto Agent Result Capture UI Stub.
+
+Action 985 result status:
+`semi_auto_agent_result_capture_ui_stub_added`.
+
+Action 985 created `docs/semi-auto-agent-result-capture-ui-stub.md`, added
+`lib/semi-auto-agent-result-capture-stub.ts`, added
+`components/execution/SemiAutoAgentResultCaptureStub.tsx`, wired that component
+through the existing handoff modal composition, and added focused coverage in
+`tests/e2e/semi-auto-agent-result-capture-ui-stub.spec.ts`. The UI can now
+represent local-only result states after a valid mock semi-auto prepare
+preview: user confirmed manually, user cancelled, broker rejected, unknown /
+needs review, failed, timeout, and capture not available.
+
+This does not add real Avanza/broker confirmation capture, browser automation,
+Avanza integration, broker behavior, automatic order submission, automatic mode
+enablement, provider calls, routes, scans, Supabase/DB writes, service-role
+calls, migrations, type generation, generated type edits, or trade/stats/PnL
+mutation.
+
+Recommended next action for the semi-auto track: Action 986 - Add Semi-Auto
+Agent Dev Flow State Machine.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.
@@ -542,3 +783,38 @@ Provide Production URL And Run Open-Session Market-Window Dry Run Observation.
 - No audit writer UI/browser/client invocation, market-loop/scanner invocation,
   broker/Avanza behavior, automatic mode enablement, automatic order
   submission enablement, or trade/stats/PnL mutation behavior was added.
+
+## Action 1000 Semi-Auto Sandbox Final QA Link
+
+- Result status: `sandbox_phase_complete_with_warnings`.
+- Created `docs/semi-auto-agent-sandbox-phase-final-qa-and-roadmap.md`.
+- The semi-auto sandbox phase is complete enough to return focus to the
+  parked product/live-trial market-window dry run.
+- Recommended next action: Action 1001 - Run Production Market-Window Dry Run
+  During Open US Session.
+- Alternative sandbox-track next action: Action 1001 - Add Sandbox Browser
+  Agent Selector Stability QA.
+
+## Action 1001 Sandbox Browser Agent Selector Stability QA Link
+
+- Result status: `sandbox_browser_agent_selector_stability_qa_added`.
+- Created `docs/sandbox-browser-agent-selector-stability-qa.md`.
+- Added `tests/e2e/sandbox-browser-agent-selector-stability.spec.ts`.
+- Hardened `/sandbox-broker` with stable sandbox `data-testid` selectors.
+- Updated the fill-only POC to use stable selectors.
+- Production market-window dry run remains parked until Monday/open US market
+  session.
+- Recommended next action: Action 1002 - Run Production Market-Window Dry Run
+  During Open US Session.
+
+## Action 1002 Monday Production Market-Window Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- Production data-health is acceptable for the next market-window observation.
+- Previous Supabase 404/500 blockers are resolved.
+- Expected `recommendation_batch_backfill_capped` remains a warning.
+- Production market-window validation remains parked until Monday/open US
+  market session and operator evidence exists.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.

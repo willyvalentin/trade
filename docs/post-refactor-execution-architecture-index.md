@@ -16,8 +16,159 @@ Follow-up status: Action 952 created
 `docs/live-trial-dry-run-checklist.md` with result status
 `live_trial_dry_run_checklist_created`.
 
-Recommended next action: Action 953 - Run Non-Live Test Pack for Live-Trial
-Readiness.
+Follow-up status: Action 980 created
+`docs/semi-automatic-avanza-agent-integration-inventory.md` with result status
+`semi_automatic_avanza_agent_integration_inventory_created`.
+
+Follow-up status: Action 981 added
+`docs/semi-auto-avanza-agent-payload-contract-tests.md`,
+`lib/semi-auto-agent-payload-contract.ts`, and
+`tests/e2e/semi-auto-avanza-agent-payload-contract.spec.ts` with result status
+`semi_auto_avanza_agent_payload_contract_tests_added`.
+
+Follow-up status: Action 982 added
+`docs/semi-auto-avanza-agent-payload-builder.md`,
+`lib/semi-auto-agent-payload-builder.ts`, and
+`tests/e2e/semi-auto-avanza-agent-payload-builder.spec.ts` with result status
+`semi_auto_avanza_agent_payload_builder_added`.
+
+Follow-up status: Action 983 added
+`docs/mock-semi-auto-browser-agent-adapter.md`,
+`lib/mock-semi-auto-browser-agent-adapter.ts`, and
+`tests/e2e/mock-semi-auto-browser-agent-adapter.spec.ts` with result status
+`mock_semi_auto_browser_agent_adapter_added`.
+
+Follow-up status: Action 984 added
+`docs/semi-auto-agent-handoff-preview-wiring.md`,
+`lib/semi-auto-agent-handoff-preview.ts`,
+`components/execution/SemiAutoAgentHandoffPreview.tsx`, and
+`tests/e2e/semi-auto-agent-handoff-preview-wiring.spec.ts` with result status
+`semi_auto_agent_handoff_preview_wiring_added`.
+
+Follow-up status: Action 985 added
+`docs/semi-auto-agent-result-capture-ui-stub.md`,
+`lib/semi-auto-agent-result-capture-stub.ts`,
+`components/execution/SemiAutoAgentResultCaptureStub.tsx`, and
+`tests/e2e/semi-auto-agent-result-capture-ui-stub.spec.ts` with result status
+`semi_auto_agent_result_capture_ui_stub_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 986 -
+Add Semi-Auto Agent Dev Flow State Machine.
+
+Follow-up status: Action 986 added
+`docs/semi-auto-agent-dev-flow-state-machine.md`,
+`lib/semi-auto-agent-dev-flow-state-machine.ts`, and
+`tests/e2e/semi-auto-agent-dev-flow-state-machine.spec.ts` with result status
+`semi_auto_agent_dev_flow_state_machine_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 987 -
+Add Semi-Auto Agent Dev Flow Review Panel.
+
+Follow-up status: Action 987 added
+`docs/semi-auto-agent-dev-flow-review-panel.md`,
+`lib/semi-auto-agent-dev-flow-review.ts`,
+`components/execution/SemiAutoAgentDevFlowReviewPanel.tsx`, and
+`tests/e2e/semi-auto-agent-dev-flow-review-panel.spec.ts` with result status
+`semi_auto_agent_dev_flow_review_panel_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 988 -
+Add Semi-Auto Agent Local Dev Flow Persistence.
+
+Follow-up status: Action 988 added
+`docs/semi-auto-agent-local-dev-flow-persistence.md`,
+`lib/semi-auto-agent-local-dev-flow-store.ts`, and
+`tests/e2e/semi-auto-agent-local-dev-flow-persistence.spec.ts` with result
+status `semi_auto_agent_local_dev_flow_persistence_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 989 -
+Add Semi-Auto Agent Local Dev Flow History Viewer.
+
+Follow-up status: Action 989 added
+`docs/semi-auto-agent-local-dev-flow-history-viewer.md`,
+`components/execution/SemiAutoAgentLocalDevFlowHistoryViewer.tsx`, and
+`tests/e2e/semi-auto-agent-local-dev-flow-history-viewer.spec.ts` with result
+status `semi_auto_agent_local_dev_flow_history_viewer_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 990 -
+Semi-Auto Agent Dev Flow End-to-End QA Pass.
+
+Follow-up status: Action 990 created
+`docs/semi-auto-agent-dev-flow-end-to-end-qa.md` with result status
+`semi_auto_agent_dev_flow_e2e_qa_passed_with_warnings`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 991 -
+Prepare Semi-Auto Agent Real Browser Automation Feasibility Review.
+
+Follow-up status: Action 991 created
+`docs/semi-auto-agent-real-browser-automation-feasibility-review.md` with
+result status
+`semi_auto_agent_real_browser_automation_feasibility_review_created`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 992 -
+Add Browser Automation Safety Boundary Spec.
+
+Follow-up status: Action 992 created
+`docs/browser-automation-safety-boundary-spec.md` and
+`tests/e2e/browser-automation-safety-boundary.spec.ts` with result status
+`browser_automation_safety_boundary_spec_created`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 993 -
+Add Sandbox Broker Page for Semi-Auto Agent POC.
+
+Follow-up status: Action 993 added `app/sandbox-broker/page.tsx`,
+`components/execution/SandboxBrokerOrderForm.tsx`,
+`tests/e2e/sandbox-broker-page.spec.ts`, and
+`docs/sandbox-broker-page-for-semi-auto-agent-poc.md` with result status
+`sandbox_broker_page_for_semi_auto_agent_poc_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 994 -
+Add Local Browser Agent Adapter Against Sandbox Page.
+
+Follow-up status: Action 994 added `lib/sandbox-browser-agent-adapter.ts`,
+`tests/e2e/sandbox-browser-agent-adapter.spec.ts`, and
+`docs/sandbox-browser-agent-adapter-poc.md` with result status
+`sandbox_browser_agent_adapter_poc_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 995 -
+Add Human-Final-Confirmation Guard Tests.
+
+Follow-up status: Action 995 added
+`tests/e2e/human-final-confirmation-guard.spec.ts` and
+`docs/human-final-confirmation-guard-tests.md` with result status
+`human_final_confirmation_guard_tests_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 996 -
+Add Sandbox Browser Agent Fill-Only Playwright POC.
+
+Follow-up status: Action 996 added
+`tests/e2e/sandbox-browser-agent-fill-only-poc.spec.ts` and
+`docs/sandbox-browser-agent-fill-only-playwright-poc.md` with result status
+`sandbox_browser_agent_fill_only_playwright_poc_added`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 997 -
+Add Sandbox Agent Fill-Only Operator Dry-Run Checklist.
+
+Follow-up status: Action 997 created
+`docs/sandbox-agent-fill-only-operator-dry-run-checklist.md` with result
+status `sandbox_agent_fill_only_operator_dry_run_checklist_created`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 998 -
+Run Sandbox Agent Fill-Only Operator Dry Run.
+
+Follow-up status: Action 998 created
+`docs/sandbox-agent-fill-only-operator-dry-run-results.md` with result status
+`sandbox_agent_fill_only_operator_dry_run_passed`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 999 -
+Add Sandbox Agent Fill-Only Result Capture Dry-Run.
+
+Follow-up status: Action 999 added
+`tests/e2e/sandbox-agent-fill-only-result-capture-dry-run.spec.ts` and
+`docs/sandbox-agent-fill-only-result-capture-dry-run.md` with result status
+`sandbox_agent_fill_only_result_capture_dry_run_passed`.
+
+Recommended next action for the semi-auto Avanza planning track: Action 1000 -
+Semi-Auto Agent Sandbox Phase Final QA And Roadmap.
 
 ## One-Page Architecture Overview
 
@@ -49,6 +200,17 @@ app/settings/page.tsx
     lib/execution-settings-persistence-helpers.ts
     lib/execution-local-storage-helpers.ts
 
+app/sandbox-broker/page.tsx
+  owns fake local sandbox broker page for future semi-auto browser-agent POC
+  composes:
+    components/execution/SandboxBrokerOrderForm.tsx
+
+lib/sandbox-browser-agent-adapter.ts
+  prepares validated semi-auto payload fields for /sandbox-broker only
+  blocks stale/invalid/automatic-submit/non-sandbox payloads
+  performs no browser control, route calls, Supabase access, audit writes, or
+  broker/Avanza behavior
+
 client-safe helpers/stores
   modal helper boundary
   lifecycle UI adapter boundary
@@ -76,6 +238,53 @@ parent-owned mutation boundaries
   mutation-adjacent callbacks
   position/trade/PnL mutation behavior
   final human confirmation model
+
+future semi-auto Avanza/browser-agent planning seam
+  docs/semi-automatic-avanza-agent-integration-inventory.md
+  docs/semi-auto-avanza-agent-payload-contract-tests.md
+  docs/semi-auto-avanza-agent-payload-builder.md
+  docs/mock-semi-auto-browser-agent-adapter.md
+  docs/semi-auto-agent-handoff-preview-wiring.md
+  docs/semi-auto-agent-result-capture-ui-stub.md
+  docs/semi-auto-agent-dev-flow-state-machine.md
+  docs/semi-auto-agent-dev-flow-review-panel.md
+  docs/semi-auto-agent-local-dev-flow-persistence.md
+  docs/semi-auto-agent-real-browser-automation-feasibility-review.md
+  docs/browser-automation-safety-boundary-spec.md
+  docs/sandbox-broker-page-for-semi-auto-agent-poc.md
+  app/sandbox-broker/page.tsx
+  lib/semi-auto-agent-payload-contract.ts
+  lib/semi-auto-agent-payload-builder.ts
+  lib/mock-semi-auto-browser-agent-adapter.ts
+  lib/semi-auto-agent-handoff-preview.ts
+  lib/semi-auto-agent-result-capture-stub.ts
+  lib/semi-auto-agent-dev-flow-state-machine.ts
+  lib/semi-auto-agent-dev-flow-review.ts
+  lib/semi-auto-agent-local-dev-flow-store.ts
+  components/execution/SandboxBrokerOrderForm.tsx
+  components/execution/SemiAutoAgentHandoffPreview.tsx
+  components/execution/SemiAutoAgentResultCaptureStub.tsx
+  components/execution/SemiAutoAgentDevFlowReviewPanel.tsx
+  tests/e2e/semi-auto-avanza-agent-payload-contract.spec.ts
+  tests/e2e/semi-auto-avanza-agent-payload-builder.spec.ts
+  tests/e2e/mock-semi-auto-browser-agent-adapter.spec.ts
+  tests/e2e/semi-auto-agent-handoff-preview-wiring.spec.ts
+  tests/e2e/semi-auto-agent-result-capture-ui-stub.spec.ts
+  tests/e2e/semi-auto-agent-dev-flow-state-machine.spec.ts
+  tests/e2e/semi-auto-agent-dev-flow-review-panel.spec.ts
+  tests/e2e/semi-auto-agent-local-dev-flow-persistence.spec.ts
+  tests/e2e/browser-automation-safety-boundary.spec.ts
+  tests/e2e/sandbox-broker-page.spec.ts
+  payload contract, builder, mock adapter, preview wiring, capture stub, dev
+  flow state machine, dev flow review panel, local dev flow persistence,
+  history viewer, real-browser feasibility review, and browser automation
+  safety boundary guard are present
+  sandbox broker page POC is present
+  local browser agent adapter against sandbox page remains next
+  human final KOP/SALJ confirmation required
+  no browser automation implemented yet
+  no broker/Avanza behavior implemented yet
+  no automatic submit authority
 ```
 
 ## Runtime Ownership Map
@@ -404,3 +613,36 @@ Review.
   `.env.local` change was performed.
 - No broker/Avanza behavior, automatic mode enablement, automatic order
   submission enablement, or trade/stats/PnL mutation behavior was added.
+
+## Action 1000 Semi-Auto Sandbox Final QA Link
+
+- Result status: `sandbox_phase_complete_with_warnings`.
+- Created `docs/semi-auto-agent-sandbox-phase-final-qa-and-roadmap.md`.
+- The sandbox browser-agent phase across Actions 980-999 is complete with
+  warnings.
+- Recommended next action: Action 1001 - Run Production Market-Window Dry Run
+  During Open US Session.
+- Alternative sandbox-track next action: Action 1001 - Add Sandbox Browser
+  Agent Selector Stability QA.
+
+## Action 1001 Sandbox Browser Agent Selector Stability QA Link
+
+- Result status: `sandbox_browser_agent_selector_stability_qa_added`.
+- Created `docs/sandbox-browser-agent-selector-stability-qa.md`.
+- Added `tests/e2e/sandbox-browser-agent-selector-stability.spec.ts`.
+- Added stable sandbox `data-testid` selectors to
+  `components/execution/SandboxBrokerOrderForm.tsx`.
+- Updated the fill-only POC to rely on stable selectors.
+- Production market-window dry run remains parked until Monday/open US market
+  session.
+- Recommended next action: Action 1002 - Run Production Market-Window Dry Run
+  During Open US Session.
+
+## Action 1002 Monday Production Market-Window Handoff Link
+
+- Result status: `monday_production_market_window_dry_run_handoff_created`.
+- Created `docs/monday-production-market-window-dry-run-handoff.md`.
+- This is documentation/readiness only; no runtime code or market observation
+  was performed.
+- Recommended next action: Action 1003 - Run Production Market-Window Dry Run
+  With Operator Evidence.
