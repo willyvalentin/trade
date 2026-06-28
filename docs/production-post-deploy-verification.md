@@ -244,6 +244,10 @@ observation evidence, not broker/live trading.
 - Action 973 implemented the recent recommendation readback stabilization
   patch for `recommendation_snapshots` and `recommendation_outcomes`.
   Production console verification after deploy is required next.
+- Action 974 verified Production after the stabilization deploy. The previous
+  red Supabase 404/500 console blockers are no longer visible, and the
+  remaining `recommendation_batch_backfill_capped` warning is expected and
+  non-fatal.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the

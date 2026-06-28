@@ -25,8 +25,12 @@ Follow-up status: Action 973 created
 `docs/recent-recommendation-readback-stabilization-patch.md` with result
 status `recent_recommendation_readback_stabilization_patch_implemented`.
 
-Recommended next action: Action 974 - Verify Recent Recommendation Readback
-Stabilization in Production.
+Follow-up status: Action 974 created
+`docs/recent-recommendation-readback-production-verification.md` with result
+status
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
 ## Verification Context
 
@@ -185,6 +189,16 @@ Action 973 reduced the broad recent `recommendation_snapshots` and
 `recommendation_outcomes` readback limits to `100`, preserved sort order, and
 added warning-level fail-soft fallback handling. Production console cleanliness
 must be rechecked after deploy.
+
+## Action 974 Follow-Up
+
+Action 974 result status:
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Production console is clean of the prior red Supabase 404/500 blockers in the
+latest operator evidence. The remaining
+`recommendation_batch_backfill_capped` warning is expected, count-only, and
+non-fatal.
 
 ## Validation Results
 

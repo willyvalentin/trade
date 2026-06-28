@@ -17,8 +17,12 @@ scheduled scan attempts, generated types, or `.env.local`.
 Result status:
 `recent_recommendation_readback_stabilization_patch_implemented`
 
-Recommended next action: Action 974 - Verify Recent Recommendation Readback
-Stabilization in Production.
+Follow-up status: Action 974 created
+`docs/recent-recommendation-readback-production-verification.md` with result
+status
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
 ## Code Changes
 
@@ -162,4 +166,9 @@ Validation was run after implementation and documentation updates:
 
 ## Recommended Next Action
 
-Action 974 - Verify Recent Recommendation Readback Stabilization in Production.
+Action 975 - Prepare Market-Window Dry Run.
+
+Action 974 verified Production after deploy: the previous red
+`recommendation_snapshots` and `recommendation_outcomes` HTTP 500 errors are
+no longer visible, and the remaining
+`recommendation_batch_backfill_capped` warning is expected and non-fatal.

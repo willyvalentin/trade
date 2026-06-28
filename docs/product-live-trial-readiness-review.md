@@ -447,6 +447,21 @@ documented risk.
 Recommended next action: Action 974 - Verify Recent Recommendation Readback
 Stabilization in Production.
 
+Completed follow-up: Action 974 - Verify Recent Recommendation Readback
+Stabilization in Production.
+
+Action 974 result status:
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Latest operator evidence shows Production UI loads, Recommendations tab
+renders, previous red Supabase 404/500 blockers are no longer visible, and the
+remaining `recommendation_batch_backfill_capped` warning is expected and
+non-fatal. Data health is acceptable for the next controlled market-window
+dry-run preparation step. Live market trial remains pending until that dry run
+is prepared and completed.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.

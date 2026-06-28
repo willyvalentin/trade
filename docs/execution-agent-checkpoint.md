@@ -19105,6 +19105,39 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   enablement, automatic order behavior, or trade/stats/PnL mutation beyond
   preserving readback fallback behavior.
 
+## Action 974 - Verify Recent Recommendation Readback Stabilization in Production
+
+- Result status:
+  `recent_recommendation_readback_production_verified_with_expected_warning`.
+- Created `docs/recent-recommendation-readback-production-verification.md`.
+- Recorded latest operator Production evidence after Action 973 deploy:
+  Production UI loads, Recommendations tab renders, app shell remains usable,
+  and the console no longer shows red Supabase 404/500 errors.
+- Confirmed `scheduled_scan_attempts` 404 is no longer visible.
+- Confirmed `recommendation_batches` timeout is no longer visible.
+- Confirmed `recommendation_snapshots` HTTP 500 is no longer visible.
+- Confirmed `recommendation_outcomes` HTTP 500 is no longer visible.
+- Recorded the remaining yellow warning:
+  `[trade-app] recommendation_batch_backfill_capped`, operation
+  `select_outcome_scan_run_batch_backfill`, requested fingerprint count `21`.
+- Classified the remaining warning as expected, count-only, non-fatal
+  fail-soft behavior from the recommendation batch backfill guard.
+- Production decision: keep Production online, console clean with expected
+  warning.
+- Rollback is not recommended unless app shell fails, core UI breaks, new
+  Supabase 4xx/5xx errors appear, unsafe broker/automatic behavior appears, or
+  service-role/env exposure appears in client.
+- Live market trial remains pending and is not fully approved.
+- Data health is acceptable for Action 975 - Prepare Market-Window Dry Run.
+- Recommended next action: Action 975 - Prepare Market-Window Dry Run.
+- Not performed: no runtime code change, additional migration, typegen,
+  generated type edit, `.env.local` change, provider call, route invocation,
+  scan invocation, live market scan, manual Supabase/DB query, service-role
+  adapter call, audit writer UI/browser/client invocation,
+  market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order behavior, or trade/stats/PnL
+  mutation.
+
 ## Action 971 - Provide Production App URL And Manual Console Observation After scheduled_scan_attempts Migration
 
 - Result status: `production_console_manual_observation_blocked`.

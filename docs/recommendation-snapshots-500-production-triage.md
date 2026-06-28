@@ -19,8 +19,12 @@ Follow-up status: Action 973 created
 `docs/recent-recommendation-readback-stabilization-patch.md` with result
 status `recent_recommendation_readback_stabilization_patch_implemented`.
 
-Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
-Read Limit and Add Fail-Soft Guard.
+Follow-up status: Action 974 created
+`docs/recent-recommendation-readback-production-verification.md` with result
+status
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
 ## Operator Evidence
 
@@ -254,11 +258,10 @@ resolved or explicitly accepted with a documented risk decision.
 
 ## Recommended Next Action
 
-Action 974 - Verify Recent Recommendation Readback Stabilization in Production.
+Action 975 - Prepare Market-Window Dry Run.
 
-Action 973 implemented the app-side stabilization patch by reducing both
-recent readback limits to `100` and adding warning-level fail-soft fallback
-handling. The next step is Production console verification after deploy.
+Action 974 verified the Production console after deploy. The previous
+`select_recent_recommendation_snapshots` HTTP 500 is no longer visible.
 
 ## Validation Results
 

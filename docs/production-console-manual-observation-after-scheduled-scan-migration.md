@@ -22,8 +22,12 @@ Follow-up status: Action 973 created
 `docs/recent-recommendation-readback-stabilization-patch.md` with result
 status `recent_recommendation_readback_stabilization_patch_implemented`.
 
-Recommended next action: Action 974 - Verify Recent Recommendation Readback
-Stabilization in Production.
+Follow-up status: Action 974 created
+`docs/recent-recommendation-readback-production-verification.md` with result
+status
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
 ## Production App URL / Environment
 
@@ -136,9 +140,20 @@ Action 973 reduced recent `recommendation_snapshots` and
 fail-soft fallback behavior. Production console verification after deploy is
 still required.
 
+## Action 974 Follow-Up
+
+Action 974 result status:
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Latest operator evidence confirms Production UI loads, Recommendations tab
+renders, and the previous red `scheduled_scan_attempts`,
+`recommendation_batches`, `recommendation_snapshots`, and
+`recommendation_outcomes` console blockers are no longer visible. The remaining
+`recommendation_batch_backfill_capped` warning is expected and non-fatal.
+
 ## Recommended Next Action
 
-Action 974 - Verify Recent Recommendation Readback Stabilization in Production.
+Action 975 - Prepare Market-Window Dry Run.
 
 ## Validation Results
 

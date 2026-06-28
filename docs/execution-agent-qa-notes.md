@@ -23858,6 +23858,38 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   enablement, automatic order behavior, or trade/stats/PnL mutation beyond
   preserving readback fallback behavior was performed.
 
+## Action 974 QA Notes
+
+- Result status:
+  `recent_recommendation_readback_production_verified_with_expected_warning`.
+- QA confirms `docs/recent-recommendation-readback-production-verification.md`
+  exists.
+- QA confirms Action 974 is documentation/verification only.
+- QA confirms latest operator evidence is documented: Production UI loads,
+  Recommendations tab renders, app shell remains usable, and previous red
+  Supabase 404/500 errors are no longer visible.
+- QA confirms `scheduled_scan_attempts` 404 is documented as no longer visible.
+- QA confirms `recommendation_batches` timeout is documented as no longer
+  visible.
+- QA confirms `recommendation_snapshots` HTTP 500 is documented as no longer
+  visible.
+- QA confirms `recommendation_outcomes` HTTP 500 is documented as no longer
+  visible.
+- QA confirms remaining warning
+  `[trade-app] recommendation_batch_backfill_capped` is documented as
+  expected, count-only, non-fatal fail-soft behavior.
+- QA confirms Production keep/rollback decision is explicit.
+- QA confirms live market trial remains pending and not fully approved.
+- QA confirms recommended next action is Action 975 - Prepare Market-Window Dry
+  Run.
+- QA confirms no runtime code change, additional migration, typegen, generated
+  type edit, `.env.local` change, provider call, route invocation, scan
+  invocation, live market scan, manual Supabase/DB query, service-role adapter
+  call, audit writer UI/browser/client invocation,
+  market-loop/scanner audit writer invocation, broker/Avanza behavior,
+  automatic mode enablement, automatic order behavior, or trade/stats/PnL
+  mutation was performed.
+
 ## Action 971 QA Notes
 
 - Result status: `production_console_manual_observation_blocked`.

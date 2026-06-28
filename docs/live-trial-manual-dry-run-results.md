@@ -289,6 +289,12 @@ No-go conditions remain:
   `recommendation_outcomes` readback limits to `100` and added warning-level
   fail-soft fallback behavior. Live market trial remains blocked pending
   Production verification after deploy.
+- Action 974 verified Production after the Action 973 deploy. The previous red
+  `scheduled_scan_attempts`, `recommendation_batches`,
+  `recommendation_snapshots`, and `recommendation_outcomes` console blockers
+  are no longer visible. The remaining `recommendation_batch_backfill_capped`
+  warning is expected and non-fatal. Live market trial remains pending a
+  market-window dry run.
 
 ## Validation Results
 

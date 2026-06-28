@@ -28,8 +28,12 @@ Follow-up status: Action 973 created
 `docs/recent-recommendation-readback-stabilization-patch.md` with result
 status `recent_recommendation_readback_stabilization_patch_implemented`.
 
-Recommended next action: Action 974 - Verify Recent Recommendation Readback
-Stabilization in Production.
+Follow-up status: Action 974 created
+`docs/recent-recommendation-readback-production-verification.md` with result
+status
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Recommended next action: Action 975 - Prepare Market-Window Dry Run.
 
 ## Pre-Migration Review
 
@@ -295,6 +299,15 @@ Action 973 result status:
 The scheduled scan attempts migration remains unchanged. Action 973 only
 stabilized recent recommendation readback limits and fail-soft fallback
 behavior for `recommendation_snapshots` and `recommendation_outcomes`.
+
+## Action 974 Follow-Up
+
+Action 974 result status:
+`recent_recommendation_readback_production_verified_with_expected_warning`.
+
+Latest operator evidence confirms the deployed Production console no longer
+shows the `scheduled_scan_attempts` 404. Production can remain online with the
+expected non-fatal `recommendation_batch_backfill_capped` warning.
 
 ## Validation Results
 
