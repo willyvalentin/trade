@@ -12,8 +12,12 @@ automatic order behavior.
 Result status:
 `recommendation_batch_fail_soft_production_verified_with_warnings`
 
-Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
-Production Schema Issue.
+Follow-up status: Action 965 created
+`docs/scheduled-scan-attempts-404-production-triage.md` with result status
+`scheduled_scan_attempts_404_production_triage_created`.
+
+Recommended next action: Action 966 - Create scheduled_scan_attempts Production
+Schema Verification Plan.
 
 ## Deployment Context
 
@@ -78,6 +82,13 @@ mismatch or schema-cache/relation availability issue.
 The next targeted triage should focus on `scheduled_scan_attempts` without
 mixing it with broker behavior, audit writer behavior, live market scans,
 provider calls, migrations, or type generation unless separately approved.
+
+Action 965 follow-up: static triage found a repo migration that creates
+`public.scheduled_scan_attempts`, a client read path on normal app
+load/refresh, and a server automation route upsert path. Because the static
+repo expects the table to exist, the recommended next step is a Production
+schema verification plan rather than an immediate optional-diagnostics
+fail-soft patch.
 
 ## Production Keep/Rollback Decision
 

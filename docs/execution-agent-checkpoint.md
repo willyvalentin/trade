@@ -18789,10 +18789,51 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   exposure appears, or unsafe broker/automatic behavior appears.
 - Live market trial remains no-go until `scheduled_scan_attempts` is fixed,
   reduced, or explicitly accepted as non-critical.
-- Recommended next action: Action 965 — Triage scheduled_scan_attempts 404
+- Completed follow-up: Action 965 — Triage scheduled_scan_attempts 404
   Production Schema Issue.
 - Not performed: no runtime code change, live DB read/write, manual Supabase
   call, provider call, route invocation, scan invocation, service-role adapter
   call, migration, typegen, generated type edit, `.env.local` change, audit
   writer path change, broker/Avanza behavior, automatic mode enablement,
   automatic order behavior, or trade/stats/PnL behavior change.
+
+## Action 965 - scheduled_scan_attempts 404 Production Triage
+
+- Result status: `scheduled_scan_attempts_404_production_triage_created`.
+- Created `docs/scheduled-scan-attempts-404-production-triage.md`.
+- Static triage found the Production client read path in `app/trade-app.tsx`
+  inside normal `loadTradeData(...)`: `.from("scheduled_scan_attempts")`,
+  `.select("*")`, `.gte("utc_timestamp", ...)`, `.order("utc_timestamp",
+  { ascending: false })`, and `.limit(100)`.
+- Static triage found the server automation route upsert path in
+  `app/api/automation/run-scan/route.ts`, which writes to
+  `scheduled_scan_attempts` only when the automation route is invoked.
+- Static triage found the helper/parser/timeline module in
+  `lib/scheduled-scan-attempts.ts`.
+- Static triage found diagnostics rendering in `lib/market-diagnostics-console.ts`
+  through `scheduled_scan_timeline_today`.
+- Static triage found schema expectation in
+  `supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql`,
+  which creates `public.scheduled_scan_attempts` with `utc_timestamp` and
+  supporting indexes.
+- Static triage found `lib/supabase-database.types.ts` does not currently
+  include `scheduled_scan_attempts`, suggesting generated types may predate the
+  migration or were not regenerated after it.
+- Likely causes documented: Production migration not applied, table missing in
+  Production, REST exposure/schema-cache mismatch, wrong project/env URL,
+  optional diagnostics mismatch, naming drift, or stale generated metadata.
+- Risk assessment: frontend app shell low; scheduled scan diagnostics/readiness
+  medium/high; live-trial readiness blocked; execution/broker and audit writer
+  safety low.
+- Recommendation: Action 966 — Create scheduled_scan_attempts Production Schema
+  Verification Plan.
+- Production can remain online with warnings because the app shell and
+  Recommendations page remain usable and no unsafe execution behavior appears.
+- Live market trial remains no-go until `scheduled_scan_attempts` is fixed,
+  reduced, or explicitly accepted as non-critical.
+- Not performed: no runtime code change, live DB read/write, manual Supabase
+  call, migration status/apply, typegen, generated type edit, `.env.local`
+  change, provider call, route invocation, scan invocation, service-role
+  adapter call, audit writer path change, broker/Avanza behavior, automatic
+  mode enablement, automatic order behavior, or trade/stats/PnL behavior
+  change.

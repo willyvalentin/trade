@@ -23589,5 +23589,38 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   migration, typegen, generated type edit, audit writer path change,
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   trade/stats/PnL behavior change, or `.env.local` change was performed.
-- QA confirms recommended next action is Action 965 — Triage
+- QA confirms completed follow-up is Action 965 — Triage
   scheduled_scan_attempts 404 Production Schema Issue.
+
+## Action 965 QA Notes
+
+- Result status: `scheduled_scan_attempts_404_production_triage_created`.
+- QA confirms `docs/scheduled-scan-attempts-404-production-triage.md` exists.
+- QA confirms this action is static triage/documentation only.
+- QA confirms all relevant `scheduled_scan_attempts` references are listed:
+  client read path, automation route upsert path, helper/parser/timeline
+  module, diagnostics rendering, tests, migration, generated types absence, and
+  prior docs.
+- QA confirms the Production read path is identified in `app/trade-app.tsx`:
+  `.from("scheduled_scan_attempts").select("*").gte("utc_timestamp", ...)
+  .order("utc_timestamp", { ascending: false }).limit(100)`.
+- QA confirms schema expectation inventory is documented: migration
+  `20260625000000_create_scheduled_scan_attempts.sql` creates
+  `public.scheduled_scan_attempts`; static search found no alternate table/view
+  name and no generated type entry for the table.
+- QA confirms likely causes are documented, including missing Production
+  migration, REST exposure/schema-cache mismatch, wrong project/env URL, naming
+  mismatch, optional diagnostics expectation, and stale generated metadata.
+- QA confirms risk assessment is explicit: app shell low, diagnostics/readiness
+  medium/high, live-trial readiness blocked, execution/broker safety low, audit
+  writer safety low.
+- QA confirms fix options are compared and the recommended next action is
+  Action 966 — Create scheduled_scan_attempts Production Schema Verification
+  Plan.
+- QA confirms keep/rollback decision is explicit and live market trial remains
+  no-go.
+- QA confirms no runtime code change, live DB read/write, Supabase manual call,
+  provider call, route invocation, scan invocation, service-role adapter call,
+  migration, typegen, generated type edit, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  trade/stats/PnL behavior change, or `.env.local` change was performed.

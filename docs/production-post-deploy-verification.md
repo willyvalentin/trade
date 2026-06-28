@@ -45,14 +45,23 @@ Follow-up status: Action 964 created
 status
 `recommendation_batch_fail_soft_production_verified_with_warnings`.
 
-Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
-Production Schema Issue.
+Follow-up status: Action 965 created
+`docs/scheduled-scan-attempts-404-production-triage.md` with result status
+`scheduled_scan_attempts_404_production_triage_created`.
+
+Recommended next action: Action 966 - Create scheduled_scan_attempts Production
+Schema Verification Plan.
 
 Latest Production follow-up: after the Action 963 fail-soft deploy, the latest
 operator-provided screenshot no longer shows the recommendation batch timeout
 or the `recommendation_snapshots` HTTP 500. `scheduled_scan_attempts` HTTP 404
 remains visible, so Production stays online with warnings and live market trial
 remains no-go.
+
+Action 965 follow-up: static triage indicates the repo expects
+`public.scheduled_scan_attempts` to exist through migration
+`20260625000000_create_scheduled_scan_attempts.sql`; Production should next be
+verified for schema/migration/REST exposure before live-trial approval.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and
