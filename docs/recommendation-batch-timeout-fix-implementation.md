@@ -16,8 +16,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 The implementation is read-only and app-side. It does not change Supabase
 schema, environment configuration, provider calls, routes, audit writer paths,
@@ -101,6 +105,9 @@ review confirmed the current source is chunked for scan-run backfill, so the
 remaining risk is stale deployed bundle/cache/deploy mismatch, chunk size/cap
 still being too large, or a deeper Production DB/index/data-shape issue. The
 recommended next implementation is to reduce the chunk size and total cap.
+
+Action 961 follow-up implemented that stabilization by reducing chunk size from
+`50` to `10` and total cap from `250` to `100`.
 
 Live market trial remains no-go until Production verification passes and the
 remaining readiness gates are complete.

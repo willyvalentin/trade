@@ -27,8 +27,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and
@@ -148,6 +152,7 @@ error fix plan, not broker/live trading.
   `recommendation_batches?scan_run_fingerprint=in.(...)` timing out. Current
   source is chunked, so the next recommended step is reducing chunk size and
   total cap.
+- Action 961 reduced scan-run backfill chunk size to `10` and cap to `100`.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the

@@ -32,8 +32,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -192,6 +196,8 @@ No-go conditions remain:
 - Action 960 confirms the remaining `recommendation_batches` timeout is still
   unresolved in Production and recommends reducing scan-run backfill chunk size
   and total cap next.
+- Action 961 reduced scan-run backfill chunk size to `10` and cap to `100`;
+  Production verification is still required.
 
 ## Validation Results
 

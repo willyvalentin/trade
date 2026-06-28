@@ -18656,10 +18656,40 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - Production can remain online with warnings if UI stays usable and errors
   remain readback/diagnostic only.
 - Live market trial remains no-go.
-- Recommended next action: Action 961 — Reduce Recommendation Batch Backfill
-  Chunk Size and Cap.
+- Completed follow-up: Action 961 — Reduce Recommendation Batch Backfill Chunk
+  Size and Cap.
 - Not performed: no runtime behavior change, Production bundle/cache/deploy
   inspection, live DB read/write, Supabase manual call, provider call, scan
   route invocation, service-role adapter call, migration, typegen, generated
   type edit, `.env.local` change, audit writer path change, broker/Avanza
   behavior, automatic order behavior, or trade/stats/PnL behavior change.
+
+## Action 961 - Recommendation Batch Backfill Stabilization Patch
+
+- Result status:
+  `recommendation_batch_backfill_stabilization_patch_implemented`.
+- Created `docs/recommendation-batch-backfill-stabilization-patch.md`.
+- Updated `lib/recommendation-batch-backfill.ts` to reduce
+  `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` from `50` to `10`.
+- Updated `lib/recommendation-batch-backfill.ts` to reduce
+  `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` from `250` to `100`.
+- Updated `tests/e2e/recommendation-batch-backfill.spec.ts` with explicit
+  coverage proving 50 missing scan-run fingerprints split into five chunks of
+  10.
+- Preserved the exported helper API, empty-list no-query behavior,
+  smaller-than-chunk one-query behavior, multi-chunk behavior, cap behavior,
+  deterministic merge behavior, and failed-chunk no-partial-rows behavior.
+- Preserved `app/trade-app.tsx` mapping/filtering/downstream merge behavior.
+- `scheduled_scan_attempts` 404 path was not changed.
+- `batch_fingerprint` backfill remains a documented secondary risk and was not
+  changed in this action.
+- Production can remain online with warnings if UI stays usable and errors
+  remain readback/diagnostic only.
+- Live market trial remains no-go.
+- Recommended next action: Action 962 — Verify Stabilized Recommendation Batch
+  Backfill in Production.
+- Not performed: no live DB read/write, manual Supabase call, provider call,
+  route invocation, scan invocation, service-role adapter call, migration,
+  typegen, generated type edit, `.env.local` change, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  `scheduled_scan_attempts` fix, or trade/stats/PnL behavior change.

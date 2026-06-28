@@ -1,5 +1,5 @@
-export const RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE = 50;
-export const RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP = 250;
+export const RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE = 10;
+export const RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP = 100;
 
 export type RecommendationBatchBackfillChunkFetchResult<Row> = {
   data?: readonly Row[] | null;

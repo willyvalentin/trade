@@ -7,8 +7,12 @@ statement timeout reported after the Action 958 chunked backfill fix.
 
 Result status: `recommendation_batch_remaining_error_triage_created`
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 This action is static/code triage and documentation only. It does not change
 runtime behavior, query Production, call Supabase, call providers, invoke scan
@@ -111,10 +115,7 @@ Rollback is not recommended from this static triage alone because:
 Live market trial remains no-go while the `recommendation_batches` timeout and
 `scheduled_scan_attempts` 404 are unresolved or unaccepted.
 
-## Recommended Next Action
-
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+## Action 961 Follow-Up
 
 Rationale:
 
@@ -126,14 +127,17 @@ Rationale:
 - the separate unchunked `batch_fingerprint` path should remain documented as
   a follow-up if Production shows `batch_fingerprint=in.(...)` timeouts.
 
-Suggested Action 961 scope:
+Completed Action 961 scope:
 
-- lower `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` from `50` to a more
-  conservative value;
-- lower `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` from `250`;
+- lower `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` from `50` to `10`;
+- lower `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` from `250` to `100`;
 - preserve read-only, fail-soft, count-only warning behavior;
 - preserve no provider calls, no route calls, no DB writes, no schema changes,
   and no broker/Avanza behavior.
+
+Action 961 follow-up: the stabilization patch reduced chunk size from `50` to
+`10` and total cap from `250` to `100` while preserving the read-only,
+fail-soft scan-run backfill behavior.
 
 ## Next Implementation Options
 

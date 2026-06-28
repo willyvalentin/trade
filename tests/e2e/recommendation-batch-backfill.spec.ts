@@ -79,6 +79,26 @@ test.describe("recommendation batch scan-run backfill chunking", () => {
     });
   });
 
+  test("splits 50 missing fingerprints into five conservative chunks", async () => {
+    const fingerprints = Array.from({ length: 50 }, (_, index) => `scan-${index}`);
+    const queriedChunks: string[][] = [];
+
+    const result = await fetchChunkedRecommendationBatchBackfillRows(
+      fingerprints,
+      async (chunk) => {
+        queriedChunks.push([...chunk]);
+        return { data: chunk.map((fingerprint) => ({ fingerprint })) };
+      },
+    );
+
+    expect(RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE).toBe(10);
+    expect(result.ok).toBe(true);
+    expect(result.chunks).toHaveLength(5);
+    expect(result.chunks.every((chunk) => chunk.length === 10)).toBe(true);
+    expect(queriedChunks).toEqual(result.chunks);
+    expect(result.rows).toHaveLength(50);
+  });
+
   test("caps oversized missing fingerprint lists before querying", async () => {
     const fingerprints = Array.from(
       { length: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP + 4 },

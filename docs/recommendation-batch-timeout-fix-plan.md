@@ -20,8 +20,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 This action is a fix plan only. No runtime code, Supabase call, live DB
 read/write, provider call, route call, scan, service-role adapter call,
@@ -164,6 +168,8 @@ Current source is already chunked for the scan-run path, with chunk size `50`
 and cap `250`, so the next lowest-risk adjustment is reducing those bounds.
 The separate `batch_fingerprint` backfill remains an unchunked read-only risk,
 but it does not match the operator-reported failing endpoint pattern.
+
+Action 961 reduced the scan-run chunk size to `10` and total cap to `100`.
 
 ## Deferred Work
 

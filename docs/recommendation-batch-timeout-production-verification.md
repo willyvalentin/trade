@@ -15,8 +15,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 No broker/Avanza behavior or automatic order behavior is introduced by this
 verification action.
@@ -95,6 +99,10 @@ bundle/cache/deploy mismatch, current chunk size/cap still being too large for
 Production, or a deeper Production DB/index/data-shape issue. The separate
 unchunked `batch_fingerprint` backfill path remains documented as a secondary
 risk if Production later shows `batch_fingerprint=in.(...)` timeouts.
+
+Action 961 follow-up reduced the scan-run backfill chunk size from `50` to
+`10` and the defensive cap from `250` to `100`; Production verification is
+still required.
 
 ## Remaining Known Issue: scheduled_scan_attempts 404
 

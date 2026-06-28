@@ -43,8 +43,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -208,6 +212,10 @@ source is chunked for that path, but the remaining timeout keeps live market
 trial blocked until the chunk-size/cap follow-up or a documented acceptance
 decision is complete. `scheduled_scan_attempts` 404 remains separate.
 
+Action 961 update: scan-run backfill chunk size is now `10` and total cap is
+`100`. Live market trial remains blocked pending Production verification and
+separate `scheduled_scan_attempts` resolution or acceptance.
+
 ## Current Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -269,8 +277,11 @@ Timeout Fix in Production.
 Completed follow-up: Action 960 - Triage Remaining Recommendation Batch Errors
 After Chunking.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Completed follow-up: Action 961 - Reduce Recommendation Batch Backfill Chunk
+Size and Cap.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 ## Validation Results
 

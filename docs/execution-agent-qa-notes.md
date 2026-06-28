@@ -23478,3 +23478,28 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   change, or `.env.local` change was performed.
 - QA confirms recommended next action is Action 961 — Reduce Recommendation
   Batch Backfill Chunk Size and Cap.
+
+## Action 961 QA Notes
+
+- Result status:
+  `recommendation_batch_backfill_stabilization_patch_implemented`.
+- QA confirms `docs/recommendation-batch-backfill-stabilization-patch.md`
+  exists.
+- QA confirms the runtime change is limited to recommendation batch backfill
+  constants and related tests/docs.
+- QA confirms `RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE` is now `10`.
+- QA confirms `RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP` is now `100`.
+- QA confirms a 50-fingerprint list is tested to split into five chunks of 10.
+- QA confirms empty-list no-query behavior, one-chunk behavior, multi-chunk
+  behavior, cap behavior, deterministic merge behavior, fail-soft failed chunk
+  behavior, and dependency-free/client-safe helper boundaries remain covered.
+- QA confirms `scheduled_scan_attempts` was not changed.
+- QA confirms `batch_fingerprint` backfill remains documented as a secondary
+  risk and was not changed in this action.
+- QA confirms no live DB read/write, Supabase manual call, provider call, route
+  invocation, scan invocation, service-role adapter call, migration, typegen,
+  generated type edit, audit writer path change, broker/Avanza behavior,
+  automatic mode enablement, automatic order behavior, trade/stats/PnL behavior
+  change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 962 — Verify Stabilized
+  Recommendation Batch Backfill in Production.

@@ -23,8 +23,12 @@ Follow-up status: Action 960 created
 `docs/recommendation-batch-timeout-remaining-error-triage.md` with result
 status `recommendation_batch_remaining_error_triage_created`.
 
-Recommended next action: Action 961 - Reduce Recommendation Batch Backfill
-Chunk Size and Cap.
+Follow-up status: Action 961 implemented
+`docs/recommendation-batch-backfill-stabilization-patch.md` with result status
+`recommendation_batch_backfill_stabilization_patch_implemented`.
+
+Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Backfill in Production.
 
 Review timestamp: `2026-06-28 01:42:33 CEST`
 
@@ -180,6 +184,10 @@ Production still reports the `scan_run_fingerprint=in.(...)` timeout after the
 Action 958 fix. Static review confirms the current source is chunked for that
 path, so Action 961 should reduce chunk size and total cap before considering
 schema/index or server-side redesign work.
+
+Action 961 follow-up:
+`docs/recommendation-batch-backfill-stabilization-patch.md` reduces chunk size
+to `10` and cap to `100`, while leaving `scheduled_scan_attempts` 404 separate.
 
 ## Validation Results
 
