@@ -18484,3 +18484,116 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   type generation, generated type edit, or `.env.local` change.
 - Recommended next action: Action 955 — Deploy Preview/Staging for Live-Trial
   Verification.
+
+## Action 955 - Accidental Production Post-Deploy Verification
+
+- Result status: `production_post_deploy_verification_passed_with_warnings`.
+- Created `docs/production-post-deploy-verification.md`.
+- Updated the manual dry-run results, dry-run checklist, non-live test-pack
+  results, product/live-trial readiness review, checkpoint, and QA notes to
+  reflect that Production was already deployed manually before Preview/Staging.
+- Scope was documentation/verification only. No additional deploy and no
+  rollback were performed.
+- Production deploy context: operator reported Production had already been
+  triggered manually; Preview/Staging was skipped.
+- Verification posture: local/static post-deploy safety verification only.
+  Direct Production UI observation was not completed by Codex and is the next
+  required step.
+- Production decision: keep Production deploy with warnings. Rollback is not
+  recommended by this action because no rollback blocker was found from
+  local/static evidence and no Production failure evidence was reported.
+- Live-trial decision: live market trial remains no-go. Production UI
+  verification is not live market trial approval.
+- Not performed: runtime code modification, provider call, route invocation,
+  scheduled scan, Generate More route call, live market scan, Supabase query,
+  DB read/write, service-role adapter call, live proof/insert/query,
+  broker/Avanza automation, automatic order behavior, additional deploy,
+  rollback, audit writer runtime persistence path change, UI/browser/client
+  audit writer invocation, market-loop/scanner invocation, handler/effect/state
+  mutation change, JSX movement, hook/component/reducer extraction, migration,
+  type generation, generated type edit, or `.env.local` change.
+- Recommended next action: Action 956 — Create Production UI Observation Log.
+
+## Action 956 - Production Supabase Console Error Triage
+
+- Result status: `production_supabase_console_error_triage_created`.
+- Created `docs/production-supabase-console-error-triage.md`.
+- Operator Production observation: app shell appears to load, but browser
+  console shows Supabase REST read errors for `scheduled_scan_attempts` 404 and
+  `recommendation_batches` statement timeout.
+- Static code path triage identified `app/trade-app.tsx` `loadTradeData(...)`
+  as the client/browser readback surface for both errors.
+- `scheduled_scan_attempts` 404 maps to
+  `select_recent_scheduled_scan_attempts` using `utc_timestamp` with a
+  36-hour/100-row read.
+- `recommendation_batches` timeout maps to
+  `select_outcome_scan_run_batch_backfill`, which uses an unchunked
+  `.in("scan_run_fingerprint", missingScanRunFingerprints)` read.
+- Server/mutation-capable related paths were documented but not invoked:
+  `app/api/automation/run-scan/route.ts` upserts scheduled scan attempts, and
+  `lib/recommendation-batch-memory.ts` can upsert recommendation batches when
+  supplied a Supabase client.
+- Immediate decision: keep Production online with warnings if UI remains
+  usable and errors remain read/data diagnostics; live market trial remains
+  no-go.
+- Recommended next action: Action 957 — Create Recommendation Batch Timeout Fix
+  Plan.
+- Not performed: no runtime code change, Supabase query, DB read/write,
+  provider call, route call, scan, service-role adapter call, migration,
+  typegen, generated type edit, deploy, rollback, broker/Avanza behavior,
+  automatic order behavior, audit writer path change, or `.env.local` change.
+
+## Action 957 - Recommendation Batch Timeout Fix Plan
+
+- Result status: `recommendation_batch_timeout_fix_plan_created`.
+- Created `docs/recommendation-batch-timeout-fix-plan.md`.
+- Plan targets the Production `recommendation_batches` statement timeout mapped
+  to `app/trade-app.tsx` `loadTradeData(...)` and the unchunked
+  `.in("scan_run_fingerprint", missingScanRunFingerprints)` readback path.
+- Recommended fix: Option A, chunk the client readback query with a defensive
+  maximum fingerprint cap.
+- Deferred work: `scheduled_scan_attempts` 404 schema verification,
+  Production DB index/schema verification, migration/repair SQL, route/RPC
+  redesign, provider/live scan verification, broker/Avanza integration, and
+  automatic order behavior remain separate.
+- Live market trial remains no-go until the timeout is fixed or explicitly
+  accepted, Production console behavior is verified, and the remaining
+  readiness gates are complete.
+- Follow-up completed: Action 958 — Implement Chunked Recommendation Batch
+  Backfill Query.
+- Not performed: no runtime code change, Supabase query, DB read/write,
+  provider call, route call, scan, service-role adapter call, migration,
+  typegen, generated type edit, deploy, rollback, broker/Avanza behavior,
+  automatic order behavior, audit writer path change, or `.env.local` change.
+
+## Action 958 - Chunked Recommendation Batch Backfill Query
+
+- Result status: `recommendation_batch_timeout_chunking_implemented`.
+- Created `docs/recommendation-batch-timeout-fix-implementation.md`.
+- Added `lib/recommendation-batch-backfill.ts` with dependency-free helper
+  functions for scan-run fingerprint sanitization, de-duplication, capping,
+  chunking, and injected chunk fetching.
+- Updated `app/trade-app.tsx` `loadTradeData(...)`
+  `select_outcome_scan_run_batch_backfill` to use bounded chunks instead of
+  one large `.in("scan_run_fingerprint", missingScanRunFingerprints)` query.
+- Chunk size: `50` scan-run fingerprints per request.
+- Defensive cap: `250` scan-run fingerprints total.
+- Cap-exceeded behavior: non-fatal warning with counts/limits only; first
+  capped fingerprints are queried in current order.
+- Error behavior: if any chunk fails, the path records the existing
+  `outcomeBackfillError`, logs diagnostics, notes the market diagnostics island
+  error, discards partial chunk rows, and preserves fallback behavior.
+- Added `tests/e2e/recommendation-batch-backfill.spec.ts` for empty-list,
+  single-chunk, multi-chunk, cap, deterministic merge, de-duplication, failure,
+  and client-safe helper coverage.
+- Updated recommendation timeout, Production triage/post-deploy, live-trial,
+  checkpoint, and QA docs.
+- Live market trial remains no-go until the fix is deployed and Production
+  console behavior is verified.
+- Recommended next action: Action 959 — Verify Recommendation Batch Timeout Fix
+  in Production.
+- Not performed: no live DB query, manual Supabase call, database write,
+  provider call, route invocation, scheduled scan, live market scan,
+  migration, typegen, generated type edit, service-role adapter call,
+  service-role value printing, audit writer path change, broker/Avanza
+  behavior, automatic order behavior, deploy, rollback, or `.env.local` change.

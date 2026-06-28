@@ -23306,3 +23306,108 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   verification, while Production and live market trial remain no-go.
 - Recommended next action: Action 955 — Deploy Preview/Staging for Live-Trial
   Verification.
+
+## Action 955 QA Notes
+
+- Result status: `production_post_deploy_verification_passed_with_warnings`.
+- QA confirms `docs/production-post-deploy-verification.md` exists.
+- QA confirms the accidental/early Production deploy context is documented:
+  Production was already manually triggered and Preview/Staging was skipped.
+- QA confirms no additional deploy and no rollback were performed.
+- QA confirms the immediate Production sanity checklist is completed with
+  warnings for direct Production UI observations that were not available to
+  Codex in this action.
+- QA confirms execution UI Production verification is completed with existing
+  static/test evidence and warnings for pending direct Production observation.
+- QA confirms safety boundary verification is explicit.
+- QA confirms the keep/rollback decision is explicit: keep Production deploy
+  with warnings; rollback is not recommended by this action.
+- QA confirms live market trial remains no-go.
+- QA confirms known warnings are listed, including skipped Preview/Staging,
+  existing Babel deopt note, Action 953 port 3010 note, provider/env readiness,
+  no real broker integration, and automatic mode remaining gated.
+- QA confirms no provider call, route invocation, scheduled scan, Generate More
+  route call, live market scan, Supabase query, DB read/write, service-role
+  adapter call, live proof/insert/query, broker/Avanza automation, automatic
+  order behavior, runtime code change, migration, type generation, generated
+  type edit, additional deploy, rollback, or `.env.local` change was performed.
+- Recommended next action: Action 956 — Create Production UI Observation Log.
+
+## Action 956 QA Notes
+
+- Result status: `production_supabase_console_error_triage_created`.
+- QA confirms `docs/production-supabase-console-error-triage.md` exists.
+- QA confirms the triage is static/documentation-only and does not claim a live
+  Supabase schema verification.
+- QA confirms `scheduled_scan_attempts` paths are identified:
+  `app/trade-app.tsx` client readback in `loadTradeData(...)` and
+  `app/api/automation/run-scan/route.ts` server upsert path.
+- QA confirms `recommendation_batches` paths are identified:
+  `app/trade-app.tsx` recent batch readback, outcome batch backfill, and
+  `select_outcome_scan_run_batch_backfill` by `scan_run_fingerprint`.
+- QA confirms likely causes are documented without running Supabase:
+  missing/unexposed Production table/view for `scheduled_scan_attempts`, and
+  unchunked/broad/missing-index risk for `recommendation_batches`.
+- QA confirms risk assessment is explicit: app shell low/medium,
+  recommendation/diagnostic readiness medium/high to high, execution/broker and
+  audit writer safety low, live-trial readiness blocked.
+- QA confirms Production keep/rollback posture remains keep-with-warnings only
+  if errors remain read/data diagnostics and UI remains usable.
+- QA confirms live market trial remains no-go.
+- QA confirms recommended next action is Action 957 — Create Recommendation
+  Batch Timeout Fix Plan.
+- QA confirms no runtime code, route call, Supabase query, DB read/write,
+  provider call, scan, service-role adapter call, migration, typegen,
+  generated type edit, broker/Avanza behavior, automatic order enablement,
+  audit writer client invocation, or `.env.local` change was performed.
+
+## Action 957 QA Notes
+
+- Result status: `recommendation_batch_timeout_fix_plan_created`.
+- QA confirms `docs/recommendation-batch-timeout-fix-plan.md` exists.
+- QA confirms the plan is documentation-only and does not change runtime code.
+- QA confirms the current timeout code path is documented:
+  `app/trade-app.tsx` `loadTradeData(...)`,
+  `missingScanRunFingerprints`, and
+  `.from("recommendation_batches").select("*").in("scan_run_fingerprint", ...)`.
+- QA confirms likely causes are documented without live DB calls:
+  large `.in(...)` list, missing/insufficient index, broad `select("*")`,
+  client-side backfill scope, missing chunking/cap, and REST timeout limits.
+- QA confirms fix options are compared and the recommended next fix is Option A
+  plus a defensive cap.
+- QA confirms tests, risk assessment, rollout plan, and deferred work are
+  explicit.
+- QA confirms recommended next action is Action 958 — Implement Chunked
+  Recommendation Batch Backfill Query.
+- QA confirms no Supabase call, DB read/write, provider call, route call, scan,
+  service-role adapter call, migration, typegen, generated type edit,
+  broker/Avanza behavior, automatic order enablement, audit writer client
+  invocation, or `.env.local` change was performed.
+
+## Action 958 QA Notes
+
+- Result status: `recommendation_batch_timeout_chunking_implemented`.
+- QA confirms `docs/recommendation-batch-timeout-fix-implementation.md`
+  exists.
+- QA confirms the runtime change is limited to the read-only
+  `recommendation_batches` scan-run backfill path in `app/trade-app.tsx`.
+- QA confirms `lib/recommendation-batch-backfill.ts` is dependency-free and
+  does not import `server-only`, Supabase packages, `process.env`, or
+  service-role values.
+- QA confirms chunk size is `50`.
+- QA confirms total defensive cap is `250`.
+- QA confirms empty missing-fingerprint lists do not query.
+- QA confirms larger missing-fingerprint lists are split into bounded chunks.
+- QA confirms oversized lists are capped in first-seen/current order and emit a
+  non-fatal count-only warning.
+- QA confirms rows are merged deterministically in chunk order before the
+  existing downstream `batch_fingerprint` merge.
+- QA confirms failed chunks return no partial rows and preserve the existing
+  fail-soft fallback/error behavior.
+- QA confirms `scheduled_scan_attempts` 404 handling was not changed.
+- QA confirms no live DB query, manual Supabase call, database write, provider
+  call, route invocation, scan, service-role adapter call, migration, typegen,
+  generated type edit, broker/Avanza behavior, automatic order enablement,
+  audit writer path change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 959 — Verify Recommendation
+  Batch Timeout Fix in Production.

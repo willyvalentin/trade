@@ -15,8 +15,11 @@ Follow-up status: Action 954 created
 `docs/live-trial-manual-dry-run-results.md` with result status
 `live_trial_manual_dry_run_passed_with_warnings`.
 
-Recommended next action: Action 955 - Deploy Preview/Staging for Live-Trial
-Verification.
+Follow-up status: Action 955 created
+`docs/production-post-deploy-verification.md` with result status
+`production_post_deploy_verification_passed_with_warnings`.
+
+Recommended next action: Action 956 - Create Production UI Observation Log.
 
 This is documentation/checklist only. No provider call, route call, live scan,
 database read/write, Supabase call, service-role adapter call, broker/Avanza
@@ -179,6 +182,11 @@ Production deploy remains no-go until Preview/Staging is verified, provider
 capacity/headroom is confirmed, env/deployment readiness is reviewed without
 printing secrets, and no go/no-go blockers remain.
 
+Action 955 update: Production was manually deployed before Preview/Staging.
+The post-deploy verification keeps Production online with warnings, does not
+perform another deploy or rollback, and keeps live market trial no-go. Direct
+Production UI observation remains the next required step.
+
 ## Manual Observation Log Template
 
 Use this template during dry-run review or a later approved market-window
@@ -272,6 +280,10 @@ No-go if:
   local docs/tests/static evidence only; no deployed environment was opened.
   Preview/Staging deploy is recommended next, while Production remains no-go
   until deployed verification and provider/env readiness are complete.
+- Action 955 production post-deploy verification passed with warnings. The
+  accidental Production deploy is being kept online with warnings. Direct
+  Production UI observation is still pending, and live market trial remains
+  no-go.
 
 ## Not Performed
 

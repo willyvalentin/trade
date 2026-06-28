@@ -243,6 +243,11 @@ import {
   type RecommendationBatchTargetStatus,
 } from "@/lib/recommendation-batch-memory";
 import {
+  fetchChunkedRecommendationBatchBackfillRows,
+  RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
+  RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+} from "@/lib/recommendation-batch-backfill";
+import {
   buildRecommendationBatchPerformanceSummary,
   recommendationBatchPerformanceSummaryJson,
   type RecommendationBatchPerformanceItem,
@@ -8928,10 +8933,32 @@ export function TradeApp() {
         outcomeBatchFingerprintsRequestedCount += missingScanRunFingerprints.length;
 
         if (missingScanRunFingerprints.length > 0) {
-          const backfilledScanRunBatchesResult = await supabase
-            .from("recommendation_batches")
-            .select("*")
-            .in("scan_run_fingerprint", missingScanRunFingerprints);
+          const backfilledScanRunBatchesResult =
+            await fetchChunkedRecommendationBatchBackfillRows<
+              Record<string, unknown>
+            >(missingScanRunFingerprints, async (fingerprintChunk) => {
+              const result = await supabase
+                .from("recommendation_batches")
+                .select("*")
+                .in("scan_run_fingerprint", [...fingerprintChunk]);
+
+              return {
+                data: (result.data ?? []) as Array<Record<string, unknown>>,
+                error: result.error,
+              };
+            });
+
+          if (backfilledScanRunBatchesResult.fingerprintsCapped) {
+            console.warn("[trade-app] recommendation_batch_backfill_capped", {
+              operation: "select_outcome_scan_run_batch_backfill",
+              requestedFingerprintCount:
+                backfilledScanRunBatchesResult.requestedFingerprintCount,
+              cappedFingerprintCount:
+                backfilledScanRunBatchesResult.cappedFingerprintCount,
+              cap: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
+              chunkSize: RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+            });
+          }
 
           if (backfilledScanRunBatchesResult.error) {
             outcomeBackfillError = normalizeUnknownError(
@@ -8941,17 +8968,15 @@ export function TradeApp() {
               source: "supabase.recommendation_batches",
               operation: "select_outcome_scan_run_batch_backfill",
               error: outcomeBackfillError,
+              chunkSize: RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+              cap: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
             });
             noteIslandError(
               "market_diagnostics",
               backfilledScanRunBatchesResult.error,
             );
           } else {
-            const backfilledScanRunBatches = (
-              (backfilledScanRunBatchesResult.data ?? []) as Array<
-                Record<string, unknown>
-              >
-            )
+            const backfilledScanRunBatches = backfilledScanRunBatchesResult.rows
               .map(recommendationBatchFromPersistenceRow)
               .filter(
                 (batch): batch is RecommendationBatch =>

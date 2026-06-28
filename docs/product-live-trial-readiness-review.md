@@ -19,8 +19,24 @@ Follow-up status: Action 954 created
 `docs/live-trial-manual-dry-run-results.md` with result status
 `live_trial_manual_dry_run_passed_with_warnings`.
 
-Recommended next action: Action 955 - Deploy Preview/Staging for Live-Trial
-Verification.
+Follow-up status: Action 955 created
+`docs/production-post-deploy-verification.md` with result status
+`production_post_deploy_verification_passed_with_warnings`.
+
+Follow-up status: Action 956 created
+`docs/production-supabase-console-error-triage.md` with result status
+`production_supabase_console_error_triage_created`.
+
+Follow-up status: Action 957 created
+`docs/recommendation-batch-timeout-fix-plan.md` with result status
+`recommendation_batch_timeout_fix_plan_created`.
+
+Follow-up status: Action 958 implemented
+`docs/recommendation-batch-timeout-fix-implementation.md` with result status
+`recommendation_batch_timeout_chunking_implemented`.
+
+Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
+in Production.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -173,6 +189,11 @@ review. It passed with warnings. Preview/Staging deployment is recommended
 next. Production remains no-go until Preview/Staging verification, provider/env
 readiness, and deployed UI review are complete.
 
+Action 955 update: Production was already triggered manually before
+Preview/Staging. Action 955 keeps Production online with warnings after
+local/static post-deploy verification and recommends controlled Production UI
+observation next. Live market trial remains no-go.
+
 ## Current Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -197,8 +218,8 @@ refactor phase, but it should not jump directly into live-market execution.
 
 Recommended path:
 
-1. Deploy and verify Preview/Staging using the Action 954 checklist as the
-   baseline.
+1. Complete a controlled Production UI observation log because Production was
+   already deployed before Preview/Staging.
 2. Verify product surfaces, provider capacity assumptions, env/deployment
    readiness, recommendation freshness, risk controls, EOD warnings, and
    human-confirmation copy in deployed context without invoking live scans or
@@ -217,8 +238,19 @@ Readiness.
 
 Completed follow-up: Action 954 - Complete Manual Live-Trial Dry-Run Checklist.
 
-Recommended next action: Action 955 - Deploy Preview/Staging for Live-Trial
-Verification.
+Completed follow-up: Action 955 - Verify Accidental Production Deploy for
+Live-Trial Readiness.
+
+Completed follow-up: Action 956 - Triage Production Supabase Console Errors.
+
+Completed follow-up: Action 957 - Create Recommendation Batch Timeout Fix
+Plan.
+
+Completed follow-up: Action 958 - Implement Chunked Recommendation Batch
+Backfill Query.
+
+Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
+in Production.
 
 ## Validation Results
 

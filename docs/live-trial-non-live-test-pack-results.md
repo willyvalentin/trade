@@ -11,8 +11,11 @@ Follow-up status: Action 954 created
 `docs/live-trial-manual-dry-run-results.md` with result status
 `live_trial_manual_dry_run_passed_with_warnings`.
 
-Recommended next action: Action 955 - Deploy Preview/Staging for Live-Trial
-Verification.
+Follow-up status: Action 955 created
+`docs/production-post-deploy-verification.md` with result status
+`production_post_deploy_verification_passed_with_warnings`.
+
+Recommended next action: Action 956 - Create Production UI Observation Log.
 
 This action is validation/documentation only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -154,6 +157,11 @@ Action 954 completed that manual dry-run checklist from local docs/tests/static
 review. The checklist passed with warnings and recommends Preview/Staging
 deployment next. Production remains no-go until Preview/Staging verification,
 provider/env readiness, and deployed UI review are complete.
+
+Action 955 update: Production was already deployed manually before
+Preview/Staging. The post-deploy verification keeps Production online with
+warnings and recommends a controlled Production UI observation log next. This
+does not approve live market trial.
 
 Before any market-open trial, manually review:
 

@@ -8,8 +8,24 @@ result.
 
 Result status: `live_trial_manual_dry_run_passed_with_warnings`
 
-Recommended next action: Action 955 - Deploy Preview/Staging for Live-Trial
-Verification.
+Follow-up status: Action 955 created
+`docs/production-post-deploy-verification.md` with result status
+`production_post_deploy_verification_passed_with_warnings`.
+
+Follow-up status: Action 956 created
+`docs/production-supabase-console-error-triage.md` with result status
+`production_supabase_console_error_triage_created`.
+
+Follow-up status: Action 957 created
+`docs/recommendation-batch-timeout-fix-plan.md` with result status
+`recommendation_batch_timeout_fix_plan_created`.
+
+Follow-up status: Action 958 implemented
+`docs/recommendation-batch-timeout-fix-implementation.md` with result status
+`recommendation_batch_timeout_chunking_implemented`.
+
+Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
+in Production.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -126,6 +142,12 @@ Avoid deploying immediately before pre-market or market open unless the
 Preview/Staging environment has already been verified and rollback/backout is
 clear.
 
+Action 955 update: Production was already triggered manually before the planned
+Preview/Staging step. Action 955 did not perform another deploy or rollback.
+The post-deploy verification decision is to keep Production online with
+warnings and proceed to a controlled Production UI observation log. Production
+verification does not approve a live market trial.
+
 ## Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -157,6 +179,8 @@ No-go conditions remain:
 - `.env.local` changes unexpectedly;
 - provider capacity or deployment/env readiness is unclear;
 - recommendation freshness or execution/risk copy is unclear.
+- Production Supabase REST read errors continue for `scheduled_scan_attempts`
+  or `recommendation_batches` without a documented fix/acceptance decision.
 
 ## Validation Results
 
