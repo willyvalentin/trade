@@ -35,8 +35,12 @@ Follow-up status: Action 958 implemented
 `docs/recommendation-batch-timeout-fix-implementation.md` with result status
 `recommendation_batch_timeout_chunking_implemented`.
 
-Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
-in Production.
+Follow-up status: Action 959 created
+`docs/recommendation-batch-timeout-production-verification.md` with result
+status `recommendation_batch_timeout_production_verification_blocked`.
+
+Recommended next action: Action 960 - Complete Production Deploy Access and
+Verify Recommendation Batch Timeout Fix.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -249,8 +253,11 @@ Plan.
 Completed follow-up: Action 958 - Implement Chunked Recommendation Batch
 Backfill Query.
 
-Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
-in Production.
+Completed follow-up: Action 959 - Deploy and Verify Recommendation Batch
+Timeout Fix in Production.
+
+Recommended next action: Action 960 - Complete Production Deploy Access and
+Verify Recommendation Batch Timeout Fix.
 
 ## Validation Results
 

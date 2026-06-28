@@ -23411,3 +23411,38 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   audit writer path change, or `.env.local` change was performed.
 - QA confirms recommended next action is Action 959 — Verify Recommendation
   Batch Timeout Fix in Production.
+
+## Action 959 QA Notes
+
+- Result status: `recommendation_batch_timeout_production_verification_blocked`.
+- QA confirms `docs/recommendation-batch-timeout-production-verification.md`
+  exists.
+- QA confirms Production deploy was allowed by the action brief but could not be
+  performed by Codex from this terminal.
+- QA confirms deploy blockers are documented: no local Netlify/Vercel deploy
+  CLI, no `.netlify`/`.vercel` project link, no visible non-secret hosting
+  auth/site indicators, and no Production URL in reviewed repo docs/config.
+- QA confirms Action 958 code was already clean and pushed before this action:
+  `HEAD`/`origin/main` at `9cb0bc7`.
+- QA confirms pre-deploy checks passed locally:
+  `npm run build`, `./node_modules/.bin/tsc --noEmit`, focused Playwright run
+  with 23 tests, runtime denial harness syntax/import check, static safety
+  scans, `git diff --check`, zero-byte docs check, touched-file whitespace
+  scan, `.env.local` diff, and status/next-action scans.
+- QA confirms Production browser console verification was not completed by
+  Codex.
+- QA confirms `recommendation_batches` timeout status in Production is
+  explicitly blocked/unknown, not claimed fixed.
+- QA confirms `scheduled_scan_attempts` 404 status in Production is explicitly
+  blocked/unknown and remains a separate issue.
+- QA confirms keep/rollback decision is explicit: blocked pending
+  investigation; rollback not recommended by this action because no Codex deploy
+  or observed Production regression occurred.
+- QA confirms live market trial remains no-go.
+- QA confirms no Production deploy by Codex, live trading, manual provider API
+  call, manual scan route invocation, manual DB/Supabase query, service-role
+  adapter call, migration, typegen, generated type edit, service-role value
+  printing, broker/Avanza behavior, automatic order behavior, or `.env.local`
+  change was performed.
+- QA confirms recommended next action is Action 960 — Complete Production Deploy
+  Access and Verify Recommendation Batch Timeout Fix.

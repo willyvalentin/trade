@@ -8,8 +8,12 @@ Action 958 implements the app-side fix for the Production
 
 Result status: `recommendation_batch_timeout_chunking_implemented`
 
-Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
-in Production.
+Follow-up status: Action 959 created
+`docs/recommendation-batch-timeout-production-verification.md` with result
+status `recommendation_batch_timeout_production_verification_blocked`.
+
+Recommended next action: Action 960 - Complete Production Deploy Access and
+Verify Recommendation Batch Timeout Fix.
 
 The implementation is read-only and app-side. It does not change Supabase
 schema, environment configuration, provider calls, routes, audit writer paths,

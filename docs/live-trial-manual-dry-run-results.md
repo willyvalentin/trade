@@ -24,8 +24,12 @@ Follow-up status: Action 958 implemented
 `docs/recommendation-batch-timeout-fix-implementation.md` with result status
 `recommendation_batch_timeout_chunking_implemented`.
 
-Recommended next action: Action 959 - Verify Recommendation Batch Timeout Fix
-in Production.
+Follow-up status: Action 959 created
+`docs/recommendation-batch-timeout-production-verification.md` with result
+status `recommendation_batch_timeout_production_verification_blocked`.
+
+Recommended next action: Action 960 - Complete Production Deploy Access and
+Verify Recommendation Batch Timeout Fix.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter

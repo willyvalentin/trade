@@ -18590,10 +18590,42 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   checkpoint, and QA docs.
 - Live market trial remains no-go until the fix is deployed and Production
   console behavior is verified.
-- Recommended next action: Action 959 — Verify Recommendation Batch Timeout Fix
-  in Production.
+- Follow-up completed: Action 959 — Deploy and Verify Recommendation Batch
+  Timeout Fix in Production.
 - Not performed: no live DB query, manual Supabase call, database write,
   provider call, route invocation, scheduled scan, live market scan,
   migration, typegen, generated type edit, service-role adapter call,
   service-role value printing, audit writer path change, broker/Avanza
   behavior, automatic order behavior, deploy, rollback, or `.env.local` change.
+
+## Action 959 - Recommendation Batch Timeout Production Verification
+
+- Result status: `recommendation_batch_timeout_production_verification_blocked`.
+- Created `docs/recommendation-batch-timeout-production-verification.md`.
+- Production deploy status: not performed by Codex. The terminal had no local
+  Netlify/Vercel deploy CLI, no `.netlify` or `.vercel` project link, no
+  visible non-secret hosting auth/site indicators, and no Production URL in the
+  reviewed repo docs/config.
+- Git context before documentation updates: clean working tree on `main`,
+  `HEAD`/`origin/main` at `9cb0bc7`.
+- Production auto-deploy status: unknown. The Action 958 commit is pushed, but
+  Codex could not verify hosting-provider deployment state.
+- Pre-deploy checks passed: `npm run build`, `./node_modules/.bin/tsc --noEmit`,
+  focused Playwright run with 23 tests, runtime denial harness syntax/import
+  check, static safety scans, `git diff --check`, zero-byte docs check, touched
+  file whitespace scan, `.env.local` diff check, and status/next-action scans.
+- Production console verification status: blocked. Codex did not verify whether
+  the `recommendation_batches` timeout is gone in Production.
+- `scheduled_scan_attempts` 404 status: not verified in Production and remains
+  a separate known data-health issue.
+- Keep/rollback decision: blocked pending investigation. Rollback is not
+  recommended by this action because Codex did not perform a deploy and did not
+  observe a Production regression.
+- Live market trial remains no-go.
+- Recommended next action: Action 960 — Complete Production Deploy Access and
+  Verify Recommendation Batch Timeout Fix.
+- Not performed: no Production deploy by Codex, Production browser console
+  verification, live trading, manual provider API call, manual scan route
+  invocation, manual DB/Supabase query, service-role adapter call, migration,
+  typegen, generated type edit, service-role value printing, broker/Avanza
+  behavior, automatic order behavior, or `.env.local` change.
