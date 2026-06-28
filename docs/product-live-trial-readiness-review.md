@@ -47,8 +47,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -216,6 +221,11 @@ Action 961 update: scan-run backfill chunk size is now `10` and total cap is
 `100`. Live market trial remains blocked pending Production verification and
 separate `scheduled_scan_attempts` resolution or acceptance.
 
+Action 962 update: Production verification passed with warnings. The prior
+`recommendation_batches` scan-run timeout was not visible in the latest
+screenshot, but `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts`
+HTTP 404 keep live market trial blocked.
+
 ## Current Blockers And Warnings
 
 - Existing `npm run lint` emits a Babel deopt note for large
@@ -280,8 +290,11 @@ After Chunking.
 Completed follow-up: Action 961 - Reduce Recommendation Batch Backfill Chunk
 Size and Cap.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
+Completed follow-up: Action 962 - Verify Stabilized Recommendation Batch
 Backfill in Production.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 ## Validation Results
 

@@ -23503,3 +23503,34 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   change, or `.env.local` change was performed.
 - QA confirms recommended next action is Action 962 — Verify Stabilized
   Recommendation Batch Backfill in Production.
+
+## Action 962 QA Notes
+
+- Result status:
+  `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+- QA confirms
+  `docs/recommendation-batch-backfill-production-stabilization-verification.md`
+  exists.
+- QA confirms the action is documentation/verification only.
+- QA confirms Production observation is documented: UI loads, Recommendations
+  page renders, header shows `STATUS UNKNOWN`, and Recommendations shows a
+  refreshing/updated state.
+- QA confirms the previous
+  `recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeout is
+  documented as not visible in the latest provided screenshot, with continued
+  monitoring required.
+- QA confirms `recommendation_snapshots` HTTP 500 is documented as the
+  new/active blocker with client source `Supabase.recommendation_snapshots` and
+  operation `select_recent_recommendation_snapshots`.
+- QA confirms `scheduled_scan_attempts` HTTP 404 is documented as persistent
+  and separate.
+- QA confirms keep/rollback decision is explicit: keep Production online with
+  warnings while UI remains usable and no unsafe execution behavior appears.
+- QA confirms live market trial remains no-go.
+- QA confirms no runtime code change, live DB read/write, Supabase manual call,
+  provider call, route invocation, scan invocation, service-role adapter call,
+  migration, typegen, generated type edit, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  trade/stats/PnL behavior change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 963 — Triage Production
+  `recommendation_snapshots` 500.

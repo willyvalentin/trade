@@ -8,8 +8,13 @@ chunking and Action 960 triage.
 
 Result status: `recommendation_batch_backfill_stabilization_patch_implemented`
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 The patch is read-only and app-side. It reduces request/query pressure for the
 scan-run recommendation batch backfill path without changing Supabase schema,
@@ -95,6 +100,11 @@ After deploy, verify the Production browser console:
 Live market trial remains no-go until the recommendation batch timeout is gone
 or explicitly accepted, and `scheduled_scan_attempts` is separately resolved or
 accepted.
+
+Action 962 follow-up: the latest Production screenshot no longer showed the
+previous `recommendation_batches?select=*&scan_run_fingerprint=in.(...)`
+timeout, but Production still has data-health warnings:
+`recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404.
 
 ## Not Performed
 

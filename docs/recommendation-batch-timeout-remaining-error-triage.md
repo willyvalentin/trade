@@ -11,8 +11,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 This action is static/code triage and documentation only. It does not change
 runtime behavior, query Production, call Supabase, call providers, invoke scan
@@ -138,6 +143,10 @@ Completed Action 961 scope:
 Action 961 follow-up: the stabilization patch reduced chunk size from `50` to
 `10` and total cap from `250` to `100` while preserving the read-only,
 fail-soft scan-run backfill behavior.
+
+Action 962 follow-up: the latest Production screenshot did not show the prior
+`recommendation_batches` scan-run timeout, but `recommendation_snapshots` HTTP
+500 is now the active blocker and `scheduled_scan_attempts` HTTP 404 persists.
 
 ## Next Implementation Options
 

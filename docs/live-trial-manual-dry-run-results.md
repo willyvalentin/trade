@@ -36,8 +36,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -198,6 +203,9 @@ No-go conditions remain:
   and total cap next.
 - Action 961 reduced scan-run backfill chunk size to `10` and cap to `100`;
   Production verification is still required.
+- Action 962 verified Production with warnings: the prior recommendation batch
+  scan-run timeout was not visible, but `recommendation_snapshots` HTTP 500 and
+  `scheduled_scan_attempts` HTTP 404 remain no-go blockers.
 
 ## Validation Results
 

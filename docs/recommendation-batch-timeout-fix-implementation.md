@@ -20,8 +20,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 The implementation is read-only and app-side. It does not change Supabase
 schema, environment configuration, provider calls, routes, audit writer paths,
@@ -108,6 +113,10 @@ recommended next implementation is to reduce the chunk size and total cap.
 
 Action 961 follow-up implemented that stabilization by reducing chunk size from
 `50` to `10` and total cap from `250` to `100`.
+
+Action 962 follow-up: Production no longer showed the previous
+`recommendation_batches` scan-run timeout in the latest screenshot, but
+`recommendation_snapshots` HTTP 500 is now the next targeted blocker.
 
 Live market trial remains no-go until Production verification passes and the
 remaining readiness gates are complete.

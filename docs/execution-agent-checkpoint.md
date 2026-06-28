@@ -18686,10 +18686,44 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - Production can remain online with warnings if UI stays usable and errors
   remain readback/diagnostic only.
 - Live market trial remains no-go.
-- Recommended next action: Action 962 — Verify Stabilized Recommendation Batch
+- Completed follow-up: Action 962 — Verify Stabilized Recommendation Batch
   Backfill in Production.
 - Not performed: no live DB read/write, manual Supabase call, provider call,
   route invocation, scan invocation, service-role adapter call, migration,
   typegen, generated type edit, `.env.local` change, audit writer path change,
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   `scheduled_scan_attempts` fix, or trade/stats/PnL behavior change.
+
+## Action 962 - Production Stabilization Verification
+
+- Result status:
+  `recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+- Created
+  `docs/recommendation-batch-backfill-production-stabilization-verification.md`.
+- Operator-provided Production screenshot after Action 961 showed Production
+  UI loading and Recommendations page rendering.
+- Header showed `STATUS UNKNOWN`, and Recommendations showed
+  refreshing/updated state.
+- The previous large
+  `recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeout was
+  not visible in the provided screenshot.
+- `scheduled_scan_attempts` HTTP 404 remains visible and unresolved.
+- New/active Production blocker documented:
+  `recommendation_snapshots` HTTP 500 with client source
+  `Supabase.recommendation_snapshots` and operation
+  `select_recent_recommendation_snapshots`.
+- No broker/Avanza behavior appeared in the observation.
+- No automatic order behavior appeared in the observation.
+- Production decision: keep Production online with warnings if app shell and
+  Recommendations page remain usable and no unsafe execution behavior appears.
+- Rollback is not required from this observation, but should be reconsidered if
+  app shell/core Recommendations UI breaks, service-role/env exposure appears,
+  or unsafe broker/automatic behavior appears.
+- Live market trial remains no-go because Production data health is not clean.
+- Recommended next action: Action 963 — Triage Production
+  `recommendation_snapshots` 500.
+- Not performed: no runtime code change, live DB read/write, manual Supabase
+  call, provider call, route invocation, scan invocation, service-role adapter
+  call, migration, typegen, generated type edit, `.env.local` change, audit
+  writer path change, broker/Avanza behavior, automatic mode enablement,
+  automatic order behavior, or trade/stats/PnL behavior change.

@@ -19,8 +19,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 No broker/Avanza behavior or automatic order behavior is introduced by this
 verification action.
@@ -103,6 +108,11 @@ risk if Production later shows `batch_fingerprint=in.(...)` timeouts.
 Action 961 follow-up reduced the scan-run backfill chunk size from `50` to
 `10` and the defensive cap from `250` to `100`; Production verification is
 still required.
+
+Action 962 follow-up verified with warnings: the latest Production screenshot
+did not show the previous recommendation batch scan-run timeout, but
+`recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404
+remain.
 
 ## Remaining Known Issue: scheduled_scan_attempts 404
 

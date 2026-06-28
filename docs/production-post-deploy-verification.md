@@ -31,8 +31,13 @@ Follow-up status: Action 961 implemented
 `docs/recommendation-batch-backfill-stabilization-patch.md` with result status
 `recommendation_batch_backfill_stabilization_patch_implemented`.
 
-Recommended next action: Action 962 - Verify Stabilized Recommendation Batch
-Backfill in Production.
+Follow-up status: Action 962 created
+`docs/recommendation-batch-backfill-production-stabilization-verification.md`
+with result status
+`recommendation_batch_backfill_production_stabilization_verified_with_warnings`.
+
+Recommended next action: Action 963 - Triage Production
+`recommendation_snapshots` 500.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and
@@ -153,6 +158,10 @@ error fix plan, not broker/live trading.
   source is chunked, so the next recommended step is reducing chunk size and
   total cap.
 - Action 961 reduced scan-run backfill chunk size to `10` and cap to `100`.
+- Action 962 verified Production with warnings: previous
+  `recommendation_batches` scan-run timeout was not visible, but
+  `recommendation_snapshots` HTTP 500 and `scheduled_scan_attempts` HTTP 404
+  remain.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the
