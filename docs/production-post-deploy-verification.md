@@ -54,8 +54,12 @@ Follow-up status: Action 966 created
 result status
 `scheduled_scan_attempts_production_schema_verification_plan_created`.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 Latest Production follow-up: after the Action 963 fail-soft deploy, the latest
 operator-provided screenshot no longer shows the recommendation batch timeout
@@ -70,6 +74,10 @@ verified for schema/migration/REST exposure before live-trial approval.
 
 Action 966 follow-up: the dashboard verification plan is documented; no
 Production query, migration, route, provider, or code change was performed.
+
+Action 967 follow-up: the verification result is blocked pending operator
+dashboard evidence. Production remains online with warnings and live market
+trial remains no-go.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and

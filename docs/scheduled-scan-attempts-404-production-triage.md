@@ -17,8 +17,12 @@ Follow-up status: Action 966 created
 result status
 `scheduled_scan_attempts_production_schema_verification_plan_created`.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 ## Latest Production Observation
 
@@ -177,8 +181,14 @@ client/server paths depend on that object, the safest next action is:
 Completed follow-up: Action 966 - Create scheduled_scan_attempts Production
 Schema Verification Plan.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Completed follow-up: Action 967 - Verify scheduled_scan_attempts Production
+Schema in Supabase Dashboard.
+
+Action 967 was blocked because no manual Supabase Dashboard findings or
+read-only Production schema evidence were provided to Codex.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 ## Production Decision
 

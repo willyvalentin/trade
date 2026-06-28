@@ -12,8 +12,12 @@ adapter calls, broker/Avanza behavior, or automatic order behavior.
 Result status:
 `scheduled_scan_attempts_production_schema_verification_plan_created`
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 ## Problem Summary
 
@@ -242,8 +246,14 @@ separately approved database tool. Do not execute them as part of this action.
 
 ## Recommended Next Action
 
-Action 967 - Verify scheduled_scan_attempts Production Schema in Supabase
-Dashboard.
+Completed follow-up: Action 967 - Verify scheduled_scan_attempts Production
+Schema in Supabase Dashboard.
+
+Action 967 was blocked because no manual Supabase Dashboard findings or
+read-only schema-inspection output were provided to Codex.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 That next action may involve manual dashboard verification, but should still
 avoid writing, migrating, route invocation, provider calls, or type generation

@@ -18866,11 +18866,46 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - Created decision tree for missing table, missing migration history, REST 404
   despite table existence, RLS block, wrong project/env, optional diagnostics,
   and conflict target mismatch.
-- Recommended next action: Action 967 — Verify scheduled_scan_attempts
+- Previous recommended next action: Action 967 — Verify scheduled_scan_attempts
   Production Schema in Supabase Dashboard.
+- Completed follow-up: Action 967 — Verify scheduled_scan_attempts Production
+  Schema in Supabase Dashboard.
 - Not performed: no runtime code change, live DB read/write, manual Supabase
   call, migration status/apply, typegen, generated type edit, `.env.local`
   change, provider call, route invocation, scan invocation, service-role
   adapter call, audit writer path change, broker/Avanza behavior, automatic
   mode enablement, automatic order behavior, or trade/stats/PnL behavior
   change.
+
+## Action 967 - scheduled_scan_attempts Production Schema Verification Results
+
+- Result status: `scheduled_scan_attempts_schema_verification_blocked`.
+- Created
+  `docs/scheduled-scan-attempts-production-schema-verification-results.md`.
+- Recorded that no manual Supabase Dashboard project identity, table browser,
+  migration history, column listing, constraint/index evidence, REST/API
+  exposure evidence, schema-cache evidence, RLS state, policy state, or
+  read-only SQL/schema-inspection output was provided to Codex.
+- Documented Production project identity as blocked/unknown.
+- Documented table/view existence as unknown.
+- Documented migration history as unknown.
+- Documented Production column/schema match as unknown.
+- Documented Production REST/API exposure as unknown.
+- Documented Production RLS/policy state as unknown.
+- Reconfirmed local static evidence only: migration
+  `20260625000000_create_scheduled_scan_attempts.sql`, app read path in
+  `app/trade-app.tsx`, and automation route upsert path in
+  `app/api/automation/run-scan/route.ts`.
+- Decision tree result: blocked before selecting missing-table, REST-exposure,
+  RLS, wrong-project/env, or app-read-path finding.
+- Production decision: keep Production online with warnings.
+- Live market trial remains no-go until `scheduled_scan_attempts` is verified
+  in Production and fixed, reduced, or explicitly accepted as non-critical.
+- Recommended next action: Action 968 — Complete scheduled_scan_attempts
+  Production Schema Verification With Operator Dashboard Findings.
+- Not performed: no runtime code change, Supabase Dashboard access by Codex,
+  Supabase query, DB read/write, schema mutation, migration status/apply,
+  typegen, generated type edit, `.env.local` change, provider call, route
+  invocation, scan invocation, service-role adapter call, audit writer path
+  change, broker/Avanza behavior, automatic mode enablement, automatic order
+  behavior, or trade/stats/PnL behavior change.

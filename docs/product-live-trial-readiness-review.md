@@ -70,8 +70,12 @@ Follow-up status: Action 966 created
 result status
 `scheduled_scan_attempts_production_schema_verification_plan_created`.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 Latest Production follow-up: the Action 963 fail-soft deploy appears to have
 stabilized the recommendation batch timeout path. The latest
@@ -87,6 +91,10 @@ diagnostic gap is explicitly accepted.
 Action 966 follow-up: the manual dashboard verification plan is documented and
 live market trial remains no-go until the Production `scheduled_scan_attempts`
 status is verified or accepted.
+
+Action 967 follow-up: Production schema verification is blocked because no
+manual dashboard evidence was provided to Codex. Live market trial remains
+no-go.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -343,8 +351,11 @@ Production Schema Issue.
 Completed follow-up: Action 966 - Create scheduled_scan_attempts Production
 Schema Verification Plan.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
+Completed follow-up: Action 967 - Verify scheduled_scan_attempts
 Production Schema in Supabase Dashboard.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 ## Validation Results
 

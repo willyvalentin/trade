@@ -21,8 +21,12 @@ Follow-up status: Action 966 created
 result status
 `scheduled_scan_attempts_production_schema_verification_plan_created`.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Production Schema Verification With Operator Dashboard Findings.
 
 ## Deployment Context
 
@@ -99,6 +103,11 @@ Action 966 follow-up: the schema verification plan defines the expected table,
 columns, unique conflict target, indexes, app read/upsert expectations, manual
 dashboard checklist, and decision tree. No Supabase query, migration, or
 runtime code change was performed.
+
+Action 967 follow-up: Production schema verification is blocked because no
+manual Supabase Dashboard findings or read-only schema-inspection output were
+provided to Codex. No Production schema conclusion was inferred from local
+static evidence alone.
 
 ## Production Keep/Rollback Decision
 

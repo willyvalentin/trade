@@ -23652,8 +23652,38 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - QA confirms risk assessment is explicit and live market trial remains no-go.
 - QA confirms recommended next action is Action 967 — Verify
   scheduled_scan_attempts Production Schema in Supabase Dashboard.
+- QA confirms completed follow-up is Action 967 — Verify
+  scheduled_scan_attempts Production Schema in Supabase Dashboard.
 - QA confirms no runtime code change, live DB read/write, Supabase manual call,
   provider call, route invocation, scan invocation, service-role adapter call,
   migration, typegen, generated type edit, audit writer path change,
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   trade/stats/PnL behavior change, or `.env.local` change was performed.
+
+## Action 967 QA Notes
+
+- Result status: `scheduled_scan_attempts_schema_verification_blocked`.
+- QA confirms
+  `docs/scheduled-scan-attempts-production-schema-verification-results.md`
+  exists.
+- QA confirms Production schema verification could not be completed because no
+  manual Supabase Dashboard findings or read-only schema-inspection output were
+  provided to Codex.
+- QA confirms Production project identity, table/view existence, migration
+  history, column/schema match, REST/API exposure, RLS state, and policy state
+  are documented as blocked/unknown.
+- QA confirms Codex did not infer a missing table, REST exposure issue, RLS
+  issue, wrong project/env, or client read path issue from local static
+  evidence alone.
+- QA confirms local static evidence was only reconfirmed as repo expectation.
+- QA confirms Production decision is keep online with warnings.
+- QA confirms live market trial remains no-go.
+- QA confirms recommended next action is Action 968 — Complete
+  scheduled_scan_attempts Production Schema Verification With Operator
+  Dashboard Findings.
+- QA confirms no runtime code change, Supabase Dashboard access by Codex,
+  Supabase query, DB read/write, schema mutation, migration status/apply,
+  typegen, generated type edit, `.env.local` change, provider call, route
+  invocation, scan invocation, service-role adapter call, audit writer path
+  change, broker/Avanza behavior, automatic mode enablement, automatic order
+  behavior, or trade/stats/PnL behavior change was performed.
