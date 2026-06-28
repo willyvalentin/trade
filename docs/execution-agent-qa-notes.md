@@ -23681,9 +23681,135 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - QA confirms recommended next action is Action 968 — Complete
   scheduled_scan_attempts Production Schema Verification With Operator
   Dashboard Findings.
+- QA confirms completed follow-up is Action 968 — Complete
+  scheduled_scan_attempts Production Schema Verification With Operator
+  Dashboard Findings.
 - QA confirms no runtime code change, Supabase Dashboard access by Codex,
   Supabase query, DB read/write, schema mutation, migration status/apply,
   typegen, generated type edit, `.env.local` change, provider call, route
   invocation, scan invocation, service-role adapter call, audit writer path
   change, broker/Avanza behavior, automatic mode enablement, automatic order
   behavior, or trade/stats/PnL behavior change was performed.
+
+## Action 968 QA Notes
+
+- Result status: `scheduled_scan_attempts_schema_missing_in_production`.
+- QA confirms
+  `docs/scheduled-scan-attempts-production-schema-operator-verification.md`
+  exists.
+- QA confirms operator evidence is documented: Supabase Dashboard Table Editor,
+  schema `public`, search `public.scheduled_scan_attempts`, and result `No
+  results found`.
+- QA confirms recent public table examples are documented:
+  `public.recommendation_scan_runs`, `public.user_settings`, and
+  `public.scheduled_scan_runs`.
+- QA confirms table/view missing result is explicit.
+- QA confirms local migration existence is documented:
+  `supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql`.
+- QA confirms migration history uncertainty is documented because dashboard
+  migration history was not directly verified in the provided evidence.
+- QA confirms REST 404 is explained by the missing table.
+- QA confirms RLS/policy state is documented as not verifiable until the table
+  exists.
+- QA confirms decision tree result is table missing / migration not applied.
+- QA confirms recommended next action is Action 969 — Apply
+  scheduled_scan_attempts Production Migration.
+- QA confirms completed follow-up is Action 969 — Apply
+  scheduled_scan_attempts Production Migration.
+- QA confirms Production decision is keep online with warnings.
+- QA confirms live market trial remains no-go.
+- QA confirms no runtime code change, Supabase query, DB read/write, schema
+  mutation, migration status/apply, typegen, generated type edit, `.env.local`
+  change, provider call, route invocation, scan invocation, service-role
+  adapter call, audit writer path change, broker/Avanza behavior, automatic
+  mode enablement, automatic order behavior, or trade/stats/PnL behavior
+  change was performed.
+
+## Action 969 QA Notes
+
+- Result status: `scheduled_scan_attempts_production_migration_applied`.
+- QA confirms
+  `docs/scheduled-scan-attempts-production-migration-application.md` exists.
+- QA confirms migration file
+  `supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql` was
+  inspected before apply.
+- QA confirms the migration has no destructive statements and only targets
+  `public.scheduled_scan_attempts`, its indexes, and comments.
+- QA confirms no migration contents were changed.
+- QA confirms `supabase db push --linked --dry-run` was stopped because it
+  would have required unrelated older migrations.
+- QA confirms the exact approved SQL file was applied with
+  `supabase db query --linked --file`.
+- QA confirms table existence changed from missing to present.
+- QA confirms required columns, `utc_timestamp`, primary key, unique
+  `attempt_fingerprint`, indexes, and RLS-disabled flags were verified.
+- QA confirms REST now returns HTTP 200 for
+  `/rest/v1/scheduled_scan_attempts?select=id,utc_timestamp&limit=1`.
+- QA confirms Production decision is keep online, migration verified.
+- QA confirms live market trial remains no-go pending final console
+  cleanliness and market-window readiness verification.
+- QA confirms completed follow-up is Action 970 — Verify Production Console
+  Cleanliness After scheduled_scan_attempts Migration.
+- QA confirms completed follow-up is Action 971 — Provide Production App URL
+  And Manual Console Observation After scheduled_scan_attempts Migration.
+- QA confirms no runtime code change, unrelated migration, typegen, generated
+  type edit, `.env.local` change, provider call, scan route invocation, live
+  market scan, service-role adapter call from app code, audit writer path
+  change, broker/Avanza behavior, automatic mode enablement, automatic order
+  behavior, or trade/stats/PnL behavior change was performed.
+
+## Action 970 QA Notes
+
+- Result status:
+  `production_console_new_blocker_after_scheduled_scan_migration`.
+- QA confirms
+  `docs/production-console-cleanliness-after-scheduled-scan-migration.md`
+  exists.
+- QA confirms Action 970 was documentation/verification only.
+- QA confirms Action 969 REST evidence remains recorded: the Production
+  `scheduled_scan_attempts` endpoint returns HTTP 200 with `[]`.
+- QA confirms Codex did not complete deployed app console observation because
+  the Production app URL was not recorded in repo docs/local deploy metadata
+  and browser automation could not inspect an existing tab.
+- QA confirms no new deployed app console error was confirmed in Action 970.
+- QA confirms no secrets were printed and no service-role, anon key, database
+  password, or token value was printed.
+- QA confirms Production decision is keep online with warnings.
+- QA confirms live market trial remains no-go pending direct deployed app
+  console/UI observation and market-window readiness verification.
+- QA confirms completed follow-up is Action 971 — Provide Production App URL
+  And Manual Console Observation After scheduled_scan_attempts Migration.
+- QA confirms no runtime code change, additional migration, typegen, generated
+  type edit, `.env.local` change, provider call, scan route invocation, live
+  market scan, route call, Supabase mutation, service-role adapter app call,
+  audit writer UI/browser/client invocation, market-loop/scanner audit writer
+  invocation, broker/Avanza behavior, automatic mode enablement, automatic
+  order behavior, or trade/stats/PnL behavior change was performed.
+
+## Action 971 QA Notes
+
+- Result status: `production_console_manual_observation_blocked`.
+- QA confirms
+  `docs/production-console-manual-observation-after-scheduled-scan-migration.md`
+  exists.
+- QA confirms Action 971 was documentation/manual-verification tracking only.
+- QA confirms the Action 971 request provided the desired manual verification
+  workflow but did not provide a Production app URL, screenshot, pasted console
+  output, observation timestamp, or operator result summary.
+- QA confirms `scheduled_scan_attempts` REST HTTP 200 from Action 969 remains
+  documented as the latest concrete Production data-health evidence.
+- QA confirms manual deployed app console observation remains blocked.
+- QA confirms no new deployed app console error was confirmed in Action 971.
+- QA confirms no secrets were printed and no service-role, anon key, database
+  password, or token value was printed.
+- QA confirms Production decision is keep online with warnings.
+- QA confirms live market trial remains no-go pending manual deployed console
+  evidence and market-window readiness verification.
+- QA confirms recommended next action is Action 972 — Provide Production
+  Console Manual Observation Evidence.
+- QA confirms no runtime code change, additional migration, typegen, generated
+  type edit, `.env.local` change, provider call, scan route invocation, live
+  market scan, route call, Supabase mutation, service-role adapter app call,
+  audit writer UI/browser/client invocation, market-loop/scanner audit writer
+  invocation, broker/Avanza behavior, automatic mode enablement, automatic
+  order behavior, or trade/stats/PnL behavior change was performed.

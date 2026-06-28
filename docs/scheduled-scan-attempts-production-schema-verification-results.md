@@ -13,8 +13,20 @@ Production schema state.
 Result status:
 `scheduled_scan_attempts_schema_verification_blocked`
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Verification Scope
 
@@ -104,6 +116,37 @@ Action 968 should provide or record one of these evidence sets:
 No migration, policy, env, runtime, route, provider, typegen, or generated type
 change should be performed until that finding is recorded and separately
 approved.
+
+## Action 968 Operator Finding
+
+Action 968 received operator Supabase Dashboard evidence. The Table Editor was
+open with schema `public`, the search was `public.scheduled_scan_attempts`,
+and the result was `No results found`. Recent public tables were visible,
+including `public.recommendation_scan_runs`, `public.user_settings`, and
+`public.scheduled_scan_runs`.
+
+Decision tree result: `public.scheduled_scan_attempts` is missing in
+Production.
+
+Previous recommended next action: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Completed follow-up: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Action 969 applied the exact migration SQL file and verified REST HTTP 200 for
+`scheduled_scan_attempts`.
+
+Completed follow-up: Action 970 - Verify Production Console Cleanliness After
+scheduled_scan_attempts Migration.
+
+Action 970 blocked on deployed app console observation access. REST-level
+evidence from Action 969 still shows `scheduled_scan_attempts` returns HTTP
+200, but browser-console cleanliness requires operator evidence or a
+Production app URL.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Not Performed
 

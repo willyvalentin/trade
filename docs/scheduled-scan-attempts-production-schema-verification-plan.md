@@ -16,8 +16,20 @@ Follow-up status: Action 967 created
 `docs/scheduled-scan-attempts-production-schema-verification-results.md` with
 result status `scheduled_scan_attempts_schema_verification_blocked`.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Problem Summary
 
@@ -252,12 +264,37 @@ Schema in Supabase Dashboard.
 Action 967 was blocked because no manual Supabase Dashboard findings or
 read-only schema-inspection output were provided to Codex.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Previous recommended next action: Action 968 - Complete scheduled_scan_attempts
 Production Schema Verification With Operator Dashboard Findings.
 
 That next action may involve manual dashboard verification, but should still
 avoid writing, migrating, route invocation, provider calls, or type generation
 until findings are recorded and any needed fix has separate approval.
+
+Completed follow-up: Action 968 - Complete scheduled_scan_attempts Production
+Schema Verification With Operator Dashboard Findings.
+
+Action 968 operator evidence found `public.scheduled_scan_attempts` missing in
+the Production Supabase Dashboard.
+
+Previous recommended next action: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Completed follow-up: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Action 969 applied the exact migration SQL file and verified the Production
+REST endpoint now returns HTTP 200 for `scheduled_scan_attempts`.
+
+Completed follow-up: Action 970 - Verify Production Console Cleanliness After
+scheduled_scan_attempts Migration.
+
+Action 970 blocked on deployed app console observation access. The REST-level
+404 fix remains verified from Action 969, but the deployed browser console
+still needs operator evidence or a Production app URL.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Not Performed
 

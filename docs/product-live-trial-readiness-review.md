@@ -74,8 +74,24 @@ Follow-up status: Action 967 created
 `docs/scheduled-scan-attempts-production-schema-verification-results.md` with
 result status `scheduled_scan_attempts_schema_verification_blocked`.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Follow-up status: Action 971 created
+`docs/production-console-manual-observation-after-scheduled-scan-migration.md`
+with result status `production_console_manual_observation_blocked`.
+
+Recommended next action: Action 972 - Provide Production Console Manual
+Observation Evidence.
 
 Latest Production follow-up: the Action 963 fail-soft deploy appears to have
 stabilized the recommendation batch timeout path. The latest
@@ -95,6 +111,26 @@ status is verified or accepted.
 Action 967 follow-up: Production schema verification is blocked because no
 manual dashboard evidence was provided to Codex. Live market trial remains
 no-go.
+
+Action 968 follow-up: operator Supabase Dashboard evidence confirms
+`public.scheduled_scan_attempts` is missing in Production. Live market trial
+remains no-go until migration application and verification complete, or the
+warning is explicitly accepted.
+
+Action 969 follow-up: the missing Production migration was applied and
+`scheduled_scan_attempts` REST returns HTTP 200.
+
+Action 970 follow-up: deployed app browser-console observation remains blocked
+pending Production app URL or operator evidence. Live market trial remains
+no-go.
+
+Action 971 follow-up: no Production app URL or manual console observation was
+provided, so live market trial remains no-go pending operator evidence.
+
+Action 969 follow-up: the missing table migration was applied and the
+`scheduled_scan_attempts` REST endpoint returns HTTP 200. Live market trial
+still remains no-go until final Production console cleanliness and market-window
+readiness are verified.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -354,8 +390,32 @@ Schema Verification Plan.
 Completed follow-up: Action 967 - Verify scheduled_scan_attempts
 Production Schema in Supabase Dashboard.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Completed follow-up: Action 968 - Complete scheduled_scan_attempts
 Production Schema Verification With Operator Dashboard Findings.
+
+Completed follow-up: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Completed follow-up: Action 970 - Verify Production Console Cleanliness After
+scheduled_scan_attempts Migration.
+
+Action 970 result status:
+`production_console_new_blocker_after_scheduled_scan_migration`.
+
+Action 970 could not complete deployed app browser-console observation because
+the Production app URL was not available to Codex and browser automation could
+not attach to an existing tab. The `scheduled_scan_attempts` REST endpoint
+remains verified HTTP 200 from Action 969, but live-trial readiness still needs
+fresh deployed app console evidence.
+
+Completed follow-up: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
+
+Action 971 result status:
+`production_console_manual_observation_blocked`.
+
+Recommended next action: Action 972 - Provide Production Console Manual
+Observation Evidence.
 
 ## Validation Results
 

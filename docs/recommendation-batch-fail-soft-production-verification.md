@@ -25,8 +25,24 @@ Follow-up status: Action 967 created
 `docs/scheduled-scan-attempts-production-schema-verification-results.md` with
 result status `scheduled_scan_attempts_schema_verification_blocked`.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Follow-up status: Action 971 created
+`docs/production-console-manual-observation-after-scheduled-scan-migration.md`
+with result status `production_console_manual_observation_blocked`.
+
+Recommended next action: Action 972 - Provide Production Console Manual
+Observation Evidence.
 
 ## Deployment Context
 
@@ -109,6 +125,23 @@ manual Supabase Dashboard findings or read-only schema-inspection output were
 provided to Codex. No Production schema conclusion was inferred from local
 static evidence alone.
 
+Action 968 follow-up: operator Supabase Dashboard evidence found
+`public.scheduled_scan_attempts` missing from the checked Production project.
+The remaining REST 404 is now explained by the missing table. No migration was
+applied in Action 968.
+
+Action 969 follow-up: the exact scheduled scan attempts migration SQL file was
+applied to Production. `public.scheduled_scan_attempts` now exists and the
+Supabase REST endpoint returns HTTP 200 with an empty array.
+
+Action 970 follow-up: deployed app console cleanliness remains blocked pending
+operator evidence or a Production app URL. The Action 969 REST-level 404 fix
+remains verified.
+
+Action 971 follow-up: the request did not include a Production app URL,
+screenshot/manual console evidence, or observation summary. Manual deployed
+console verification remains blocked pending operator evidence.
+
 ## Production Keep/Rollback Decision
 
 Decision: keep Production online with warnings.
@@ -135,12 +168,13 @@ Rollback should be reconsidered if:
 Live market trial remains no-go.
 
 Production data health is improved because the recommendation batch timeout and
-the `recommendation_snapshots` HTTP 500 are no longer observed in the latest
-screenshot, but Production is not fully clean while `scheduled_scan_attempts`
-HTTP 404 remains visible.
+the `recommendation_snapshots` HTTP 500 were no longer observed in the latest
+operator screenshot, and Action 969 verified the `scheduled_scan_attempts`
+REST endpoint returns HTTP 200. Production is still not fully clean until a
+fresh deployed app console observation is recorded.
 
-`scheduled_scan_attempts` must be fixed, reduced, or explicitly accepted as
-non-critical before a market-window trial.
+The deployed app console must be verified clean or accepted with warnings
+before a market-window trial.
 
 ## Not Performed
 

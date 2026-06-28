@@ -59,8 +59,28 @@ Follow-up status: Action 966 created
 result status
 `scheduled_scan_attempts_production_schema_verification_plan_created`.
 
-Recommended next action: Action 967 - Verify scheduled_scan_attempts
-Production Schema in Supabase Dashboard.
+Follow-up status: Action 967 created
+`docs/scheduled-scan-attempts-production-schema-verification-results.md` with
+result status `scheduled_scan_attempts_schema_verification_blocked`.
+
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Follow-up status: Action 971 created
+`docs/production-console-manual-observation-after-scheduled-scan-migration.md`
+with result status `production_console_manual_observation_blocked`.
+
+Recommended next action: Action 972 - Provide Production Console Manual
+Observation Evidence.
 
 Latest Production follow-up: the latest operator-provided screenshot after the
 Action 963 fail-soft deploy no longer shows the recommendation batch timeout
@@ -75,6 +95,19 @@ step.
 Action 966 follow-up: the Production schema verification plan is documented;
 live market trial remains no-go until dashboard verification or explicit
 acceptance resolves the remaining 404.
+
+Action 969 follow-up: the missing `public.scheduled_scan_attempts` table was
+created in Production through the approved migration SQL file, and the REST
+endpoint now returns HTTP 200. Live market trial remains no-go pending final
+Production console cleanliness and market-window readiness verification.
+
+Action 970 follow-up: deployed app console observation remains blocked because
+the Production app URL was unavailable to Codex and browser automation could
+not attach to an existing tab.
+
+Action 971 follow-up: the request did not include a Production app URL or
+manual console observation evidence, so deployed console verification remains
+blocked.
 
 This action is documentation/manual review only. No provider call, route call,
 live market scan, database read/write, Supabase call, service-role adapter
@@ -241,6 +274,12 @@ No-go conditions remain:
 - Action 963 corrected that later Production evidence still shows the
   recommendation batch scan-run timeout, and fail-softs oversized scan-run
   backfill lists before querying.
+- Action 969 verified `scheduled_scan_attempts` now exists in Production and
+  REST returns HTTP 200.
+- Action 970 could not complete deployed app console observation because the
+  Production app URL was unavailable to Codex and browser automation could not
+  attach to an existing tab; live market trial remains blocked pending fresh
+  deployed console evidence.
 
 ## Validation Results
 

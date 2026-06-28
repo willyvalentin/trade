@@ -21,8 +21,20 @@ Follow-up status: Action 967 created
 `docs/scheduled-scan-attempts-production-schema-verification-results.md` with
 result status `scheduled_scan_attempts_schema_verification_blocked`.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Latest Production Observation
 
@@ -187,8 +199,34 @@ Schema in Supabase Dashboard.
 Action 967 was blocked because no manual Supabase Dashboard findings or
 read-only Production schema evidence were provided to Codex.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
+Previous recommended next action: Action 968 - Complete scheduled_scan_attempts
 Production Schema Verification With Operator Dashboard Findings.
+
+Completed follow-up: Action 968 - Complete scheduled_scan_attempts Production
+Schema Verification With Operator Dashboard Findings.
+
+Action 968 operator evidence found `public.scheduled_scan_attempts` missing in
+the Production Supabase Dashboard.
+
+Previous recommended next action: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Completed follow-up: Action 969 - Apply scheduled_scan_attempts Production
+Migration.
+
+Action 969 applied the exact migration SQL file and verified
+`public.scheduled_scan_attempts` exists and the REST endpoint returns HTTP 200.
+
+Completed follow-up: Action 970 - Verify Production Console Cleanliness After
+scheduled_scan_attempts Migration.
+
+Action 970 could not complete the deployed app console observation because the
+Production app URL was unavailable to Codex and browser automation could not
+attach to an existing tab. The REST-level 404 remained resolved from Action
+969 evidence, but the deployed app console check remains pending.
+
+Recommended next action: Action 971 - Provide Production App URL And Manual
+Console Observation After scheduled_scan_attempts Migration.
 
 ## Production Decision
 

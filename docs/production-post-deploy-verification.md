@@ -58,8 +58,24 @@ Follow-up status: Action 967 created
 `docs/scheduled-scan-attempts-production-schema-verification-results.md` with
 result status `scheduled_scan_attempts_schema_verification_blocked`.
 
-Recommended next action: Action 968 - Complete scheduled_scan_attempts
-Production Schema Verification With Operator Dashboard Findings.
+Follow-up status: Action 968 created
+`docs/scheduled-scan-attempts-production-schema-operator-verification.md` with
+result status `scheduled_scan_attempts_schema_missing_in_production`.
+
+Follow-up status: Action 969 created
+`docs/scheduled-scan-attempts-production-migration-application.md` with result
+status `scheduled_scan_attempts_production_migration_applied`.
+
+Follow-up status: Action 970 created
+`docs/production-console-cleanliness-after-scheduled-scan-migration.md` with
+result status `production_console_new_blocker_after_scheduled_scan_migration`.
+
+Follow-up status: Action 971 created
+`docs/production-console-manual-observation-after-scheduled-scan-migration.md`
+with result status `production_console_manual_observation_blocked`.
+
+Recommended next action: Action 972 - Provide Production Console Manual
+Observation Evidence.
 
 Latest Production follow-up: after the Action 963 fail-soft deploy, the latest
 operator-provided screenshot no longer shows the recommendation batch timeout
@@ -78,6 +94,22 @@ Production query, migration, route, provider, or code change was performed.
 Action 967 follow-up: the verification result is blocked pending operator
 dashboard evidence. Production remains online with warnings and live market
 trial remains no-go.
+
+Action 968 follow-up: operator dashboard evidence confirms
+`public.scheduled_scan_attempts` is missing in Production. Production remains
+online with warnings; migration application requires a separate approved
+Action 969.
+
+Action 969 follow-up: the missing table migration was applied and REST for
+`scheduled_scan_attempts` returns HTTP 200. Production remains online.
+
+Action 970 follow-up: final deployed app browser-console cleanliness remains
+blocked because Codex did not have the Production app URL and browser
+automation could not attach to an existing tab. No new runtime error was
+confirmed; the blocker is verification access.
+
+Action 971 follow-up: the request did not include Production app URL/manual
+console evidence, so manual deployed console verification remains blocked.
 
 This was an accidental/early Production deploy relative to the planned
 Preview/Staging flow. This action treats Production as already deployed and
@@ -178,8 +210,8 @@ Live market trial remains no-go until:
 - risk settings, EOD warnings, and execution copy are confirmed;
 - no go/no-go blockers remain.
 
-After Action 956, the next step is a controlled Production Supabase console
-error fix plan, not broker/live trading.
+After Action 971, the next step is controlled Production console manual
+observation evidence, not broker/live trading.
 
 ## Known Warnings
 
