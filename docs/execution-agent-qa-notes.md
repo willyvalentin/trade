@@ -23786,6 +23786,38 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   invocation, broker/Avanza behavior, automatic mode enablement, automatic
   order behavior, or trade/stats/PnL behavior change was performed.
 
+## Action 972 QA Notes
+
+- Result status:
+  `recommendation_snapshots_500_production_triage_created`.
+- QA confirms `docs/recommendation-snapshots-500-production-triage.md` exists.
+- QA confirms Action 972 is static/documentation-only triage.
+- QA confirms latest operator evidence is documented: Production UI loads,
+  Recommendations tab renders, `scheduled_scan_attempts` 404 is gone,
+  `recommendation_batches` timeout is gone, and `recommendation_snapshots`
+  HTTP 500 remains visible.
+- QA confirms the source/operation is documented:
+  `Supabase.recommendation_snapshots` /
+  `select_recent_recommendation_snapshots`.
+- QA confirms no secrets were included in the operator evidence summary.
+- QA confirms the static read path is documented:
+  `.from("recommendation_snapshots").select("*").order("created_at", {
+  ascending: false }).limit(1000)`.
+- QA confirms the fail-soft/local fallback behavior is documented, including
+  the remaining diagnostics/recommendations island error state.
+- QA confirms local schema and index expectations are documented from
+  `supabase/migrations/20260528000000_create_recommendation_snapshots.sql`.
+- QA confirms likely causes, risk assessment, fix options, Production decision,
+  and live-trial no-go state are documented.
+- QA confirms recommended next action is Action 973 - Reduce
+  recommendation_snapshots Recent Read Limit and Add Fail-Soft Guard.
+- QA confirms no runtime code change, Supabase query, remote SQL, migration,
+  typegen, generated type edit, `.env.local` change, provider call, scan route
+  invocation, route invocation, service-role adapter call, audit writer path
+  change, UI/browser/client behavior change, market-loop/scanner behavior,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  or trade/stats/PnL behavior change was performed.
+
 ## Action 971 QA Notes
 
 - Result status: `production_console_manual_observation_blocked`.

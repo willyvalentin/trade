@@ -20,8 +20,12 @@ Follow-up status: Action 971 created
 `docs/production-console-manual-observation-after-scheduled-scan-migration.md`
 with result status `production_console_manual_observation_blocked`.
 
-Recommended next action: Action 972 - Provide Production Console Manual
-Observation Evidence.
+Follow-up status: Action 972 created
+`docs/recommendation-snapshots-500-production-triage.md` with result status
+`recommendation_snapshots_500_production_triage_created`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
 
 ## Pre-Migration Review
 
@@ -265,6 +269,19 @@ evidence.
 
 Recommended next action: Action 972 - Provide Production Console Manual
 Observation Evidence.
+
+## Action 972 Follow-Up
+
+Action 972 result status:
+`recommendation_snapshots_500_production_triage_created`.
+
+Operator evidence after the migration confirms the deployed Production console
+no longer shows the `scheduled_scan_attempts` 404. The remaining visible
+Production Supabase console blocker is `recommendation_snapshots` HTTP 500 for
+operation `select_recent_recommendation_snapshots`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
 
 ## Validation Results
 

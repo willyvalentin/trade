@@ -17,8 +17,12 @@ Follow-up status: Action 971 created
 `docs/production-console-manual-observation-after-scheduled-scan-migration.md`
 with result status `production_console_manual_observation_blocked`.
 
-Recommended next action: Action 972 - Provide Production Console Manual
-Observation Evidence.
+Follow-up status: Action 972 created
+`docs/recommendation-snapshots-500-production-triage.md` with result status
+`recommendation_snapshots_500_production_triage_created`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
 
 ## Verification Context
 
@@ -153,6 +157,20 @@ cleanliness remains blocked pending operator evidence.
 
 Recommended next action: Action 972 - Provide Production Console Manual
 Observation Evidence.
+
+## Action 972 Follow-Up
+
+Action 972 result status:
+`recommendation_snapshots_500_production_triage_created`.
+
+Later operator evidence confirmed the deployed Production UI loads, the
+Recommendations tab renders, and the previous `scheduled_scan_attempts` 404
+and `recommendation_batches` timeout are no longer visible. The remaining
+reported console issue is `recommendation_snapshots` HTTP 500 for operation
+`select_recent_recommendation_snapshots`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
 
 ## Validation Results
 

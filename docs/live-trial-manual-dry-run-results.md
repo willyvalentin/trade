@@ -280,6 +280,11 @@ No-go conditions remain:
   Production app URL was unavailable to Codex and browser automation could not
   attach to an existing tab; live market trial remains blocked pending fresh
   deployed console evidence.
+- Action 972 operator evidence confirms Production UI loads,
+  Recommendations tab renders, `scheduled_scan_attempts` 404 is gone, and the
+  prior `recommendation_batches` timeout is gone. Live market trial remains
+  blocked by `recommendation_snapshots` HTTP 500 for operation
+  `select_recent_recommendation_snapshots`.
 
 ## Validation Results
 

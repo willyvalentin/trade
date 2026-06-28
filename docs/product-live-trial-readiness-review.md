@@ -417,6 +417,21 @@ Action 971 result status:
 Recommended next action: Action 972 - Provide Production Console Manual
 Observation Evidence.
 
+Completed follow-up: Action 972 - Triage Production recommendation_snapshots
+500.
+
+Action 972 result status:
+`recommendation_snapshots_500_production_triage_created`.
+
+Operator evidence now shows the Production UI loads, Recommendations tab
+renders, `scheduled_scan_attempts` 404 is gone, and the prior
+`recommendation_batches` timeout is gone. The remaining Production console
+blocker is `recommendation_snapshots` HTTP 500 for operation
+`select_recent_recommendation_snapshots`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
+
 ## Validation Results
 
 - Runtime denial harness syntax/import checks passed.

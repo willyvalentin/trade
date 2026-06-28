@@ -14,8 +14,12 @@ performed.
 Result status:
 `production_console_manual_observation_blocked`
 
-Recommended next action: Action 972 - Provide Production Console Manual
-Observation Evidence.
+Follow-up status: Action 972 created
+`docs/recommendation-snapshots-500-production-triage.md` with result status
+`recommendation_snapshots_500_production_triage_created`.
+
+Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+Read Limit and Add Fail-Soft Guard.
 
 ## Production App URL / Environment
 
@@ -100,26 +104,28 @@ Reason: the Action 971 request did not provide the Production app URL,
 screenshot/manual console evidence, or observation results needed to complete
 the manual verification.
 
+## Action 972 Follow-Up
+
+Action 972 operator evidence resolved the Action 971 observation blocker and
+identified a narrower remaining Production console issue:
+
+- Production UI loads.
+- Recommendations tab renders.
+- Header shows US stock market / closed today.
+- `scheduled_scan_attempts` 404 is no longer visible.
+- `recommendation_batches` timeout is no longer visible.
+- `recommendation_snapshots` HTTP 500 remains visible for operation
+  `select_recent_recommendation_snapshots`.
+- No broker/Avanza behavior appears.
+- No automatic order behavior appears.
+
+Action 972 created
+`docs/recommendation-snapshots-500-production-triage.md`.
+
 ## Recommended Next Action
 
-Action 972 - Provide Production Console Manual Observation Evidence.
-
-The next action should include:
-
-- Production app URL;
-- observation timestamp;
-- confirmation that the operator hard-refreshed, cleared the console, reloaded
-  the Market page, and waited for initial data load;
-- pass/warn/block notes for app shell, Recommendations tab, status header,
-  `recommendation_batches`, `recommendation_snapshots`,
-  `scheduled_scan_attempts`, new Supabase 4xx/5xx, broker/Avanza behavior, and
-  automatic order behavior;
-- screenshot or pasted console summary if errors remain.
-
-If clean, record `production_console_manual_observation_clean` or
-`production_console_manual_observation_clean_with_warnings` and move to Action
-972 or later market-window dry-run preparation as appropriate. If errors
-remain, choose the smallest targeted triage action.
+Action 973 - Reduce recommendation_snapshots Recent Read Limit and Add
+Fail-Soft Guard.
 
 ## Validation Results
 

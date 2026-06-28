@@ -19025,6 +19025,45 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   automatic mode enablement, automatic order behavior, or trade/stats/PnL
   behavior change.
 
+## Action 972 - Triage Production recommendation_snapshots 500
+
+- Result status:
+  `recommendation_snapshots_500_production_triage_created`.
+- Created `docs/recommendation-snapshots-500-production-triage.md`.
+- Recorded latest operator Production evidence: UI loads, Recommendations tab
+  renders, header shows US stock market / closed today,
+  `scheduled_scan_attempts` 404 is gone, `recommendation_batches` timeout is
+  gone, and `recommendation_snapshots` HTTP 500 remains visible.
+- Recorded the dashboard log source/operation:
+  `Supabase.recommendation_snapshots` /
+  `select_recent_recommendation_snapshots`.
+- Confirmed no secrets were included in the operator summary.
+- Static inventory found the initial dashboard read path in
+  `app/trade-app.tsx`: `recommendation_snapshots`, `select("*")`,
+  `created_at desc`, `limit(1000)`.
+- Static inventory found error handling marks `market_diagnostics` and
+  `recommendations` islands as errored, then falls back to local snapshots on
+  initial load.
+- Static schema inventory found local migration
+  `supabase/migrations/20260528000000_create_recommendation_snapshots.sql`.
+- Static schema inventory found composite indexes for
+  `(ticker, created_at desc)` and `(status, created_at desc)`, but no
+  standalone `created_at desc` index for the exact global recent read.
+- Likely cause recorded as broad recent-read pressure from `select("*")`,
+  `limit(1000)`, JSON payload columns, and possible index mismatch or
+  Production drift.
+- Production decision: keep Production online with warnings.
+- Live market trial remains no-go until the `recommendation_snapshots` 500 is
+  fixed or explicitly accepted with a documented risk decision.
+- Recommended next action: Action 973 - Reduce recommendation_snapshots Recent
+  Read Limit and Add Fail-Soft Guard.
+- Not performed: no runtime code change, Supabase query, remote SQL,
+  migration, typegen, generated type edit, `.env.local` change, provider call,
+  scan route invocation, route invocation, service-role adapter call, audit
+  writer path change, UI/browser/client behavior change, market-loop/scanner
+  behavior, broker/Avanza behavior, automatic mode enablement, automatic order
+  behavior, or trade/stats/PnL behavior change.
+
 ## Action 971 - Provide Production App URL And Manual Console Observation After scheduled_scan_attempts Migration
 
 - Result status: `production_console_manual_observation_blocked`.

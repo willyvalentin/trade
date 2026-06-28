@@ -236,6 +236,11 @@ observation evidence, not broker/live trading.
   remain.
 - Action 963 corrected that the recommendation batch scan-run timeout is still
   active in later Production evidence and added a fail-soft skip guard.
+- Action 972 operator evidence confirms the Production UI loads, the
+  Recommendations tab renders, the `scheduled_scan_attempts` 404 is gone, and
+  the prior `recommendation_batches` timeout is gone. The remaining Production
+  console blocker is `recommendation_snapshots` HTTP 500 for operation
+  `select_recent_recommendation_snapshots`.
 - Existing `npm run lint` emits a Babel deopt note for large
   `app/trade-app.tsx`.
 - Action 953 initially could not bind local Playwright port `3010` inside the
