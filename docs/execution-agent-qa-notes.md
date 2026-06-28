@@ -23562,5 +23562,32 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   generated type edit, audit writer path change, broker/Avanza behavior,
   automatic mode enablement, automatic order behavior, trade/stats/PnL behavior
   change, or `.env.local` change was performed.
-- QA confirms recommended next action is Action 964 — Verify Recommendation
-  Batch Fail-Soft Patch in Production.
+- QA confirms completed follow-up is Action 964 — Verify Recommendation Batch
+  Fail-Soft Patch in Production.
+
+## Action 964 QA Notes
+
+- Result status:
+  `recommendation_batch_fail_soft_production_verified_with_warnings`.
+- QA confirms
+  `docs/recommendation-batch-fail-soft-production-verification.md` exists.
+- QA confirms this action is documentation/verification only.
+- QA confirms Production observation is documented: UI loads and
+  Recommendations page renders.
+- QA confirms the previous
+  `recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeout is
+  documented as no longer visible in the latest operator-provided screenshot.
+- QA confirms the previous `recommendation_snapshots` HTTP 500 is documented
+  as no longer visible in the latest operator-provided screenshot.
+- QA confirms `scheduled_scan_attempts` HTTP 404 is documented as persistent
+  and the active visible Production console issue.
+- QA confirms keep/rollback decision is explicit: keep Production online with
+  warnings while UI remains usable and no unsafe execution behavior appears.
+- QA confirms live market trial remains no-go.
+- QA confirms no runtime code change, live DB read/write, Supabase manual call,
+  provider call, route invocation, scan invocation, service-role adapter call,
+  migration, typegen, generated type edit, audit writer path change,
+  broker/Avanza behavior, automatic mode enablement, automatic order behavior,
+  trade/stats/PnL behavior change, or `.env.local` change was performed.
+- QA confirms recommended next action is Action 965 — Triage
+  scheduled_scan_attempts 404 Production Schema Issue.

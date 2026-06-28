@@ -56,8 +56,19 @@ Follow-up status: Action 963 implemented
 `docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
 `recommendation_batch_backfill_fail_soft_patch_implemented`.
 
-Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
-Patch in Production.
+Follow-up status: Action 964 created
+`docs/recommendation-batch-fail-soft-production-verification.md` with result
+status
+`recommendation_batch_fail_soft_production_verified_with_warnings`.
+
+Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
+Production Schema Issue.
+
+Latest Production follow-up: the Action 963 fail-soft deploy appears to have
+stabilized the recommendation batch timeout path. The latest
+operator-provided screenshot no longer shows the recommendation batch timeout
+or the `recommendation_snapshots` HTTP 500. `scheduled_scan_attempts` HTTP 404
+remains visible, so live market trial remains no-go.
 
 This review is documentation/readiness only. It was prepared from existing
 docs, code, and tests. No live market scan, provider API call, route invocation,
@@ -305,8 +316,11 @@ Backfill in Production.
 Completed follow-up: Action 963 - Patch Recommendation Batch Backfill to
 Fail-Soft Before Timeout.
 
-Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
-Patch in Production.
+Completed follow-up: Action 964 - Verify Recommendation Batch Fail-Soft Patch
+in Production.
+
+Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
+Production Schema Issue.
 
 ## Validation Results
 

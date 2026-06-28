@@ -7,12 +7,32 @@ Production `recommendation_batches` timeout after Actions 958, 961, and 962.
 
 Result status: `recommendation_batch_backfill_fail_soft_patch_implemented`
 
-Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
-Patch in Production.
+Follow-up status: Action 964 created
+`docs/recommendation-batch-fail-soft-production-verification.md` with result
+status
+`recommendation_batch_fail_soft_production_verified_with_warnings`.
+
+Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
+Production Schema Issue.
 
 The patch is read-only and app-side. It prioritizes Production UI stability
 over historical recommendation batch completeness by skipping risky scan-run
 backfill requests before they can hit Supabase timeout limits.
+
+## Production Verification Follow-Up
+
+The latest operator-provided Production screenshot after the Action 963 deploy
+shows that Production UI loads and Recommendations page renders.
+
+The previous
+`recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeout is no
+longer visible in that screenshot. The previous `recommendation_snapshots`
+HTTP 500 is also no longer visible. `scheduled_scan_attempts` HTTP 404 remains
+visible and is now the active Production console issue to triage next.
+
+Production can remain online with warnings, but live market trial remains
+no-go until `scheduled_scan_attempts` is fixed, reduced, or explicitly accepted
+as non-critical.
 
 ## Code Changes
 

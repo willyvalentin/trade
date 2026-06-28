@@ -18755,10 +18755,44 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
 - Production can remain online with warnings if UI stays usable and errors
   remain readback/diagnostic only.
 - Live market trial remains no-go.
-- Recommended next action: Action 964 — Verify Recommendation Batch Fail-Soft
+- Completed follow-up: Action 964 — Verify Recommendation Batch Fail-Soft
   Patch in Production.
 - Not performed: no live DB read/write, manual Supabase call, provider call,
   route invocation, scan invocation, service-role adapter call, migration,
   typegen, generated type edit, `.env.local` change, audit writer path change,
   broker/Avanza behavior, automatic mode enablement, automatic order behavior,
   `scheduled_scan_attempts` fix, or trade/stats/PnL behavior change.
+
+## Action 964 - Recommendation Batch Fail-Soft Production Verification
+
+- Result status:
+  `recommendation_batch_fail_soft_production_verified_with_warnings`.
+- Created
+  `docs/recommendation-batch-fail-soft-production-verification.md`.
+- Documented latest operator-provided Production screenshot after Action 963
+  deploy.
+- Production UI loads and Recommendations page renders in the provided
+  observation.
+- The previous
+  `recommendation_batches?select=*&scan_run_fingerprint=in.(...)` timeout is
+  no longer visible in the latest screenshot.
+- The previous `recommendation_snapshots` HTTP 500 is no longer visible in the
+  latest screenshot.
+- `scheduled_scan_attempts` HTTP 404 remains visible and is now the active
+  visible Production console issue.
+- No broker/Avanza behavior appeared in the observation.
+- No automatic order behavior appeared in the observation.
+- Production decision: keep Production online with warnings while app shell and
+  Recommendations remain usable and no unsafe execution behavior appears.
+- Rollback is not required from this observation, but should be reconsidered if
+  the app crashes, core Recommendations UI becomes unusable, service-role/env
+  exposure appears, or unsafe broker/automatic behavior appears.
+- Live market trial remains no-go until `scheduled_scan_attempts` is fixed,
+  reduced, or explicitly accepted as non-critical.
+- Recommended next action: Action 965 — Triage scheduled_scan_attempts 404
+  Production Schema Issue.
+- Not performed: no runtime code change, live DB read/write, manual Supabase
+  call, provider call, route invocation, scan invocation, service-role adapter
+  call, migration, typegen, generated type edit, `.env.local` change, audit
+  writer path change, broker/Avanza behavior, automatic mode enablement,
+  automatic order behavior, or trade/stats/PnL behavior change.

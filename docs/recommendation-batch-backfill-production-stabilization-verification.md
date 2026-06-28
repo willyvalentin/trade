@@ -12,8 +12,13 @@ Follow-up status: Action 963 implemented
 `docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
 `recommendation_batch_backfill_fail_soft_patch_implemented`.
 
-Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
-Patch in Production.
+Follow-up status: Action 964 created
+`docs/recommendation-batch-fail-soft-production-verification.md` with result
+status
+`recommendation_batch_fail_soft_production_verified_with_warnings`.
+
+Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
+Production Schema Issue.
 
 This action is documentation/verification only. It is not live market trial
 approval. It introduces no broker/Avanza behavior and no automatic order
@@ -25,6 +30,11 @@ interpretation was too optimistic. The latest screenshot again shows the
 statement timeout. The active blocker is still the recommendation batch
 scan-run backfill timeout. `recommendation_snapshots` is not the current
 recommended next triage target.
+
+Latest follow-up after Action 963 deploy: the operator-provided Production
+screenshot no longer shows the `recommendation_batches` timeout or the
+`recommendation_snapshots` HTTP 500. `scheduled_scan_attempts` HTTP 404 remains
+visible and is now the active visible Production console issue.
 
 ## Deployment Context
 

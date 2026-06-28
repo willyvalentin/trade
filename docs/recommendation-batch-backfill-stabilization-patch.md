@@ -17,8 +17,18 @@ Follow-up status: Action 963 implemented
 `docs/recommendation-batch-backfill-fail-soft-patch.md` with result status
 `recommendation_batch_backfill_fail_soft_patch_implemented`.
 
-Recommended next action: Action 964 - Verify Recommendation Batch Fail-Soft
-Patch in Production.
+Follow-up status: Action 964 created
+`docs/recommendation-batch-fail-soft-production-verification.md` with result
+status
+`recommendation_batch_fail_soft_production_verified_with_warnings`.
+
+Recommended next action: Action 965 - Triage scheduled_scan_attempts 404
+Production Schema Issue.
+
+Latest Production follow-up: after the Action 963 fail-soft deploy, the latest
+operator-provided screenshot no longer shows the recommendation batch timeout
+or the `recommendation_snapshots` HTTP 500. `scheduled_scan_attempts` HTTP 404
+remains visible and is the next targeted issue.
 
 The patch is read-only and app-side. It reduces request/query pressure for the
 scan-run recommendation batch backfill path without changing Supabase schema,
