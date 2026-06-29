@@ -646,3 +646,36 @@ Review.
   was performed.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Architecture/readiness implication: Production market-window observation now
+  has operator evidence, while semi-auto Avanza/browser-agent implementation
+  and full-auto execution remain outside the approved Production path.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Architecture implication: the first live-trial path remains manual,
+  observation-first, and outside browser automation/full-auto execution.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Architecture posture is unchanged: no new runtime path, no Production
+  browser automation, no broker/Avanza integration, and no automatic execution
+  was introduced.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

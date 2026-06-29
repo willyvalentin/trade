@@ -364,3 +364,38 @@ Validation was run after documentation updates:
   market session and operator evidence exists.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Manual operator evidence recorded a Monday pre-market Production dry run
+  with a selective empty state and no red/critical console errors.
+- Expected warning: `recommendation_batch_backfill_capped`.
+- Not observed: candidate quality, handoff preview, and EOD behavior.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Manual live-trial scope remains observation-first and capped at one
+  candidate/trade consideration; real action, if any, is a separate explicit
+  human decision outside Ture automation.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Manual dry-run trail now records that Action 1005 lacked fresh operator
+  evidence and therefore cannot be accepted as a completed live-trial
+  observation.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

@@ -211,3 +211,48 @@ Action 1003 - Run Production Market-Window Dry Run With Operator Evidence.
 - No audit writer UI/browser/client invocation.
 - No real trade.
 - No trade/stats/PnL mutation.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Operator evidence: Production screenshot from Monday, June 29, 2026 around
+  14:07 CEST during pre-market with console open and cleared.
+- Production UI loaded, Recommendations rendered, and the selective empty
+  state was clear.
+- Console showed no red Supabase 4xx/5xx errors, no
+  `scheduled_scan_attempts` 404, no `recommendation_batches` timeout, no
+  `recommendation_snapshots` 500, and no `recommendation_outcomes` 500.
+- Expected non-fatal warning remained:
+  `[trade-app] recommendation_batch_backfill_capped`.
+- No broker, Avanza, automatic order, final-click, provider, scan, Supabase,
+  service-role, audit-writer client, real-trade, or trade/stats/PnL mutation
+  behavior was performed by Codex.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- The first live-trial phase is constrained to observation-first review of at
+  most 1 US-stock day-trade candidate/trade consideration.
+- Real broker action, if any, remains outside Ture automation and requires an
+  explicit human decision.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Blocker: no fresh Action 1005 Production URL/operator screenshot,
+  cleared-console output, recommendation count, candidate/no-candidate
+  evidence, or handoff preview evidence was provided.
+- No Production observation was run by Codex.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

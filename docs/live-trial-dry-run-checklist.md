@@ -347,3 +347,40 @@ No-go if:
   observation steps, and pass/warn/block criteria.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Checklist outcome: Production loaded, Recommendations rendered, selective
+  empty state was clear, known Production blockers did not recur, and no
+  unsafe execution behavior was visible.
+- Remaining checklist warnings: pre-market-only evidence, expected
+  `recommendation_batch_backfill_capped`, no visible recommendation
+  candidate, handoff preview not tested, and EOD behavior not observed.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- The next checklist step is constrained first live-trial observation, not
+  execution: verify operator checks, hard no-go conditions, and trial log
+  fields before any real trade consideration.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Checklist gap: missing fresh Production URL, hard refresh/console cleared
+  evidence, screenshot, recommendation/candidate evidence, handoff evidence,
+  and user decision.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

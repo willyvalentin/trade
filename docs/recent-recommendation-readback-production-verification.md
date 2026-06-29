@@ -259,3 +259,28 @@ Open-Session Evidence.
   Monday/open-session Production market-window observation.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Operator evidence showed no `recommendation_snapshots` 500,
+  `recommendation_outcomes` 500, `recommendation_batches` timeout, or
+  `scheduled_scan_attempts` 404 in the cleared Production console.
+- The remaining `recommendation_batch_backfill_capped` warning is expected and
+  non-fatal.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Recommendation readback readiness is sufficient for a constrained
+  observation-first live-trial candidate review, subject to hard no-go
+  conditions in the decision artifact.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.

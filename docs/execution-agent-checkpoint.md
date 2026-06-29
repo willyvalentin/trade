@@ -1,3 +1,134 @@
+## Action 1005 - Run First Controlled Live-Trial Observation
+
+- Created `docs/first-controlled-live-trial-observation.md`.
+- Updated the first controlled live-trial scope decision, Production dry-run
+  results, Monday handoff, market-window plan/observation,
+  product/live-trial readiness, live-trial checklist, manual dry-run results,
+  architecture index, final handoff, checkpoint, and QA docs.
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Blocker: the Action 1005 request did not provide fresh Production
+  URL/operator evidence, screenshot, cleared-console output, recommendation
+  count, candidate/no-candidate evidence, handoff preview evidence, or user
+  decision.
+- This is an evidence/process block, not a confirmed Product UI failure.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.
+- No Production observation was run by Codex, and no real trade, runtime code
+  change, Production runtime browser automation, Avanza integration, broker
+  behavior, automatic order submission, automatic mode enablement, final
+  `KOP`/`SALJ` or `KÖP`/`SÄLJ` click, provider call, scan route invocation,
+  live market scan, database write, Supabase manual call, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  service-role value print, audit writer UI/browser/client invocation, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; first-live-trial-observation-specific safety scan returned
+  documentation-only boundary terms; automatic-mode safety scan returned
+  existing checklist/safety language only; dead-doc/path scan returned no
+  missing files; result-status and next-action consistency scans passed;
+  `git diff --check` passed; touched-file trailing whitespace scan returned no
+  matches; zero-byte docs check returned no output; `.env.local` diff check
+  returned no output.
+
+## Action 1004 - Decide First Controlled Live-Trial Scope
+
+- Created `docs/first-controlled-live-trial-scope-decision.md`.
+- Updated the Production dry-run results, Monday handoff, market-window
+  plan/observation, semi-auto sandbox roadmap, recent recommendation readback
+  verification, product/live-trial readiness, live-trial checklist, manual
+  dry-run results, architecture index, final handoff, checkpoint, and QA docs.
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Scope: US stocks only; day-trade recommendations only; observation-first;
+  maximum 1 candidate/trade consideration in the first live-trial window; no
+  automatic execution; no Production Avanza/browser automation; no real broker
+  order from Ture.
+- Any real broker action, if performed at all, remains outside Ture automation
+  and requires an explicit human decision.
+- Prefer no real money order until one regular-open observation with actual
+  candidate evidence is documented.
+- Required operator checks, hard no-go conditions, trial observation log
+  template, next-action result statuses, and progress update are documented.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+- No real trade, runtime code change, Production runtime browser automation,
+  Avanza integration, broker behavior, automatic order submission, automatic
+  mode enablement, final `KOP`/`SALJ` or `KÖP`/`SÄLJ` click, provider call,
+  scan route invocation, live market scan, database write, Supabase manual
+  call, service-role adapter call, migration, type generation, generated type
+  edit, `.env.local` change, service-role value print, audit writer
+  UI/browser/client invocation, or trade/stats/PnL mutation was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; live-trial-scope-specific safety scan returned documentation-only
+  boundary terms; automatic-mode safety scan returned existing
+  checklist/safety language only; dead-doc/path scan returned no missing
+  files; result-status consistency scan passed; whitespace-aware next-action
+  consistency scan passed; `git diff --check` passed; touched-file trailing
+  whitespace scan returned no matches; zero-byte docs check returned no output;
+  `.env.local` diff check returned no output.
+
+## Action 1003 - Run Production Market-Window Dry Run With Operator Evidence
+
+- Created `docs/production-market-window-dry-run-results.md`.
+- Updated the Monday handoff, market-window plan/observation,
+  semi-auto sandbox roadmap, recent recommendation readback verification,
+  product/live-trial readiness, live-trial checklist, manual dry-run results,
+  architecture index, final handoff, checkpoint, and QA docs.
+- Recorded operator-provided Production screenshot evidence from Monday,
+  June 29, 2026 around 14:07 CEST during pre-market.
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Evidence summary: Production UI loaded; Recommendations rendered; selective
+  empty state was clear; console was cleared; no red Supabase 4xx/5xx errors,
+  `scheduled_scan_attempts` 404, `recommendation_batches` timeout,
+  `recommendation_snapshots` 500, or `recommendation_outcomes` 500 was
+  visible; expected `recommendation_batch_backfill_capped` warning remained.
+- Warnings: pre-market only, expected
+  `recommendation_batch_backfill_capped`, no candidate shown, handoff preview
+  not tested, and EOD behavior not observed.
+- Progress update: Ture production/data-health 94-96%; market-window live
+  dry-run 85-90%; semi-auto agent foundation 98-99%; semi-auto
+  Avanza/browser-agent readiness 95-97%; real browser automation readiness
+  86-91%; full-auto readiness 10-15%; total Ture toward semi-auto MVP 97-98%.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+- No additional Production observation by Codex, runtime code change,
+  Production runtime browser automation, Avanza integration, broker behavior,
+  automatic order submission, automatic mode enablement, final `KOP`/`SALJ` or
+  `KÖP`/`SÄLJ` click, provider call, scan route invocation, live market scan,
+  database write, Supabase manual call, service-role adapter call, migration,
+  type generation, generated type edit, `.env.local` change, service-role
+  value print, audit writer UI/browser/client invocation, real trade, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; Production-market-window result-doc-specific safety scan returned
+  documentation-only boundary terms; automatic-mode safety scan returned
+  existing checklist/safety language only; dead-doc/path scan returned no
+  missing files; result-status consistency scan passed; whitespace-aware
+  next-action consistency scan passed; `git diff --check` passed; touched-file
+  trailing whitespace scan returned no matches; zero-byte docs check returned
+  no output; `.env.local` diff check returned no output.
+
 ## Action 1002 - Prepare Monday Production Market-Window Dry Run Handoff
 
 - Created `docs/monday-production-market-window-dry-run-handoff.md`.

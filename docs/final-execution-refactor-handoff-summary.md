@@ -687,3 +687,42 @@ explicitly scoped high-risk inventory if additional refactor is still needed.
   was performed.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Production dry-run handoff moved from parked to observed with warnings based
+  on Monday pre-market operator evidence.
+- No Production runtime browser automation, Avanza integration, broker
+  behavior, automatic order submission, final click, provider call, scan route,
+  Supabase call/write, migration, typegen, `.env.local` change, real trade, or
+  trade/stats/PnL mutation was performed by Codex.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Handoff update: Ture may proceed to the first controlled live-trial
+  observation phase only, with one candidate/trade consideration maximum and
+  no Ture-placed order or automatic execution.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Handoff update: the first controlled observation still needs fresh operator
+  evidence from Production during an active window.
+- No runtime code, Production automation, Avanza/broker behavior, automatic
+  mode, provider/scan/Supabase call, real trade, or trade/stats/PnL mutation
+  was performed.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

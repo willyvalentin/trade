@@ -328,3 +328,41 @@ Open-Session Evidence.
   market session and operator evidence exists.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- The Monday pre-market operator evidence satisfied the market-window dry-run
+  checklist for app load, Recommendations rendering, selective empty state,
+  resolved prior Supabase blockers, and absence of unsafe execution behavior.
+- Remaining warnings are expected/non-fatal or not observed in pre-market:
+  `recommendation_batch_backfill_capped`, no candidate quality sample,
+  handoff preview not tested, and EOD behavior not observed.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- First controlled live-trial scope is approved only as a bounded
+  observation-first candidate review; any real broker action remains manual
+  and outside Ture automation.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- The controlled observation remains pending because Action 1005 did not
+  include fresh operator evidence from Production.
+- Repeat during an active window with Production URL, screenshot,
+  cleared-console state, recommendation/candidate evidence, and user decision.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

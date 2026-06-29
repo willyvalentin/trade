@@ -240,3 +240,32 @@ With Operator Evidence.
 - No audit writer UI/browser/client invocation.
 - No real trade.
 - No trade/stats/PnL mutation.
+
+## Action 1003 Production Dry-Run Result
+
+Result status:
+`production_market_window_dry_run_passed_with_warnings`.
+
+Created `docs/production-market-window-dry-run-results.md`.
+
+The Monday pre-market Production evidence showed the app and Recommendations
+surface loading safely with a selective empty state, only the expected
+`recommendation_batch_backfill_capped` warning, and no broker/Avanza or
+automatic order behavior.
+
+Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+Decision status:
+`first_controlled_live_trial_scope_approved_with_constraints`.
+
+Created `docs/first-controlled-live-trial-scope-decision.md`.
+
+The scope remains separate from sandbox browser automation: Production live
+trial is observation-first with no Avanza/browser automation, no broker order
+from Ture, no automatic execution, and maximum 1 candidate/trade consideration.
+
+Recommended next action: Action 1005 - Run First Controlled Live-Trial
+Observation.

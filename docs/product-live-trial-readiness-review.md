@@ -818,3 +818,41 @@ Agent Dev Flow State Machine.
   market session and operator evidence exists.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Production/data-health readiness increased to 94-96%, and market-window
+  live dry-run readiness increased to 85-90%, based on Monday pre-market
+  operator evidence.
+- Warnings remain: pre-market only, expected
+  `recommendation_batch_backfill_capped`, no candidate shown, handoff preview
+  not tested, and EOD behavior not observed.
+- Conservative next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Product readiness now permits a constrained first controlled live-trial
+  observation phase only: US stocks, day-trade recommendations, maximum 1
+  candidate/trade consideration, no Ture-placed order, and no automatic
+  execution.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Product readiness remains high, but the first controlled observation is not
+  complete because no fresh Production evidence was provided for Action 1005.
+- Next step is evidence collection, not code or automation expansion.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

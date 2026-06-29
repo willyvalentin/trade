@@ -259,3 +259,42 @@ the checklist in
   dry run remains parked until Monday/open US market session.
 - Recommended next action: Action 1003 - Run Production Market-Window Dry Run
   With Operator Evidence.
+
+## Action 1003 Production Dry-Run Result
+
+- Result status: `production_market_window_dry_run_passed_with_warnings`.
+- Result artifact:
+  `docs/production-market-window-dry-run-results.md`.
+- Operator evidence from Monday, June 29, 2026 pre-market showed Production
+  UI load, Recommendations rendering, selective empty state, and cleared
+  console with only the expected `recommendation_batch_backfill_capped`
+  warning.
+- The observation passed with warnings because it was pre-market, no candidate
+  was shown, handoff preview was not tested, and EOD behavior was not
+  observable.
+- Recommended next action: Action 1004 - Decide First Controlled Live-Trial
+  Scope.
+
+## Action 1004 First Controlled Live-Trial Scope Decision
+
+- Decision status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- Decision artifact:
+  `docs/first-controlled-live-trial-scope-decision.md`.
+- Next observation may proceed only under the documented constraints: one
+  candidate/trade consideration maximum, observation-first, no Ture-placed
+  order, no automatic execution, and no Production Avanza/browser automation.
+- Recommended next action: Action 1005 - Run First Controlled Live-Trial
+  Observation.
+
+## Action 1005 First Controlled Live-Trial Observation
+
+- Result status: `first_controlled_live_trial_observation_blocked`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Action 1005 could not classify a live-trial observation because no fresh
+  Production operator evidence was provided.
+- No provider, route, scan, Supabase, broker/Avanza, automatic execution, or
+  real trade path was invoked.
+- Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
+  Controlled Live-Trial Observation During Active Window.

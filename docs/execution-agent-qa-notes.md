@@ -1,3 +1,136 @@
+## Action 1005 - QA Notes
+
+- QA status: `first_controlled_live_trial_observation_blocked`.
+- QA confirms `docs/first-controlled-live-trial-observation.md` exists.
+- QA confirms the observation document records purpose, observation
+  environment, pre-checks, recommendation observation, handoff/safety
+  observation, console/network observation, explicit result, follow-up
+  recommendation, progress update, and not-performed boundaries.
+- QA confirms the Action 1005 observation is blocked on missing fresh
+  Production operator evidence, not on a confirmed Product UI failure.
+- QA confirms this action is documentation/observation only and does not add
+  runtime code, Production browser automation, Avanza integration, broker
+  behavior, automatic submit, final click behavior, Supabase writes/calls,
+  audit writer client invocation, provider/route/scan invocation,
+  migrations/typegen/generated type edits, `.env.local` changes, real trades,
+  or trade/stats/PnL mutation.
+- QA confirms the recommended next action is Action 1006 - Provide Operator
+  Evidence And Repeat Controlled Live-Trial Observation During Active Window.
+- Required validation for this action: focused docs/path/status checks,
+  `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional runtime denial
+  script check, audit writer runtime path import search, route invocation
+  search without calling routes, UI/app-shell audit writer import scan,
+  market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  first-live-trial-observation-specific safety scan, automatic-mode safety
+  scan, dead-doc/path scan, status string consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; first-live-trial-observation-specific safety scan returned
+  documentation-only boundary terms; automatic-mode safety scan returned
+  existing checklist/safety language only; dead-doc/path scan returned no
+  missing files; result-status and next-action consistency scans passed;
+  `git diff --check` passed; touched-file trailing whitespace scan returned no
+  matches; zero-byte docs check returned no output; `.env.local` diff check
+  returned no output.
+
+## Action 1004 - QA Notes
+
+- QA status:
+  `first_controlled_live_trial_scope_approved_with_constraints`.
+- QA confirms `docs/first-controlled-live-trial-scope-decision.md` exists.
+- QA confirms the decision document records purpose, readiness basis, known
+  warnings, explicit live-trial decision, scope constraints, required operator
+  checks, hard no-go conditions, trial observation log template, next-action
+  result statuses, recommended next action, progress update, and not-performed
+  boundaries.
+- QA confirms this action is documentation/scope decision only and does not
+  add runtime code, Production browser automation, Avanza integration, broker
+  behavior, automatic submit, final click behavior, Supabase writes/calls,
+  audit writer client invocation, provider/route/scan invocation,
+  migrations/typegen/generated type edits, `.env.local` changes, real trades,
+  or trade/stats/PnL mutation.
+- QA confirms the recommended next action is Action 1005 - Run First
+  Controlled Live-Trial Observation.
+- Required validation for this action: focused docs/path/status checks,
+  `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional runtime denial
+  script check, audit writer runtime path import search, route invocation
+  search without calling routes, UI/app-shell audit writer import scan,
+  market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  live-trial-scope-specific safety scan, automatic-mode safety scan,
+  dead-doc/path scan, status string consistency scan, next-action consistency
+  scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; live-trial-scope-specific safety scan returned documentation-only
+  boundary terms; automatic-mode safety scan returned existing
+  checklist/safety language only; dead-doc/path scan returned no missing
+  files; result-status consistency scan passed; whitespace-aware next-action
+  consistency scan passed; `git diff --check` passed; touched-file trailing
+  whitespace scan returned no matches; zero-byte docs check returned no output;
+  `.env.local` diff check returned no output.
+
+## Action 1003 - QA Notes
+
+- QA status: `production_market_window_dry_run_passed_with_warnings`.
+- QA confirms `docs/production-market-window-dry-run-results.md` exists.
+- QA confirms the result document records purpose, observation environment,
+  Production UI observation, recommendation behavior observation, semi-auto
+  handoff safety observation, console/network observation, risk/EOD safety
+  observation, observation log, result, warnings, recommended next action,
+  progress update, and not-performed boundaries.
+- QA confirms the observation is based on operator-provided screenshot
+  evidence from Monday, June 29, 2026 around 14:07 CEST during pre-market.
+- QA confirms this action is documentation/observation only and does not add
+  runtime code, Production browser automation, Avanza integration, broker
+  behavior, automatic submit, final click behavior, Supabase writes/calls,
+  audit writer client invocation, provider/route/scan invocation,
+  migrations/typegen/generated type edits, `.env.local` changes, or
+  trade/stats/PnL mutation.
+- QA confirms the recommended next action is Action 1004 - Decide First
+  Controlled Live-Trial Scope.
+- Required validation for this action: focused docs/path/status checks,
+  `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional runtime denial
+  script check, audit writer runtime path import search, route invocation
+  search without calling routes, UI/app-shell audit writer import scan,
+  market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  Production-market-window-doc-specific safety scan, automatic-mode safety
+  scan, dead-doc/path scan, status string consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; Production-market-window result-doc-specific safety scan returned
+  documentation-only boundary terms; automatic-mode safety scan returned
+  existing checklist/safety language only; dead-doc/path scan returned no
+  missing files; result-status consistency scan passed; whitespace-aware
+  next-action consistency scan passed; `git diff --check` passed; touched-file
+  trailing whitespace scan returned no matches; zero-byte docs check returned
+  no output; `.env.local` diff check returned no output.
+
 ## Action 1002 - QA Notes
 
 - QA status: `monday_production_market_window_dry_run_handoff_created`.
