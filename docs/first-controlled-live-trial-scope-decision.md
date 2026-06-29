@@ -199,3 +199,73 @@ Action 1005 - Run Regular Open Production Observation With Candidate Evidence.
   call/write, or trade/stats/PnL mutation was performed.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Fresh operator evidence from Monday, June 29, 2026 regular/morning session
+  showed Production open, Recommendations rendering, 8 visible candidates,
+  visible CAT/JPM cards, cleared console with no red Supabase 4xx/5xx errors,
+  human-confirmed execution boundary active, and broker automation disabled.
+- Warnings remain: scanner observability degraded, output/candidates need
+  review, dynamic movers provider unavailable/static universe used, metrics
+  incomplete, recommendation status refreshing, diagnostics tier mismatch, and
+  handoff/EOD not observed.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.
+
+## Action 1007 Real Avanza UI Training Safety Protocol
+
+- Result status: `real_avanza_ui_training_protocol_created`.
+- Protocol artifact:
+  `docs/real-avanza-ui-training-safety-protocol.md`.
+- The protocol does not approve field filling or execution; it defines
+  human-led Avanza UI reconnaissance as the next safe bridge from sandbox
+  readiness to real UI mapping.
+- Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+  Reconnaissance.
+
+## Action 1008 Human-Led Real Avanza UI Reconnaissance
+
+- Result status: `real_avanza_ui_reconnaissance_blocked`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Scope decision remains conservative: real Avanza UI learning is approved only
+  as human-led observation, but no observation evidence was provided for Action
+  1008.
+- No field filling, broker submit, automation, credential handling, or 2FA
+  handling was performed.
+- Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+  Reconnaissance Evidence.
+
+## Action 1009 Human-Led Real Avanza UI Reconnaissance Evidence
+
+- Result status: `real_avanza_ui_reconnaissance_passed_with_warnings`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Scope decision advances from missing-evidence blocked to screenshot-based UI
+  reconnaissance passed with warnings.
+- Future work remains mapping-spec only unless separately approved; no Avanza
+  fill automation or final confirmation action is approved.
+- Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+
+## Action 1010 Real Avanza UI Mapping Spec
+
+- Result status: `real_avanza_ui_mapping_spec_created`.
+- Mapping spec artifact: `docs/real-avanza-ui-mapping-spec.md`.
+- Scope remains documentation/spec only: no fill-only POC, no max-amount
+  enforcement implementation, and no Avanza automation are approved yet.
+- Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+  And Max Amount Policy.
+
+## Action 1011 Fill-Only POC Gate And Max Amount Policy
+
+- Result status:
+  `real_avanza_fill_only_poc_gate_and_max_amount_policy_created`.
+- Policy artifact:
+  `docs/real-avanza-fill-only-poc-gate-and-max-amount-policy.md`.
+- Scope remains planning/spec only; real fill-only execution requires a later
+  explicit approval after guard contract tests.
+- Recommended next action: Action 1012 - Add Max Amount And Final-Submit Guard
+  Contract Tests.

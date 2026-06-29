@@ -1,3 +1,209 @@
+## Action 1032 Operator Setup Evidence Update
+
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`.
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- Setup readiness decision: `operator_setup_deferred`.
+- Real browser automation readiness remains evidence-gated; no real browser
+  automation was added or run.
+- Recommended next action: Action 1033 - Complete Operator Setup Evidence.
+
+## Action 1031 Operator Setup Checklist Update
+
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-checklist.md`.
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_checklist_added`.
+- Setup readiness decision: `operator_setup_deferred`.
+- Real browser automation feasibility remains gated and documentation-only in
+  this action.
+- Recommended next action: Action 1032 - Capture Gated Adapter Operator Setup
+  Evidence.
+
+## Action 1030 Gated Adapter Skeleton Update
+
+- Created `docs/gated-real-avanza-fill-only-adapter-skeleton.md`.
+- Result status: `gated_real_avanza_fill_only_adapter_skeleton_added`.
+- Feasibility remains gated: the skeleton is non-executing, disabled by
+  default, and cannot launch or control a browser.
+- Recommended next action: Action 1031 - Add Gated Adapter Operator Setup
+  Checklist.
+
+## Action 1029 Real-Run Readiness Gate Update
+
+- Created `docs/first-real-avanza-fill-only-poc-real-run-readiness-gate.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_real_run_readiness_gate_added`.
+- Readiness decision:
+  `ready_for_first_fill_only_poc_implementation_gate`.
+- Current approximate progress: semi-auto Avanza/browser-agent readiness 99%,
+  real browser automation readiness 98%, first Avanza fill-only POC readiness
+  99%, and full-auto readiness 10-15%.
+- This does not approve full-auto, final confirmation, or a real run now.
+- Recommended next action: Action 1030 - Add Gated Real Avanza Fill-Only
+  Adapter Skeleton.
+
+## Action 1028 Manual Approval Capture Update
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-capture.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_capture_added`.
+- Approval decision:
+  `approved_for_first_fill_only_poc`.
+- Current approximate progress: semi-auto Avanza/browser-agent readiness 99%,
+  real browser automation readiness 98%, first Avanza fill-only POC readiness
+  98-99%, and full-auto readiness 10-15%.
+- Captured approval does not authorize full-auto or final confirmation.
+- Recommended next action: Action 1029 - Add First Fill-Only POC Real-Run
+  Readiness Gate.
+
+## Action 1027 Manual Approval Message Update
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-message.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_message_added`.
+- Current approval state for first real fill-only POC remains
+  `not_approved_yet`; real browser automation and real Avanza access remain
+  unapproved.
+- Current approximate progress: semi-auto Avanza/browser-agent readiness 99%,
+  real browser automation readiness 98%, first Avanza fill-only POC readiness
+  98-99%, and full-auto readiness 10-15%.
+- No runtime code, Avanza access, browser automation, DOM query, field fill,
+  click, submit, broker behavior, Supabase call, migration, typegen, generated
+  type edit, `.env.local` change, real trade, or trade/stats/PnL mutation was
+  performed.
+- Recommended next action: Action 1028 - Capture First Fill-Only POC Manual
+  Approval.
+
+## Action 1026 Runbook Update
+
+- Created `docs/first-real-avanza-fill-only-poc-runbook.md`.
+- Result status: `first_real_avanza_fill_only_poc_runbook_added`.
+- The runbook is documentation-only and confirms the first real fill-only POC
+  still requires separate approval before any browser automation or Avanza
+  access can occur.
+- Current approximate progress: semi-auto Avanza/browser-agent readiness 99%,
+  real browser automation readiness 97-98%, first Avanza fill-only POC
+  readiness 98-99%, and full-auto readiness 10-15%.
+- No runtime code, Avanza access, browser automation, DOM query, field fill,
+  click, submit, broker behavior, Supabase call, migration, typegen, generated
+  type edit, `.env.local` change, real trade, or trade/stats/PnL mutation was
+  performed.
+- Recommended next action: Action 1027 - Add First Fill-Only POC Manual
+  Approval Message.
+
+## Action 1025 Implementation Stub Update
+
+- Action 1025 added the non-executing implementation stub.
+- Result status:
+  `first_real_avanza_fill_only_poc_implementation_stub_added`.
+- The stub is not real browser automation and has no browser launch/control,
+  DOM query, field fill, click, or submit capability.
+- Recommended next action: Action 1026 - Add First Fill-Only POC Runbook.
+
+## Action 1024 Approval Decision Update
+
+- Action 1024 created
+  `docs/first-real-avanza-fill-only-poc-approval-decision.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_decision_created`.
+- Real browser automation readiness remains approximately 97-98%, but this
+  decision does not implement browser automation or approve a run.
+- Recommended next action: Action 1025 - Add First Real Avanza Fill-Only POC
+  Implementation Stub.
+
+## Action 1023 Local Simulation Report Update
+
+- Action 1023 created
+  `docs/first-real-avanza-fill-only-poc-local-simulation-report.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_local_simulation_report_added`.
+- Semi-auto/browser-agent readiness is unchanged: the report is local-only and
+  does not approve or implement real browser automation.
+- Recommended next action: Action 1024 - Review Local Simulation And Decide
+  First Real Fill-Only POC Approval.
+
+## Action 1022 Approval State Contract Update
+
+- Action 1022 added a pure/static approval state contract.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_state_contract_added`.
+- This does not change real browser automation approval; it only models human
+  approval state for a future first fill-only POC.
+- Recommended next action: Action 1023 - Add First Fill-Only POC Local
+  Simulation Report.
+
+## Action 1021 Harness Stub Update
+
+- Action 1021 added a local/static first fill-only POC dry-run harness stub.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_harness_stub_added`.
+- Semi-auto Avanza/browser-agent readiness remains high, but the harness is not
+  browser automation and does not access Avanza or perform real broker actions.
+- Real browser automation remains separately unapproved.
+- Recommended next action: Action 1022 - Add First Fill-Only POC Approval
+  State Contract.
+
+## Action 1020 Approval Checklist Update
+
+- Action 1020 created
+  `docs/first-real-avanza-fill-only-poc-approval-checklist.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_checklist_created`.
+- Semi-auto Avanza/browser-agent readiness remains high, but the checklist
+  keeps real Avanza automation unapproved and requires a separate future
+  approval before any fill-only POC dry-run.
+- Recommended next action: Action 1021 - Add First Fill-Only POC Dry-Run
+  Harness Stub.
+
+## Action 1019 Dry-Run Plan Update
+
+- Action 1019 created `docs/first-real-avanza-fill-only-poc-dry-run-plan.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_plan_created`.
+- Semi-auto Avanza/browser-agent readiness remains 98-99%, real browser
+  automation readiness remains 95-97%, and full-auto readiness remains 10-15%.
+- The plan does not approve real Avanza browser automation or execution.
+- Recommended next action: Action 1020 - Add First Fill-Only POC Approval
+  Checklist.
+
+## Action 1018 Selector Contract Integration Update
+
+- Action 1018 connected selector contract metadata to the fill-only guard.
+- Result status:
+  `real_avanza_fill_only_guard_selector_contract_integration_added`.
+- Semi-auto Avanza/browser-agent readiness remains 98-99%, real browser
+  automation readiness remains 95-97%, and full-auto readiness remains 10-15%.
+- This still does not approve real Avanza browser automation or fill-only
+  execution.
+- Recommended next action: Action 1019 - Add First Fill-Only POC Dry-Run Plan.
+
+## Action 1017 Selector Mapping Contract Update
+
+- Action 1017 added a pure/static selector contract from Action 1016 evidence.
+- Result status:
+  `real_avanza_selector_mapping_contract_created`.
+- Semi-auto Avanza/browser-agent readiness remains 98-99%; real browser
+  automation readiness remains 95-97%; full-auto readiness remains 10-15%.
+- This contract does not approve real Avanza browser automation or fill-only
+  execution.
+- Recommended next action: Action 1018 - Add Selector Contract To Fill-Only
+  Guard.
+
+## Action 1016 DOM/Selector Evidence Update
+
+- Action 1016 moved real Avanza DOM/selector reconnaissance to
+  `real_avanza_dom_selector_recon_passed_with_warnings` using operator-provided
+  screenshot/DevTools evidence.
+- Semi-auto Avanza/browser-agent readiness is now estimated at 98-99%, while
+  real browser automation readiness is 95-97%.
+- This does not approve Avanza automation; it only supports the next pure/static
+  selector mapping contract.
+- Full-auto readiness remains 10-15%.
+- Recommended next action: Action 1017 - Create Real Avanza Selector Mapping
+  Contract.
+
 # Semi-Auto Agent Real Browser Automation Feasibility Review
 
 ## Purpose
@@ -313,3 +519,106 @@ Avanza automation was added. Result status:
 
 Recommended next action: Action 1002 - Run Production Market-Window Dry Run
 During Open US Session.
+
+## Action 1007 Real Avanza UI Training Safety Protocol
+
+- Result status: `real_avanza_ui_training_protocol_created`.
+- Protocol artifact:
+  `docs/real-avanza-ui-training-safety-protocol.md`.
+- Real Avanza automation remains 0% implemented.
+- The next real-UI step is not browser automation; it is human-led
+  reconnaissance and UI mapping with no field filling, no credential handling,
+  no 2FA bypass, and no final broker click.
+- Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+  Reconnaissance.
+
+## Action 1008 Human-Led Real Avanza UI Reconnaissance
+
+- Result status: `real_avanza_ui_reconnaissance_blocked`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Real Avanza automation remains 0% implemented.
+- Real UI mapping remains blocked because Action 1008 did not include
+  operator-provided UI observations, labels, screenshots, or final-confirmation
+  boundary evidence.
+- Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+  Reconnaissance Evidence.
+
+## Action 1009 Human-Led Real Avanza UI Reconnaissance Evidence
+
+- Result status: `real_avanza_ui_reconnaissance_passed_with_warnings`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Real Avanza automation remains unimplemented, but feasibility improves
+  because operator evidence identifies search, instrument page, order forms,
+  review buttons, confirmation modal, and final `Bekräfta köp`/`Bekräfta sälj`
+  boundary.
+- Remaining warnings: no DOM/selector verification, screenshot/manual-note
+  evidence only, and no fill-only POC approval.
+- Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+
+## Action 1010 Real Avanza UI Mapping Spec
+
+- Result status: `real_avanza_ui_mapping_spec_created`.
+- Mapping spec artifact: `docs/real-avanza-ui-mapping-spec.md`.
+- Feasibility posture improves for a future fill-only POC, but real Avanza
+  automation remains unimplemented and unapproved.
+- The next gate must define max amount, scope, stop point, and approval rules.
+- Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+  And Max Amount Policy.
+
+## Action 1011 Fill-Only POC Gate And Max Amount Policy
+
+- Result status:
+  `real_avanza_fill_only_poc_gate_and_max_amount_policy_created`.
+- Policy artifact:
+  `docs/real-avanza-fill-only-poc-gate-and-max-amount-policy.md`.
+- Feasibility now has a documented POC gate and max amount policy, but no real
+  Avanza automation is implemented or approved.
+- Recommended next action: Action 1012 - Add Max Amount And Final-Submit Guard
+  Contract Tests.
+## Action 1012 - Max Amount And Final-Submit Guard Contract Tests
+
+- Added pure guard helper `lib/real-avanza-fill-only-guard.ts`.
+- Added contract tests in
+  `tests/e2e/real-avanza-fill-only-guard-contract.spec.ts`.
+- Added proof doc `docs/real-avanza-fill-only-guard-contract-tests.md`.
+- Result status:
+  `real_avanza_fill_only_guard_contract_tests_added`.
+- Feasibility remains gated. The guard blocks cap failures, unknown FX,
+  non-semi-auto payloads, automatic submit, unsupported order forms, sell,
+  `Stop Loss`, `Glidande`, and final submit actions before any future real
+  browser fill-only POC can be considered.
+- No real browser automation or Avanza integration was added.
+- Recommended next action: Action 1013 - Add Real Avanza Fill-Only POC
+  Readiness Review.
+
+## Action 1013 - Real Avanza Fill-Only POC Readiness Review
+
+- Created `docs/real-avanza-fill-only-poc-readiness-review.md`.
+- Result status:
+  `real_avanza_fill_only_poc_readiness_review_created`.
+- Readiness decision:
+  `real_avanza_fill_only_poc_deferred_pending_dom_mapping`.
+- Real browser automation remains not implemented. The next safe step is
+  no-fill DOM/selector reconnaissance planning, not field filling.
+- Recommended next action: Action 1014 - Prepare Real Avanza DOM/Selector
+  Reconnaissance Plan.
+
+## Action 1014 - Real Avanza DOM/Selector Reconnaissance Plan
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-plan.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_plan_created`.
+- Feasibility remains gated: the next step is manual selector/label
+  reconnaissance only, not real browser automation or field filling.
+- Recommended next action: Action 1015 - Run Human-Led Real Avanza
+  DOM/Selector Reconnaissance.
+
+## Action 1015 - Real Avanza DOM/Selector Reconnaissance Results
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-results.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_blocked`.
+- Real browser automation feasibility remains gated because no selector
+  evidence was provided.
+- Recommended next action: Action 1016 - Repeat Human-Led Real Avanza
+  DOM/Selector Reconnaissance With Evidence.

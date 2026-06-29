@@ -298,3 +298,15 @@ the checklist in
   real trade path was invoked.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Regular/morning Production evidence showed market open, morning momentum
+  window, 8 visible recommendations, clean red-error console state, and
+  observe-only/human-confirmed boundaries.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.

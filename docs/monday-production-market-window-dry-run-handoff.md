@@ -256,3 +256,15 @@ Action 1003 - Run Production Market-Window Dry Run With Operator Evidence.
 - No Production observation was run by Codex.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Fresh regular/morning evidence showed Production open, visible
+  recommendations, CAT/JPM candidate cards, no red Supabase 4xx/5xx console
+  errors, and no unsafe execution behavior.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.

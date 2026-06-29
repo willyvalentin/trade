@@ -269,3 +269,62 @@ from Ture, no automatic execution, and maximum 1 candidate/trade consideration.
 
 Recommended next action: Action 1005 - Run First Controlled Live-Trial
 Observation.
+
+## Action 1007 Real Avanza UI Training Safety Protocol
+
+Result status:
+`real_avanza_ui_training_protocol_created`.
+
+Created `docs/real-avanza-ui-training-safety-protocol.md`.
+
+The sandbox phase now has a real-UI safety bridge: human-led Avanza UI
+reconnaissance first, no agent field filling, no broker submit, no credentials,
+no 2FA bypass, and no final `KOP`/`SALJ` or `KÖP`/`SÄLJ` click.
+
+Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+Reconnaissance.
+
+## Action 1008 Human-Led Real Avanza UI Reconnaissance
+
+Result status:
+`real_avanza_ui_reconnaissance_blocked`.
+
+Created `docs/real-avanza-ui-reconnaissance-results.md`.
+
+No operator-provided real Avanza UI evidence was included, so the sandbox phase
+cannot yet advance into real UI mapping. Sandbox readiness remains intact, but
+real Avanza field mapping, final confirmation mapping, and fill-only Avanza POC
+planning remain blocked.
+
+Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+Reconnaissance Evidence.
+
+## Action 1009 Human-Led Real Avanza UI Reconnaissance Evidence
+
+Result status:
+`real_avanza_ui_reconnaissance_passed_with_warnings`.
+
+Updated `docs/real-avanza-ui-reconnaissance-results.md` with
+operator-provided real Avanza screenshots/notes.
+
+The sandbox phase now has a real-UI reconnaissance bridge: search and
+instrument pages, buy/sell entry, order type variants, validation errors,
+review buttons, confirmation modal, `Avbryt`, and final `Bekräfta köp` /
+`Bekräfta sälj` boundary are documented.
+
+Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+
+## Action 1010 Real Avanza UI Mapping Spec
+
+Result status:
+`real_avanza_ui_mapping_spec_created`.
+
+Created `docs/real-avanza-ui-mapping-spec.md`.
+
+The roadmap now has a documentation-only bridge from screenshot reconnaissance
+to a future gated fill-only POC: payload-to-UI mapping, field classifications,
+order type mapping, confirmation modal mapping, validation/error mapping, and
+safety gates are documented.
+
+Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+And Max Amount Policy.

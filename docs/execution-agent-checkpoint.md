@@ -1,3 +1,1025 @@
+## Action 1029 - Add First Fill-Only POC Real-Run Readiness Gate
+
+- Created `docs/first-real-avanza-fill-only-poc-real-run-readiness-gate.md`.
+- Updated the first fill-only POC manual approval capture, manual approval
+  message, runbook, implementation stub, approval, simulation, harness, plan,
+  selector, safety, readiness, architecture, checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_real_run_readiness_gate_added`.
+- Readiness decision:
+  `ready_for_first_fill_only_poc_implementation_gate`.
+- This does not mean run now. It means the next step may create a gated
+  real-run implementation path, still disabled by default.
+- Prerequisites passed: manual approval captured, runbook exists, approval
+  checklist exists, approval state contract exists, implementation stub exists,
+  dry-run harness exists, local simulation report exists, selector mapping
+  contract exists, fill-only guard selector integration exists, max cap guard
+  exists, forbidden final selector exists, and browser safety boundary exists.
+- Expected warnings remain: real run implementation not added yet, no real
+  dry-run performed yet, and evidence package not captured yet.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 99%, full-auto readiness
+  10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1030 - Add Gated Real Avanza Fill-Only
+  Adapter Skeleton.
+- No runtime code, Avanza access, browser automation, DOM querying, field
+  filling, clicking, submit, `Granska köp`, `Bekräfta köp`, `Bekräfta sälj`,
+  order placement, credential handling, session-token capture, 2FA bypass,
+  provider call, scan route invocation, Supabase/DB write, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  audit writer UI/browser/client invocation, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; real-run-
+  readiness-gate-specific executable safety scan returned documentation-only
+  boundary references and no executable Avanza, browser, broker,
+  automatic-submit, fetch, Supabase, environment, service-role, provider, route,
+  scan, audit writer, click, locator, goto, or fill code; automatic-mode safety
+  scan returned expected human-confirmation, no-unattended-run,
+  disabled-by-default, and forbidden-action policy references only;
+  referenced-path, result-status, next-action, `git diff --check`,
+  touched-file trailing whitespace, zero-byte docs, and `.env.local` diff
+  checks passed.
+
+## Action 1028 - Capture First Fill-Only POC Manual Approval
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-capture.md`.
+- Updated the first fill-only POC manual approval message, runbook,
+  implementation stub, approval, simulation, harness, plan, selector, safety,
+  readiness, architecture, checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_capture_added`.
+- Approval decision:
+  `approved_for_first_fill_only_poc`.
+- The exact approval text was captured and evaluated. Required fields passed:
+  buy-only, Avancerad/Limit, amount-based sizing, max cap 1,000 SEK or lower,
+  user present, manual Avanza login, manual account verification, manual
+  instrument verification, stop before `Granska köp`, no review modal, no
+  `Bekräfta köp/sälj`, no final confirmation, no order placement, no
+  unattended run, and no credential/2FA handling by Ture or agent.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1029 - Add First Fill-Only POC Real-Run
+  Readiness Gate.
+- No runtime code, Avanza access, browser automation, DOM querying, field
+  filling, clicking, submit, `Granska köp`, `Bekräfta köp`, `Bekräfta sälj`,
+  order placement, credential handling, session-token capture, 2FA bypass,
+  provider call, scan route invocation, Supabase/DB write, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  audit writer UI/browser/client invocation, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; manual-approval-
+  capture-specific executable safety scan returned documentation-only boundary
+  references and no executable Avanza, browser, broker, automatic-submit,
+  fetch, Supabase, environment, service-role, provider, route, scan, audit
+  writer, click, locator, goto, or fill code; automatic-mode safety scan
+  returned expected human-confirmation, no-unattended-run, and forbidden-action
+  policy references only; referenced-path, result-status, next-action,
+  `git diff --check`, touched-file trailing whitespace, zero-byte docs, and
+  `.env.local` diff checks passed.
+
+## Action 1027 - Add First Fill-Only POC Manual Approval Message
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-message.md`.
+- Updated the first fill-only POC runbook, implementation stub, approval,
+  simulation, harness, plan, selector, safety, readiness, architecture,
+  checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_message_added`.
+- Current manual approval state remains `not_approved_yet` because the exact
+  approval phrase has not been supplied.
+- The latest operator message, `Klart.`, is not the exact approval phrase and
+  does not approve a real run, implementation, Avanza access, browser
+  automation, field filling, review click, final confirmation, or order
+  placement.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1028 - Capture First Fill-Only POC Manual
+  Approval.
+- No runtime code, Avanza access, browser automation, DOM querying, field
+  filling, clicking, submit, `Granska köp`, `Bekräfta köp`, `Bekräfta sälj`,
+  order placement, credential handling, session-token capture, 2FA bypass,
+  provider call, scan route invocation, Supabase/DB write, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  audit writer UI/browser/client invocation, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; route/provider/
+  scanner and service-role scans returned expected documentation/historical
+  references only without invoking routes, providers, scans, Supabase calls, or
+  service-role adapter calls and without printing secrets; manual-approval-
+  message-specific executable safety scan returned documentation-only boundary
+  references and no executable Avanza, browser, broker, automatic-submit,
+  fetch, Supabase, environment, service-role, provider, route, scan, audit
+  writer, click, locator, goto, or fill code; automatic-mode safety scan
+  returned expected human-confirmation and forbidden-action policy references
+  only; referenced-path, result-status, next-action, `git diff --check`,
+  touched-file trailing whitespace, zero-byte docs, and `.env.local` diff
+  checks passed.
+
+## Action 1026 - Add First Fill-Only POC Runbook
+
+- Created `docs/first-real-avanza-fill-only-poc-runbook.md`.
+- Updated the first fill-only POC approval, simulation, harness, plan, selector,
+  safety, readiness, architecture, checkpoint, and QA docs.
+- Result status: `first_real_avanza_fill_only_poc_runbook_added`.
+- The runbook documents purpose, required approval before use, roles, pre-run
+  checklist, locked POC scope, intended future fill-only sequence, hard stops,
+  evidence capture checklist, pass/fail criteria, abort/kill switch, and
+  post-run documentation template.
+- The runbook remains documentation-only and explicitly states that it is not
+  the real run, not implementation, and not order execution.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1027 - Add First Fill-Only POC Manual
+  Approval Message.
+- No runtime code, Avanza access, browser automation, DOM querying, field
+  filling, clicking, submit, `Granska köp`, `Bekräfta köp`, `Bekräfta sälj`,
+  order placement, credential handling, session-token capture, 2FA bypass,
+  provider call, scan route invocation, Supabase/DB write, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  audit writer UI/browser/client invocation, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; route/provider/
+  scanner and service-role scans returned expected documentation/historical
+  references only without invoking routes, providers, scans, Supabase calls, or
+  service-role adapter calls and without printing secrets; runbook-specific
+  executable safety scan returned documentation-only boundary references and no
+  executable Avanza, browser, broker, automatic-submit, fetch, Supabase,
+  environment, service-role, provider, route, scan, audit writer, click,
+  locator, goto, or fill code; automatic-mode safety scan returned expected
+  human-confirmation and forbidden-action policy references only;
+  referenced-path, result-status, next-action, `git diff --check`,
+  touched-file trailing whitespace, zero-byte docs, and `.env.local` diff
+  checks passed.
+
+## Action 1025 - Add First Real Avanza Fill-Only POC Implementation Stub
+
+- Added `lib/first-real-avanza-fill-only-poc-implementation-stub.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-implementation-stub.spec.ts`.
+- Created `docs/first-real-avanza-fill-only-poc-implementation-stub.md`.
+- Updated the first fill-only POC approval, simulation, harness, plan, selector,
+  safety, readiness, architecture, checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_implementation_stub_added`.
+- The stub defines typed request/result decisions, composes the approval
+  contract and dry-run harness, exposes planned future selectors and evidence
+  requirements, blocks unsafe states, and keeps all execution capability flags
+  false.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 97-98%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1026 - Add First Fill-Only POC Runbook.
+- No real Avanza access, browser automation, DOM querying, runtime Avanza
+  integration, field filling, clicking, submit, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: new implementation stub tests passed with 21/21; focused
+  approval, guard, selector, semi-auto, and sandbox safety suite passed with
+  170/170; Playwright required local web-server bind escalation because the
+  sandbox blocks port 3010 with `EPERM`; `./node_modules/.bin/tsc --noEmit`
+  passed; `npm run lint` passed with the known `app/trade-app.tsx` Babel deopt
+  note; optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; stub executable safety scan returned
+  no forbidden browser, Playwright, Puppeteer, DOM, fetch, Supabase,
+  environment, service-role, provider, route, audit-writer, broker, click,
+  locator, goto, or fill behavior; route/provider and service-role broad scans
+  returned expected existing app/docs/test/lib references only without invoking
+  routes or printing secrets; automatic-mode safety scan returned expected
+  block-policy and test references only; referenced-path, result-status,
+  next-action, `git diff --check`, touched-file trailing whitespace, zero-byte
+  docs, and `.env.local` diff checks passed.
+
+## Action 1024 - Review Local Simulation And Decide First Real Fill-Only POC Approval
+
+- Created `docs/first-real-avanza-fill-only-poc-approval-decision.md`.
+- Updated the first fill-only POC approval, harness, plan, selector, safety,
+  readiness, architecture, checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_decision_created`.
+- Decision state:
+  `approved_for_first_fill_only_poc`.
+- The approval decision is conditional and does not approve a real run by
+  itself. The operator must still provide explicit approval text before any
+  implementation or real POC run.
+- Locked scope: buy-only, Avancerad/Limit, amount-based, cap <= 1,000 SEK,
+  manual login, manual instrument/order form setup, approved fields only after
+  separately approved implementation, stop before `Granska köp`, no review
+  modal, no sell, no Stop Loss, no Glidande, no final confirm ever, no
+  unattended run, and no credentials/2FA handling.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 96-98%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1025 - Add First Real Avanza Fill-Only POC
+  Implementation Stub.
+- No runtime code, browser automation, Avanza access, Avanza integration, DOM
+  querying, field filling, clicking, submit, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, order placement, credential handling, session-token
+  capture, 2FA bypass, provider calls, scan route invocation, DB writes,
+  Supabase calls, service-role adapter calls, migrations, type generation,
+  generated type edits, `.env.local` changes, audit writer UI/browser/client
+  invocation, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; decision-doc
+  executable safety scan returned only expected not-performed policy references
+  for provider/service-role and no executable browser, Avanza, DOM, fetch,
+  Supabase, env, route, scan, audit-writer, broker, click, locator, goto, or
+  fill behavior; automatic-mode safety scan returned only expected docs
+  references to unattended/automatic-mode block policy; referenced-path, status
+  string, next-action, `git diff --check`, touched-file trailing whitespace,
+  zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1023 - Add First Fill-Only POC Local Simulation Report
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-local-simulation-report.md`.
+- Updated the first fill-only POC approval, harness, plan, selector, safety,
+  readiness, architecture, checkpoint, and QA docs.
+- Result status:
+  `first_real_avanza_fill_only_poc_local_simulation_report_added`.
+- The report documents local-only simulation basis, scenario matrix, all-false
+  safety flags, future real dry-run evidence requirements, readiness impact,
+  and next decision point.
+- Local guard/approval/selector simulation is ready; real dry-run remains
+  unapproved and still requires separate explicit user approval plus operator
+  setup.
+- Recommended next action: Action 1024 - Review Local Simulation And Decide
+  First Real Fill-Only POC Approval.
+- No browser automation, Avanza access, DOM querying, runtime Avanza
+  integration, field filling, clicking, submit, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: focused Playwright suite passed with 149/149 across
+  approval state contract, dry-run harness, real Avanza fill-only guard
+  contract, selector mapping contract, human-final-confirmation guard, browser
+  automation safety boundary, sandbox selector-stability, semi-auto payload,
+  mock adapter, handoff preview, result capture, dev flow, local persistence,
+  local history, and sandbox result-capture tests; Playwright required local
+  web-server bind escalation because the sandbox blocks port 3010 binding with
+  `EPERM`; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed
+  with the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reported `runtime-denial-script-absent`; audit writer
+  runtime path import search returned no app/components/hooks matches;
+  route/provider/scan and service-role scans returned expected existing
+  app/docs/test references without invoking routes or printing secrets;
+  action-specific executable safety scan returned no forbidden browser,
+  Avanza, DOM, fetch, Supabase, env, service-role, provider, route, scan,
+  audit-writer, broker, click, locator, goto, or fill imports; report-specific
+  scan returned only expected docs/policy references; automatic-mode safety
+  scan returned only expected block-policy references; status string,
+  referenced-path, `git diff --check`, zero-byte docs, and `.env.local` diff
+  checks passed.
+
+## Action 1022 - Add First Fill-Only POC Approval State Contract
+
+- Added `lib/first-real-avanza-fill-only-poc-approval-state-contract.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-approval-state-contract.spec.ts`.
+- Created `docs/first-real-avanza-fill-only-poc-approval-state-contract.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_state_contract_added`.
+- The contract exports approval decision statuses, defaults to
+  `not_approved_yet`, separates `approved_for_stub_only` from
+  `approved_for_first_fill_only_poc`, and requires explicit real approval
+  fields before real dry-run approval can be returned.
+- The dry-run harness now imports the shared approval decision type from the
+  approval state contract and remains compatible with `not_approved_yet`.
+- Recommended next action: Action 1023 - Add First Fill-Only POC Local
+  Simulation Report.
+- No browser automation, Avanza access, DOM querying, runtime Avanza
+  integration, field filling, clicking, submit, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: new approval state contract and dry-run harness tests
+  passed with 44/44; focused guard/selector/safety stack passed with 95/95
+  across the approval state contract tests, dry-run harness tests, real Avanza
+  fill-only guard contract tests, selector mapping contract tests,
+  human-final-confirmation guard tests, browser automation safety boundary
+  tests, and sandbox selector-stability tests; Playwright tests required local
+  web-server bind escalation because the sandbox blocks port 3010 binding with
+  `EPERM`; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed
+  with the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reported `runtime-denial-script-absent`; audit writer
+  runtime path import search returned no app/components/hooks matches; approval
+  contract and harness executable safety scan returned no forbidden browser,
+  Avanza, DOM, fetch, Supabase, env, service-role, provider, route, scan,
+  audit-writer, or broker imports; route invocation, UI/app-shell audit writer
+  import, market-loop/scanner, `NEXT_PUBLIC_*SERVICE*`, service-role leakage,
+  automatic-mode, dead-doc/path, status string, next-action, `git diff
+  --check`, trailing-whitespace, zero-byte docs, and `.env.local` diff checks
+  passed or returned expected docs-only, test-only, existing app,
+  selector-literal, or policy references without invoking runtime behavior or
+  printing secrets.
+
+## Action 1021 - Add First Fill-Only POC Dry-Run Harness Stub
+
+- Added `lib/first-real-avanza-fill-only-poc-dry-run-harness.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-dry-run-harness.spec.ts`.
+- Created `docs/first-real-avanza-fill-only-poc-dry-run-harness-stub.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_harness_stub_added`.
+- The harness is local/static/pure and wraps the existing fill-only guard and
+  selector policy with static operator approval, selector readiness, human
+  verification, cap, parsed total amount, validation error, review/final
+  selector, generated selector, forbidden selector, and evidence gates.
+- The harness returns `not_approved`, `approved_for_stub_only`, `blocked`, or
+  `failed_safety`.
+- All real-action flags are false: no real Avanza access, browser automation,
+  DOM querying, field filling, clicking, submit, review click, or final
+  confirm.
+- Recommended next action: Action 1022 - Add First Fill-Only POC Approval
+  State Contract.
+- No real Avanza access, browser automation, DOM querying, runtime Avanza
+  integration, field filling, clicking, submit, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: new dry-run harness tests passed with 20/20; focused
+  existing guard/selector/safety stack passed with 71/71 across the new harness
+  tests, real Avanza fill-only guard contract tests, selector mapping contract
+  tests, human-final-confirmation guard tests, browser automation safety
+  boundary tests, and sandbox selector-stability tests; first sandboxed
+  Playwright run was blocked by local web-server bind `EPERM` on port 3010 and
+  the focused Playwright runs passed after escalation for local server binding
+  only; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with
+  the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reported `runtime-denial-script-absent`; audit writer
+  runtime path import search returned no app/components/hooks matches;
+  harness-specific executable safety scan returned no forbidden browser,
+  Avanza, DOM, fetch, Supabase, env, service-role, provider, route, scan,
+  audit-writer, click, locator, goto, or broker imports; route invocation,
+  UI/app-shell audit writer import, market-loop/scanner,
+  `NEXT_PUBLIC_*SERVICE*`, service-role leakage, automatic-mode,
+  dead-doc/path, status string, next-action, `git diff --check`,
+  trailing-whitespace, zero-byte docs, and `.env.local` diff checks passed or
+  returned expected docs-only, test-only, existing app, selector-literal, or
+  policy references without invoking runtime behavior or printing secrets.
+
+## Action 1020 - Add First Fill-Only POC Approval Checklist
+
+- Created `docs/first-real-avanza-fill-only-poc-approval-checklist.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_checklist_created`.
+- Default approval decision:
+  `not_approved_yet`.
+- The checklist documents purpose, required separate human approval, scope
+  lock, required guard pass, required selector readiness, explicitly forbidden
+  first-POC actions, required operator setup, evidence package, block
+  conditions, approval decision statuses, recommended next action, safety
+  statement, validation, and not-performed boundaries.
+- Required future approval must include date/time window, max cap, instrument
+  or `operator-selected instrument`, sizing mode, stop point, acknowledgement
+  that no `Granska köp` click is allowed in the first POC, and acknowledgement
+  that no `Bekräfta köp` or `Bekräfta sälj` click is ever allowed.
+- Scope remains buy-only, Avancerad/Limit only, amount-based by default, capped
+  at 1,000 SEK or lower, manually logged in, manually opened by operator, and
+  stopped before `Granska köp`.
+- Recommended next action: Action 1021 - Add First Fill-Only POC Dry-Run
+  Harness Stub.
+- No runtime code, browser automation, Avanza access, Avanza integration, DOM
+  query, field filling, click, submit, `Granska köp` click, final click, order
+  placement, credential handling, session-token capture, 2FA bypass, provider
+  call, scan route invocation, DB write, Supabase call, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  service-role value print, audit writer UI/browser/client invocation, real
+  trade, or trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed; focused
+  docs/path/status checks passed; `./node_modules/.bin/tsc --noEmit` passed;
+  `npm run lint` passed with the known `app/trade-app.tsx` Babel deopt note;
+  optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; route invocation, UI/app-shell audit
+  writer import, market-loop/scanner, `NEXT_PUBLIC_*SERVICE*`, service-role
+  leakage, first-fill-only-poc-approval-checklist executable safety,
+  automatic-mode, dead-doc/path, status string, next-action, `git diff
+  --check`, trailing-whitespace, zero-byte docs, and `.env.local` diff checks
+  passed or returned expected docs-only, test-only, existing app,
+  selector-literal, or policy references without invoking runtime behavior or
+  printing secrets.
+
+## Action 1019 - Add First Fill-Only POC Dry-Run Plan
+
+- Created `docs/first-real-avanza-fill-only-poc-dry-run-plan.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_plan_created`.
+- The plan documents purpose, readiness basis, first POC scope, future allowed
+  dry-run actions after separate approval, blocked actions, required selector
+  readiness, guard checklist, evidence requirements, dry-run statuses,
+  recommendation, safety statement, validation, and not-performed boundaries.
+- First planned scope remains buy-only, Avancerad/Limit, amount-based by
+  default, capped at 1,000 SEK or lower, and stopped before `Granska köp`.
+- Final confirm selectors remain permanently forbidden for Ture/agent.
+- Recommended next action: Action 1020 - Add First Fill-Only POC Approval
+  Checklist.
+- No runtime code, browser automation, Avanza access, Avanza integration, DOM
+  query, field filling, click, submit, `Granska köp` click, final click, order
+  placement, credential handling, session-token capture, 2FA bypass, provider
+  call, scan route invocation, DB write, Supabase call, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  service-role value print, audit writer UI/browser/client invocation, real
+  trade, or trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed; focused
+  docs/path/status checks passed; `./node_modules/.bin/tsc --noEmit` passed;
+  `npm run lint` passed with the known `app/trade-app.tsx` Babel deopt note;
+  optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; route invocation, UI/app-shell audit
+  writer import, market-loop/scanner, service-role leakage,
+  first-fill-only-poc-plan executable safety, automatic-mode, dead-doc/path,
+  status string, next-action, `git diff --check`, trailing-whitespace,
+  zero-byte docs, and `.env.local` diff checks passed or returned expected
+  docs-only/policy references without invoking runtime behavior or printing
+  secrets.
+
+## Action 1018 - Add Selector Contract To Fill-Only Guard
+
+- Integrated the static selector mapping contract into
+  `lib/real-avanza-fill-only-guard.ts`.
+- Added selector policy helpers for forbidden final selectors, required first
+  future fill-only selectors, blocked first-POC selectors, allowed read
+  selectors, future fill candidates, and generated selector rejection.
+- Extended the fill-only guard decision with `selector_policy` metadata while
+  preserving existing cap, order type, side, automatic-submit, and
+  human-final-confirmation behavior.
+- Updated `tests/e2e/real-avanza-fill-only-guard-contract.spec.ts` with
+  selector contract integration coverage.
+- Created `docs/real-avanza-fill-only-guard-selector-contract-integration.md`.
+- Result status:
+  `real_avanza_fill_only_guard_selector_contract_integration_added`.
+- Final selectors remain hard stops, review buttons remain blocked for first
+  POC, total amount selector metadata is required for cap verification, account
+  remains read-only/human-verified, and generated selector strategies are
+  rejected.
+- Recommended next action: Action 1019 - Add First Fill-Only POC Dry-Run Plan.
+- No Avanza access, browser automation, DOM query, field filling, clicking,
+  submit, final click, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: updated fill-only guard contract tests passed with 25
+  tests; fill-only guard, selector mapping, human-final-confirmation, and
+  browser automation safety tests passed with 48 tests; focused semi-auto
+  payload tests passed in the combined run; sandbox selector-stability initially
+  hit local web-server `ERR_CONNECTION_REFUSED` in the combined run and passed
+  when rerun alone with 3 tests; `./node_modules/.bin/tsc --noEmit` passed;
+  `npm run lint` passed with the known `app/trade-app.tsx` Babel deopt note;
+  optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; source executable-code safety scan,
+  dead-doc/path, status string, next-action, `git diff --check`, trailing-
+  whitespace, zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1017 - Create Real Avanza Selector Mapping Contract
+
+- Created pure/static contract module:
+  `lib/real-avanza-selector-mapping-contract.ts`.
+- Created tests:
+  `tests/e2e/real-avanza-selector-mapping-contract.spec.ts`.
+- Created implementation doc:
+  `docs/real-avanza-selector-mapping-contract.md`.
+- Result status:
+  `real_avanza_selector_mapping_contract_created`.
+- The contract encodes Action 1016 selector names, semantic intent,
+  classifications, stability confidence, first POC behavior, risk notes,
+  forbidden final selectors, required first future fill-only selectors,
+  deferred selectors, and disallowed generated selector strategies.
+- Hard forbidden selectors include `button[data-e2e="confirmOrderButton"]` and
+  its buy/sell variants; these remain hard stops and must never be clicked.
+- First POC implication: no fill-only POC is approved by this action; first
+  future POC remains fill-only, buy-only, separately approved, and stopped
+  before `Granska köp`.
+- Recommended next action: Action 1018 - Add Selector Contract To Fill-Only
+  Guard.
+- No runtime Avanza access, browser automation, field filling, click, submit,
+  final click, broker behavior, Supabase/DB write, provider/scan route
+  invocation, audit writer client invocation, migration, type generation,
+  generated type edit, `.env.local` change, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: selector mapping contract tests passed with 12 tests;
+  real Avanza fill-only guard, human-final-confirmation guard, and selector
+  mapping tests passed with 37 tests after rerunning with local web-server
+  sandbox escalation; browser automation safety, semi-auto payload, and sandbox
+  selector-stability tests passed with 13 tests; `./node_modules/.bin/tsc
+  --noEmit` passed; `npm run lint` passed with the known `app/trade-app.tsx`
+  Babel deopt note; optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; route invocation, UI/app-shell audit
+  writer import, market-loop/scanner, service-role leakage,
+  selector-contract executable safety, automatic-mode, dead-doc/path, status
+  string, next-action, `git diff --check`, trailing-whitespace, zero-byte docs,
+  and `.env.local` diff checks passed or returned expected docs-only/test-only/
+  policy/selector-literal references without invoking runtime behavior or
+  printing secrets.
+
+## Action 1016 - Repeat Human-Led Real Avanza DOM/Selector Reconnaissance With Evidence
+
+- Updated `docs/real-avanza-dom-selector-reconnaissance-results.md` with
+  operator-provided screenshot/DevTools DOM and selector observations.
+- Result status:
+  `real_avanza_dom_selector_recon_passed_with_warnings`.
+- Evidence source is human-led/manual only; Codex did not access Avanza from
+  code and did not run browser automation.
+- The results doc now records selector candidates for search, instrument
+  verification, account verification, buy/sell side state, amount, quantity,
+  price, order type, fees, total amount, review buttons, confirmation modals,
+  final confirm buttons, and cancel.
+- Final forbidden selector is documented:
+  `button[data-e2e="confirmOrderButton"]`, including buy
+  `button[data-e2e="confirmOrderButton"][data-mint-button-theme="buy"]` and
+  sell `button[data-e2e="confirmOrderButton"][data-mint-button-theme="sell"]`.
+- First POC implication: no fill-only POC is approved by this action; first
+  future POC should be fill-only and stop before `Granska köp`; review-modal
+  clicks, sell side, Stop Loss, and Glidande remain deferred.
+- Progress update: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser
+  agent readiness 98-99%, real browser automation readiness 95-97%, full-auto
+  readiness 10-15%, total Ture toward semi-auto MVP 97-98%.
+- Recommended next action: Action 1017 - Create Real Avanza Selector Mapping
+  Contract.
+- No runtime code, browser automation, Avanza access, Avanza integration,
+  Avanza URL runtime constant, field filling, Avanza button click, final click,
+  order placement, credential storage, session-token capture, login handling,
+  2FA bypass, provider call, scan route invocation, live market scan, database
+  write, manual Supabase call, service-role adapter call, migration, type
+  generation, generated type edit, `.env.local` change, service-role value
+  print, audit writer UI/browser/client invocation, real trade, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed; focused
+  docs/path/status checks passed; `./node_modules/.bin/tsc --noEmit` passed;
+  `npm run lint` passed with the known `app/trade-app.tsx` Babel deopt note;
+  optional runtime denial harness import check reported
+  `runtime-denial-script-absent`; audit writer runtime path import search
+  returned no app/components/hooks matches; route invocation, UI/app-shell audit
+  writer import, market-loop/scanner, service-role leakage, Avanza DOM evidence,
+  automatic-mode, dead-doc/path, status string, next-action, `git diff --check`,
+  trailing-whitespace, zero-byte docs, and `.env.local` diff checks passed or
+  returned expected docs-only/policy/test references without invoking runtime
+  behavior or printing secrets.
+
+## Action 1015 - Run Human-Led Real Avanza DOM/Selector Reconnaissance
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-results.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_blocked`.
+- Operator-provided DOM/selector evidence was not available in this action.
+- The results doc records a blocked status rather than inventing observations.
+- Missing evidence is listed for rerun using the Action 1014 evidence template.
+- Readiness impact: no readiness improvement beyond Action 1014; real Avanza
+  fill-only POC remains deferred pending human-led DOM/selector evidence,
+  selector mapping contract, and separate explicit fill-only POC approval.
+- Recommended next action: Action 1016 - Repeat Human-Led Real Avanza
+  DOM/Selector Reconnaissance With Evidence.
+- No runtime code, browser automation, Avanza access, Avanza integration,
+  Avanza URL runtime constant, field filling, Avanza button click, final click,
+  order placement, credential storage, session-token capture, login handling,
+  2FA bypass, provider call, scan route invocation, live market scan, database
+  write, manual Supabase call, service-role adapter call, migration, type
+  generation, generated type edit, `.env.local` change, service-role value
+  print, audit writer UI/browser/client invocation, real trade, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; route/provider/
+  scan and market-loop/scanner checks were static only and did not invoke
+  runtime behavior; service-role leakage checks printed no secret values;
+  Avanza-dom-recon-results safety scan found documentation language, pure guard
+  and type names, and contract-test policy assertions only; automatic-mode
+  safety scan returned policy/blocking language and test fixtures only; dead-
+  doc/path, result-status, next-action, `git diff --check`, trailing-
+  whitespace, zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1014 - Prepare Real Avanza DOM/Selector Reconnaissance Plan
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-plan.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_plan_created`.
+- The plan defines a human-led, no-fill, no-submit reconnaissance procedure for
+  collecting generic DOM/selector/label observations from the real Avanza UI.
+- The plan documents readiness basis, scope, what to collect, field-specific
+  selector targets, sensitivity/redaction policy, safe operator procedure, hard
+  stop boundaries, output evidence template, result statuses, and recommended
+  next action.
+- Recommended next action: Action 1015 - Run Human-Led Real Avanza DOM/Selector
+  Reconnaissance.
+- No runtime code, browser automation, Avanza access, Avanza integration,
+  Avanza URL runtime constant, field filling, final click, order placement,
+  credential storage, login handling, 2FA bypass, provider call, scan route
+  invocation, live market scan, database write, manual Supabase call,
+  service-role adapter call, migration, type generation, generated type edit,
+  `.env.local` change, service-role value print, audit writer UI/browser/client
+  invocation, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; route/provider/
+  scan and market-loop/scanner checks were static only and did not invoke
+  runtime behavior; service-role leakage checks printed no secret values;
+  Avanza-dom-recon-plan safety scan found documentation language, pure guard
+  names, and contract-test policy assertions only; automatic-mode safety scan
+  returned policy/blocking language and test fixtures only; dead-doc/path,
+  result-status, next-action, `git diff --check`, trailing-whitespace,
+  zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1013 - Add Real Avanza Fill-Only POC Readiness Review
+
+- Created `docs/real-avanza-fill-only-poc-readiness-review.md`.
+- Result status:
+  `real_avanza_fill_only_poc_readiness_review_created`.
+- Readiness decision:
+  `real_avanza_fill_only_poc_deferred_pending_dom_mapping`.
+- The review records readiness basis, requirements checklist, risk review,
+  explicit deferral decision, recommended safe next step, and conditions before
+  any actual fill-only POC approval.
+- Rationale: policy and contract tests are ready and screenshot mapping exists,
+  but real DOM/selectors are not verified and no explicit fill-only POC approval
+  exists.
+- Recommended next action: Action 1014 - Prepare Real Avanza DOM/Selector
+  Reconnaissance Plan.
+- No runtime code, browser automation, Avanza access, Avanza integration,
+  Avanza URL runtime constant, field filling, final click, order placement,
+  credential storage, login handling, 2FA bypass, provider call, scan route
+  invocation, live market scan, database write, manual Supabase call,
+  service-role adapter call, migration, type generation, generated type edit,
+  `.env.local` change, service-role value print, audit writer UI/browser/client
+  invocation, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches; route/provider/
+  scan and market-loop/scanner checks were static only and did not invoke
+  runtime behavior; service-role leakage checks printed no secret values;
+  Avanza-fill-readiness safety scan found documentation language, pure guard
+  names, and contract-test policy assertions only; automatic-mode safety scan
+  returned policy/blocking language and test fixtures only; dead-doc/path,
+  result-status, next-action, `git diff --check`, trailing-whitespace,
+  zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1012 - Add Max Amount And Final-Submit Guard Contract Tests
+
+- Created pure guard helper `lib/real-avanza-fill-only-guard.ts`.
+- Added contract tests in
+  `tests/e2e/real-avanza-fill-only-guard-contract.spec.ts`.
+- Created proof doc `docs/real-avanza-fill-only-guard-contract-tests.md`.
+- Result status:
+  `real_avanza_fill_only_guard_contract_tests_added`.
+- The guard encodes the Action 1011 policy: default max notional cap is 1,000
+  SEK, first real POC remains `Avancerad` buy only, sell/exit forms are
+  deferred, `Stop Loss` and `Glidande` are deferred, automatic submit must be
+  false, final submit is always forbidden, human final confirmation remains
+  required, and cap approval never authorizes submit.
+- Blocking reasons include cap exceeded, cap cannot be calculated, unknown
+  currency/FX, missing quantity/price/amount, automatic submit allowed,
+  non-semi-auto payload, unsupported order form, sell action, deferred
+  stop/trailing forms, final submit action, and missing human confirmation.
+- Recommended next action: Action 1013 - Add Real Avanza Fill-Only POC
+  Readiness Review.
+- No real Avanza access, runtime browser automation, Avanza integration, real
+  field filling, final click, `Bekräfta köp`, `Bekräfta sälj`, real broker
+  behavior, automatic order submission, automatic mode enablement,
+  provider/scan route call, Supabase/database write, audit writer client
+  invocation, migration, type generation, generated type edit, `.env.local`
+  change, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: new guard contract spec passed 17 tests; focused
+  human-final-confirmation/browser-boundary/sandbox-adapter/semi-auto payload
+  stack passed 24 tests; focused semi-auto/handoff/settings bundle passed 25
+  tests; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with
+  the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reported `runtime-denial-script-absent`; audit writer
+  runtime path import search returned no app/components/hooks matches; static
+  route/provider/scan and market-loop/scanner checks did not invoke runtime
+  behavior; service-role leakage checks printed no secret values; real-avanza
+  fill-guard safety scan found only pure helper and contract-test
+  policy/assertion strings; automatic-mode safety scan returned policy/blocking
+  language and test fixtures only; dead-doc/path, result-status, next-action,
+  `git diff --check`, trailing-whitespace, zero-byte docs, and `.env.local`
+  diff checks passed.
+
+## Action 1011 - Define Real Avanza Fill-Only POC Gate And Max Amount Policy
+
+- Created
+  `docs/real-avanza-fill-only-poc-gate-and-max-amount-policy.md`.
+- Updated the real Avanza mapping spec, reconnaissance results, training
+  protocol, real-browser feasibility, browser automation safety boundary,
+  controlled live-trial observation/scope, product readiness, architecture
+  index, final handoff, checkpoint, and QA docs.
+- Result status:
+  `real_avanza_fill_only_poc_gate_and_max_amount_policy_created`.
+- The policy documents readiness basis, future fill-only scope, first allowed
+  order type, max amount policy, allowed fill candidates, human verification
+  fields, forbidden fields/actions, POC gate checklist, block conditions,
+  future evidence requirements, and future POC result statuses.
+- Recommended initial cap: max notional 1,000 SEK, or lower if the user wants;
+  cap cannot authorize submit or override human final confirmation.
+- Recommended next action: Action 1012 - Add Max Amount And Final-Submit Guard
+  Contract Tests.
+- No runtime code change, browser automation, Avanza integration, Avanza access
+  from code, Avanza URL runtime constant, real Avanza field filling by agent,
+  final KOP/SALJ, KÖP/SÄLJ, Bekräfta köp, or Bekräfta sälj click, order
+  placement, credential storage, login handling in code, 2FA bypass, provider
+  call, scan route invocation, live market scan, database write, manual
+  Supabase call, service-role adapter call, migration, type generation,
+  generated type edit, `.env.local` change, service-role value print, audit
+  writer UI/browser/client invocation, real trade, or trade/stats/PnL mutation
+  was performed.
+- Validation passed: documentation/static review completed;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reported `runtime-denial-script-absent`; audit writer runtime
+  path import search returned no app/components/hooks matches;
+  route/provider/scan and market-loop/scanner checks were static only and did
+  not invoke runtime behavior; service-role leakage checks printed no secret
+  values; Avanza-fill-policy executable-code safety scan found existing
+  sandbox/test-only and source references only; automatic-mode safety scan
+  returned existing human-confirmation/boundary language only; dead-doc/path,
+  result-status, next-action, `git diff --check`, trailing-whitespace,
+  zero-byte docs, and `.env.local` diff checks passed.
+
+## Action 1010 - Create Real Avanza UI Mapping Spec
+
+- Created `docs/real-avanza-ui-mapping-spec.md`.
+- Updated the real Avanza reconnaissance results, training protocol,
+  controlled live-trial observation/scope, real-browser feasibility, browser
+  automation safety boundary, sandbox roadmap, product readiness, architecture
+  index, final handoff, checkpoint, and QA docs.
+- Result status: `real_avanza_ui_mapping_spec_created`.
+- The mapping spec documents evidence basis, supported mapped flow,
+  payload-to-UI mapping, field classifications, order type mapping,
+  confirmation modal mapping, validation/error mapping, safety gates, and
+  ambiguities/open questions.
+- Final `Bekräfta köp` / `Bekräfta sälj` remains forbidden for agent.
+- Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+  And Max Amount Policy.
+- No runtime code change, browser automation, Avanza integration, Avanza access
+  from code, Avanza URL runtime constant, real Avanza field filling by agent,
+  final KOP/SALJ, KÖP/SÄLJ, Bekräfta köp, or Bekräfta sälj click, order
+  placement, credential storage, login handling in code, 2FA bypass, provider
+  call, scan route invocation, live market scan, database write, manual
+  Supabase call, service-role adapter call, migration, type generation,
+  generated type edit, `.env.local` change, service-role value print, audit
+  writer UI/browser/client invocation, real trade, or trade/stats/PnL mutation
+  was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reported `runtime-denial-script-absent`;
+  audit writer runtime path import search returned no app/components/hooks
+  matches; route/provider/scan static search was not invoked as runtime
+  behavior and returned existing source plus legacy edit-conflict references;
+  UI/app-shell audit writer import scan returned no matches;
+  market-loop/scanner search was static only and did not invoke scans;
+  `NEXT_PUBLIC_*SERVICE*` and service-role leakage search returned existing
+  server-support aliases in `lib/supabase-server.ts` and
+  `lib/active-scan-trace.ts` with no secret values printed; Avanza-mapping-spec
+  executable-code safety scan returned existing sandbox/test-only Avanza
+  skeleton, mock-broker, localhost bridge, and safety contract references with
+  no new executable Avanza integration added by this action; automatic-mode
+  safety scan returned existing human-confirmation and boundary language only;
+  dead-doc/path scan returned no missing files; result-status and next-action
+  consistency scans passed; `git diff --check` passed; touched-file trailing
+  whitespace scan returned no matches; zero-byte docs check returned no output;
+  `.env.local` diff check returned no output.
+
+## Action 1009 - Provide Human-Led Real Avanza UI Reconnaissance Evidence
+
+- Updated `docs/real-avanza-ui-reconnaissance-results.md` from blocked to
+  screenshot/manual-note evidence passed with warnings.
+- Updated the real Avanza training protocol, controlled live-trial
+  observation/scope, real-browser feasibility, browser automation safety
+  boundary, sandbox roadmap, product readiness, architecture index, final
+  handoff, checkpoint, and QA docs.
+- Result status: `real_avanza_ui_reconnaissance_passed_with_warnings`.
+- Evidence source: operator-provided screenshots/notes only, including
+  `1-Search.png`, `2-Search-Result.png`, `3-Stock-Page.png`,
+  `4-Order-Page.png`, `5-Order-Confirmation.png`, `Full-Buy-Flow.jpeg`,
+  `Form-Errors.png`, `BUY-Order-Forms-Filled.png`,
+  `BUY-Order-Forms-Not-Filled.png`, and `SELL-Order-Forms-Filled.png`.
+- Documented observed real Avanza flow: top-right `Sök`, search drawer,
+  ticker/name query, instrument selection, instrument detail page, buy/sell
+  buttons, order page/form, `Avancerad`/`Stop Loss`/`Glidande` order types,
+  order fields, `Granska köp`/`Granska sälj`, confirmation modal, final
+  `Bekräfta köp`/`Bekräfta sälj`, and `Avbryt`.
+- Critical boundary: agent/Ture must never click `Bekräfta köp` or
+  `Bekräfta sälj`; future work may only proceed to mapping spec without
+  separate fill-only approval.
+- Progress update: Ture production/data-health 95-97%; market-window live
+  dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto
+  Avanza/browser-agent readiness 96-98%; real browser automation readiness
+  90-94%; full-auto readiness 10-15%; total Ture toward semi-auto MVP 97-98%.
+- Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+- No runtime code change, browser automation, Avanza integration, Avanza access
+  from code, Avanza URL runtime constant, real Avanza field filling by agent,
+  final KOP/SALJ, KÖP/SÄLJ, Bekräfta köp, or Bekräfta sälj click, order
+  placement, credential storage, login handling in code, 2FA bypass, provider
+  call, scan route invocation, live market scan, database write, manual
+  Supabase call, service-role adapter call, migration, type generation,
+  generated type edit, `.env.local` change, service-role value print, audit
+  writer UI/browser/client invocation, real trade, or trade/stats/PnL mutation
+  was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reported `runtime-denial-script-absent`;
+  audit writer runtime path import search returned no app/components/hooks
+  matches; route/provider/scan static search was not invoked as runtime
+  behavior and returned existing source plus legacy edit-conflict references;
+  UI/app-shell audit writer import scan returned no matches;
+  market-loop/scanner search was static only and did not invoke scans;
+  `NEXT_PUBLIC_*SERVICE*` and service-role leakage search returned existing
+  server-support aliases in `lib/supabase-server.ts` and
+  `lib/active-scan-trace.ts` with no secret values printed; Avanza-recon-
+  evidence executable-code safety scan returned existing sandbox/test-only
+  Avanza skeleton, mock-broker, localhost bridge, and audit denial harness
+  references with no new executable Avanza integration added by this action;
+  automatic-mode safety scan returned existing human-confirmation and boundary
+  language only; dead-doc/path scan returned no missing files; result-status
+  and next-action consistency scans passed; `git diff --check` passed;
+  touched-file trailing whitespace scan returned no matches; zero-byte docs
+  check returned no output; `.env.local` diff check returned no output.
+
+## Action 1008 - Run Human-Led Real Avanza UI Reconnaissance
+
+- Created `docs/real-avanza-ui-reconnaissance-results.md`.
+- Updated the real Avanza training protocol, controlled live-trial
+  observation/scope, real-browser feasibility, browser automation safety
+  boundary, sandbox roadmap, product readiness, architecture index, final
+  handoff, checkpoint, and QA docs.
+- Result status: `real_avanza_ui_reconnaissance_blocked`.
+- Blocker: the Action 1008 request did not include operator-provided Avanza UI
+  screenshots, notes, browser, page type, instrument, account selector state,
+  buy/sell selector state, field labels, order-flow observations, cancel/back
+  behavior, warning messages, or final-confirmation boundary evidence.
+- Real Avanza UI mapping, field-fill planning, and no-submit Avanza POC work
+  remain blocked until human-led reconnaissance evidence is provided.
+- Progress update: Ture production/data-health remains 95-97%;
+  market-window live dry-run remains 92-95%; semi-auto agent foundation remains
+  98-99%; semi-auto Avanza/browser-agent readiness is 20-25%; real browser
+  automation readiness is 10-15%; full-auto readiness remains 10-15%; total
+  Ture toward semi-auto MVP is 88-91%.
+- Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+  Reconnaissance Evidence.
+- No runtime code change, browser automation, Avanza integration, Avanza access
+  from code, Avanza URL runtime constant, real Avanza field filling by agent,
+  final KOP/SALJ or KÖP/SÄLJ click, order placement, credential storage, login
+  handling in code, 2FA bypass, provider call, scan route invocation, live
+  market scan, database write, manual Supabase call, service-role adapter call,
+  migration, type generation, generated type edit, `.env.local` change,
+  service-role value print, audit writer UI/browser/client invocation, real
+  trade, or trade/stats/PnL mutation was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reported `runtime-denial-script-absent`;
+  audit writer runtime path import search returned no app/components/hooks
+  matches; route/provider/scan static search was not invoked as runtime
+  behavior and returned existing source plus legacy edit-conflict references;
+  UI/app-shell audit writer import scan returned no matches;
+  market-loop/scanner search was static only and did not invoke scans;
+  `NEXT_PUBLIC_*SERVICE*` and service-role leakage search returned existing
+  server-support aliases in `lib/supabase-server.ts` and
+  `lib/active-scan-trace.ts` with no secret values printed; Avanza-recon
+  executable-code safety scan returned existing sandbox/test-only Avanza
+  skeleton, mock-broker, local bridge, and audit denial harness references with
+  no new executable Avanza integration added by this action; automatic-mode
+  safety scan returned existing human-confirmation and boundary language only;
+  dead-doc/path scan returned no missing files; result-status and next-action
+  consistency scans passed; `git diff --check` passed; touched-file trailing
+  whitespace scan returned no matches; zero-byte docs check returned no output;
+  `.env.local` diff check returned no output.
+
+## Action 1007 - Prepare Real Avanza UI Training Safety Protocol
+
+- Created `docs/real-avanza-ui-training-safety-protocol.md`.
+- Updated the controlled live-trial observation/scope, real-browser
+  feasibility, browser automation safety boundary, sandbox roadmap, product
+  readiness, architecture index, final handoff, checkpoint, and QA docs.
+- Result status: `real_avanza_ui_training_protocol_created`.
+- The protocol states real Avanza UI training is not risk-free; "do not press
+  KOP/SALJ or KÖP/SÄLJ" is necessary but not sufficient; max amount reduces
+  exposure but does not remove UI/account/order risk.
+- Next safe phase is human-led read-only Avanza UI reconnaissance: user
+  manually logs in/navigates, no agent/browser automation, no field filling,
+  no submit, no credential storage, no 2FA bypass, screenshots/notes only if
+  safe.
+- Protocol documents UI mapping requirements, future no-submit fill-only
+  Avanza POC gate, hard forbidden behavior, max amount policy, first training
+  checklist, evidence template, and result statuses.
+- Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+  Reconnaissance.
+- No runtime code change, browser automation, Avanza access from code, Avanza
+  integration, Avanza URL runtime constant, broker behavior, automatic order
+  submission, automatic mode enablement, final KOP/SALJ or KÖP/SÄLJ click,
+  real Avanza field filling, credential storage, 2FA bypass, login handling,
+  provider call, scan route invocation, live market scan, database write,
+  Supabase manual call, service-role adapter call, migration, type generation,
+  generated type edit, `.env.local` change, service-role value print, audit
+  writer UI/browser/client invocation, real trade, or trade/stats/PnL mutation
+  was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reported `runtime-denial-script-absent`;
+  audit writer runtime path import search returned no app/components/hooks
+  matches; route/provider/scan static search was not invoked as runtime
+  behavior and returned existing source plus legacy edit-conflict references;
+  service-role exposure search returned existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; Avanza protocol-specific safety scan returned documentation-only
+  boundary terms; automatic-mode safety scan returned existing safety/boundary
+  language only; dead-doc/path scan returned no missing files; result-status
+  and next-action consistency scans passed; `git diff --check` passed;
+  touched-file trailing whitespace scan returned no matches; zero-byte docs
+  check returned no output; `.env.local` diff check returned no output.
+
+## Action 1006 - Provide Operator Evidence And Repeat Controlled Live-Trial Observation
+
+- Updated `docs/first-controlled-live-trial-observation.md` with fresh
+  operator evidence from Monday, June 29, 2026 regular/morning session.
+- Updated the first controlled live-trial scope decision, Production dry-run
+  results, Monday handoff, market-window plan/observation,
+  product/live-trial readiness, live-trial checklist, manual dry-run results,
+  architecture index, final handoff, checkpoint, and QA docs.
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Evidence summary: Production was open/trading day around 10:13
+  America/New_York; Recommendations rendered; 8 candidates were visible in the
+  published current batch; CAT and JPM cards were visible with entry/stop/
+  target and medium confidence; console was cleared; no red Supabase 4xx/5xx
+  errors were visible; human-confirmed execution boundary was active; broker
+  automation was disabled/not live.
+- Warnings: scanner observability degraded; real output recommendations need
+  review; dynamic movers provider unavailable/static universe used; scan-run
+  metrics incomplete/unavailable; 5 visible candidates need intake review;
+  diagnostics tier mismatch; recommendation status was refreshing; handoff
+  preview/EOD not observed.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.
+- No real trade, runtime code change, Production runtime browser automation,
+  Avanza integration, broker behavior, automatic order submission, automatic
+  mode enablement, final `KOP`/`SALJ` or `KÖP`/`SÄLJ` click, provider call by
+  Codex, scan route invocation by Codex, live market scan manually run by
+  Codex, database write, Supabase manual call, service-role adapter call,
+  migration, type generation, generated type edit, `.env.local` change,
+  service-role value print, audit writer UI/browser/client invocation, or
+  trade/stats/PnL mutation was performed.
+- Validation passed: `./node_modules/.bin/tsc --noEmit` passed; `npm run lint`
+  passed with the known `app/trade-app.tsx` Babel deopt note; optional runtime
+  denial harness import check reported `runtime-denial-script-absent`; UI/app-
+  shell audit writer import scan returned no matches; broad
+  provider/route/scan search was static only and did not call routes or
+  providers, returning existing source and legacy edit-conflict references;
+  service-role exposure scan returned only existing server-support aliases in
+  `lib/supabase-server.ts` and `lib/active-scan-trace.ts` with no secret values
+  printed; first-live-trial-observation-specific safety scan returned
+  documentation-only boundary terms; automatic-mode safety scan returned
+  existing checklist/safety language only; dead-doc/path scan returned no
+  missing files; result-status consistency scan passed; next-action
+  consistency scan passed with wrapped Markdown line handling;
+  `git diff --check` passed; touched-file trailing whitespace scan returned no
+  matches; zero-byte docs check returned no output; `.env.local` diff check
+  returned no output.
+
 ## Action 1005 - Run First Controlled Live-Trial Observation
 
 - Created `docs/first-controlled-live-trial-observation.md`.
@@ -20408,6 +21430,113 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   change, market-loop/scanner audit writer invocation, broker/Avanza behavior,
   automatic mode enablement, automatic order submission enablement, real trade,
   or trade/stats/PnL mutation.
+
+## Action 1032 - Capture Gated Adapter Operator Setup Evidence
+
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`.
+- Updated the operator setup checklist, gated adapter skeleton, first-fill-only
+  POC, real Avanza selector/guard, browser safety, product readiness,
+  architecture index, and handoff docs.
+- Setup readiness decision: `operator_setup_deferred`.
+- Evidence source: no new operator-provided Avanza setup evidence was supplied
+  in the Action 1032 request.
+- Missing evidence documented: operator presence, runbook understanding,
+  locked scope confirmation, stop-before-review understanding, manual browser
+  open, manual Avanza login, manual BankID/2FA, account verification,
+  instrument/order page verification, visible buy side, Limit/Avancerad
+  selection, visible amount/price/total, no modal, no final confirm target,
+  browser-close readiness, screenshot/evidence plan, and sensitive-info
+  redaction plan.
+- Not performed: no runtime code change, Avanza access, browser automation,
+  DOM query, field filling, clicking, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, order submission, credential handling, session token
+  capture, 2FA bypass, provider call, scan route invocation, Supabase call,
+  database write, service-role adapter call, migration, typegen, generated
+  type edit, `.env.local` change, audit writer UI/browser/client invocation,
+  broker behavior, automatic order submission enablement, real trade, or
+  trade/stats/PnL mutation.
+- Validation: referenced docs/path scan, status consistency scan, next-action
+  scan, `operator_setup_deferred` scan, optional runtime denial harness import
+  check, audit writer UI/app-shell scan, evidence-specific executable scan,
+  `NEXT_PUBLIC_*SERVICE*`/service-role scan, market-loop/scanner scan,
+  automatic-mode scan, `tsc --noEmit`, lint, `git diff --check`, zero-byte
+  docs check, and `.env.local` diff check passed. The runtime denial harness
+  import reached its config guard and reported missing env names only; no
+  secrets were printed. Lint emitted only the known `app/trade-app.tsx` Babel
+  deopt note.
+- Recommended next action: Action 1033 - Complete Operator Setup Evidence.
+
+## Action 1031 - Add Gated Adapter Operator Setup Checklist
+
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_checklist_added`.
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-checklist.md`.
+- Updated the gated adapter skeleton, first-fill-only POC, real Avanza
+  selector/guard, browser safety, product readiness, architecture index, and
+  handoff docs.
+- Setup readiness decision: `operator_setup_deferred`.
+- The checklist documents operator prerequisites, browser/Avanza manual setup,
+  Ture/local setup, locked POC values, hard stops, evidence setup, setup
+  decision values, result status, and next action.
+- Default decision is deferred because this action creates the checklist only
+  and does not observe actual operator setup.
+- Not performed: no runtime code change, Avanza access, browser automation,
+  DOM query, field filling, clicking, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, order submission, credential handling, session token
+  capture, 2FA bypass, provider call, scan route invocation, Supabase call,
+  database write, service-role adapter call, migration, typegen, generated
+  type edit, `.env.local` change, audit writer UI/browser/client invocation,
+  broker behavior, automatic order submission enablement, real trade, or
+  trade/stats/PnL mutation.
+- Validation: referenced docs/path scan, status consistency scan, next-action
+  scan, `operator_setup_deferred` scan, optional runtime denial harness import
+  check, audit writer UI/app-shell scan, checklist-specific executable scan,
+  `NEXT_PUBLIC_*SERVICE*`/service-role scan, `tsc --noEmit`, lint,
+  `git diff --check`, touched-file trailing whitespace scan, zero-byte docs
+  check, and `.env.local` diff check passed. The runtime denial harness import
+  reached its config guard and reported missing env names only; no secrets were
+  printed. Lint emitted only the known `app/trade-app.tsx` Babel deopt note.
+- Recommended next action: Action 1032 - Capture Gated Adapter Operator Setup
+  Evidence.
+
+## Action 1030 - Add Gated Real Avanza Fill-Only Adapter Skeleton
+
+- Result status: `gated_real_avanza_fill_only_adapter_skeleton_added`.
+- Created `lib/gated-real-avanza-fill-only-adapter-skeleton.ts`.
+- Created
+  `tests/e2e/gated-real-avanza-fill-only-adapter-skeleton.spec.ts`.
+- Created `docs/gated-real-avanza-fill-only-adapter-skeleton.md`.
+- Updated the first-fill-only POC, real Avanza selector/guard, browser safety,
+  product readiness, architecture index, and handoff docs with Action 1030
+  status and next action.
+- The skeleton is disabled by default and non-executing.
+- The skeleton composes the existing approval contract, dry-run harness,
+  fill-only guard, selector mapping contract, and implementation stub.
+- Statuses exposed: `disabled`, `blocked`,
+  `ready_for_manual_run_setup`, and `failed_safety`.
+- All capability flags remain false: no Avanza access, no browser launch, no
+  DOM query, no field fill, no review click, no final confirm, and no submit.
+- Planned sequence metadata covers instrument verification, account
+  verification, buy-side verification, Limit/Avancerad verification, amount
+  metadata, price metadata, total readback metadata, and stop-before-review.
+- Forbidden actions remain review click, final confirm, sell, Stop Loss,
+  Glidande, account change, side switch, steppers, and `Välj alla på kontot`.
+- Not performed: no real Avanza access, browser automation, DOM query, field
+  filling, clicking, review modal, final confirmation, order submission,
+  broker behavior, Supabase/database write, provider/scan/route invocation,
+  audit writer client invocation, migration, typegen, generated type edit,
+  `.env.local` change, real trade, or trade/stats/PnL mutation.
+- Validation: new focused skeleton test passed 16/16; existing focused safety
+  suite passed 113/113; `tsc --noEmit`, lint, `git diff --check`, zero-byte
+  docs check, `.env.local` diff check, touched-file trailing whitespace scan,
+  and source-only safety scans passed. Lint emitted only the known
+  `app/trade-app.tsx` Babel deopt note.
+- Recommended next action: Action 1031 - Add Gated Adapter Operator Setup
+  Checklist.
 
 ## Action 980 - Create Semi-Automatic Avanza Agent Integration Inventory
 

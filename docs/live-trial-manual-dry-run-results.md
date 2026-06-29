@@ -399,3 +399,15 @@ Validation was run after documentation updates:
   observation.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Manual dry-run trail now includes a successful observation-first candidate
+  view with CAT/JPM visible and 8 recommendations in the current batch.
+- No paper/manual tracking or real broker action was started by this action.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.

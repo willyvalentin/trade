@@ -2,124 +2,147 @@
 
 ## Purpose
 
-Action 1005 attempts to run the first controlled live-trial observation under
-the constrained scope approved in Action 1004.
+Action 1006 repeats the first controlled live-trial observation with fresh
+operator evidence from the regular/morning session on Monday, June 29, 2026.
 
 This is observation-first. It is not automatic trading, and Ture does not
 place broker orders.
 
 ## Observation Environment
 
-- Production URL/environment: not provided in the Action 1005 request.
+- Environment: Production.
 - Date: Monday, June 29, 2026.
-- Local time: around 14:34 CEST when the action was started.
-- New York time: around 08:34 ET.
-- Session window: pre-market.
-- Browser used: no Production browser observation was run by Codex.
-- Console cleared: not observed for Action 1005.
-- Hard refresh: not observed for Action 1005.
-- Screenshot/operator evidence notes: no fresh Action 1005 Production
-  screenshot, console output, candidate evidence, or operator observation log
-  was provided.
+- New York time: approximately 10:13 America/New_York from diagnostics.
+- Session window: regular / morning.
+- Market state: open / trading day.
+- Browser: operator browser with console open.
+- Console state: cleared before screenshot.
+- Hard refresh: unknown; not directly stated in the provided evidence.
+- Evidence: operator screenshot and diagnostics provided in Action 1006.
 
 ## Pre-Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Production UI loads | Block/not observed | No fresh Production UI evidence was provided for Action 1005. |
-| Console has no red Supabase 4xx/5xx | Block/not observed | No fresh cleared-console evidence was provided. |
-| Market status/window plausible | Warn/inferred | Local time maps to pre-market, but no fresh Production UI status was observed. |
-| Auto analyzing/status strip visible | Block/not observed | No fresh screenshot or browser observation was provided. |
-| Recommendations updated timestamp present | Block/not observed | No fresh recommendation surface evidence was provided. |
-| No Avanza/broker/automatic behavior visible | Not observed | No fresh Production UI evidence was provided; no behavior was run by Codex. |
-| Execution mode remains semi-auto/human-confirmed | Not observed | No fresh handoff or settings evidence was provided. |
+| Production UI loads | Pass | Production UI loaded and rendered. |
+| Console has no red Supabase 4xx/5xx | Pass | No red Supabase 4xx/5xx errors were visible in the cleared console screenshot. |
+| Market status/window plausible | Pass | Diagnostics showed market open/trading day and regular/morning session. |
+| Auto analyzing/status strip visible | Pass | Status strip showed `AUTO ANALYZING TRADES`. |
+| Recommendations updated timestamp/status present | Pass with warning | Screenshot showed `RECOMMENDATIONS UPDATED · REFRESHING...`. |
+| No Avanza/broker/automatic behavior visible | Pass | No unsafe execution behavior was visible. |
+| Human-confirmed execution boundary active | Pass | Diagnostics reported the boundary active/ready. |
+| Broker automation disabled/not live | Pass | Diagnostics reported broker automation disabled/not live. |
 
 ## Recommendation Observation
 
-- Recommendation count: not observed.
-- Selective empty state reason: not observed for Action 1005.
-- Candidate ticker: not observed.
-- Side: not observed.
-- Entry: not observed.
-- Stop: not observed.
-- Target: not observed.
-- Confidence: not observed.
-- Risk/reward: not observed.
-- Freshness: not observed.
-- Reasoning/explanation: not observed.
-- Warnings/stale/expiry: not observed.
+- Recommendation count: 8 visible.
+- Current batch status: published.
+- Current batch tickers: AMD, BAC, CAT, CRM, CVX, JPM, MSFT, XOM.
+- Tier mix: 2 strong, 6 valid, 0 experimental.
+- Window target: 6-10.
+- No-trade valid: no.
+- Visible screenshot candidates: CAT and JPM.
+- User decision: observe only.
+- Paper/manual tracking: not started in this action.
 - Handoff preview opened: not observed.
-- User decision: no Action 1005 decision evidence provided.
 
-Because no fresh Action 1005 candidate or no-candidate Production evidence was
-provided, this cannot be classified as a clean no-candidate skip. It is
-blocked on missing controlled observation evidence.
+Visible candidate details:
+
+| Candidate | Company | Confidence | Entry | Stop | Target | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| CAT | Caterpillar Inc. | Medium | 993.02 - 1013... | 962.93 | 1088.31 | Visible card showed `TRADE RECOMMENDATION` and `SUPABASE RECORD`. |
+| JPM | JPMorgan Chase & Co. | Medium | 326.34 - 332.94 | 316.45 | 357.68 | Visible card showed `TRADE RECOMMENDATION` and `SUPABASE RECORD`. |
+
+Recommendation observation result:
+
+- Candidate count/card detail: pass.
+- Actual best single candidate was not selected by operator: warn.
+- Handoff preview was not tested: warn.
+- Observation stayed within the maximum 1 candidate/trade consideration
+  decision boundary because no trade action or tracking action was started.
 
 ## Handoff/Safety Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Handoff preview/manual confirmation copy clear if opened | Not observed | Handoff preview was not observed in Action 1005 evidence. |
-| No automatic submit | Pass by non-action | Codex did not add or invoke automatic submit behavior. |
-| No broker/Avanza automation | Pass by non-action | Codex did not add or invoke broker/Avanza automation. |
-| No Ture-placed order | Pass | No Ture-placed order was performed. |
-| Sandbox/dev labels remain separate | Not observed | No fresh Production UI evidence was provided. |
+| No automatic submit | Pass | No automatic submit behavior was visible. |
+| No broker/Avanza automation | Pass | No broker/Avanza automation was visible. |
+| No Ture-placed order | Pass | No order was placed through Ture. |
+| Sandbox/dev labels remain separate | Pass | No sandbox/dev browser-agent behavior leaked into the Production trading flow. |
 | No final click through Ture | Pass | No final click was performed. |
+| Handoff preview/manual confirmation copy tested | Warn | Handoff preview/manual confirmation copy was not opened/tested. |
 
 ## Console/Network Observation
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| No red Supabase 4xx/5xx | Block/not observed | No fresh cleared-console evidence was provided. |
-| No `scheduled_scan_attempts` 404 | Block/not observed | No fresh console evidence was provided. |
-| No `recommendation_batches` timeout | Block/not observed | No fresh console evidence was provided. |
-| No recommendation readback 500 | Block/not observed | No fresh console evidence was provided. |
-| Expected `recommendation_batch_backfill_capped` warning if present | Not observed | No fresh console evidence was provided. |
-| No audit writer client errors | Not observed | No fresh console evidence was provided. |
-| No service-role/env exposure | Pass by non-action | No service-role or env values were printed by Codex. |
-| No unexpected `/api/` error burst | Not observed | No fresh console/network evidence was provided. |
-| No broker/Avanza references/actions | Pass by non-action | No broker/Avanza action was run by Codex. |
+| No red Supabase 4xx/5xx visible | Pass | None visible in the provided screenshot. |
+| No `scheduled_scan_attempts` 404 visible | Pass | Not visible in the provided evidence. |
+| No `recommendation_batches` timeout visible | Pass | Not visible in the provided evidence. |
+| No recommendation readback 500 visible | Pass | Not visible in the provided evidence. |
+| Expected `recommendation_batch_backfill_capped` warning | Not observed | Not visible in the latest open-market screenshot or diagnostics. |
+| No audit writer client errors visible | Pass | None visible in the provided evidence. |
+| No service-role/env exposure visible | Pass | No service-role or env value was visible. |
+| No unexpected `/api/` error burst visible | Pass | No unexpected API error burst was visible. |
+| No broker/Avanza references/actions visible | Pass | No broker/Avanza action was visible. |
+
+## Diagnostics/Warning Observation
+
+- Overall status: ready with warnings.
+- Scanner observability degraded.
+- Real output recommendations need review.
+- Dynamic movers provider unavailable; static scanner universe used.
+- Scan-run metrics incomplete/unavailable.
+- 5 visible recommendation candidates need intake review.
+- Warning overview says no strong candidates are classified in the current
+  window, while the recommendation output tier mix reports 2 strong and 6
+  valid; this mismatch should be reviewed before any paper/manual tracking
+  decision.
+- Expected/persisted outcomes today currently 72/0.
+- Handoff preview/EOD not observed.
+- Recommendation status was refreshing in the screenshot.
+- Diagnostics states:
+  - observe only: yes.
+  - evaluate outcomes: yes.
+  - paper/manual tracking: yes.
+  - log recommendations: no.
+- Provider profile: grow active.
+- No broker automation enabled.
 
 ## Decision/Result
 
-Result status: `first_controlled_live_trial_observation_blocked`
+Result status: `first_controlled_live_trial_observation_passed_with_warnings`
 
-Blocker:
+Rationale:
 
-- Missing fresh Action 1005 Production operator evidence: no Production URL,
-  no screenshot, no cleared-console output, no recommendation count, no
-  candidate/no-candidate observation, and no handoff preview evidence.
-
-This is not a product failure classification. It is a process/evidence block:
-the first controlled live-trial observation cannot be accepted without fresh
-operator evidence from the approved constrained observation scope.
+- Production is open.
+- UI loads.
+- Recommendations render.
+- Candidate cards are visible.
+- Console is clean of red errors.
+- Human-confirmed execution boundary is active.
+- Broker automation is disabled/not live.
+- Warnings remain around scanner observability, candidate review, provider
+  availability, refreshing state, diagnostics tier mismatch, and handoff/EOD
+  not observed.
 
 ## Follow-Up Recommendation
 
-Action 1006 - Provide Operator Evidence And Repeat Controlled Live-Trial
-Observation During Active Window.
+Action 1007 - Review First Controlled Live-Trial Observation And Decide
+Paper/Manual Tracking.
 
-Minimum evidence for Action 1006:
+Recommendation:
 
-- Production URL/environment.
-- Date, local time, and New York time.
-- Session window.
-- Hard refresh yes/no.
-- Console cleared yes/no.
-- Production UI screenshot.
-- Recommendation count or selective empty state.
-- Candidate details if one appears.
-- Console warnings/errors.
-- Handoff preview/manual confirmation evidence if opened.
-- Explicit user decision: observe only, skipped, paper tracked, or manually
-  acted outside Ture automation.
+- Do not move to real money order yet.
+- Review this observation first.
+- If continuing today, prefer paper/manual tracking of at most one candidate
+  under the approved constraints.
+- Keep all execution human-confirmed and outside Ture automation.
 
 ## Progress Update
 
-- Ture production/data-health: 94-96%.
-- Market-window live dry-run: 88-92%.
-- First controlled live-trial observation: blocked pending fresh operator
-  evidence.
+- Ture production/data-health: 95-97%.
+- Market-window live dry-run: 92-95%.
 - Semi-auto agent foundation: 98-99%.
 - Semi-auto Avanza/browser-agent readiness: 95-97%.
 - Real browser automation readiness: 86-91%.
@@ -143,7 +166,8 @@ Minimum evidence for Action 1006:
   documentation-only boundary terms.
 - Automatic-mode safety scan returned existing checklist/safety language only.
 - Dead-doc/path scan returned no missing files.
-- Result-status and next-action consistency scans passed.
+- Result-status consistency scan passed.
+- Next-action consistency scan passed with wrapped Markdown line handling.
 - `git diff --check` passed.
 - Touched-file trailing whitespace scan returned no matches.
 - `find docs -type f -size 0` returned no output.
@@ -158,11 +182,11 @@ Minimum evidence for Action 1006:
 - No automatic order submission.
 - No automatic mode enablement.
 - No final `KOP`/`SALJ` or `KÖP`/`SÄLJ` click.
-- No provider API call.
-- No scan route invocation.
-- No live market scan.
-- No database write.
-- No manual Supabase call.
+- No provider API call by Codex.
+- No scan route invocation by Codex.
+- No live market scan run manually by Codex.
+- No database write by Codex.
+- No manual Supabase call by Codex.
 - No service-role adapter call.
 - No migration.
 - No type generation.
@@ -170,5 +194,59 @@ Minimum evidence for Action 1006:
 - No `.env.local` change.
 - No service-role value printed.
 - No audit writer UI/browser/client invocation.
-- No real trade.
-- No trade/stats/PnL mutation.
+- No real trade through Ture.
+- No trade/stats/PnL mutation by this action.
+
+## Action 1007 Real Avanza UI Training Safety Protocol
+
+- Result status: `real_avanza_ui_training_protocol_created`.
+- Protocol artifact:
+  `docs/real-avanza-ui-training-safety-protocol.md`.
+- The next real Avanza step is human-led read-only reconnaissance only:
+  manual login, manual navigation, screenshots/notes if safe, no agent field
+  filling, no submit, no credential storage, and no 2FA bypass.
+- Final `KOP`/`SALJ` or `KÖP`/`SÄLJ` remains hard-forbidden for automation.
+- Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+  Reconnaissance.
+
+## Action 1008 Human-Led Real Avanza UI Reconnaissance
+
+- Result status: `real_avanza_ui_reconnaissance_blocked`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- No operator Avanza UI screenshots/notes or structural observations were
+  provided in the request, so the real order flow and final-confirmation
+  boundary could not be mapped.
+- First controlled live-trial observation remains passed with warnings.
+- Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+  Reconnaissance Evidence.
+
+## Action 1009 Human-Led Real Avanza UI Reconnaissance Evidence
+
+- Result status: `real_avanza_ui_reconnaissance_passed_with_warnings`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Operator-provided screenshots/notes now document the real Avanza search,
+  instrument, order form, validation, review, confirmation, and cancel/abort
+  surfaces.
+- First controlled live-trial observation remains passed with warnings; no
+  Ture trade or broker automation was performed.
+- Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+
+## Action 1010 Real Avanza UI Mapping Spec
+
+- Result status: `real_avanza_ui_mapping_spec_created`.
+- Mapping spec artifact: `docs/real-avanza-ui-mapping-spec.md`.
+- First controlled live-trial observation remains passed with warnings; the
+  mapping spec is documentation-only and does not add Avanza/browser behavior.
+- Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+  And Max Amount Policy.
+
+## Action 1011 Fill-Only POC Gate And Max Amount Policy
+
+- Result status:
+  `real_avanza_fill_only_poc_gate_and_max_amount_policy_created`.
+- Policy artifact:
+  `docs/real-avanza-fill-only-poc-gate-and-max-amount-policy.md`.
+- First controlled live-trial observation remains passed with warnings; this
+  action adds no Avanza/browser behavior and no order execution.
+- Recommended next action: Action 1012 - Add Max Amount And Final-Submit Guard
+  Contract Tests.

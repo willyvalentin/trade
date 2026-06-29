@@ -384,3 +384,17 @@ No-go if:
   and user decision.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Checklist evidence now includes Production open state, visible candidates,
+  clean red-error console state, and human-confirmed/no-broker-automation
+  boundaries.
+- Remaining checklist warnings: handoff preview/EOD not observed and
+  diagnostics require candidate/scanner review before paper/manual tracking.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.

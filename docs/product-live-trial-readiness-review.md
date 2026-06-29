@@ -1,3 +1,241 @@
+## Action 1032 Operator Setup Evidence Update
+
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`.
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- Setup readiness decision: `operator_setup_deferred`.
+- Semi-auto MVP remains close, but first real Avanza fill-only setup is still
+  deferred until operator setup evidence is supplied.
+- Recommended next action: Action 1033 - Complete Operator Setup Evidence.
+
+## Action 1031 Operator Setup Checklist Update
+
+- Created
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-checklist.md`.
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_checklist_added`.
+- Setup readiness decision: `operator_setup_deferred`.
+- Semi-auto MVP readiness remains high, but first Avanza fill-only setup still
+  needs operator setup evidence before any future manual run setup.
+- Recommended next action: Action 1032 - Capture Gated Adapter Operator Setup
+  Evidence.
+
+## Action 1030 Gated Adapter Skeleton Update
+
+- Created `docs/gated-real-avanza-fill-only-adapter-skeleton.md`.
+- Result status: `gated_real_avanza_fill_only_adapter_skeleton_added`.
+- Product/live-trial readiness remains no automatic order behavior. The
+  skeleton is setup metadata only and does not approve production rollout or a
+  real broker action.
+- Recommended next action: Action 1031 - Add Gated Adapter Operator Setup
+  Checklist.
+
+## Action 1029 Real-Run Readiness Gate Update
+
+- Created `docs/first-real-avanza-fill-only-poc-real-run-readiness-gate.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_real_run_readiness_gate_added`.
+- Readiness decision:
+  `ready_for_first_fill_only_poc_implementation_gate`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 99%, full-auto readiness
+  10-15%, and total Ture toward semi-auto MVP 98-99%.
+- This action adds no runtime behavior and performs no real POC.
+- Recommended next action: Action 1030 - Add Gated Real Avanza Fill-Only
+  Adapter Skeleton.
+
+## Action 1028 Manual Approval Capture Update
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-capture.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_capture_added`.
+- Approval decision:
+  `approved_for_first_fill_only_poc`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- The next required step is a real-run readiness gate; this action performs no
+  POC and adds no runtime behavior.
+- Recommended next action: Action 1029 - Add First Fill-Only POC Real-Run
+  Readiness Gate.
+
+## Action 1027 Manual Approval Message Update
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-approval-message.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_approval_message_added`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- The manual approval state remains `not_approved_yet`.
+- No runtime code, Avanza access, browser automation, DOM query, field fill,
+  click, submit, broker behavior, Supabase call, migration, typegen, generated
+  type edit, `.env.local` change, real trade, or trade/stats/PnL mutation was
+  performed.
+- Recommended next action: Action 1028 - Capture First Fill-Only POC Manual
+  Approval.
+
+## Action 1026 Runbook Update
+
+- Created `docs/first-real-avanza-fill-only-poc-runbook.md`.
+- Result status: `first_real_avanza_fill_only_poc_runbook_added`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 98-99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- No runtime code, Avanza access, browser automation, DOM query, field fill,
+  click, submit, broker behavior, Supabase call, migration, typegen, generated
+  type edit, `.env.local` change, real trade, or trade/stats/PnL mutation was
+  performed.
+- Recommended next action: Action 1027 - Add First Fill-Only POC Manual
+  Approval Message.
+
+## Action 1025 Implementation Stub Update
+
+- Action 1025 added the first real Avanza fill-only POC implementation stub.
+- Result status:
+  `first_real_avanza_fill_only_poc_implementation_stub_added`.
+- Current approximate progress remains: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 97-98%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1026 - Add First Fill-Only POC Runbook.
+
+## Action 1024 Approval Decision Update
+
+- Action 1024 created
+  `docs/first-real-avanza-fill-only-poc-approval-decision.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_decision_created`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 96-98%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1025 - Add First Real Avanza Fill-Only POC
+  Implementation Stub.
+
+## Action 1023 Local Simulation Report Update
+
+- Action 1023 created
+  `docs/first-real-avanza-fill-only-poc-local-simulation-report.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_local_simulation_report_added`.
+- Current approximate progress remains: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 97-98%, first Avanza fill-only POC readiness 94-96%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1024 - Review Local Simulation And Decide
+  First Real Fill-Only POC Approval.
+
+## Action 1022 Approval State Contract Update
+
+- Action 1022 added the pure approval state contract for the first fill-only
+  POC.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_state_contract_added`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 98-99%, real browser automation
+  readiness 96-98%, first Avanza fill-only POC readiness 94-96%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1023 - Add First Fill-Only POC Local
+  Simulation Report.
+
+## Action 1021 Harness Stub Update
+
+- Action 1021 added a local/static first fill-only POC dry-run harness stub.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_harness_stub_added`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 98-99%, real browser automation
+  readiness 96-98%, first Avanza fill-only POC readiness 92-95%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98%.
+- Recommended next action: Action 1022 - Add First Fill-Only POC Approval
+  State Contract.
+
+## Action 1020 Approval Checklist Update
+
+- Action 1020 created the first real Avanza fill-only POC approval checklist.
+- Result status:
+  `first_real_avanza_fill_only_poc_approval_checklist_created`.
+- Default approval decision remains `not_approved_yet`.
+- Current approximate progress remains: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 98-99%, real browser automation
+  readiness 96-98%, full-auto readiness 10-15%, and total Ture toward
+  semi-auto MVP 98%.
+- Recommended next action: Action 1021 - Add First Fill-Only POC Dry-Run
+  Harness Stub.
+
+## Action 1019 Dry-Run Plan Update
+
+- Action 1019 created the first real Avanza fill-only POC dry-run plan.
+- Result status:
+  `first_real_avanza_fill_only_poc_dry_run_plan_created`.
+- Progress remains: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser
+  agent readiness 98-99%, real browser automation readiness 95-97%, full-auto
+  readiness 10-15%, total Ture toward semi-auto MVP 97-98%.
+- The plan does not approve fill-only execution, review clicks, final clicks,
+  broker automation, or automatic mode.
+- Recommended next action: Action 1020 - Add First Fill-Only POC Approval
+  Checklist.
+
+## Action 1018 Selector Contract Integration Update
+
+- Action 1018 integrated the selector mapping contract into the pure fill-only
+  guard.
+- Result status:
+  `real_avanza_fill_only_guard_selector_contract_integration_added`.
+- Progress remains: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser
+  agent readiness 98-99%, real browser automation readiness 95-97%, full-auto
+  readiness 10-15%, total Ture toward semi-auto MVP 97-98%.
+- This does not approve fill-only POC, review clicks, final clicks, broker
+  automation, or automatic mode.
+- Recommended next action: Action 1019 - Add First Fill-Only POC Dry-Run Plan.
+
+## Action 1017 Selector Mapping Contract Update
+
+- Action 1017 created a pure/static Real Avanza selector mapping contract.
+- Result status:
+  `real_avanza_selector_mapping_contract_created`.
+- Progress remains: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser
+  agent readiness 98-99%, real browser automation readiness 95-97%, full-auto
+  readiness 10-15%, total Ture toward semi-auto MVP 97-98%.
+- This does not approve fill-only POC, review clicks, final clicks, broker
+  automation, or automatic mode.
+- Recommended next action: Action 1018 - Add Selector Contract To Fill-Only
+  Guard.
+
+## Action 1016 DOM/Selector Evidence Update
+
+- Action 1016 updated real Avanza DOM/selector evidence with operator-provided
+  screenshots/DevTools observations.
+- Result status:
+  `real_avanza_dom_selector_recon_passed_with_warnings`.
+- Progress update: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser
+  agent readiness 98-99%, real browser automation readiness 95-97%, full-auto
+  readiness 10-15%, total Ture toward semi-auto MVP 97-98%.
+- This does not approve fill-only POC, review clicks, final clicks, or broker
+  automation.
+- Recommended next action: Action 1017 - Create Real Avanza Selector Mapping
+  Contract.
+
 # Product/Live-Trial Readiness Review
 
 ## Purpose
@@ -856,3 +1094,120 @@ Agent Dev Flow State Machine.
 - Next step is evidence collection, not code or automation expansion.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- Product readiness now includes regular/morning Production candidate evidence
+  with warnings and no unsafe execution behavior.
+- Updated progress: production/data-health 95-97%; market-window live dry-run
+  92-95%; total Ture toward semi-auto MVP 97-98%.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.
+
+## Action 1007 Real Avanza UI Training Safety Protocol
+
+- Result status: `real_avanza_ui_training_protocol_created`.
+- Protocol artifact:
+  `docs/real-avanza-ui-training-safety-protocol.md`.
+- Product readiness may proceed toward real Avanza UI learning only through
+  human-led read-only reconnaissance; no field filling, broker action, or
+  automation is approved.
+- Recommended next action: Action 1008 - Run Human-Led Real Avanza UI
+  Reconnaissance.
+
+## Action 1008 Human-Led Real Avanza UI Reconnaissance
+
+- Result status: `real_avanza_ui_reconnaissance_blocked`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Product/live-trial readiness remains strong for recommendations and
+  human-confirmed boundaries, but real Avanza UI mapping is blocked because no
+  human reconnaissance evidence was provided.
+- No automation, field filling, broker action, real trade, provider/scan route
+  invocation, Supabase call, or trade/stats/PnL mutation was performed.
+- Recommended next action: Action 1009 - Provide Human-Led Real Avanza UI
+  Reconnaissance Evidence.
+
+## Action 1009 Human-Led Real Avanza UI Reconnaissance Evidence
+
+- Result status: `real_avanza_ui_reconnaissance_passed_with_warnings`.
+- Result artifact: `docs/real-avanza-ui-reconnaissance-results.md`.
+- Product/live-trial readiness improves for semi-auto MVP because real Avanza
+  UI flow evidence now covers search, instrument detail, order forms, review,
+  confirmation, and cancellation surfaces.
+- Warnings remain: screenshot/manual-note evidence only, no DOM verification,
+  no max-amount enforcement, and no fill-only POC approval.
+- Recommended next action: Action 1010 - Create Real Avanza UI Mapping Spec.
+
+## Action 1010 Real Avanza UI Mapping Spec
+
+- Result status: `real_avanza_ui_mapping_spec_created`.
+- Mapping spec artifact: `docs/real-avanza-ui-mapping-spec.md`.
+- Product/live-trial readiness remains high for semi-auto MVP, but any real
+  Avanza fill-only POC remains blocked pending max amount policy and explicit
+  approval.
+- Recommended next action: Action 1011 - Define Real Avanza Fill-Only POC Gate
+  And Max Amount Policy.
+
+## Action 1011 Fill-Only POC Gate And Max Amount Policy
+
+- Result status:
+  `real_avanza_fill_only_poc_gate_and_max_amount_policy_created`.
+- Policy artifact:
+  `docs/real-avanza-fill-only-poc-gate-and-max-amount-policy.md`.
+- Product/live-trial readiness remains high for semi-auto MVP, with the next
+  required step being testable max-amount and final-submit guard contracts.
+- Recommended next action: Action 1012 - Add Max Amount And Final-Submit Guard
+  Contract Tests.
+## Action 1012 - Max Amount And Final-Submit Guard Contract Tests
+
+- Added guard/test/proof artifacts:
+  `lib/real-avanza-fill-only-guard.ts`,
+  `tests/e2e/real-avanza-fill-only-guard-contract.spec.ts`, and
+  `docs/real-avanza-fill-only-guard-contract-tests.md`.
+- Result status:
+  `real_avanza_fill_only_guard_contract_tests_added`.
+- Product readiness now has static contract coverage for the 1,000 SEK cap,
+  `Avancerad` buy-only first POC, deferred sell/stop/trailing flows,
+  automatic-submit denial, final-submit denial, human confirmation, and
+  cap-never-authorizes-submit behavior.
+- This does not approve or implement real Avanza automation.
+- Recommended next action: Action 1013 - Add Real Avanza Fill-Only POC
+  Readiness Review.
+
+## Action 1013 - Real Avanza Fill-Only POC Readiness Review
+
+- Created `docs/real-avanza-fill-only-poc-readiness-review.md`.
+- Result status:
+  `real_avanza_fill_only_poc_readiness_review_created`.
+- Readiness decision:
+  `real_avanza_fill_only_poc_deferred_pending_dom_mapping`.
+- Product readiness remains strong for semi-auto foundations, but real Avanza
+  fill-only is deferred until no-fill DOM/selector reconnaissance is planned
+  and completed.
+- Recommended next action: Action 1014 - Prepare Real Avanza DOM/Selector
+  Reconnaissance Plan.
+
+## Action 1014 - Real Avanza DOM/Selector Reconnaissance Plan
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-plan.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_plan_created`.
+- Product readiness remains strong for semi-auto planning, but real Avanza
+  fill-only remains deferred until human-led DOM/selector reconnaissance
+  evidence is collected and reviewed.
+- Recommended next action: Action 1015 - Run Human-Led Real Avanza
+  DOM/Selector Reconnaissance.
+
+## Action 1015 - Real Avanza DOM/Selector Reconnaissance Results
+
+- Created `docs/real-avanza-dom-selector-reconnaissance-results.md`.
+- Result status:
+  `real_avanza_dom_selector_recon_blocked`.
+- Product readiness does not advance for real Avanza fill-only because
+  operator-provided selector evidence was not available.
+- Recommended next action: Action 1016 - Repeat Human-Led Real Avanza
+  DOM/Selector Reconnaissance With Evidence.

@@ -208,3 +208,15 @@ Action 1004 - Run Regular Open Production Observation.
   a candidate/no-candidate observation.
 - Recommended next action: Action 1006 - Provide Operator Evidence And Repeat
   Controlled Live-Trial Observation During Active Window.
+
+## Action 1006 Controlled Live-Trial Observation With Evidence
+
+- Result status:
+  `first_controlled_live_trial_observation_passed_with_warnings`.
+- Observation artifact:
+  `docs/first-controlled-live-trial-observation.md`.
+- The Action 1006 regular/morning operator evidence supersedes the Action 1005
+  evidence block and confirms a successful observation-first candidate view
+  with warnings.
+- Recommended next action: Action 1007 - Review First Controlled Live-Trial
+  Observation And Decide Paper/Manual Tracking.
