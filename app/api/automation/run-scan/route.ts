@@ -147,6 +147,9 @@ type AutomationRunDiagnostics = {
   orchestration_decision: DayTradeScanOrchestrationSummary["decision"];
   active_window: DayTradeScanOrchestrationSummary["active_window"];
   scan_window: IntradayScanWindow;
+  official_scan_window: string;
+  generation_window: IntradayScanWindow;
+  generation_block_reason: string | null;
   official_window_detected: boolean;
   scheduled_gate_window: string;
   scheduled_gate_allowed: boolean;
@@ -461,8 +464,7 @@ function parseIntradayScanWindow(value: unknown): IntradayScanWindow | null {
     : null;
 }
 
-function getScanWindowDueNow(): ScanWindow {
-  const now = new Date();
+function getScanWindowDueNow(now: Date): ScanWindow {
   const scanWindow = getIntradayScanWindow(now);
 
   return {
@@ -518,6 +520,12 @@ function isoTextOrNull(value: unknown) {
 
   const date = new Date(text);
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function dateFromIsoOrNull(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
 }
 
 function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
@@ -627,6 +635,7 @@ function buildAutomationRunDiagnostics({
   orchestration,
   decision,
   scanWindow,
+  generationBlockReason = null,
   scheduledGateDiagnostics,
   scheduledRuntimeConfig,
   skippedReason,
@@ -639,6 +648,7 @@ function buildAutomationRunDiagnostics({
   orchestration: DayTradeScanOrchestrationSummary;
   decision: AutomationScanDecision;
   scanWindow: IntradayScanWindow;
+  generationBlockReason?: string | null;
   scheduledGateDiagnostics: ScheduledOfficialGateDiagnostics;
   scheduledRuntimeConfig?: ReturnType<typeof scheduledScanRuntimeConfig>;
   skippedReason?: string | null;
@@ -693,6 +703,9 @@ function buildAutomationRunDiagnostics({
     orchestration_decision: orchestration.decision,
     active_window: orchestration.active_window,
     scan_window: scanWindow,
+    official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+    generation_window: scanWindow,
+    generation_block_reason: generationBlockReason,
     ...scheduledGateDiagnostics,
     grow_max_learning_mode:
       scheduledRuntimeConfig?.grow_max_learning_mode ?? false,
@@ -2520,15 +2533,21 @@ export async function POST(request: Request) {
     ),
   });
 
-  const now = new Date();
-  const routeReceivedAtUtc = now.toISOString();
+  const routeReceivedAt = new Date();
+  const routeReceivedAtUtc = routeReceivedAt.toISOString();
+  const scanClock =
+    dateFromIsoOrNull(scheduledFunctionFiredAtUtc) ?? routeReceivedAt;
+  const now = scanClock;
   const marketStatus = await getUsMarketStatus();
-  const marketSession = buildMarketSessionEvaluation({ now, marketStatus });
+  const marketSession = buildMarketSessionEvaluation({
+    now: scanClock,
+    marketStatus,
+  });
   const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
     readRecentRecommendationScanRuns(),
     readRecentScheduledScanRuns(),
   ]);
-  let scanWindow = getScanWindowDueNow();
+  let scanWindow = getScanWindowDueNow(scanClock);
 
   if (force) {
     const forcedScanWindow = requestedScanWindow ?? getIntradayScanWindow(now);
@@ -2554,14 +2573,14 @@ export async function POST(request: Request) {
     }
 
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: forcedSessionType,
       scanWindow: forcedScanWindow,
     };
   }
 
   let dayTradeScanOrchestration = buildDayTradeScanOrchestrationSummary({
-    now,
+    now: scanClock,
     marketSession,
     marketStatus,
     scanRuns: recentRecommendationScanRuns,
@@ -2571,7 +2590,7 @@ export async function POST(request: Request) {
 
   if (!force && dayTradeScanOrchestration.active_window === "closed") {
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: getLegacySessionTypeForScanWindow("closed"),
       scanWindow: "closed",
     };
@@ -2585,7 +2604,7 @@ export async function POST(request: Request) {
     );
 
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: getLegacySessionTypeForScanWindow(orchestrationScanWindow),
       scanWindow: orchestrationScanWindow,
     };
@@ -2602,6 +2621,7 @@ export async function POST(request: Request) {
     scheduledFunctionFiredAtUtc,
     scanWindow: scanWindow.scanWindow,
   });
+  let generationBlockReason: string | null = null;
   let initialServingCadence = buildServingCadenceForAutomation({
     scanDate: scanWindow.scanDate || marketStatus.date,
     orchestration: dayTradeScanOrchestration,
@@ -2624,6 +2644,7 @@ export async function POST(request: Request) {
       orchestration: dayTradeScanOrchestration,
       decision,
       scanWindow: scanWindow.scanWindow,
+      generationBlockReason,
       scheduledGateDiagnostics,
       scheduledRuntimeConfig,
       skippedReason,
@@ -2683,6 +2704,9 @@ export async function POST(request: Request) {
     market_status: marketStatusLabel(marketStatus),
     market_session: marketSession.phase,
     scan_window: scanWindow.scanWindow,
+    official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+    generation_window: scanWindow.scanWindow,
+    generation_block_reason: generationBlockReason,
     orchestration_decision: dayTradeScanOrchestration.decision,
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
     official_window_detected:
@@ -2936,6 +2960,12 @@ export async function POST(request: Request) {
     scanWindow.scanWindow !== "pre_market" &&
     !disabledGenerationBypassAllowed
   ) {
+    generationBlockReason = "outside_generation_window";
+    activeScanTrace.update({
+      official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+      generation_window: scanWindow.scanWindow,
+      generation_block_reason: generationBlockReason,
+    });
     const discardReview =
       scanWindow.scanWindow === "closed"
         ? await runDiscardReviewIfDue({
@@ -2970,6 +3000,10 @@ export async function POST(request: Request) {
       recommendationsCreated: 0,
       details: {
         ...powerHourTrialGate,
+        scheduled_gate: scheduledGateDiagnostics,
+        official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+        generation_window: scanWindow.scanWindow,
+        generation_block_reason: generationBlockReason,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -2979,13 +3013,13 @@ export async function POST(request: Request) {
       decision: "skipped_outside_window",
       status: "skipped",
       skipReason: message,
-      zeroReason: "outside_generation_window",
+      zeroReason: generationBlockReason,
     });
     await recordAttempt({
       outcome: "skipped",
       allowed: false,
       message,
-      skipReason: "outside_generation_window",
+      skipReason: generationBlockReason,
       httpStatus: 200,
       scanLog,
       activeScanTrace: activeScanTracePayload,

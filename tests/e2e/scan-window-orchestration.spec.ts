@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   buildScheduledOfficialGateDiagnostics,
   buildDayTradeScanOrchestrationSummary,
+  classifyDayTradeScanWindow,
   shouldRunOfficialDayTradeScan,
   type DayTradeScanWindow,
 } from "../../lib/day-trade-scan-orchestration";
@@ -211,8 +212,14 @@ test("allows scheduled scans during the Power Hour official window", () => {
   for (const [now, currentNyTime] of [
     ["2026-06-30T19:05:00.000Z", "2026-06-30 15:05 America/New_York"],
     ["2026-06-30T19:16:00.000Z", "2026-06-30 15:16 America/New_York"],
+    ["2026-06-30T19:34:00.000Z", "2026-06-30 15:34 America/New_York"],
+    ["2026-06-30T19:44:00.000Z", "2026-06-30 15:44 America/New_York"],
   ] as const) {
     const summary = buildDayTradeScanOrchestrationSummary({
+      now,
+      marketStatus: { ...tradingDayMarketStatus, date: "2026-06-30" },
+    });
+    const diagnosticsWindow = classifyDayTradeScanWindow({
       now,
       marketStatus: { ...tradingDayMarketStatus, date: "2026-06-30" },
     });
@@ -223,6 +230,7 @@ test("allows scheduled scans during the Power Hour official window", () => {
 
     expect(summary.current_ny_time).toBe(currentNyTime);
     expect(summary.active_window).toBe("power_hour");
+    expect(diagnosticsWindow).toBe(summary.active_window);
     expect(summary.decision).toBe("should_scan_now");
     expect(shouldRunOfficialDayTradeScan(summary)).toBe(true);
     expect(gate).toMatchObject({
@@ -236,26 +244,36 @@ test("allows scheduled scans during the Power Hour official window", () => {
 });
 
 test("blocks scheduled scans after the Power Hour official window closes", () => {
-  const summary = buildDayTradeScanOrchestrationSummary({
-    now: "2026-06-30T19:45:00.000Z",
-    marketStatus: { ...tradingDayMarketStatus, date: "2026-06-30" },
-  });
-  const gate = buildScheduledOfficialGateDiagnostics({
-    orchestration: summary,
-    scanWindow: "power_hour",
-  });
+  for (const [now, currentNyTime] of [
+    ["2026-06-30T19:45:00.000Z", "2026-06-30 15:45 America/New_York"],
+    ["2026-06-30T19:46:00.000Z", "2026-06-30 15:46 America/New_York"],
+  ] as const) {
+    const summary = buildDayTradeScanOrchestrationSummary({
+      now,
+      marketStatus: { ...tradingDayMarketStatus, date: "2026-06-30" },
+    });
+    const diagnosticsWindow = classifyDayTradeScanWindow({
+      now,
+      marketStatus: { ...tradingDayMarketStatus, date: "2026-06-30" },
+    });
+    const gate = buildScheduledOfficialGateDiagnostics({
+      orchestration: summary,
+      scanWindow: "power_hour",
+    });
 
-  expect(summary.current_ny_time).toBe("2026-06-30 15:45 America/New_York");
-  expect(summary.active_window).toBe("outside_window");
-  expect(summary.decision).toBe("outside_scan_window");
-  expect(shouldRunOfficialDayTradeScan(summary)).toBe(false);
-  expect(gate).toMatchObject({
-    official_window_detected: false,
-    scheduled_gate_window: "outside_window",
-    scheduled_gate_allowed: false,
-    scheduled_gate_block_reason: "not_official_scan_window",
-    schedule_window_mismatch: false,
-  });
+    expect(summary.current_ny_time).toBe(currentNyTime);
+    expect(summary.active_window).toBe("outside_window");
+    expect(diagnosticsWindow).toBe(summary.active_window);
+    expect(summary.decision).toBe("outside_scan_window");
+    expect(shouldRunOfficialDayTradeScan(summary)).toBe(false);
+    expect(gate).toMatchObject({
+      official_window_detected: false,
+      scheduled_gate_window: "outside_window",
+      scheduled_gate_allowed: false,
+      scheduled_gate_block_reason: "not_official_scan_window",
+      schedule_window_mismatch: false,
+    });
+  }
 });
 
 test("scheduled gate diagnostics expose route/window mismatches", () => {

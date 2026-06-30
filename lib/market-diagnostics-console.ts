@@ -3186,8 +3186,19 @@ function buildSections(
               `detected=${bool(input.active_scan_trace.official_window_detected)} / window=${compact(input.active_scan_trace.scheduled_gate_window, "unknown")} / allowed=${bool(input.active_scan_trace.scheduled_gate_allowed === true)}`,
             ),
             lineValue(
+              "Official/generation windows",
+              `${compact(input.active_scan_trace.official_scan_window, "unknown")} / ${compact(input.active_scan_trace.generation_window, "unknown")}`,
+            ),
+            lineValue(
               "Gate block/mismatch",
               `${compact(input.active_scan_trace.scheduled_gate_block_reason, "none")} / mismatch=${bool(input.active_scan_trace.schedule_window_mismatch)}`,
+            ),
+            lineValue(
+              "Generation block",
+              compact(
+                input.active_scan_trace.generation_block_reason,
+                "none",
+              ),
             ),
             lineValue(
               "Skipped in progress",
@@ -3299,7 +3310,9 @@ function buildSections(
             lineValue("Scheduled limits", "not observed"),
             lineValue("Elapsed/timeout", "not observed"),
             lineValue("Official scan gate", "not observed"),
+            lineValue("Official/generation windows", "not observed"),
             lineValue("Gate block/mismatch", "not observed"),
+            lineValue("Generation block", "not observed"),
             lineValue("Skipped in progress", "not observed"),
             lineValue("Schema error", "not observed"),
             lineValue("Power hour trial", "not observed"),
@@ -3407,6 +3420,12 @@ function buildSections(
           input.active_scan_trace?.scheduled_timeout_ms ?? null,
         elapsed_ms: input.active_scan_trace?.elapsed_ms ?? null,
         timeout_reached: input.active_scan_trace?.timeout_reached ?? null,
+        official_scan_window:
+          input.active_scan_trace?.official_scan_window ?? null,
+        generation_window:
+          input.active_scan_trace?.generation_window ?? null,
+        generation_block_reason:
+          input.active_scan_trace?.generation_block_reason ?? null,
         official_window_detected:
           input.active_scan_trace?.official_window_detected ?? null,
         scheduled_gate_window:
