@@ -16,6 +16,7 @@ import {
   type RecommendationOutcomeCandleRequest,
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
+import { buildOutcomePostEligibilityDiagnostics } from "@/lib/recommendation-outcome-post-eligibility-diagnostics";
 import { buildPlanReferenceMetadataTrace } from "@/lib/plan-reference-metadata-trace";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
@@ -1591,6 +1592,11 @@ export async function POST(request: Request) {
       warning.toLowerCase().includes("horizon has not elapsed"),
     ),
   ).length;
+  const postEligibilityDiagnostics = buildOutcomePostEligibilityDiagnostics({
+    candidates: run.candidates,
+    candleRequestsPlanned: run.candle_requests_planned,
+    preFilterEligibleSnapshotCount: eligibleSnapshots.length,
+  });
   const latestProviderError =
     run.candidates.find((candidate) => candidate.status === "provider_error")
       ?.error ?? null;
@@ -1681,6 +1687,7 @@ export async function POST(request: Request) {
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
     ...eligibilityDiagnostics,
+    ...postEligibilityDiagnostics,
     candle_requests_planned: run.candle_requests_planned,
     candle_requests_executed: run.candle_requests_executed,
     candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,
@@ -1722,9 +1729,12 @@ export async function POST(request: Request) {
       persistenceEvents.find((event) => event.error !== null)?.error ??
       supabaseOutcomes?.error ??
       null,
-    outcomes_skipped_equal_or_better_count: persistenceEvents.filter(
-      (event) => event.action === "skipped_equal_or_better",
-    ).length,
+    outcomes_skipped_equal_or_better_count:
+      persistenceEvents.filter(
+        (event) => event.action === "skipped_equal_or_better",
+      ).length +
+      (postEligibilityDiagnostics.post_eligibility_block_reasons
+        .already_has_equal_or_better_outcome ?? 0),
     missing_snapshot_fingerprints:
       officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
     enrichment_mode: run.enrichment_mode,

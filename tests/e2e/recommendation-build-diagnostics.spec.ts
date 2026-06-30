@@ -6,7 +6,11 @@ import {
   type MarketDiagnosticsConsoleInput,
 } from "../../lib/market-diagnostics-console";
 import { hasBetterOutcomeCoverage } from "../../lib/recommendation-outcome-coverage";
+import {
+  buildOutcomePostEligibilityDiagnostics,
+} from "../../lib/recommendation-outcome-post-eligibility-diagnostics";
 import { canonicalizeOutcomeSnapshotsForBatch } from "../../lib/recommendation-outcome-snapshot-canonicalization";
+import type { RecommendationOutcomeEvaluationCandidate } from "../../lib/recommendation-outcome-evaluation-runner";
 import type { RecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "../../lib/recommendation-snapshot";
 import type { ScheduledScanTimelineEntry } from "../../lib/scheduled-scan-attempts";
@@ -140,6 +144,43 @@ function outcome(
     payload_json: overrides.payload_json ?? { candle_count: 10 },
     created_at: overrides.created_at ?? timestamp,
     updated_at: overrides.updated_at ?? timestamp,
+  };
+}
+
+function outcomeCandidate(
+  overrides: Partial<RecommendationOutcomeEvaluationCandidate> = {},
+): RecommendationOutcomeEvaluationCandidate {
+  return {
+    candidate_id: overrides.candidate_id ?? "snap-AAPL-1:15m",
+    snapshot_id: overrides.snapshot_id ?? "snap-AAPL-1",
+    snapshot_fingerprint: overrides.snapshot_fingerprint ?? "snap-AAPL-1",
+    recommendation_id: overrides.recommendation_id ?? "rec-snap-AAPL-1",
+    ticker: overrides.ticker ?? "AAPL",
+    horizon: overrides.horizon ?? "15m",
+    status: overrides.status ?? "evaluated",
+    candle_request:
+      "candle_request" in overrides
+        ? (overrides.candle_request ?? null)
+        : {
+            request_id: "candle-snap-AAPL-1",
+            snapshot_id: "snap-AAPL-1",
+            snapshot_fingerprint: "snap-AAPL-1",
+            recommendation_id: "rec-snap-AAPL-1",
+            ticker: "AAPL",
+            horizon: "15m",
+            start_at: "2026-06-30T16:00:00.000Z",
+            end_at: "2026-06-30T16:15:00.000Z",
+            interval: "5min",
+          },
+    candle_count: overrides.candle_count ?? 3,
+    outcome_id: overrides.outcome_id ?? "outcome-1",
+    outcome_status: overrides.outcome_status ?? "neither_hit",
+    persistence_mode: overrides.persistence_mode ?? "supabase",
+    plan_price_freshness: overrides.plan_price_freshness,
+    entry_type_metadata: overrides.entry_type_metadata,
+    entry_type_aware_trigger: overrides.entry_type_aware_trigger,
+    warnings: overrides.warnings ?? [],
+    error: overrides.error ?? null,
   };
 }
 
@@ -1024,4 +1065,62 @@ test("equal or better persisted outcome still skips duplicate write", () => {
   });
 
   expect(hasBetterOutcomeCoverage(next, existing)).toBe(false);
+});
+
+test("post-eligibility diagnostics allow eligible snapshots to proceed to candle planning", () => {
+  const diagnostics = buildOutcomePostEligibilityDiagnostics({
+    preFilterEligibleSnapshotCount: 1,
+    candleRequestsPlanned: 1,
+    candidates: [
+      outcomeCandidate({
+        status: "evaluated",
+      }),
+    ],
+  });
+
+  expect(diagnostics.pre_filter_eligible_snapshot_count).toBe(1);
+  expect(diagnostics.final_evaluation_eligible_snapshot_count).toBe(1);
+  expect(diagnostics.post_eligibility_block_reasons).toEqual({});
+  expect(diagnostics.candle_request_planning_block_reasons).toEqual({});
+});
+
+test("post-eligibility diagnostics surface already evaluated blockers", () => {
+  const diagnostics = buildOutcomePostEligibilityDiagnostics({
+    preFilterEligibleSnapshotCount: 1,
+    candleRequestsPlanned: 0,
+    candidates: [
+      outcomeCandidate({
+        status: "skipped",
+        candle_request: null,
+        candle_count: 0,
+        outcome_status: "neither_hit",
+        persistence_mode: "unknown",
+        warnings: ["Outcome already has a terminal or completed status."],
+      }),
+    ],
+  });
+
+  expect(diagnostics.final_evaluation_eligible_snapshot_count).toBe(0);
+  expect(diagnostics.post_eligibility_block_reasons).toMatchObject({
+    already_has_equal_or_better_outcome: 1,
+  });
+  expect(diagnostics.candle_request_planning_block_reasons).toMatchObject({
+    already_has_equal_or_better_outcome: 1,
+  });
+});
+
+test("post-eligibility diagnostics never leave eligible blocked runs reasonless", () => {
+  const diagnostics = buildOutcomePostEligibilityDiagnostics({
+    preFilterEligibleSnapshotCount: 2,
+    candleRequestsPlanned: 0,
+    candidates: [],
+  });
+
+  expect(diagnostics.final_evaluation_eligible_snapshot_count).toBe(0);
+  expect(diagnostics.post_eligibility_block_reasons).toMatchObject({
+    unknown_post_eligibility_blocker: 2,
+  });
+  expect(diagnostics.candle_request_planning_block_reasons).toMatchObject({
+    candle_request_planning_failed: 2,
+  });
 });

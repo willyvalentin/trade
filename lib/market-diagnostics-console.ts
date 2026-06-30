@@ -337,6 +337,10 @@ export type MarketDiagnosticsConsoleInput = {
     outcomes_created_count?: number | null;
     outcomes_updated_count?: number | null;
     skipped_not_old_enough_count?: number | null;
+    pre_filter_eligible_snapshot_count?: number | null;
+    final_evaluation_eligible_snapshot_count?: number | null;
+    post_eligibility_block_reasons?: Record<string, number>;
+    candle_request_planning_block_reasons?: Record<string, number>;
     missing_candles_count?: number | null;
     provider_error_count?: number | null;
     candle_requests_planned?: number | null;
@@ -4928,6 +4932,34 @@ function buildSections(
                   0,
               ),
               lineValue(
+                "Pre/final evaluation eligible",
+                `${input.outcome_evaluation?.pre_filter_eligible_snapshot_count ?? input.outcome_evaluation?.eligible_visible_snapshot_count ?? 0}/${input.outcome_evaluation?.final_evaluation_eligible_snapshot_count ?? 0}`,
+              ),
+              lineValue(
+                "Post-eligibility blockers",
+                Object.keys(
+                  input.outcome_evaluation?.post_eligibility_block_reasons ??
+                    {},
+                ).length > 0
+                  ? JSON.stringify(
+                      input.outcome_evaluation
+                        ?.post_eligibility_block_reasons,
+                    )
+                  : "none",
+              ),
+              lineValue(
+                "Candle planning blockers",
+                Object.keys(
+                  input.outcome_evaluation
+                    ?.candle_request_planning_block_reasons ?? {},
+                ).length > 0
+                  ? JSON.stringify(
+                      input.outcome_evaluation
+                        ?.candle_request_planning_block_reasons,
+                    )
+                  : "none",
+              ),
+              lineValue(
                 "Skipped/ineligible snapshots",
                 input.outcome_evaluation?.outcome_ineligible_snapshot_count ??
                   input.outcome_evaluation?.ineligible_snapshot_count ??
@@ -5189,6 +5221,18 @@ function buildSections(
           input.outcome_evaluation?.outcomes_updated_count ?? null,
         skipped_not_old_enough_count:
           input.outcome_evaluation?.skipped_not_old_enough_count ?? null,
+        pre_filter_eligible_snapshot_count:
+          input.outcome_evaluation?.pre_filter_eligible_snapshot_count ?? null,
+        final_evaluation_eligible_snapshot_count:
+          input.outcome_evaluation
+            ?.final_evaluation_eligible_snapshot_count ?? null,
+        post_eligibility_block_reasons: JSON.stringify(
+          input.outcome_evaluation?.post_eligibility_block_reasons ?? {},
+        ),
+        candle_request_planning_block_reasons: JSON.stringify(
+          input.outcome_evaluation?.candle_request_planning_block_reasons ??
+            {},
+        ),
         missing_candles_count:
           input.outcome_evaluation?.missing_candles_count ?? null,
         provider_error_count:
