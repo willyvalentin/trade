@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import {
   buildLearningAccelerationResearchSelection,
-  evaluateLearningAccelerationMode,
+  clientUnavailableLearningAccelerationConfig,
+  getLearningAccelerationConfig,
   learningAccelerationEnvValueCategory,
   shouldIncludeLearningAccelerationOutcomeSample,
 } from "../../lib/learning-acceleration-mode";
@@ -99,7 +100,7 @@ function ranking(
 }
 
 test("learning acceleration env diagnostics classify present true", () => {
-  const mode = evaluateLearningAccelerationMode({
+  const mode = getLearningAccelerationConfig({
     env: {
       NODE_ENV: "production",
       TURE_LEARNING_ACCELERATION_ENABLED: "true",
@@ -117,7 +118,7 @@ test("learning acceleration env diagnostics classify present true", () => {
 });
 
 test("learning acceleration env diagnostics classify present false", () => {
-  const mode = evaluateLearningAccelerationMode({
+  const mode = getLearningAccelerationConfig({
     env: {
       NODE_ENV: "production",
       TURE_LEARNING_ACCELERATION_ENABLED: "false",
@@ -134,8 +135,8 @@ test("learning acceleration env diagnostics classify present false", () => {
 });
 
 test("learning acceleration env diagnostics classify missing and empty", () => {
-  const missing = evaluateLearningAccelerationMode({ env: {} });
-  const empty = evaluateLearningAccelerationMode({
+  const missing = getLearningAccelerationConfig({ env: {} });
+  const empty = getLearningAccelerationConfig({
     env: { TURE_LEARNING_ACCELERATION_ENABLED: "  " },
   });
 
@@ -155,10 +156,10 @@ test("learning acceleration env diagnostics classify missing and empty", () => {
 });
 
 test("learning acceleration env diagnostics classify weird casing and other values", () => {
-  const mixedCase = evaluateLearningAccelerationMode({
+  const mixedCase = getLearningAccelerationConfig({
     env: { TURE_LEARNING_ACCELERATION_ENABLED: " TrUe " },
   });
-  const other = evaluateLearningAccelerationMode({
+  const other = getLearningAccelerationConfig({
     env: { TURE_LEARNING_ACCELERATION_ENABLED: "definitely" },
   });
 
@@ -171,11 +172,26 @@ test("learning acceleration env diagnostics classify weird casing and other valu
 
 test("learning acceleration grow mode compatibility still reports grow source", () => {
   expect(
-    evaluateLearningAccelerationMode({
+    getLearningAccelerationConfig({
       env: {},
       growMaxLearningModeEnabled: true,
     }).learning_acceleration_enabled_source,
   ).toBe("grow_max_compat");
+});
+
+test("client fallback does not falsely report server env missing", () => {
+  const fallback = clientUnavailableLearningAccelerationConfig();
+
+  expect(fallback).toMatchObject({
+    learning_acceleration_enabled: false,
+    learning_acceleration_enabled_source: "client_unavailable",
+    learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_category: "client_unavailable",
+    learning_acceleration_runtime_environment: "client_unavailable",
+  });
+  expect(fallback.learning_acceleration_env_raw_value_category).not.toBe(
+    "missing",
+  );
 });
 
 test("enabled mode persists below-threshold valid candidates as research-only samples", () => {

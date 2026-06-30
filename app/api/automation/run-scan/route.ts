@@ -90,7 +90,7 @@ import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
-  evaluateLearningAccelerationMode,
+  getLearningAccelerationConfig,
   type LearningAccelerationModeEvaluation,
   type LearningAccelerationResearchSample,
 } from "@/lib/learning-acceleration-mode";
@@ -287,7 +287,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const growMaxLearningMode = evaluateGrowMaxLearningMode({
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
-  const learningAccelerationMode = evaluateLearningAccelerationMode({
+  const learningAccelerationMode = getLearningAccelerationConfig({
     growMaxLearningModeEnabled: growMaxLearningMode.grow_max_learning_mode,
   });
   const scheduledMaxTickers =

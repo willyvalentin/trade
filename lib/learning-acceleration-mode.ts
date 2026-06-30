@@ -8,6 +8,7 @@ import type {
 export type LearningAccelerationEnabledSource =
   | "server_env"
   | "grow_max_compat"
+  | "client_unavailable"
   | "none";
 
 export type LearningAccelerationEnvValueCategory =
@@ -15,14 +16,16 @@ export type LearningAccelerationEnvValueCategory =
   | "false"
   | "empty"
   | "other"
-  | "missing";
+  | "missing"
+  | "client_unavailable";
 
 export type LearningAccelerationRuntimeEnvironment =
   | "production"
   | "development"
   | "test"
   | "other"
-  | "missing";
+  | "missing"
+  | "client_unavailable";
 
 export type LearningAccelerationModeEvaluation = {
   learning_acceleration_enabled: boolean;
@@ -169,6 +172,32 @@ export function evaluateLearningAccelerationMode({
       env.NODE_ENV,
     ),
     learning_acceleration_mode: enabled ? "research_only" : "disabled",
+  };
+}
+
+export function getLearningAccelerationConfig({
+  env = process.env,
+  growMaxLearningModeEnabled = false,
+}: {
+  env?: Record<string, string | undefined>;
+  growMaxLearningModeEnabled?: boolean;
+} = {}) {
+  return evaluateLearningAccelerationMode({
+    env,
+    growMaxLearningModeEnabled,
+  });
+}
+
+export function clientUnavailableLearningAccelerationConfig(): LearningAccelerationModeEvaluation {
+  return {
+    learning_acceleration_enabled: false,
+    learning_acceleration_requested: false,
+    learning_acceleration_enabled_source: "client_unavailable",
+    learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_category: "client_unavailable",
+    learning_acceleration_env_raw_value_normalized: false,
+    learning_acceleration_runtime_environment: "client_unavailable",
+    learning_acceleration_mode: "disabled",
   };
 }
 

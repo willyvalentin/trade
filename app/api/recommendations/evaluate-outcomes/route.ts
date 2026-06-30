@@ -28,7 +28,7 @@ import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
-  evaluateLearningAccelerationMode,
+  getLearningAccelerationConfig,
   shouldIncludeLearningAccelerationOutcomeSample,
 } from "@/lib/learning-acceleration-mode";
 import {
@@ -1421,7 +1421,7 @@ export async function POST(request: Request) {
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
   const growMaxLearningModeEnabled = growMaxLearningMode.grow_max_learning_mode;
-  const learningAccelerationMode = evaluateLearningAccelerationMode({
+  const learningAccelerationMode = getLearningAccelerationConfig({
     growMaxLearningModeEnabled,
   });
   const learningAccelerationEnabled =

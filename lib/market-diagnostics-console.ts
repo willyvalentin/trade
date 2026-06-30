@@ -25,6 +25,10 @@ import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
 import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-readiness";
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import {
+  clientUnavailableLearningAccelerationConfig,
+  type LearningAccelerationModeEvaluation,
+} from "@/lib/learning-acceleration-mode";
 import type { ScheduledScanTimelineEntry } from "@/lib/scheduled-scan-attempts";
 import {
   buildBatchCandidateAuditSummary,
@@ -103,6 +107,7 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
+  learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   scan_readback?: {
     market_closed_readback_mode?: boolean | null;
     latest_trading_day_with_official_batch?: string | null;
@@ -2229,40 +2234,54 @@ function buildSections(
   const growMaxLearningMode =
     input.scan_readback?.grow_max_learning_mode === true ||
     input.active_scan_trace?.grow_max_learning_mode === true;
+  const learningAccelerationConfig =
+    input.learning_acceleration_config ??
+    clientUnavailableLearningAccelerationConfig();
   const learningAccelerationEnabled =
-    input.scan_readback?.learning_acceleration_enabled === true ||
-    input.active_scan_trace?.learning_acceleration_enabled === true ||
-    input.outcome_evaluation?.learning_acceleration_enabled === true;
+    input.learning_acceleration_config?.learning_acceleration_enabled ??
+    (input.scan_readback?.learning_acceleration_enabled === true ||
+      input.active_scan_trace?.learning_acceleration_enabled === true ||
+      input.outcome_evaluation?.learning_acceleration_enabled === true);
   const learningAccelerationMode =
+    input.learning_acceleration_config?.learning_acceleration_mode ??
     input.scan_readback?.learning_acceleration_mode ??
     input.active_scan_trace?.learning_acceleration_mode ??
     input.outcome_evaluation?.learning_acceleration_mode ??
-    "disabled";
+    learningAccelerationConfig.learning_acceleration_mode;
   const learningAccelerationSource =
+    input.learning_acceleration_config?.learning_acceleration_enabled_source ??
     input.scan_readback?.learning_acceleration_enabled_source ??
     input.active_scan_trace?.learning_acceleration_enabled_source ??
     input.outcome_evaluation?.learning_acceleration_enabled_source ??
-    "none";
+    learningAccelerationConfig.learning_acceleration_enabled_source;
   const learningAccelerationEnvPresent =
+    input.learning_acceleration_config?.learning_acceleration_env_raw_present ??
     input.scan_readback?.learning_acceleration_env_raw_present ??
     input.active_scan_trace?.learning_acceleration_env_raw_present ??
     input.outcome_evaluation?.learning_acceleration_env_raw_present ??
-    false;
+    learningAccelerationConfig.learning_acceleration_env_raw_present;
   const learningAccelerationEnvCategory =
+    input.learning_acceleration_config
+      ?.learning_acceleration_env_raw_value_category ??
     input.scan_readback?.learning_acceleration_env_raw_value_category ??
     input.active_scan_trace?.learning_acceleration_env_raw_value_category ??
     input.outcome_evaluation?.learning_acceleration_env_raw_value_category ??
-    "missing";
+    learningAccelerationConfig.learning_acceleration_env_raw_value_category;
   const learningAccelerationParsedEnabled =
+    input.learning_acceleration_config
+      ?.learning_acceleration_env_raw_value_normalized ??
     input.scan_readback?.learning_acceleration_env_raw_value_normalized ??
     input.active_scan_trace?.learning_acceleration_env_raw_value_normalized ??
     input.outcome_evaluation?.learning_acceleration_env_raw_value_normalized ??
-    false;
+    learningAccelerationConfig.learning_acceleration_env_raw_value_normalized;
   const learningAccelerationRuntimeEnvironment =
+    input.learning_acceleration_config?.learning_acceleration_runtime_environment ??
     input.scan_readback?.learning_acceleration_runtime_environment ??
     input.active_scan_trace?.learning_acceleration_runtime_environment ??
     input.outcome_evaluation?.learning_acceleration_runtime_environment ??
-    "missing";
+    learningAccelerationConfig.learning_acceleration_runtime_environment;
+  const learningAccelerationServerConfigUnavailable =
+    learningAccelerationSource === "client_unavailable";
   const learningAccelerationSamplesCollectedToday =
     input.scan_readback?.learning_acceleration_samples_collected_today ??
     input.active_scan_trace?.learning_acceleration_samples_collected_count ??
@@ -4412,10 +4431,17 @@ function buildSections(
       lines: [
         lineValue(
           "TURE_LEARNING_ACCELERATION_ENABLED present",
-          bool(learningAccelerationEnvPresent),
+          learningAccelerationServerConfigUnavailable
+            ? "server config unavailable"
+            : bool(learningAccelerationEnvPresent),
         ),
         lineValue("Parsed value", words(learningAccelerationEnvCategory)),
-        lineValue("Enabled", bool(learningAccelerationParsedEnabled)),
+        lineValue(
+          "Enabled",
+          learningAccelerationServerConfigUnavailable
+            ? "server config unavailable"
+            : bool(learningAccelerationParsedEnabled),
+        ),
         lineValue("Source", words(learningAccelerationSource)),
         lineValue("Runtime", words(learningAccelerationRuntimeEnvironment)),
       ],

@@ -397,6 +397,7 @@ import {
 import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
+import type { LearningAccelerationModeEvaluation } from "@/lib/learning-acceleration-mode";
 import {
   buildLiveMarketTrialRunbookSummary,
   liveMarketTrialRunbookSummaryJson,
@@ -8045,7 +8046,13 @@ function updateResultToLatestPositionUpdate(
   };
 }
 
-export function TradeApp() {
+type TradeAppProps = {
+  learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
+};
+
+export function TradeApp({
+  learningAccelerationServerConfig = null,
+}: TradeAppProps = {}) {
   const { activeTab, setActiveTab } = useTradeAppNavigationState();
   const { selectedStatisticsRange, setSelectedStatisticsRange } =
     useStatisticsRangeState();
@@ -13749,6 +13756,7 @@ export function TradeApp() {
       dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
+      learning_acceleration_config: learningAccelerationServerConfig,
       ui_refresh: {
         active_tab: activeTab,
         islands: Object.fromEntries(
