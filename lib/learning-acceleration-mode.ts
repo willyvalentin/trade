@@ -1,5 +1,9 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
-import type { RealScannerCandidate } from "@/lib/real-scanner-candidate-generation";
+import type {
+  RealScannerCandidate,
+  RealScannerCandidateTier,
+} from "@/lib/real-scanner-candidate-generation";
+import type { SelectedCandidateBuildDiagnostic } from "@/lib/recommendation-build-diagnostics";
 import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
@@ -41,7 +45,7 @@ export type LearningAccelerationModeEvaluation = {
 export type LearningAccelerationResearchSample = {
   ticker: string;
   company_name: string;
-  tier: "strong" | "valid" | "experimental";
+  tier: RealScannerCandidateTier | "unknown";
   score: number;
   rank: number | null;
   entry_low: number;
@@ -68,6 +72,8 @@ export type LearningAccelerationResearchSelectionSummary = {
   visible_tickers: string[];
   samples: LearningAccelerationResearchSample[];
   samples_collected_count: number;
+  selected_below_threshold_count: number;
+  research_only_persisted_count: number;
   skipped_due_to_budget_count: number;
   skipped_due_to_duplicate_count: number;
   skipped_due_to_invalid_risk_count: number;
@@ -223,11 +229,17 @@ function tickerKey(value: string | null | undefined) {
 function rankingTier(
   value: ScannerCandidateRankingResult["score"]["tier"] | RealScannerCandidate["tier"],
 ): LearningAccelerationResearchSample["tier"] | null {
-  if (value === "strong" || value === "valid" || value === "experimental") {
+  if (
+    value === "strong" ||
+    value === "valid" ||
+    value === "experimental" ||
+    value === "incomplete" ||
+    value === "rejected"
+  ) {
     return value;
   }
 
-  return null;
+  return "unknown";
 }
 
 function isOfficialWindow(scanWindow: IntradayScanWindow | "unknown") {
@@ -282,6 +294,7 @@ export function buildLearningAccelerationResearchSelection({
   enabled,
   candidates,
   ranking,
+  selectedBuildDiagnostics = [],
   visibleTickers = [],
   scanWindow = "unknown",
   maxSamples = 25,
@@ -289,11 +302,23 @@ export function buildLearningAccelerationResearchSelection({
   enabled: boolean;
   candidates: RealScannerCandidate[];
   ranking: ScannerCandidateRankingSummary | null;
+  selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[] | null;
   visibleTickers?: string[];
   scanWindow?: IntradayScanWindow | "unknown";
   maxSamples?: number;
 }): LearningAccelerationResearchSelectionSummary {
   const visibleTickerSet = new Set(visibleTickers.map(tickerKey));
+  const belowThresholdDiagnostics = (selectedBuildDiagnostics ?? []).filter(
+    (diagnostic) =>
+      diagnostic.rejection_reason === "below_publish_threshold" &&
+      diagnostic.built !== true,
+  );
+  const belowThresholdByTicker = new Map(
+    belowThresholdDiagnostics.map((diagnostic) => [
+      tickerKey(diagnostic.ticker),
+      diagnostic,
+    ]),
+  );
   const max = Math.max(0, Math.min(25, Math.floor(maxSamples)));
   const disabledSummary = {
     enabled,
@@ -302,6 +327,8 @@ export function buildLearningAccelerationResearchSelection({
     visible_tickers: Array.from(visibleTickerSet).sort(),
     samples: [],
     samples_collected_count: 0,
+    selected_below_threshold_count: belowThresholdDiagnostics.length,
+    research_only_persisted_count: 0,
     skipped_due_to_budget_count: 0,
     skipped_due_to_duplicate_count: 0,
     skipped_due_to_invalid_risk_count: 0,
@@ -317,9 +344,8 @@ export function buildLearningAccelerationResearchSelection({
   }
 
   const candidateByTicker = buildCandidateByTicker(candidates);
-  const rankedResults =
-    ranking?.results ??
-    candidates.map((candidate, index): ScannerCandidateRankingResult => ({
+  const fallbackRankedResults = candidates.map(
+    (candidate, index): ScannerCandidateRankingResult => ({
       ticker: candidate.ticker,
       company_name: candidate.company_name,
       rank: index + 1,
@@ -339,7 +365,43 @@ export function buildLearningAccelerationResearchSelection({
         })),
         gaps: [],
       },
-    }));
+    }),
+  );
+  const rankedResultByTicker = new Map(
+    (ranking?.results ?? fallbackRankedResults).map((result) => [
+      tickerKey(result.ticker),
+      result,
+    ]),
+  );
+  const rankedResults =
+    belowThresholdByTicker.size > 0
+      ? Array.from(belowThresholdByTicker.values()).map((diagnostic, index) => {
+          const ticker = tickerKey(diagnostic.ticker);
+          const candidate = candidateByTicker.get(ticker);
+          const ranked = rankedResultByTicker.get(ticker);
+
+          return (
+            ranked ?? {
+              ticker,
+              company_name: candidate?.company_name ?? ticker,
+              rank: index + 1,
+              selected: true,
+              selection_bucket: "not_selected",
+              rank_reason: diagnostic.explanation,
+              source_contribution: "unknown",
+              score: {
+                total_score: diagnostic.score ?? candidate?.score.value ?? 0,
+                normalized_score:
+                  diagnostic.score ?? candidate?.score.value ?? 0,
+                tier: candidate?.tier ?? "rejected",
+                components: [],
+                warnings: [],
+                gaps: [],
+              },
+            }
+          );
+        })
+      : ranking?.results ?? fallbackRankedResults;
   const seen = new Set<string>();
   const samples: LearningAccelerationResearchSample[] = [];
   let skippedDuplicate = 0;
@@ -363,9 +425,19 @@ export function buildLearningAccelerationResearchSelection({
 
     const tier = rankingTier(result.score.tier);
     const candidate = candidateByTicker.get(ticker);
+    const buildDiagnostic = belowThresholdByTicker.get(ticker) ?? null;
 
     if (!candidate || tier === null) {
       skippedSanitizer += 1;
+      continue;
+    }
+
+    if (
+      buildDiagnostic &&
+      (!buildDiagnostic.enough_data_to_build_plan ||
+        buildDiagnostic.risk_geometry_status?.includes("invalid") === true)
+    ) {
+      skippedInvalidRisk += 1;
       continue;
     }
 
@@ -412,11 +484,13 @@ export function buildLearningAccelerationResearchSelection({
       provider_source: textOrNull(candidate.provider_source),
       market_data_source: textOrNull(candidate.data_source),
       market_data_timestamp: textOrNull(candidate.market_data_timestamp),
-      rejection_publish_reason: result.selected
-        ? "below_visible_publish_path_or_builder_limit"
-        : "research_overflow_not_visible_selected",
+      rejection_publish_reason:
+        buildDiagnostic?.rejection_reason ??
+        (result.selected
+          ? "below_visible_publish_path_or_builder_limit"
+          : "research_overflow_not_visible_selected"),
       sample_quality: sampleQuality,
-      ranking_reason: result.rank_reason,
+      ranking_reason: buildDiagnostic?.explanation ?? result.rank_reason,
       ranking_warnings: result.score.warnings.map((warning) => warning.message),
       explicit_metadata_gaps: explicitMetadataGaps,
     });
@@ -442,6 +516,7 @@ export function buildLearningAccelerationResearchSelection({
     ...disabledSummary,
     samples,
     samples_collected_count: samples.length,
+    research_only_persisted_count: samples.length,
     skipped_due_to_budget_count: eligibleRemainder,
     skipped_due_to_duplicate_count: skippedDuplicate,
     skipped_due_to_invalid_risk_count: skippedInvalidRisk,

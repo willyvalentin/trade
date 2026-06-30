@@ -1,3 +1,444 @@
+## Action 1056 Follow-Up - Final Live Invocation Local Simulation
+
+- Result status: `first_real_avanza_fill_only_poc_final_live_fill_only_invocation_wrapper_simulation_added`.
+- Local simulation proved the final live fill-only invocation wrapper can reach `ready_for_live_fill_only_invocation` when final pre-live review, final harness, run gate, approval, final pre-run evidence, operator/manual-login/account/instrument/cap/scope inputs are satisfied.
+- The simulation remains local-only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
+- Validation passed: new final live invocation local simulation tests passed with 25 tests after rerunning with local-server port-binding escalation because the first sandboxed Playwright attempt failed before execution with `listen EPERM 0.0.0.0:3010`. The surrounding final wrapper/harness/gated/real-browser-adapter/execution-dry-run/manual-setup/guard/selector/sandbox regression stack passed with 364 tests. `./node_modules/.bin/tsc --noEmit` passed. `npm run lint` passed with the existing Babel deopt note for large `app/trade-app.tsx`. Static scans found only expected test imports, safety strings, existing repo references, and documentation text; no route/provider/scan/Supabase/service command was invoked.
+- Hygiene passed: `git diff --check`, touched-file trailing whitespace scan, `find docs -type f -size 0`, and `.env.local` diff check.
+- Recommended next action: Action 1057 - Final Live Invocation Operator Checklist.
+
+## Action 1055 - Add Final Live Fill-Only Invocation Wrapper
+
+- Added
+  `lib/first-real-avanza-fill-only-poc-final-live-fill-only-invocation-wrapper.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-final-live-fill-only-invocation-wrapper.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-live-fill-only-invocation-wrapper.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_live_fill_only_invocation_wrapper_added`.
+- Wrapper status model: `disabled`, `blocked`,
+  `ready_for_live_fill_only_invocation`, and `failed_safety`.
+- The wrapper defaults to disabled unless
+  `final_live_fill_only_invocation_enabled` is true.
+- Ready status requires the final pre-live review, final harness, run gate,
+  approval state, final pre-run evidence, operator presence, manual Avanza
+  login confirmation, manual account/instrument verification, cap <= 1,000
+  SEK, buy side, Avancerad/Limit, evidence plan, and hard-stop checks.
+- Ready status means ready for a future operator-invoked fill-only attempt
+  under locked scope. It does not mean this action ran Avanza, launched or
+  controlled a browser, queried DOM, filled fields, clicked review/final,
+  submitted, placed an order, handled credentials/session data, invoked
+  Supabase/routes/providers/scans, or mutated trades/PnL.
+- Capability flags keep browser launch/control, Avanza access without user
+  session, credential/session handling, review click, final confirm, submit,
+  order placement, field-fill execution, and trade/PnL mutation false.
+- The wrapper exposes invocation phases, metadata-only field-fill targets,
+  hard forbidden selectors, abort conditions, evidence requirements, and result
+  notes.
+- Recommended next action: Action 1056 - Add Final Live Invocation Local
+  Simulation.
+- Progress update: Ture production/data-health 95-97%; market-window live
+  dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto
+  Avanza/browser-agent readiness 99-100%; real browser automation readiness
+  99-100%; first Avanza fill-only POC readiness 99-100%; full-auto readiness
+  10-15%; total Ture toward semi-auto MVP 99%.
+- Not performed: live run, browser launch/control, Avanza access, DOM query,
+  actual field fill, click, `Granska kop`, review modal, `Bekrafta kop`,
+  `Bekrafta salj`, submit, placement, credential/2FA/session/cookie/
+  localStorage/sessionStorage handling, provider/route/scan invocation,
+  Supabase/DB call or write, service-role call, audit writer UI/browser/client
+  invocation, migration, type generation, generated type edit, `.env.local`
+  change, real trade, trade/stats/PnL mutation, broker behavior, or automatic
+  mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1054 - Final Pre-Live Run Review
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-pre-live-run-review.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_pre_live_run_review_added`.
+- Review decision: `final_pre_live_run_review_ready`.
+- This means ready for a future explicitly triggered live fill-only run
+  invocation under locked scope. It does not mean the run has happened.
+- Consolidated readiness summary marks approval captured, run approval,
+  operator setup, manual run setup gate, execution dry-run adapter gate, real
+  browser adapter safety gate, real browser fill-only run gate, final pre-run
+  evidence, final harness gate, final harness, and final harness local
+  simulation as pass.
+- Expected warnings remain: no live run performed yet, live evidence package
+  not captured yet, and screenshot evidence is sensitive local operator
+  evidence.
+- Locked scope remains buy-only, Avancerad/Limit, amount-based sizing, cap at
+  or below 1,000 SEK, user present, manually opened/logged-in Avanza, manually
+  verified account/instrument, read only required visible state, fill only
+  approved amount/price if a future invocation is separately approved, stop
+  before `Granska kop`, and abort on mismatch or uncertainty.
+- Fresh evidence remains GameStop / Valentin Labs KF / Avancerad / buy /
+  427,26 SEK / 21,98 USD / 438,05 SEK, no modal, no `Bekrafta kop`, no
+  `Bekrafta salj`, and no placement.
+- Action 1055 may add an explicit invocation wrapper/operator-run instruction
+  only under separate approval, with operator present, browser already open and
+  logged in, stop before review, evidence capture, no review/final/submit, no
+  credential/session handling, and no trade/PnL mutation unless separately
+  approved.
+- Action 1055 must not add review/final/submit/placement, unattended mode,
+  credential/session handling, sell/Stop Loss/Glidande behavior, cap above
+  1,000 SEK, automatic mode, or post-run trade mutation without separate
+  approval.
+- Recommended next action: Action 1055 - Add Final Live Fill-Only Invocation
+  Wrapper.
+- Progress update: Ture production/data-health 95-97%; market-window live
+  dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto
+  Avanza/browser-agent readiness 99-100%; real browser automation readiness
+  99-100%; first Avanza fill-only POC readiness 99-100%; full-auto readiness
+  10-15%; total Ture toward semi-auto MVP 99%.
+- Not performed: live run, browser launch/control, Avanza access, DOM query,
+  field fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta
+  salj`, submit, placement, credential/2FA/session/cookie/localStorage/
+  sessionStorage handling, provider/route/scan invocation, Supabase/DB call or
+  write, service-role call, audit writer UI/browser/client invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1053 - Add Final Harness Local Simulation
+
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-final-real-browser-fill-only-run-harness-simulation.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-real-browser-fill-only-run-harness-simulation.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_real_browser_fill_only_run_harness_simulation_added`.
+- Positive local simulation reaches `ready_for_final_fill_only_run` with all gates, approval, final pre-run evidence, operator, manual login, account/instrument, buy side, Avancerad/Limit, cap, and evidence plan modeled as satisfied.
+- Positive local simulation confirms run phases, metadata-only field-fill plan, evidence requirements, abort conditions, and no-execution capability flags.
+- Negative simulation scenarios cover disabled harness, missing final harness gate, missing run gate, wrong/missing approval, missing final pre-run evidence, operator absent, manual login not confirmed, account/instrument not verified, cap above 1,000 SEK, wrong side/order type, review/final/submit/placement requests, credential/session handling, sell, Stop Loss, and Glidande.
+- Recommended next action: Action 1054 - Final Pre-Live Run Review.
+- Progress update: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99%; real browser automation readiness 99-100%; first Avanza fill-only POC readiness 99-100%; full-auto readiness 10-15%; total Ture toward semi-auto MVP 99%.
+- Not performed: live browser run, Avanza access, browser launch/control, DOM query, field fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta salj`, submit, placement, credential/2FA/session/cookie/localStorage/sessionStorage handling, provider/route/scan invocation, Supabase/DB call or write, service-role call, audit writer UI/browser/client invocation, migration, type generation, generated type edit, `.env.local` change, real trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live Supabase checks and this action forbids Supabase calls.
+
+## Action 1052 - Add Final Real Browser Fill-Only Run Harness
+
+- Added
+  `lib/first-real-avanza-fill-only-poc-final-real-browser-fill-only-run-harness.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-final-real-browser-fill-only-run-harness.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-real-browser-fill-only-run-harness.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_real_browser_fill_only_run_harness_added`.
+- The harness is disabled by default and exposes
+  `buildFirstFillOnlyPocFinalRealBrowserFillOnlyRunHarnessDecision(input)`.
+- Ready status: `ready_for_final_fill_only_run`. This means ready for a future
+  separately invoked fill-only run only; it does not authorize review click,
+  final confirmation, submit, order placement, credential/session handling, or
+  unattended operation.
+- Required gates include `final_real_browser_run_harness_gate_ready`,
+  `real_browser_fill_only_run_gate_ready`,
+  `real_browser_run_approved_for_fill_only`, `final_pre_run_evidence_ready`,
+  operator presence, manual Avanza login, account/instrument verification, buy
+  side, Avancerad/Limit, amount-based sizing, and cap <= 1,000 SEK.
+- Planned phases cover final gate, approval, final pre-run evidence, operator
+  presence, manual login, account, instrument, visible order form state, buy
+  side, Avancerad/Limit, metadata-only amount/price/total planning, cap
+  verification, stop-before-review evidence, and hard stop before review.
+- Capability flags remain false for browser launch/control, Avanza access,
+  credential/session handling, review/final/submit/order placement,
+  trade/PnL mutation, and actual field fill. Only metadata field-fill planning
+  can become true when all gates pass.
+- Recommended next action: Action 1053 - Add Final Harness Local Simulation.
+- Not performed: real browser launch/control, Avanza access, DOM query, field
+  fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta salj`,
+  submit, order placement, credential/2FA/session/cookie/localStorage/
+  sessionStorage handling, provider/route/scan invocation, Supabase/DB call or
+  write, service-role call, audit writer UI/browser/client invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1051 - Add Final Real Browser Run Harness Gate
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-real-browser-run-harness-gate.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_real_browser_run_harness_gate_added`.
+- Harness gate decision: `final_real_browser_run_harness_gate_ready`.
+- This means ready to add a future final harness/action for the fill-only run.
+  It does not mean the run has been performed.
+- Gate basis: `real_browser_run_approved_for_fill_only`,
+  `real_browser_fill_only_run_gate_ready`, gated real browser fill-only adapter
+  exists, gated simulation passed, `final_pre_run_evidence_ready`, GameStop
+  / Valentin Labs KF / 427,26 SEK / 21,98 USD / 438,05 SEK evidence remains
+  under the 1,000 SEK cap, and all hard stops remain active.
+- Final harness prerequisite checklist is recorded with pass for approval,
+  final evidence, fresh operator evidence, account/instrument evidence,
+  intended amount/price, total below cap, no modal/final confirm evidence, and
+  run adapter simulation. Expected warnings remain that the actual real browser
+  harness is not added yet, no live run has been performed yet, and no live run
+  evidence package exists yet.
+- Allowed future harness scope: explicitly triggered only, user present,
+  browser already manually opened, Avanza already manually logged in,
+  account/instrument manually verified, read only required visible order-form
+  state, fill only approved amount and price fields, capture evidence, stop
+  before `Granska kop`, no review click, no review modal, no final confirm, no
+  submit/order placement, no credential/session/cookie/localStorage/
+  sessionStorage handling, and abort on mismatch/uncertainty.
+- Mandatory future aborts include user absent, browser/session not manually
+  prepared, account/instrument mismatch, wrong side/order type, amount/price
+  mismatch, total parse failure, cap exceeded, validation errors, modal open,
+  final confirm visible/targeted, review click targeted/requested,
+  submit/order placement requested, credential/session access requested, and
+  any uncertainty.
+- Recommended next action: Action 1052 - Add Final Real Browser Fill-Only Run
+  Harness.
+- Not performed: real browser launch/control, Avanza access, DOM query, field
+  fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta salj`,
+  submit, order placement, credential/2FA/session/cookie/localStorage/
+  sessionStorage handling, provider/route/scan invocation, Supabase/DB call or
+  write, service-role call, audit writer UI/browser/client invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1050 - Capture Fresh Final Pre-Run Evidence
+
+- Updated
+  `docs/first-real-avanza-fill-only-poc-final-pre-run-evidence-capture.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_pre_run_evidence_capture_ready`.
+- Evidence decision: `final_pre_run_evidence_ready`.
+- Evidence source: fresh operator-provided screenshot evidence after Action
+  1049.
+- Screenshot evidence shows Avanza open and logged in as Valentin Labs AB,
+  GameStop order form visible, Valentin Labs KF account selected, Avancerad
+  mode visible, buy-side `Granska kop` visible, `Belopp i SEK` 427,26,
+  `Antal` 2, `Kurs i USD` 21,98, `Villkor` Inget, `Avgifter (Mini)` 1,11 USD,
+  `Totalt belopp inkl. avgifter` 438,05 SEK, no confirmation modal, no
+  `Bekrafta kop`/`Bekrafta salj`, `Granska kop` visible but not clicked, and
+  no order placement indicated.
+- Warnings: evidence is screenshot-based operator evidence, not automated
+  verification; screenshot contains local sensitive development/account/order
+  information; kill-switch understanding and browser-close readiness are
+  carried from operator/runbook context rather than visually verifiable machine
+  proof.
+- Remaining hard stops: no `Granska kop` click, no review modal, no
+  `Bekrafta kop`/`Bekrafta salj`, no submit/order placement, no
+  credential/session handling, abort on mismatch/uncertainty, and cap remains
+  max 1,000 SEK.
+- Recommended next action: Action 1051 - Add Final Real Browser Run Harness
+  Gate.
+- Not performed: real browser launch/control, Avanza access from code, DOM
+  query, field fill, click, `Granska kop`, review modal, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, credential/2FA/session/cookie/
+  localStorage/sessionStorage handling, provider/route/scan invocation,
+  Supabase/DB call or write, service-role call, audit writer UI/browser/client
+  invocation, migration, type generation, generated type edit, `.env.local`
+  change, real trade, trade/stats/PnL mutation, broker behavior, or automatic
+  mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1049 - Capture Final Pre-Run Evidence
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-pre-run-evidence-capture.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_pre_run_evidence_capture_added`.
+- Evidence source: no fresh operator-provided final pre-run screenshot or text
+  evidence was provided in the current instruction/input.
+- Evidence decision: `final_pre_run_evidence_deferred`.
+- Decision reason: fresh immediate pre-run evidence is still missing.
+- Missing evidence remains for operator presence, manually opened browser,
+  manual Avanza login, manual BankID/2FA completion, manual account and
+  instrument verification, visible order form, buy side, Avancerad/Limit,
+  amount field, price field, total amount output, no modal, no final confirm,
+  no `Bekrafta kop`/`Bekrafta salj`, no `Granska kop` click, no order placed,
+  kill-switch readiness, browser-close readiness, instrument/ticker, redacted
+  account label/identifier, intended amount SEK, intended price, cap <= 1,000
+  SEK, expected side buy, expected order type Avancerad/Limit, and stop point
+  before `Granska kop`.
+- Recommended next action: Action 1050 - Provide Fresh Final Pre-Run Evidence.
+- Not performed: real browser launch/control, Avanza access, DOM query, field
+  fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta salj`,
+  submit, order placement, credential/2FA/session/cookie/localStorage/
+  sessionStorage handling, provider/route/scan invocation, Supabase/DB call or
+  write, service-role call, audit writer UI/browser/client invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1048 - Add Final Pre-Run Evidence Checklist
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-final-pre-run-evidence-checklist.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_final_pre_run_evidence_checklist_added`.
+- Checklist decision: `final_pre_run_evidence_deferred`.
+- Decision reason: fresh immediate pre-run evidence has not been captured in
+  this action.
+- The checklist requires fresh operator evidence immediately before any future
+  real browser fill-only run attempt: operator present, browser manually
+  opened, Avanza manually opened/logged in, BankID/2FA already handled
+  manually, no credential/session sharing, account manually verified,
+  instrument manually verified, order form visible, buy side active,
+  Avancerad/Limit selected, amount/price/total visible, no modal open, no
+  final confirm visible, no `Bekrafta kop`/`Bekrafta salj`, no `Granska kop`
+  clicked, no order placed, and kill switch understood.
+- The checklist captures required run values: instrument/ticker, redacted
+  account label/identifier, intended amount SEK, intended price, cap <= 1,000
+  SEK, expected side buy, expected order type Avancerad/Limit, and stop point
+  before `Granska kop`.
+- Mandatory aborts remain active for missing operator/manual login/account/
+  instrument evidence, wrong side/order type, cap above 1,000 SEK, amount or
+  price mismatch, total parse failure, validation errors, modal/final confirm
+  visibility, `Granska kop` targeting/click requests, submit/order placement
+  requests, credential/session handling requests, and any uncertainty.
+- Recommended next action: Action 1049 - Capture Final Pre-Run Evidence.
+- Not performed: real browser launch/control, Avanza access, DOM query, field
+  fill, click, `Granska kop`, review modal, `Bekrafta kop`, `Bekrafta salj`,
+  submit, order placement, credential/2FA/session/cookie/localStorage/
+  sessionStorage handling, provider/route/scan invocation, Supabase/DB call or
+  write, service-role call, audit writer UI/browser/client invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, trade/stats/PnL mutation, broker behavior, or automatic mode.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1047 - Add Gated Real Browser Fill-Only Run Simulation
+
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-gated-real-browser-fill-only-run-simulation.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-gated-real-browser-fill-only-run-simulation.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_gated_real_browser_fill_only_run_simulation_added`.
+- The positive local simulation reaches `ready_for_fill_only_browser_run` with
+  the adapter enabled only in local test input.
+- The positive result confirms no browser launch/control, no Avanza access, no
+  DOM query, no actual field fill, no review click, no final confirmation, no
+  submit, no order placement, no credential/session handling, and no
+  unattended operation capability.
+- The positive result exposes planned phases, metadata-only field-fill plan,
+  abort conditions, and evidence requirements.
+- Negative coverage includes disabled adapter, missing run gate, wrong
+  approval, absent operator, missing manual login, missing account/instrument
+  verification, cap above 1,000 SEK, wrong side/order type, review/final/
+  submit/order placement requests, credential/session handling, sell, Stop
+  Loss, and Glidande.
+- Recommended next action: Action 1048 - Add Final Pre-Run Evidence Checklist.
+- Not performed: real browser run, Avanza access, browser automation, DOM
+  query, field fill, click, `Granska kop`, review modal, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, credential/2FA/session/cookie/
+  localStorage/sessionStorage handling, provider/route/scan invocation,
+  Supabase/DB call/write, service-role call, audit writer invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, or trade/stats/PnL mutation.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1046 - Add Gated Real Browser Fill-Only Run Adapter
+
+- Added
+  `lib/first-real-avanza-fill-only-poc-gated-real-browser-fill-only-run-adapter.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-gated-real-browser-fill-only-run-adapter.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-gated-real-browser-fill-only-run-adapter.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_gated_real_browser_fill_only_run_adapter_added`.
+- Ready status: `ready_for_fill_only_browser_run`.
+- Ready status means ready for a future separately approved invocation only; it
+  does not mean Avanza was accessed, a browser was controlled, fields were
+  filled, review was opened, final confirmation was clicked, submit occurred,
+  or an order was placed.
+- The adapter remains disabled by default and requires the run gate
+  `real_browser_fill_only_run_gate_ready`, approval state
+  `real_browser_run_approved_for_fill_only`, operator presence, manual Avanza
+  login confirmation, manual account verification, manual instrument
+  verification, buy-only/Avancerad/Limit/amount-based payload, and cap <= 1,000
+  SEK.
+- The adapter exposes planned phases, field-fill plan metadata, hard forbidden
+  selectors, abort conditions, and evidence requirements while keeping
+  `can_execute_field_fill`, `can_click_review`, `can_click_final_confirm`,
+  `can_submit_order`, and `can_place_order` false.
+- Recommended next action: Action 1047 - Add Gated Real Browser Fill-Only Run
+  Simulation.
+- Not performed: actual browser run, Avanza access, browser automation, DOM
+  query, field fill, click, `Granska kop`, review modal, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, credential/2FA/session/cookie/
+  localStorage/sessionStorage handling, provider/route/scan invocation,
+  Supabase/DB call/write, service-role call, audit writer invocation,
+  migration, type generation, generated type edit, `.env.local` change, real
+  trade, or trade/stats/PnL mutation.
+- Denial harness scripts were not imported or run because they execute live
+  Supabase checks and this action forbids Supabase calls.
+
+## Action 1040 - Add First Fill-Only POC Real Browser Adapter Safety Gate
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-real-browser-adapter-safety-gate.md`.
+- Gate decision: `real_browser_adapter_safety_gate_ready`.
+- Result status:
+  `first_real_avanza_fill_only_poc_real_browser_adapter_safety_gate_added`.
+- This means ready to add a disabled-by-default real browser adapter skeleton
+  only. It does not mean ready to run browser automation.
+- Gate basis: manual approval captured, operator setup ready, manual setup
+  simulation passed, execution dry-run simulation passed, all execution
+  capability flags remain false, final confirmation remains forbidden, and the
+  first POC locked scope remains unchanged.
+- Future adapter scope remains fill-only, buy-only, Avancerad/Limit,
+  amount-based, cap <= 1,000 SEK, user-present, stopped before `Granska kop`,
+  with no review modal, no final confirmation, no order placement, no
+  unattended run, and no credential/2FA/session-token handling.
+- Hard restrictions include no credential storage, no BankID/2FA handling, no
+  session-token/cookie/localStorage reads, no `Granska kop`, no
+  `Bekrafta kop`, no `Bekrafta salj`, no form submit, no side/account switch,
+  no steppers, no `Valj alla pa kontot`, and no sell/Stop Loss/Glidande first
+  POC support.
+- Recommended next action: Action 1041 - Add Disabled Real Browser Adapter
+  Skeleton.
+- Not performed: runtime code change, real browser adapter creation, browser
+  launch, Avanza access, DOM query, field filling, clicking, `Granska kop`,
+  `Bekrafta kop`, `Bekrafta salj`, submit, order placement, credential/2FA
+  handling, session-token capture, provider/route/scan invocation,
+  Supabase/DB call/write, service-role call, audit writer UI/browser/client
+  invocation, migration, type generation, generated type edit, `.env.local`
+  change, real trade, or trade/stats/PnL mutation.
+
+## Action 1039 - Add First Fill-Only POC Execution Dry-Run Simulation
+
+- Created
+  `tests/e2e/first-real-avanza-fill-only-poc-execution-dry-run-simulation.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-simulation.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_simulation_added`.
+- The positive local simulation enables the execution dry-run adapter only in
+  the test input object and reaches `ready_for_execution_dry_run_setup`.
+- The positive simulation keeps all execution capability flags false:
+  `can_access_avanza`, `can_launch_browser`, `can_query_dom`,
+  `can_fill_fields`, `can_click_review`, `can_click_final_confirm`, and
+  `can_submit_order`.
+- Negative scenarios cover disabled adapter, missing manual run setup
+  readiness, review requested, final confirmation requested, cap above 1,000
+  SEK, wrong side, and wrong order type.
+- Planned metadata remains local/static and stops before review.
+- Recommended next action: Action 1040 - Add First Fill-Only POC Real Browser
+  Adapter Safety Gate.
+- Not performed: real Avanza access, browser automation, DOM query, runtime
+  Avanza integration, field filling, clicking, `Granska kop`, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, broker behavior, provider/route/
+  scan invocation, Supabase/DB call/write, service-role call, audit writer
+  client invocation, migration, type generation, generated type edit,
+  `.env.local` change, real trade, or trade/stats/PnL mutation.
+
 ## Action 1038 - Add First Fill-Only POC Execution Dry-Run Adapter Skeleton
 
 - Added
@@ -21919,3 +22360,74 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   market-loop/scanner audit writer invocation, broker/Avanza behavior,
   automatic mode enablement, automatic order behavior, or trade/stats/PnL
   behavior change.
+## Action 1041 Disabled Real Browser Adapter Skeleton
+
+- Result status: `first_real_avanza_fill_only_poc_real_browser_adapter_skeleton_added`.
+- Added helper: `lib/first-real-avanza-fill-only-poc-real-browser-adapter-skeleton.ts`.
+- Added tests: `tests/e2e/first-real-avanza-fill-only-poc-real-browser-adapter-skeleton.spec.ts`.
+- Added implementation doc: `docs/first-real-avanza-fill-only-poc-real-browser-adapter-skeleton.md`.
+- The skeleton defaults to `disabled`; enabling `real_browser_adapter_enabled` only evaluates readiness and metadata.
+- Ready status meaning: `ready_for_real_browser_adapter_setup` means metadata-only readiness for a future separately approved design, not browser access or execution.
+- Browser capabilities remain false: no launch, attach, Avanza access, DOM query, session storage read, or cookie read.
+- Execution capabilities remain false: no field fill, review click, final confirm, submit, or order placement.
+- Blockers include missing real browser safety gate readiness, execution dry-run readiness, manual setup readiness, approval, operator setup, operator presence, cap over 1,000 SEK, wrong side/order type, review/final request, credential/session handling request, and any forbidden action request.
+- Planned metadata covers operator-opened browser, operator-managed Avanza login, operator account/instrument verification, buy/Limit verification, amount/price/total metadata, and stop before review.
+- Not performed: no browser automation, no Avanza access, no DOM query, no fill, no click, no submit, no route/provider/scan/audit writer invocation, no Supabase call, no migration/typegen/generated type edit, no `.env.local` edit, no trade/stats/PnL mutation.
+- Recommended next action: Action 1042 - Add Real Browser Adapter Skeleton Simulation.
+## Action 1042 Real Browser Adapter Skeleton Simulation
+
+- Result status: `first_real_avanza_fill_only_poc_real_browser_adapter_simulation_added`.
+- Added test: `tests/e2e/first-real-avanza-fill-only-poc-real-browser-adapter-simulation.spec.ts`.
+- Added report: `docs/first-real-avanza-fill-only-poc-real-browser-adapter-simulation.md`.
+- Positive local simulation reaches `ready_for_real_browser_adapter_setup`.
+- The simulation enables the real browser adapter only as local input and proves all browser capability flags remain false: no launch, attach, Avanza access, DOM query, session storage read, or cookie read.
+- The simulation proves all execution capability flags remain false: no field fill, review click, final confirm, submit, or order placement.
+- Negative scenarios cover disabled adapter, missing real browser safety gate readiness, missing execution dry-run readiness, missing manual setup readiness, missing operator presence, review requested, final confirm requested, credential/session handling requested, cap above 1,000 SEK, wrong side, and wrong order type.
+- Not performed: no browser automation, no browser launch/control, no Avanza access, no DOM query, no field fill, no click, no submit, no route/provider/scan/audit writer invocation, no Supabase call, no migration/typegen/generated type edit, no `.env.local` edit, no trade/stats/PnL mutation.
+- Denial harness scripts remain intentionally skipped because they execute live Supabase checks and this action forbids Supabase calls.
+- Recommended next action: Action 1043 - Add Real Browser Adapter Run Approval Gate.
+## Action 1043 Real Browser Adapter Run Approval Gate
+
+- Result status: `first_real_avanza_fill_only_poc_real_browser_adapter_run_approval_gate_added`.
+- Created gate document: `docs/first-real-avanza-fill-only-poc-real-browser-adapter-run-approval-gate.md`.
+- Gate decision: `real_browser_run_approval_gate_ready`.
+- Current run approval state: `real_browser_run_not_approved`.
+- The gate is ready and awaiting exact future approval text. It does not approve a real browser run.
+- Documented why a separate run approval is required: prior approvals covered locked scope, setup, safety gates, skeletons, and simulations, but did not authorize browser launch/attach, DOM query, field fill, clicking, submit, or order placement.
+- Documented exact required future approval text for Action 1044 before any real browser run can be considered.
+- Documented run approval states: `real_browser_run_not_approved`, `real_browser_run_approved_for_fill_only`, and `real_browser_run_blocked`.
+- Documented run prerequisites checklist with current blockers/warnings: exact browser run approval not yet captured, no real browser run action added yet, and no real browser run evidence package yet.
+- Documented future allowed scope after approval only: disabled by default, explicit trigger only, user present, browser opened manually, Avanza logged in manually, visible order-form inspection/fill only if later implemented and separately approved, stop before `Granska köp`, no review click, no final confirm, no submit/order placement, and no credential/session handling.
+- Progress update recorded: Ture production/data-health 95-97%, market-window live dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser-agent readiness 99%, real browser automation readiness 99%, first Avanza fill-only POC readiness 99%, full-auto readiness 10-15%, total Ture toward semi-auto MVP 98-99%.
+- Not performed: no runtime code change, browser automation, browser launch/control, Avanza access, DOM query, field fill, click, submit, order placement, credential/session handling, provider/route/scan invocation, Supabase call/write, service-role adapter call, migration/typegen/generated type edit, `.env.local` change, audit writer UI/browser/client invocation, real broker behavior, automatic mode, or trade/stats/PnL mutation.
+- Denial harness scripts remain intentionally skipped because they execute live Supabase checks and this action forbids Supabase calls.
+- Recommended next action: Action 1044 - Capture Real Browser Run Approval.
+## Action 1044 Real Browser Run Approval Capture
+
+- Result status: `first_real_avanza_fill_only_poc_real_browser_run_approval_capture_added`.
+- Created approval capture document: `docs/first-real-avanza-fill-only-poc-real-browser-run-approval-capture.md`.
+- Approval source: user provided the exact approval text in chat for Action 1044.
+- Approval text matches the Action 1043 required approval text.
+- Approval state transitioned from `real_browser_run_not_approved` to `real_browser_run_approved_for_fill_only`.
+- Captured scope: first real Avanza browser fill-only run, buy-only, Avancerad/Limit, amount-based sizing, max cap 1,000 SEK or lower, user present, Avanza already opened/logged in manually by user, account/instrument manually verified by user, adapter may read only required visible order-form state, adapter may fill only approved amount/price fields, stop before `Granska köp`, no review/final/submit/order placement, no credential/session handling, no unattended run, and abort on mismatch or uncertainty.
+- Remaining hard stops: final confirmation remains permanently forbidden, review click remains forbidden for the first run unless a separate future approval changes it, order placement remains forbidden, credentials/session handling remains forbidden, and any mismatch or uncertainty aborts.
+- This approval still does not authorize clicking `Granska köp`, opening or interacting with a review modal, clicking `Bekräfta köp/sälj`, submitting or placing an order, unattended operation, credential/session access, sell/Stop Loss/Glidande behavior, or cap above 1,000 SEK.
+- Progress update recorded: Ture production/data-health 95-97%, market-window live dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser-agent readiness 99%, real browser automation readiness 99%, first Avanza fill-only POC readiness 99%, full-auto readiness 10-15%, total Ture toward semi-auto MVP 98-99%.
+- Not performed: no runtime code change, browser automation, browser launch/control, Avanza access, DOM query, field fill, click, submit, order placement, credential/session handling, provider/route/scan invocation, Supabase call/write, service-role adapter call, migration/typegen/generated type edit, `.env.local` change, audit writer UI/browser/client invocation, real broker behavior, automatic mode, or trade/stats/PnL mutation.
+- Denial harness scripts remain intentionally skipped because they execute live Supabase checks and this action forbids Supabase calls.
+- Recommended next action: Action 1045 - Add Real Browser Fill-Only Run Gate.
+## Action 1045 Real Browser Fill-Only Run Gate
+
+- Result status: `first_real_avanza_fill_only_poc_real_browser_fill_only_run_gate_added`.
+- Created run gate document: `docs/first-real-avanza-fill-only-poc-real-browser-fill-only-run-gate.md`.
+- Run-gate decision: `real_browser_fill_only_run_gate_ready`.
+- Approval state remains `real_browser_run_approved_for_fill_only`.
+- The run gate means ready to add a future gated real browser fill-only run adapter/action. It does not mean a real browser run has been performed.
+- Documented final prerequisite checklist with pass status for exact browser run approval, approved fill-only state, operator setup evidence, operator screenshot evidence, manual setup simulation, execution dry-run simulation, real browser adapter skeleton simulation, selector contract, and guard/cap/final-submit protections.
+- Documented expected warnings: real browser run action not added yet, no real browser run performed yet, and no real run evidence package yet.
+- Documented allowed future run scope: disabled by default, explicit trigger only, user present, browser already manually opened, Avanza already manually logged in, account/instrument manually verified, required visible order-form state only, approved amount/price fields only, stop before `Granska köp`, no review click, no final confirm, no submit/order placement, no credential/session/cookie/localStorage/sessionStorage handling, and abort on mismatch/uncertainty.
+- Documented mandatory abort conditions and Action 1046 limits.
+- Progress update recorded: Ture production/data-health 95-97%, market-window live dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto Avanza/browser-agent readiness 99%, real browser automation readiness 99%, first Avanza fill-only POC readiness 99%, full-auto readiness 10-15%, total Ture toward semi-auto MVP 98-99%.
+- Not performed: no runtime code change, browser automation, browser launch/control, Avanza access, DOM query, field fill, click, submit, order placement, credential/session handling, provider/route/scan invocation, Supabase call/write, service-role adapter call, migration/typegen/generated type edit, `.env.local` change, audit writer UI/browser/client invocation, real broker behavior, automatic mode, or trade/stats/PnL mutation.
+- Denial harness scripts remain intentionally skipped because they execute live Supabase checks and this action forbids Supabase calls.
+- Recommended next action: Action 1046 - Add Gated Real Browser Fill-Only Run Adapter.

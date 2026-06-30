@@ -69,6 +69,8 @@ export type ActiveScanTrace = {
   learning_acceleration_mode: string;
   learning_acceleration_samples_collected_count: number;
   learning_acceleration_samples_evaluated_count: number;
+  learning_acceleration_selected_below_threshold_count: number;
+  learning_acceleration_research_only_persisted_count: number;
   learning_acceleration_skipped_due_to_budget_count: number;
   learning_acceleration_skipped_due_to_invalid_risk_count: number;
   learning_acceleration_skipped_due_to_stale_reference_count: number;
@@ -262,6 +264,8 @@ export function createActiveScanTrace({
     learning_acceleration_mode: "disabled",
     learning_acceleration_samples_collected_count: 0,
     learning_acceleration_samples_evaluated_count: 0,
+    learning_acceleration_selected_below_threshold_count: 0,
+    learning_acceleration_research_only_persisted_count: 0,
     learning_acceleration_skipped_due_to_budget_count: 0,
     learning_acceleration_skipped_due_to_invalid_risk_count: 0,
     learning_acceleration_skipped_due_to_stale_reference_count: 0,

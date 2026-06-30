@@ -163,6 +163,8 @@ type AutomationRunDiagnostics = {
   learning_acceleration_runtime_environment?: string;
   learning_acceleration_mode?: string;
   learning_acceleration_samples_collected?: number;
+  learning_acceleration_selected_below_threshold?: number;
+  learning_acceleration_research_only_persisted?: number;
   target_ideas_per_window?: number | null;
   same_window_limit_reached?: boolean;
   daily_learning_limit_reached?: boolean;
@@ -725,6 +727,12 @@ function buildAutomationRunDiagnostics({
     learning_acceleration_samples_collected:
       currentScanLog?.active_scan_trace
         ?.learning_acceleration_samples_collected_count ?? 0,
+    learning_acceleration_selected_below_threshold:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_selected_below_threshold_count ?? 0,
+    learning_acceleration_research_only_persisted:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_research_only_persisted_count ?? 0,
     target_ideas_per_window:
       scheduledRuntimeConfig?.target_ideas_per_window ?? null,
     same_window_limit_reached: decision === "skipped_recent_scan",
@@ -2161,6 +2169,8 @@ async function persistAutomationArtifacts({
     enabled: learningAccelerationMode.learning_acceleration_enabled,
     candidates: scanLog.real_scanner_candidate_generation?.candidates ?? [],
     ranking: scanLog.scanner_candidate_ranking ?? null,
+    selectedBuildDiagnostics:
+      scanLog.selected_candidate_build_diagnostics ?? [],
     visibleTickers: recommendations
       .map((recommendation) => recommendationTicker(recommendation))
       .filter((ticker): ticker is string => ticker !== null),
@@ -2221,9 +2231,19 @@ async function persistAutomationArtifacts({
       ...snapshots,
       ...researchSnapshots,
     ]);
+  const persistedResearchSnapshotCount =
+    persistence.research_snapshots.filter(
+      (snapshot) =>
+        snapshot.status === "saved" ||
+        snapshot.status === "duplicate",
+    ).length;
   activeScanTrace?.update({
     learning_acceleration_samples_collected_count:
       researchSelection.samples_collected_count,
+    learning_acceleration_selected_below_threshold_count:
+      researchSelection.selected_below_threshold_count,
+    learning_acceleration_research_only_persisted_count:
+      persistedResearchSnapshotCount,
     learning_acceleration_skipped_due_to_budget_count:
       researchSelection.skipped_due_to_budget_count,
     learning_acceleration_skipped_due_to_invalid_risk_count:
@@ -3899,6 +3919,14 @@ export async function POST(request: Request) {
         ).length ?? 0,
       learning_acceleration_samples_collected:
         artifactResult?.learning_acceleration.samples_collected_count ?? 0,
+      learning_acceleration_selected_below_threshold:
+        artifactResult?.learning_acceleration.selected_below_threshold_count ?? 0,
+      learning_acceleration_research_only_persisted:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
       learning_acceleration_sample_quality_summary:
         artifactResult?.learning_acceleration.sample_quality_summary ?? {
           good: 0,

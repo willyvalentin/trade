@@ -137,6 +137,8 @@ export type MarketDiagnosticsConsoleInput = {
     learning_acceleration_mode?: string | null;
     learning_acceleration_samples_collected_today?: number | null;
     learning_acceleration_samples_evaluated_today?: number | null;
+    learning_acceleration_selected_below_threshold_count?: number | null;
+    learning_acceleration_research_only_persisted_count?: number | null;
     learning_acceleration_top_research_sample_tickers?: string[];
     learning_acceleration_sample_quality_summary?: {
       good?: number | null;
@@ -2286,6 +2288,15 @@ function buildSections(
     input.scan_readback?.learning_acceleration_samples_collected_today ??
     input.active_scan_trace?.learning_acceleration_samples_collected_count ??
     0;
+  const learningAccelerationSelectedBelowThreshold =
+    input.scan_readback?.learning_acceleration_selected_below_threshold_count ??
+    input.active_scan_trace
+      ?.learning_acceleration_selected_below_threshold_count ??
+    0;
+  const learningAccelerationResearchOnlyPersisted =
+    input.scan_readback?.learning_acceleration_research_only_persisted_count ??
+    input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
+    learningAccelerationSamplesCollectedToday;
   const learningAccelerationSamplesEvaluatedToday =
     input.scan_readback?.learning_acceleration_samples_evaluated_today ??
     input.outcome_evaluation?.learning_acceleration_samples_evaluated ??
@@ -4474,6 +4485,10 @@ function buildSections(
           `${learningAccelerationSamplesCollectedToday}/${learningAccelerationSamplesEvaluatedToday}`,
         ),
         lineValue(
+          "Selected below threshold / research persisted",
+          `${learningAccelerationSelectedBelowThreshold}/${learningAccelerationResearchOnlyPersisted}`,
+        ),
+        lineValue(
           "Visible vs research-only evaluated",
           `${learningAccelerationVisibleEvaluated}/${learningAccelerationResearchEvaluated}`,
         ),
@@ -4515,6 +4530,10 @@ function buildSections(
           learningAccelerationSamplesCollectedToday,
         learning_acceleration_samples_evaluated_today:
           learningAccelerationSamplesEvaluatedToday,
+        learning_acceleration_selected_below_threshold:
+          learningAccelerationSelectedBelowThreshold,
+        learning_acceleration_research_only_persisted:
+          learningAccelerationResearchOnlyPersisted,
         learning_acceleration_visible_evaluated:
           learningAccelerationVisibleEvaluated,
         learning_acceleration_research_only_evaluated:

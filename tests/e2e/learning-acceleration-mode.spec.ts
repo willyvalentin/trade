@@ -12,6 +12,7 @@ import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
 } from "../../lib/scanner-candidate-ranking";
+import { buildSelectedCandidateBuildDiagnostic } from "../../lib/recommendation-build-diagnostics";
 
 function candidate(
   ticker: string,
@@ -208,6 +209,54 @@ test("enabled mode persists below-threshold valid candidates as research-only sa
   expect(selection.samples[0]).toMatchObject({
     rejection_publish_reason: "research_overflow_not_visible_selected",
     sample_quality: "good",
+  });
+});
+
+test("selected below-publish-threshold candidates are persisted as research-only samples", () => {
+  const selection = buildLearningAccelerationResearchSelection({
+    enabled: true,
+    candidates: [
+      candidate("AAPL"),
+      candidate("PLTR", {
+        tier: "rejected",
+        score: {
+          value: 58,
+          tier: "rejected",
+          reasons: ["Below publish threshold but structurally valid."],
+          warnings: [],
+        },
+      }),
+    ],
+    ranking: null,
+    selectedBuildDiagnostics: [
+      buildSelectedCandidateBuildDiagnostic({
+        ticker: "AAPL",
+        built: true,
+        enoughDataToBuildPlan: true,
+        rejectionReason: "built",
+      }),
+      buildSelectedCandidateBuildDiagnostic({
+        ticker: "PLTR",
+        score: 58,
+        tier: "rejected",
+        built: false,
+        enoughDataToBuildPlan: true,
+        riskGeometryStatus: "valid",
+        rejectionReason: "below_publish_threshold",
+      }),
+    ],
+    visibleTickers: ["AAPL"],
+    scanWindow: "midday",
+    maxSamples: 25,
+  });
+
+  expect(selection.selected_below_threshold_count).toBe(1);
+  expect(selection.research_only_persisted_count).toBe(1);
+  expect(selection.samples).toHaveLength(1);
+  expect(selection.samples[0]).toMatchObject({
+    ticker: "PLTR",
+    tier: "rejected",
+    rejection_publish_reason: "below_publish_threshold",
   });
 });
 
