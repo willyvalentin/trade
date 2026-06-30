@@ -3,7 +3,10 @@ import type {
   RealScannerCandidate,
   RealScannerCandidateTier,
 } from "@/lib/real-scanner-candidate-generation";
-import type { SelectedCandidateBuildDiagnostic } from "@/lib/recommendation-build-diagnostics";
+import type {
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
@@ -73,6 +76,11 @@ export type LearningAccelerationResearchSelectionSummary = {
   samples: LearningAccelerationResearchSample[];
   samples_collected_count: number;
   selected_below_threshold_count: number;
+  selected_below_threshold_readback_count: number;
+  selected_below_threshold_passed_count: number;
+  selected_below_threshold_matched_by_ticker_count: number;
+  selected_below_threshold_unmatched_by_ticker_count: number;
+  learning_acceleration_input_mismatch: boolean;
   research_only_persisted_count: number;
   skipped_due_to_budget_count: number;
   skipped_due_to_duplicate_count: number;
@@ -295,6 +303,7 @@ export function buildLearningAccelerationResearchSelection({
   candidates,
   ranking,
   selectedBuildDiagnostics = [],
+  selectedToBuiltDropOff = null,
   visibleTickers = [],
   scanWindow = "unknown",
   maxSamples = 25,
@@ -303,16 +312,74 @@ export function buildLearningAccelerationResearchSelection({
   candidates: RealScannerCandidate[];
   ranking: ScannerCandidateRankingSummary | null;
   selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[] | null;
+  selectedToBuiltDropOff?: SelectedToBuiltDropOffSummary | null;
   visibleTickers?: string[];
   scanWindow?: IntradayScanWindow | "unknown";
   maxSamples?: number;
 }): LearningAccelerationResearchSelectionSummary {
   const visibleTickerSet = new Set(visibleTickers.map(tickerKey));
-  const belowThresholdDiagnostics = (selectedBuildDiagnostics ?? []).filter(
+  const explicitBelowThresholdDiagnostics = (selectedBuildDiagnostics ?? []).filter(
     (diagnostic) =>
       diagnostic.rejection_reason === "below_publish_threshold" &&
       diagnostic.built !== true,
   );
+  const explicitBelowThresholdTickerSet = new Set(
+    explicitBelowThresholdDiagnostics.map((diagnostic) =>
+      tickerKey(diagnostic.ticker),
+    ),
+  );
+  const dropOffBelowThresholdExamples =
+    selectedToBuiltDropOff?.examples_by_reason.below_publish_threshold ?? [];
+  const fallbackBelowThresholdDiagnostics = dropOffBelowThresholdExamples
+    .map((ticker) => tickerKey(ticker))
+    .filter(
+      (ticker) => ticker && !explicitBelowThresholdTickerSet.has(ticker),
+    )
+    .map(
+      (ticker): SelectedCandidateBuildDiagnostic => ({
+        ticker,
+        side: "long",
+        score: null,
+        tier: null,
+        setup_type: null,
+        source: "selected_to_built_drop_off",
+        reference_price_status: null,
+        reference_price_source: null,
+        reference_price_read_path: null,
+        reference_price_age_minutes: null,
+        vwap_status: null,
+        momentum_status: null,
+        volume_status: null,
+        risk_geometry_status: null,
+        enough_data_to_build_plan: true,
+        built: false,
+        rejection_reason: "below_publish_threshold",
+        rejection_category: "quality",
+        explanation:
+          `${ticker} appeared in selected-to-built drop-off as below publish threshold.`,
+      }),
+    );
+  const belowThresholdDiagnostics = [
+    ...explicitBelowThresholdDiagnostics,
+    ...fallbackBelowThresholdDiagnostics,
+  ];
+  const selectedBelowThresholdReadbackCount =
+    selectedToBuiltDropOff?.rejection_counts.below_publish_threshold ??
+    belowThresholdDiagnostics.length;
+  const selectedBelowThresholdMatchedByTickerCount =
+    belowThresholdDiagnostics.filter((diagnostic) =>
+      candidates.some(
+        (candidate) => tickerKey(candidate.ticker) === tickerKey(diagnostic.ticker),
+      ),
+    ).length;
+  const selectedBelowThresholdUnmatchedByTickerCount = Math.max(
+    0,
+    belowThresholdDiagnostics.length - selectedBelowThresholdMatchedByTickerCount,
+  );
+  const learningAccelerationInputMismatch =
+    selectedBelowThresholdReadbackCount > 0 &&
+    (belowThresholdDiagnostics.length === 0 ||
+      belowThresholdDiagnostics.length !== selectedBelowThresholdReadbackCount);
   const belowThresholdByTicker = new Map(
     belowThresholdDiagnostics.map((diagnostic) => [
       tickerKey(diagnostic.ticker),
@@ -327,7 +394,14 @@ export function buildLearningAccelerationResearchSelection({
     visible_tickers: Array.from(visibleTickerSet).sort(),
     samples: [],
     samples_collected_count: 0,
-    selected_below_threshold_count: belowThresholdDiagnostics.length,
+    selected_below_threshold_count: selectedBelowThresholdReadbackCount,
+    selected_below_threshold_readback_count: selectedBelowThresholdReadbackCount,
+    selected_below_threshold_passed_count: belowThresholdDiagnostics.length,
+    selected_below_threshold_matched_by_ticker_count:
+      selectedBelowThresholdMatchedByTickerCount,
+    selected_below_threshold_unmatched_by_ticker_count:
+      selectedBelowThresholdUnmatchedByTickerCount,
+    learning_acceleration_input_mismatch: learningAccelerationInputMismatch,
     research_only_persisted_count: 0,
     skipped_due_to_budget_count: 0,
     skipped_due_to_duplicate_count: 0,
@@ -401,6 +475,8 @@ export function buildLearningAccelerationResearchSelection({
             }
           );
         })
+      : selectedBelowThresholdReadbackCount > 0
+        ? []
       : ranking?.results ?? fallbackRankedResults;
   const seen = new Set<string>();
   const samples: LearningAccelerationResearchSample[] = [];

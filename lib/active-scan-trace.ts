@@ -70,6 +70,11 @@ export type ActiveScanTrace = {
   learning_acceleration_samples_collected_count: number;
   learning_acceleration_samples_evaluated_count: number;
   learning_acceleration_selected_below_threshold_count: number;
+  learning_acceleration_selected_below_threshold_readback_count: number;
+  learning_acceleration_selected_below_threshold_passed_count: number;
+  learning_acceleration_selected_below_threshold_matched_by_ticker_count: number;
+  learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: number;
+  learning_acceleration_input_mismatch: boolean;
   learning_acceleration_research_only_persisted_count: number;
   learning_acceleration_skipped_due_to_budget_count: number;
   learning_acceleration_skipped_due_to_invalid_risk_count: number;
@@ -265,6 +270,11 @@ export function createActiveScanTrace({
     learning_acceleration_samples_collected_count: 0,
     learning_acceleration_samples_evaluated_count: 0,
     learning_acceleration_selected_below_threshold_count: 0,
+    learning_acceleration_selected_below_threshold_readback_count: 0,
+    learning_acceleration_selected_below_threshold_passed_count: 0,
+    learning_acceleration_selected_below_threshold_matched_by_ticker_count: 0,
+    learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: 0,
+    learning_acceleration_input_mismatch: false,
     learning_acceleration_research_only_persisted_count: 0,
     learning_acceleration_skipped_due_to_budget_count: 0,
     learning_acceleration_skipped_due_to_invalid_risk_count: 0,

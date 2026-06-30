@@ -1,3 +1,36 @@
+## Action 1060 Follow-Up - Live Invocation Run Attempt Gate
+
+- Result status: `first_real_avanza_fill_only_poc_live_invocation_run_attempt_gate_added`.
+- Gate decision: `live_invocation_run_attempt_gate_ready`. This means ready to add a live invocation attempt action/wrapper; it does not mean the live invocation has occurred.
+- Gate basis: final operator GO captured; final pre-live review ready; final live invocation operator checklist ready; final live invocation wrapper simulation passed; fresh pre-run evidence ready; all hard stops remain active.
+- Allowed future attempt remains explicit-trigger-only, user-present, manually opened/logged-in Avanza, read-only visible state check, fill-only approved amount/price fields, evidence capture, and stop before `Granska köp`.
+- Mandatory aborts remain operator absent, browser/session not prepared, account/instrument mismatch, wrong side/order type, amount/price mismatch, total parse failure, cap exceeded, validation errors, modal/final confirm visible, review click targeted/requested, submit/order placement requested, credential/session handling requested, or any uncertainty.
+- This remains documentation/decision-gate only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
+- Recommended next action: Action 1061 - Add Live Fill-Only Invocation Attempt Wrapper.
+
+## Action 1059 Follow-Up - Final Operator GO Captured
+
+- Result status: `first_real_avanza_fill_only_poc_final_operator_go_captured`.
+- Decision transition: `final_operator_go_no_go_deferred` -> `final_operator_go` because the operator provided the exact required `FINAL GO:` wording from Action 1058.
+- Captured GO scope: operator present; Avanza open/logged in manually; BankID/2FA handled manually; Valentin Labs KF and GameStop manually verified; buy-side Avancerad/Limit; amount 427,26 SEK; price 21,98 USD; total 438,05 SEK under the 1,000 SEK cap.
+- Remaining hard stops: stop before `Granska köp`; do not click `Granska köp`; do not open review modal; do not click `Bekrafta kop/salj`; do not submit/place an order; do not handle credentials/session data; no sell/Stop Loss/Glidande; abort on mismatch or uncertainty.
+- This remains documentation/decision-capture only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
+- Recommended next action: Action 1060 - Add Live Invocation Run Attempt Gate.
+
+## Action 1058 Follow-Up - Final Operator GO/NO-GO Capture
+
+- Result status: `first_real_avanza_fill_only_poc_final_operator_go_no_go_added`.
+- Current decision: `final_operator_go_no_go_deferred` because the current instruction did not include the exact required `FINAL GO:` wording.
+- This remains documentation/decision-capture only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
+- Recommended next action: Action 1059 - Provide Final Operator GO/NO-GO.
+
+## Action 1057 Follow-Up - Final Live Invocation Operator Checklist
+
+- Result status: `first_real_avanza_fill_only_poc_final_live_invocation_operator_checklist_added`.
+- Checklist decision: `final_live_invocation_operator_checklist_ready`. This means the checklist is ready for immediate operator completion before a future live attempt; it does not mean a live attempt has been run or authorized by this action.
+- The checklist remains documentation-only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
+- Recommended next action: Action 1058 - Capture Final Operator Go/No-Go.
+
 ## Action 1056 Follow-Up - Final Live Invocation Local Simulation
 
 - Result status: `first_real_avanza_fill_only_poc_final_live_fill_only_invocation_wrapper_simulation_added`.

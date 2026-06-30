@@ -24,112 +24,110 @@
 - This remains documentation/decision-capture only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
 - Recommended next action: Action 1059 - Provide Final Operator GO/NO-GO.
 
-## Action 1057 Follow-Up - Final Live Invocation Operator Checklist
-
-- Result status: `first_real_avanza_fill_only_poc_final_live_invocation_operator_checklist_added`.
-- Checklist decision: `final_live_invocation_operator_checklist_ready`. This means the checklist is ready for immediate operator completion before a future live attempt; it does not mean a live attempt has been run or authorized by this action.
-- The checklist remains documentation-only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
-- Recommended next action: Action 1058 - Capture Final Operator Go/No-Go.
-
-# First Real Avanza Fill-Only POC Final Live Invocation Local Simulation
+# First Real Avanza Fill-Only POC Final Live Invocation Operator Checklist
 
 ## Purpose
 
-This document records Action 1056: adding a local-only simulation for the final live fill-only invocation wrapper.
+This document records Action 1057: adding the final live invocation operator checklist for the first real Avanza fill-only POC.
 
-This is not a live run. The simulation does not access Avanza, launch or control a browser, query DOM, fill fields, click `Granska kop`, open a review modal, click `Bekrafta kop`, click `Bekrafta salj`, submit, or place an order.
+This is not a live run. This checklist does not access Avanza, launch or control a browser, query DOM, fill fields, click `Granska kop`, open a review modal, click `Bekrafta kop`, click `Bekrafta salj`, submit, or place an order.
 
-## Simulation Basis
+The checklist must be completed immediately before any future live fill-only invocation attempt.
 
-- Final pre-live review decision: `final_pre_live_run_review_ready`.
-- Final harness gate: `final_real_browser_run_harness_gate_ready`.
-- Real browser fill-only run gate: `real_browser_fill_only_run_gate_ready`.
-- Real browser run approval: `real_browser_run_approved_for_fill_only`.
-- Final pre-run evidence: `final_pre_run_evidence_ready`.
-- Operator presence: confirmed in local input only.
-- Manual Avanza login: confirmed in local input only.
-- Account verification: confirmed in local input only.
-- Instrument verification: confirmed in local input only.
-- Wrapper enablement: enabled only in local simulation input.
-- All hard stops remain active.
+## Operator Prerequisites
 
-## Positive Scenario
+- [ ] Operator is present.
+- [ ] Operator understands this is fill-only.
+- [ ] Operator understands the stop point is before `Granska kop`.
+- [ ] Operator understands no review click, final confirmation, submit, or order placement is authorized.
+- [ ] Operator understands the run must abort on mismatch or uncertainty.
+- [ ] Operator understands the browser can be closed immediately as a kill switch.
+- [ ] Operator understands no credentials, BankID, 2FA, cookie, localStorage, sessionStorage, or session data should be shared with Codex or committed.
+- [ ] Operator understands this is not unattended.
 
-The local simulation models the approved locked scope:
+## Browser/Avanza State Checklist
 
-- Buy-only.
-- Avancerad/Limit.
-- Amount-based sizing.
-- Intended amount: 427,26 SEK.
-- Intended price: 21,98 USD.
-- Visible total evidence: 438,05 SEK.
-- Cap: 1,000 SEK.
-- No review requested.
-- No final confirm requested.
-- No submit or order placement requested.
-- No credential, 2FA, session, cookie, localStorage, or sessionStorage handling requested.
-- No sell, Stop Loss, or Glidande requested.
-- Stop before review.
+- [ ] Browser was manually opened by the operator.
+- [ ] Avanza was manually logged in by the operator.
+- [ ] BankID/2FA was manually completed by the operator.
+- [ ] Correct account was manually verified.
+- [ ] Correct instrument was manually verified.
+- [ ] Order form is visible.
+- [ ] Buy side is active.
+- [ ] Avancerad/Limit is selected.
+- [ ] Amount field is visible.
+- [ ] Price field is visible.
+- [ ] Total amount is visible.
+- [ ] No modal is open.
+- [ ] No final confirmation button is visible.
+- [ ] No `Bekrafta kop` or `Bekrafta salj` button is visible.
+- [ ] `Granska kop` has not been clicked.
 
-Expected positive result: `ready_for_live_fill_only_invocation`.
+## Run Values Checklist
 
-The positive result exposes:
+- [ ] Instrument: GameStop.
+- [ ] Account: Valentin Labs KF or redacted equivalent.
+- [ ] Intended amount SEK: 427,26.
+- [ ] Intended price USD: 21,98.
+- [ ] Total SEK: 438,05.
+- [ ] Cap SEK: <= 1,000.
+- [ ] Side: buy.
+- [ ] Order type: Avancerad/Limit.
+- [ ] Stop point: before `Granska kop`.
 
-- Invocation phases.
-- Field-fill plan metadata only.
-- Evidence requirements.
-- Abort conditions.
-- Capability flags proving no browser launch/control, Avanza access, DOM query, actual fill, click, final confirm, submit, placement, credential/session handling, or trade/PnL mutation.
+## Invocation Wrapper Readiness Checklist
 
-## Negative Scenarios
+- [ ] Final pre-live review is ready.
+- [ ] Final harness is ready.
+- [ ] Run gate is ready.
+- [ ] Approval state is approved for fill-only.
+- [ ] Final pre-run evidence is ready.
+- [ ] Final live invocation wrapper simulation passed.
+- [ ] Hard stops are active.
+- [ ] All forbidden selectors remain forbidden.
+- [ ] No trade/PnL mutation is authorized.
 
-The simulation covers these blocking and safety scenarios:
+## Immediate Abort Checklist
 
-- Wrapper disabled.
-- Final pre-live review not ready.
-- Final harness not ready.
-- Run gate not ready.
-- Approval missing or wrong.
-- Final pre-run evidence not ready.
-- Operator absent.
-- Manual login not confirmed.
-- Account not verified.
-- Instrument not verified.
-- Cap above 1,000 SEK.
-- Wrong side.
-- Wrong order type.
-- Review requested.
-- Final confirm requested.
-- Submit or order placement requested.
-- Credential/session handling requested.
-- Sell requested.
-- Stop Loss requested.
-- Glidande requested.
+Abort immediately if any item is true:
 
-## Safety Confirmation
+- [ ] Operator absent.
+- [ ] Account mismatch.
+- [ ] Instrument mismatch.
+- [ ] Wrong side.
+- [ ] Wrong order type.
+- [ ] Amount mismatch.
+- [ ] Price mismatch.
+- [ ] Total cannot be read.
+- [ ] Total exceeds cap.
+- [ ] Modal opens.
+- [ ] Final confirmation is visible.
+- [ ] Review click is requested.
+- [ ] Submit or order placement is requested.
+- [ ] Credential/session handling is requested.
+- [ ] Any uncertainty exists.
 
-- No live browser run was performed.
-- No real Avanza access occurred.
-- No browser launch/control occurred.
-- No DOM query occurred.
-- No actual field fill occurred.
-- No click occurred.
-- No submit or order placement occurred.
-- No Supabase, audit writer, provider, route, or scan invocation occurred.
-- No trade, stats, or PnL mutation occurred.
-- No migration, type generation, generated type edit, or `.env.local` change occurred.
+## Checklist Decision
 
-Denial harness scripts were not imported or run because they execute live Supabase checks and this action forbids Supabase calls.
+Current checklist decision: `final_live_invocation_operator_checklist_ready`.
+
+Allowed decisions:
+
+- `final_live_invocation_operator_checklist_ready`
+- `final_live_invocation_operator_checklist_deferred`
+- `final_live_invocation_operator_checklist_blocked`
+
+Important: `final_live_invocation_operator_checklist_ready` means this checklist is ready for the operator to complete immediately before a future live attempt. It does not mean the operator has just completed it for a live attempt, and it does not authorize a live run by itself.
 
 ## Result Status
 
-Result status: `first_real_avanza_fill_only_poc_final_live_fill_only_invocation_wrapper_simulation_added`.
+Result status: `first_real_avanza_fill_only_poc_final_live_invocation_operator_checklist_added`.
 
 ## Recommended Next Action
 
-Recommended next action: Action 1057 - Final Live Invocation Operator Checklist.
+Recommended next action: Action 1058 - Capture Final Operator Go/No-Go.
 
-Reason: after the local invocation simulation passes, the operator needs the final checklist that must be followed immediately before any live invocation attempt.
+Reason: after the checklist exists, the operator must explicitly provide a final go/no-go immediately before any live invocation.
 
 ## Progress Update
 
@@ -146,8 +144,9 @@ Reason: after the local invocation simulation passes, the operator needs the fin
 
 - No live Avanza run.
 - No browser launch/control.
+- No Avanza access.
 - No DOM query.
-- No actual field fill.
+- No field fill.
 - No click.
 - No `Granska kop`.
 - No review modal.
@@ -165,3 +164,5 @@ Reason: after the local invocation simulation passes, the operator needs the fin
 - No trade/stats/PnL mutation.
 - No broker behavior.
 - No automatic mode.
+
+Denial harness scripts were not imported or run because they execute live Supabase checks and this action forbids Supabase calls.

@@ -2171,6 +2171,7 @@ async function persistAutomationArtifacts({
     ranking: scanLog.scanner_candidate_ranking ?? null,
     selectedBuildDiagnostics:
       scanLog.selected_candidate_build_diagnostics ?? [],
+    selectedToBuiltDropOff: scanLog.selected_to_built_drop_off ?? null,
     visibleTickers: recommendations
       .map((recommendation) => recommendationTicker(recommendation))
       .filter((ticker): ticker is string => ticker !== null),
@@ -2242,6 +2243,16 @@ async function persistAutomationArtifacts({
       researchSelection.samples_collected_count,
     learning_acceleration_selected_below_threshold_count:
       researchSelection.selected_below_threshold_count,
+    learning_acceleration_selected_below_threshold_readback_count:
+      researchSelection.selected_below_threshold_readback_count,
+    learning_acceleration_selected_below_threshold_passed_count:
+      researchSelection.selected_below_threshold_passed_count,
+    learning_acceleration_selected_below_threshold_matched_by_ticker_count:
+      researchSelection.selected_below_threshold_matched_by_ticker_count,
+    learning_acceleration_selected_below_threshold_unmatched_by_ticker_count:
+      researchSelection.selected_below_threshold_unmatched_by_ticker_count,
+    learning_acceleration_input_mismatch:
+      researchSelection.learning_acceleration_input_mismatch,
     learning_acceleration_research_only_persisted_count:
       persistedResearchSnapshotCount,
     learning_acceleration_skipped_due_to_budget_count:
@@ -3921,6 +3932,21 @@ export async function POST(request: Request) {
         artifactResult?.learning_acceleration.samples_collected_count ?? 0,
       learning_acceleration_selected_below_threshold:
         artifactResult?.learning_acceleration.selected_below_threshold_count ?? 0,
+      learning_acceleration_selected_below_threshold_readback:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_readback_count ?? 0,
+      learning_acceleration_selected_below_threshold_passed:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_passed_count ?? 0,
+      learning_acceleration_selected_below_threshold_matched_by_ticker:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_matched_by_ticker_count ?? 0,
+      learning_acceleration_selected_below_threshold_unmatched_by_ticker:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_unmatched_by_ticker_count ?? 0,
+      learning_acceleration_input_mismatch:
+        artifactResult?.learning_acceleration
+          .learning_acceleration_input_mismatch ?? false,
       learning_acceleration_research_only_persisted:
         artifactResult?.persistence.research_snapshots.filter(
           (snapshot) =>

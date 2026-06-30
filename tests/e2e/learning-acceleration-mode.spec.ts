@@ -260,6 +260,67 @@ test("selected below-publish-threshold candidates are persisted as research-only
   });
 });
 
+test("selected-to-built drop-off examples are passed into learning acceleration", () => {
+  const selection = buildLearningAccelerationResearchSelection({
+    enabled: true,
+    candidates: [candidate("PLTR"), candidate("DIS")],
+    ranking: null,
+    selectedBuildDiagnostics: [],
+    selectedToBuiltDropOff: {
+      selected_count: 19,
+      built_count: 9,
+      rejected_count: 10,
+      rejection_counts: { below_publish_threshold: 10 },
+      category_counts: { quality: 10 },
+      examples_by_reason: { below_publish_threshold: ["PLTR", "DIS"] },
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "10 selected candidates were below the publish threshold.",
+    },
+    visibleTickers: [],
+    scanWindow: "midday",
+    maxSamples: 25,
+  });
+
+  expect(selection.selected_below_threshold_readback_count).toBe(10);
+  expect(selection.selected_below_threshold_passed_count).toBe(2);
+  expect(selection.selected_below_threshold_matched_by_ticker_count).toBe(2);
+  expect(selection.selected_below_threshold_unmatched_by_ticker_count).toBe(0);
+  expect(selection.learning_acceleration_input_mismatch).toBe(true);
+  expect(selection.samples.map((sample) => sample.ticker)).toEqual([
+    "PLTR",
+    "DIS",
+  ]);
+});
+
+test("learning acceleration reports input mismatch when drop-off has no passed diagnostics", () => {
+  const selection = buildLearningAccelerationResearchSelection({
+    enabled: true,
+    candidates: [candidate("PLTR")],
+    ranking: null,
+    selectedBuildDiagnostics: [],
+    selectedToBuiltDropOff: {
+      selected_count: 19,
+      built_count: 9,
+      rejected_count: 10,
+      rejection_counts: { below_publish_threshold: 10 },
+      category_counts: { quality: 10 },
+      examples_by_reason: {},
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "10 selected candidates were below the publish threshold.",
+    },
+    visibleTickers: [],
+    scanWindow: "midday",
+    maxSamples: 25,
+  });
+
+  expect(selection.selected_below_threshold_readback_count).toBe(10);
+  expect(selection.selected_below_threshold_passed_count).toBe(0);
+  expect(selection.learning_acceleration_input_mismatch).toBe(true);
+  expect(selection.samples).toHaveLength(0);
+});
+
 test("disabled mode collects no research-only samples and visible recommendations are unchanged", () => {
   const selection = buildLearningAccelerationResearchSelection({
     enabled: false,

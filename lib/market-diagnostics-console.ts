@@ -138,6 +138,13 @@ export type MarketDiagnosticsConsoleInput = {
     learning_acceleration_samples_collected_today?: number | null;
     learning_acceleration_samples_evaluated_today?: number | null;
     learning_acceleration_selected_below_threshold_count?: number | null;
+    learning_acceleration_selected_below_threshold_readback_count?: number | null;
+    learning_acceleration_selected_below_threshold_passed_count?: number | null;
+    learning_acceleration_selected_below_threshold_matched_by_ticker_count?:
+      number | null;
+    learning_acceleration_selected_below_threshold_unmatched_by_ticker_count?:
+      number | null;
+    learning_acceleration_input_mismatch?: boolean | null;
     learning_acceleration_research_only_persisted_count?: number | null;
     learning_acceleration_top_research_sample_tickers?: string[];
     learning_acceleration_sample_quality_summary?: {
@@ -2293,6 +2300,34 @@ function buildSections(
     input.active_scan_trace
       ?.learning_acceleration_selected_below_threshold_count ??
     0;
+  const learningAccelerationBelowThresholdReadback =
+    input.scan_readback
+      ?.learning_acceleration_selected_below_threshold_readback_count ??
+    input.active_scan_trace
+      ?.learning_acceleration_selected_below_threshold_readback_count ??
+    learningAccelerationSelectedBelowThreshold;
+  const learningAccelerationBelowThresholdPassed =
+    input.scan_readback
+      ?.learning_acceleration_selected_below_threshold_passed_count ??
+    input.active_scan_trace
+      ?.learning_acceleration_selected_below_threshold_passed_count ??
+    learningAccelerationSelectedBelowThreshold;
+  const learningAccelerationBelowThresholdMatched =
+    input.scan_readback
+      ?.learning_acceleration_selected_below_threshold_matched_by_ticker_count ??
+    input.active_scan_trace
+      ?.learning_acceleration_selected_below_threshold_matched_by_ticker_count ??
+    0;
+  const learningAccelerationBelowThresholdUnmatched =
+    input.scan_readback
+      ?.learning_acceleration_selected_below_threshold_unmatched_by_ticker_count ??
+    input.active_scan_trace
+      ?.learning_acceleration_selected_below_threshold_unmatched_by_ticker_count ??
+    0;
+  const learningAccelerationInputMismatch =
+    input.scan_readback?.learning_acceleration_input_mismatch ??
+    input.active_scan_trace?.learning_acceleration_input_mismatch ??
+    false;
   const learningAccelerationResearchOnlyPersisted =
     input.scan_readback?.learning_acceleration_research_only_persisted_count ??
     input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
@@ -4489,6 +4524,14 @@ function buildSections(
           `${learningAccelerationSelectedBelowThreshold}/${learningAccelerationResearchOnlyPersisted}`,
         ),
         lineValue(
+          "Readback / passed / matched / unmatched",
+          `${learningAccelerationBelowThresholdReadback}/${learningAccelerationBelowThresholdPassed}/${learningAccelerationBelowThresholdMatched}/${learningAccelerationBelowThresholdUnmatched}`,
+        ),
+        lineValue(
+          "Input mismatch",
+          bool(learningAccelerationInputMismatch),
+        ),
+        lineValue(
           "Visible vs research-only evaluated",
           `${learningAccelerationVisibleEvaluated}/${learningAccelerationResearchEvaluated}`,
         ),
@@ -4532,6 +4575,16 @@ function buildSections(
           learningAccelerationSamplesEvaluatedToday,
         learning_acceleration_selected_below_threshold:
           learningAccelerationSelectedBelowThreshold,
+        learning_acceleration_selected_below_threshold_readback:
+          learningAccelerationBelowThresholdReadback,
+        learning_acceleration_selected_below_threshold_passed:
+          learningAccelerationBelowThresholdPassed,
+        learning_acceleration_selected_below_threshold_matched_by_ticker:
+          learningAccelerationBelowThresholdMatched,
+        learning_acceleration_selected_below_threshold_unmatched_by_ticker:
+          learningAccelerationBelowThresholdUnmatched,
+        learning_acceleration_input_mismatch:
+          learningAccelerationInputMismatch,
         learning_acceleration_research_only_persisted:
           learningAccelerationResearchOnlyPersisted,
         learning_acceleration_visible_evaluated:
