@@ -158,7 +158,9 @@ type AutomationRunDiagnostics = {
   learning_acceleration_requested?: boolean;
   learning_acceleration_enabled_source?: string;
   learning_acceleration_env_raw_present?: boolean;
+  learning_acceleration_env_raw_value_category?: string;
   learning_acceleration_env_raw_value_normalized?: boolean;
+  learning_acceleration_runtime_environment?: string;
   learning_acceleration_mode?: string;
   learning_acceleration_samples_collected?: number;
   target_ideas_per_window?: number | null;
@@ -709,9 +711,15 @@ function buildAutomationRunDiagnostics({
       scheduledRuntimeConfig?.learning_acceleration_enabled_source ?? "none",
     learning_acceleration_env_raw_present:
       scheduledRuntimeConfig?.learning_acceleration_env_raw_present ?? false,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_value_category ??
+      "missing",
     learning_acceleration_env_raw_value_normalized:
       scheduledRuntimeConfig?.learning_acceleration_env_raw_value_normalized ??
       false,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig?.learning_acceleration_runtime_environment ??
+      "missing",
     learning_acceleration_mode:
       scheduledRuntimeConfig?.learning_acceleration_mode ?? "disabled",
     learning_acceleration_samples_collected:
@@ -2424,8 +2432,12 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.learning_acceleration_enabled_source,
     learning_acceleration_env_raw_present:
       scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_category,
     learning_acceleration_env_raw_value_normalized:
       scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig.learning_acceleration_runtime_environment,
     learning_acceleration_mode:
       scheduledRuntimeConfig.learning_acceleration_mode,
     learning_acceleration_target_samples_per_window:
@@ -2654,8 +2666,12 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.learning_acceleration_enabled_source,
     learning_acceleration_env_raw_present:
       scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_category,
     learning_acceleration_env_raw_value_normalized:
       scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig.learning_acceleration_runtime_environment,
     learning_acceleration_mode:
       scheduledRuntimeConfig.learning_acceleration_mode,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,

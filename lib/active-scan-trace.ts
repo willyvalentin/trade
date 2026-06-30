@@ -63,7 +63,9 @@ export type ActiveScanTrace = {
   learning_acceleration_requested: boolean;
   learning_acceleration_enabled_source: string;
   learning_acceleration_env_raw_present: boolean;
+  learning_acceleration_env_raw_value_category: string;
   learning_acceleration_env_raw_value_normalized: boolean;
+  learning_acceleration_runtime_environment: string;
   learning_acceleration_mode: string;
   learning_acceleration_samples_collected_count: number;
   learning_acceleration_samples_evaluated_count: number;
@@ -254,7 +256,9 @@ export function createActiveScanTrace({
     learning_acceleration_requested: false,
     learning_acceleration_enabled_source: "none",
     learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_category: "missing",
     learning_acceleration_env_raw_value_normalized: false,
+    learning_acceleration_runtime_environment: "missing",
     learning_acceleration_mode: "disabled",
     learning_acceleration_samples_collected_count: 0,
     learning_acceleration_samples_evaluated_count: 0,

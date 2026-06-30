@@ -1579,6 +1579,14 @@ export async function POST(request: Request) {
       learning_acceleration_enabled: learningAccelerationEnabled,
       learning_acceleration_enabled_source:
         learningAccelerationMode.learning_acceleration_enabled_source,
+      learning_acceleration_env_raw_present:
+        learningAccelerationMode.learning_acceleration_env_raw_present,
+      learning_acceleration_env_raw_value_category:
+        learningAccelerationMode.learning_acceleration_env_raw_value_category,
+      learning_acceleration_env_raw_value_normalized:
+        learningAccelerationMode.learning_acceleration_env_raw_value_normalized,
+      learning_acceleration_runtime_environment:
+        learningAccelerationMode.learning_acceleration_runtime_environment,
       learning_acceleration_mode:
         learningAccelerationMode.learning_acceleration_mode,
       learning_acceleration_samples_evaluated:
@@ -1807,6 +1815,14 @@ export async function POST(request: Request) {
     learning_acceleration_enabled: learningAccelerationEnabled,
     learning_acceleration_enabled_source:
       learningAccelerationMode.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      learningAccelerationMode.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      learningAccelerationMode.learning_acceleration_env_raw_value_category,
+    learning_acceleration_env_raw_value_normalized:
+      learningAccelerationMode.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      learningAccelerationMode.learning_acceleration_runtime_environment,
     learning_acceleration_mode:
       learningAccelerationMode.learning_acceleration_mode,
     learning_acceleration_samples_evaluated:

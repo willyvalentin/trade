@@ -125,6 +125,10 @@ export type MarketDiagnosticsConsoleInput = {
     grow_max_learning_mode?: boolean | null;
     learning_acceleration_enabled?: boolean | null;
     learning_acceleration_enabled_source?: string | null;
+    learning_acceleration_env_raw_present?: boolean | null;
+    learning_acceleration_env_raw_value_category?: string | null;
+    learning_acceleration_env_raw_value_normalized?: boolean | null;
+    learning_acceleration_runtime_environment?: string | null;
     learning_acceleration_mode?: string | null;
     learning_acceleration_samples_collected_today?: number | null;
     learning_acceleration_samples_evaluated_today?: number | null;
@@ -256,6 +260,10 @@ export type MarketDiagnosticsConsoleInput = {
     grow_max_learning_snapshots_included_count?: number | null;
     learning_acceleration_enabled?: boolean | null;
     learning_acceleration_enabled_source?: string | null;
+    learning_acceleration_env_raw_present?: boolean | null;
+    learning_acceleration_env_raw_value_category?: string | null;
+    learning_acceleration_env_raw_value_normalized?: boolean | null;
+    learning_acceleration_runtime_environment?: string | null;
     learning_acceleration_mode?: string | null;
     learning_acceleration_samples_evaluated?: number | null;
     ineligible_snapshot_count?: number | null;
@@ -2235,6 +2243,26 @@ function buildSections(
     input.active_scan_trace?.learning_acceleration_enabled_source ??
     input.outcome_evaluation?.learning_acceleration_enabled_source ??
     "none";
+  const learningAccelerationEnvPresent =
+    input.scan_readback?.learning_acceleration_env_raw_present ??
+    input.active_scan_trace?.learning_acceleration_env_raw_present ??
+    input.outcome_evaluation?.learning_acceleration_env_raw_present ??
+    false;
+  const learningAccelerationEnvCategory =
+    input.scan_readback?.learning_acceleration_env_raw_value_category ??
+    input.active_scan_trace?.learning_acceleration_env_raw_value_category ??
+    input.outcome_evaluation?.learning_acceleration_env_raw_value_category ??
+    "missing";
+  const learningAccelerationParsedEnabled =
+    input.scan_readback?.learning_acceleration_env_raw_value_normalized ??
+    input.active_scan_trace?.learning_acceleration_env_raw_value_normalized ??
+    input.outcome_evaluation?.learning_acceleration_env_raw_value_normalized ??
+    false;
+  const learningAccelerationRuntimeEnvironment =
+    input.scan_readback?.learning_acceleration_runtime_environment ??
+    input.active_scan_trace?.learning_acceleration_runtime_environment ??
+    input.outcome_evaluation?.learning_acceleration_runtime_environment ??
+    "missing";
   const learningAccelerationSamplesCollectedToday =
     input.scan_readback?.learning_acceleration_samples_collected_today ??
     input.active_scan_trace?.learning_acceleration_samples_collected_count ??
@@ -4371,6 +4399,35 @@ function buildSections(
         provider_plan_profile_overrides_json: JSON.stringify(
           providerPlanProfile.overrides,
         ),
+      },
+    }),
+    section({
+      section_id: "learning_acceleration_env",
+      title: "Learning Acceleration Env",
+      severity:
+        learningAccelerationEnvCategory === "other" ||
+        learningAccelerationEnvCategory === "empty"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "TURE_LEARNING_ACCELERATION_ENABLED present",
+          bool(learningAccelerationEnvPresent),
+        ),
+        lineValue("Parsed value", words(learningAccelerationEnvCategory)),
+        lineValue("Enabled", bool(learningAccelerationParsedEnabled)),
+        lineValue("Source", words(learningAccelerationSource)),
+        lineValue("Runtime", words(learningAccelerationRuntimeEnvironment)),
+      ],
+      metrics: {
+        learning_acceleration_env_present: learningAccelerationEnvPresent,
+        learning_acceleration_env_value_category:
+          learningAccelerationEnvCategory,
+        learning_acceleration_env_parsed_enabled:
+          learningAccelerationParsedEnabled,
+        learning_acceleration_env_source: learningAccelerationSource,
+        learning_acceleration_runtime_environment:
+          learningAccelerationRuntimeEnvironment,
       },
     }),
     section({

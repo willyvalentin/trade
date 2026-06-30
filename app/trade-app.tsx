@@ -1294,6 +1294,10 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   growMaxLearningSnapshotsIncludedCount: number;
   learningAccelerationEnabled: boolean;
   learningAccelerationEnabledSource: string | null;
+  learningAccelerationEnvRawPresent: boolean;
+  learningAccelerationEnvRawValueCategory: string | null;
+  learningAccelerationEnvRawValueNormalized: boolean;
+  learningAccelerationRuntimeEnvironment: string | null;
   learningAccelerationMode: string | null;
   learningAccelerationSamplesEvaluated: number;
   ineligibleSnapshotCount: number;
@@ -8243,6 +8247,10 @@ export function TradeApp() {
     growMaxLearningSnapshotsIncludedCount: 0,
     learningAccelerationEnabled: false,
     learningAccelerationEnabledSource: null,
+    learningAccelerationEnvRawPresent: false,
+    learningAccelerationEnvRawValueCategory: null,
+    learningAccelerationEnvRawValueNormalized: false,
+    learningAccelerationRuntimeEnvironment: null,
     learningAccelerationMode: null,
     learningAccelerationSamplesEvaluated: 0,
     ineligibleSnapshotCount: 0,
@@ -13823,6 +13831,18 @@ export function TradeApp() {
         learning_acceleration_enabled_source:
           recommendationOutcomeEvaluationDiagnostics
             .learningAccelerationEnabledSource,
+        learning_acceleration_env_raw_present:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawPresent,
+        learning_acceleration_env_raw_value_category:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawValueCategory,
+        learning_acceleration_env_raw_value_normalized:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawValueNormalized,
+        learning_acceleration_runtime_environment:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationRuntimeEnvironment,
         learning_acceleration_mode:
           recommendationOutcomeEvaluationDiagnostics.learningAccelerationMode,
         learning_acceleration_samples_evaluated:
@@ -14757,6 +14777,20 @@ export function TradeApp() {
           typeof routeDiagnostics.learning_acceleration_enabled_source ===
           "string"
             ? routeDiagnostics.learning_acceleration_enabled_source
+            : null,
+        learningAccelerationEnvRawPresent:
+          routeDiagnostics.learning_acceleration_env_raw_present === true,
+        learningAccelerationEnvRawValueCategory:
+          typeof routeDiagnostics
+            .learning_acceleration_env_raw_value_category === "string"
+            ? routeDiagnostics.learning_acceleration_env_raw_value_category
+            : null,
+        learningAccelerationEnvRawValueNormalized:
+          routeDiagnostics.learning_acceleration_env_raw_value_normalized === true,
+        learningAccelerationRuntimeEnvironment:
+          typeof routeDiagnostics.learning_acceleration_runtime_environment ===
+          "string"
+            ? routeDiagnostics.learning_acceleration_runtime_environment
             : null,
         learningAccelerationMode:
           typeof routeDiagnostics.learning_acceleration_mode === "string"

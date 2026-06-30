@@ -10,12 +10,28 @@ export type LearningAccelerationEnabledSource =
   | "grow_max_compat"
   | "none";
 
+export type LearningAccelerationEnvValueCategory =
+  | "true"
+  | "false"
+  | "empty"
+  | "other"
+  | "missing";
+
+export type LearningAccelerationRuntimeEnvironment =
+  | "production"
+  | "development"
+  | "test"
+  | "other"
+  | "missing";
+
 export type LearningAccelerationModeEvaluation = {
   learning_acceleration_enabled: boolean;
   learning_acceleration_requested: boolean;
   learning_acceleration_enabled_source: LearningAccelerationEnabledSource;
   learning_acceleration_env_raw_present: boolean;
+  learning_acceleration_env_raw_value_category: LearningAccelerationEnvValueCategory;
   learning_acceleration_env_raw_value_normalized: boolean;
+  learning_acceleration_runtime_environment: LearningAccelerationRuntimeEnvironment;
   learning_acceleration_mode: "disabled" | "research_only";
 };
 
@@ -89,6 +105,38 @@ export function normalizeLearningAccelerationBoolean(value: string | undefined) 
   return false;
 }
 
+export function learningAccelerationEnvValueCategory(
+  value: string | undefined,
+): LearningAccelerationEnvValueCategory {
+  if (value === undefined) return "missing";
+  if (value.trim().length === 0) return "empty";
+
+  const normalized = value.trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(normalized)) return "true";
+  if (["0", "false", "no", "off"].includes(normalized)) return "false";
+
+  return "other";
+}
+
+function safeRuntimeEnvironment(
+  value: string | undefined,
+): LearningAccelerationRuntimeEnvironment {
+  if (value === undefined || value.trim().length === 0) return "missing";
+
+  const normalized = value.trim().toLowerCase();
+
+  if (
+    normalized === "production" ||
+    normalized === "development" ||
+    normalized === "test"
+  ) {
+    return normalized;
+  }
+
+  return "other";
+}
+
 export function evaluateLearningAccelerationMode({
   env = process.env,
   growMaxLearningModeEnabled = false,
@@ -96,10 +144,11 @@ export function evaluateLearningAccelerationMode({
   env?: Record<string, string | undefined>;
   growMaxLearningModeEnabled?: boolean;
 } = {}): LearningAccelerationModeEvaluation {
-  const serverPresent = env.TURE_LEARNING_ACCELERATION_ENABLED !== undefined;
-  const serverValue = normalizeLearningAccelerationBoolean(
-    env.TURE_LEARNING_ACCELERATION_ENABLED,
-  );
+  const rawServerValue = env.TURE_LEARNING_ACCELERATION_ENABLED;
+  const serverPresent = rawServerValue !== undefined;
+  const serverValue = normalizeLearningAccelerationBoolean(rawServerValue);
+  const serverValueCategory =
+    learningAccelerationEnvValueCategory(rawServerValue);
   const requested = serverValue === true || growMaxLearningModeEnabled;
   const enabledSource: LearningAccelerationEnabledSource =
     serverValue === true
@@ -114,7 +163,11 @@ export function evaluateLearningAccelerationMode({
     learning_acceleration_requested: requested,
     learning_acceleration_enabled_source: enabled ? enabledSource : "none",
     learning_acceleration_env_raw_present: serverPresent,
+    learning_acceleration_env_raw_value_category: serverValueCategory,
     learning_acceleration_env_raw_value_normalized: serverValue,
+    learning_acceleration_runtime_environment: safeRuntimeEnvironment(
+      env.NODE_ENV,
+    ),
     learning_acceleration_mode: enabled ? "research_only" : "disabled",
   };
 }

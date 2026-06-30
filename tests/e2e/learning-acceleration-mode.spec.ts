@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   buildLearningAccelerationResearchSelection,
   evaluateLearningAccelerationMode,
+  learningAccelerationEnvValueCategory,
   shouldIncludeLearningAccelerationOutcomeSample,
 } from "../../lib/learning-acceleration-mode";
 import type { RealScannerCandidate } from "../../lib/real-scanner-candidate-generation";
@@ -97,15 +98,78 @@ function ranking(
   };
 }
 
-test("learning acceleration defaults disabled unless env or grow mode enables it", () => {
-  expect(
-    evaluateLearningAccelerationMode({ env: {} }).learning_acceleration_enabled,
-  ).toBe(false);
-  expect(
-    evaluateLearningAccelerationMode({
-      env: { TURE_LEARNING_ACCELERATION_ENABLED: "true" },
-    }).learning_acceleration_enabled_source,
-  ).toBe("server_env");
+test("learning acceleration env diagnostics classify present true", () => {
+  const mode = evaluateLearningAccelerationMode({
+    env: {
+      NODE_ENV: "production",
+      TURE_LEARNING_ACCELERATION_ENABLED: "true",
+    },
+  });
+
+  expect(mode).toMatchObject({
+    learning_acceleration_enabled: true,
+    learning_acceleration_enabled_source: "server_env",
+    learning_acceleration_env_raw_present: true,
+    learning_acceleration_env_raw_value_category: "true",
+    learning_acceleration_env_raw_value_normalized: true,
+    learning_acceleration_runtime_environment: "production",
+  });
+});
+
+test("learning acceleration env diagnostics classify present false", () => {
+  const mode = evaluateLearningAccelerationMode({
+    env: {
+      NODE_ENV: "production",
+      TURE_LEARNING_ACCELERATION_ENABLED: "false",
+    },
+  });
+
+  expect(mode).toMatchObject({
+    learning_acceleration_enabled: false,
+    learning_acceleration_enabled_source: "none",
+    learning_acceleration_env_raw_present: true,
+    learning_acceleration_env_raw_value_category: "false",
+    learning_acceleration_env_raw_value_normalized: false,
+  });
+});
+
+test("learning acceleration env diagnostics classify missing and empty", () => {
+  const missing = evaluateLearningAccelerationMode({ env: {} });
+  const empty = evaluateLearningAccelerationMode({
+    env: { TURE_LEARNING_ACCELERATION_ENABLED: "  " },
+  });
+
+  expect(missing).toMatchObject({
+    learning_acceleration_enabled: false,
+    learning_acceleration_enabled_source: "none",
+    learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_category: "missing",
+    learning_acceleration_runtime_environment: "missing",
+  });
+  expect(empty).toMatchObject({
+    learning_acceleration_enabled: false,
+    learning_acceleration_enabled_source: "none",
+    learning_acceleration_env_raw_present: true,
+    learning_acceleration_env_raw_value_category: "empty",
+  });
+});
+
+test("learning acceleration env diagnostics classify weird casing and other values", () => {
+  const mixedCase = evaluateLearningAccelerationMode({
+    env: { TURE_LEARNING_ACCELERATION_ENABLED: " TrUe " },
+  });
+  const other = evaluateLearningAccelerationMode({
+    env: { TURE_LEARNING_ACCELERATION_ENABLED: "definitely" },
+  });
+
+  expect(mixedCase.learning_acceleration_env_raw_value_category).toBe("true");
+  expect(mixedCase.learning_acceleration_enabled).toBe(true);
+  expect(other.learning_acceleration_env_raw_value_category).toBe("other");
+  expect(other.learning_acceleration_enabled).toBe(false);
+  expect(learningAccelerationEnvValueCategory("YES")).toBe("true");
+});
+
+test("learning acceleration grow mode compatibility still reports grow source", () => {
   expect(
     evaluateLearningAccelerationMode({
       env: {},
