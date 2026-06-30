@@ -35,6 +35,8 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
+import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -76,6 +78,11 @@ type OutcomeEligibilityDiagnostics = {
   duplicate_snapshot_fingerprints_count: number;
   duplicate_snapshot_rows: number;
   duplicate_snapshot_rows_ignored_count: number;
+  hidden_archived_duplicate_rows_ignored_count: number;
+  visible_duplicate_rows_ignored_count: number;
+  canonical_visible_snapshots_retained_count: number;
+  canonical_visible_duplicate_fingerprints_retained_count: number;
+  archived_duplicate_rows_blocked_count: number;
   duplicate_snapshot_conflict_count: number;
   duplicate_snapshot_conflict_reasons: Record<string, number>;
   visible_recommendations: number;
@@ -633,64 +640,6 @@ function incrementReason(
   reasons[reason] = (reasons[reason] ?? 0) + 1;
 }
 
-function incrementDiagnosticReason(reasons: Record<string, number>, reason: string) {
-  reasons[reason] = (reasons[reason] ?? 0) + 1;
-}
-
-function stableDiagnosticJson(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value) ?? "undefined";
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableDiagnosticJson).join(",")}]`;
-  }
-
-  return `{${Object.entries(value as Record<string, unknown>)
-    .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
-    .map(
-      ([key, entryValue]) =>
-        `${JSON.stringify(key)}:${stableDiagnosticJson(entryValue)}`,
-    )
-    .join(",")}}`;
-}
-
-function normalizedTicker(value: string | null | undefined) {
-  return value?.trim().toUpperCase() ?? null;
-}
-
-function duplicateSnapshotConflictReasons(
-  first: RecommendationSnapshot,
-  next: RecommendationSnapshot,
-) {
-  const reasons: string[] = [];
-
-  if (normalizedTicker(first.ticker) !== normalizedTicker(next.ticker)) {
-    reasons.push("mismatched_ticker");
-  }
-
-  if (finiteNumber(first.entry) !== finiteNumber(next.entry)) {
-    reasons.push("mismatched_entry");
-  }
-
-  if (finiteNumber(first.stop) !== finiteNumber(next.stop)) {
-    reasons.push("mismatched_stop");
-  }
-
-  if (finiteNumber(first.target) !== finiteNumber(next.target)) {
-    reasons.push("mismatched_target");
-  }
-
-  if (
-    stableDiagnosticJson(first.payload_json) !==
-    stableDiagnosticJson(next.payload_json)
-  ) {
-    reasons.push("conflicting_payload");
-  }
-
-  return reasons;
-}
-
 function snapshotPayloadHasBatchMembership(
   snapshot: RecommendationSnapshot,
   batchFingerprint: string | null,
@@ -983,19 +932,21 @@ export function buildOutcomeEligibility({
     arrayOfStrings(payload.recommendation_snapshot_fingerprints),
   );
   const scanRunFingerprint = stringOrNull(batch?.scan_run_fingerprint);
-  const seenFingerprints = new Set<string>();
-  const uniqueFingerprints = new Set<string>();
-  const firstSnapshotByFingerprint = new Map<string, RecommendationSnapshot>();
   const ineligibleReasons: Record<string, number> = {};
-  const duplicateConflictReasons: Record<string, number> = {};
   const eligibleSnapshots: RecommendationSnapshot[] = [];
   let eligibleVisibleSnapshotCount = 0;
   let eligibleLearningSnapshotCount = 0;
   let eligibleResearchOnlySnapshotCount = 0;
-  let duplicateSnapshotFingerprintsCount = 0;
-  let duplicateSnapshotConflictCount = 0;
+  let canonicalVisibleSnapshotsRetainedCount = 0;
+  const canonicalization = canonicalizeOutcomeSnapshotsForBatch({
+    batchFingerprint,
+    batchSnapshotFingerprints,
+    growMaxLearningModeEnabled,
+    scanRunFingerprint,
+    snapshots,
+  });
 
-  for (const snapshot of snapshots) {
+  for (const snapshot of canonicalization.canonicalSnapshots) {
     const reasons: OutcomeSnapshotIneligibleReason[] = [];
     const fingerprint =
       typeof snapshot.snapshot_fingerprint === "string" &&
@@ -1005,22 +956,6 @@ export function buildOutcomeEligibility({
 
     if (!fingerprint) {
       reasons.push("missing_snapshot_fingerprint");
-    } else {
-      uniqueFingerprints.add(fingerprint);
-      if (seenFingerprints.has(fingerprint)) {
-        duplicateSnapshotFingerprintsCount += 1;
-        const firstSnapshot = firstSnapshotByFingerprint.get(fingerprint);
-        const conflictReasons = firstSnapshot
-          ? duplicateSnapshotConflictReasons(firstSnapshot, snapshot)
-          : [];
-        if (conflictReasons.length > 0) {
-          duplicateSnapshotConflictCount += 1;
-          for (const conflictReason of conflictReasons) {
-            incrementDiagnosticReason(duplicateConflictReasons, conflictReason);
-          }
-        }
-        reasons.push("duplicate_snapshot_fingerprint");
-      }
     }
 
     if (isDiagnosticDryRunSnapshot(snapshot)) {
@@ -1078,12 +1013,6 @@ export function buildOutcomeEligibility({
       for (const reason of reasons) {
         incrementReason(ineligibleReasons, reason);
       }
-      if (fingerprint) {
-        seenFingerprints.add(fingerprint);
-        if (!firstSnapshotByFingerprint.has(fingerprint)) {
-          firstSnapshotByFingerprint.set(fingerprint, snapshot);
-        }
-      }
       continue;
     }
 
@@ -1095,6 +1024,7 @@ export function buildOutcomeEligibility({
 
     if (visible) {
       eligibleVisibleSnapshotCount += 1;
+      canonicalVisibleSnapshotsRetainedCount += 1;
     }
     if (learningOnly) {
       eligibleLearningSnapshotCount += 1;
@@ -1110,22 +1040,13 @@ export function buildOutcomeEligibility({
           ? true
           : snapshot.is_visible,
     });
-    if (fingerprint) {
-      seenFingerprints.add(fingerprint);
-      if (!firstSnapshotByFingerprint.has(fingerprint)) {
-        firstSnapshotByFingerprint.set(fingerprint, snapshot);
-      }
-    }
   }
 
-  const duplicateSnapshotRowsIgnoredCount = Math.max(
-    0,
-    duplicateSnapshotFingerprintsCount - duplicateSnapshotConflictCount,
-  );
   const batchHealth =
-    duplicateSnapshotConflictCount > 0
+    canonicalization.diagnostics.duplicate_snapshot_conflict_count > 0
       ? "grow_max_duplicate_conflicts"
-      : duplicateSnapshotFingerprintsCount > 0 && eligibleSnapshots.length > 0
+      : canonicalization.diagnostics.duplicate_snapshot_rows > 0 &&
+          eligibleSnapshots.length > 0
         ? "grow_max_deduped"
         : eligibleSnapshots.length > 0
           ? "eligible"
@@ -1151,13 +1072,30 @@ export function buildOutcomeEligibility({
       : 0,
     ineligible_snapshot_count: snapshots.length - eligibleSnapshots.length,
     ineligible_reasons: ineligibleReasons,
-    unique_snapshot_fingerprints_count: uniqueFingerprints.size,
+    unique_snapshot_fingerprints_count:
+      canonicalization.diagnostics.unique_snapshot_fingerprints_count,
     unique_learning_ideas: eligibleSnapshots.length,
-    duplicate_snapshot_fingerprints_count: duplicateSnapshotFingerprintsCount,
-    duplicate_snapshot_rows: duplicateSnapshotFingerprintsCount,
-    duplicate_snapshot_rows_ignored_count: duplicateSnapshotRowsIgnoredCount,
-    duplicate_snapshot_conflict_count: duplicateSnapshotConflictCount,
-    duplicate_snapshot_conflict_reasons: duplicateConflictReasons,
+    duplicate_snapshot_fingerprints_count:
+      canonicalization.diagnostics.duplicate_snapshot_rows,
+    duplicate_snapshot_rows: canonicalization.diagnostics.duplicate_snapshot_rows,
+    duplicate_snapshot_rows_ignored_count:
+      canonicalization.diagnostics.duplicate_snapshot_rows_ignored_count,
+    hidden_archived_duplicate_rows_ignored_count:
+      canonicalization.diagnostics
+        .hidden_archived_duplicate_rows_ignored_count,
+    visible_duplicate_rows_ignored_count:
+      canonicalization.diagnostics.visible_duplicate_rows_ignored_count,
+    canonical_visible_snapshots_retained_count:
+      canonicalVisibleSnapshotsRetainedCount,
+    canonical_visible_duplicate_fingerprints_retained_count:
+      canonicalization.diagnostics
+        .canonical_visible_duplicate_fingerprints_retained_count,
+    archived_duplicate_rows_blocked_count:
+      canonicalization.diagnostics.archived_duplicate_rows_blocked_count,
+    duplicate_snapshot_conflict_count:
+      canonicalization.diagnostics.duplicate_snapshot_conflict_count,
+    duplicate_snapshot_conflict_reasons:
+      canonicalization.diagnostics.duplicate_snapshot_conflict_reasons,
     visible_recommendations: eligibleVisibleSnapshotCount,
     visible_grid_count: eligibleVisibleSnapshotCount,
     grid_cards: eligibleVisibleSnapshotCount,
@@ -1193,98 +1131,6 @@ export function buildOutcomeEligibility({
 
 function outcomeKey(outcome: Pick<RecommendationOutcome, "snapshot_fingerprint" | "horizon">) {
   return `${outcome.snapshot_fingerprint ?? "unknown"}:${outcome.horizon}`;
-}
-
-function completenessRank(outcome: RecommendationOutcome) {
-  const completeness = outcome.data_completeness;
-  if (completeness === "complete") return 3;
-  if (completeness === "partial") return 2;
-  if (completeness === "none") return 1;
-  return 0;
-}
-
-function statusRank(outcome: RecommendationOutcome) {
-  if (
-    outcome.status === "target_hit" ||
-    outcome.status === "stop_hit" ||
-    outcome.status === "target_before_stop" ||
-    outcome.status === "stop_before_target" ||
-    outcome.status === "neither_hit" ||
-    outcome.status === "entry_not_triggered" ||
-    outcome.status === "entry_triggered"
-  ) {
-    return 3;
-  }
-
-  if (outcome.status === "incomplete" || outcome.status === "unknown") return 1;
-  if (outcome.status === "pending" || outcome.status === "invalid") return 0;
-  return 2;
-}
-
-function isMarketReferenceImmediateOutcome(outcome: RecommendationOutcome) {
-  return (
-    outcome.payload_json.entry_type === "market_reference" &&
-    outcome.payload_json.entry_trigger_semantics === "immediate_reference"
-  );
-}
-
-function hasOfficialTriggerSemanticsUpgrade(
-  nextOutcome: RecommendationOutcome,
-  existingOutcome: RecommendationOutcome | undefined,
-) {
-  if (!existingOutcome) return false;
-  if (!isMarketReferenceImmediateOutcome(nextOutcome)) return false;
-
-  return (
-    nextOutcome.payload_json.official_trigger_semantics_used ===
-      "immediate_reference" &&
-    (existingOutcome.payload_json.official_trigger_semantics_used !==
-      "immediate_reference" ||
-      (existingOutcome.entry_triggered === false &&
-        nextOutcome.entry_triggered === true))
-  );
-}
-
-function candleCount(outcome: RecommendationOutcome) {
-  const count = finiteNumber(outcome.payload_json.candle_count);
-  return count === null ? 0 : count;
-}
-
-function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome) {
-  return (
-    outcome.payload_json.retained_candles_available === true ||
-    outcome.payload_json.counterfactual_ready === true ||
-    (Array.isArray(outcome.payload_json.counterfactual_candles) &&
-      outcome.payload_json.counterfactual_candles.length > 0)
-  );
-}
-
-function hasBetterCoverage(
-  nextOutcome: RecommendationOutcome,
-  existingOutcome: RecommendationOutcome | undefined,
-) {
-  if (!existingOutcome) return true;
-  if (hasOfficialTriggerSemanticsUpgrade(nextOutcome, existingOutcome)) {
-    return true;
-  }
-
-  const nextScore =
-    completenessRank(nextOutcome) * 100 +
-    statusRank(nextOutcome) * 10 +
-    candleCount(nextOutcome);
-  const existingScore =
-    completenessRank(existingOutcome) * 100 +
-    statusRank(existingOutcome) * 10 +
-    candleCount(existingOutcome);
-
-  if (nextScore > existingScore) return true;
-
-  return (
-    nextScore === existingScore &&
-    nextOutcome.status === existingOutcome.status &&
-    !hasRetainedCounterfactualCandles(existingOutcome) &&
-    hasRetainedCounterfactualCandles(nextOutcome)
-  );
 }
 
 function sideReadSource(outcome: RecommendationOutcome) {
@@ -1693,7 +1539,7 @@ export async function POST(request: Request) {
             const key = outcomeKey(outcome);
             const existingOutcome = existingByKey.get(key);
 
-            if (!hasBetterCoverage(outcome, existingOutcome)) {
+            if (!hasBetterOutcomeCoverage(outcome, existingOutcome)) {
               persistenceEvents.push({
                 key,
                 action: "skipped_equal_or_better",

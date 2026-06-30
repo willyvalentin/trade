@@ -5,6 +5,10 @@ import {
   buildMarketDiagnosticsConsoleSummary,
   type MarketDiagnosticsConsoleInput,
 } from "../../lib/market-diagnostics-console";
+import { hasBetterOutcomeCoverage } from "../../lib/recommendation-outcome-coverage";
+import { canonicalizeOutcomeSnapshotsForBatch } from "../../lib/recommendation-outcome-snapshot-canonicalization";
+import type { RecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
+import type { RecommendationSnapshot } from "../../lib/recommendation-snapshot";
 import type { ScheduledScanTimelineEntry } from "../../lib/scheduled-scan-attempts";
 import {
   buildSelectedCandidateBuildDiagnostic,
@@ -19,6 +23,124 @@ function sectionMetrics(
   const found = input.sections.find((section) => section.section_id === sectionId);
   expect(found, `missing diagnostics section ${sectionId}`).toBeTruthy();
   return found?.metrics ?? {};
+}
+
+function outcomeSnapshot(
+  overrides: Partial<RecommendationSnapshot> = {},
+): RecommendationSnapshot {
+  const fingerprint = overrides.snapshot_fingerprint ?? "snap-AAPL-1";
+  const timestamp = "2026-06-30T16:00:00.000Z";
+
+  return {
+    id: overrides.id ?? fingerprint,
+    snapshot_fingerprint: fingerprint,
+    recommendation_id: overrides.recommendation_id ?? `rec-${fingerprint}`,
+    scan_run_id: overrides.scan_run_id ?? "rec_scan_run_test",
+    ticker: overrides.ticker ?? "AAPL",
+    company_name: overrides.company_name ?? null,
+    recommended_at: overrides.recommended_at ?? timestamp,
+    app_timestamp: overrides.app_timestamp ?? timestamp,
+    window: overrides.window ?? "midday",
+    status: overrides.status ?? "visible",
+    source_mode: overrides.source_mode ?? "official",
+    data_mode: overrides.data_mode ?? "supabase",
+    market_session_phase: overrides.market_session_phase ?? "regular",
+    market_session_risk: overrides.market_session_risk ?? null,
+    market_session_source: overrides.market_session_source ?? null,
+    is_visible: overrides.is_visible ?? true,
+    is_demo: overrides.is_demo ?? false,
+    is_mock: overrides.is_mock ?? false,
+    is_real: overrides.is_real ?? true,
+    entry: overrides.entry ?? 100,
+    entry_low: overrides.entry_low ?? 100,
+    entry_high: overrides.entry_high ?? 100,
+    stop: overrides.stop ?? 98,
+    target: overrides.target ?? 104,
+    side: overrides.side ?? "long",
+    risk_per_share: overrides.risk_per_share ?? 2,
+    reward_per_share: overrides.reward_per_share ?? 4,
+    planned_risk_reward: overrides.planned_risk_reward ?? 2,
+    confidence: overrides.confidence ?? 80,
+    score: overrides.score ?? 80,
+    rating: overrides.rating ?? null,
+    label: overrides.label ?? null,
+    type: overrides.type ?? null,
+    rationale: overrides.rationale ?? null,
+    reason: overrides.reason ?? null,
+    catalyst: overrides.catalyst ?? null,
+    primary_risk: overrides.primary_risk ?? null,
+    market_data_snapshot: overrides.market_data_snapshot ?? null,
+    quote_price: overrides.quote_price ?? 100,
+    volume: overrides.volume ?? null,
+    liquidity: overrides.liquidity ?? null,
+    spread: overrides.spread ?? null,
+    freshness: overrides.freshness ?? null,
+    data_age_minutes: overrides.data_age_minutes ?? null,
+    intake_quality_json: overrides.intake_quality_json ?? null,
+    scan_observability_json: overrides.scan_observability_json ?? null,
+    empty_state_json: overrides.empty_state_json ?? null,
+    quality_json: overrides.quality_json ?? null,
+    payload_json: overrides.payload_json ?? {
+      batch_fingerprint: "rec_batch_current",
+      visibility_status: "visible",
+    },
+    was_taken: overrides.was_taken ?? false,
+    linked_position_id: overrides.linked_position_id ?? null,
+    created_at: overrides.created_at ?? timestamp,
+    updated_at: overrides.updated_at ?? timestamp,
+  };
+}
+
+function outcome(
+  overrides: Partial<RecommendationOutcome> = {},
+): RecommendationOutcome {
+  const timestamp = "2026-06-30T17:00:00.000Z";
+
+  return {
+    id: overrides.id ?? "outcome-1",
+    snapshot_id: overrides.snapshot_id ?? null,
+    snapshot_fingerprint: overrides.snapshot_fingerprint ?? "snap-AAPL-1",
+    recommendation_id: overrides.recommendation_id ?? "rec-snap-AAPL-1",
+    ticker: overrides.ticker ?? "AAPL",
+    side: overrides.side ?? "long",
+    recommended_at: overrides.recommended_at ?? "2026-06-30T16:00:00.000Z",
+    evaluated_at: overrides.evaluated_at ?? timestamp,
+    horizon: overrides.horizon ?? "15m",
+    status: overrides.status ?? "neither_hit",
+    entry: overrides.entry ?? 100,
+    stop: overrides.stop ?? 98,
+    target: overrides.target ?? 104,
+    entry_triggered: overrides.entry_triggered ?? true,
+    entry_triggered_at: overrides.entry_triggered_at ?? timestamp,
+    target_hit: overrides.target_hit ?? false,
+    target_hit_at: overrides.target_hit_at ?? null,
+    stop_hit: overrides.stop_hit ?? false,
+    stop_hit_at: overrides.stop_hit_at ?? null,
+    first_terminal_event: overrides.first_terminal_event ?? "neither",
+    best_price_after_recommendation:
+      overrides.best_price_after_recommendation ?? 101,
+    worst_price_after_recommendation:
+      overrides.worst_price_after_recommendation ?? 99,
+    best_r: overrides.best_r ?? 0.5,
+    worst_r: overrides.worst_r ?? -0.5,
+    eod_price: overrides.eod_price ?? null,
+    eod_r: overrides.eod_r ?? null,
+    current_price: overrides.current_price ?? 100,
+    current_r: overrides.current_r ?? 0,
+    max_favorable_excursion: overrides.max_favorable_excursion ?? 1,
+    max_adverse_excursion: overrides.max_adverse_excursion ?? -1,
+    time_to_entry_minutes: overrides.time_to_entry_minutes ?? 1,
+    time_to_target_minutes: overrides.time_to_target_minutes ?? null,
+    time_to_stop_minutes: overrides.time_to_stop_minutes ?? null,
+    source: overrides.source ?? "api",
+    provider: overrides.provider ?? "twelve_data",
+    data_completeness: overrides.data_completeness ?? "complete",
+    warnings: overrides.warnings ?? [],
+    blockers: overrides.blockers ?? [],
+    payload_json: overrides.payload_json ?? { candle_count: 10 },
+    created_at: overrides.created_at ?? timestamp,
+    updated_at: overrides.updated_at ?? timestamp,
+  };
 }
 
 function baseMarketDiagnosticsInput(
@@ -791,4 +913,115 @@ test("invalid risk geometry blocks safely with safety category", () => {
 
   expect(diagnostic.rejection_category).toBe("safety");
   expect(summary.output_below_target_reason_category).toBe("safety");
+});
+
+test("outcome canonicalization keeps visible snapshot when archived duplicate shares fingerprint", () => {
+  const visible = outcomeSnapshot({
+    id: "visible-current",
+    snapshot_fingerprint: "snap-current-visible",
+  });
+  const archivedDuplicate = outcomeSnapshot({
+    id: "archived-duplicate",
+    snapshot_fingerprint: "snap-current-visible",
+    is_visible: false,
+    status: "hidden",
+    payload_json: {
+      batch_fingerprint: "rec_batch_current",
+      visibility_status: "archived",
+    },
+    updated_at: "2026-06-30T15:59:00.000Z",
+  });
+
+  const result = canonicalizeOutcomeSnapshotsForBatch({
+    batchFingerprint: "rec_batch_current",
+    batchSnapshotFingerprints: new Set(["snap-current-visible"]),
+    growMaxLearningModeEnabled: true,
+    scanRunFingerprint: "rec_scan_run_test",
+    snapshots: [archivedDuplicate, visible],
+  });
+
+  expect(result.canonicalSnapshots).toHaveLength(1);
+  expect(result.canonicalSnapshots[0].id).toBe("visible-current");
+  expect(result.diagnostics.duplicate_snapshot_rows_ignored_count).toBe(1);
+  expect(result.diagnostics.hidden_archived_duplicate_rows_ignored_count).toBe(1);
+  expect(
+    result.diagnostics
+      .canonical_visible_duplicate_fingerprints_retained_count,
+  ).toBe(1);
+});
+
+test("outcome canonicalization ignores hidden duplicate without blocking visible row", () => {
+  const visible = outcomeSnapshot({
+    id: "visible-msft",
+    snapshot_fingerprint: "snap-msft",
+    ticker: "MSFT",
+  });
+  const hiddenDuplicate = outcomeSnapshot({
+    id: "hidden-msft",
+    snapshot_fingerprint: "snap-msft",
+    ticker: "MSFT",
+    is_visible: false,
+    status: "hidden",
+    payload_json: {
+      batch_fingerprint: "rec_batch_current",
+      visibility_status: "hidden",
+    },
+  });
+
+  const result = canonicalizeOutcomeSnapshotsForBatch({
+    batchFingerprint: "rec_batch_current",
+    batchSnapshotFingerprints: new Set(["snap-msft"]),
+    growMaxLearningModeEnabled: true,
+    scanRunFingerprint: "rec_scan_run_test",
+    snapshots: [visible, hiddenDuplicate],
+  });
+
+  expect(result.canonicalSnapshots.map((snapshot) => snapshot.id)).toEqual([
+    "visible-msft",
+  ]);
+  expect(result.diagnostics.hidden_archived_duplicate_rows_ignored_count).toBe(1);
+  expect(result.diagnostics.archived_duplicate_rows_blocked_count).toBe(1);
+});
+
+test("outcome canonicalization dedupes true visible duplicates to one canonical snapshot", () => {
+  const olderVisible = outcomeSnapshot({
+    id: "older-visible",
+    snapshot_fingerprint: "snap-dup-visible",
+    created_at: "2026-06-30T15:00:00.000Z",
+    updated_at: "2026-06-30T15:00:00.000Z",
+  });
+  const newerVisible = outcomeSnapshot({
+    id: "newer-visible",
+    snapshot_fingerprint: "snap-dup-visible",
+    created_at: "2026-06-30T15:01:00.000Z",
+    updated_at: "2026-06-30T15:01:00.000Z",
+  });
+
+  const result = canonicalizeOutcomeSnapshotsForBatch({
+    batchFingerprint: "rec_batch_current",
+    batchSnapshotFingerprints: new Set(["snap-dup-visible"]),
+    growMaxLearningModeEnabled: false,
+    scanRunFingerprint: "rec_scan_run_test",
+    snapshots: [olderVisible, newerVisible],
+  });
+
+  expect(result.canonicalSnapshots).toHaveLength(1);
+  expect(result.canonicalSnapshots[0].id).toBe("newer-visible");
+  expect(result.diagnostics.visible_duplicate_rows_ignored_count).toBe(1);
+  expect(result.diagnostics.duplicate_snapshot_rows_ignored_count).toBe(1);
+});
+
+test("equal or better persisted outcome still skips duplicate write", () => {
+  const existing = outcome({
+    id: "existing-complete",
+    data_completeness: "complete",
+    payload_json: { candle_count: 12 },
+  });
+  const next = outcome({
+    id: "next-same-coverage",
+    data_completeness: "complete",
+    payload_json: { candle_count: 12 },
+  });
+
+  expect(hasBetterOutcomeCoverage(next, existing)).toBe(false);
 });

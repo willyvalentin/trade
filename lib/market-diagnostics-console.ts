@@ -287,6 +287,11 @@ export type MarketDiagnosticsConsoleInput = {
     duplicate_snapshot_fingerprints_count?: number | null;
     duplicate_snapshot_rows?: number | null;
     duplicate_snapshot_rows_ignored_count?: number | null;
+    hidden_archived_duplicate_rows_ignored_count?: number | null;
+    visible_duplicate_rows_ignored_count?: number | null;
+    canonical_visible_snapshots_retained_count?: number | null;
+    canonical_visible_duplicate_fingerprints_retained_count?: number | null;
+    archived_duplicate_rows_blocked_count?: number | null;
     duplicate_snapshot_conflict_count?: number | null;
     duplicate_snapshot_conflict_reasons?: Record<string, number>;
     visible_recommendations?: number | null;
@@ -4885,6 +4890,19 @@ function buildSections(
                   0,
               ),
               lineValue(
+                "Canonical visible retained",
+                `${input.outcome_evaluation?.canonical_visible_snapshots_retained_count ?? input.outcome_evaluation?.eligible_visible_snapshot_count ?? 0} total / ${input.outcome_evaluation?.canonical_visible_duplicate_fingerprints_retained_count ?? 0} from duplicate fingerprints`,
+              ),
+              lineValue(
+                "Duplicate ignored split",
+                `hidden/archived=${input.outcome_evaluation?.hidden_archived_duplicate_rows_ignored_count ?? 0} / visible=${input.outcome_evaluation?.visible_duplicate_rows_ignored_count ?? 0}`,
+              ),
+              lineValue(
+                "Archived duplicate blocks",
+                input.outcome_evaluation?.archived_duplicate_rows_blocked_count ??
+                  0,
+              ),
+              lineValue(
                 "Duplicate conflicts",
                 input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? 0,
               ),
@@ -5052,6 +5070,21 @@ function buildSections(
           input.outcome_evaluation?.duplicate_snapshot_rows ?? null,
         duplicate_snapshot_rows_ignored_count:
           input.outcome_evaluation?.duplicate_snapshot_rows_ignored_count ??
+          null,
+        hidden_archived_duplicate_rows_ignored_count:
+          input.outcome_evaluation
+            ?.hidden_archived_duplicate_rows_ignored_count ?? null,
+        visible_duplicate_rows_ignored_count:
+          input.outcome_evaluation?.visible_duplicate_rows_ignored_count ??
+          null,
+        canonical_visible_snapshots_retained_count:
+          input.outcome_evaluation
+            ?.canonical_visible_snapshots_retained_count ?? null,
+        canonical_visible_duplicate_fingerprints_retained_count:
+          input.outcome_evaluation
+            ?.canonical_visible_duplicate_fingerprints_retained_count ?? null,
+        archived_duplicate_rows_blocked_count:
+          input.outcome_evaluation?.archived_duplicate_rows_blocked_count ??
           null,
         duplicate_snapshot_conflict_count:
           input.outcome_evaluation?.duplicate_snapshot_conflict_count ?? null,
