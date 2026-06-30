@@ -123,6 +123,16 @@ export type MarketDiagnosticsConsoleInput = {
     current_batch_grid_card_count?: number | null;
     current_batch_batch_health?: string | null;
     grow_max_learning_mode?: boolean | null;
+    learning_acceleration_enabled?: boolean | null;
+    learning_acceleration_enabled_source?: string | null;
+    learning_acceleration_mode?: string | null;
+    learning_acceleration_samples_collected_today?: number | null;
+    learning_acceleration_samples_evaluated_today?: number | null;
+    learning_acceleration_top_research_sample_tickers?: string[];
+    learning_acceleration_sample_quality_summary?: {
+      good?: number | null;
+      usable?: number | null;
+    } | null;
     target_ideas_per_window?: number | null;
     ideas_persisted_this_window?: number | null;
     ideas_persisted_today?: number | null;
@@ -244,6 +254,10 @@ export type MarketDiagnosticsConsoleInput = {
     eligible_learning_snapshot_count?: number | null;
     eligible_research_only_snapshot_count?: number | null;
     grow_max_learning_snapshots_included_count?: number | null;
+    learning_acceleration_enabled?: boolean | null;
+    learning_acceleration_enabled_source?: string | null;
+    learning_acceleration_mode?: string | null;
+    learning_acceleration_samples_evaluated?: number | null;
     ineligible_snapshot_count?: number | null;
     ineligible_reasons?: Record<string, number>;
     unique_snapshot_fingerprints_count?: number | null;
@@ -2207,6 +2221,41 @@ function buildSections(
   const growMaxLearningMode =
     input.scan_readback?.grow_max_learning_mode === true ||
     input.active_scan_trace?.grow_max_learning_mode === true;
+  const learningAccelerationEnabled =
+    input.scan_readback?.learning_acceleration_enabled === true ||
+    input.active_scan_trace?.learning_acceleration_enabled === true ||
+    input.outcome_evaluation?.learning_acceleration_enabled === true;
+  const learningAccelerationMode =
+    input.scan_readback?.learning_acceleration_mode ??
+    input.active_scan_trace?.learning_acceleration_mode ??
+    input.outcome_evaluation?.learning_acceleration_mode ??
+    "disabled";
+  const learningAccelerationSource =
+    input.scan_readback?.learning_acceleration_enabled_source ??
+    input.active_scan_trace?.learning_acceleration_enabled_source ??
+    input.outcome_evaluation?.learning_acceleration_enabled_source ??
+    "none";
+  const learningAccelerationSamplesCollectedToday =
+    input.scan_readback?.learning_acceleration_samples_collected_today ??
+    input.active_scan_trace?.learning_acceleration_samples_collected_count ??
+    0;
+  const learningAccelerationSamplesEvaluatedToday =
+    input.scan_readback?.learning_acceleration_samples_evaluated_today ??
+    input.outcome_evaluation?.learning_acceleration_samples_evaluated ??
+    input.active_scan_trace?.learning_acceleration_samples_evaluated_count ??
+    0;
+  const learningAccelerationTopTickers =
+    input.scan_readback?.learning_acceleration_top_research_sample_tickers ??
+    input.active_scan_trace?.learning_acceleration_top_research_sample_tickers ??
+    [];
+  const learningAccelerationQuality =
+    input.scan_readback?.learning_acceleration_sample_quality_summary ??
+    input.active_scan_trace?.learning_acceleration_sample_quality_summary ??
+    null;
+  const learningAccelerationVisibleEvaluated =
+    input.outcome_evaluation?.eligible_visible_snapshot_count ?? 0;
+  const learningAccelerationResearchEvaluated =
+    input.outcome_evaluation?.eligible_research_only_snapshot_count ?? 0;
   const targetIdeasPerWindow =
     input.scan_readback?.target_ideas_per_window ??
     input.active_scan_trace?.target_ideas_per_window ??
@@ -4322,6 +4371,99 @@ function buildSections(
         provider_plan_profile_overrides_json: JSON.stringify(
           providerPlanProfile.overrides,
         ),
+      },
+    }),
+    section({
+      section_id: "learning_acceleration",
+      title: "Learning Acceleration",
+      severity:
+        learningAccelerationEnabled &&
+        (input.outcome_evaluation?.skipped_due_to_budget_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Enabled",
+          `${bool(learningAccelerationEnabled)} / ${words(learningAccelerationMode)} via ${words(learningAccelerationSource)}`,
+        ),
+        lineValue(
+          "Samples collected/evaluated today",
+          `${learningAccelerationSamplesCollectedToday}/${learningAccelerationSamplesEvaluatedToday}`,
+        ),
+        lineValue(
+          "Visible vs research-only evaluated",
+          `${learningAccelerationVisibleEvaluated}/${learningAccelerationResearchEvaluated}`,
+        ),
+        lineValue(
+          "Total unique learning ideas",
+          input.outcome_evaluation?.unique_learning_ideas ??
+            input.scan_readback?.unique_learning_ideas_today ??
+            learningAccelerationVisibleEvaluated +
+              learningAccelerationResearchEvaluated,
+        ),
+        lineValue(
+          "Provider requests used/saved",
+          `${input.outcome_evaluation?.candle_requests_executed ?? 0}/${input.outcome_evaluation?.candle_requests_saved_by_reuse ?? 0}`,
+        ),
+        lineValue(
+          "Provider cap / skipped due budget",
+          `${input.outcome_evaluation?.provider_budget_limit ?? providerPlanProfile.outcomeBudgetLimit ?? "unknown"} / ${input.outcome_evaluation?.skipped_due_to_budget_count ?? input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ?? 0}`,
+        ),
+        lineValue(
+          "Skipped invalid/stale",
+          `${input.active_scan_trace?.learning_acceleration_skipped_due_to_invalid_risk_count ?? 0}/${input.active_scan_trace?.learning_acceleration_skipped_due_to_stale_reference_count ?? 0}`,
+        ),
+        lineValue(
+          "Top research tickers",
+          learningAccelerationTopTickers.length > 0
+            ? learningAccelerationTopTickers.join(", ")
+            : "none",
+        ),
+        lineValue(
+          "Sample quality",
+          `good ${learningAccelerationQuality?.good ?? 0} / usable ${learningAccelerationQuality?.usable ?? 0}`,
+        ),
+      ],
+      metrics: {
+        learning_acceleration_enabled: learningAccelerationEnabled,
+        learning_acceleration_mode: learningAccelerationMode,
+        learning_acceleration_enabled_source: learningAccelerationSource,
+        learning_acceleration_samples_collected_today:
+          learningAccelerationSamplesCollectedToday,
+        learning_acceleration_samples_evaluated_today:
+          learningAccelerationSamplesEvaluatedToday,
+        learning_acceleration_visible_evaluated:
+          learningAccelerationVisibleEvaluated,
+        learning_acceleration_research_only_evaluated:
+          learningAccelerationResearchEvaluated,
+        learning_acceleration_total_unique_learning_ideas:
+          input.outcome_evaluation?.unique_learning_ideas ??
+          input.scan_readback?.unique_learning_ideas_today ??
+          learningAccelerationVisibleEvaluated +
+            learningAccelerationResearchEvaluated,
+        learning_acceleration_provider_requests_used:
+          input.outcome_evaluation?.candle_requests_executed ?? 0,
+        learning_acceleration_provider_requests_saved_by_reuse:
+          input.outcome_evaluation?.candle_requests_saved_by_reuse ?? 0,
+        learning_acceleration_provider_budget_limit:
+          input.outcome_evaluation?.provider_budget_limit ??
+          providerPlanProfile.outcomeBudgetLimit,
+        learning_acceleration_skipped_due_to_budget:
+          input.outcome_evaluation?.skipped_due_to_budget_count ??
+          input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ??
+          0,
+        learning_acceleration_skipped_due_to_invalid_risk:
+          input.active_scan_trace
+            ?.learning_acceleration_skipped_due_to_invalid_risk_count ?? 0,
+        learning_acceleration_skipped_due_to_stale_reference:
+          input.active_scan_trace
+            ?.learning_acceleration_skipped_due_to_stale_reference_count ?? 0,
+        learning_acceleration_top_research_sample_tickers:
+          learningAccelerationTopTickers.join(", "),
+        learning_acceleration_sample_quality_good:
+          learningAccelerationQuality?.good ?? 0,
+        learning_acceleration_sample_quality_usable:
+          learningAccelerationQuality?.usable ?? 0,
       },
     }),
     section({

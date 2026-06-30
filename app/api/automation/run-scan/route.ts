@@ -88,6 +88,12 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
+import {
+  buildLearningAccelerationResearchSelection,
+  evaluateLearningAccelerationMode,
+  type LearningAccelerationModeEvaluation,
+  type LearningAccelerationResearchSample,
+} from "@/lib/learning-acceleration-mode";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -148,6 +154,13 @@ type AutomationRunDiagnostics = {
   grow_max_learning_mode_requested?: boolean;
   grow_max_learning_mode_blocked_reason?: string | null;
   grow_max_learning_mode_enabled_source?: string;
+  learning_acceleration_enabled?: boolean;
+  learning_acceleration_requested?: boolean;
+  learning_acceleration_enabled_source?: string;
+  learning_acceleration_env_raw_present?: boolean;
+  learning_acceleration_env_raw_value_normalized?: boolean;
+  learning_acceleration_mode?: string;
+  learning_acceleration_samples_collected?: number;
   target_ideas_per_window?: number | null;
   same_window_limit_reached?: boolean;
   daily_learning_limit_reached?: boolean;
@@ -272,6 +285,9 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const growMaxLearningMode = evaluateGrowMaxLearningMode({
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
+  const learningAccelerationMode = evaluateLearningAccelerationMode({
+    growMaxLearningModeEnabled: growMaxLearningMode.grow_max_learning_mode,
+  });
   const scheduledMaxTickers =
     routeMaxTickersOverride !== null
       ? routeMaxTickersOverride
@@ -302,9 +318,14 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   return {
     live_trial_fast_mode: liveTrialFastMode,
     ...growMaxLearningMode,
+    ...learningAccelerationMode,
     target_ideas_per_window: growMaxLearningMode.grow_max_learning_mode
       ? effectiveScanTickerCap
       : null,
+    learning_acceleration_target_samples_per_window:
+      learningAccelerationMode.learning_acceleration_enabled
+        ? Math.min(25, effectiveScanTickerCap)
+        : 0,
     provider_plan_mode: providerPlanProfile.mode,
     provider_plan_profile_mode: providerPlanProfile.effective_mode,
     provider_plan_profile_source: providerPlanProfile.source,
@@ -680,6 +701,22 @@ function buildAutomationRunDiagnostics({
       "env_flag_not_enabled",
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig?.grow_max_learning_mode_enabled_source ?? "none",
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig?.learning_acceleration_enabled ?? false,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig?.learning_acceleration_requested ?? false,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig?.learning_acceleration_enabled_source ?? "none",
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_present ?? false,
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_value_normalized ??
+      false,
+    learning_acceleration_mode:
+      scheduledRuntimeConfig?.learning_acceleration_mode ?? "disabled",
+    learning_acceleration_samples_collected:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_samples_collected_count ?? 0,
     target_ideas_per_window:
       scheduledRuntimeConfig?.target_ideas_per_window ?? null,
     same_window_limit_reached: decision === "skipped_recent_scan",
@@ -1823,6 +1860,132 @@ function buildSnapshotFromRecommendation({
   });
 }
 
+function buildSnapshotFromResearchSample({
+  sample,
+  scanRunId,
+  scanWindow,
+  now,
+  marketSession,
+  scanObservability,
+  servingCadence,
+  providerPlanProfileMode,
+  batchFingerprint,
+}: {
+  sample: LearningAccelerationResearchSample;
+  scanRunId: string;
+  scanWindow: IntradayScanWindow;
+  now: Date;
+  marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
+  scanObservability: ScanPipelineObservabilitySummary;
+  servingCadence: RecommendationServingCadenceSummary;
+  providerPlanProfileMode: string | null;
+  batchFingerprint: string | null;
+}) {
+  const riskPerShare = sample.entry - sample.stop;
+  const rewardPerShare = sample.target - sample.entry;
+  const researchBatchFingerprint =
+    batchFingerprint ?? `research_${scanRunId}_${scanWindow}`;
+  const explicitMetadataGaps = Array.from(
+    new Set([
+      ...sample.explicit_metadata_gaps,
+      ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
+    ]),
+  );
+
+  return buildRecommendationSnapshot({
+    recommendation_id: null,
+    scan_run_id: scanRunId,
+    ticker: sample.ticker,
+    company_name: sample.company_name,
+    recommended_at: now,
+    app_timestamp: now,
+    window: scanWindow,
+    market_session_phase: marketSession.phase,
+    market_session_risk: marketSession.risk_level,
+    market_session_source: marketSession.source,
+    source_mode: "research_only",
+    data_mode: "research_only",
+    is_visible: false,
+    is_real: true,
+    entry: sample.entry,
+    entry_low: sample.entry_low,
+    entry_high: sample.entry_high,
+    stop: sample.stop,
+    target: sample.target,
+    side: "long",
+    risk_per_share: riskPerShare > 0 ? riskPerShare : null,
+    reward_per_share: rewardPerShare > 0 ? rewardPerShare : null,
+    planned_risk_reward: sample.risk_reward,
+    confidence: sample.score,
+    score: sample.score,
+    rating: sample.tier,
+    label: "learning only",
+    type: "RESEARCH_SAMPLE",
+    rationale: sample.ranking_reason,
+    reason: sample.rejection_publish_reason,
+    catalyst: sample.ranking_reason,
+    primary_risk: sample.ranking_warnings[0] ?? sample.rejection_publish_reason,
+    freshness: sample.market_data_timestamp ? "fresh" : "unknown",
+    data_age_minutes: 0,
+    quality: {
+      scan_observability_summary: scanObservability,
+    },
+    payload: {
+      visibility_status: "research_only",
+      not_live_signal: true,
+      not_live_trade_signal: true,
+      visible_in_primary_recommendations: false,
+      learning_acceleration_sample: true,
+      research_only: true,
+      learning_scope: "research_only",
+      source_window: scanWindow,
+      scan_window: scanWindow,
+      scan_run_fingerprint: scanRunId,
+      batch_fingerprint: batchFingerprint,
+      research_batch_fingerprint: researchBatchFingerprint,
+      rejection_publish_reason: sample.rejection_publish_reason,
+      publish_decision: "research_only",
+      tier: sample.tier,
+      score: sample.score,
+      ranking_rank: sample.rank,
+      ranking_reason: sample.ranking_reason,
+      ranking_warnings: sample.ranking_warnings,
+      sample_quality: sample.sample_quality,
+      data_timestamp: sample.market_data_timestamp,
+      provider_source: sample.provider_source,
+      provider_status: sample.provider_source ? "observed" : "unavailable",
+      market_data_source: sample.market_data_source,
+      candle_timestamp: sample.market_data_timestamp,
+      provider_plan_profile_mode: providerPlanProfileMode,
+      build_marker: BUILD_MARKER,
+      recommendation_publish_policy_version:
+        RECOMMENDATION_PUBLISH_POLICY_VERSION,
+      explicit_metadata_gaps: explicitMetadataGaps,
+      side: "long",
+      direction: "long",
+      trade_direction: "long",
+      recommendation_side: "long",
+      action: "buy",
+      trade_plan: {
+        side: "long",
+        direction: "long",
+        action: "buy",
+        entry: sample.entry,
+        stop: sample.stop,
+        target: sample.target,
+        target_2: sample.target_2,
+      },
+      learning_acceleration: {
+        enabled: true,
+        mode: "research_only",
+        not_live_signal: true,
+      },
+      recommendation_serving_cadence: servingCadence,
+      market_session: marketSession,
+    },
+  });
+}
+
 async function persistAutomationArtifacts({
   scanDate,
   sessionType,
@@ -1836,6 +1999,8 @@ async function persistAutomationArtifacts({
   recommendations,
   activeScanTrace,
   providerPlanProfileMode,
+  learningAccelerationMode,
+  learningAccelerationTargetSamples,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -1849,6 +2014,8 @@ async function persistAutomationArtifacts({
   recommendations: RecommendationRow[];
   activeScanTrace?: ActiveScanTraceRecorder | null;
   providerPlanProfileMode: string | null;
+  learningAccelerationMode: LearningAccelerationModeEvaluation;
+  learningAccelerationTargetSamples: number;
 }) {
   activeScanTrace?.markStage("persistence", "started");
   const serverSupabase = getServerSupabaseClient();
@@ -1941,6 +2108,9 @@ async function persistAutomationArtifacts({
       unavailableReason: serverSupabase.unavailable_reason,
     }),
     snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
+    research_snapshots: [] as Array<
+      Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+    >,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
   };
   const preliminarySnapshots = recommendations.map((recommendation) =>
@@ -1979,6 +2149,17 @@ async function persistAutomationArtifacts({
         })
       : null;
   const snapshots: RecommendationSnapshot[] = [];
+  const researchSelection = buildLearningAccelerationResearchSelection({
+    enabled: learningAccelerationMode.learning_acceleration_enabled,
+    candidates: scanLog.real_scanner_candidate_generation?.candidates ?? [],
+    ranking: scanLog.scanner_candidate_ranking ?? null,
+    visibleTickers: recommendations
+      .map((recommendation) => recommendationTicker(recommendation))
+      .filter((ticker): ticker is string => ticker !== null),
+    scanWindow,
+    maxSamples: learningAccelerationTargetSamples,
+  });
+  const researchSnapshots: RecommendationSnapshot[] = [];
 
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
@@ -2004,8 +2185,48 @@ async function persistAutomationArtifacts({
     );
   }
 
+  for (const sample of researchSelection.samples) {
+    const snapshot = buildSnapshotFromResearchSample({
+      sample,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
+    });
+
+    researchSnapshots.push(snapshot);
+    persistence.research_snapshots.push(
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
+    );
+  }
+
   const shadowSnapshotSummary =
-    summarizeRecommendationSnapshotShadowEntryTrialMetadata(snapshots);
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata([
+      ...snapshots,
+      ...researchSnapshots,
+    ]);
+  activeScanTrace?.update({
+    learning_acceleration_samples_collected_count:
+      researchSelection.samples_collected_count,
+    learning_acceleration_skipped_due_to_budget_count:
+      researchSelection.skipped_due_to_budget_count,
+    learning_acceleration_skipped_due_to_invalid_risk_count:
+      researchSelection.skipped_due_to_invalid_risk_count,
+    learning_acceleration_skipped_due_to_stale_reference_count:
+      researchSelection.skipped_due_to_stale_reference_count,
+    learning_acceleration_top_research_sample_tickers:
+      researchSelection.top_research_sample_tickers,
+    learning_acceleration_sample_quality_summary:
+      researchSelection.sample_quality_summary,
+  });
   activeScanTrace?.updatePersistence({
     shadow_entry_trial_attached_count:
       shadowSnapshotSummary.shadow_snapshot_metadata_present_count,
@@ -2072,6 +2293,8 @@ async function persistAutomationArtifacts({
   return {
     scan_run: scanRun,
     snapshots,
+    research_snapshots: researchSnapshots,
+    learning_acceleration: researchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
@@ -2193,6 +2416,20 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig.learning_acceleration_enabled,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig.learning_acceleration_requested,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_mode:
+      scheduledRuntimeConfig.learning_acceleration_mode,
+    learning_acceleration_target_samples_per_window:
+      scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
     provider_plan_profile_mode:
@@ -2409,6 +2646,18 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig.learning_acceleration_enabled,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig.learning_acceleration_requested,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_mode:
+      scheduledRuntimeConfig.learning_acceleration_mode,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
@@ -3451,6 +3700,9 @@ export async function POST(request: Request) {
         activeScanTrace,
         providerPlanProfileMode:
           scheduledRuntimeConfig.provider_plan_profile_mode,
+        learningAccelerationMode: scheduledRuntimeConfig,
+        learningAccelerationTargetSamples:
+          scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
       });
       activeScanTrace.updatePersistence({
         scan_run_persisted:
@@ -3623,6 +3875,28 @@ export async function POST(request: Request) {
             snapshot.status === "saved" ||
             snapshot.status === "duplicate",
         ).length ?? 0,
+      research_snapshots_persisted_count:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
+      learning_acceleration_samples_collected:
+        artifactResult?.learning_acceleration.samples_collected_count ?? 0,
+      learning_acceleration_sample_quality_summary:
+        artifactResult?.learning_acceleration.sample_quality_summary ?? {
+          good: 0,
+          usable: 0,
+        },
+      learning_acceleration_top_research_sample_tickers:
+        artifactResult?.learning_acceleration.top_research_sample_tickers ?? [],
+      learning_acceleration_skipped_due_to_budget:
+        artifactResult?.learning_acceleration.skipped_due_to_budget_count ?? 0,
+      learning_acceleration_skipped_due_to_invalid_risk:
+        artifactResult?.learning_acceleration.skipped_due_to_invalid_risk_count ?? 0,
+      learning_acceleration_skipped_due_to_stale_reference:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_stale_reference_count ?? 0,
       shadow_entry_trial_attached_count:
         artifactResult?.shadow_snapshot_summary
           .shadow_snapshot_metadata_present_count ?? 0,
@@ -3646,6 +3920,7 @@ export async function POST(request: Request) {
       market_session: marketSession,
       day_trade_scan_orchestration: dayTradeScanOrchestration,
       recommendation_serving_cadence: servingCadence,
+      learning_acceleration: artifactResult?.learning_acceleration ?? null,
       persistence: artifactResult?.persistence ?? null,
     });
   } catch (error) {

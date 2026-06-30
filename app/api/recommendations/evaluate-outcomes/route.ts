@@ -28,6 +28,10 @@ import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
+  evaluateLearningAccelerationMode,
+  shouldIncludeLearningAccelerationOutcomeSample,
+} from "@/lib/learning-acceleration-mode";
+import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
@@ -54,7 +58,8 @@ type OutcomeSnapshotIneligibleReason =
   | "missing_stop"
   | "missing_target"
   | "missing_recommended_at"
-  | "missing_batch_membership";
+  | "missing_batch_membership"
+  | "learning_only_disabled";
 
 type OutcomeEligibilityDiagnostics = {
   total_snapshots_loaded_for_batch: number;
@@ -731,6 +736,8 @@ function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
   return (
     snapshot.source_mode === "research_only" ||
     snapshot.data_mode === "research_only" ||
+    payload.visibility_status === "research_only" ||
+    payload.learning_acceleration_sample === true ||
     payload.research_only === true ||
     payload.source_mode === "research_only" ||
     payload.learning_scope === "research_only"
@@ -957,7 +964,7 @@ function buildOutcomeBatchCandidateAudit({
   });
 }
 
-function buildOutcomeEligibility({
+export function buildOutcomeEligibility({
   batch,
   growMaxLearningModeEnabled,
   horizons,
@@ -1053,6 +1060,20 @@ function buildOutcomeEligibility({
       reasons.push("missing_batch_membership");
     }
 
+    const researchOnly = isResearchOnlySnapshot(snapshot);
+    const learningOnly = !researchOnly && isLearningOnlySnapshot(snapshot);
+
+    if (
+      !shouldIncludeLearningAccelerationOutcomeSample({
+        growMaxLearningModeEnabled,
+        learningAccelerationEnabled: growMaxLearningModeEnabled,
+        researchOnly,
+        learningOnly,
+      })
+    ) {
+      reasons.push("learning_only_disabled");
+    }
+
     if (reasons.length > 0) {
       for (const reason of reasons) {
         incrementReason(ineligibleReasons, reason);
@@ -1066,8 +1087,6 @@ function buildOutcomeEligibility({
       continue;
     }
 
-    const researchOnly = isResearchOnlySnapshot(snapshot);
-    const learningOnly = isLearningOnlySnapshot(snapshot);
     const visible =
       snapshot.is_visible !== false &&
       snapshot.status !== "hidden" &&
@@ -1402,7 +1421,14 @@ export async function POST(request: Request) {
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
   const growMaxLearningModeEnabled = growMaxLearningMode.grow_max_learning_mode;
-  const providerBudgetLimit = growMaxLearningModeEnabled
+  const learningAccelerationMode = evaluateLearningAccelerationMode({
+    growMaxLearningModeEnabled,
+  });
+  const learningAccelerationEnabled =
+    learningAccelerationMode.learning_acceleration_enabled;
+  const includeLearningSnapshots =
+    growMaxLearningModeEnabled || learningAccelerationEnabled;
+  const providerBudgetLimit = includeLearningSnapshots
     ? Math.min(25, providerBudgetResolution.effectiveBudgetLimit)
     : providerBudgetResolution.effectiveBudgetLimit;
   const horizons = parseHorizons(body?.horizons);
@@ -1434,7 +1460,7 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadOfficialLiveSnapshots({
           batchFingerprint,
-          includeGrowMaxLearningSnapshots: growMaxLearningModeEnabled,
+          includeGrowMaxLearningSnapshots: includeLearningSnapshots,
           now,
         })
       : null;
@@ -1446,7 +1472,7 @@ export async function POST(request: Request) {
         : await loadRecentSupabaseSnapshots();
   const eligibility = buildOutcomeEligibility({
     batch: officialSnapshotLoad?.batch ?? null,
-    growMaxLearningModeEnabled,
+    growMaxLearningModeEnabled: includeLearningSnapshots,
     horizons,
     recommendationRowsLoadedCount:
       officialSnapshotLoad?.recommendation_rows_loaded_count ?? 0,
@@ -1550,6 +1576,13 @@ export async function POST(request: Request) {
       grow_max_learning_mode: growMaxLearningModeEnabled,
       grow_max_learning_mode_enabled_source:
         growMaxLearningMode.grow_max_learning_mode_enabled_source,
+      learning_acceleration_enabled: learningAccelerationEnabled,
+      learning_acceleration_enabled_source:
+        learningAccelerationMode.learning_acceleration_enabled_source,
+      learning_acceleration_mode:
+        learningAccelerationMode.learning_acceleration_mode,
+      learning_acceleration_samples_evaluated:
+        eligibilityDiagnostics.eligible_research_only_snapshot_count,
       server_plan_mode: providerPlanProfile.server_plan_mode,
       public_plan_mode: providerPlanProfile.public_plan_mode,
       plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -1629,13 +1662,13 @@ export async function POST(request: Request) {
     horizons,
     maxSnapshots:
       maxSnapshots === null
-        ? growMaxLearningModeEnabled
+        ? includeLearningSnapshots
           ? Math.max(1, eligibleSnapshots.length)
           : 6
         : Math.max(
             1,
             Math.min(
-              growMaxLearningModeEnabled ? eligibleSnapshots.length : 10,
+              includeLearningSnapshots ? eligibleSnapshots.length : 10,
               Math.round(maxSnapshots),
             ),
           ),
@@ -1771,6 +1804,13 @@ export async function POST(request: Request) {
     grow_max_learning_mode: growMaxLearningModeEnabled,
     grow_max_learning_mode_enabled_source:
       growMaxLearningMode.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled: learningAccelerationEnabled,
+    learning_acceleration_enabled_source:
+      learningAccelerationMode.learning_acceleration_enabled_source,
+    learning_acceleration_mode:
+      learningAccelerationMode.learning_acceleration_mode,
+    learning_acceleration_samples_evaluated:
+      eligibilityDiagnostics.eligible_research_only_snapshot_count,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,

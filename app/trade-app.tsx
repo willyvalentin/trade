@@ -343,6 +343,12 @@ import {
   type RecommendationOutcomeLearningInsightsSummary,
 } from "@/lib/recommendation-outcome-learning-insights";
 import {
+  buildMondayLiveTrialReviewSummary,
+  mondayLiveTrialReviewSummaryJson,
+  type MondayLiveTrialReviewClassification,
+  type MondayLiveTrialReviewSummary,
+} from "@/lib/monday-live-trial-review";
+import {
   buildEntryTuningProposal,
   entryTuningProposalJson,
   type EntryTuningProposal,
@@ -1286,6 +1292,10 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   eligibleLearningSnapshotCount: number;
   eligibleResearchOnlySnapshotCount: number;
   growMaxLearningSnapshotsIncludedCount: number;
+  learningAccelerationEnabled: boolean;
+  learningAccelerationEnabledSource: string | null;
+  learningAccelerationMode: string | null;
+  learningAccelerationSamplesEvaluated: number;
   ineligibleSnapshotCount: number;
   ineligibleReasons: Record<string, number>;
   uniqueSnapshotFingerprintsCount: number;
@@ -8231,6 +8241,10 @@ export function TradeApp() {
     eligibleLearningSnapshotCount: 0,
     eligibleResearchOnlySnapshotCount: 0,
     growMaxLearningSnapshotsIncludedCount: 0,
+    learningAccelerationEnabled: false,
+    learningAccelerationEnabledSource: null,
+    learningAccelerationMode: null,
+    learningAccelerationSamplesEvaluated: 0,
     ineligibleSnapshotCount: 0,
     ineligibleReasons: {},
     uniqueSnapshotFingerprintsCount: 0,
@@ -13462,6 +13476,16 @@ export function TradeApp() {
     recommendationOutcomeLearningInsightsSummaryJson(
       recommendationOutcomeLearningInsightsSummary,
     );
+  const mondayLiveTrialReviewSummary = buildMondayLiveTrialReviewSummary({
+    batch: latestEvaluatedBatchGroup?.batch ?? null,
+    snapshots: latestEvaluatedBatchSnapshots,
+    outcomes: latestEvaluatedBatchOutcomes,
+    visibleRecommendationCount:
+      latestEvaluatedBatchGroup?.batch.recommendation_count ??
+      latestEvaluatedBatchSnapshots.length,
+  });
+  const mondayLiveTrialReviewSummaryJsonText =
+    mondayLiveTrialReviewSummaryJson(mondayLiveTrialReviewSummary);
   const entryTuningProposal = buildEntryTuningProposal({
     learning_insights: recommendationOutcomeLearningInsightsSummary,
     evaluated_batch_count: outcomeBatchGroups.filter(
@@ -13794,6 +13818,16 @@ export function TradeApp() {
         grow_max_learning_snapshots_included_count:
           recommendationOutcomeEvaluationDiagnostics
             .growMaxLearningSnapshotsIncludedCount,
+        learning_acceleration_enabled:
+          recommendationOutcomeEvaluationDiagnostics.learningAccelerationEnabled,
+        learning_acceleration_enabled_source:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnabledSource,
+        learning_acceleration_mode:
+          recommendationOutcomeEvaluationDiagnostics.learningAccelerationMode,
+        learning_acceleration_samples_evaluated:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationSamplesEvaluated,
         ineligible_snapshot_count:
           recommendationOutcomeEvaluationDiagnostics.ineligibleSnapshotCount,
         ineligible_reasons:
@@ -14716,6 +14750,22 @@ export function TradeApp() {
         ),
         growMaxLearningSnapshotsIncludedCount: Number(
           routeDiagnostics.grow_max_learning_snapshots_included_count ?? 0,
+        ),
+        learningAccelerationEnabled:
+          routeDiagnostics.learning_acceleration_enabled === true,
+        learningAccelerationEnabledSource:
+          typeof routeDiagnostics.learning_acceleration_enabled_source ===
+          "string"
+            ? routeDiagnostics.learning_acceleration_enabled_source
+            : null,
+        learningAccelerationMode:
+          typeof routeDiagnostics.learning_acceleration_mode === "string"
+            ? routeDiagnostics.learning_acceleration_mode
+            : null,
+        learningAccelerationSamplesEvaluated: Number(
+          routeDiagnostics.learning_acceleration_samples_evaluated ??
+            routeDiagnostics.eligible_research_only_snapshot_count ??
+            0,
         ),
         ineligibleSnapshotCount: Number(
           routeDiagnostics.ineligible_snapshot_count ?? 0,
@@ -15894,6 +15944,11 @@ export function TradeApp() {
                   createDefaultLiveMarketTrialRunbookState(currentTime),
                 )
               }
+            />
+
+            <MondayLiveTrialReviewPanel
+              summary={mondayLiveTrialReviewSummary}
+              summaryJson={mondayLiveTrialReviewSummaryJsonText}
             />
 
             <MarketDiagnosticsConsolePanel
@@ -20061,6 +20116,301 @@ function RecommendationOutcomeLearningInsightsPanel({
         }
       >
         {entryTuningProposalJson}
+      </pre>
+    </section>
+  );
+}
+
+function mondayLiveTrialReviewClassificationTone(
+  classification: MondayLiveTrialReviewClassification,
+) {
+  if (classification === "target_hit") {
+    return "border-[#00db94]/25 bg-[#00db94]/10 text-emerald-100";
+  }
+
+  if (
+    classification === "promising_but_target_too_far" ||
+    classification === "weak_followthrough" ||
+    classification === "flat_no_followthrough"
+  ) {
+    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+  }
+
+  if (
+    classification === "stop_hit" ||
+    classification === "adverse_move" ||
+    classification === "stale_plan_adverse_move"
+  ) {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-400";
+}
+
+function compactReviewText(value: string | null | undefined) {
+  return value && value.trim().length > 0 ? value : "—";
+}
+
+function formatReviewPrice(value: number | null) {
+  return value === null || !Number.isFinite(value) ? "—" : formatCurrency(value);
+}
+
+function formatReviewBoolean(value: boolean | null) {
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  return "—";
+}
+
+function MondayLiveTrialReviewPanel({
+  summary,
+  summaryJson,
+}: {
+  summary: MondayLiveTrialReviewSummary;
+  summaryJson: string;
+}) {
+  const hasRows = summary.rows.length > 0;
+
+  return (
+    <section className="rounded-lg border border-[#00db94]/20 bg-[#00db94]/[0.035] p-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-100">
+            Monday Live Trial Review
+          </p>
+          <h3 className="mt-2 text-lg font-semibold text-white">
+            Latest evaluated batch{" "}
+            <span className="font-mono text-emerald-100">
+              {summary.batch_fingerprint ?? "none"}
+            </span>
+          </h3>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-zinc-300">
+            {summary.primary_note}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+          {summary.latest_evaluated_at
+            ? `Evaluated ${formatDate(summary.latest_evaluated_at)}`
+            : "No evaluation yet"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <Detail label="Batch" value={summary.batch_fingerprint ?? "—"} />
+        <Detail label="Scan run" value={summary.scan_run_fingerprint ?? "—"} />
+        <Detail label="Trading day" value={summary.trading_day ?? "—"} />
+        <Detail
+          label="Stored / time window"
+          value={`${compactReviewText(summary.stored_window)} / ${compactReviewText(summary.time_window)}`}
+        />
+        <Detail
+          label="Tickers"
+          value={summary.tickers.length > 0 ? summary.tickers.join(", ") : "—"}
+        />
+        <Detail
+          label="Visible recommendations"
+          value={String(summary.visible_recommendation_count)}
+        />
+        <Detail
+          label="Outcome rows evaluated"
+          value={String(summary.outcome_rows_evaluated)}
+        />
+        <Detail
+          label="Horizons"
+          value={
+            summary.horizons_covered.length > 0
+              ? summary.horizons_covered.join(", ")
+              : "—"
+          }
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <SummaryCard
+          label="Target Hit"
+          value={`${summary.aggregate.target_hit_count} / ${formatPercent(
+            summary.aggregate.target_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Stop Hit"
+          value={`${summary.aggregate.stop_hit_count} / ${formatPercent(
+            summary.aggregate.stop_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Neither Hit"
+          value={`${summary.aggregate.neither_hit_count} / ${formatPercent(
+            summary.aggregate.neither_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Avg Best R"
+          value={formatRecommendationPerformanceR(summary.aggregate.average_best_r)}
+          tone={summary.aggregate.average_best_r}
+        />
+        <SummaryCard
+          label="Avg Worst R"
+          value={formatRecommendationPerformanceR(summary.aggregate.average_worst_r)}
+          tone={summary.aggregate.average_worst_r}
+        />
+        <SummaryCard
+          label="Median Best R"
+          value={formatRecommendationPerformanceR(summary.aggregate.median_best_r)}
+          tone={summary.aggregate.median_best_r}
+        />
+        <SummaryCard
+          label="Promising Too Far"
+          value={String(summary.aggregate.promising_but_target_too_far_count)}
+        />
+        <SummaryCard
+          label="Weak Followthrough"
+          value={String(summary.aggregate.weak_followthrough_count)}
+        />
+        <SummaryCard
+          label="Adverse Move"
+          value={String(summary.aggregate.adverse_move_count)}
+        />
+        <SummaryCard
+          label="Stale Adverse"
+          value={String(summary.aggregate.stale_plan_adverse_move_count)}
+        />
+        <SummaryCard
+          label="Avg Entry Drift"
+          value={formatSignedPercent(summary.aggregate.average_entry_drift_pct)}
+          tone={summary.aggregate.average_entry_drift_pct}
+        />
+        <SummaryCard
+          label="Worst Drift"
+          value={summary.aggregate.worst_entry_drift_ticker ?? "—"}
+        />
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-lg border border-white/10 bg-black/20">
+        <table className="min-w-[1480px] w-full border-collapse text-left">
+          <thead className="border-b border-white/10 bg-black/30">
+            <tr>
+              {[
+                "Ticker",
+                "Tier",
+                "Side",
+                "Entry",
+                "Stop",
+                "Target",
+                "Entry drift",
+                "Target distance",
+                "Freshness",
+                "Entry",
+                "Target",
+                "Stop",
+                "Best R",
+                "Worst R",
+                "Classification",
+                "Learning note",
+              ].map((label) => (
+                <th
+                  key={label}
+                  scope="col"
+                  className="px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500"
+                >
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {!hasRows ? (
+              <tr>
+                <td
+                  colSpan={16}
+                  className="px-3 py-6 text-center text-sm text-zinc-500"
+                >
+                  No evaluated recommendation outcomes are available yet.
+                </td>
+              </tr>
+            ) : (
+              summary.rows.map((row) => (
+                <tr
+                  key={`${row.ticker}:${row.horizons.join(",")}:${row.classification}`}
+                  className="border-b border-white/10 last:border-b-0"
+                >
+                  <td className="px-3 py-3 font-mono text-sm font-semibold text-white">
+                    {row.ticker}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.tier}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.side}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.entry)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.stop)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.target)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatSignedPercent(row.entry_drift_pct)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatSignedPercent(row.target_distance_pct)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.plan_freshness_classification.replace(/_/g, " ")}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.entry_triggered)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.target_hit)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.stop_hit)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatRecommendationPerformanceR(row.best_r)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatRecommendationPerformanceR(row.worst_r)}
+                  </td>
+                  <td className="px-3 py-3">
+                    <span
+                      className={`inline-flex rounded-full border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${mondayLiveTrialReviewClassificationTone(
+                        row.classification,
+                      )}`}
+                    >
+                      {row.classification.replace(/_/g, " ")}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-xs leading-5 text-zinc-300">
+                    {row.learning_note}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <pre
+        id="monday-live-trial-review-json"
+        className="sr-only"
+        data-batch-fingerprint={summary.batch_fingerprint ?? ""}
+        data-visible-recommendation-count={summary.visible_recommendation_count}
+        data-outcome-rows-evaluated={summary.outcome_rows_evaluated}
+        data-horizons={summary.horizons_covered.join(",")}
+        data-target-hit-count={summary.aggregate.target_hit_count}
+        data-stop-hit-count={summary.aggregate.stop_hit_count}
+        data-promising-too-far-count={
+          summary.aggregate.promising_but_target_too_far_count
+        }
+        data-stale-plan-adverse-count={
+          summary.aggregate.stale_plan_adverse_move_count
+        }
+      >
+        {summaryJson}
       </pre>
     </section>
   );

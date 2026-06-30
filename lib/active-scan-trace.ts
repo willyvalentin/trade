@@ -59,6 +59,22 @@ export type ActiveScanTrace = {
   grow_max_learning_mode_requested: boolean;
   grow_max_learning_mode_blocked_reason: string | null;
   grow_max_learning_mode_enabled_source: string;
+  learning_acceleration_enabled: boolean;
+  learning_acceleration_requested: boolean;
+  learning_acceleration_enabled_source: string;
+  learning_acceleration_env_raw_present: boolean;
+  learning_acceleration_env_raw_value_normalized: boolean;
+  learning_acceleration_mode: string;
+  learning_acceleration_samples_collected_count: number;
+  learning_acceleration_samples_evaluated_count: number;
+  learning_acceleration_skipped_due_to_budget_count: number;
+  learning_acceleration_skipped_due_to_invalid_risk_count: number;
+  learning_acceleration_skipped_due_to_stale_reference_count: number;
+  learning_acceleration_top_research_sample_tickers: string[];
+  learning_acceleration_sample_quality_summary: {
+    good: number;
+    usable: number;
+  };
   target_ideas_per_window: number | null;
   provider_plan_profile_mode: string | null;
   provider_plan_profile_source: string | null;
@@ -234,6 +250,19 @@ export function createActiveScanTrace({
     grow_max_learning_mode_requested: false,
     grow_max_learning_mode_blocked_reason: "env_flag_not_enabled",
     grow_max_learning_mode_enabled_source: "none",
+    learning_acceleration_enabled: false,
+    learning_acceleration_requested: false,
+    learning_acceleration_enabled_source: "none",
+    learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_normalized: false,
+    learning_acceleration_mode: "disabled",
+    learning_acceleration_samples_collected_count: 0,
+    learning_acceleration_samples_evaluated_count: 0,
+    learning_acceleration_skipped_due_to_budget_count: 0,
+    learning_acceleration_skipped_due_to_invalid_risk_count: 0,
+    learning_acceleration_skipped_due_to_stale_reference_count: 0,
+    learning_acceleration_top_research_sample_tickers: [],
+    learning_acceleration_sample_quality_summary: { good: 0, usable: 0 },
     target_ideas_per_window: null,
     provider_plan_profile_mode: null,
     provider_plan_profile_source: null,

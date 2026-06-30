@@ -1,3 +1,276 @@
+## Action 1038 - Add First Fill-Only POC Execution Dry-Run Adapter Skeleton
+
+- Added
+  `lib/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.md`.
+- Updated the execution dry-run adapter gate, manual run setup simulation/
+  adapter/gate, gated adapter setup evidence/checklist/skeleton docs, first
+  fill-only POC trail docs, real Avanza selector/safety/readiness docs,
+  product readiness docs, architecture/handoff docs, checkpoint, and QA notes.
+- Result status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_skeleton_added`.
+- Ready status: `ready_for_execution_dry_run_setup`.
+- The skeleton is disabled by default and only evaluates readiness/future
+  dry-run setup metadata when `execution_dry_run_adapter_enabled` is true.
+- The ready result still keeps all execution capability flags false:
+  `can_access_avanza`, `can_launch_browser`, `can_query_dom`,
+  `can_fill_fields`, `can_click_review`, `can_click_final_confirm`, and
+  `can_submit_order`.
+- Planned dry-run steps are metadata only: verify operator/browser state,
+  verify instrument, verify account, verify buy side, verify Limit/Avancerad,
+  prepare amount instruction, prepare price instruction, prepare total read
+  instruction, and stop before review.
+- Blockers include missing manual setup readiness, missing approval, missing
+  operator setup, cap above 1,000 SEK, wrong side/order type, review requested,
+  final confirmation requested, forbidden action requested, missing evidence
+  plan, and any safety failure from the composed setup adapter, skeleton, stub,
+  harness, guard, or selector policy.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98-99%, first Avanza fill-only POC readiness 99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1039 - Add First Fill-Only POC Execution
+  Dry-Run Simulation.
+- No real Avanza access, browser automation, DOM querying, runtime Avanza
+  integration, actual field filling, clicking, `Granska kop`, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, broker behavior, provider/route/
+  scan invocation, Supabase/DB write, service-role adapter call, audit writer
+  client invocation, migration, type generation, generated type edit,
+  `.env.local` change, real trade, or trade/stats/PnL mutation was performed.
+- Validation status is recorded in QA notes after the Action 1038 validation
+  pass.
+
+## Action 1037 - Add First Fill-Only POC Execution Dry-Run Adapter Gate
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-gate.md`.
+- Updated the manual run setup simulation/adapter/gate, gated adapter setup
+  evidence/checklist/skeleton docs, first fill-only POC trail docs, real
+  Avanza selector/safety/readiness docs, product readiness docs, architecture/
+  handoff docs, checkpoint, and QA notes.
+- Result status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_gate_added`.
+- Gate decision: `execution_dry_run_adapter_gate_ready`.
+- Gate basis: manual approval captured, operator setup ready, manual run setup
+  gate ready, manual run setup adapter added, manual run setup simulation
+  passed, all execution capability flags remain false, and final confirmation
+  remains permanently forbidden for Ture/agent behavior.
+- This means ready to add a future disabled-by-default execution dry-run
+  adapter skeleton. It does not mean ready to run it against Avanza, access
+  Avanza, launch/control a browser, query DOM, fill fields, click review, click
+  final confirmation, submit, place orders, or roll out production behavior.
+- Future adapter scope remains buy-only, Avancerad/Limit, amount-based,
+  cap <= 1,000 SEK, user present, stop before `Granska kop`, no review modal,
+  no final confirmation, no order placement, no unattended run, no credential
+  handling, no 2FA handling, and no session-token capture/storage.
+- Required hard blocks include review click requested, final confirmation
+  requested, submit/order placement requested, Avanza/browser access without a
+  separate explicit run action, DOM query outside approved run mode, sell side,
+  Stop Loss, Glidande, cap above 1,000 SEK, account mismatch, instrument
+  mismatch, user not present, credentials/2FA handling, unattended operation,
+  and uncertainty about account/instrument/side/amount/price/total/stop point.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98-99%, first Avanza fill-only POC readiness 99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1038 - Add First Fill-Only POC Execution
+  Dry-Run Adapter Skeleton.
+- No runtime code, real Avanza access, browser automation, DOM query, field
+  fill, clicking, `Granska kop`, `Bekrafta kop`, `Bekrafta salj`, submit,
+  order placement, credential/session-token handling, 2FA bypass, provider
+  call, route invocation, scan invocation, Supabase call/write, service-role
+  adapter call, migration, type generation, generated type edit, `.env.local`
+  change, audit writer UI/browser/client invocation, real trade, or
+  trade/stats/PnL mutation was performed.
+- Validation status is recorded in QA notes after the Action 1037 validation
+  pass.
+
+## Action 1036 - Add First Fill-Only POC Manual Run Setup Simulation
+
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-manual-run-setup-simulation.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-manual-run-setup-simulation.md`.
+- Updated the manual run setup adapter/gate, gated adapter setup evidence/
+  checklist/skeleton docs, first fill-only POC trail docs, real Avanza
+  selector/safety/readiness docs, product readiness docs, architecture/handoff
+  docs, checkpoint, and QA notes.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_simulation_added`.
+- The positive local simulation reaches `ready_for_fill_only_manual_setup`
+  with valid approval, operator setup ready, skeleton/stub/harness/guard/
+  selector policy safe, buy side, Avancerad/Limit, amount-based sizing, cap <=
+  1,000 SEK, intended amount below cap, intended price metadata, evidence plan,
+  screenshot redaction acknowledgement, stop before review, and no review,
+  final confirmation, or submit requested.
+- All execution capability flags remain false:
+  `can_access_avanza`, `can_launch_browser`, `can_query_dom`,
+  `can_fill_fields`, `can_click_review`, `can_click_final_confirm`, and
+  `can_submit_order`.
+- The simulation exposes planned instruction metadata only: verify instrument,
+  verify account, verify buy side, verify Limit/Avancerad, carry planned amount
+  metadata, carry planned price metadata, read total amount later, and stop
+  before review.
+- Negative simulations cover disabled adapter, missing setup evidence, review
+  requested, final confirmation requested, and cap above 1,000 SEK.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 99%, first Avanza fill-only POC readiness 99%, full-auto readiness
+  10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1037 - Add First Fill-Only POC Execution
+  Dry-Run Adapter Gate.
+- No real Avanza access, browser automation, DOM querying, runtime Avanza
+  integration, actual field filling, clicking, `Granska kop`, `Bekrafta kop`,
+  `Bekrafta salj`, submit, order placement, broker behavior, provider/route/
+  scan invocation, Supabase/DB write, service-role adapter call, audit writer
+  client invocation, migration, type generation, generated type edit,
+  `.env.local` change, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: new manual run setup simulation tests passed 8/8; focused
+  simulation/adapter/gated skeleton/implementation stub/approval state/dry-run
+  harness/fill-only guard/selector mapping/human-final-confirmation/browser
+  safety/semi-auto/sandbox stack passed 190/190; Playwright was run with local
+  web-server bind escalation because it uses the local Next.js webServer;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reached the config guard without printing secrets; executable
+  safety scans returned only expected docs/test references; audit writer route
+  scan returned only the existing server route; service-role scan returned only
+  expected documentation wording; status/path scans passed; `git diff --check`
+  passed; touched-file trailing whitespace scan passed; zero-byte docs check
+  passed; `.env.local` diff check passed.
+
+## Action 1035 - Add First Fill-Only POC Manual Run Setup Adapter
+
+- Added `lib/first-real-avanza-fill-only-poc-manual-run-setup-adapter.ts`.
+- Added
+  `tests/e2e/first-real-avanza-fill-only-poc-manual-run-setup-adapter.spec.ts`.
+- Created `docs/first-real-avanza-fill-only-poc-manual-run-setup-adapter.md`.
+- Updated the manual run setup gate, gated adapter setup evidence/checklist/
+  skeleton docs, first fill-only POC trail docs, real Avanza selector/safety/
+  readiness docs, product readiness docs, architecture/handoff docs,
+  checkpoint, and QA notes.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_adapter_added`.
+- The adapter is disabled by default. It only returns setup decisions, planned
+  instruction metadata, blockers, evidence requirements, forbidden selectors,
+  and safety confirmations.
+- Ready status is `ready_for_fill_only_manual_setup`. It means setup
+  instructions are ready for a future separately approved local simulation/run
+  step; it does not perform fill, click review, open the review modal, click
+  final confirmation, submit, place an order, or access Avanza.
+- The adapter composes the gated adapter skeleton, implementation stub,
+  approval state contract, dry-run harness, fill-only guard, and selector
+  mapping contract.
+- It requires approval captured, operator setup ready, skeleton ready,
+  implementation stub safe, harness safe, guard safe, selector policy safe, cap
+  <= 1,000 SEK, buy side, Avancerad/Limit, amount-based sizing, evidence plan,
+  screenshot redaction acknowledgement, and stop before review.
+- It exposes planned instructions to verify instrument, verify account, verify
+  buy side, verify Limit/Avancerad, carry future separate-run amount metadata,
+  carry future separate-run price metadata, read total, and stop before review.
+- All execution capability flags remain false:
+  `can_access_avanza`, `can_launch_browser`, `can_query_dom`,
+  `can_fill_fields`, `can_click_review`, `can_click_final_confirm`, and
+  `can_submit_order`.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 99%, first Avanza fill-only POC readiness 99%, full-auto readiness
+  10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1036 - Add First Fill-Only POC Manual Run
+  Setup Simulation.
+- No real Avanza access, browser automation, DOM querying, runtime Avanza
+  integration, actual field filling, clicking, `Granska köp`, `Bekräfta köp`,
+  `Bekräfta sälj`, submit, order placement, broker behavior, provider/route/
+  scan invocation, Supabase/DB write, service-role adapter call, audit writer
+  client invocation, migration, type generation, generated type edit,
+  `.env.local` change, real trade, or trade/stats/PnL mutation was performed.
+- Validation passed: new manual run setup adapter tests passed 19/19 after
+  rerunning with local web-server bind escalation because sandboxed Playwright
+  hit `EPERM` on port 3010; focused gated adapter skeleton, implementation
+  stub, approval state contract, dry-run harness, fill-only guard contract,
+  selector mapping contract, human-final-confirmation guard, and browser
+  automation safety boundary tests passed; focused semi-auto/sandbox stack
+  passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed
+  with the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reached the config guard without printing secrets;
+  audit writer runtime path import search, route invocation search,
+  UI/app-shell audit writer import scan, market-loop/scanner import search,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  manual-run-setup-adapter-specific executable safety scan, automatic-mode
+  safety scan, dead-doc/path scan, status consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check passed or returned expected
+  existing docs/code safety references only.
+
+## Action 1034 - Add First Fill-Only POC Manual Run Setup Gate
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-run-setup-gate.md`.
+- Updated the gated adapter setup evidence/checklist/skeleton docs, first
+  fill-only POC trail docs, real Avanza selector/safety/readiness docs,
+  product readiness docs, architecture/handoff docs, checkpoint, and QA notes.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_gate_added`.
+- Gate decision: `manual_run_setup_gate_ready`.
+- This means ready for a future manual-run setup action only. It does not
+  approve a real fill action, order execution, review-modal opening, final
+  confirmation, or any automatic/broker behavior.
+- Gate basis passed: manual approval captured and approved, real-run readiness
+  gate passed, adapter skeleton added, operator setup checklist added, operator
+  setup evidence completed, setup decision is
+  `operator_setup_ready_for_manual_run_setup`, and final confirm remains
+  permanently forbidden.
+- Checklist result: pass for approval, locked scope, runbook, operator setup
+  evidence/readiness, disabled-by-default adapter skeleton, false execution
+  capability flags, selector contract, guard/selector integration, max cap
+  guard, approval state contract, local simulation report, and implementation
+  stub. Expected warnings remain for no real run, no real fill implementation,
+  and no run evidence package yet.
+- Locked scope remains buy-only, Avancerad/Limit, amount-based, cap <= 1,000
+  SEK, user present, manual Avanza login/account/instrument verification, stop
+  before `Granska köp`, no review modal, no final confirmation, and no order
+  placement.
+- Hard blockers include any request to click `Granska köp`, open review, click
+  `Bekräfta köp`/`Bekräfta sälj`, submit/place an order, sell, use Stop Loss
+  or Glidande, exceed the cap, proceed with account/instrument mismatch,
+  proceed unattended, let Ture/agent handle credentials or 2FA, proceed without
+  operator presence, or proceed under uncertainty.
+- Current approximate progress: Ture production/data-health 95-97%,
+  market-window live dry-run 92-95%, semi-auto agent foundation 98-99%,
+  semi-auto Avanza/browser-agent readiness 99%, real browser automation
+  readiness 98-99%, first Avanza fill-only POC readiness 99%, full-auto
+  readiness 10-15%, and total Ture toward semi-auto MVP 98-99%.
+- Recommended next action: Action 1035 - Add First Fill-Only POC Manual Run
+  Setup Adapter.
+- No runtime code, Avanza access, browser automation, DOM query, field fill,
+  clicking, `Granska köp`, `Bekräfta köp`, `Bekräfta sälj`, submit, order
+  placement, credential/session-token handling, 2FA bypass, provider call,
+  route invocation, scan invocation, Supabase call/write, service-role adapter
+  call, migration, type generation, generated type edit, `.env.local` change,
+  audit writer UI/browser/client invocation, real trade, or trade/stats/PnL
+  mutation was performed.
+- Validation passed: documentation/static review completed; focused docs/path/
+  status checks passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reached the script's config guard without
+  printing secrets; audit writer runtime path import search, route invocation
+  search, UI/app-shell audit writer import scan, market-loop/scanner import
+  search, `NEXT_PUBLIC_*SERVICE*` exposure search, and service-role leakage
+  search returned expected existing docs/code references only without invoking
+  routes, providers, scans, Supabase calls, or service-role adapters;
+  manual-run-setup-gate-specific scan returned documentation-only safety words
+  and no executable Avanza/browser/broker/automatic-submit/fetch/Supabase/env/
+  service-role/provider/route/scan code; automatic-mode safety scan returned
+  expected forbidden-action policy references only; dead-doc/path, status
+  consistency, next-action consistency, `git diff --check`, touched-file
+  trailing whitespace, zero-byte docs, and `.env.local` diff checks passed.
+
 ## Action 1029 - Add First Fill-Only POC Real-Run Readiness Gate
 
 - Created `docs/first-real-avanza-fill-only-poc-real-run-readiness-gate.md`.
@@ -21430,6 +21703,44 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   change, market-loop/scanner audit writer invocation, broker/Avanza behavior,
   automatic mode enablement, automatic order submission enablement, real trade,
   or trade/stats/PnL mutation.
+
+## Action 1033 - Complete Operator Setup Evidence
+
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- Updated
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`.
+- Updated the operator setup checklist, gated adapter skeleton, first-fill-only
+  POC, real Avanza selector/guard, browser safety, product readiness,
+  architecture index, and handoff docs.
+- Setup readiness decision: `operator_setup_ready_for_manual_run_setup`.
+- Operator-provided screenshot evidence documented: Avanza open, logged-in
+  state as Valentin Labs AB, GameStop order form, Valentin Labs KF account,
+  buy-side setup with `Granska köp` visible, Avancerad order type,
+  `Belopp i SEK`, `Antal`, `Kurs i USD`, `Villkor` set to `Inget`,
+  `Avgifter (Mini)`, `Totalt belopp inkl. avgifter`, no confirmation modal,
+  no `Bekräfta köp/sälj`, no final confirmation, and no order placement
+  indicated.
+- Warnings documented: screenshot contains business/account/position/balance-
+  like information and should be treated as local sensitive development
+  evidence; readiness is screenshot-based, not automated verification; exact
+  operator presence, kill switch, and evidence plan readiness remain runbook
+  context unless separately documented.
+- Progress update: Ture production/data-health 95-97%, market-window live
+  dry-run 92-95%, semi-auto agent foundation 98-99%, semi-auto
+  Avanza/browser-agent readiness 99%, real browser automation readiness
+  98-99%, first Avanza fill-only POC readiness 99%, full-auto readiness
+  10-15%, total Ture toward semi-auto MVP 98-99%.
+- Not performed: no runtime code change, Avanza access from code, browser
+  automation, DOM query, field filling, clicking, `Granska köp`,
+  `Bekräfta köp`, `Bekräfta sälj`, order submission, credential handling,
+  session token capture, 2FA bypass, provider call, scan route invocation,
+  Supabase call, database write, service-role adapter call, migration, typegen,
+  generated type edit, `.env.local` change, audit writer UI/browser/client
+  invocation, broker behavior, automatic order submission enablement, real
+  trade, or trade/stats/PnL mutation.
+- Recommended next action: Action 1034 - Add First Fill-Only POC Manual Run
+  Setup Gate.
 
 ## Action 1032 - Capture Gated Adapter Operator Setup Evidence
 

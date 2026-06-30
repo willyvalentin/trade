@@ -1,5 +1,79 @@
 # First Real Avanza Fill-Only POC Approval Decision
 
+## Action 1038 Execution Dry-Run Adapter Skeleton Update
+
+- Created
+  `lib/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.ts`.
+- Created
+  `tests/e2e/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_skeleton_added`.
+- Ready status is `ready_for_execution_dry_run_setup`; it is metadata-only and
+  still does not access Avanza, fill, click, submit, or place orders.
+- Recommended next action: Action 1039 - Add First Fill-Only POC Execution
+  Dry-Run Simulation.
+
+## Action 1037 Execution Dry-Run Adapter Gate Update
+
+- Created
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-gate.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_gate_added`.
+- Gate decision: `execution_dry_run_adapter_gate_ready`.
+- This means ready to add a future disabled-by-default execution dry-run
+  adapter skeleton, not ready to run it against Avanza.
+- Recommended next action: Action 1038 - Add First Fill-Only POC Execution
+  Dry-Run Adapter Skeleton.
+
+## Action 1036 Manual Run Setup Simulation Update
+
+- Created
+  `tests/e2e/first-real-avanza-fill-only-poc-manual-run-setup-simulation.spec.ts`.
+- Created
+  `docs/first-real-avanza-fill-only-poc-manual-run-setup-simulation.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_simulation_added`.
+- Local simulation proves the adapter can return
+  `ready_for_fill_only_manual_setup` with all execution capability flags false.
+- Negative simulations cover disabled adapter, missing setup evidence, review
+  requested, final confirmation requested, and cap above 1,000 SEK.
+- Recommended next action: Action 1037 - Add First Fill-Only POC Execution
+  Dry-Run Adapter Gate.
+
+## Action 1035 Manual Run Setup Adapter Update
+
+- Created `lib/first-real-avanza-fill-only-poc-manual-run-setup-adapter.ts`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_adapter_added`.
+- The adapter preserves the approval decision boundary and does not broaden it
+  into fill, click, review, final confirmation, or order placement authority.
+- Recommended next action: Action 1036 - Add First Fill-Only POC Manual Run
+  Setup Simulation.
+
+## Action 1034 Manual Run Setup Gate Update
+
+- Created `docs/first-real-avanza-fill-only-poc-manual-run-setup-gate.md`.
+- Result status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_gate_added`.
+- Gate decision: `manual_run_setup_gate_ready`.
+- Approval and setup evidence now satisfy the manual run setup gate.
+- Recommended next action: Action 1035 - Add First Fill-Only POC Manual Run
+  Setup Adapter.
+
+## Action 1033 Operator Setup Evidence Completion Update
+
+- Updated
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`.
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- Setup readiness decision: `operator_setup_ready_for_manual_run_setup`.
+- Approval plus screenshot-based setup evidence are now documented; final run
+  setup still requires Action 1034.
+- Recommended next action: Action 1034 - Add First Fill-Only POC Manual Run
+  Setup Gate.
+
 ## Action 1032 Operator Setup Evidence Update
 
 - Created

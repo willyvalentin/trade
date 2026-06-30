@@ -1,3 +1,300 @@
+## Action 1038 - QA Notes
+
+- QA status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_skeleton_added`.
+- QA confirms
+  `lib/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.ts`
+  exists.
+- QA confirms
+  `tests/e2e/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.spec.ts`
+  exists.
+- QA confirms
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-skeleton.md`
+  exists.
+- QA confirms the skeleton defaults to `disabled` and only moves beyond
+  disabled when `execution_dry_run_adapter_enabled` is explicitly true in the
+  input object.
+- QA confirms ready status is `ready_for_execution_dry_run_setup`, which means
+  future dry-run setup metadata is ready only for a later separately approved
+  local simulation or run step.
+- QA confirms enabled unsafe paths block: missing manual setup readiness,
+  missing approval, missing operator setup, cap above 1,000 SEK, wrong side,
+  wrong order type, review requested, final confirmation requested, forbidden
+  action requested, missing evidence plan, and composed safety failures.
+- QA confirms ready results still keep all execution capability flags false and
+  expose planned dry-run steps, stop point before review, evidence
+  requirements, hard forbidden selectors, and blocked review selectors.
+- QA confirms exported result/function names do not imply submit/order
+  placement.
+- QA confirms this action did not add browser automation, Avanza access, DOM
+  querying, field filling, clicking, submit, broker behavior, automatic order
+  submission, provider/scan route calls, Supabase/database writes,
+  service-role adapter calls, audit writer client invocation, migrations/
+  typegen/generated type edits, `.env.local` changes, real trades, or
+  trade/stats/PnL mutation.
+- Required validation for this action: new execution dry-run adapter skeleton
+  tests, manual run setup adapter tests, manual run setup simulation tests,
+  gated adapter skeleton tests, implementation stub tests, approval state
+  contract tests, dry-run harness tests, fill-only guard contract tests,
+  selector mapping contract tests, human-final-confirmation guard tests,
+  browser automation safety boundary tests, focused semi-auto/sandbox stack if
+  reasonable, `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional
+  runtime denial harness import check, audit writer runtime path import search,
+  route invocation search without calling routes, UI/app-shell audit writer
+  import scan, market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  execution-dry-run-adapter-skeleton-specific executable safety scan,
+  automatic-mode safety scan, dead-doc/path scan, result-status consistency
+  scan, next-action consistency scan, `git diff --check`, touched-file
+  trailing whitespace scan, zero-byte docs check, and `.env.local` diff check.
+- Validation result: new execution dry-run adapter skeleton tests passed 19/19;
+  focused skeleton/manual setup/simulation/gated skeleton/implementation stub/
+  approval state/dry-run harness/fill-only guard/selector mapping/
+  human-final-confirmation/browser safety/semi-auto/sandbox stack passed
+  209/209 with local web-server bind escalation; `./node_modules/.bin/tsc
+  --noEmit` passed; `npm run lint` passed with the existing Babel deopt note
+  for large `app/trade-app.tsx`; optional runtime denial harness import reached
+  the config guard without printing secrets; skeleton-specific executable
+  safety scan returned only expected test guard/documentation literals and no
+  module executable matches; audit writer route scan returned the existing
+  server route only; service-role scan returned expected test guard literals
+  only; broad market/scanner and automatic-mode scans were static only and
+  returned existing documentation/source references; result-status/next-action
+  scan, `git diff --check`, zero-byte docs check, and `.env.local` diff check
+  passed.
+
+## Action 1037 - QA Notes
+
+- QA status:
+  `first_real_avanza_fill_only_poc_execution_dry_run_adapter_gate_added`.
+- QA confirms
+  `docs/first-real-avanza-fill-only-poc-execution-dry-run-adapter-gate.md`
+  exists.
+- QA confirms the gate document includes purpose, gate basis, prerequisite
+  table, future execution dry-run adapter scope, required hard blocks, gate
+  decision, required constraints for the next adapter, result status,
+  recommended next action, and progress update.
+- QA confirms gate decision is `execution_dry_run_adapter_gate_ready`.
+- QA confirms this means ready to add a future disabled-by-default execution
+  dry-run adapter skeleton only, not ready to run it against Avanza.
+- QA confirms next adapter constraints require disabled-by-default behavior,
+  explicit input flag only, final confirmation false, review click false, no
+  submit, no order placement, planned fill selectors, blocked selectors,
+  evidence requirements, no credential/session-token storage, and no DB/trade/
+  PnL mutation.
+- QA confirms required hard blocks include review click requested, final
+  confirmation requested, submit/order placement requested, Avanza/browser
+  access without separate explicit run approval, DOM query outside approved run
+  mode, sell side, Stop Loss, Glidande, cap above 1,000 SEK, account mismatch,
+  instrument mismatch, user not present, credentials/2FA handling, unattended
+  operation, and uncertainty about account/instrument/side/amount/price/total/
+  stop point.
+- QA confirms this action did not add runtime code, browser automation, Avanza
+  access, DOM querying, field filling, clicking, submit, broker behavior,
+  automatic order submission, provider/scan route calls, Supabase/database
+  writes, service-role adapter calls, audit writer client invocation,
+  migrations/typegen/generated type edits, `.env.local` changes, real trades,
+  or trade/stats/PnL mutation.
+- Required validation for this action: documentation/static review, focused
+  docs/path/status checks, `./node_modules/.bin/tsc --noEmit`, `npm run lint`,
+  optional runtime denial harness import check, audit writer runtime path import
+  search, route invocation search without calling routes, UI/app-shell audit
+  writer import scan, market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  execution-dry-run-adapter-gate-specific executable safety scan,
+  automatic-mode safety scan, dead-doc/path scan, result-status consistency
+  scan, next-action consistency scan, `git diff --check`, touched-file
+  trailing whitespace scan, zero-byte docs check, and `.env.local` diff check.
+- Validation result: documentation/static review completed; focused docs/path/
+  status checks passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reached the config guard without printing
+  secrets; execution-dry-run-adapter-gate-specific executable safety scan
+  returned only expected documentation wording; audit writer runtime path scan
+  returned only the existing server route; service-role leakage scan returned
+  only expected documentation wording; broad market-loop/scanner and automatic
+  mode scans were static only and returned existing historical docs/app/lib
+  references without invoking routes/providers/scans; result-status
+  consistency scan, next-action consistency scan, referenced-path scan,
+  requested-doc update scan, `git diff --check`, touched-file trailing
+  whitespace scan, zero-byte docs check, and `.env.local` diff check passed.
+
+## Action 1036 - QA Notes
+
+- QA status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_simulation_added`.
+- QA confirms
+  `tests/e2e/first-real-avanza-fill-only-poc-manual-run-setup-simulation.spec.ts`
+  exists.
+- QA confirms
+  `docs/first-real-avanza-fill-only-poc-manual-run-setup-simulation.md`
+  exists.
+- QA confirms the positive local simulation returns
+  `ready_for_fill_only_manual_setup`.
+- QA confirms positive readiness requires adapter enabled, valid approval,
+  operator setup ready, safe skeleton/stub/harness/guard/selector policy, buy
+  side, Avancerad/Limit, amount sizing, cap <= 1,000 SEK, intended amount below
+  cap, intended price metadata, evidence plan, screenshot redaction
+  acknowledgement, stop before review, and no review/final/submit request.
+- QA confirms all execution capability flags remain false in the ready result.
+- QA confirms planned instruction metadata is local only and does not perform
+  or authorize field filling, review click, final confirmation, submit, or
+  order placement.
+- QA confirms negative simulations cover disabled adapter, missing setup
+  evidence, review requested, final confirmation requested, and cap above
+  1,000 SEK.
+- QA confirms this action did not add browser automation, Avanza access, DOM
+  querying, field filling, clicking, submit, broker behavior, automatic order
+  submission, provider/scan route calls, Supabase/database writes,
+  service-role adapter calls, audit writer client invocation, migrations/
+  typegen/generated type edits, `.env.local` changes, real trades, or
+  trade/stats/PnL mutation.
+- Required validation for this action: new manual run setup simulation tests,
+  manual run setup adapter tests, focused gated adapter/implementation stub/
+  approval state/dry-run harness/fill-only guard/selector mapping/human-final-
+  confirmation/browser-safety/semi-auto/sandbox stack if reasonable,
+  `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional runtime denial
+  harness import check, audit writer runtime path import search, route
+  invocation search without calling routes, UI/app-shell audit writer import
+  scan, market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  manual-run-setup-simulation-specific executable safety scan, automatic-mode
+  safety scan, dead-doc/path scan, result-status consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: new manual run setup simulation tests passed 8/8; focused
+  simulation/adapter/gated skeleton/implementation stub/approval state/dry-run
+  harness/fill-only guard/selector mapping/human-final-confirmation/browser
+  safety/semi-auto/sandbox stack passed 190/190; Playwright was run with local
+  web-server bind escalation because it uses the local Next.js webServer;
+  `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed with the
+  known `app/trade-app.tsx` Babel deopt note; optional runtime denial harness
+  import check reached the config guard without printing secrets; manual-run
+  setup simulation executable safety scan returned only expected documentation
+  wording and the Playwright test import/tokenized scan guard; audit writer
+  route scan returned only the existing server route; service-role leakage scan
+  returned only expected documentation wording; broad market/scanner scan was
+  static only and returned existing historical docs/app/lib references without
+  invoking routes/providers/scans; status consistency scan, next-action
+  consistency scan, referenced-path scan, `git diff --check`, touched-file
+  trailing whitespace scan, zero-byte docs check, and `.env.local` diff check
+  passed.
+
+## Action 1035 - QA Notes
+
+- QA status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_adapter_added`.
+- QA confirms
+  `lib/first-real-avanza-fill-only-poc-manual-run-setup-adapter.ts` exists.
+- QA confirms
+  `tests/e2e/first-real-avanza-fill-only-poc-manual-run-setup-adapter.spec.ts`
+  exists.
+- QA confirms
+  `docs/first-real-avanza-fill-only-poc-manual-run-setup-adapter.md` exists.
+- QA confirms the adapter defaults to `disabled` and only moves beyond disabled
+  when `manual_run_setup_adapter_enabled` is explicitly true in the input
+  object.
+- QA confirms ready status is `ready_for_fill_only_manual_setup`, which means
+  setup instructions are ready only for a future separately approved simulation
+  or run setup step.
+- QA confirms enabled unsafe paths block: missing approval, missing operator
+  setup evidence, skeleton blocked, invalid guard/harness, cap above 1,000 SEK,
+  wrong side, wrong order type, review click requested, final confirm
+  requested, missing evidence plan, and missing screenshot redaction
+  acknowledgement.
+- QA confirms ready results still keep all execution capability flags false and
+  expose planned instructions, stop point before review, evidence requirements,
+  forbidden selectors, redaction warning, and blockers.
+- QA confirms planned instructions do not imply submit/order placement.
+- QA confirms this action did not add browser automation, Avanza access, DOM
+  querying, field filling, clicking, submit, broker behavior, automatic order
+  submission, provider/scan route calls, Supabase/database writes,
+  service-role adapter calls, audit writer client invocation, migrations/
+  typegen/generated type edits, `.env.local` changes, real trades, or
+  trade/stats/PnL mutation.
+- Required validation for this action: new manual run setup adapter tests,
+  gated adapter skeleton tests, implementation stub tests, approval state
+  contract tests, dry-run harness tests, fill-only guard contract tests,
+  selector mapping contract tests, human-final-confirmation guard tests,
+  browser automation safety boundary tests, focused semi-auto/sandbox stack if
+  reasonable, `./node_modules/.bin/tsc --noEmit`, `npm run lint`, optional
+  runtime denial harness import check, audit writer runtime path import search,
+  route invocation search without calling routes, UI/app-shell audit writer
+  import scan, market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  manual-run-setup-adapter-specific executable safety scan, automatic-mode
+  safety scan, dead-doc/path scan, result-status consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: new manual run setup adapter tests passed 19/19 after
+  rerunning with local web-server bind escalation because sandboxed Playwright
+  hit `EPERM` on port 3010; focused gated adapter skeleton, implementation
+  stub, approval state contract, dry-run harness, fill-only guard contract,
+  selector mapping contract, human-final-confirmation guard, and browser
+  automation safety boundary tests passed; focused semi-auto/sandbox stack
+  passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run lint` passed
+  with the known `app/trade-app.tsx` Babel deopt note; optional runtime denial
+  harness import check reached the config guard without printing secrets;
+  audit writer runtime path import search, route invocation search,
+  UI/app-shell audit writer import scan, market-loop/scanner import search,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  manual-run-setup-adapter-specific executable safety scan, automatic-mode
+  safety scan, dead-doc/path scan, result-status consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check passed or returned expected
+  existing docs/code safety references only.
+
+## Action 1034 - QA Notes
+
+- QA status:
+  `first_real_avanza_fill_only_poc_manual_run_setup_gate_added`.
+- QA confirms
+  `docs/first-real-avanza-fill-only-poc-manual-run-setup-gate.md` exists.
+- QA confirms the document includes purpose, gate basis, pass/warn/block gate
+  checklist, locked scope restatement, hard blockers, gate decision, next
+  action constraints, result status, recommended next action, progress update,
+  and safety statement.
+- QA confirms gate decision is `manual_run_setup_gate_ready`.
+- QA confirms the decision means ready for a future manual-run setup action
+  only, not approval for real fill, review-modal opening, final confirmation,
+  order placement, production rollout, or automatic behavior.
+- QA confirms expected warnings remain: no real run performed yet, no real fill
+  implementation added yet, and no evidence package from a run yet.
+- QA confirms final confirmation remains permanently forbidden for Ture/agent
+  and future work must still stop before `Granska köp` unless a later explicit
+  approval changes the boundary.
+- QA confirms this action did not add runtime code, browser automation, Avanza
+  access, DOM querying, field filling, clicking, submit, broker behavior,
+  automatic order submission, provider/scan route calls, Supabase/database
+  writes, service-role adapter calls, audit writer client invocation,
+  migrations/typegen/generated type edits, `.env.local` changes, real trades,
+  or trade/stats/PnL mutation.
+- Required validation for this action: documentation/static review, focused
+  docs/path/status checks, `./node_modules/.bin/tsc --noEmit`, `npm run lint`,
+  optional runtime denial harness import check, audit writer runtime path import
+  search, route invocation search without calling routes, UI/app-shell audit
+  writer import scan, market-loop/scanner import search without invoking scans,
+  `NEXT_PUBLIC_*SERVICE*` exposure search, service-role leakage search,
+  manual-run-setup-gate-specific executable safety scan, automatic-mode safety
+  scan, dead-doc/path scan, result-status consistency scan, next-action
+  consistency scan, `git diff --check`, touched-file trailing whitespace scan,
+  zero-byte docs check, and `.env.local` diff check.
+- Validation result: documentation/static review completed; focused docs/path/
+  status checks passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run
+  lint` passed with the known `app/trade-app.tsx` Babel deopt note; optional
+  runtime denial harness import check reached the script's config guard without
+  printing secrets; audit writer runtime path import search, route invocation
+  search, UI/app-shell audit writer import scan, market-loop/scanner import
+  search, `NEXT_PUBLIC_*SERVICE*` exposure search, and service-role leakage
+  search returned expected existing docs/code references only without invoking
+  routes, providers, scans, Supabase calls, or service-role adapters;
+  manual-run-setup-gate-specific executable safety scan returned documentation-
+  only safety words and no executable Avanza/browser/broker/automatic-submit/
+  fetch/Supabase/env/service-role/provider/route/scan code; automatic-mode
+  safety scan returned expected forbidden-action policy references only;
+  dead-doc/path, result-status, next-action, `git diff --check`, touched-file
+  trailing whitespace, zero-byte docs, and `.env.local` diff checks passed.
+
 ## Action 1029 - QA Notes
 
 - QA status:
@@ -26396,6 +26693,33 @@ Status: `dev_mock_broker_controls_extraction_summary_created`
   market-loop/scanner audit writer invocation, broker/Avanza behavior,
   automatic mode enablement, automatic order submission enablement, real trade,
   or trade/stats/PnL mutation was performed.
+
+## Action 1033 QA Notes
+
+- Result status:
+  `gated_real_avanza_fill_only_adapter_operator_setup_evidence_added`.
+- QA confirms
+  `docs/gated-real-avanza-fill-only-adapter-operator-setup-evidence.md`
+  was updated.
+- QA confirms operator-provided screenshot evidence is documented.
+- QA confirms checklist evaluation is updated from deferred to ready.
+- QA confirms setup readiness decision is
+  `operator_setup_ready_for_manual_run_setup`.
+- QA confirms warnings are documented for local sensitive development evidence,
+  screenshot-based verification, and runbook-context assumptions.
+- QA confirms safety statement is documented.
+- QA confirms recommended next action is Action 1034 - Add First Fill-Only POC
+  Manual Run Setup Gate.
+- QA confirms progress/readiness percentages are documented.
+- QA confirms this action is documentation/evidence capture only.
+- QA confirms no runtime code change, Avanza access from code, browser
+  automation, DOM query, field filling, clicking, `Granska köp`,
+  `Bekräfta köp`, `Bekräfta sälj`, order submission, credential handling,
+  session token capture, 2FA bypass, provider call, scan route invocation,
+  Supabase call, database write, service-role adapter call, migration, typegen,
+  generated type edit, `.env.local` change, audit writer UI/browser/client
+  invocation, broker behavior, automatic order submission enablement, real
+  trade, or trade/stats/PnL mutation was performed.
 
 ## Action 1032 QA Notes
 
