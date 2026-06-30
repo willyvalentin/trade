@@ -31,14 +31,15 @@ import {
 } from "@/lib/intraday-scan-window";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
 import {
+  buildScheduledOfficialGateDiagnostics,
   buildDayTradeScanOrchestrationSummary,
   dayTradeScanWindowToIntradayScanWindow,
   HUMAN_CONFIRMED_EXECUTION_WARNING,
   MARKET_CALENDAR_FALLBACK_EXECUTION_WARNING,
   MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
   POLYGON_CALENDAR_ENV_GUIDANCE,
-  shouldRunOfficialDayTradeScan,
   type DayTradeScanOrchestrationSummary,
+  type ScheduledOfficialGateDiagnostics,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import {
@@ -146,6 +147,11 @@ type AutomationRunDiagnostics = {
   orchestration_decision: DayTradeScanOrchestrationSummary["decision"];
   active_window: DayTradeScanOrchestrationSummary["active_window"];
   scan_window: IntradayScanWindow;
+  official_window_detected: boolean;
+  scheduled_gate_window: string;
+  scheduled_gate_allowed: boolean;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
   grow_max_learning_mode?: boolean;
   grow_max_learning_mode_env_raw_present?: boolean;
   grow_max_learning_mode_env_raw_value_normalized?: boolean;
@@ -621,6 +627,7 @@ function buildAutomationRunDiagnostics({
   orchestration,
   decision,
   scanWindow,
+  scheduledGateDiagnostics,
   scheduledRuntimeConfig,
   skippedReason,
   recentRecommendationScanRuns,
@@ -632,6 +639,7 @@ function buildAutomationRunDiagnostics({
   orchestration: DayTradeScanOrchestrationSummary;
   decision: AutomationScanDecision;
   scanWindow: IntradayScanWindow;
+  scheduledGateDiagnostics: ScheduledOfficialGateDiagnostics;
   scheduledRuntimeConfig?: ReturnType<typeof scheduledScanRuntimeConfig>;
   skippedReason?: string | null;
   recentRecommendationScanRuns: RecommendationScanRun[];
@@ -685,6 +693,7 @@ function buildAutomationRunDiagnostics({
     orchestration_decision: orchestration.decision,
     active_window: orchestration.active_window,
     scan_window: scanWindow,
+    ...scheduledGateDiagnostics,
     grow_max_learning_mode:
       scheduledRuntimeConfig?.grow_max_learning_mode ?? false,
     grow_max_learning_mode_env_raw_present:
@@ -2584,6 +2593,10 @@ export async function POST(request: Request) {
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
+  const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
+    orchestration: dayTradeScanOrchestration,
+    scanWindow: scanWindow.scanWindow,
+  });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
     scheduledFunctionFiredAtUtc,
@@ -2611,6 +2624,7 @@ export async function POST(request: Request) {
       orchestration: dayTradeScanOrchestration,
       decision,
       scanWindow: scanWindow.scanWindow,
+      scheduledGateDiagnostics,
       scheduledRuntimeConfig,
       skippedReason,
       recentRecommendationScanRuns,
@@ -2637,8 +2651,7 @@ export async function POST(request: Request) {
       outcome: input.outcome,
       allowed:
         input.allowed ??
-        (dayTradeScanOrchestration.should_scan_now &&
-          shouldRunOfficialDayTradeScan(dayTradeScanOrchestration)),
+        scheduledGateDiagnostics.scheduled_gate_allowed,
       routeReceivedAtUtc,
       scheduledFunctionFiredAtUtc,
       scanDate: scanWindow.scanDate || marketStatus.date,
@@ -2654,7 +2667,7 @@ export async function POST(request: Request) {
 
   await recordAttempt({
     outcome: "route_received",
-    allowed: dayTradeScanOrchestration.should_scan_now,
+    allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
     message: "Automation route received scheduled scan request.",
   });
 
@@ -2672,6 +2685,14 @@ export async function POST(request: Request) {
     scan_window: scanWindow.scanWindow,
     orchestration_decision: dayTradeScanOrchestration.decision,
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
+    official_window_detected:
+      scheduledGateDiagnostics.official_window_detected,
+    scheduled_gate_window: scheduledGateDiagnostics.scheduled_gate_window,
+    scheduled_gate_allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+    scheduled_gate_block_reason:
+      scheduledGateDiagnostics.scheduled_gate_block_reason,
+    schedule_window_mismatch:
+      scheduledGateDiagnostics.schedule_window_mismatch,
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
     grow_max_learning_mode_env_raw_present:
@@ -3016,16 +3037,19 @@ export async function POST(request: Request) {
   let startedScheduledRunId: string | number | null = null;
 
   try {
-    if (!force && !shouldRunOfficialDayTradeScan(dayTradeScanOrchestration)) {
+    if (!force && !scheduledGateDiagnostics.scheduled_gate_allowed) {
       const decision = scheduledSkipDecisionForOrchestration(
         dayTradeScanOrchestration,
       );
+      const scheduledGateBlockReason =
+        scheduledGateDiagnostics.scheduled_gate_block_reason ??
+        "not_official_scan_window";
       const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped because official window decision is ${dayTradeScanOrchestration.decision}.`;
       const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
         decision,
         status: "skipped",
         skipReason: message,
-        zeroReason: "not_official_scan_window",
+        zeroReason: scheduledGateBlockReason,
       });
       const scanLog = createAutomationScanLog({
         source: "scheduled",
@@ -3041,7 +3065,8 @@ export async function POST(request: Request) {
         recommendationsCreated: 0,
         details: {
           ...powerHourTrialGate,
-          no_publish_reason: "not_official_scan_window",
+          no_publish_reason: scheduledGateBlockReason,
+          scheduled_gate: scheduledGateDiagnostics,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -3071,7 +3096,7 @@ export async function POST(request: Request) {
         outcome: "skipped",
         allowed: false,
         message,
-        skipReason: "not_official_scan_window",
+        skipReason: scheduledGateBlockReason,
         httpStatus: 200,
         scanLog,
         activeScanTrace: activeScanTracePayload,
@@ -3164,7 +3189,7 @@ export async function POST(request: Request) {
       }
       await recordAttempt({
         outcome: "failed",
-        allowed: shouldRunOfficialDayTradeScan(dayTradeScanOrchestration),
+        allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
         message,
         skipReason: "provider_environment_missing",
         httpStatus: 200,
@@ -4069,7 +4094,7 @@ export async function POST(request: Request) {
       error instanceof RecommendationGenerationError ? error.status : 500;
     await recordAttempt({
       outcome: failureDecision === "failed" ? "failed" : "skipped",
-      allowed: shouldRunOfficialDayTradeScan(dayTradeScanOrchestration),
+      allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
       message,
       skipReason:
         failureResult === "provider_error" ||

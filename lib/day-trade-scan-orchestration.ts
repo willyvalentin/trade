@@ -148,6 +148,14 @@ export type DayTradeScanOrchestrationInput = {
   lastScanCooldownMinutes?: number;
 };
 
+export type ScheduledOfficialGateDiagnostics = {
+  official_window_detected: boolean;
+  scheduled_gate_window: string;
+  scheduled_gate_allowed: boolean;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
+};
+
 const timezone = "America/New_York" as const;
 export const MARKET_CALENDAR_FALLBACK_SCAN_WARNING =
   "Market calendar provider unavailable; using NY-time fallback for scan timing.";
@@ -293,6 +301,72 @@ export function shouldRunOfficialDayTradeScan(
   summary: Pick<DayTradeScanOrchestrationSummary, "active_window" | "should_scan_now">,
 ) {
   return summary.should_scan_now && isOfficialDayTradeScanWindow(summary.active_window);
+}
+
+export function scheduledGateBlockReasonForOrchestration(
+  orchestration: Pick<
+    DayTradeScanOrchestrationSummary,
+    "decision" | "calendar_confidence"
+  >,
+) {
+  if (orchestration.decision === "scan_recently_completed") {
+    return "cadence_guard";
+  }
+
+  if (orchestration.decision === "market_closed") {
+    return "market_closed";
+  }
+
+  if (orchestration.decision === "blocked_by_provider") {
+    return "market_calendar_provider_unavailable";
+  }
+
+  if (orchestration.decision === "outside_scan_window") {
+    return "not_official_scan_window";
+  }
+
+  if (orchestration.decision === "should_wait_for_window") {
+    return "should_wait_for_window";
+  }
+
+  if (orchestration.decision === "unknown") {
+    return orchestration.calendar_confidence === "unknown"
+      ? "market_calendar_provider_unavailable"
+      : "unknown_orchestration_decision";
+  }
+
+  return "not_official_scan_window";
+}
+
+export function buildScheduledOfficialGateDiagnostics({
+  orchestration,
+  scanWindow,
+}: {
+  orchestration: DayTradeScanOrchestrationSummary;
+  scanWindow: IntradayScanWindow;
+}): ScheduledOfficialGateDiagnostics {
+  const officialWindowDetected = isOfficialDayTradeScanWindow(
+    orchestration.active_window,
+  );
+  const expectedScanWindow = dayTradeScanWindowToIntradayScanWindow(
+    orchestration.active_window,
+  );
+  const scheduleWindowMismatch =
+    officialWindowDetected && expectedScanWindow !== scanWindow;
+  const scheduledGateAllowed =
+    shouldRunOfficialDayTradeScan(orchestration) && !scheduleWindowMismatch;
+
+  return {
+    official_window_detected: officialWindowDetected,
+    scheduled_gate_window: orchestration.active_window,
+    scheduled_gate_allowed: scheduledGateAllowed,
+    scheduled_gate_block_reason: scheduledGateAllowed
+      ? null
+      : scheduleWindowMismatch
+        ? "schedule_window_mismatch"
+        : scheduledGateBlockReasonForOrchestration(orchestration),
+    schedule_window_mismatch: scheduleWindowMismatch,
+  };
 }
 
 function calendarConfidenceFor(input: {

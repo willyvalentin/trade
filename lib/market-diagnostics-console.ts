@@ -3182,6 +3182,14 @@ function buildSections(
               `${input.active_scan_trace.elapsed_ms ?? "unknown"}ms / timeout=${bool(input.active_scan_trace.timeout_reached)}`,
             ),
             lineValue(
+              "Official scan gate",
+              `detected=${bool(input.active_scan_trace.official_window_detected)} / window=${compact(input.active_scan_trace.scheduled_gate_window, "unknown")} / allowed=${bool(input.active_scan_trace.scheduled_gate_allowed === true)}`,
+            ),
+            lineValue(
+              "Gate block/mismatch",
+              `${compact(input.active_scan_trace.scheduled_gate_block_reason, "none")} / mismatch=${bool(input.active_scan_trace.schedule_window_mismatch)}`,
+            ),
+            lineValue(
               "Skipped in progress",
               bool(input.active_scan_trace.skipped_in_progress),
             ),
@@ -3290,6 +3298,8 @@ function buildSections(
             lineValue("Effective scheduled limits", "not observed"),
             lineValue("Scheduled limits", "not observed"),
             lineValue("Elapsed/timeout", "not observed"),
+            lineValue("Official scan gate", "not observed"),
+            lineValue("Gate block/mismatch", "not observed"),
             lineValue("Skipped in progress", "not observed"),
             lineValue("Schema error", "not observed"),
             lineValue("Power hour trial", "not observed"),
@@ -3397,6 +3407,16 @@ function buildSections(
           input.active_scan_trace?.scheduled_timeout_ms ?? null,
         elapsed_ms: input.active_scan_trace?.elapsed_ms ?? null,
         timeout_reached: input.active_scan_trace?.timeout_reached ?? null,
+        official_window_detected:
+          input.active_scan_trace?.official_window_detected ?? null,
+        scheduled_gate_window:
+          input.active_scan_trace?.scheduled_gate_window ?? null,
+        scheduled_gate_allowed:
+          input.active_scan_trace?.scheduled_gate_allowed ?? null,
+        scheduled_gate_block_reason:
+          input.active_scan_trace?.scheduled_gate_block_reason ?? null,
+        schedule_window_mismatch:
+          input.active_scan_trace?.schedule_window_mismatch ?? null,
         skipped_in_progress:
           input.active_scan_trace?.skipped_in_progress ?? null,
         attempted_tickers:

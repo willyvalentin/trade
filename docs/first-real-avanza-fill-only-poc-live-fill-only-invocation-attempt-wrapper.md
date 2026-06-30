@@ -50,126 +50,187 @@
 - No live Avanza run, real browser launch/control, DOM query, credential/session handling, review click, review modal, final confirm, submit, order placement, Supabase/DB write, provider/scan route invocation, audit writer client invocation, migration/typegen/generated type edit, .env.local change, real trade, or trade/stats/PnL mutation was performed.
 - Recommended next action: Action 1063 - Final Live Attempt Preflight Checklist.
 
-## Action 1061 Follow-Up - Live Fill-Only Invocation Attempt Wrapper
-
-- Result status: `first_real_avanza_fill_only_poc_live_fill_only_invocation_attempt_wrapper_added`.
-- Added `lib/first-real-avanza-fill-only-poc-live-fill-only-invocation-attempt-wrapper.ts` as a disabled-by-default, explicit-trigger-only live attempt decision wrapper.
-- Added `tests/e2e/first-real-avanza-fill-only-poc-live-fill-only-invocation-attempt-wrapper.spec.ts` to cover disabled, blocked, failed-safety, and attempt-plan-created states.
-- Added `docs/first-real-avanza-fill-only-poc-live-fill-only-invocation-attempt-wrapper.md` with the Action 1061 proof.
-- `ready_for_live_fill_only_attempt` means the wrapper is ready under locked scope; it does not mean Avanza ran.
-- `attempt_plan_created` means metadata plan only; it does not mean review, final confirm, submit, or order placement occurred.
-- No live Avanza run, browser launch/control, credential/session handling, review click, review modal, final confirm, submit, order placement, Supabase/DB write, provider/scan route invocation, audit writer client invocation, migration/typegen/generated type edit, .env.local change, or trade/stats/PnL mutation was performed.
-- Recommended next action: Action 1062 - Add Live Invocation Attempt Dry-Run Simulation.
-
-## Action 1060 Follow-Up - Live Invocation Run Attempt Gate
-
-- Result status: `first_real_avanza_fill_only_poc_live_invocation_run_attempt_gate_added`.
-- Gate decision: `live_invocation_run_attempt_gate_ready`. This means ready to add a live invocation attempt action/wrapper; it does not mean the live invocation has occurred.
-- Gate basis: final operator GO captured; final pre-live review ready; final live invocation operator checklist ready; final live invocation wrapper simulation passed; fresh pre-run evidence ready; all hard stops remain active.
-- Allowed future attempt remains explicit-trigger-only, user-present, manually opened/logged-in Avanza, read-only visible state check, fill-only approved amount/price fields, evidence capture, and stop before `Granska köp`.
-- Mandatory aborts remain operator absent, browser/session not prepared, account/instrument mismatch, wrong side/order type, amount/price mismatch, total parse failure, cap exceeded, validation errors, modal/final confirm visible, review click targeted/requested, submit/order placement requested, credential/session handling requested, or any uncertainty.
-- This remains documentation/decision-gate only: no live Avanza access, browser launch/control, DOM query, field fill, click, review modal, final confirm, submit/order placement, Supabase/DB call, provider/route/scan invocation, audit writer client invocation, trade/PnL mutation, migration, typegen, generated type edit, or `.env.local` change.
-- Recommended next action: Action 1061 - Add Live Fill-Only Invocation Attempt Wrapper.
-
-# First Real Avanza Fill-Only POC Final Operator GO
+# First Real Avanza Fill-Only POC Live Fill-Only Invocation Attempt Wrapper
 
 ## Purpose
 
-This document records Action 1059: capturing the final operator GO decision for the first real Avanza fill-only POC.
+This document records Action 1061: adding the live fill-only invocation attempt wrapper for the first real Avanza fill-only POC.
 
-This is not a live run. This document does not access Avanza, launch or control a browser, query DOM, fill fields, click `Granska kop`, open a review modal, click `Bekrafta kop`, click `Bekrafta salj`, submit, or place an order.
-
-## Decision Source
-
-The operator provided the exact required `FINAL GO:` text after Action 1058 deferred the decision.
-
-Exact operator text:
-
-`FINAL GO: I confirm I am present, Avanza is already open and logged in manually, BankID/2FA has been handled manually by me, account Valentin Labs KF and instrument GameStop are manually verified, the order form is buy-side Avancerad/Limit, amount 427,26 SEK, price 21,98 USD, total 438,05 SEK under the 1,000 SEK cap, I understand the wrapper must stop before Granska köp, must not click Granska köp, must not open review modal, must not click Bekräfta köp/sälj, must not submit/place an order, must not handle credentials/session data, and must abort on any mismatch or uncertainty.`
-
-This matches the required wording from Action 1058.
-
-## Decision Transition
-
-- Previous decision: `final_operator_go_no_go_deferred`.
-- New decision: `final_operator_go`.
-
-## GO Scope Confirmation
-
-- Operator is present.
-- Avanza is already open and logged in manually.
-- BankID/2FA has been handled manually by the operator.
-- Account `Valentin Labs KF` is manually verified.
-- Instrument `GameStop` is manually verified.
-- Order form is buy-side `Avancerad/Limit`.
-- Amount is 427,26 SEK.
-- Price is 21,98 USD.
-- Total is 438,05 SEK.
-- Total is below the 1,000 SEK cap.
-- Wrapper must stop before `Granska köp`.
-- Wrapper must not click `Granska köp`.
-- Wrapper must not open the review modal.
-- Wrapper must not click `Bekräfta köp/sälj`.
-- Wrapper must not submit or place an order.
-- Wrapper must not handle credentials or session data.
-- Wrapper must abort on any mismatch or uncertainty.
-
-## Remaining Hard Stops
-
-- No `Granska köp`.
-- No review modal.
-- No `Bekräfta köp/sälj`.
-- No submit/order placement.
-- No unattended run.
-- No credential/session handling.
-- No sell/Stop Loss/Glidande.
-- No cap above 1,000 SEK.
-- Abort on mismatch or uncertainty.
+This is not a live run. This action does not access Avanza, launch or control a browser, query DOM, fill fields, click `Granska köp`, open a review modal, click `Bekräfta köp/sälj`, submit, or place an order.
 
 ## Result Status
 
-Result status: `first_real_avanza_fill_only_poc_final_operator_go_captured`.
+Result status: `first_real_avanza_fill_only_poc_live_fill_only_invocation_attempt_wrapper_added`.
 
-## Recommended Next Action
+Decision status exposed by the wrapper:
 
-Recommended next action: Action 1060 - Add Live Invocation Run Attempt Gate.
+- `disabled`
+- `blocked`
+- `ready_for_live_fill_only_attempt`
+- `attempt_plan_created`
+- `failed_safety`
 
-Reason: final GO is captured. Before any live invocation attempt, add one last run-attempt gate that verifies GO, fresh evidence, locked scope, and abort boundaries immediately before invocation.
+`ready_for_live_fill_only_attempt` means the wrapper is ready under the locked scope. It does not mean Avanza ran.
 
-## Progress Update
+`attempt_plan_created` means a metadata plan was created. It does not mean review, final confirm, submit, or order placement occurred.
 
-- Ture production/data-health: 95-97%.
-- Market-window live dry-run: 92-95%.
-- Semi-auto agent foundation: 98-99%.
-- Semi-auto Avanza/browser-agent readiness: 99-100%.
-- Real browser automation readiness: 99-100%.
-- First Avanza fill-only POC readiness: 100%.
-- Full-auto readiness: 10-15%.
-- Total Ture toward semi-auto MVP: 99-100%.
+## Implemented Boundary
+
+New module:
+
+- `lib/first-real-avanza-fill-only-poc-live-fill-only-invocation-attempt-wrapper.ts`
+
+New decision builder:
+
+- `buildFirstFillOnlyPocLiveFillOnlyInvocationAttemptDecision(input)`
+
+The wrapper is disabled by default unless `live_fill_only_invocation_attempt_enabled === true`.
+
+## Required Gates
+
+The wrapper requires:
+
+- `live_invocation_run_attempt_gate_ready`
+- `final_operator_go`
+- final live invocation wrapper ready
+- final harness ready
+- `real_browser_run_approved_for_fill_only`
+- `final_pre_run_evidence_ready`
+- operator present
+- manual login confirmed
+- account manually verified
+- instrument manually verified
+- cap at or below 1,000 SEK
+- amount-based buy flow
+- Avancerad/Limit
+- stop before review
+- no review requested
+- no final confirm requested
+- no submit/order placement requested
+- no credential/session handling requested
+- no sell/Stop Loss/Glidande
+
+## Attempt Phases
+
+The wrapper exposes this explicit attempt phase plan:
+
+1. `verify_run_attempt_gate`
+2. `verify_final_operator_go`
+3. `verify_final_invocation_wrapper_ready`
+4. `verify_final_harness_ready`
+5. `verify_final_pre_run_evidence`
+6. `verify_operator_presence`
+7. `verify_manual_login_confirmed`
+8. `verify_account_confirmed`
+9. `verify_instrument_confirmed`
+10. `verify_visible_order_form_state`
+11. `verify_buy_side`
+12. `verify_advanced_limit_order_type`
+13. `prepare_amount_field_fill`
+14. `prepare_price_field_fill`
+15. `read_total_amount`
+16. `verify_cap_after_total_parse`
+17. `capture_stop_before_review_evidence`
+18. `stop_before_review`
+
+## Runner Boundary
+
+Allowed future runner method names are metadata only:
+
+- `verifyVisibleOrderFormState`
+- `fillAmountField`
+- `fillPriceField`
+- `readTotalAmount`
+- `captureEvidence`
+- `stopBeforeReview`
+
+Forbidden method names:
+
+- `clickReview`
+- `clickConfirm`
+- `submit`
+- `placeOrder`
+- `readCookies`
+- `readSessionStorage`
+- `handleCredentials`
+
+The wrapper does not invoke a runner in this action.
+
+## Capability Flags
+
+All hard execution capabilities remain false:
+
+- `can_launch_browser: false`
+- `can_access_avanza_without_user_session: false`
+- `can_handle_credentials: false`
+- `can_read_session_data: false`
+- `can_click_review: false`
+- `can_click_final_confirm: false`
+- `can_submit_order: false`
+- `can_place_order: false`
+- `can_mutate_trades_or_pnl: false`
+- `can_execute_runner_methods_in_this_action: false`
+
+## Evidence Requirements
+
+The attempt wrapper requires future evidence for:
+
+- pre-attempt visible order form evidence
+- intended amount/price values
+- selector plan
+- filled-field evidence only if a future invocation fills fields
+- stop-before-review evidence
+- no review modal evidence
+- no final/submit evidence
 
 ## Not Performed
 
 - No live Avanza run.
 - No browser launch/control.
-- No Avanza access.
-- No DOM query.
-- No field fill.
-- No click.
+- No real Avanza access.
+- No credential, BankID, 2FA, session, cookie, localStorage, or sessionStorage handling.
 - No `Granska köp`.
 - No review modal.
-- No `Bekrafta kop`.
-- No `Bekrafta salj`.
+- No `Bekräfta köp/sälj`.
 - No submit.
 - No order placement.
-- No credential/session handling.
-- No Supabase/DB call or write.
-- No provider/route/scan invocation.
+- No sell/Stop Loss/Glidande.
+- No cap above 1,000 SEK.
+- No Supabase/DB write.
+- No provider/scan route invocation.
 - No audit writer client invocation.
-- No migration/typegen/generated type edit.
+- No migrations/typegen/generated type edit.
 - No `.env.local` change.
-- No real trade.
 - No trade/stats/PnL mutation.
-- No broker behavior.
-- No automatic mode.
 
 Denial harness scripts were not imported or run because they execute live Supabase checks and this action forbids Supabase calls.
+
+## Validation
+
+Validation passed:
+
+- `./node_modules/.bin/tsc --noEmit`
+- `npx playwright test tests/e2e/first-real-avanza-fill-only-poc-live-fill-only-invocation-attempt-wrapper.spec.ts`
+- `npm run lint`
+- `git diff --check`
+- `find docs -type f -size 0`
+- `.env.local` diff check
+
+The focused Playwright spec required escalated local port binding after the sandboxed test server failed to bind port 3010 with EPERM. No live Avanza or remote service was contacted.
+
+Validation covers:
+
+- disabled-by-default behavior
+- run attempt gate blocking
+- final operator GO blocking
+- final wrapper and harness blocking
+- final pre-run evidence blocking
+- cap/review/final/submit/session/sell/Stop Loss/Glidande failed-safety states
+- attempt plan creation under safe inputs
+- runner boundary metadata
+- metadata-only field-fill plan
+- static scan proving no live browser, database, route, provider, or audit-writer import
+
+## Recommended Next Action
+
+Recommended next action: Action 1062 - Add Live Invocation Attempt Dry-Run Simulation.

@@ -42,6 +42,11 @@ export type ActiveScanTrace = {
   scan_window: IntradayScanWindow | "unknown";
   orchestration_decision: string | null;
   should_scan_now: boolean | null;
+  official_window_detected: boolean;
+  scheduled_gate_window: string | null;
+  scheduled_gate_allowed: boolean | null;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
   skip_reason: string | null;
   diagnostic_mode: boolean;
   diagnostic_run_mode: string | null;
@@ -242,6 +247,11 @@ export function createActiveScanTrace({
     scan_window: scanWindow ?? "unknown",
     orchestration_decision: null,
     should_scan_now: null,
+    official_window_detected: false,
+    scheduled_gate_window: null,
+    scheduled_gate_allowed: null,
+    scheduled_gate_block_reason: null,
+    schedule_window_mismatch: false,
     skip_reason: null,
     diagnostic_mode: false,
     diagnostic_run_mode: null,
