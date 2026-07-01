@@ -571,6 +571,13 @@ main {
   padding: 120px 0 300px;
 }
 
+.trade-dashboard-navigation {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .trade-primary-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -579,14 +586,15 @@ main {
 }
 
 .trade-primary-tab {
-  min-height: 64px;
+  height: 64px;
   border: 1px solid #464953;
   border-radius: 8px;
   background: #090b0f;
   color: #d7d9dd;
   font-size: 18px;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: -0.36px;
+  line-height: normal;
   transition:
     background 160ms ease,
     border-color 160ms ease,
@@ -610,20 +618,23 @@ main {
 }
 
 .trade-recommendations-section {
-  margin-top: 22px;
+  margin-top: 0;
 }
 
 .trade-statistics-section {
   margin-top: 16px;
 }
 
+.trade-stats-today {
+  margin-top: 60px;
+}
+
 .trade-primary-statusbar {
-  display: grid;
-  grid-template-columns: auto auto auto 1fr 80px;
-  min-height: 52px;
+  display: flex;
+  height: 52px;
   align-items: center;
   gap: 16px;
-  border: 1px solid rgb(70 73 83 / 0.4);
+  border: 1px solid #464953;
   border-radius: 8px;
   background: #090b0f;
   padding: 0 8px 0 16px;
@@ -635,9 +646,9 @@ main {
   min-width: 0;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0;
-  line-height: 11px;
+  line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -656,8 +667,8 @@ main {
 }
 
 .trade-primary-statusbar__meta {
-  min-height: 24px;
-  border-left: 1px solid #292a2f;
+  min-height: 28px;
+  border-left: 1px solid #464953;
   color: #797c86;
   font-weight: 400;
   padding-left: 16px;
@@ -665,10 +676,11 @@ main {
 
 .trade-primary-statusbar__refresh {
   display: inline-flex;
-  grid-column: 5;
+  width: 80px;
+  height: 36px;
+  flex: 0 0 auto;
+  margin-left: auto;
   justify-self: end;
-  min-height: 36px;
-  width: fit-content;
   align-items: center;
   justify-content: center;
   border: 0;
@@ -680,7 +692,7 @@ main {
   font-weight: 600;
   letter-spacing: 0;
   line-height: 20px;
-  padding: 6px 14px;
+  padding: 0;
   text-transform: uppercase;
   transition: background-color 0.16s ease;
 }
@@ -2468,7 +2480,7 @@ main {
 }
 
 .trade-live-section {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .trade-live-statusbar {
@@ -2953,7 +2965,10 @@ main {
   }
 
   .trade-primary-statusbar {
-    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 52px;
+    align-items: stretch;
+    flex-direction: column;
     gap: 12px;
     padding: 14px 16px;
   }
@@ -2969,6 +2984,7 @@ main {
   .trade-primary-statusbar__refresh {
     grid-column: auto;
     width: 100%;
+    margin-left: 0;
   }
 
   .trade-recommendation-statusbar {

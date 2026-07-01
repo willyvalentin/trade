@@ -9,7 +9,6 @@ export type LiveDayTradesTabProps = {
   fixturePanel: ReactNode;
   hasTrades: boolean;
   isLoading: boolean;
-  statusbar: ReactNode;
 };
 
 export function LiveDayTradesTab({
@@ -19,12 +18,9 @@ export function LiveDayTradesTab({
   fixturePanel,
   hasTrades,
   isLoading,
-  statusbar,
 }: LiveDayTradesTabProps) {
   return (
     <section className="trade-live-section">
-      {statusbar}
-
       {fixturePanel}
 
       {isLoading ? (

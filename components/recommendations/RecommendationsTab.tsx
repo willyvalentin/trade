@@ -13,7 +13,6 @@ export type RecommendationsTabProps = {
   emptyState: RecommendationsTabEmptyState;
   isLoading: boolean;
   learningModeEnabled: boolean;
-  statusbar: ReactNode;
 };
 
 function RecommendationSkeletonCard() {
@@ -53,12 +52,9 @@ export function RecommendationsTab({
   emptyState,
   isLoading,
   learningModeEnabled,
-  statusbar,
 }: RecommendationsTabProps) {
   return (
     <section className="trade-recommendations-section">
-      {statusbar}
-
       {learningModeEnabled && (
         <div className="trade-learning-mode-banner">
           TESTING / LEARNING ONLY — not for live execution

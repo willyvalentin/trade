@@ -1568,10 +1568,21 @@ type PositionUpdateUrgency = {
   soundType: Exclude<NotificationSoundType, "recommendation">;
 };
 
-const primaryTabs: Tab[] = ["Recommendations", "Live Day Trades", "Stats Today"];
-const primaryTabLabels: Partial<Record<Tab, string>> = {
-  "Stats Today": "Statistics",
+type DashboardTab = Extract<
+  Tab,
+  "Recommendations" | "Live Day Trades" | "Stats Today"
+>;
+
+type DashboardTabItem = {
+  key: DashboardTab;
+  label: string;
 };
+
+const dashboardTabs: DashboardTabItem[] = [
+  { key: "Recommendations", label: "Recommendations" },
+  { key: "Live Day Trades", label: "Live Day Trades" },
+  { key: "Stats Today", label: "Statistics" },
+];
 const secondaryNavItems: Array<{ label: string; tab: Tab }> = [
   { label: "Dashboard", tab: "Recommendations" },
   { label: "Statistics", tab: "Statistics" },
@@ -8051,6 +8062,10 @@ function updateResultToLatestPositionUpdate(
     updatedAt: "Just now",
     updatedAtRaw: new Date().toISOString(),
   };
+}
+
+function isDashboardTab(tab: Tab): tab is DashboardTab {
+  return dashboardTabs.some((item) => item.key === tab);
 }
 
 type TradeAppProps = {
@@ -15169,6 +15184,60 @@ export function TradeApp({
         now: currentTime,
       })
     : null;
+  const activeDashboardTab = isDashboardTab(activeTab) ? activeTab : null;
+  const dashboardStatusbar =
+    activeDashboardTab === "Recommendations" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Recommendations updated"
+        updatedAt={recommendationsStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["market_status", "recommendations"], "manual");
+        }}
+        isRefreshing={
+          islandRefreshState.market_status.isRefreshing ||
+          islandRefreshState.recommendations.isRefreshing
+        }
+        isDisabled={isLoading}
+        refreshError={
+          islandRefreshState.recommendations.error ??
+          islandRefreshState.market_status.error
+        }
+      />
+    ) : activeDashboardTab === "Live Day Trades" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Trades updated"
+        updatedAt={liveTradesStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["market_status", "live_trades"], "manual");
+        }}
+        isRefreshing={
+          isUpdatingPositions ||
+          islandRefreshState.market_status.isRefreshing ||
+          islandRefreshState.live_trades.isRefreshing
+        }
+        isDisabled={isLoading}
+        refreshError={
+          islandRefreshState.live_trades.error ??
+          islandRefreshState.market_status.error
+        }
+      />
+    ) : activeDashboardTab === "Stats Today" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Stats updated"
+        updatedAt={statsTodayStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["stats_today"], "manual");
+        }}
+        isRefreshing={islandRefreshState.stats_today.isRefreshing}
+        refreshError={islandRefreshState.stats_today.error}
+      />
+    ) : null;
 
   return (
     <main className="trade-page">
@@ -15222,20 +15291,11 @@ export function TradeApp({
       </header>
 
       <div className="trade-stage">
-        <nav className="trade-primary-tabs" aria-label="Primary navigation">
-          {primaryTabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`trade-primary-tab ${
-                activeTab === tab ? "trade-primary-tab--active" : ""
-              }`}
-            >
-              {primaryTabLabels[tab] ?? tab}
-            </button>
-          ))}
-        </nav>
+        <DashboardNavigation
+          activeTab={activeDashboardTab}
+          onTabChange={setActiveTab}
+          statusbar={dashboardStatusbar}
+        />
 
         {activeTab === "Recommendations" && (
           <RecommendationsTab
@@ -15246,29 +15306,6 @@ export function TradeApp({
             }}
             isLoading={isLoading}
             learningModeEnabled={growMaxLearningModeEnabled}
-            statusbar={
-              <TradePrimaryStatusbar
-                updateLabel="Recommendations updated"
-                updatedAt={recommendationsStatusUpdatedAt}
-                currentTime={currentTime}
-                scanWindowLabel={currentIntradayScanWindowLabel}
-                onRefresh={() => {
-                  void refreshIslands(
-                    ["market_status", "recommendations"],
-                    "manual",
-                  );
-                }}
-                isRefreshing={
-                  islandRefreshState.market_status.isRefreshing ||
-                  islandRefreshState.recommendations.isRefreshing
-                }
-                isDisabled={isLoading}
-                refreshError={
-                  islandRefreshState.recommendations.error ??
-                  islandRefreshState.market_status.error
-                }
-              />
-            }
           >
             {dailyRecommendations.map((recommendation) => {
               const calibrationGuardrails =
@@ -15332,27 +15369,6 @@ export function TradeApp({
 
         {activeTab === "Live Day Trades" && (
           <LiveDayTradesTab
-            statusbar={
-              <TradePrimaryStatusbar
-                updateLabel="Trades updated"
-                updatedAt={liveTradesStatusUpdatedAt}
-                currentTime={currentTime}
-                scanWindowLabel={currentIntradayScanWindowLabel}
-                onRefresh={() => {
-                  void refreshIslands(["market_status", "live_trades"], "manual");
-                }}
-                isRefreshing={
-                  isUpdatingPositions ||
-                  islandRefreshState.market_status.isRefreshing ||
-                  islandRefreshState.live_trades.isRefreshing
-                }
-                isDisabled={isLoading}
-                refreshError={
-                  islandRefreshState.live_trades.error ??
-                  islandRefreshState.market_status.error
-                }
-              />
-            }
             fixturePanel={
               <ExecutionSandboxFixturePanel
                 executionMode={selectedExecutionMode}
@@ -15457,18 +15473,6 @@ export function TradeApp({
 
         {activeTab === "Stats Today" && (
           <section className="trade-stats-today">
-            <TradePrimaryStatusbar
-              updateLabel="Stats updated"
-              updatedAt={statsTodayStatusUpdatedAt}
-              currentTime={currentTime}
-              scanWindowLabel={currentIntradayScanWindowLabel}
-              onRefresh={() => {
-                void refreshIslands(["stats_today"], "manual");
-              }}
-              isRefreshing={islandRefreshState.stats_today.isRefreshing}
-              refreshError={islandRefreshState.stats_today.error}
-            />
-
             <StatsTodayPanel
               summary={statsTodaySummary}
               dailyTargets={dailyRecommendationTradeTargetsSummary}
@@ -38183,6 +38187,42 @@ function LiveMetricGrid({
         </div>
       ))}
     </div>
+  );
+}
+
+function DashboardNavigation({
+  activeTab,
+  onTabChange,
+  statusbar,
+}: {
+  activeTab: DashboardTab | null;
+  onTabChange: (tab: Tab) => void;
+  statusbar: React.ReactNode;
+}) {
+  return (
+    <section className="trade-dashboard-navigation">
+      <nav className="trade-primary-tabs" aria-label="Dashboard navigation">
+        {dashboardTabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => onTabChange(tab.key)}
+              aria-current={isActive ? "page" : undefined}
+              className={`trade-primary-tab ${
+                isActive ? "trade-primary-tab--active" : ""
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {statusbar}
+    </section>
   );
 }
 
