@@ -159,9 +159,7 @@ export function buildRecommendationCardDisplayProps({
   ];
   const addTradeLabel = isValidating
     ? "Validating Setup"
-    : addTradeGate.blocked && !isExpired
-      ? "Review Setup"
-      : "ADD TRADE";
+    : "Make Trade";
 
   return {
     addTradeDisabled: isSaving || isExpired || isValidating,

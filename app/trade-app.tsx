@@ -1569,7 +1569,14 @@ type PositionUpdateUrgency = {
 };
 
 const primaryTabs: Tab[] = ["Recommendations", "Live Day Trades", "Stats Today"];
-const secondaryTabs: Tab[] = ["Market", "Statistics", "History"];
+const primaryTabLabels: Partial<Record<Tab, string>> = {
+  "Stats Today": "Statistics",
+};
+const secondaryNavItems: Array<{ label: string; tab: Tab }> = [
+  { label: "Dashboard", tab: "Recommendations" },
+  { label: "Statistics", tab: "Statistics" },
+  { label: "Engine Insights", tab: "Market" },
+];
 const refreshIslandIds: RefreshIslandId[] = [
   "market_status",
   "recommendations",
@@ -15196,16 +15203,16 @@ export function TradeApp({
           <span>{topMarketStatusLabel(topMarketStatus)}</span>
         </div>
         <nav className="trade-secondary-nav" aria-label="Secondary navigation">
-          {secondaryTabs.map((tab) => (
+          {secondaryNavItems.map((item) => (
             <button
-              key={tab}
+              key={item.label}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(item.tab)}
               className={`trade-topbar-link ${
-                activeTab === tab ? "trade-topbar-link--active" : ""
+                activeTab === item.tab ? "trade-topbar-link--active" : ""
               }`}
             >
-              {tab}
+              {item.label}
             </button>
           ))}
           <Link href="/settings" className="trade-topbar-link">
@@ -15225,7 +15232,7 @@ export function TradeApp({
                 activeTab === tab ? "trade-primary-tab--active" : ""
               }`}
             >
-              {tab}
+              {primaryTabLabels[tab] ?? tab}
             </button>
           ))}
         </nav>
@@ -15316,7 +15323,6 @@ export function TradeApp({
                       size="live"
                     />
                   )}
-                  renderSourceBadge={(badge) => <DataModePill badge={badge} />}
                   renderSourceBadges={(badges) => <DataModePillRow badges={badges} />}
                 />
               );
@@ -38239,6 +38245,7 @@ function TradePrimaryStatusbar({
       <button
         type="button"
         className="trade-primary-statusbar__refresh"
+        aria-label="Refresh recommendations and market status"
         onClick={onRefresh}
         disabled={isDisabled || isRefreshing}
       >

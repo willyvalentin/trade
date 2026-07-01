@@ -18,9 +18,6 @@ export type RecommendationCardProps = {
   onAddTrade: () => void | Promise<void>;
   onOpenDetails: () => void;
   onOpenDiscard: () => void;
-  sourceBadge: ReactNode;
-  summary: string;
-  updatedAt: string;
 };
 
 function recommendationCardDisplayValue(value: unknown, fallback = "—") {
@@ -49,6 +46,12 @@ function RecommendationCardMetricGrid({
           </div>
         </div>
       ))}
+      {metrics.length % 3 === 2 && (
+        <div
+          className="trade-recommendation-metric-spacer"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
@@ -66,9 +69,6 @@ export function RecommendationCard({
   onAddTrade,
   onOpenDetails,
   onOpenDiscard,
-  sourceBadge,
-  summary,
-  updatedAt,
 }: RecommendationCardProps) {
   return (
     <article
@@ -84,9 +84,20 @@ export function RecommendationCard({
       className="trade-recommendation-card"
     >
       <div className="trade-recommendation-card__eyebrow">
-        TRADE RECOMMENDATION
+        <span>TRADE RECOMMENDATION</span>
+        <button
+          type="button"
+          aria-label="Dismiss recommendation"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenDiscard();
+          }}
+          disabled={discardDisabled}
+          className="trade-recommendation-card__dismiss"
+        >
+          ×
+        </button>
       </div>
-      <div className="mt-2">{sourceBadge}</div>
 
       <div className="trade-recommendation-card__header">
         {identity}
@@ -99,11 +110,6 @@ export function RecommendationCard({
 
       <RecommendationCardMetricGrid metrics={metrics} />
 
-      <div className="trade-recommendation-guidance">
-        <p>{recommendationCardDisplayValue(summary)}</p>
-        <span>Updated {recommendationCardDisplayValue(updatedAt)}</span>
-      </div>
-
       <div className="trade-recommendation-card__footer">
         <button
           type="button"
@@ -115,17 +121,6 @@ export function RecommendationCard({
           className="trade-recommendation-action trade-recommendation-action--primary"
         >
           {addTradeLabel}
-        </button>
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenDiscard();
-          }}
-          disabled={discardDisabled}
-          className="trade-recommendation-action trade-recommendation-action--secondary"
-        >
-          Discard
         </button>
       </div>
 

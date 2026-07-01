@@ -47,7 +47,6 @@ export type RecommendationCardContainerProps<
   preTradeRiskContext: PreTradeRiskContextResult | null;
   recommendation: TRecommendation;
   renderIdentity: (recommendation: TRecommendation) => ReactNode;
-  renderSourceBadge: (badge: DataModeBadge) => ReactNode;
   renderSourceBadges: (badges: DataModeBadge[]) => ReactNode;
   tradeEligibility: TradeEligibilityResult | null;
 };
@@ -69,7 +68,6 @@ export function RecommendationCardContainer<
   preTradeRiskContext,
   recommendation,
   renderIdentity,
-  renderSourceBadge,
   renderSourceBadges,
   tradeEligibility,
 }: RecommendationCardContainerProps<TRecommendation>) {
@@ -99,9 +97,6 @@ export function RecommendationCardContainer<
       onAddTrade={() => onTakeTrade(recommendation)}
       onOpenDetails={() => setIsDetailsOpen(true)}
       onOpenDiscard={() => setIsDiscardConfirmOpen(true)}
-      sourceBadge={renderSourceBadge(displayProps.recommendationSourceBadge)}
-      summary={displayProps.cardSummary}
-      updatedAt={recommendation.createdAt}
       discardDialog={
         isDiscardConfirmOpen ? (
           <DiscardRecommendationModal
