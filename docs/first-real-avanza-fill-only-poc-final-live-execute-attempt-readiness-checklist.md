@@ -1,15 +1,16 @@
-# First Real Avanza Fill-Only POC Final Live Execute Attempt Readiness Gate
+# First Real Avanza Fill-Only POC Final Live Execute Attempt Readiness Checklist
 
 ## 1. Purpose
 
-This adds the final live execute attempt readiness gate.
+This adds the final live execute attempt readiness checklist.
 
 This is not a live run. This does not access Avanza, launch/control a browser, query DOM, fill fields, click anything, open a review modal, submit/place an order, handle credentials/session data, mutate trades/stats/PnL, invoke or execute the exact trigger phrase, or call the trigger/action/wrapper/runner.
 
 Ready never means execution occurred.
 
-## 2. Readiness Basis
+## 2. Checklist Basis
 
+- Final live execute attempt readiness gate is ready: `final_live_execute_attempt_readiness_gate_ready`
 - Exact trigger phrase invocation checklist confirmation gate is ready: `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready`
 - Exact trigger phrase invocation checklist confirmation is ready: `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready`
 - Final exact trigger phrase invocation checklist is ready: `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready`
@@ -61,11 +62,13 @@ Status meanings:
 - `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready` does not mean execution occurred.
 - `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready` does not mean execution occurred.
 - `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_gate_ready` does not mean execution occurred.
 
-## 3. Final Live Execute Attempt Readiness Prerequisite Table
+## 3. Final Live Execute Attempt Readiness Checklist
 
-| Prerequisite | Status | Notes |
+| Checklist item | Status | Notes |
 | --- | --- | --- |
+| Final live execute attempt readiness gate ready | PASS | `final_live_execute_attempt_readiness_gate_ready` |
 | Exact trigger phrase invocation checklist confirmation gate ready | PASS | `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready` |
 | Exact trigger phrase invocation checklist confirmation ready | PASS | `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready` |
 | Exact trigger phrase invocation checklist ready | PASS | `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready` |
@@ -105,26 +108,43 @@ Status meanings:
 | Approved runner boundary locked | PASS | `verifyVisibleOrderFormState`, `fillAmountField`, `fillPriceField`, `readTotalAmount`, `captureEvidence`, `stopBeforeReview` |
 | Hard stop before review locked | PASS | Stop before Granska köp |
 | Trigger not wired to UI/routes/provider/scanner/package scripts | PASS | Verified by prior scans |
-| Trigger/action/wrapper/runner not invoked by this action | BLOCK | This action is readiness-gate-only |
-| No live execute attempt performed yet | WARN / EXPECTED | This action is gate-only |
+| Trigger/action/wrapper/runner not invoked by this action | BLOCK | This action is checklist-only |
+| No live execute attempt performed yet | WARN / EXPECTED | This action is checklist-only |
 | Live execute evidence package not captured yet | WARN / EXPECTED | Belongs to a future explicit attempt |
+| Fresh final live execute attempt readiness checklist confirmation not captured in this action | WARN / EXPECTED | Next action should capture exact confirmation if needed |
 | No order placement evidence | PASS | No order has been placed |
 
 This table does not mark a live execution as performed. It does not mark live evidence as captured. It does not mark the exact trigger phrase as invoked. It does not mark the trigger/action/wrapper/runner as invoked.
 
-## 4. Final Live Execute Attempt Readiness Gate Decision
+## 4. Operator Checklist Text For Future Confirmation
 
-Decision: `final_live_execute_attempt_readiness_gate_ready`
+The following exact operator checklist template can be copied into the next action:
 
-This means the final live execute attempt readiness gate is ready for adding a future final readiness checklist/action. It does not mean execution has occurred.
+FINAL LIVE EXECUTE ATTEMPT READINESS CHECKLIST CONFIRMATION: I confirm right now that I am present, Avanza is open and logged in manually, BankID/2FA has already been handled manually by me, account Valentin Labs KF and instrument GameStop are still manually verified, the order form is still buy-side Avancerad/Limit, amount is still 427,26 SEK, price is still 21,98 USD, total is still 438,05 SEK or otherwise under the 1,000 SEK cap, no modal is open, no Bekräfta köp/sälj is visible, Granska köp has not been clicked, the exact trigger phrase has been captured but has not been invoked or executed, the trigger/action/wrapper/runner have not been invoked, I understand any future final live execute attempt must still use the approved explicit invocation trigger, action, and wrapper boundary to verify visible state, fill the approved amount and price fields, read total, capture evidence, and stop before Granska köp, it must not click Granska köp, must not open review modal, must not click Bekräfta köp/sälj, must not submit/place an order, must not handle credentials/session data, must not run unattended, must not be wired to automatic UI/routes/provider/scanner/package scripts, and must abort on any mismatch or uncertainty.
 
-## 5. Allowed Future Scope
+This action only creates the checklist/template. It does not claim that this exact fresh confirmation has already been provided. The exact trigger phrase is not invoked in this action. The trigger/action/wrapper/runner are not invoked in this action. Do not recommend a live attempt yet.
+
+## 5. Captured Exact Trigger Phrase Reminder
+
+FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER: I explicitly request the final live fill-only execute attempt trigger now, with the approved boundary, stopping before Granska köp and without order placement.
+
+The exact trigger phrase has been captured but is not invoked or executed by this action. The trigger phrase does not authorize review click, final confirm, submit, or order placement. The trigger phrase must not be treated as live execution.
+
+## 6. Checklist Decision
+
+Decision: `final_live_execute_attempt_readiness_checklist_ready`
+
+This means the final live execute attempt readiness checklist is ready for a future exact operator confirmation. It does not mean execution has occurred.
+
+This action does not use `final_live_execute_attempt_readiness_checklist_confirmation_ready`.
+
+## 7. Allowed Future Scope
 
 The only allowed future scope is:
 
-- Documentation/static checklist or readiness action only unless separately approved.
-- Exact trigger phrase is captured but not invoked by Action 1097.
-- Exact trigger phrase invocation checklist confirmation is captured but does not execute anything.
+- Documentation/confirmation capture only unless separately approved.
+- Exact trigger phrase is captured but not invoked by Action 1098.
+- Trigger/action/wrapper/runner are not invoked by Action 1098.
 - Any future invocation must still be explicit-trigger only.
 - Any future invocation must still require operator presence.
 - Any future invocation must still require Avanza already manually opened/logged in by user.
@@ -170,13 +190,14 @@ Approved runner boundary remains:
 - `captureEvidence`
 - `stopBeforeReview`
 
-## 6. Mandatory Abort/Block Conditions
+## 8. Mandatory Abort/Block Conditions
 
-Any future gate, checklist, confirmation capture, action, or explicit trigger must abort or block if any of these are true:
+Any future checklist, confirmation capture, gate, action, or explicit trigger must abort or block if any of these are true:
 
 - Operator absent.
 - Exact trigger phrase absent.
 - Exact trigger phrase mismatched.
+- Fresh final live execute attempt readiness checklist confirmation absent.
 - Fresh exact trigger phrase invocation checklist confirmation absent or stale.
 - Fresh trigger preflight confirmation absent or stale.
 - Browser/session not prepared by user.
@@ -212,36 +233,9 @@ Any future gate, checklist, confirmation capture, action, or explicit trigger mu
 - UI/route/provider/scanner/package-script trigger requested.
 - Any uncertainty.
 
-## 7. What Action 1098 May Add
+## 9. Forbidden Behavior
 
-Action 1098 may add a future final live execute attempt readiness checklist, if still approved.
-
-Action 1098 may only add:
-
-- Documentation/checklist only.
-- A final live execute attempt readiness checklist table.
-- A future operator confirmation template.
-- Confirmation that the exact phrase remains captured but not invoked.
-- Confirmation that trigger/action/wrapper/runner remain not invoked.
-- Preservation of all hard stops.
-- Preservation of no-review/final/submit/order-placement boundary.
-- Preservation of no automatic UI/routes/provider/scanner/package-script wiring boundary.
-- Preservation of approved six-method runner boundary.
-- Preservation of stop before Granska köp.
-
-Action 1098 must preserve:
-
-- `ready_for_final_live_execute_attempt_explicit_invocation_trigger` does not mean execution occurred.
-- `final_live_execute_attempt_explicit_invocation_trigger_plan_created` does not mean order placement.
-- `final_live_execute_attempt_exact_trigger_phrase_capture_ready` does not mean execution occurred.
-- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
-- `final_live_execute_attempt_readiness_gate_ready` does not mean execution occurred.
-
-Action 1098 must still not place an order and must still not click Granska köp.
-
-## 8. What Action 1098 Must Not Add
-
-Action 1098 must not add:
+This action and any future checklist/confirmation action must not include or perform:
 
 - No live run.
 - No browser launch/control.
@@ -272,7 +266,7 @@ Action 1098 must not add:
 - No exact trigger phrase execution.
 - No trigger/action/wrapper/runner invocation.
 
-## 9. Status Meanings
+## 10. Status Meanings
 
 - `ready_for_final_live_execute_attempt` does not mean execution occurred.
 - `final_live_execute_attempt_plan_created` does not mean order placement.
@@ -287,20 +281,21 @@ Action 1098 must not add:
 - `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready` does not mean execution occurred.
 - `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
 - `final_live_execute_attempt_readiness_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_checklist_ready` does not mean execution occurred.
 
-## 10. Result Status
+## 11. Result Status
 
-Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_readiness_gate_added`
+Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_readiness_checklist_added`
 
-## 11. Recommended Next Action
+## 12. Recommended Next Action
 
-Recommended next action: Action 1098 — Add Final Live Execute Attempt Readiness Checklist
+Recommended next action: Action 1099 — Capture Final Live Execute Attempt Readiness Checklist Confirmation
 
-Reason: after the final live execute attempt readiness gate is ready, the next step may add a final readiness checklist before any exact trigger phrase invocation or explicit final live execute attempt trigger can be considered. This still must not place an order, must still not click Granska köp, and must not itself perform a live run.
+Reason: after the final live execute attempt readiness checklist is ready, the next step is to capture the exact fresh operator confirmation before any exact trigger phrase invocation or explicit final live execute attempt trigger can be considered.
 
-Action 1098 must still not place an order and must still not click Granska köp. Do not recommend a live attempt yet. Do not run the trigger yet.
+Action 1099 must still be documentation/confirmation capture only unless separately approved. Do not recommend a live attempt yet. Do not run the trigger yet.
 
-## 12. Progress Update
+## 13. Progress Update
 
 - Ture production/data-health: 95-97%
 - Market-window live dry-run: 92-95%
@@ -313,14 +308,14 @@ Action 1098 must still not place an order and must still not click Granska köp.
 
 Full-auto remains explicitly deferred.
 
-## 13. Validation Notes
+## 14. Validation Notes
 
-- This was documentation/static readiness gate only.
+- This was documentation/checklist only.
 - The exact trigger phrase was already captured in Action 1091.
 - The exact trigger phrase invocation checklist confirmation was captured in Action 1095.
 - The exact trigger phrase was not invoked or executed.
 - The trigger/action/wrapper/runner was not invoked.
-- This gate is ready only for adding a future final readiness checklist/action.
+- This checklist is ready only for adding a future final readiness checklist confirmation capture.
 - No live run occurred.
 - No browser was launched or controlled.
 - No Avanza access occurred.
@@ -332,77 +327,3 @@ Full-auto remains explicitly deferred.
 - No credentials/session data were handled.
 - No Supabase/provider/scan/audit-writer invocation occurred.
 - Denial harness scripts were skipped because they would execute live Supabase checks and are outside this documentation-only action.
-
-## Action 1098 Follow-Up - Final Live Execute Attempt Readiness Checklist
-
-Action 1098 added the final live execute attempt readiness checklist as documentation/checklist only. The exact trigger phrase remains captured from Action 1091, the exact trigger phrase invocation checklist confirmation remains captured from Action 1095, the confirmation gate remains ready from Action 1096, and the readiness gate remains ready from Action 1097. Neither the exact trigger phrase nor the trigger/action/wrapper/runner were invoked or executed by Action 1098.
-
-- Action: Action 1098 — Add Final Live Execute Attempt Readiness Checklist
-- Decision: `final_live_execute_attempt_readiness_checklist_ready`
-- Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_readiness_checklist_added`
-- Recommended next action: Action 1099 — Capture Final Live Execute Attempt Readiness Checklist Confirmation
-- Exact trigger phrase status: captured in Action 1091; not invoked or executed by Action 1098.
-- Readiness checklist confirmation status: not captured by Action 1098; Action 1099 is the recommended confirmation-capture step.
-- Trigger/action/wrapper/runner status: not invoked or called by Action 1098.
-- Live execution status: no live invocation, no Avanza/browser/DOM/fill/click/review/final/submit/order-placement activity, and no Supabase/provider/scan/audit-writer invocation occurred.
-- Future confirmation status: Action 1099 must still be documentation/confirmation capture only unless separately approved; it must still not place an order and must still not click Granska köp.
-- Denial harness status: skipped because denial harness scripts would execute live Supabase checks and are outside this documentation-only action.
-
-Preserved prerequisite states:
-
-- `final_live_execute_attempt_readiness_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_readiness_gate_added`
-- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_added`
-- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready`
-- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_added`
-- `final_live_execute_attempt_exact_trigger_phrase_invocation_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_invocation_gate_added`
-- `final_live_execute_attempt_exact_trigger_phrase_final_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_final_gate_added`
-- `final_live_execute_attempt_exact_trigger_phrase_capture_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_ready`
-- `final_live_execute_attempt_exact_trigger_phrase_capture_deferred`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_added`
-- `final_live_execute_attempt_explicit_invocation_trigger_final_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_final_gate_added`
-- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
-- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`
-- `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`
-- `final_live_execute_attempt_explicit_invocation_final_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`
-- `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
-- `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`
-- `final_live_execute_attempt_execution_gate_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`
-- `final_live_execute_attempt_checklist_confirmation_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`
-- `final_live_execute_attempt_checklist_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`
-- `final_execute_attempt_gate_ready`
-- `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`
-- `execute_checklist_confirmation_ready`
-- `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`
-- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`
-- `ready_for_final_live_execute_attempt`
-- `final_live_execute_attempt_plan_created`
-- `ready_for_final_live_execute_attempt_explicit_invocation`
-- `final_live_execute_attempt_explicit_invocation_plan_created`
-- `ready_for_final_live_execute_attempt_explicit_invocation_trigger`
-- `final_live_execute_attempt_explicit_invocation_trigger_plan_created`
-
-Status meanings preserved: ready states do not mean execution occurred; plan-created states do not mean order placement; `final_live_execute_attempt_exact_trigger_phrase_capture_ready`, `final_live_execute_attempt_exact_trigger_phrase_final_gate_ready`, `final_live_execute_attempt_exact_trigger_phrase_invocation_gate_ready`, `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready`, `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready`, `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready`, `final_live_execute_attempt_readiness_gate_ready`, and `final_live_execute_attempt_readiness_checklist_ready` do not mean execution occurred. The trigger must stop before Granska köp, must never click Granska köp, must never open the review modal, must never click Bekräfta köp/sälj, must never submit/place an order, must never handle credentials/session data, and must abort on mismatch or uncertainty.
-
-Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.

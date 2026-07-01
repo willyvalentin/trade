@@ -658,6 +658,37 @@ main {
   font-weight: 600;
 }
 
+.trade-primary-statusbar__lottie {
+  position: relative;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.trade-primary-statusbar__lottie-element {
+  position: absolute;
+  inset: -2px;
+  display: block;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.trade-primary-statusbar__lottie-fallback {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background:
+    linear-gradient(#00b899, #00b899) 50% 0 / 6px 100% no-repeat,
+    linear-gradient(90deg, #00b899, #00b899) 0 50% / 100% 6px no-repeat;
+  opacity: 0.72;
+}
+
 .trade-primary-statusbar__analysis img {
   display: block;
   width: 20px;

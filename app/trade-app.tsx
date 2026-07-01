@@ -1583,6 +1583,11 @@ const dashboardTabs: DashboardTabItem[] = [
   { key: "Live Day Trades", label: "Live Day Trades" },
   { key: "Stats Today", label: "Statistics" },
 ];
+const dotLottieWebComponentScriptId = "ture-dotlottie-wc-script";
+const dotLottieWebComponentScriptSrc =
+  "https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js";
+const autoAnalyzingLottieSrc =
+  "https://lottie.host/2e6d3006-bd98-4905-ae16-89594b46c6a4/XST1EYTJ26.lottie";
 const secondaryNavItems: Array<{ label: string; tab: Tab }> = [
   { label: "Dashboard", tab: "Recommendations" },
   { label: "Statistics", tab: "Statistics" },
@@ -38226,6 +38231,48 @@ function DashboardNavigation({
   );
 }
 
+function DashboardStatusLottieIcon() {
+  const containerRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!document.getElementById(dotLottieWebComponentScriptId)) {
+      const script = document.createElement("script");
+      script.id = dotLottieWebComponentScriptId;
+      script.src = dotLottieWebComponentScriptSrc;
+      script.type = "module";
+      document.head.appendChild(script);
+    }
+
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const lottieElement = document.createElement("dotlottie-wc");
+    lottieElement.setAttribute("src", autoAnalyzingLottieSrc);
+    lottieElement.setAttribute("autoplay", "");
+    lottieElement.setAttribute("loop", "");
+    lottieElement.setAttribute("aria-hidden", "true");
+    lottieElement.className = "trade-primary-statusbar__lottie-element";
+    container.appendChild(lottieElement);
+
+    return () => {
+      lottieElement.remove();
+    };
+  }, []);
+
+  return (
+    <span
+      ref={containerRef}
+      className="trade-primary-statusbar__lottie"
+      aria-hidden="true"
+    >
+      <span className="trade-primary-statusbar__lottie-fallback" />
+    </span>
+  );
+}
+
 function TradePrimaryStatusbar({
   updateLabel,
   updatedAt,
@@ -38248,13 +38295,7 @@ function TradePrimaryStatusbar({
   return (
     <div className="trade-primary-statusbar">
       <div className="trade-primary-statusbar__analysis">
-        <Image
-          src="/trade-assets/ture-logo-mark.svg"
-          alt=""
-          aria-hidden="true"
-          width={20}
-          height={20}
-        />
+        <DashboardStatusLottieIcon />
         <span>Auto analyzing trades</span>
       </div>
 
