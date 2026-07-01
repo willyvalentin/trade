@@ -38267,9 +38267,7 @@ function DashboardStatusLottieIcon() {
       ref={containerRef}
       className="trade-primary-statusbar__lottie"
       aria-hidden="true"
-    >
-      <span className="trade-primary-statusbar__lottie-fallback" />
-    </span>
+    />
   );
 }
 
