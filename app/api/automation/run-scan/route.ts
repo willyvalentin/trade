@@ -1488,10 +1488,25 @@ function createAutomationScanLog({
     pre_market_candidates: Array.isArray(details?.pre_market_candidates)
       ? (details.pre_market_candidates as ScanLogEntry["pre_market_candidates"])
       : null,
+    real_scanner_candidate_generation:
+      typeof details?.real_scanner_candidate_generation === "object" &&
+      details.real_scanner_candidate_generation !== null
+        ? (details.real_scanner_candidate_generation as ScanLogEntry["real_scanner_candidate_generation"])
+        : null,
     dynamic_movers_discovery:
       typeof details?.dynamic_movers_discovery === "object" &&
       details.dynamic_movers_discovery !== null
         ? (details.dynamic_movers_discovery as ScanLogEntry["dynamic_movers_discovery"])
+        : null,
+    scanner_candidate_ranking:
+      typeof details?.scanner_candidate_ranking === "object" &&
+      details.scanner_candidate_ranking !== null
+        ? (details.scanner_candidate_ranking as ScanLogEntry["scanner_candidate_ranking"])
+        : null,
+    openai_recommendation_reality_guard:
+      typeof details?.openai_recommendation_reality_guard === "object" &&
+      details.openai_recommendation_reality_guard !== null
+        ? (details.openai_recommendation_reality_guard as ScanLogEntry["openai_recommendation_reality_guard"])
         : null,
     day_trade_scan_orchestration:
       typeof details?.day_trade_scan_orchestration === "object" &&
@@ -2275,6 +2290,28 @@ async function persistAutomationArtifacts({
       researchSelection.selected_below_threshold_unmatched_by_ticker_count,
     learning_acceleration_input_mismatch:
       researchSelection.learning_acceleration_input_mismatch,
+    below_threshold_readback_count:
+      researchSelection.selected_below_threshold_readback_count,
+    below_threshold_runtime_input_count:
+      researchSelection.below_threshold_runtime_input_count,
+    below_threshold_examples_count:
+      researchSelection.below_threshold_examples_count,
+    research_candidates_after_ticker_match:
+      researchSelection.research_candidates_after_ticker_match_count,
+    research_persist_attempted:
+      researchSelection.research_persist_attempted_count,
+    research_persisted: persistedResearchSnapshotCount,
+    research_duplicates: researchSelection.research_duplicates_count,
+    research_skipped_invalid:
+      researchSelection.skipped_due_to_invalid_risk_count,
+    research_skipped_stale:
+      researchSelection.skipped_due_to_stale_reference_count,
+    research_skipped_budget:
+      researchSelection.skipped_due_to_budget_count,
+    research_skipped_missing_candidate_match:
+      researchSelection.research_skipped_missing_candidate_match_count,
+    learning_acceleration_input_source:
+      researchSelection.learning_acceleration_input_source,
     learning_acceleration_research_only_persisted_count:
       persistedResearchSnapshotCount,
     learning_acceleration_skipped_due_to_budget_count:
@@ -4006,6 +4043,43 @@ export async function POST(request: Request) {
       learning_acceleration_input_mismatch:
         artifactResult?.learning_acceleration
           .learning_acceleration_input_mismatch ?? false,
+      learning_acceleration_input_source:
+        artifactResult?.learning_acceleration
+          .learning_acceleration_input_source ?? "none",
+      below_threshold_readback_count:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_readback_count ?? 0,
+      below_threshold_runtime_input_count:
+        artifactResult?.learning_acceleration
+          .below_threshold_runtime_input_count ?? 0,
+      below_threshold_examples_count:
+        artifactResult?.learning_acceleration
+          .below_threshold_examples_count ?? 0,
+      research_candidates_after_ticker_match:
+        artifactResult?.learning_acceleration
+          .research_candidates_after_ticker_match_count ?? 0,
+      research_persist_attempted:
+        artifactResult?.learning_acceleration
+          .research_persist_attempted_count ?? 0,
+      research_persisted:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
+      research_duplicates:
+        artifactResult?.learning_acceleration.research_duplicates_count ?? 0,
+      research_skipped_invalid:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_invalid_risk_count ?? 0,
+      research_skipped_stale:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_stale_reference_count ?? 0,
+      research_skipped_budget:
+        artifactResult?.learning_acceleration.skipped_due_to_budget_count ?? 0,
+      research_skipped_missing_candidate_match:
+        artifactResult?.learning_acceleration
+          .research_skipped_missing_candidate_match_count ?? 0,
       learning_acceleration_research_only_persisted:
         artifactResult?.persistence.research_snapshots.filter(
           (snapshot) =>

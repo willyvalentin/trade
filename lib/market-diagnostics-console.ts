@@ -145,6 +145,18 @@ export type MarketDiagnosticsConsoleInput = {
     learning_acceleration_selected_below_threshold_unmatched_by_ticker_count?:
       number | null;
     learning_acceleration_input_mismatch?: boolean | null;
+    below_threshold_readback_count?: number | null;
+    below_threshold_runtime_input_count?: number | null;
+    below_threshold_examples_count?: number | null;
+    research_candidates_after_ticker_match?: number | null;
+    research_persist_attempted?: number | null;
+    research_persisted?: number | null;
+    research_duplicates?: number | null;
+    research_skipped_invalid?: number | null;
+    research_skipped_stale?: number | null;
+    research_skipped_budget?: number | null;
+    research_skipped_missing_candidate_match?: number | null;
+    learning_acceleration_input_source?: string | null;
     learning_acceleration_research_only_persisted_count?: number | null;
     learning_acceleration_top_research_sample_tickers?: string[];
     learning_acceleration_sample_quality_summary?: {
@@ -2337,9 +2349,59 @@ function buildSections(
     input.scan_readback?.learning_acceleration_input_mismatch ??
     input.active_scan_trace?.learning_acceleration_input_mismatch ??
     false;
+  const learningAccelerationInputSource =
+    input.scan_readback?.learning_acceleration_input_source ??
+    input.active_scan_trace?.learning_acceleration_input_source ??
+    "none";
+  const learningAccelerationRuntimeInputCount =
+    input.scan_readback?.below_threshold_runtime_input_count ??
+    input.active_scan_trace?.below_threshold_runtime_input_count ??
+    learningAccelerationBelowThresholdPassed;
+  const learningAccelerationExamplesCount =
+    input.scan_readback?.below_threshold_examples_count ??
+    input.active_scan_trace?.below_threshold_examples_count ??
+    0;
+  const learningAccelerationMatchedCandidates =
+    input.scan_readback?.research_candidates_after_ticker_match ??
+    input.active_scan_trace?.research_candidates_after_ticker_match ??
+    learningAccelerationBelowThresholdMatched;
+  const learningAccelerationPersistAttempted =
+    input.scan_readback?.research_persist_attempted ??
+    input.active_scan_trace?.research_persist_attempted ??
+    0;
+  const learningAccelerationPersisted =
+    input.scan_readback?.research_persisted ??
+    input.active_scan_trace?.research_persisted ??
+    null;
+  const learningAccelerationDuplicates =
+    input.scan_readback?.research_duplicates ??
+    input.active_scan_trace?.research_duplicates ??
+    0;
+  const learningAccelerationSkippedInvalid =
+    input.scan_readback?.research_skipped_invalid ??
+    input.active_scan_trace?.research_skipped_invalid ??
+    input.active_scan_trace?.learning_acceleration_skipped_due_to_invalid_risk_count ??
+    0;
+  const learningAccelerationSkippedStale =
+    input.scan_readback?.research_skipped_stale ??
+    input.active_scan_trace?.research_skipped_stale ??
+    input.active_scan_trace
+      ?.learning_acceleration_skipped_due_to_stale_reference_count ??
+    0;
+  const learningAccelerationSkippedBudget =
+    input.scan_readback?.research_skipped_budget ??
+    input.active_scan_trace?.research_skipped_budget ??
+    input.outcome_evaluation?.skipped_due_to_budget_count ??
+    input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ??
+    0;
+  const learningAccelerationSkippedMissingCandidate =
+    input.scan_readback?.research_skipped_missing_candidate_match ??
+    input.active_scan_trace?.research_skipped_missing_candidate_match ??
+    learningAccelerationBelowThresholdUnmatched;
   const learningAccelerationResearchOnlyPersisted =
     input.scan_readback?.learning_acceleration_research_only_persisted_count ??
     input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
+    learningAccelerationPersisted ??
     learningAccelerationSamplesCollectedToday;
   const learningAccelerationSamplesEvaluatedToday =
     input.scan_readback?.learning_acceleration_samples_evaluated_today ??
@@ -4580,6 +4642,26 @@ function buildSections(
           bool(learningAccelerationInputMismatch),
         ),
         lineValue(
+          "Input source",
+          words(learningAccelerationInputSource),
+        ),
+        lineValue(
+          "Runtime input / examples",
+          `${learningAccelerationRuntimeInputCount}/${learningAccelerationExamplesCount}`,
+        ),
+        lineValue(
+          "Candidate match / missing",
+          `${learningAccelerationMatchedCandidates}/${learningAccelerationSkippedMissingCandidate}`,
+        ),
+        lineValue(
+          "Persist attempted / persisted",
+          `${learningAccelerationPersistAttempted}/${learningAccelerationResearchOnlyPersisted}`,
+        ),
+        lineValue(
+          "Research duplicates",
+          String(learningAccelerationDuplicates),
+        ),
+        lineValue(
           "Visible vs research-only evaluated",
           `${learningAccelerationVisibleEvaluated}/${learningAccelerationResearchEvaluated}`,
         ),
@@ -4596,11 +4678,11 @@ function buildSections(
         ),
         lineValue(
           "Provider cap / skipped due budget",
-          `${input.outcome_evaluation?.provider_budget_limit ?? providerPlanProfile.outcomeBudgetLimit ?? "unknown"} / ${input.outcome_evaluation?.skipped_due_to_budget_count ?? input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ?? 0}`,
+          `${input.outcome_evaluation?.provider_budget_limit ?? providerPlanProfile.outcomeBudgetLimit ?? "unknown"} / ${learningAccelerationSkippedBudget}`,
         ),
         lineValue(
           "Skipped invalid/stale",
-          `${input.active_scan_trace?.learning_acceleration_skipped_due_to_invalid_risk_count ?? 0}/${input.active_scan_trace?.learning_acceleration_skipped_due_to_stale_reference_count ?? 0}`,
+          `${learningAccelerationSkippedInvalid}/${learningAccelerationSkippedStale}`,
         ),
         lineValue(
           "Top research tickers",
@@ -4633,6 +4715,21 @@ function buildSections(
           learningAccelerationBelowThresholdUnmatched,
         learning_acceleration_input_mismatch:
           learningAccelerationInputMismatch,
+        learning_acceleration_input_source: learningAccelerationInputSource,
+        below_threshold_readback_count:
+          learningAccelerationBelowThresholdReadback,
+        below_threshold_runtime_input_count:
+          learningAccelerationRuntimeInputCount,
+        below_threshold_examples_count:
+          learningAccelerationExamplesCount,
+        research_candidates_after_ticker_match:
+          learningAccelerationMatchedCandidates,
+        research_persist_attempted:
+          learningAccelerationPersistAttempted,
+        research_persisted: learningAccelerationResearchOnlyPersisted,
+        research_duplicates: learningAccelerationDuplicates,
+        research_skipped_missing_candidate_match:
+          learningAccelerationSkippedMissingCandidate,
         learning_acceleration_research_only_persisted:
           learningAccelerationResearchOnlyPersisted,
         learning_acceleration_visible_evaluated:
@@ -4652,15 +4749,11 @@ function buildSections(
           input.outcome_evaluation?.provider_budget_limit ??
           providerPlanProfile.outcomeBudgetLimit,
         learning_acceleration_skipped_due_to_budget:
-          input.outcome_evaluation?.skipped_due_to_budget_count ??
-          input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ??
-          0,
+          learningAccelerationSkippedBudget,
         learning_acceleration_skipped_due_to_invalid_risk:
-          input.active_scan_trace
-            ?.learning_acceleration_skipped_due_to_invalid_risk_count ?? 0,
+          learningAccelerationSkippedInvalid,
         learning_acceleration_skipped_due_to_stale_reference:
-          input.active_scan_trace
-            ?.learning_acceleration_skipped_due_to_stale_reference_count ?? 0,
+          learningAccelerationSkippedStale,
         learning_acceleration_top_research_sample_tickers:
           learningAccelerationTopTickers.join(", "),
         learning_acceleration_sample_quality_good:

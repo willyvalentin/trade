@@ -252,6 +252,12 @@ test("selected below-publish-threshold candidates are persisted as research-only
 
   expect(selection.selected_below_threshold_count).toBe(1);
   expect(selection.research_only_persisted_count).toBe(1);
+  expect(selection.below_threshold_runtime_input_count).toBe(1);
+  expect(selection.research_candidates_after_ticker_match_count).toBe(1);
+  expect(selection.research_persist_attempted_count).toBe(1);
+  expect(selection.learning_acceleration_input_source).toBe(
+    "selected_candidate_build_diagnostics",
+  );
   expect(selection.samples).toHaveLength(1);
   expect(selection.samples[0]).toMatchObject({
     ticker: "PLTR",
@@ -284,8 +290,16 @@ test("selected-to-built drop-off examples are passed into learning acceleration"
 
   expect(selection.selected_below_threshold_readback_count).toBe(10);
   expect(selection.selected_below_threshold_passed_count).toBe(2);
+  expect(selection.below_threshold_runtime_input_count).toBe(2);
+  expect(selection.below_threshold_examples_count).toBe(2);
   expect(selection.selected_below_threshold_matched_by_ticker_count).toBe(2);
   expect(selection.selected_below_threshold_unmatched_by_ticker_count).toBe(0);
+  expect(selection.research_candidates_after_ticker_match_count).toBe(2);
+  expect(selection.research_persist_attempted_count).toBe(2);
+  expect(selection.research_skipped_missing_candidate_match_count).toBe(0);
+  expect(selection.learning_acceleration_input_source).toBe(
+    "selected_to_built_drop_off_examples",
+  );
   expect(selection.learning_acceleration_input_mismatch).toBe(true);
   expect(selection.samples.map((sample) => sample.ticker)).toEqual([
     "PLTR",
@@ -317,6 +331,10 @@ test("learning acceleration reports input mismatch when drop-off has no passed d
 
   expect(selection.selected_below_threshold_readback_count).toBe(10);
   expect(selection.selected_below_threshold_passed_count).toBe(0);
+  expect(selection.below_threshold_runtime_input_count).toBe(0);
+  expect(selection.learning_acceleration_input_source).toBe(
+    "selected_to_built_drop_off_count_only",
+  );
   expect(selection.learning_acceleration_input_mismatch).toBe(true);
   expect(selection.samples).toHaveLength(0);
 });
@@ -377,6 +395,8 @@ test("research samples respect budget cap", () => {
     "NVDA",
   ]);
   expect(deduped.skipped_due_to_duplicate_count).toBe(1);
+  expect(deduped.research_duplicates_count).toBe(1);
+  expect(deduped.learning_acceleration_input_source).toBe("ranking_overflow");
 });
 
 test("invalid, stale, and incomplete candidates are excluded from research samples", () => {

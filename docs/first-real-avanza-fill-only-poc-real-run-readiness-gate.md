@@ -879,3 +879,217 @@ Status meanings remain unchanged: ready states do not mean execution occurred, p
 Safety note: Action 1087 is documentation/confirmation-state only. It does not perform a live invocation, does not access Avanza, does not launch/control a browser, does not query DOM, does not fill fields, does not click Granska kop, does not open a review modal, does not click Bekrafta kop/salj, does not submit/place an order, does not handle credentials/session data, and does not call Supabase/provider/scanner/routes/audit-writer paths. Confirmation remains deferred until the exact fresh operator confirmation is provided.
 
 Progress/readiness remains: Ture production/data-health 95–97%; market-window live dry-run 92–95%; semi-auto agent foundation 98–99%; semi-auto Avanza/browser-agent readiness 99–100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10–15% deferred; total Ture toward semi-auto MVP 99–100%.
+
+## Action 1088 Follow-Up - Final Live Execute Attempt Explicit Invocation Trigger Preflight Confirmation Ready
+
+Action 1088 — Capture Final Live Execute Attempt Explicit Invocation Trigger Preflight Confirmation completed with confirmation decision: `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`.
+
+Decision transition: `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred -> final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`.
+
+Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`.
+
+Captured confirmation: the exact fresh `FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER PREFLIGHT CONFIRMATION:` text was provided in Action 1088 and recorded verbatim in `docs/first-real-avanza-fill-only-poc-final-live-execute-attempt-explicit-invocation-trigger-preflight-confirmation.md`. This is the trigger preflight confirmation, not the exact trigger phrase.
+
+Recommended next action: Action 1089 — Add Final Live Execute Attempt Explicit Invocation Trigger Final Gate. Action 1089 must still not place an order and must still not click Granska kop. This is not a recommendation to run a live attempt or post the exact trigger phrase.
+
+Preserved prior states: `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`, `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`, `final_live_execute_attempt_explicit_invocation_final_gate_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`, `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`, `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`, `final_live_execute_attempt_execution_gate_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`, `final_live_execute_attempt_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`, `final_live_execute_attempt_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`, `final_execute_attempt_gate_ready`, `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`, `execute_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`, `ready_for_final_live_execute_attempt`, `final_live_execute_attempt_plan_created`, `ready_for_final_live_execute_attempt_explicit_invocation`, `final_live_execute_attempt_explicit_invocation_plan_created`, `ready_for_final_live_execute_attempt_explicit_invocation_trigger`, and `final_live_execute_attempt_explicit_invocation_trigger_plan_created`.
+
+Status meanings remain unchanged: ready states do not mean execution occurred, plan-created states do not mean order placement, and trigger readiness does not authorize review click, final confirm, submit, or order placement.
+
+Safety note: Action 1088 is documentation/decision-capture only. It does not perform a live invocation, does not invoke the exact trigger phrase, does not access Avanza, does not launch/control a browser, does not query DOM, does not fill fields, does not click Granska kop, does not open a review modal, does not click Bekrafta kop/salj, does not submit/place an order, does not handle credentials/session data, and does not call Supabase/provider/scanner/routes/audit-writer paths.
+
+Progress/readiness remains: Ture production/data-health 95–97%; market-window live dry-run 92–95%; semi-auto agent foundation 98–99%; semi-auto Avanza/browser-agent readiness 99–100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10–15% deferred; total Ture toward semi-auto MVP 99–100%.
+
+## Action 1089 Follow-Up - Final Live Execute Attempt Explicit Invocation Trigger Final Gate
+
+Action 1089 — Add Final Live Execute Attempt Explicit Invocation Trigger Final Gate completed with final trigger gate decision: `final_live_execute_attempt_explicit_invocation_trigger_final_gate_ready`.
+
+Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_final_gate_added`.
+
+Gate meaning: ready only for adding a future exact trigger phrase capture/request action. It does not mean execution occurred, does not mean the exact trigger phrase was invoked, and does not authorize review click, final confirm, submit, or order placement.
+
+Recommended next action: Action 1090 — Add Final Live Execute Attempt Exact Trigger Phrase Capture. Action 1090 must still not place an order and must still not click Granska kop. This is not a recommendation to run a live attempt or invoke the exact trigger phrase.
+
+Preserved prior states: `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`, `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`, `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`, `final_live_execute_attempt_explicit_invocation_final_gate_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`, `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`, `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`, `final_live_execute_attempt_execution_gate_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`, `final_live_execute_attempt_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`, `final_live_execute_attempt_checklist_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`, `final_execute_attempt_gate_ready`, `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`, `execute_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`, `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`, `ready_for_final_live_execute_attempt`, `final_live_execute_attempt_plan_created`, `ready_for_final_live_execute_attempt_explicit_invocation`, `final_live_execute_attempt_explicit_invocation_plan_created`, `ready_for_final_live_execute_attempt_explicit_invocation_trigger`, and `final_live_execute_attempt_explicit_invocation_trigger_plan_created`.
+
+Status meanings remain unchanged: ready states do not mean execution occurred, plan-created states do not mean order placement, and trigger readiness does not authorize review click, final confirm, submit, or order placement.
+
+Safety note: Action 1089 is documentation/static gate only. It does not perform a live invocation, does not invoke the exact trigger phrase, does not access Avanza, does not launch/control a browser, does not query DOM, does not fill fields, does not click Granska kop, does not open a review modal, does not click Bekrafta kop/salj, does not submit/place an order, does not handle credentials/session data, and does not call Supabase/provider/scanner/routes/audit-writer paths.
+
+Progress/readiness remains: Ture production/data-health 95–97%; market-window live dry-run 92–95%; semi-auto agent foundation 98–99%; semi-auto Avanza/browser-agent readiness 99–100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10–15% deferred; total Ture toward semi-auto MVP 99–100%.
+
+## Action 1090 Follow-Up - Final Live Execute Attempt Exact Trigger Phrase Capture
+
+Action 1090 added the final live execute attempt exact trigger phrase capture state document. Because the exact operator-provided trigger phrase was not included in the Action 1090 request, capture remains deferred and must not be treated as ready or invoked.
+
+- Action: Action 1090 — Add Final Live Execute Attempt Exact Trigger Phrase Capture
+- Decision: `final_live_execute_attempt_exact_trigger_phrase_capture_deferred`
+- Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_added`
+- Recommended next action: Action 1091 — Provide Final Live Execute Attempt Exact Trigger Phrase
+- Exact trigger phrase status: template recorded only; exact phrase was not provided in the Action 1090 request.
+- Exact trigger phrase invocation status: not invoked.
+- Live execution status: no live invocation, no Avanza/browser/DOM/fill/click/review/final/submit/order-placement activity, and no Supabase/provider/scan/audit-writer invocation occurred.
+- Denial harness status: skipped because denial harness scripts would execute live Supabase checks and are outside this documentation-only action.
+
+Preserved prerequisite states:
+
+- `final_live_execute_attempt_explicit_invocation_trigger_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`
+- `final_live_execute_attempt_explicit_invocation_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`
+- `final_live_execute_attempt_execution_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`
+- `final_live_execute_attempt_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`
+- `final_live_execute_attempt_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`
+- `final_execute_attempt_gate_ready`
+- `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`
+- `execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`
+- `ready_for_final_live_execute_attempt`
+- `final_live_execute_attempt_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation`
+- `final_live_execute_attempt_explicit_invocation_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation_trigger`
+- `final_live_execute_attempt_explicit_invocation_trigger_plan_created`
+
+Status meanings preserved: ready states do not mean execution occurred; plan-created states do not mean order placement; `final_live_execute_attempt_exact_trigger_phrase_capture_ready` would not mean execution occurred even in a future action. The trigger must stop before Granska köp, must never click Granska köp, must never open the review modal, must never click Bekräfta köp/sälj, must never submit/place an order, must never handle credentials/session data, and must abort on mismatch or uncertainty.
+
+Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
+
+## Action 1091 Follow-Up - Final Live Execute Attempt Exact Trigger Phrase Captured
+
+Action 1091 captured the final live execute attempt exact trigger phrase as documentation/decision-capture only. The exact phrase was provided and recorded verbatim, but it was not invoked or executed.
+
+- Action: Action 1091 — Capture Final Live Execute Attempt Exact Trigger Phrase
+- Captured exact trigger phrase: `FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER: I explicitly request the final live fill-only execute attempt trigger now, with the approved boundary, stopping before Granska köp and without order placement.`
+- Decision: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`
+- Decision transition: `final_live_execute_attempt_exact_trigger_phrase_capture_deferred` -> `final_live_execute_attempt_exact_trigger_phrase_capture_ready`
+- Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_ready`
+- Recommended next action: Action 1092 — Add Final Live Execute Attempt Exact Trigger Phrase Final Gate
+- Exact trigger phrase invocation status: captured only; not invoked and not executed.
+- Live execution status: no live invocation, no Avanza/browser/DOM/fill/click/review/final/submit/order-placement activity, and no Supabase/provider/scan/audit-writer invocation occurred.
+- Trigger/action/wrapper/runner status: not invoked or called by Action 1091.
+- Denial harness status: skipped because denial harness scripts would execute live Supabase checks and are outside this documentation-only action.
+
+Preserved prerequisite states:
+
+- `final_live_execute_attempt_exact_trigger_phrase_capture_deferred`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`
+- `final_live_execute_attempt_explicit_invocation_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`
+- `final_live_execute_attempt_execution_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`
+- `final_live_execute_attempt_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`
+- `final_live_execute_attempt_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`
+- `final_execute_attempt_gate_ready`
+- `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`
+- `execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`
+- `ready_for_final_live_execute_attempt`
+- `final_live_execute_attempt_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation`
+- `final_live_execute_attempt_explicit_invocation_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation_trigger`
+- `final_live_execute_attempt_explicit_invocation_trigger_plan_created`
+
+Status meanings preserved: ready states do not mean execution occurred; plan-created states do not mean order placement; `final_live_execute_attempt_exact_trigger_phrase_capture_ready` does not mean execution occurred. The trigger must stop before Granska köp, must never click Granska köp, must never open the review modal, must never click Bekräfta köp/sälj, must never submit/place an order, must never handle credentials/session data, and must abort on mismatch or uncertainty.
+
+Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
+
+## Action 1092 Follow-Up - Final Live Execute Attempt Exact Trigger Phrase Final Gate
+
+Action 1092 added the final live execute attempt exact trigger phrase final gate as documentation/static gate only. The exact trigger phrase remains captured from Action 1091, but it was not invoked or executed by Action 1092.
+
+- Action: Action 1092 — Add Final Live Execute Attempt Exact Trigger Phrase Final Gate
+- Decision: `final_live_execute_attempt_exact_trigger_phrase_final_gate_ready`
+- Result status: `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_final_gate_added`
+- Recommended next action: Action 1093 — Add Final Live Execute Attempt Exact Trigger Phrase Invocation Gate
+- Exact trigger phrase status: captured in Action 1091; not invoked by Action 1092.
+- Live execution status: no live invocation, no Avanza/browser/DOM/fill/click/review/final/submit/order-placement activity, and no Supabase/provider/scan/audit-writer invocation occurred.
+- Trigger/action/wrapper/runner status: not invoked or called by Action 1092.
+- Denial harness status: skipped because denial harness scripts would execute live Supabase checks and are outside this documentation-only action.
+
+Preserved prerequisite states:
+
+- `final_live_execute_attempt_exact_trigger_phrase_capture_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_ready`
+- `final_live_execute_attempt_exact_trigger_phrase_capture_deferred`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_exact_trigger_phrase_capture_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_deferred`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_confirmation_added`
+- `final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_trigger_added`
+- `final_live_execute_attempt_explicit_invocation_final_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_final_gate_added`
+- `final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_confirmation_ready`
+- `final_live_execute_attempt_explicit_invocation_preflight_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_preflight_checklist_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_simulation_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_explicit_invocation_action_added`
+- `final_live_execute_attempt_execution_gate_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_execution_gate_added`
+- `final_live_execute_attempt_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_confirmation_ready`
+- `final_live_execute_attempt_checklist_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_checklist_added`
+- `final_execute_attempt_gate_ready`
+- `first_real_avanza_fill_only_poc_final_execute_attempt_gate_added`
+- `execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_execute_checklist_confirmation_ready`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_added`
+- `first_real_avanza_fill_only_poc_final_live_execute_attempt_wrapper_simulation_added`
+- `ready_for_final_live_execute_attempt`
+- `final_live_execute_attempt_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation`
+- `final_live_execute_attempt_explicit_invocation_plan_created`
+- `ready_for_final_live_execute_attempt_explicit_invocation_trigger`
+- `final_live_execute_attempt_explicit_invocation_trigger_plan_created`
+
+Status meanings preserved: ready states do not mean execution occurred; plan-created states do not mean order placement; `final_live_execute_attempt_exact_trigger_phrase_capture_ready` does not mean execution occurred. The trigger must stop before Granska köp, must never click Granska köp, must never open the review modal, must never click Bekräfta köp/sälj, must never submit/place an order, must never handle credentials/session data, and must abort on mismatch or uncertainty.
+
+Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.

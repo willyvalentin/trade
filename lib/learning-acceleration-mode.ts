@@ -81,6 +81,18 @@ export type LearningAccelerationResearchSelectionSummary = {
   selected_below_threshold_matched_by_ticker_count: number;
   selected_below_threshold_unmatched_by_ticker_count: number;
   learning_acceleration_input_mismatch: boolean;
+  below_threshold_runtime_input_count: number;
+  below_threshold_examples_count: number;
+  research_candidates_after_ticker_match_count: number;
+  research_persist_attempted_count: number;
+  research_duplicates_count: number;
+  research_skipped_missing_candidate_match_count: number;
+  learning_acceleration_input_source:
+    | "selected_candidate_build_diagnostics"
+    | "selected_to_built_drop_off_examples"
+    | "selected_to_built_drop_off_count_only"
+    | "ranking_overflow"
+    | "none";
   research_only_persisted_count: number;
   skipped_due_to_budget_count: number;
   skipped_due_to_duplicate_count: number;
@@ -363,6 +375,7 @@ export function buildLearningAccelerationResearchSelection({
     ...explicitBelowThresholdDiagnostics,
     ...fallbackBelowThresholdDiagnostics,
   ];
+  const belowThresholdExamplesCount = dropOffBelowThresholdExamples.length;
   const selectedBelowThresholdReadbackCount =
     selectedToBuiltDropOff?.rejection_counts.below_publish_threshold ??
     belowThresholdDiagnostics.length;
@@ -380,6 +393,14 @@ export function buildLearningAccelerationResearchSelection({
     selectedBelowThresholdReadbackCount > 0 &&
     (belowThresholdDiagnostics.length === 0 ||
       belowThresholdDiagnostics.length !== selectedBelowThresholdReadbackCount);
+  const learningAccelerationInputSource: LearningAccelerationResearchSelectionSummary["learning_acceleration_input_source"] =
+    explicitBelowThresholdDiagnostics.length > 0
+      ? "selected_candidate_build_diagnostics"
+      : fallbackBelowThresholdDiagnostics.length > 0
+        ? "selected_to_built_drop_off_examples"
+        : selectedBelowThresholdReadbackCount > 0
+          ? "selected_to_built_drop_off_count_only"
+          : "none";
   const belowThresholdByTicker = new Map(
     belowThresholdDiagnostics.map((diagnostic) => [
       tickerKey(diagnostic.ticker),
@@ -402,6 +423,15 @@ export function buildLearningAccelerationResearchSelection({
     selected_below_threshold_unmatched_by_ticker_count:
       selectedBelowThresholdUnmatchedByTickerCount,
     learning_acceleration_input_mismatch: learningAccelerationInputMismatch,
+    below_threshold_runtime_input_count: belowThresholdDiagnostics.length,
+    below_threshold_examples_count: belowThresholdExamplesCount,
+    research_candidates_after_ticker_match_count:
+      selectedBelowThresholdMatchedByTickerCount,
+    research_persist_attempted_count: 0,
+    research_duplicates_count: 0,
+    research_skipped_missing_candidate_match_count:
+      selectedBelowThresholdUnmatchedByTickerCount,
+    learning_acceleration_input_source: learningAccelerationInputSource,
     research_only_persisted_count: 0,
     skipped_due_to_budget_count: 0,
     skipped_due_to_duplicate_count: 0,
@@ -587,11 +617,18 @@ export function buildLearningAccelerationResearchSelection({
       skippedMissingCriticalFields -
       skippedSanitizer,
   );
+  const effectiveInputSource =
+    learningAccelerationInputSource === "none" && rankedResults.length > 0
+      ? "ranking_overflow"
+      : learningAccelerationInputSource;
 
   return {
     ...disabledSummary,
     samples,
     samples_collected_count: samples.length,
+    research_persist_attempted_count: samples.length,
+    research_duplicates_count: skippedDuplicate,
+    learning_acceleration_input_source: effectiveInputSource,
     research_only_persisted_count: samples.length,
     skipped_due_to_budget_count: eligibleRemainder,
     skipped_due_to_duplicate_count: skippedDuplicate,

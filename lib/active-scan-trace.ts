@@ -83,6 +83,18 @@ export type ActiveScanTrace = {
   learning_acceleration_selected_below_threshold_matched_by_ticker_count: number;
   learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: number;
   learning_acceleration_input_mismatch: boolean;
+  below_threshold_readback_count: number;
+  below_threshold_runtime_input_count: number;
+  below_threshold_examples_count: number;
+  research_candidates_after_ticker_match: number;
+  research_persist_attempted: number;
+  research_persisted: number;
+  research_duplicates: number;
+  research_skipped_invalid: number;
+  research_skipped_stale: number;
+  research_skipped_budget: number;
+  research_skipped_missing_candidate_match: number;
+  learning_acceleration_input_source: string;
   learning_acceleration_research_only_persisted_count: number;
   learning_acceleration_skipped_due_to_budget_count: number;
   learning_acceleration_skipped_due_to_invalid_risk_count: number;
@@ -291,6 +303,18 @@ export function createActiveScanTrace({
     learning_acceleration_selected_below_threshold_matched_by_ticker_count: 0,
     learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: 0,
     learning_acceleration_input_mismatch: false,
+    below_threshold_readback_count: 0,
+    below_threshold_runtime_input_count: 0,
+    below_threshold_examples_count: 0,
+    research_candidates_after_ticker_match: 0,
+    research_persist_attempted: 0,
+    research_persisted: 0,
+    research_duplicates: 0,
+    research_skipped_invalid: 0,
+    research_skipped_stale: 0,
+    research_skipped_budget: 0,
+    research_skipped_missing_candidate_match: 0,
+    learning_acceleration_input_source: "none",
     learning_acceleration_research_only_persisted_count: 0,
     learning_acceleration_skipped_due_to_budget_count: 0,
     learning_acceleration_skipped_due_to_invalid_risk_count: 0,
