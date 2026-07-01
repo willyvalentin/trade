@@ -568,7 +568,7 @@ main {
 .trade-stage {
   width: min(1214px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 120px 0 300px;
+  padding: 60px 0 300px;
 }
 
 .trade-dashboard-navigation {
@@ -581,7 +581,7 @@ main {
 .trade-primary-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  gap: 16px;
   width: 100%;
 }
 
@@ -705,6 +705,15 @@ main {
   background: rgb(146 255 237 / 0.08);
   color: rgb(0 184 153 / 0.42);
   cursor: not-allowed;
+}
+
+.trade-primary-statusbar__refresh--refreshing,
+.trade-primary-statusbar__refresh--refreshing:disabled,
+.trade-primary-statusbar__refresh--refreshing:hover {
+  width: 102px;
+  border: 1px solid rgb(146 255 237 / 0.1);
+  background: transparent;
+  color: #00b899;
 }
 
 .trade-learning-mode-banner {
@@ -1029,6 +1038,7 @@ main {
 .trade-recommendation-action {
   border-radius: 10px;
   font-size: 20px;
+  line-height: 20px;
   width: 100%;
 }
 
@@ -1050,9 +1060,11 @@ main {
   background: #5a5d66;
 }
 
-.trade-recommendation-action:disabled {
-  border-color: #343944;
-  background: #242832;
+.trade-recommendation-action:disabled,
+.trade-recommendation-action--primary:disabled,
+.trade-recommendation-action--primary:disabled:hover {
+  border: 1px solid #464b57;
+  background: transparent;
   color: #6d737f;
   cursor: not-allowed;
 }

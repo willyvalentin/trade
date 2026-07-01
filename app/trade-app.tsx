@@ -38284,12 +38284,19 @@ function TradePrimaryStatusbar({
 
       <button
         type="button"
-        className="trade-primary-statusbar__refresh"
-        aria-label="Refresh recommendations and market status"
+        className={`trade-primary-statusbar__refresh ${
+          isRefreshing ? "trade-primary-statusbar__refresh--refreshing" : ""
+        }`}
+        aria-label={
+          isRefreshing
+            ? "Refreshing dashboard data"
+            : "Refresh dashboard data"
+        }
+        aria-busy={isRefreshing}
         onClick={onRefresh}
         disabled={isDisabled || isRefreshing}
       >
-        {isRefreshing ? "Refreshing" : "Refresh"}
+        {isRefreshing ? "REFRESHING" : "REFRESH"}
       </button>
     </div>
   );
