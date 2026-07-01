@@ -87,8 +87,12 @@ export type LearningAccelerationResearchSelectionSummary = {
   research_persist_attempted_count: number;
   research_duplicates_count: number;
   research_skipped_missing_candidate_match_count: number;
+  candidate_universe_count: number;
+  candidate_universe_missing: boolean;
+  ticker_matching_failed: boolean;
   learning_acceleration_input_source:
     | "selected_candidate_build_diagnostics"
+    | "timeline_rejection_diagnostics"
     | "selected_to_built_drop_off_examples"
     | "selected_to_built_drop_off_count_only"
     | "ranking_overflow"
@@ -319,6 +323,7 @@ export function buildLearningAccelerationResearchSelection({
   visibleTickers = [],
   scanWindow = "unknown",
   maxSamples = 25,
+  inputSourceHint = null,
 }: {
   enabled: boolean;
   candidates: RealScannerCandidate[];
@@ -328,6 +333,7 @@ export function buildLearningAccelerationResearchSelection({
   visibleTickers?: string[];
   scanWindow?: IntradayScanWindow | "unknown";
   maxSamples?: number;
+  inputSourceHint?: string | null;
 }): LearningAccelerationResearchSelectionSummary {
   const visibleTickerSet = new Set(visibleTickers.map(tickerKey));
   const explicitBelowThresholdDiagnostics = (selectedBuildDiagnostics ?? []).filter(
@@ -397,10 +403,19 @@ export function buildLearningAccelerationResearchSelection({
     explicitBelowThresholdDiagnostics.length > 0
       ? "selected_candidate_build_diagnostics"
       : fallbackBelowThresholdDiagnostics.length > 0
-        ? "selected_to_built_drop_off_examples"
+        ? inputSourceHint === "timeline_rejection_diagnostics"
+          ? "timeline_rejection_diagnostics"
+          : "selected_to_built_drop_off_examples"
         : selectedBelowThresholdReadbackCount > 0
           ? "selected_to_built_drop_off_count_only"
           : "none";
+  const candidateUniverseCount = candidates.length;
+  const candidateUniverseMissing =
+    selectedBelowThresholdReadbackCount > 0 && candidateUniverseCount === 0;
+  const tickerMatchingFailed =
+    belowThresholdDiagnostics.length > 0 &&
+    candidateUniverseCount > 0 &&
+    selectedBelowThresholdMatchedByTickerCount === 0;
   const belowThresholdByTicker = new Map(
     belowThresholdDiagnostics.map((diagnostic) => [
       tickerKey(diagnostic.ticker),
@@ -431,6 +446,9 @@ export function buildLearningAccelerationResearchSelection({
     research_duplicates_count: 0,
     research_skipped_missing_candidate_match_count:
       selectedBelowThresholdUnmatchedByTickerCount,
+    candidate_universe_count: candidateUniverseCount,
+    candidate_universe_missing: candidateUniverseMissing,
+    ticker_matching_failed: tickerMatchingFailed,
     learning_acceleration_input_source: learningAccelerationInputSource,
     research_only_persisted_count: 0,
     skipped_due_to_budget_count: 0,

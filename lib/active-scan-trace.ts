@@ -94,6 +94,9 @@ export type ActiveScanTrace = {
   research_skipped_stale: number;
   research_skipped_budget: number;
   research_skipped_missing_candidate_match: number;
+  learning_acceleration_candidate_universe_count: number;
+  learning_acceleration_candidate_universe_missing: boolean;
+  learning_acceleration_ticker_matching_failed: boolean;
   learning_acceleration_input_source: string;
   learning_acceleration_research_only_persisted_count: number;
   learning_acceleration_skipped_due_to_budget_count: number;
@@ -314,6 +317,9 @@ export function createActiveScanTrace({
     research_skipped_stale: 0,
     research_skipped_budget: 0,
     research_skipped_missing_candidate_match: 0,
+    learning_acceleration_candidate_universe_count: 0,
+    learning_acceleration_candidate_universe_missing: false,
+    learning_acceleration_ticker_matching_failed: false,
     learning_acceleration_input_source: "none",
     learning_acceleration_research_only_persisted_count: 0,
     learning_acceleration_skipped_due_to_budget_count: 0,

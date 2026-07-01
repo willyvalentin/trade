@@ -156,6 +156,9 @@ export type MarketDiagnosticsConsoleInput = {
     research_skipped_stale?: number | null;
     research_skipped_budget?: number | null;
     research_skipped_missing_candidate_match?: number | null;
+    learning_acceleration_candidate_universe_count?: number | null;
+    learning_acceleration_candidate_universe_missing?: boolean | null;
+    learning_acceleration_ticker_matching_failed?: boolean | null;
     learning_acceleration_input_source?: string | null;
     learning_acceleration_research_only_persisted_count?: number | null;
     learning_acceleration_top_research_sample_tickers?: string[];
@@ -2398,6 +2401,22 @@ function buildSections(
     input.scan_readback?.research_skipped_missing_candidate_match ??
     input.active_scan_trace?.research_skipped_missing_candidate_match ??
     learningAccelerationBelowThresholdUnmatched;
+  const learningAccelerationCandidateUniverseCount =
+    input.scan_readback?.learning_acceleration_candidate_universe_count ??
+    input.active_scan_trace?.learning_acceleration_candidate_universe_count ??
+    0;
+  const learningAccelerationCandidateUniverseMissing =
+    input.scan_readback?.learning_acceleration_candidate_universe_missing ??
+    input.active_scan_trace
+      ?.learning_acceleration_candidate_universe_missing ??
+    (learningAccelerationBelowThresholdReadback > 0 &&
+      learningAccelerationCandidateUniverseCount === 0);
+  const learningAccelerationTickerMatchingFailed =
+    input.scan_readback?.learning_acceleration_ticker_matching_failed ??
+    input.active_scan_trace?.learning_acceleration_ticker_matching_failed ??
+    (learningAccelerationRuntimeInputCount > 0 &&
+      learningAccelerationCandidateUniverseCount > 0 &&
+      learningAccelerationMatchedCandidates === 0);
   const learningAccelerationResearchOnlyPersisted =
     input.scan_readback?.learning_acceleration_research_only_persisted_count ??
     input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
@@ -4654,6 +4673,14 @@ function buildSections(
           `${learningAccelerationMatchedCandidates}/${learningAccelerationSkippedMissingCandidate}`,
         ),
         lineValue(
+          "Candidate universe",
+          `${learningAccelerationCandidateUniverseCount} / missing ${bool(learningAccelerationCandidateUniverseMissing)}`,
+        ),
+        lineValue(
+          "Ticker matching failed",
+          bool(learningAccelerationTickerMatchingFailed),
+        ),
+        lineValue(
           "Persist attempted / persisted",
           `${learningAccelerationPersistAttempted}/${learningAccelerationResearchOnlyPersisted}`,
         ),
@@ -4730,6 +4757,12 @@ function buildSections(
         research_duplicates: learningAccelerationDuplicates,
         research_skipped_missing_candidate_match:
           learningAccelerationSkippedMissingCandidate,
+        learning_acceleration_candidate_universe_count:
+          learningAccelerationCandidateUniverseCount,
+        learning_acceleration_candidate_universe_missing:
+          learningAccelerationCandidateUniverseMissing,
+        learning_acceleration_ticker_matching_failed:
+          learningAccelerationTickerMatchingFailed,
         learning_acceleration_research_only_persisted:
           learningAccelerationResearchOnlyPersisted,
         learning_acceleration_visible_evaluated:

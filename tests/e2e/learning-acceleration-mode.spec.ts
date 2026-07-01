@@ -307,6 +307,83 @@ test("selected-to-built drop-off examples are passed into learning acceleration"
   ]);
 });
 
+test("timeline rejection diagnostics can feed learning acceleration persistence", () => {
+  const selection = buildLearningAccelerationResearchSelection({
+    enabled: true,
+    candidates: [candidate("PLTR"), candidate("DIS"), candidate("DKNG")],
+    ranking: null,
+    selectedBuildDiagnostics: [],
+    selectedToBuiltDropOff: {
+      selected_count: 10,
+      built_count: 2,
+      rejected_count: 8,
+      rejection_counts: { below_publish_threshold: 8 },
+      category_counts: { quality: 8 },
+      examples_by_reason: {
+        below_publish_threshold: ["PLTR", "DIS", "DKNG", "UNH", "MSTR"],
+      },
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "8 selected candidates were below the publish threshold.",
+    },
+    visibleTickers: [],
+    scanWindow: "midday",
+    maxSamples: 25,
+    inputSourceHint: "timeline_rejection_diagnostics",
+  });
+
+  expect(selection.selected_below_threshold_readback_count).toBe(8);
+  expect(selection.below_threshold_runtime_input_count).toBe(5);
+  expect(selection.below_threshold_examples_count).toBe(5);
+  expect(selection.research_candidates_after_ticker_match_count).toBe(3);
+  expect(selection.research_skipped_missing_candidate_match_count).toBe(2);
+  expect(selection.research_persist_attempted_count).toBe(3);
+  expect(selection.research_only_persisted_count).toBe(3);
+  expect(selection.learning_acceleration_input_source).toBe(
+    "timeline_rejection_diagnostics",
+  );
+  expect(selection.candidate_universe_missing).toBe(false);
+  expect(selection.ticker_matching_failed).toBe(false);
+});
+
+test("learning acceleration surfaces missing candidate universe explicitly", () => {
+  const selection = buildLearningAccelerationResearchSelection({
+    enabled: true,
+    candidates: [],
+    ranking: null,
+    selectedBuildDiagnostics: [],
+    selectedToBuiltDropOff: {
+      selected_count: 10,
+      built_count: 2,
+      rejected_count: 8,
+      rejection_counts: { below_publish_threshold: 8 },
+      category_counts: { quality: 8 },
+      examples_by_reason: {
+        below_publish_threshold: ["PLTR", "DIS", "DKNG"],
+      },
+      output_below_target_reason_category: "healthy_caution",
+      output_below_target_explanation:
+        "8 selected candidates were below the publish threshold.",
+    },
+    visibleTickers: [],
+    scanWindow: "midday",
+    maxSamples: 25,
+    inputSourceHint: "timeline_rejection_diagnostics",
+  });
+
+  expect(selection.selected_below_threshold_readback_count).toBe(8);
+  expect(selection.below_threshold_runtime_input_count).toBe(3);
+  expect(selection.candidate_universe_count).toBe(0);
+  expect(selection.candidate_universe_missing).toBe(true);
+  expect(selection.research_candidates_after_ticker_match_count).toBe(0);
+  expect(selection.research_skipped_missing_candidate_match_count).toBe(3);
+  expect(selection.research_persist_attempted_count).toBe(0);
+  expect(selection.research_only_persisted_count).toBe(0);
+  expect(selection.learning_acceleration_input_source).toBe(
+    "timeline_rejection_diagnostics",
+  );
+});
+
 test("learning acceleration reports input mismatch when drop-off has no passed diagnostics", () => {
   const selection = buildLearningAccelerationResearchSelection({
     enabled: true,

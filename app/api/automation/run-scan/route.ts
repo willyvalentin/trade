@@ -2054,6 +2054,7 @@ async function persistAutomationArtifacts({
   providerPlanProfileMode,
   learningAccelerationMode,
   learningAccelerationTargetSamples,
+  learningAccelerationInput,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -2069,6 +2070,13 @@ async function persistAutomationArtifacts({
   providerPlanProfileMode: string | null;
   learningAccelerationMode: LearningAccelerationModeEvaluation;
   learningAccelerationTargetSamples: number;
+  learningAccelerationInput?: {
+    candidateGeneration?: RecommendationScanLogDetails["real_scanner_candidate_generation"] | null;
+    ranking?: RecommendationScanLogDetails["scanner_candidate_ranking"] | null;
+    selectedBuildDiagnostics?: RecommendationScanLogDetails["selected_candidate_build_diagnostics"];
+    selectedToBuiltDropOff?: RecommendationScanLogDetails["selected_to_built_drop_off"];
+    inputSource?: string | null;
+  } | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
   const serverSupabase = getServerSupabaseClient();
@@ -2080,7 +2088,22 @@ async function persistAutomationArtifacts({
     scanLog,
     recommendations,
   });
-  const selectedToBuiltDropOff = scanLog.selected_to_built_drop_off ?? null;
+  const learningAccelerationCandidateGeneration =
+    learningAccelerationInput?.candidateGeneration ??
+    scanLog.real_scanner_candidate_generation ??
+    null;
+  const learningAccelerationRanking =
+    learningAccelerationInput?.ranking ?? scanLog.scanner_candidate_ranking ?? null;
+  const learningAccelerationSelectedBuildDiagnostics =
+    learningAccelerationInput?.selectedBuildDiagnostics ??
+    scanLog.selected_candidate_build_diagnostics ??
+    [];
+  const selectedToBuiltDropOff =
+    learningAccelerationInput?.selectedToBuiltDropOff ??
+    scanLog.selected_to_built_drop_off ??
+    null;
+  const learningAccelerationInputSource =
+    learningAccelerationInput?.inputSource ?? null;
   const emptyScanReason = buildEmptyScanReason(selectedToBuiltDropOff);
   const buildRejectionSummary = buildScheduledScanRejectionSummary({
     dropOff: selectedToBuiltDropOff,
@@ -2106,6 +2129,7 @@ async function persistAutomationArtifacts({
     scheduled_scan_run_id: `${scanDate}:${sessionType}:${scanWindow}`,
     scanned_ticker_count: scanLog.candidates_scanned ?? null,
     raw_candidate_count:
+      learningAccelerationCandidateGeneration?.universe.candidates_generated ??
       scanLog.real_scanner_candidate_generation?.universe.candidates_generated ??
       scanLog.candidates_scanned ??
       null,
@@ -2126,17 +2150,19 @@ async function persistAutomationArtifacts({
         activeScanTrace?.trace.power_hour_publish_block_reason ?? null,
       power_hour_trial_copy: powerHourTrialCopyFields().power_hour_trial_copy,
       provider_source:
+        learningAccelerationCandidateGeneration?.provider_source ??
         scanLog.real_scanner_candidate_generation?.provider_source ??
         scanLog.indicator_source ??
         null,
       selected_to_built_drop_off: selectedToBuiltDropOff,
       selected_candidate_build_diagnostics:
-        scanLog.selected_candidate_build_diagnostics ?? [],
+        learningAccelerationSelectedBuildDiagnostics,
       reference_refresh: scanLog.reference_refresh ?? null,
       empty_scan_reason: emptyScanReason,
       build_rejection_diagnostics: {
         selected_count:
           selectedToBuiltDropOff?.selected_count ??
+          learningAccelerationRanking?.selected_count ??
           scanLog.scanner_candidate_ranking?.selected_count ??
           null,
         built_count:
@@ -2149,8 +2175,9 @@ async function persistAutomationArtifacts({
           null,
         selected_to_built_drop_off: selectedToBuiltDropOff,
         selected_candidate_build_diagnostics:
-          scanLog.selected_candidate_build_diagnostics ?? [],
+          learningAccelerationSelectedBuildDiagnostics,
         rejection_summary: buildRejectionSummary,
+        learning_acceleration_input_source: learningAccelerationInputSource,
       },
     },
   });
@@ -2204,16 +2231,17 @@ async function persistAutomationArtifacts({
   const snapshots: RecommendationSnapshot[] = [];
   const researchSelection = buildLearningAccelerationResearchSelection({
     enabled: learningAccelerationMode.learning_acceleration_enabled,
-    candidates: scanLog.real_scanner_candidate_generation?.candidates ?? [],
-    ranking: scanLog.scanner_candidate_ranking ?? null,
+    candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
+    ranking: learningAccelerationRanking,
     selectedBuildDiagnostics:
-      scanLog.selected_candidate_build_diagnostics ?? [],
-    selectedToBuiltDropOff: scanLog.selected_to_built_drop_off ?? null,
+      learningAccelerationSelectedBuildDiagnostics,
+    selectedToBuiltDropOff,
     visibleTickers: recommendations
       .map((recommendation) => recommendationTicker(recommendation))
       .filter((ticker): ticker is string => ticker !== null),
     scanWindow,
     maxSamples: learningAccelerationTargetSamples,
+    inputSourceHint: learningAccelerationInputSource,
   });
   const researchSnapshots: RecommendationSnapshot[] = [];
 
@@ -2310,6 +2338,12 @@ async function persistAutomationArtifacts({
       researchSelection.skipped_due_to_budget_count,
     research_skipped_missing_candidate_match:
       researchSelection.research_skipped_missing_candidate_match_count,
+    learning_acceleration_candidate_universe_count:
+      researchSelection.candidate_universe_count,
+    learning_acceleration_candidate_universe_missing:
+      researchSelection.candidate_universe_missing,
+    learning_acceleration_ticker_matching_failed:
+      researchSelection.ticker_matching_failed,
     learning_acceleration_input_source:
       researchSelection.learning_acceleration_input_source,
     learning_acceleration_research_only_persisted_count:
@@ -3827,6 +3861,23 @@ export async function POST(request: Request) {
 
     let artifactResult: Awaited<ReturnType<typeof persistAutomationArtifacts>> | null =
       null;
+    const generationSelectedBuildDiagnostics =
+      generationScanLog?.selected_candidate_build_diagnostics ?? [];
+    const generationSelectedToBuiltDropOff =
+      generationScanLog?.selected_to_built_drop_off ?? null;
+    const generationBelowThresholdCount =
+      generationSelectedToBuiltDropOff?.rejection_counts
+        .below_publish_threshold ?? 0;
+    const learningAccelerationInputSource =
+      generationSelectedBuildDiagnostics.some(
+        (diagnostic) =>
+          diagnostic.rejection_reason === "below_publish_threshold" &&
+          diagnostic.built !== true,
+      )
+        ? "selected_candidate_build_diagnostics"
+        : generationBelowThresholdCount > 0
+          ? "timeline_rejection_diagnostics"
+          : null;
 
     try {
       artifactResult = await persistAutomationArtifacts({
@@ -3846,6 +3897,14 @@ export async function POST(request: Request) {
         learningAccelerationMode: scheduledRuntimeConfig,
         learningAccelerationTargetSamples:
           scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
+        learningAccelerationInput: {
+          candidateGeneration:
+            generationScanLog?.real_scanner_candidate_generation ?? null,
+          ranking: generationScanLog?.scanner_candidate_ranking ?? null,
+          selectedBuildDiagnostics: generationSelectedBuildDiagnostics,
+          selectedToBuiltDropOff: generationSelectedToBuiltDropOff,
+          inputSource: learningAccelerationInputSource,
+        },
       });
       activeScanTrace.updatePersistence({
         scan_run_persisted:
@@ -4080,6 +4139,12 @@ export async function POST(request: Request) {
       research_skipped_missing_candidate_match:
         artifactResult?.learning_acceleration
           .research_skipped_missing_candidate_match_count ?? 0,
+      learning_acceleration_candidate_universe_count:
+        artifactResult?.learning_acceleration.candidate_universe_count ?? 0,
+      learning_acceleration_candidate_universe_missing:
+        artifactResult?.learning_acceleration.candidate_universe_missing ?? false,
+      learning_acceleration_ticker_matching_failed:
+        artifactResult?.learning_acceleration.ticker_matching_failed ?? false,
       learning_acceleration_research_only_persisted:
         artifactResult?.persistence.research_snapshots.filter(
           (snapshot) =>
