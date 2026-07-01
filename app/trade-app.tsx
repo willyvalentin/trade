@@ -1578,6 +1578,14 @@ type DashboardTabItem = {
   label: string;
 };
 
+type TopLevelNavKey = "dashboard" | "statistics" | "engine-insights";
+
+type SecondaryNavItem = {
+  key: TopLevelNavKey;
+  label: string;
+  tab: Tab;
+};
+
 const dashboardTabs: DashboardTabItem[] = [
   { key: "Recommendations", label: "Recommendations" },
   { key: "Live Day Trades", label: "Live Day Trades" },
@@ -1587,11 +1595,11 @@ const dotLottieWebComponentScriptId = "ture-dotlottie-wc-script";
 const dotLottieWebComponentScriptSrc =
   "https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js";
 const autoAnalyzingLottieSrc =
-  "https://lottie.host/2e6d3006-bd98-4905-ae16-89594b46c6a4/XST1EYTJ26.lottie";
-const secondaryNavItems: Array<{ label: string; tab: Tab }> = [
-  { label: "Dashboard", tab: "Recommendations" },
-  { label: "Statistics", tab: "Statistics" },
-  { label: "Engine Insights", tab: "Market" },
+  "https://lottie.host/54d2e9ae-3009-4749-b7af-737aedba949d/3HJS06xm0k.lottie";
+const secondaryNavItems: SecondaryNavItem[] = [
+  { key: "dashboard", label: "Dashboard", tab: "Recommendations" },
+  { key: "statistics", label: "Statistics", tab: "Statistics" },
+  { key: "engine-insights", label: "Engine Insights", tab: "Market" },
 ];
 const refreshIslandIds: RefreshIslandId[] = [
   "market_status",
@@ -8071,6 +8079,14 @@ function updateResultToLatestPositionUpdate(
 
 function isDashboardTab(tab: Tab): tab is DashboardTab {
   return dashboardTabs.some((item) => item.key === tab);
+}
+
+function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
+  if (item.key === "dashboard") {
+    return isDashboardTab(activeTab);
+  }
+
+  return activeTab === item.tab;
 }
 
 type TradeAppProps = {
@@ -15277,18 +15293,22 @@ export function TradeApp({
           <span>{topMarketStatusLabel(topMarketStatus)}</span>
         </div>
         <nav className="trade-secondary-nav" aria-label="Secondary navigation">
-          {secondaryNavItems.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => setActiveTab(item.tab)}
-              className={`trade-topbar-link ${
-                activeTab === item.tab ? "trade-topbar-link--active" : ""
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          {secondaryNavItems.map((item) => {
+            const isActive = isSecondaryNavItemActive(item, activeTab);
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setActiveTab(item.tab)}
+                className={`trade-topbar-link ${
+                  isActive ? "trade-topbar-link--active" : ""
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
           <Link href="/settings" className="trade-topbar-link">
             Settings
           </Link>
