@@ -1820,6 +1820,8 @@ type CompanyLogoSource = {
   companyProfile?: { logo?: unknown } | null;
 };
 
+const TURE_STOCK_FALLBACK_LOGO_SRC = "/images/ture-stock-fallback.png";
+
 function normalizeCompanyLogoUrl(value: unknown) {
   const rawValue = text(value);
 
@@ -38305,10 +38307,13 @@ function CompanyIdentity({
     size === "live" &&
     Boolean(normalizedLogoUrl) &&
     normalizedLogoUrl !== failedLogoUrl;
+  const shouldShowFallbackLogo = size === "live" && !shouldShowLogo;
   const avatarClassName =
     size === "live"
       ? `trade-company-identity__avatar trade-company-identity__avatar--live ${
-          shouldShowLogo ? "trade-company-identity__avatar--has-logo" : ""
+          shouldShowLogo || shouldShowFallbackLogo
+            ? "trade-company-identity__avatar--has-logo"
+            : ""
         }`
       : `flex shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] font-mono font-bold uppercase tracking-[0.08em] text-zinc-200 ${
           size === "compact" ? "h-10 w-10 text-xs" : "h-12 w-12 text-sm"
@@ -38338,6 +38343,15 @@ function CompanyIdentity({
             className="trade-company-identity__avatar-logo"
             loading="lazy"
             onError={() => setFailedLogoUrl(normalizedLogoUrl)}
+          />
+        ) : shouldShowFallbackLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={TURE_STOCK_FALLBACK_LOGO_SRC}
+            alt=""
+            aria-hidden="true"
+            className="trade-company-identity__avatar-logo trade-company-identity__avatar-logo--fallback"
+            loading="lazy"
           />
         ) : (
           <span aria-hidden="true">{initials}</span>

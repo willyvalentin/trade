@@ -2831,6 +2831,10 @@ main {
   object-fit: contain;
 }
 
+.trade-company-identity__avatar-logo--fallback {
+  object-fit: cover;
+}
+
 .trade-company-identity__ticker--live {
   color: #f7f8f8;
   font-family: var(--font-system-sans);
