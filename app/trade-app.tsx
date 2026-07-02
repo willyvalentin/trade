@@ -841,6 +841,13 @@ type RecommendationRow = {
   session_type: string | null;
   ticker: string;
   company_name: string | null;
+  logo_url?: string | null;
+  logoUrl?: string | null;
+  company_logo?: string | null;
+  companyLogo?: string | null;
+  image?: string | null;
+  profileImage?: string | null;
+  companyProfile?: { logo?: string | null } | null;
   direction: string | null;
   setup_type: string | null;
   entry_low: number | string | null;
@@ -888,6 +895,13 @@ type PositionRow = {
   recommendations?: { setup_type: string | null; invalidation?: string | null } | null;
   ticker: string;
   company_name: string | null;
+  logo_url?: string | null;
+  logoUrl?: string | null;
+  company_logo?: string | null;
+  companyLogo?: string | null;
+  image?: string | null;
+  profileImage?: string | null;
+  companyProfile?: { logo?: string | null } | null;
   direction?: string | null;
   entry_price: number | string | null;
   position_size: number | string | null;
@@ -1150,6 +1164,7 @@ type Recommendation = {
   sessionLabel: string;
   ticker: string;
   companyName: string;
+  logoUrl?: string | null;
   direction: Direction;
   setupType: SetupType;
   entryZone: string;
@@ -1421,6 +1436,7 @@ type ActivePosition = {
   recommendationId: string | null;
   ticker: string;
   companyName: string;
+  logoUrl?: string | null;
   direction: Direction;
   entryPrice: string;
   entryPriceValue: number | null;
@@ -1786,6 +1802,59 @@ const text = (value: unknown, fallback = "") => {
 };
 
 const displayValue = (value: unknown, fallback = "—") => text(value, fallback);
+
+type CompanyLogoSource = {
+  logoUrl?: unknown;
+  logo_url?: unknown;
+  companyLogo?: unknown;
+  company_logo?: unknown;
+  image?: unknown;
+  profileImage?: unknown;
+  companyProfile?: { logo?: unknown } | null;
+};
+
+function normalizeCompanyLogoUrl(value: unknown) {
+  const rawValue = text(value);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  if (rawValue.startsWith("/") && !rawValue.startsWith("//")) {
+    return rawValue;
+  }
+
+  try {
+    const parsed = new URL(rawValue);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveCompanyLogoUrl(source: CompanyLogoSource) {
+  const candidates = [
+    source.logoUrl,
+    source.logo_url,
+    source.companyLogo,
+    source.company_logo,
+    source.image,
+    source.profileImage,
+    source.companyProfile?.logo,
+  ];
+
+  for (const candidate of candidates) {
+    const logoUrl = normalizeCompanyLogoUrl(candidate);
+
+    if (logoUrl) {
+      return logoUrl;
+    }
+  }
+
+  return null;
+}
 
 function isDemoId(value: string | null | undefined) {
   return typeof value === "string" && value.startsWith(demoIdPrefix);
@@ -4577,6 +4646,7 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     sessionLabel: sessionLabel(recommendationSessionType),
     ticker: row.ticker,
     companyName: text(row.company_name),
+    logoUrl: resolveCompanyLogoUrl(row),
     direction: direction(row.direction),
     setupType:
       rowSetupType === "UNKNOWN" ? metadataSetupType : rowSetupType,
@@ -4663,6 +4733,7 @@ function toActivePosition(row: PositionRow): ActivePosition {
     recommendationId: row.recommendation_id ?? null,
     ticker: row.ticker,
     companyName: text(row.company_name),
+    logoUrl: resolveCompanyLogoUrl(row),
     direction: direction(row.direction),
     entryPrice: money(row.entry_price),
     entryPriceValue,
@@ -10080,6 +10151,7 @@ export function TradeApp({
         recommendationId: selectedRecommendation.id,
         ticker: selectedRecommendation.ticker,
         companyName: selectedRecommendation.companyName,
+        logoUrl: selectedRecommendation.logoUrl ?? null,
         direction: selectedRecommendation.direction,
         entryPrice: money(actualEntryPrice),
         entryPriceValue: actualEntryPrice,
@@ -15382,6 +15454,7 @@ export function TradeApp({
                     <CompanyIdentity
                       ticker={item.ticker}
                       companyName={item.companyName}
+                      logoUrl={item.logoUrl}
                       size="live"
                     />
                   )}
@@ -26396,6 +26469,7 @@ function TradeModal({
             <CompanyIdentity
               ticker={recommendation.ticker}
               companyName={recommendation.companyName}
+              logoUrl={recommendation.logoUrl}
               size="live"
             />
             <span
@@ -30755,6 +30829,7 @@ function ActivePositionCard({
               <CompanyIdentity
                 ticker={position.ticker}
                 companyName={position.companyName}
+                logoUrl={position.logoUrl}
                 size="live"
               />
             }
@@ -30817,6 +30892,7 @@ function ActivePositionCard({
         <CompanyIdentity
           ticker={position.ticker}
           companyName={position.companyName}
+          logoUrl={position.logoUrl}
           size="live"
         />
       }
@@ -32184,6 +32260,7 @@ function ClosePositionModal({
             <CompanyIdentity
               ticker={position.ticker}
               companyName={position.companyName}
+              logoUrl={position.logoUrl}
               size="live"
             />
             <RecommendationDetailsPill label="Close Position" tone="danger" />
@@ -38065,18 +38142,28 @@ function HistorySection({
 function CompanyIdentity({
   ticker,
   companyName,
+  logoUrl,
   size = "normal",
 }: {
   ticker: string;
   companyName?: string | null;
+  logoUrl?: string | null;
   size?: "normal" | "compact" | "live";
 }) {
   const safeTicker = text(ticker, "—").toUpperCase();
   const safeCompanyName = text(companyName, safeTicker);
   const initials = safeTicker.slice(0, 2) || "T";
+  const normalizedLogoUrl = normalizeCompanyLogoUrl(logoUrl);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
+  const shouldShowLogo =
+    size === "live" &&
+    Boolean(normalizedLogoUrl) &&
+    normalizedLogoUrl !== failedLogoUrl;
   const avatarClassName =
     size === "live"
-      ? "trade-company-identity__avatar trade-company-identity__avatar--live"
+      ? `trade-company-identity__avatar trade-company-identity__avatar--live ${
+          shouldShowLogo ? "trade-company-identity__avatar--has-logo" : ""
+        }`
       : `flex shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] font-mono font-bold uppercase tracking-[0.08em] text-zinc-200 ${
           size === "compact" ? "h-10 w-10 text-xs" : "h-12 w-12 text-sm"
         }`;
@@ -38094,10 +38181,21 @@ function CompanyIdentity({
   return (
     <div className="trade-company-identity flex min-w-0 items-center gap-3">
       <div
-        aria-hidden="true"
+        aria-hidden={shouldShowLogo ? undefined : true}
         className={avatarClassName}
       >
-        {initials}
+        {shouldShowLogo && normalizedLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={normalizedLogoUrl}
+            alt={`${safeCompanyName} logo`}
+            className="trade-company-identity__avatar-logo"
+            loading="lazy"
+            onError={() => setFailedLogoUrl(normalizedLogoUrl)}
+          />
+        ) : (
+          <span aria-hidden="true">{initials}</span>
+        )}
       </div>
       <div className="min-w-0">
         <div className={tickerClassName}>

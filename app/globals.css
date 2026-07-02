@@ -2817,6 +2817,20 @@ main {
   box-shadow: 0 2px 0 rgb(0 0 0 / 0.2);
 }
 
+.trade-company-identity__avatar--has-logo {
+  overflow: hidden;
+  background: #0b0f14;
+  padding: 7px;
+}
+
+.trade-company-identity__avatar-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
+}
+
 .trade-company-identity__ticker--live {
   color: #f7f8f8;
   font-family: var(--font-system-sans);
