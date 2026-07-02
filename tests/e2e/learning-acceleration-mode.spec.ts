@@ -7,6 +7,7 @@ import {
   learningAccelerationEnvValueCategory,
   shouldIncludeLearningAccelerationOutcomeSample,
 } from "../../lib/learning-acceleration-mode";
+import { createActiveScanTrace } from "../../lib/active-scan-trace";
 import type { RealScannerCandidate } from "../../lib/real-scanner-candidate-generation";
 import type {
   ScannerCandidateRankingResult,
@@ -517,4 +518,42 @@ test("outcome evaluation includes research-only samples only when enabled", () =
       learningOnly: false,
     }),
   ).toBe(true);
+});
+
+test("active scan trace records learning acceleration callsite arguments", () => {
+  const trace = createActiveScanTrace({
+    routeReceivedAt: "2026-07-02T13:45:00.000Z",
+    scheduledFunctionFiredAtUtc: "2026-07-02T13:45:00.000Z",
+    scanWindow: "morning_momentum",
+  });
+
+  trace.update({
+    learning_acceleration_callsite_trace: {
+      callsite_name: "automation_run_scan_success_persist_artifacts",
+      candidate_universe_count: 22,
+      ranked_candidate_count: 22,
+      selected_build_diagnostics_count: 20,
+      selected_to_built_drop_off_below_threshold_count: 10,
+      rejection_examples_count: 5,
+      batch_fingerprint_present: true,
+      scan_run_id_present: true,
+      persist_function_invoked: true,
+    },
+    learning_acceleration_callsite_mismatch: false,
+    learning_acceleration_expected_below_threshold_from_timeline: 10,
+    learning_acceleration_actual_below_threshold_received_by_persistence: 10,
+    learning_acceleration_candidate_universe_received_by_persistence: 22,
+  });
+
+  expect(trace.trace.learning_acceleration_callsite_trace).toMatchObject({
+    callsite_name: "automation_run_scan_success_persist_artifacts",
+    candidate_universe_count: 22,
+    selected_to_built_drop_off_below_threshold_count: 10,
+    rejection_examples_count: 5,
+    persist_function_invoked: true,
+  });
+  expect(trace.trace.learning_acceleration_callsite_mismatch).toBe(false);
+  expect(
+    trace.trace.learning_acceleration_actual_below_threshold_received_by_persistence,
+  ).toBe(10);
 });

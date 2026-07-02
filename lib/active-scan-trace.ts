@@ -28,6 +28,18 @@ export type ActiveScanTraceStageStatus =
   | "skipped"
   | "failed";
 
+export type LearningAccelerationCallsiteTrace = {
+  callsite_name: string | null;
+  candidate_universe_count: number;
+  ranked_candidate_count: number;
+  selected_build_diagnostics_count: number;
+  selected_to_built_drop_off_below_threshold_count: number;
+  rejection_examples_count: number;
+  batch_fingerprint_present: boolean;
+  scan_run_id_present: boolean;
+  persist_function_invoked: boolean;
+};
+
 export type ActiveScanTrace = {
   trace_id: string;
   automation_route_version: string;
@@ -98,6 +110,11 @@ export type ActiveScanTrace = {
   learning_acceleration_candidate_universe_missing: boolean;
   learning_acceleration_ticker_matching_failed: boolean;
   learning_acceleration_input_source: string;
+  learning_acceleration_callsite_trace: LearningAccelerationCallsiteTrace | null;
+  learning_acceleration_callsite_mismatch: boolean;
+  learning_acceleration_expected_below_threshold_from_timeline: number;
+  learning_acceleration_actual_below_threshold_received_by_persistence: number;
+  learning_acceleration_candidate_universe_received_by_persistence: number;
   learning_acceleration_research_only_persisted_count: number;
   learning_acceleration_skipped_due_to_budget_count: number;
   learning_acceleration_skipped_due_to_invalid_risk_count: number;
@@ -321,6 +338,11 @@ export function createActiveScanTrace({
     learning_acceleration_candidate_universe_missing: false,
     learning_acceleration_ticker_matching_failed: false,
     learning_acceleration_input_source: "none",
+    learning_acceleration_callsite_trace: null,
+    learning_acceleration_callsite_mismatch: false,
+    learning_acceleration_expected_below_threshold_from_timeline: 0,
+    learning_acceleration_actual_below_threshold_received_by_persistence: 0,
+    learning_acceleration_candidate_universe_received_by_persistence: 0,
     learning_acceleration_research_only_persisted_count: 0,
     learning_acceleration_skipped_due_to_budget_count: 0,
     learning_acceleration_skipped_due_to_invalid_risk_count: 0,

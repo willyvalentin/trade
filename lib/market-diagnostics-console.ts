@@ -159,6 +159,21 @@ export type MarketDiagnosticsConsoleInput = {
     learning_acceleration_candidate_universe_count?: number | null;
     learning_acceleration_candidate_universe_missing?: boolean | null;
     learning_acceleration_ticker_matching_failed?: boolean | null;
+    learning_acceleration_callsite_trace?: {
+      callsite_name?: string | null;
+      candidate_universe_count?: number | null;
+      ranked_candidate_count?: number | null;
+      selected_build_diagnostics_count?: number | null;
+      selected_to_built_drop_off_below_threshold_count?: number | null;
+      rejection_examples_count?: number | null;
+      batch_fingerprint_present?: boolean | null;
+      scan_run_id_present?: boolean | null;
+      persist_function_invoked?: boolean | null;
+    } | null;
+    learning_acceleration_callsite_mismatch?: boolean | null;
+    expected_below_threshold_from_timeline?: number | null;
+    actual_below_threshold_received_by_persistence?: number | null;
+    candidate_universe_received_by_persistence?: number | null;
     learning_acceleration_input_source?: string | null;
     learning_acceleration_research_only_persisted_count?: number | null;
     learning_acceleration_top_research_sample_tickers?: string[];
@@ -2417,6 +2432,29 @@ function buildSections(
     (learningAccelerationRuntimeInputCount > 0 &&
       learningAccelerationCandidateUniverseCount > 0 &&
       learningAccelerationMatchedCandidates === 0);
+  const learningAccelerationCallsiteTrace =
+    input.scan_readback?.learning_acceleration_callsite_trace ??
+    input.active_scan_trace?.learning_acceleration_callsite_trace ??
+    null;
+  const learningAccelerationCallsiteMismatch =
+    input.scan_readback?.learning_acceleration_callsite_mismatch ??
+    input.active_scan_trace?.learning_acceleration_callsite_mismatch ??
+    false;
+  const learningAccelerationExpectedBelowThreshold =
+    input.scan_readback?.expected_below_threshold_from_timeline ??
+    input.active_scan_trace
+      ?.learning_acceleration_expected_below_threshold_from_timeline ??
+    learningAccelerationBelowThresholdReadback;
+  const learningAccelerationActualBelowThresholdReceived =
+    input.scan_readback?.actual_below_threshold_received_by_persistence ??
+    input.active_scan_trace
+      ?.learning_acceleration_actual_below_threshold_received_by_persistence ??
+    learningAccelerationBelowThresholdReadback;
+  const learningAccelerationCandidateUniverseReceived =
+    input.scan_readback?.candidate_universe_received_by_persistence ??
+    input.active_scan_trace
+      ?.learning_acceleration_candidate_universe_received_by_persistence ??
+    learningAccelerationCandidateUniverseCount;
   const learningAccelerationResearchOnlyPersisted =
     input.scan_readback?.learning_acceleration_research_only_persisted_count ??
     input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
@@ -4665,6 +4703,30 @@ function buildSections(
           words(learningAccelerationInputSource),
         ),
         lineValue(
+          "Callsite / invoked",
+          `${words(learningAccelerationCallsiteTrace?.callsite_name ?? "none")} / ${bool(learningAccelerationCallsiteTrace?.persist_function_invoked === true)}`,
+        ),
+        lineValue(
+          "Callsite candidates/ranked/diagnostics",
+          `${learningAccelerationCallsiteTrace?.candidate_universe_count ?? 0}/${learningAccelerationCallsiteTrace?.ranked_candidate_count ?? 0}/${learningAccelerationCallsiteTrace?.selected_build_diagnostics_count ?? 0}`,
+        ),
+        lineValue(
+          "Callsite below threshold/examples",
+          `${learningAccelerationCallsiteTrace?.selected_to_built_drop_off_below_threshold_count ?? 0}/${learningAccelerationCallsiteTrace?.rejection_examples_count ?? 0}`,
+        ),
+        lineValue(
+          "Callsite mismatch",
+          bool(learningAccelerationCallsiteMismatch),
+        ),
+        lineValue(
+          "Timeline expected / persistence actual",
+          `${learningAccelerationExpectedBelowThreshold}/${learningAccelerationActualBelowThresholdReceived}`,
+        ),
+        lineValue(
+          "Persistence candidate universe",
+          String(learningAccelerationCandidateUniverseReceived),
+        ),
+        lineValue(
           "Runtime input / examples",
           `${learningAccelerationRuntimeInputCount}/${learningAccelerationExamplesCount}`,
         ),
@@ -4743,6 +4805,33 @@ function buildSections(
         learning_acceleration_input_mismatch:
           learningAccelerationInputMismatch,
         learning_acceleration_input_source: learningAccelerationInputSource,
+        learning_acceleration_callsite_name:
+          learningAccelerationCallsiteTrace?.callsite_name ?? null,
+        learning_acceleration_callsite_persist_function_invoked:
+          learningAccelerationCallsiteTrace?.persist_function_invoked === true,
+        learning_acceleration_callsite_candidate_universe_count:
+          learningAccelerationCallsiteTrace?.candidate_universe_count ?? 0,
+        learning_acceleration_callsite_ranked_candidate_count:
+          learningAccelerationCallsiteTrace?.ranked_candidate_count ?? 0,
+        learning_acceleration_callsite_selected_build_diagnostics_count:
+          learningAccelerationCallsiteTrace?.selected_build_diagnostics_count ?? 0,
+        learning_acceleration_callsite_below_threshold_count:
+          learningAccelerationCallsiteTrace
+            ?.selected_to_built_drop_off_below_threshold_count ?? 0,
+        learning_acceleration_callsite_rejection_examples_count:
+          learningAccelerationCallsiteTrace?.rejection_examples_count ?? 0,
+        learning_acceleration_callsite_batch_fingerprint_present:
+          learningAccelerationCallsiteTrace?.batch_fingerprint_present === true,
+        learning_acceleration_callsite_scan_run_id_present:
+          learningAccelerationCallsiteTrace?.scan_run_id_present === true,
+        learning_acceleration_callsite_mismatch:
+          learningAccelerationCallsiteMismatch,
+        expected_below_threshold_from_timeline:
+          learningAccelerationExpectedBelowThreshold,
+        actual_below_threshold_received_by_persistence:
+          learningAccelerationActualBelowThresholdReceived,
+        candidate_universe_received_by_persistence:
+          learningAccelerationCandidateUniverseReceived,
         below_threshold_readback_count:
           learningAccelerationBelowThresholdReadback,
         below_threshold_runtime_input_count:

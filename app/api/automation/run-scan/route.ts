@@ -2076,6 +2076,8 @@ async function persistAutomationArtifacts({
     selectedBuildDiagnostics?: RecommendationScanLogDetails["selected_candidate_build_diagnostics"];
     selectedToBuiltDropOff?: RecommendationScanLogDetails["selected_to_built_drop_off"];
     inputSource?: string | null;
+    callsiteName?: string | null;
+    expectedBelowThresholdFromTimeline?: number | null;
   } | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
@@ -2104,6 +2106,30 @@ async function persistAutomationArtifacts({
     null;
   const learningAccelerationInputSource =
     learningAccelerationInput?.inputSource ?? null;
+  const learningAccelerationCandidateUniverseCount =
+    learningAccelerationCandidateGeneration?.candidates.length ?? 0;
+  const learningAccelerationRankedCandidateCount =
+    learningAccelerationRanking?.candidates_ranked ??
+    scanLog.ranked_candidates_count ??
+    0;
+  const learningAccelerationDropOffBelowThresholdReceived =
+    selectedToBuiltDropOff?.rejection_counts.below_publish_threshold ?? 0;
+  const learningAccelerationDiagnosticBelowThresholdReceived =
+    learningAccelerationSelectedBuildDiagnostics.filter(
+      (diagnostic) =>
+        diagnostic.rejection_reason === "below_publish_threshold" &&
+        diagnostic.built !== true,
+    ).length;
+  const learningAccelerationBelowThresholdReceived = Math.max(
+    learningAccelerationDropOffBelowThresholdReceived,
+    learningAccelerationDiagnosticBelowThresholdReceived,
+  );
+  const learningAccelerationRejectionExamplesCount =
+    selectedToBuiltDropOff?.examples_by_reason.below_publish_threshold?.length ??
+    0;
+  const learningAccelerationExpectedBelowThreshold =
+    learningAccelerationInput?.expectedBelowThresholdFromTimeline ??
+    learningAccelerationBelowThresholdReceived;
   const emptyScanReason = buildEmptyScanReason(selectedToBuiltDropOff);
   const buildRejectionSummary = buildScheduledScanRejectionSummary({
     dropOff: selectedToBuiltDropOff,
@@ -2228,6 +2254,33 @@ async function persistAutomationArtifacts({
           market_session_phase: marketSession.phase,
         })
       : null;
+  const learningAccelerationCallsiteTrace = {
+    callsite_name:
+      learningAccelerationInput?.callsiteName ??
+      "automation_run_scan_success_persist_artifacts",
+    candidate_universe_count: learningAccelerationCandidateUniverseCount,
+    ranked_candidate_count: learningAccelerationRankedCandidateCount,
+    selected_build_diagnostics_count:
+      learningAccelerationSelectedBuildDiagnostics.length,
+    selected_to_built_drop_off_below_threshold_count:
+      learningAccelerationDropOffBelowThresholdReceived,
+    rejection_examples_count: learningAccelerationRejectionExamplesCount,
+    batch_fingerprint_present: anticipatedBatchFingerprint !== null,
+    scan_run_id_present: Boolean(scanRun.run_fingerprint),
+    persist_function_invoked: true,
+  };
+  activeScanTrace?.update({
+    learning_acceleration_callsite_trace: learningAccelerationCallsiteTrace,
+    learning_acceleration_callsite_mismatch:
+      learningAccelerationExpectedBelowThreshold > 0 &&
+      learningAccelerationBelowThresholdReceived === 0,
+    learning_acceleration_expected_below_threshold_from_timeline:
+      learningAccelerationExpectedBelowThreshold,
+    learning_acceleration_actual_below_threshold_received_by_persistence:
+      learningAccelerationBelowThresholdReceived,
+    learning_acceleration_candidate_universe_received_by_persistence:
+      learningAccelerationCandidateUniverseCount,
+  });
   const snapshots: RecommendationSnapshot[] = [];
   const researchSelection = buildLearningAccelerationResearchSelection({
     enabled: learningAccelerationMode.learning_acceleration_enabled,
@@ -3865,9 +3918,28 @@ export async function POST(request: Request) {
       generationScanLog?.selected_candidate_build_diagnostics ?? [];
     const generationSelectedToBuiltDropOff =
       generationScanLog?.selected_to_built_drop_off ?? null;
-    const generationBelowThresholdCount =
+    const generationDropOffBelowThresholdCount =
       generationSelectedToBuiltDropOff?.rejection_counts
         .below_publish_threshold ?? 0;
+    const generationDiagnosticBelowThresholdCount =
+      generationSelectedBuildDiagnostics.filter(
+        (diagnostic) =>
+          diagnostic.rejection_reason === "below_publish_threshold" &&
+          diagnostic.built !== true,
+      ).length;
+    const generationBelowThresholdCount = Math.max(
+      generationDropOffBelowThresholdCount,
+      generationDiagnosticBelowThresholdCount,
+    );
+    const generationRejectionExamplesCount =
+      generationSelectedToBuiltDropOff?.examples_by_reason.below_publish_threshold
+        ?.length ?? 0;
+    const generationCandidateUniverseCount =
+      generationScanLog?.real_scanner_candidate_generation?.candidates.length ?? 0;
+    const generationRankedCandidateCount =
+      generationScanLog?.scanner_candidate_ranking?.candidates_ranked ??
+      generationScanLog?.ranked_candidates_count ??
+      0;
     const learningAccelerationInputSource =
       generationSelectedBuildDiagnostics.some(
         (diagnostic) =>
@@ -3878,6 +3950,26 @@ export async function POST(request: Request) {
         : generationBelowThresholdCount > 0
           ? "timeline_rejection_diagnostics"
           : null;
+    activeScanTrace.update({
+      learning_acceleration_callsite_trace: {
+        callsite_name: "automation_run_scan_success_persist_artifacts",
+        candidate_universe_count: generationCandidateUniverseCount,
+        ranked_candidate_count: generationRankedCandidateCount,
+        selected_build_diagnostics_count:
+          generationSelectedBuildDiagnostics.length,
+        selected_to_built_drop_off_below_threshold_count:
+          generationDropOffBelowThresholdCount,
+        rejection_examples_count: generationRejectionExamplesCount,
+        batch_fingerprint_present: false,
+        scan_run_id_present: false,
+        persist_function_invoked: false,
+      },
+      learning_acceleration_expected_below_threshold_from_timeline:
+        generationBelowThresholdCount,
+      learning_acceleration_actual_below_threshold_received_by_persistence: 0,
+      learning_acceleration_candidate_universe_received_by_persistence: 0,
+      learning_acceleration_callsite_mismatch: generationBelowThresholdCount > 0,
+    });
 
     try {
       artifactResult = await persistAutomationArtifacts({
@@ -3904,6 +3996,8 @@ export async function POST(request: Request) {
           selectedBuildDiagnostics: generationSelectedBuildDiagnostics,
           selectedToBuiltDropOff: generationSelectedToBuiltDropOff,
           inputSource: learningAccelerationInputSource,
+          callsiteName: "automation_run_scan_success_persist_artifacts",
+          expectedBelowThresholdFromTimeline: generationBelowThresholdCount,
         },
       });
       activeScanTrace.updatePersistence({
@@ -4145,6 +4239,19 @@ export async function POST(request: Request) {
         artifactResult?.learning_acceleration.candidate_universe_missing ?? false,
       learning_acceleration_ticker_matching_failed:
         artifactResult?.learning_acceleration.ticker_matching_failed ?? false,
+      learning_acceleration_callsite_trace:
+        activeScanTracePayload.learning_acceleration_callsite_trace,
+      learning_acceleration_callsite_mismatch:
+        activeScanTracePayload.learning_acceleration_callsite_mismatch,
+      expected_below_threshold_from_timeline:
+        activeScanTracePayload
+          .learning_acceleration_expected_below_threshold_from_timeline,
+      actual_below_threshold_received_by_persistence:
+        activeScanTracePayload
+          .learning_acceleration_actual_below_threshold_received_by_persistence,
+      candidate_universe_received_by_persistence:
+        activeScanTracePayload
+          .learning_acceleration_candidate_universe_received_by_persistence,
       learning_acceleration_research_only_persisted:
         artifactResult?.persistence.research_snapshots.filter(
           (snapshot) =>
