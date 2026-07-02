@@ -2820,7 +2820,7 @@ main {
 .trade-company-identity__avatar--has-logo {
   overflow: hidden;
   background: #0b0f14;
-  padding: 7px;
+  padding: 0px;
 }
 
 .trade-company-identity__avatar-logo {
