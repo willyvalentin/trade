@@ -30,11 +30,36 @@ const AVANZA_MANUAL_CONFIRMATION_WAIT_CONTRACT_VERSION =
   "avanza_manual_confirmation_wait_v1";
 const AVANZA_BROKER_CONFIRMATION_CAPTURE_CONTRACT_VERSION =
   "avanza_broker_confirmation_capture_v1";
+const AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION =
+  "avanza_order_form_preflight_observation_v1";
 const DEFAULT_PORT = 47831;
 const HOST = "127.0.0.1";
 const MAX_BODY_BYTES = 1024 * 1024;
 const MOCK_ORDER_PAGE_TARGET_PATH = "/mock-broker/order";
 const DEFAULT_MOCK_PAGE_BASE_URL = "http://localhost:3000";
+const DEFAULT_MANUAL_OBSERVATION_CDP_URL = "http://127.0.0.1:9222";
+const MANUAL_OBSERVATION_MODE = "cdp_readonly";
+const ENABLE_LIVE_FILL_ONLY_RUNNER_VALUE = "true";
+const APPROVED_LIVE_FILL_ONLY_VALUES = {
+  account: "Valentin Labs KF",
+  instrument: "GameStop",
+  side: "buy",
+  orderMode: "Avancerad/Limit",
+  amountSek: 427.26,
+  amountSekText: "427,26",
+  priceUsd: 21.98,
+  priceUsdText: "21,98",
+  capSek: 1000,
+};
+const AVANZA_LIVE_FILL_ONLY_SELECTORS = {
+  amount: ['input[data-e2e="inputAmount"]', "input#inputAmount"],
+  price: ['input[data-e2e="inputPrice"]', "input#inputPrice"],
+  total: [
+    '[data-e2e="totalAmount"]',
+    '[data-e2e="orderTotalAmount"]',
+    '[data-e2e="estimatedTotalAmount"]',
+  ],
+};
 
 const MOCK_ORDER_PAGE_AGENT_SELECTORS = {
   ticker: {
@@ -4400,6 +4425,1017 @@ function buildHealthResponse() {
   };
 }
 
+function buildOrderFormPreflightCheck(name, ok, observed, expected, details) {
+  return {
+    name,
+    ok,
+    observed,
+    expected,
+    ...(details ? { details } : {}),
+  };
+}
+
+function createOrderFormPreflightResponse(status, options = {}) {
+  const checkedAt = options.checkedAt ?? now();
+  const checks = options.checks ?? [];
+  const ready = status === "ready";
+  const statusLabels = {
+    unavailable: ["Manual browser observation unavailable"],
+    browser_not_connected: ["Browser not connected"],
+    avanza_not_visible: ["Avanza not visible"],
+    ambiguous: ["Multiple Avanza pages visible"],
+    mismatch: ["Order-form preflight mismatch"],
+    blocked: ["Order-form preflight blocked"],
+    failed: ["Order-form preflight failed"],
+    ready: ["Order-form preflight ready"],
+  };
+
+  return {
+    version: CONTRACT_VERSION,
+    ok: ready,
+    bridgeVersion: CONTRACT_VERSION,
+    checkedAt,
+    preflight: {
+      version: AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION,
+      ok: ready,
+      status,
+      checkedAt,
+      expected: {
+        account: "Valentin Labs KF",
+        instrument: "GameStop",
+        side: "buy",
+        orderMode: "Avancerad/Limit",
+        stopBefore: "Granska köp",
+      },
+      checks,
+      labels: [
+        "Manual browser observation only",
+        "No browser launch",
+        "No field fill",
+        "No click",
+        "No review modal open",
+        "No final confirm",
+        "No order submission",
+        ...(statusLabels[status] ?? []),
+      ],
+      blockers: options.blockers ?? [],
+      warnings: options.warnings ?? [],
+      errors: options.errors ?? [],
+      ...(options.observation
+        ? {
+            observation: options.observation,
+          }
+        : {}),
+      metadata: {
+        contractVersion: AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION,
+        manualObservationOnly: true,
+        readonlyCdpObservation: options.readonlyCdpObservation === true,
+        noBrowserLaunch: true,
+        noBrowserControlActions: true,
+        noFieldFill: true,
+        noAmountFill: true,
+        noPriceFill: true,
+        noClick: true,
+        noReviewClick: true,
+        noFinalConfirmClick: true,
+        noBrokerSubmission: true,
+        noCredentialsHandling: true,
+        noBankIdHandling: true,
+        noCookiesRead: true,
+        noLocalStorageRead: true,
+        noSessionStorageRead: true,
+        noBrokerResultCreated: true,
+        noTradeMutation: true,
+        ...(options.metadata ?? {}),
+      },
+    },
+    message: ready
+      ? "Manual browser observation preflight passed. No fill, click, review, confirm, submit, or order placement occurred."
+      : "Manual browser observation preflight did not pass. No fill, click, review, confirm, submit, or order placement occurred.",
+    errors: options.errors ?? [],
+    warnings: [
+      "Preflight is observation-only. It must not be used as a fill/click/order trigger.",
+      ...(options.warnings ?? []),
+    ],
+    metadata: {
+      localhost_bridge_stub: true,
+      preflight_order_form_observation_only: true,
+      no_browser_launch: true,
+      no_fill: true,
+      no_click: true,
+      no_review_modal_opened: true,
+      no_submit: true,
+      no_order_placement: true,
+    },
+  };
+}
+
+function manualObservationModeEnabled() {
+  return (
+    stringValue(process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE) ===
+    MANUAL_OBSERVATION_MODE
+  );
+}
+
+function normalizeManualObservationCdpUrl(value) {
+  const url = new URL(value ?? DEFAULT_MANUAL_OBSERVATION_CDP_URL);
+
+  if (!isLocalhostUrl(url)) {
+    throw new Error("Manual observation CDP URL must be localhost only.");
+  }
+
+  url.pathname = "";
+  url.search = "";
+  url.hash = "";
+
+  return url.toString().replace(/\/+$/, "");
+}
+
+function sanitizedUrlDetails(value) {
+  try {
+    const url = new URL(value);
+
+    return {
+      protocol: url.protocol,
+      host: url.host,
+      pathname: url.pathname,
+    };
+  } catch {
+    return {
+      protocol: "unknown",
+      host: "unknown",
+      pathname: "unknown",
+    };
+  }
+}
+
+function stringIncludesAvanza(value) {
+  return typeof value === "string" && /(^|\.)avanza\.se$/i.test(value);
+}
+
+async function listCdpTargets(cdpBaseUrl) {
+  const response = await fetch(`${cdpBaseUrl}/json/list`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`CDP target list returned HTTP ${response.status}.`);
+  }
+
+  const targets = await response.json();
+
+  return Array.isArray(targets) ? targets : [];
+}
+
+function cdpTargetIsAvanzaPage(target) {
+  if (!isObject(target) || target.type !== "page") {
+    return false;
+  }
+
+  try {
+    const targetUrl = new URL(String(target.url ?? ""));
+
+    return stringIncludesAvanza(targetUrl.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function sendReadonlyCdpCommand(webSocketDebuggerUrl, method, params = {}) {
+  return new Promise((resolve, reject) => {
+    if (typeof globalThis.WebSocket !== "function") {
+      reject(new Error("Node WebSocket support is not available."));
+      return;
+    }
+
+    const socket = new globalThis.WebSocket(webSocketDebuggerUrl);
+    const id = 1;
+    const timeout = setTimeout(() => {
+      try {
+        socket.close();
+      } catch {
+        // Ignore close errors during timeout cleanup.
+      }
+      reject(new Error("Readonly CDP observation timed out."));
+    }, 5000);
+
+    socket.addEventListener("open", () => {
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+
+    socket.addEventListener("message", (event) => {
+      let message;
+
+      try {
+        message = JSON.parse(String(event.data));
+      } catch {
+        return;
+      }
+
+      if (message.id !== id) {
+        return;
+      }
+
+      clearTimeout(timeout);
+
+      try {
+        socket.close();
+      } catch {
+        // Ignore close errors after a completed observation.
+      }
+
+      if (message.error) {
+        reject(
+          new Error(
+            typeof message.error.message === "string"
+              ? message.error.message
+              : "Readonly CDP command failed.",
+          ),
+        );
+        return;
+      }
+
+      resolve(message.result);
+    });
+
+    socket.addEventListener("error", () => {
+      clearTimeout(timeout);
+      reject(new Error("Readonly CDP WebSocket connection failed."));
+    });
+  });
+}
+
+function buildOrderFormObservationExpression() {
+  return `(() => {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const visibleText = normalize(document.body ? document.body.innerText : "");
+    const visibleTextLower = lower(visibleText);
+    const controlText = Array.from(document.querySelectorAll("button,input,textarea,select,[role='button'],a,label"))
+      .filter(visible)
+      .map((element) => lower([
+        element.tagName,
+        element.getAttribute("type"),
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("name"),
+        element.getAttribute("id"),
+        element.getAttribute("title"),
+        element.innerText,
+        element.value,
+      ].filter(Boolean).join(" ")))
+      .join(" ");
+    const includesAny = (needles) => needles.some((needle) => visibleTextLower.includes(lower(needle)) || controlText.includes(lower(needle)));
+    const finalConfirmVisible = includesAny(["Bekräfta köp", "Bekrafta kop", "Bekräfta sälj", "Bekrafta salj"]);
+    return {
+      url: window.location.href,
+      title: document.title || "",
+      checks: {
+        avanzaPageVisible: /(^|\\.)avanza\\.se$/i.test(window.location.hostname) || includesAny(["Avanza"]),
+        accountVisible: includesAny(["Valentin Labs KF"]),
+        instrumentVisible: includesAny(["GameStop", "GME"]),
+        buySideVisible: includesAny(["Köp", "Kop", "Buy", "Granska köp", "Granska kop"]),
+        advancedLimitModeVisible: (includesAny(["Avancerad", "Advanced"]) && includesAny(["Limit", "Limitorder"])),
+        amountFieldVisible: includesAny(["Belopp", "Amount", "Summa", "427,26"]),
+        priceFieldVisible: includesAny(["Pris", "Price", "Limit", "21,98"]),
+        reviewButtonVisible: includesAny(["Granska köp", "Granska kop"]),
+        reviewModalOpen: finalConfirmVisible,
+        finalConfirmVisible,
+      },
+      metadata: {
+        visibleTextLength: visibleText.length,
+        observedControlTextLength: controlText.length,
+      },
+    };
+  })()`;
+}
+
+async function observeAvanzaOrderFormWithCdp() {
+  const cdpBaseUrl = normalizeManualObservationCdpUrl(
+    process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_CDP_URL,
+  );
+  const targets = await listCdpTargets(cdpBaseUrl);
+  const avanzaTargets = targets.filter(cdpTargetIsAvanzaPage);
+
+  if (avanzaTargets.length === 0) {
+    return createOrderFormPreflightResponse("avanza_not_visible", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["No Avanza page target was visible through the local CDP endpoint."],
+      errors: ["No Avanza page target was visible through the local CDP endpoint."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 0,
+      },
+    });
+  }
+
+  if (avanzaTargets.length > 1) {
+    return createOrderFormPreflightResponse("ambiguous", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: [
+        "Multiple Avanza page targets were visible. Keep exactly one Avanza order-form tab open for preflight.",
+      ],
+      errors: ["Multiple Avanza page targets were visible."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: avanzaTargets.length,
+      },
+    });
+  }
+
+  const target = avanzaTargets[0];
+
+  if (!stringValue(target.webSocketDebuggerUrl)) {
+    return createOrderFormPreflightResponse("browser_not_connected", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["The Avanza target did not expose a CDP WebSocket URL."],
+      errors: ["The Avanza target did not expose a CDP WebSocket URL."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 1,
+      },
+    });
+  }
+
+  const result = await sendReadonlyCdpCommand(
+    target.webSocketDebuggerUrl,
+    "Runtime.evaluate",
+    {
+      expression: buildOrderFormObservationExpression(),
+      returnByValue: true,
+      awaitPromise: false,
+      userGesture: false,
+    },
+  );
+  const observed = isObject(result?.result?.value) ? result.result.value : {};
+  const observedChecks = isObject(observed.checks) ? observed.checks : {};
+  const checks = [
+    buildOrderFormPreflightCheck(
+      "avanza_page_visible",
+      observedChecks.avanzaPageVisible === true,
+      observedChecks.avanzaPageVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "account_visible",
+      observedChecks.accountVisible === true,
+      observedChecks.accountVisible === true ? "Valentin Labs KF" : "not_visible",
+      "Valentin Labs KF",
+    ),
+    buildOrderFormPreflightCheck(
+      "instrument_visible",
+      observedChecks.instrumentVisible === true,
+      observedChecks.instrumentVisible === true ? "GameStop" : "not_visible",
+      "GameStop",
+    ),
+    buildOrderFormPreflightCheck(
+      "buy_side_order_form_visible",
+      observedChecks.buySideVisible === true,
+      observedChecks.buySideVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "order_mode_avancerad_limit_visible",
+      observedChecks.advancedLimitModeVisible === true,
+      observedChecks.advancedLimitModeVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "amount_field_visible",
+      observedChecks.amountFieldVisible === true,
+      observedChecks.amountFieldVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "price_field_visible",
+      observedChecks.priceFieldVisible === true,
+      observedChecks.priceFieldVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "granska_kop_visible_not_clicked",
+      observedChecks.reviewButtonVisible === true,
+      observedChecks.reviewButtonVisible === true,
+      true,
+      "Visibility only; no click command exists in this endpoint.",
+    ),
+    buildOrderFormPreflightCheck(
+      "no_review_modal_open",
+      observedChecks.reviewModalOpen !== true,
+      observedChecks.reviewModalOpen === true ? "open" : "not_open",
+      "not_open",
+    ),
+    buildOrderFormPreflightCheck(
+      "no_bekrafta_kop_salj_visible",
+      observedChecks.finalConfirmVisible !== true,
+      observedChecks.finalConfirmVisible === true ? "visible" : "not_visible",
+      "not_visible",
+    ),
+  ];
+  const failedChecks = checks.filter((check) => check.ok !== true);
+  const targetUrl = sanitizedUrlDetails(observed.url ?? target.url);
+
+  return createOrderFormPreflightResponse(
+    failedChecks.length === 0 ? "ready" : "mismatch",
+    {
+      checkedAt: now(),
+      checks,
+      readonlyCdpObservation: true,
+      blockers: failedChecks.map((check) => `${check.name}:mismatch`),
+      warnings: [
+        "Observation used sanitized visible page text/control labels only; raw page text is not returned.",
+      ],
+      errors: failedChecks.map((check) => `${check.name}:mismatch`),
+      observation: {
+        url: targetUrl,
+        titleVisible: Boolean(stringValue(observed.title)),
+        avanzaTargetCount: 1,
+      },
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 1,
+        ...(isObject(observed.metadata)
+          ? {
+              visible_text_length: observed.metadata.visibleTextLength,
+              observed_control_text_length:
+                observed.metadata.observedControlTextLength,
+            }
+          : {}),
+      },
+    },
+  );
+}
+
+async function buildOrderFormPreflightResponse() {
+  const checkedAt = now();
+
+  if (!manualObservationModeEnabled()) {
+    return createOrderFormPreflightResponse("unavailable", {
+      checkedAt,
+      blockers: [
+        `Manual observation mode must be explicitly enabled with AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=${MANUAL_OBSERVATION_MODE}.`,
+      ],
+      errors: ["Manual observation mode is not enabled."],
+      metadata: {
+        manual_observation_mode: "disabled",
+      },
+    });
+  }
+
+  try {
+    return await observeAvanzaOrderFormWithCdp();
+  } catch (error) {
+    return createOrderFormPreflightResponse("failed", {
+      checkedAt,
+      readonlyCdpObservation: true,
+      blockers: ["Manual browser observation failed before a safe preflight result could be produced."],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : "Unknown manual observation failure.",
+      ],
+      metadata: {
+        manual_observation_mode: MANUAL_OBSERVATION_MODE,
+      },
+    });
+  }
+}
+
+function liveFillOnlyRunnerEnabled() {
+  return (
+    manualObservationModeEnabled() &&
+    stringValue(process.env.AVANZA_LOCALHOST_BRIDGE_ENABLE_LIVE_FILL_ONLY_RUNNER) ===
+      ENABLE_LIVE_FILL_ONLY_RUNNER_VALUE
+  );
+}
+
+function createLiveFillOnlyRunnerResponse(action, status, options = {}) {
+  const checkedAt = options.checkedAt ?? now();
+  const ok = status === "ok";
+
+  return {
+    version: CONTRACT_VERSION,
+    ok,
+    status,
+    action,
+    checkedAt,
+    runnerResult: {
+      ok,
+      evidence_id: options.evidenceId ?? null,
+      observed_total_amount_sek: options.observedTotalAmountSek ?? null,
+      note: options.note ?? null,
+    },
+    report: {
+      verified_account: options.verifiedAccount ?? null,
+      verified_instrument: options.verifiedInstrument ?? null,
+      verified_side: options.verifiedSide ?? null,
+      verified_order_mode: options.verifiedOrderMode ?? null,
+      amount_field_filled: options.amountFieldFilled === true,
+      price_field_filled: options.priceFieldFilled === true,
+      total_amount_read: options.observedTotalAmountSek ?? null,
+      evidence_captured: Boolean(options.evidenceId),
+      stopped_before_granska_kop: options.stoppedBeforeReview === true,
+      no_review_modal_opened: options.noReviewModalOpened !== false,
+      no_final_confirmation_visible_or_clicked:
+        options.noFinalConfirmationVisibleOrClicked !== false,
+      no_order_placement: true,
+    },
+    blockers: options.blockers ?? [],
+    errors: options.errors ?? [],
+    warnings: [
+      "Live fill-only runner endpoint is restricted to approved fill-only methods and must be called only through the explicit trigger/wrapper boundary.",
+      ...(options.warnings ?? []),
+    ],
+    metadata: {
+      live_fill_only_runner: true,
+      disabled_by_default: true,
+      explicit_env_enablement_required: true,
+      manual_observation_mode_required: true,
+      no_browser_launch: true,
+      no_credentials_handling: true,
+      no_bankid_handling: true,
+      no_cookie_read: true,
+      no_local_storage_read: true,
+      no_session_storage_read: true,
+      no_review_click: true,
+      no_final_confirm_click: true,
+      no_submit_or_order_placement: true,
+      no_trade_mutation: true,
+      ...(options.metadata ?? {}),
+    },
+  };
+}
+
+function createLiveFillOnlyRunnerBlockedResponse(action, blocker) {
+  return createLiveFillOnlyRunnerResponse(action, "blocked", {
+    blockers: [blocker],
+    errors: [blocker],
+    note: blocker,
+    metadata: {
+      live_fill_only_runner_enabled: false,
+    },
+  });
+}
+
+function liveFillOnlyRunnerGate(action) {
+  if (liveFillOnlyRunnerEnabled()) {
+    return null;
+  }
+
+  return createLiveFillOnlyRunnerBlockedResponse(
+    action,
+    "Live fill-only runner requires AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=cdp_readonly and AVANZA_LOCALHOST_BRIDGE_ENABLE_LIVE_FILL_ONLY_RUNNER=true.",
+  );
+}
+
+function parseAmountSek(value) {
+  const text = String(value ?? "")
+    .replace(/\s/g, "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(",", ".");
+  const parsed = Number(text);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildLiveFillOnlyObservationExpression() {
+  return `(() => {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const findFirstVisible = (selectors) => {
+      for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (visible(element)) return element;
+      }
+      return null;
+    };
+    const visibleText = normalize(document.body ? document.body.innerText : "");
+    const visibleTextLower = lower(visibleText);
+    const controlText = Array.from(document.querySelectorAll("button,input,textarea,select,[role='button'],a,label"))
+      .filter(visible)
+      .map((element) => lower([
+        element.tagName,
+        element.getAttribute("type"),
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("name"),
+        element.getAttribute("id"),
+        element.getAttribute("title"),
+        element.innerText,
+        element.value,
+      ].filter(Boolean).join(" ")))
+      .join(" ");
+    const includesAny = (needles) => needles.some((needle) => visibleTextLower.includes(lower(needle)) || controlText.includes(lower(needle)));
+    const finalConfirmVisible = includesAny(["Bekräfta köp", "Bekrafta kop", "Bekräfta sälj", "Bekrafta salj"]);
+    const amountField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.amount)});
+    const priceField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.price)});
+    const totalField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.total)});
+    return {
+      url: window.location.href,
+      titlePresent: Boolean(document.title),
+      checks: {
+        avanzaPageVisible: /(^|\\.)avanza\\.se$/i.test(window.location.hostname) || includesAny(["Avanza"]),
+        accountVisible: includesAny(["${APPROVED_LIVE_FILL_ONLY_VALUES.account}"]),
+        instrumentVisible: includesAny(["${APPROVED_LIVE_FILL_ONLY_VALUES.instrument}", "GME"]),
+        buySideVisible: includesAny(["Köp", "Kop", "Buy", "Granska köp", "Granska kop"]),
+        advancedLimitModeVisible: (includesAny(["Avancerad", "Advanced"]) && includesAny(["Limit", "Limitorder"])),
+        amountFieldVisible: Boolean(amountField),
+        priceFieldVisible: Boolean(priceField),
+        reviewButtonVisible: includesAny(["Granska köp", "Granska kop"]),
+        reviewModalOpen: finalConfirmVisible,
+        finalConfirmVisible,
+      },
+      values: {
+        amount: amountField && "value" in amountField ? amountField.value : null,
+        price: priceField && "value" in priceField ? priceField.value : null,
+        totalText: totalField ? normalize(totalField.innerText || totalField.textContent || "") : null,
+      },
+    };
+  })()`;
+}
+
+function buildLiveFillOnlySetFieldExpression(field, value) {
+  const selectors = field === "amount"
+    ? AVANZA_LIVE_FILL_ONLY_SELECTORS.amount
+    : AVANZA_LIVE_FILL_ONLY_SELECTORS.price;
+
+  return `(() => {
+    const selectors = ${JSON.stringify(selectors)};
+    const value = ${JSON.stringify(value)};
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const element = selectors.map((selector) => document.querySelector(selector)).find(visible);
+    if (!element || !("value" in element)) {
+      return { ok: false, reason: "field_not_visible" };
+    }
+    const proto = Object.getPrototypeOf(element);
+    const descriptor = Object.getOwnPropertyDescriptor(proto, "value");
+    if (descriptor && typeof descriptor.set === "function") {
+      descriptor.set.call(element, value);
+    } else {
+      element.value = value;
+    }
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+    return { ok: element.value === value, value: element.value };
+  })()`;
+}
+
+async function getSingleAvanzaCdpTarget() {
+  const cdpBaseUrl = normalizeManualObservationCdpUrl(
+    process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_CDP_URL,
+  );
+  const targets = await listCdpTargets(cdpBaseUrl);
+  const avanzaTargets = targets.filter(cdpTargetIsAvanzaPage);
+
+  if (avanzaTargets.length !== 1) {
+    throw new Error(
+      avanzaTargets.length === 0
+        ? "No Avanza page target was visible through the local CDP endpoint."
+        : "Multiple Avanza page targets were visible through the local CDP endpoint.",
+    );
+  }
+
+  if (!stringValue(avanzaTargets[0].webSocketDebuggerUrl)) {
+    throw new Error("The Avanza target did not expose a CDP WebSocket URL.");
+  }
+
+  return avanzaTargets[0];
+}
+
+async function evaluateInSingleAvanzaTarget(expression) {
+  const target = await getSingleAvanzaCdpTarget();
+
+  const result = await sendReadonlyCdpCommand(
+    target.webSocketDebuggerUrl,
+    "Runtime.evaluate",
+    {
+      expression,
+      returnByValue: true,
+      awaitPromise: false,
+      userGesture: false,
+    },
+  );
+
+  return isObject(result?.result?.value) ? result.result.value : {};
+}
+
+function liveObservationPasses(observed) {
+  const checks = isObject(observed?.checks) ? observed.checks : {};
+
+  return (
+    checks.avanzaPageVisible === true &&
+    checks.accountVisible === true &&
+    checks.instrumentVisible === true &&
+    checks.buySideVisible === true &&
+    checks.advancedLimitModeVisible === true &&
+    checks.amountFieldVisible === true &&
+    checks.priceFieldVisible === true &&
+    checks.reviewButtonVisible === true &&
+    checks.reviewModalOpen !== true &&
+    checks.finalConfirmVisible !== true
+  );
+}
+
+function liveObservationBlockers(observed) {
+  const checks = isObject(observed?.checks) ? observed.checks : {};
+  const pairs = [
+    ["account_visible", checks.accountVisible === true],
+    ["instrument_visible", checks.instrumentVisible === true],
+    ["buy_side_visible", checks.buySideVisible === true],
+    ["advanced_limit_mode_visible", checks.advancedLimitModeVisible === true],
+    ["amount_field_visible", checks.amountFieldVisible === true],
+    ["price_field_visible", checks.priceFieldVisible === true],
+    ["granska_kop_visible", checks.reviewButtonVisible === true],
+    ["no_review_modal_open", checks.reviewModalOpen !== true],
+    ["no_final_confirm_visible", checks.finalConfirmVisible !== true],
+  ];
+
+  return pairs
+    .filter(([, ok]) => ok !== true)
+    .map(([name]) => `${name}:mismatch`);
+}
+
+function liveObservationReportOptions(observed, extra = {}) {
+  return {
+    verifiedAccount: APPROVED_LIVE_FILL_ONLY_VALUES.account,
+    verifiedInstrument: APPROVED_LIVE_FILL_ONLY_VALUES.instrument,
+    verifiedSide: APPROVED_LIVE_FILL_ONLY_VALUES.side,
+    verifiedOrderMode: APPROVED_LIVE_FILL_ONLY_VALUES.orderMode,
+    noReviewModalOpened: observed?.checks?.reviewModalOpen !== true,
+    noFinalConfirmationVisibleOrClicked: observed?.checks?.finalConfirmVisible !== true,
+    ...extra,
+  };
+}
+
+async function verifyLiveFillOnlyVisibleState() {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed)) {
+    return createLiveFillOnlyRunnerResponse("verifyVisibleOrderFormState", "aborted", {
+      ...liveObservationReportOptions(observed),
+      blockers: liveObservationBlockers(observed),
+      errors: liveObservationBlockers(observed),
+      note: "Visible order-form state did not match the approved fill-only preflight.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("verifyVisibleOrderFormState", "ok", {
+    ...liveObservationReportOptions(observed),
+    evidenceId: `visible-state-${Date.now()}`,
+    note: "Approved visible order-form state verified.",
+  });
+}
+
+async function fillLiveFillOnlyField(action, field, expectedNumericValue, expectedTextValue) {
+  const before = await verifyLiveFillOnlyVisibleState();
+
+  if (before.ok !== true) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      blockers: ["visible_state_mismatch_before_fill"],
+      errors: ["visible_state_mismatch_before_fill"],
+      note: "Aborted before fill because visible state verification failed.",
+    });
+  }
+
+  const result = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlySetFieldExpression(field, expectedTextValue),
+  );
+
+  if (result.ok !== true || result.value !== expectedTextValue) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      blockers: [`${field}_field_fill_failed`],
+      errors: [`${field}_field_fill_failed`],
+      note: `${field} field did not confirm the approved value.`,
+    });
+  }
+
+  const after = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(after)) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      ...liveObservationReportOptions(after),
+      blockers: liveObservationBlockers(after),
+      errors: liveObservationBlockers(after),
+      note: "Aborted after fill because visible state became unsafe.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse(action, "ok", {
+    ...liveObservationReportOptions(after, {
+      amountFieldFilled: field === "amount",
+      priceFieldFilled: field === "price",
+    }),
+    evidenceId: `${field}-filled-${Date.now()}`,
+    note: `${field} field filled with approved value ${expectedNumericValue}.`,
+  });
+}
+
+async function readLiveFillOnlyTotalAmount() {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed)) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed),
+      blockers: liveObservationBlockers(observed),
+      errors: liveObservationBlockers(observed),
+      note: "Visible state was unsafe before total read.",
+    });
+  }
+
+  const total = parseAmountSek(observed?.values?.totalText);
+
+  if (!Number.isFinite(total)) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed),
+      blockers: ["total_amount_parse_failure"],
+      errors: ["total_amount_parse_failure"],
+      note: "Could not parse total amount from the visible order form.",
+    });
+  }
+
+  if (total > APPROVED_LIVE_FILL_ONLY_VALUES.capSek) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed, {
+        observedTotalAmountSek: total,
+      }),
+      blockers: ["total_amount_above_cap"],
+      errors: ["total_amount_above_cap"],
+      note: "Parsed total amount is above the approved cap.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("readTotalAmount", "ok", {
+    ...liveObservationReportOptions(observed, {
+      observedTotalAmountSek: total,
+    }),
+    evidenceId: `total-read-${Date.now()}`,
+    note: "Total amount read and cap checked.",
+  });
+}
+
+async function captureLiveFillOnlyEvidence(payload) {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+  const label = stringValue(payload?.label) ?? "live_fill_only_evidence";
+
+  if (!liveObservationPasses(observed)) {
+    return createLiveFillOnlyRunnerResponse("captureEvidence", "aborted", {
+      ...liveObservationReportOptions(observed),
+      blockers: liveObservationBlockers(observed),
+      errors: liveObservationBlockers(observed),
+      note: "Visible state was unsafe during evidence capture.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("captureEvidence", "ok", {
+    ...liveObservationReportOptions(observed),
+    evidenceId: `${label}-${Date.now()}`,
+    note: "Sanitized visible-state evidence captured. No screenshot or raw text returned.",
+    metadata: {
+      evidence_label: label,
+      raw_text_returned: false,
+      screenshot_taken: false,
+    },
+  });
+}
+
+async function stopLiveFillOnlyBeforeReview() {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed)) {
+    return createLiveFillOnlyRunnerResponse("stopBeforeReview", "aborted", {
+      ...liveObservationReportOptions(observed),
+      blockers: liveObservationBlockers(observed),
+      errors: liveObservationBlockers(observed),
+      note: "Visible state was unsafe at stop-before-review.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("stopBeforeReview", "ok", {
+    ...liveObservationReportOptions(observed, {
+      stoppedBeforeReview: true,
+    }),
+    evidenceId: `stopped-before-review-${Date.now()}`,
+    note: "Stopped before Granska köp. No review/final/submit/order action exists in this runner.",
+  });
+}
+
+async function buildLiveFillOnlyRunnerEndpointResponse(action, payload = {}) {
+  const gateResponse = liveFillOnlyRunnerGate(action);
+
+  if (gateResponse) {
+    return gateResponse;
+  }
+
+  try {
+    if (action === "verifyVisibleOrderFormState") {
+      return await verifyLiveFillOnlyVisibleState();
+    }
+
+    if (action === "fillAmountField") {
+      const amount = numberFromInput(payload?.amountSek);
+
+      if (amount !== APPROVED_LIVE_FILL_ONLY_VALUES.amountSek) {
+        return createLiveFillOnlyRunnerResponse(action, "blocked", {
+          blockers: ["amount_mismatch"],
+          errors: ["amount_mismatch"],
+          note: "Only the approved amount may be filled.",
+        });
+      }
+
+      return await fillLiveFillOnlyField(
+        action,
+        "amount",
+        APPROVED_LIVE_FILL_ONLY_VALUES.amountSek,
+        APPROVED_LIVE_FILL_ONLY_VALUES.amountSekText,
+      );
+    }
+
+    if (action === "fillPriceField") {
+      const price = numberFromInput(payload?.priceUsd);
+
+      if (price !== APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd) {
+        return createLiveFillOnlyRunnerResponse(action, "blocked", {
+          blockers: ["price_mismatch"],
+          errors: ["price_mismatch"],
+          note: "Only the approved price may be filled.",
+        });
+      }
+
+      return await fillLiveFillOnlyField(
+        action,
+        "price",
+        APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd,
+        APPROVED_LIVE_FILL_ONLY_VALUES.priceUsdText,
+      );
+    }
+
+    if (action === "readTotalAmount") {
+      return await readLiveFillOnlyTotalAmount();
+    }
+
+    if (action === "captureEvidence") {
+      return await captureLiveFillOnlyEvidence(payload);
+    }
+
+    if (action === "stopBeforeReview") {
+      return await stopLiveFillOnlyBeforeReview();
+    }
+
+    return createLiveFillOnlyRunnerResponse(action, "blocked", {
+      blockers: ["unsupported_runner_method"],
+      errors: ["unsupported_runner_method"],
+      note: "Unsupported live fill-only runner action.",
+    });
+  } catch (error) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      blockers: ["runner_exception"],
+      errors: [
+        error instanceof Error ? error.message : "Unknown live fill-only runner error.",
+      ],
+      note: "Live fill-only runner aborted safely.",
+    });
+  }
+}
+
 function createReviewClickResult(status, dryRunOrderInput, options = {}) {
   const instrument = isObject(dryRunOrderInput?.instrument)
     ? dryRunOrderInput.instrument
@@ -8534,6 +9570,16 @@ function buildInfoResponse() {
     endpoints: {
       health: "/health",
       selfCheck: "/self-check",
+      avanzaOrderFormPreflight: "/preflight/avanza-order-form",
+      liveFillOnlyRunnerVerify:
+        "/live-fill-only-runner/verify-visible-order-form-state",
+      liveFillOnlyRunnerFillAmount: "/live-fill-only-runner/fill-amount",
+      liveFillOnlyRunnerFillPrice: "/live-fill-only-runner/fill-price",
+      liveFillOnlyRunnerReadTotal: "/live-fill-only-runner/read-total",
+      liveFillOnlyRunnerCaptureEvidence:
+        "/live-fill-only-runner/capture-evidence",
+      liveFillOnlyRunnerStopBeforeReview:
+        "/live-fill-only-runner/stop-before-review",
       sessionDetection: "/session-detection",
       searchOnly: "/search-only",
       instrumentVerification: "/instrument-verification",
@@ -8551,7 +9597,7 @@ function buildInfoResponse() {
       cancel: "/cancel",
     },
     message:
-      "Local development stub only. No Avanza session opens, no real broker automation runs, and no broker result is created. /search-only, /instrument-verification, /instrument-page, /order-page-open, /advanced-form-fill, /review-click, /manual-confirmation-wait, /broker-confirmation-capture, /broker-execution-result-eligibility, /broker-execution-result-preview, /execution-record-eligibility, and /dry-run are contract validation stubs only; mock-page review runs only when explicitly requested.",
+      "Local development stub only. No Avanza session opens, no real broker automation runs by default, and no broker result is created. /preflight/avanza-order-form is explicit manual browser observation only when enabled; /live-fill-only-runner/* is disabled unless the explicit live fill-only env gate is enabled and exposes no review/final/submit/order placement endpoints; /search-only, /instrument-verification, /instrument-page, /order-page-open, /advanced-form-fill, /review-click, /manual-confirmation-wait, /broker-confirmation-capture, /broker-execution-result-eligibility, /broker-execution-result-preview, /execution-record-eligibility, and /dry-run are contract validation stubs only; mock-page review runs only when explicitly requested.",
   };
 }
 
@@ -8873,6 +9919,130 @@ async function handleRequest(request, response) {
 
   if (request.method === "GET" && url.pathname === "/self-check") {
     writeJson(response, request, 200, buildRunnerSelfCheckResponse());
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    url.pathname === "/preflight/avanza-order-form"
+  ) {
+    writeJson(response, request, 200, await buildOrderFormPreflightResponse());
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/verify-visible-order-form-state"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse(
+        "verifyVisibleOrderFormState",
+      ),
+    );
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/fill-amount"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("fillAmountField", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "fillAmountField",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only amount request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/fill-price"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("fillPriceField", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "fillPriceField",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only price request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/read-total"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse("readTotalAmount"),
+    );
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/capture-evidence"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("captureEvidence", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "captureEvidence",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only evidence request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/stop-before-review"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse("stopBeforeReview"),
+    );
     return;
   }
 

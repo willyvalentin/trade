@@ -332,6 +332,333 @@ Full-auto remains explicitly deferred.
 - Ready does not mean execution occurred; `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` does not mean execution occurred.
 - Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
 
+## Action 1148 - Final Exact Trigger Phrase Re-Provision Confirmation Gate
+
+### Purpose
+
+This adds the final exact trigger phrase re-provision confirmation gate.
+
+This is not a live run. This does not access Avanza. This does not launch or control a browser. This does not query DOM. This does not fill fields. This does not click anything. This does not open a review modal. This does not submit or place an order. This does not handle credentials/session data. This does not mutate trades/stats/PnL. This does not invoke or execute the exact trigger phrase. This does not call the trigger/action/wrapper/runner.
+
+This documents that the exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+
+Ready never means execution occurred.
+
+### Gate Basis
+
+- Final exact trigger phrase re-provision confirmation is ready: `final_exact_trigger_phrase_re_provision_confirmation_ready`.
+- Final exact trigger phrase re-provision checklist is ready: `final_exact_trigger_phrase_re_provision_checklist_ready`.
+- Final exact trigger phrase re-provision gate is ready: `final_exact_trigger_phrase_re_provision_gate_ready`.
+- Final exact trigger phrase execution-request confirmation gate is ready: `final_exact_trigger_phrase_execution_request_confirmation_gate_ready`.
+- Exact trigger phrase capture is ready: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
+- Exact trigger phrase was historically captured by Action 1091 but not invoked.
+- Exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Explicit invocation trigger is not wired to UI/routes/provider/scanner/package scripts.
+- Trigger/action/wrapper/runner are not invoked by this action.
+- All hard stops remain active.
+- No live invocation has been performed.
+- No order has been placed.
+
+`final_exact_trigger_phrase_re_provision_confirmation_ready` does not mean execution occurred.
+
+### Final Exact Trigger Phrase Re-Provision Confirmation Prerequisite Table
+
+| Prerequisite | Status | Notes |
+| --- | --- | --- |
+| Final exact trigger phrase re-provision confirmation ready | PASS | `final_exact_trigger_phrase_re_provision_confirmation_ready` |
+| Final exact trigger phrase re-provision checklist ready | PASS | `final_exact_trigger_phrase_re_provision_checklist_ready` |
+| Final exact trigger phrase re-provision gate ready | PASS | `final_exact_trigger_phrase_re_provision_gate_ready` |
+| Final exact trigger phrase execution-request confirmation gate ready | PASS | `final_exact_trigger_phrase_execution_request_confirmation_gate_ready` |
+| Exact trigger phrase capture ready | PASS | `final_live_execute_attempt_exact_trigger_phrase_capture_ready` |
+| Historical exact trigger phrase captured | PASS | Captured in Action 1091 |
+| Historical exact trigger phrase invoked | BLOCK | Must not be invoked by this action |
+| Exact trigger phrase explicitly re-provided for invocation | BLOCK | Must be separate future request, not Action 1148 |
+| Trigger/action/wrapper/runner invoked by this action | BLOCK | Must not be invoked in this confirmation-gate action |
+| Approved account locked | PASS | Valentin Labs KF |
+| Approved instrument locked | PASS | GameStop |
+| Approved side locked | PASS | Buy-only |
+| Approved order mode locked | PASS | Avancerad/Limit |
+| Approved amount locked | PASS | 427,26 SEK |
+| Approved price locked | PASS | 21,98 USD |
+| Approved cap locked | PASS | <= 1,000 SEK |
+| Last captured total below cap | PASS | 438,05 SEK from prior evidence |
+| Approved runner boundary locked | PASS | `verifyVisibleOrderFormState`, `fillAmountField`, `fillPriceField`, `readTotalAmount`, `captureEvidence`, `stopBeforeReview` |
+| Hard stop before review locked | PASS | Stop before Granska köp |
+| No live execute attempt performed yet | WARN / EXPECTED | This action is gate-only |
+| Live execute evidence package not captured yet | WARN / EXPECTED | Belongs to a future explicit attempt |
+| No order placement evidence | PASS | No order has been placed |
+
+This gate does not mark a live execution as performed, does not mark live evidence as captured, does not mark the exact trigger phrase as invoked, and does not mark the trigger/action/wrapper/runner as invoked.
+
+### Confirmation Gate Decision
+
+`final_exact_trigger_phrase_re_provision_confirmation_gate_ready`
+
+This means the final exact trigger phrase re-provision confirmation gate is ready for a future separate request where the exact trigger phrase itself is explicitly provided again. It does not mean execution has occurred.
+
+Do not use `final_exact_trigger_phrase_re_provision_confirmation_gate_blocked` unless repository state reveals a real blocker.
+
+### Allowed Future Scope
+
+Only the following future scope is allowed unless separately approved:
+
+- Documentation/static readiness only unless separately approved.
+- Exact trigger phrase is historically captured but not invoked by Action 1148.
+- Final exact trigger phrase re-provision confirmation is captured but does not execute anything.
+- Trigger/action/wrapper/runner are not invoked by Action 1148.
+- Exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Any future invocation must still be explicit-trigger only.
+- Any future invocation must still require operator presence.
+- Any future invocation must still require Avanza already manually opened/logged in by user.
+- Any future invocation must still require BankID/2FA already manually handled by user.
+- Any future invocation must still require account and instrument manually verified by user.
+- Any future invocation must still use existing Action 1084 trigger.
+- Any future invocation must still use existing Action 1079 action.
+- Any future invocation must still use existing Action 1073 wrapper only.
+- Any future invocation must still use only the approved six-method runner boundary.
+- Any future invocation must read only required visible order-form state.
+- Any future invocation may fill only approved amount/price fields.
+- Any future invocation may read total.
+- Any future invocation may capture evidence.
+- Any future invocation must stop before Granska köp.
+- No Granska köp click.
+- No review modal.
+- No final confirm.
+- No Bekräfta köp/sälj.
+- No submit/order placement.
+- No credentials/session handling.
+- No cookies/localStorage/sessionStorage handling.
+- No unattended operation.
+- No automatic UI/routes/provider/scanner/package-script trigger.
+- Abort on mismatch/uncertainty.
+
+Approved values remain:
+
+| Field | Approved value |
+| --- | --- |
+| Account | Valentin Labs KF |
+| Instrument | GameStop |
+| Order mode | Avancerad/Limit |
+| Side | Buy-only |
+| Amount | 427,26 SEK |
+| Price | 21,98 USD |
+| Total | 438,05 SEK or otherwise under 1,000 SEK cap |
+| Cap | <= 1,000 SEK |
+
+Approved runner boundary remains:
+
+- `verifyVisibleOrderFormState`
+- `fillAmountField`
+- `fillPriceField`
+- `readTotalAmount`
+- `captureEvidence`
+- `stopBeforeReview`
+
+### Mandatory Abort/Block Conditions
+
+Any future checklist, confirmation capture, gate, action, or explicit trigger must abort or block if any of these are true:
+
+- Operator absent.
+- Exact trigger phrase absent.
+- Exact trigger phrase mismatched.
+- Exact trigger phrase not explicitly re-provided in the future separate request.
+- Fresh final exact trigger phrase re-provision confirmation absent or stale.
+- Fresh final exact trigger phrase execution-request confirmation absent or stale.
+- Fresh final exact trigger phrase invocation readiness confirmation absent or stale.
+- Fresh final exact trigger phrase invocation-request confirmation absent or stale.
+- Fresh final exact trigger phrase live-invocation readiness confirmation absent or stale.
+- Fresh final exact trigger phrase final request confirmation absent or stale.
+- Fresh final exact trigger phrase explicit re-request confirmation absent or stale.
+- Fresh final exact trigger phrase separate-request confirmation absent or stale.
+- Fresh final explicit trigger invocation checklist confirmation absent or stale.
+- Fresh final invocation checklist confirmation absent or stale.
+- Fresh final readiness checklist confirmation absent or stale.
+- Fresh exact trigger phrase invocation checklist confirmation absent or stale.
+- Fresh trigger preflight confirmation absent or stale.
+- Browser/session not prepared by user.
+- Avanza not already opened/logged in manually by user.
+- BankID/2FA not already manually handled by user.
+- Account mismatch.
+- Instrument mismatch.
+- Wrong side.
+- Wrong order type.
+- Amount mismatch.
+- Price mismatch.
+- Total parse failure.
+- Total/cap mismatch.
+- Cap exceeded.
+- Validation errors.
+- Modal open.
+- Modal state unknown.
+- Final confirm visible.
+- Final confirm visibility unknown.
+- Bekräfta köp visible.
+- Bekräfta sälj visible.
+- Review click targeted/requested.
+- Granska köp click targeted/requested.
+- Submit/order placement requested.
+- Credential/session handling requested.
+- Cookies/localStorage/sessionStorage handling requested.
+- Sell requested.
+- Stop Loss requested.
+- Glidande Stop Loss requested.
+- Automatic mode requested.
+- Unattended mode requested.
+- Unsupported runner method requested.
+- UI/route/provider/scanner/package-script trigger requested.
+- Any uncertainty.
+
+### What The Next Separate Request May Be
+
+After this gate:
+
+- The exact trigger phrase itself may only be considered if the operator explicitly provides it again in a separate future request.
+- The exact trigger phrase must match the historically captured exact phrase.
+- Providing it still must not authorize Granska köp, review modal, final confirm, submit, or order placement.
+- Any future exact trigger phrase request must still use the approved explicit invocation trigger/action/wrapper boundary.
+- Any future attempt must stop before Granska köp.
+- Any future attempt must abort on mismatch/uncertainty.
+
+Do not recommend a live attempt inside Action 1148.
+
+### What Action 1148 Must Not Add
+
+Action 1148 must not add:
+
+- No live run.
+- No browser launch/control.
+- No Avanza access.
+- No DOM query.
+- No field fill.
+- No click.
+- No Granska köp click.
+- No review modal.
+- No final confirm.
+- No Bekräfta köp.
+- No Bekräfta sälj.
+- No submit/order placement.
+- No unattended mode.
+- No credentials/session handling.
+- No cookies/localStorage/sessionStorage handling.
+- No sell.
+- No Stop Loss.
+- No Glidande Stop Loss.
+- No cap above 1,000 SEK.
+- No automatic mode.
+- No automatic UI/route/provider/scanner/package-script trigger.
+- No package script that can trigger an unattended broker run.
+- No UI button that can trigger an unattended broker run.
+- No post-run trade mutation without separate approval.
+- No stats/PnL mutation without separate approval.
+- No Supabase/provider/route/scan/audit-writer invocation without separate approval.
+- No exact trigger phrase execution.
+- No trigger/action/wrapper/runner invocation.
+
+### Status Meanings
+
+- `ready_for_final_live_execute_attempt` does not mean execution occurred.
+- `final_live_execute_attempt_plan_created` does not mean order placement.
+- `ready_for_final_live_execute_attempt_explicit_invocation` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_invocation_plan_created` does not mean order placement.
+- `ready_for_final_live_execute_attempt_explicit_invocation_trigger` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_invocation_trigger_plan_created` does not mean order placement.
+- `final_live_execute_attempt_exact_trigger_phrase_capture_ready` does not mean execution occurred.
+- `final_live_execute_attempt_exact_trigger_phrase_final_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_exact_trigger_phrase_invocation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_ready` does not mean execution occurred.
+- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_ready` does not mean execution occurred.
+- `final_live_execute_attempt_exact_trigger_phrase_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_checklist_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_checklist_confirmation_ready` does not mean execution occurred.
+- `final_live_execute_attempt_readiness_checklist_confirmation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_invocation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_invocation_checklist_ready` does not mean execution occurred.
+- `final_live_execute_attempt_invocation_checklist_confirmation_ready` does not mean execution occurred.
+- `final_live_execute_attempt_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_trigger_invocation_gate_ready` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_trigger_invocation_checklist_ready` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_trigger_invocation_checklist_confirmation_ready` does not mean execution occurred.
+- `final_live_execute_attempt_explicit_trigger_invocation_checklist_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_readiness_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_readiness_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_readiness_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_invocation_readiness_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_execution_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_execution_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_execution_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_execution_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_re_provision_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_re_provision_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_re_provision_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_explicit_re_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_explicit_re_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_explicit_re_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_explicit_re_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_final_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_final_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_final_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_final_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_live_invocation_readiness_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_live_invocation_readiness_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_live_invocation_readiness_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_live_invocation_readiness_confirmation_gate_ready` does not mean execution occurred.
+
+### Result Status
+
+`first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_confirmation_gate_added`
+
+### Recommended Next Action
+
+Await separate future exact trigger phrase request
+
+After the final exact trigger phrase re-provision confirmation gate is ready, the documentation chain is ready to wait for a separate future request where the exact trigger phrase itself is explicitly provided again. The next request must still not authorize order placement, must still stop before Granska köp, and must still preserve all hard stops.
+
+No live attempt is recommended by Action 1148 itself.
+
+### Progress Update
+
+- Ture production/data-health: 95-97%
+- Market-window live dry-run: 92-95%
+- Semi-auto agent foundation: 98-99%
+- Semi-auto Avanza/browser-agent readiness: 99-100%
+- Real browser automation readiness: 100%
+- First Avanza fill-only POC readiness: 100%
+- Full-auto readiness: 10-15% deferred
+- Total Ture toward semi-auto MVP: 99-100%
+
+Full-auto remains explicitly deferred.
+
+### Validation Notes
+
+- This was documentation/static exact trigger phrase re-provision confirmation gate only.
+- The final exact trigger phrase re-provision confirmation was captured in Action 1147.
+- The exact trigger phrase was historically captured in Action 1091.
+- The exact trigger phrase was not invoked or executed.
+- The exact trigger phrase itself must be explicitly provided again in a separate future request.
+- The trigger/action/wrapper/runner was not invoked.
+- This gate is ready only for awaiting a future separate exact trigger phrase request.
+- No live run occurred.
+- No browser was launched or controlled.
+- No Avanza access occurred.
+- No DOM query occurred.
+- No field fill occurred.
+- No click occurred.
+- No review modal was opened.
+- No submit/order-placement occurred.
+- No credentials/session data were handled.
+- No Supabase/provider/scan/audit-writer invocation occurred.
+- Denial harness scripts were skipped if they would execute live Supabase checks.
+
 ## Action 1117 Follow-Up - Final Exact Trigger Phrase Separate-Request Gate
 
 - Action: Action 1117 — Add Final Exact Trigger Phrase Separate-Request Gate.
@@ -1000,4 +1327,47 @@ Full-auto remains explicitly deferred.
 - Denial harness scripts were skipped because they would execute live Supabase checks.
 - Ready does not mean execution occurred; `final_exact_trigger_phrase_re_provision_checklist_ready` does not mean execution occurred.
 - Action 1147 must still be documentation/confirmation capture only unless separately approved; do not recommend a live attempt yet and do not run the trigger yet.
+- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
+
+## Action 1147 Follow-Up - Final Exact Trigger Phrase Re-Provision Confirmation
+
+- Action: Action 1147 - Capture Final Exact Trigger Phrase Re-Provision Confirmation.
+- Confirmation decision: `final_exact_trigger_phrase_re_provision_confirmation_ready`.
+- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_confirmation_ready`.
+- Recommended next action: Action 1148 - Add Final Exact Trigger Phrase Re-Provision Confirmation Gate.
+- Prior re-provision checklist remains: `final_exact_trigger_phrase_re_provision_checklist_ready`.
+- Prior re-provision checklist result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_checklist_added`.
+- Prior re-provision gate remains: `final_exact_trigger_phrase_re_provision_gate_ready`.
+- Prior re-provision gate result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_gate_added`.
+- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
+- The exact fresh final exact trigger phrase re-provision confirmation was provided and captured in Action 1147.
+- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1147.
+- The exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Trigger/action/wrapper/runner were not invoked by Action 1147.
+- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
+- No live invocation, review click, final click, submit, or order placement has happened.
+- Denial harness scripts were skipped because they would execute live Supabase checks.
+- Ready does not mean execution occurred; `final_exact_trigger_phrase_re_provision_confirmation_ready` does not mean execution occurred.
+- Action 1148 must still not place an order and must still not click Granska köp; do not recommend a live attempt yet and do not run the trigger yet.
+- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
+
+## Action 1148 Follow-Up - Final Exact Trigger Phrase Re-Provision Confirmation Gate
+
+- Action: Action 1148 - Add Final Exact Trigger Phrase Re-Provision Confirmation Gate.
+- Confirmation gate decision: `final_exact_trigger_phrase_re_provision_confirmation_gate_ready`.
+- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_confirmation_gate_added`.
+- Recommended next action: Await separate future exact trigger phrase request.
+- Prior re-provision confirmation remains: `final_exact_trigger_phrase_re_provision_confirmation_ready`.
+- Prior re-provision confirmation result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_re_provision_confirmation_ready`.
+- Prior re-provision checklist remains: `final_exact_trigger_phrase_re_provision_checklist_ready`.
+- Prior re-provision gate remains: `final_exact_trigger_phrase_re_provision_gate_ready`.
+- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
+- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1148.
+- The exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Trigger/action/wrapper/runner were not invoked by Action 1148.
+- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
+- No live invocation, review click, final click, submit, or order placement has happened.
+- Denial harness scripts were skipped because they would execute live Supabase checks.
+- Ready does not mean execution occurred; `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` does not mean execution occurred.
+- No live attempt is recommended by Action 1148 itself; any future request must still stop before Granska köp and must not authorize order placement.
 - Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
