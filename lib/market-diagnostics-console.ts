@@ -2210,6 +2210,62 @@ function buildSections(
           batchCandidateAudit.selected_candidates_count -
             batchCandidateAudit.effective_built_recommendations_count,
         );
+  const selectedDropOffTimelineEntry =
+    latestReviewBatchAttempt ??
+    scheduledScanTimelineToday.find(
+      (attempt) =>
+        (batchCandidateAudit.scan_run_fingerprint !== null &&
+          attempt.scan_run_fingerprint ===
+            batchCandidateAudit.scan_run_fingerprint) ||
+        (batchCandidateAudit.batch_fingerprint !== null &&
+          attempt.batch_fingerprint === batchCandidateAudit.batch_fingerprint),
+    ) ??
+    latestScheduledBuildRejectionAttempt ??
+    null;
+  const selectedDropOffScanRun =
+    selectedDropOffTimelineEntry?.scan_run_fingerprint ??
+    batchCandidateAudit.scan_run_fingerprint ??
+    null;
+  const selectedDropOffBatch =
+    selectedDropOffTimelineEntry?.batch_fingerprint ??
+    batchCandidateAudit.batch_fingerprint ??
+    reviewBatchFingerprint ??
+    null;
+  const latestOfficialBatchLearningAccelerationTrace =
+    selectedDropOffTimelineEntry?.active_scan_trace ?? null;
+  const latestActiveLearningAccelerationTrace = input.active_scan_trace ?? null;
+  const hasSelectedDropOffScope =
+    selectedDropOffScanRun !== null ||
+    selectedDropOffBatch !== null ||
+    selectedToBuiltDropOff !== null;
+  const learningAccelerationTrace =
+    latestOfficialBatchLearningAccelerationTrace ??
+    (hasSelectedDropOffScope ? null : latestActiveLearningAccelerationTrace);
+  const learningAccelerationTraceSource =
+    latestOfficialBatchLearningAccelerationTrace
+      ? "latest_official_batch_la"
+      : hasSelectedDropOffScope
+        ? "official_batch_trace_missing"
+        : latestActiveLearningAccelerationTrace
+          ? "latest_active_trace_la"
+          : "none";
+  const learningAccelerationTraceScanRun =
+    learningAccelerationTrace?.final.scan_run_fingerprint ?? null;
+  const learningAccelerationTraceBatch =
+    learningAccelerationTrace?.final.batch_fingerprint ?? null;
+  const learningAccelerationTraceMatchesSelectedDropOff =
+    learningAccelerationTrace !== null &&
+    ((selectedDropOffScanRun !== null &&
+      learningAccelerationTraceScanRun === selectedDropOffScanRun) ||
+      (selectedDropOffBatch !== null &&
+        learningAccelerationTraceBatch === selectedDropOffBatch));
+  const selectedDropOffBelowThresholdCount =
+    selectedToBuiltDropOff?.rejection_counts.below_publish_threshold ?? 0;
+  const callsiteTraceMissingForOfficialScanRun =
+    selectedDropOffBelowThresholdCount > 0 &&
+    hasSelectedDropOffScope &&
+    latestOfficialBatchLearningAccelerationTrace
+      ?.learning_acceleration_callsite_trace == null;
   const warningGroups = warningBuckets(warnings.warnings);
   const closedMarketWaitState = isClosedMarketWaitState(input);
   const planFreshnessSummary =
@@ -2288,23 +2344,27 @@ function buildSections(
   const learningAccelerationEnabled =
     input.learning_acceleration_config?.learning_acceleration_enabled ??
     (input.scan_readback?.learning_acceleration_enabled === true ||
+      learningAccelerationTrace?.learning_acceleration_enabled === true ||
       input.active_scan_trace?.learning_acceleration_enabled === true ||
       input.outcome_evaluation?.learning_acceleration_enabled === true);
   const learningAccelerationMode =
     input.learning_acceleration_config?.learning_acceleration_mode ??
     input.scan_readback?.learning_acceleration_mode ??
+    learningAccelerationTrace?.learning_acceleration_mode ??
     input.active_scan_trace?.learning_acceleration_mode ??
     input.outcome_evaluation?.learning_acceleration_mode ??
     learningAccelerationConfig.learning_acceleration_mode;
   const learningAccelerationSource =
     input.learning_acceleration_config?.learning_acceleration_enabled_source ??
     input.scan_readback?.learning_acceleration_enabled_source ??
+    learningAccelerationTrace?.learning_acceleration_enabled_source ??
     input.active_scan_trace?.learning_acceleration_enabled_source ??
     input.outcome_evaluation?.learning_acceleration_enabled_source ??
     learningAccelerationConfig.learning_acceleration_enabled_source;
   const learningAccelerationEnvPresent =
     input.learning_acceleration_config?.learning_acceleration_env_raw_present ??
     input.scan_readback?.learning_acceleration_env_raw_present ??
+    learningAccelerationTrace?.learning_acceleration_env_raw_present ??
     input.active_scan_trace?.learning_acceleration_env_raw_present ??
     input.outcome_evaluation?.learning_acceleration_env_raw_present ??
     learningAccelerationConfig.learning_acceleration_env_raw_present;
@@ -2312,6 +2372,7 @@ function buildSections(
     input.learning_acceleration_config
       ?.learning_acceleration_env_raw_value_category ??
     input.scan_readback?.learning_acceleration_env_raw_value_category ??
+    learningAccelerationTrace?.learning_acceleration_env_raw_value_category ??
     input.active_scan_trace?.learning_acceleration_env_raw_value_category ??
     input.outcome_evaluation?.learning_acceleration_env_raw_value_category ??
     learningAccelerationConfig.learning_acceleration_env_raw_value_category;
@@ -2319,159 +2380,162 @@ function buildSections(
     input.learning_acceleration_config
       ?.learning_acceleration_env_raw_value_normalized ??
     input.scan_readback?.learning_acceleration_env_raw_value_normalized ??
+    learningAccelerationTrace?.learning_acceleration_env_raw_value_normalized ??
     input.active_scan_trace?.learning_acceleration_env_raw_value_normalized ??
     input.outcome_evaluation?.learning_acceleration_env_raw_value_normalized ??
     learningAccelerationConfig.learning_acceleration_env_raw_value_normalized;
   const learningAccelerationRuntimeEnvironment =
     input.learning_acceleration_config?.learning_acceleration_runtime_environment ??
     input.scan_readback?.learning_acceleration_runtime_environment ??
+    learningAccelerationTrace?.learning_acceleration_runtime_environment ??
     input.active_scan_trace?.learning_acceleration_runtime_environment ??
     input.outcome_evaluation?.learning_acceleration_runtime_environment ??
     learningAccelerationConfig.learning_acceleration_runtime_environment;
   const learningAccelerationServerConfigUnavailable =
     learningAccelerationSource === "client_unavailable";
   const learningAccelerationSamplesCollectedToday =
+    learningAccelerationTrace?.learning_acceleration_samples_collected_count ??
     input.scan_readback?.learning_acceleration_samples_collected_today ??
-    input.active_scan_trace?.learning_acceleration_samples_collected_count ??
     0;
   const learningAccelerationSelectedBelowThreshold =
-    input.scan_readback?.learning_acceleration_selected_below_threshold_count ??
-    input.active_scan_trace
+    learningAccelerationTrace
       ?.learning_acceleration_selected_below_threshold_count ??
+    input.scan_readback?.learning_acceleration_selected_below_threshold_count ??
     0;
   const learningAccelerationBelowThresholdReadback =
-    input.scan_readback
+    learningAccelerationTrace
       ?.learning_acceleration_selected_below_threshold_readback_count ??
-    input.active_scan_trace
+    input.scan_readback
       ?.learning_acceleration_selected_below_threshold_readback_count ??
     learningAccelerationSelectedBelowThreshold;
   const learningAccelerationBelowThresholdPassed =
-    input.scan_readback
+    learningAccelerationTrace
       ?.learning_acceleration_selected_below_threshold_passed_count ??
-    input.active_scan_trace
+    input.scan_readback
       ?.learning_acceleration_selected_below_threshold_passed_count ??
     learningAccelerationSelectedBelowThreshold;
   const learningAccelerationBelowThresholdMatched =
-    input.scan_readback
+    learningAccelerationTrace
       ?.learning_acceleration_selected_below_threshold_matched_by_ticker_count ??
-    input.active_scan_trace
+    input.scan_readback
       ?.learning_acceleration_selected_below_threshold_matched_by_ticker_count ??
     0;
   const learningAccelerationBelowThresholdUnmatched =
-    input.scan_readback
+    learningAccelerationTrace
       ?.learning_acceleration_selected_below_threshold_unmatched_by_ticker_count ??
-    input.active_scan_trace
+    input.scan_readback
       ?.learning_acceleration_selected_below_threshold_unmatched_by_ticker_count ??
     0;
   const learningAccelerationInputMismatch =
+    learningAccelerationTrace?.learning_acceleration_input_mismatch ??
     input.scan_readback?.learning_acceleration_input_mismatch ??
-    input.active_scan_trace?.learning_acceleration_input_mismatch ??
     false;
   const learningAccelerationInputSource =
+    learningAccelerationTrace?.learning_acceleration_input_source ??
     input.scan_readback?.learning_acceleration_input_source ??
-    input.active_scan_trace?.learning_acceleration_input_source ??
     "none";
   const learningAccelerationRuntimeInputCount =
+    learningAccelerationTrace?.below_threshold_runtime_input_count ??
     input.scan_readback?.below_threshold_runtime_input_count ??
-    input.active_scan_trace?.below_threshold_runtime_input_count ??
     learningAccelerationBelowThresholdPassed;
   const learningAccelerationExamplesCount =
+    learningAccelerationTrace?.below_threshold_examples_count ??
     input.scan_readback?.below_threshold_examples_count ??
-    input.active_scan_trace?.below_threshold_examples_count ??
     0;
   const learningAccelerationMatchedCandidates =
+    learningAccelerationTrace?.research_candidates_after_ticker_match ??
     input.scan_readback?.research_candidates_after_ticker_match ??
-    input.active_scan_trace?.research_candidates_after_ticker_match ??
     learningAccelerationBelowThresholdMatched;
   const learningAccelerationPersistAttempted =
+    learningAccelerationTrace?.research_persist_attempted ??
     input.scan_readback?.research_persist_attempted ??
-    input.active_scan_trace?.research_persist_attempted ??
     0;
   const learningAccelerationPersisted =
+    learningAccelerationTrace?.research_persisted ??
     input.scan_readback?.research_persisted ??
-    input.active_scan_trace?.research_persisted ??
     null;
   const learningAccelerationDuplicates =
+    learningAccelerationTrace?.research_duplicates ??
     input.scan_readback?.research_duplicates ??
-    input.active_scan_trace?.research_duplicates ??
     0;
   const learningAccelerationSkippedInvalid =
+    learningAccelerationTrace?.research_skipped_invalid ??
+    learningAccelerationTrace
+      ?.learning_acceleration_skipped_due_to_invalid_risk_count ??
     input.scan_readback?.research_skipped_invalid ??
-    input.active_scan_trace?.research_skipped_invalid ??
-    input.active_scan_trace?.learning_acceleration_skipped_due_to_invalid_risk_count ??
     0;
   const learningAccelerationSkippedStale =
-    input.scan_readback?.research_skipped_stale ??
-    input.active_scan_trace?.research_skipped_stale ??
-    input.active_scan_trace
+    learningAccelerationTrace?.research_skipped_stale ??
+    learningAccelerationTrace
       ?.learning_acceleration_skipped_due_to_stale_reference_count ??
+    input.scan_readback?.research_skipped_stale ??
     0;
   const learningAccelerationSkippedBudget =
+    learningAccelerationTrace?.research_skipped_budget ??
+    learningAccelerationTrace?.learning_acceleration_skipped_due_to_budget_count ??
     input.scan_readback?.research_skipped_budget ??
-    input.active_scan_trace?.research_skipped_budget ??
     input.outcome_evaluation?.skipped_due_to_budget_count ??
-    input.active_scan_trace?.learning_acceleration_skipped_due_to_budget_count ??
     0;
   const learningAccelerationSkippedMissingCandidate =
+    learningAccelerationTrace?.research_skipped_missing_candidate_match ??
     input.scan_readback?.research_skipped_missing_candidate_match ??
-    input.active_scan_trace?.research_skipped_missing_candidate_match ??
     learningAccelerationBelowThresholdUnmatched;
   const learningAccelerationCandidateUniverseCount =
+    learningAccelerationTrace?.learning_acceleration_candidate_universe_count ??
     input.scan_readback?.learning_acceleration_candidate_universe_count ??
-    input.active_scan_trace?.learning_acceleration_candidate_universe_count ??
     0;
   const learningAccelerationCandidateUniverseMissing =
-    input.scan_readback?.learning_acceleration_candidate_universe_missing ??
-    input.active_scan_trace
+    learningAccelerationTrace
       ?.learning_acceleration_candidate_universe_missing ??
+    input.scan_readback?.learning_acceleration_candidate_universe_missing ??
     (learningAccelerationBelowThresholdReadback > 0 &&
       learningAccelerationCandidateUniverseCount === 0);
   const learningAccelerationTickerMatchingFailed =
+    learningAccelerationTrace?.learning_acceleration_ticker_matching_failed ??
     input.scan_readback?.learning_acceleration_ticker_matching_failed ??
-    input.active_scan_trace?.learning_acceleration_ticker_matching_failed ??
     (learningAccelerationRuntimeInputCount > 0 &&
       learningAccelerationCandidateUniverseCount > 0 &&
       learningAccelerationMatchedCandidates === 0);
   const learningAccelerationCallsiteTrace =
+    learningAccelerationTrace?.learning_acceleration_callsite_trace ??
     input.scan_readback?.learning_acceleration_callsite_trace ??
-    input.active_scan_trace?.learning_acceleration_callsite_trace ??
     null;
   const learningAccelerationCallsiteMismatch =
+    learningAccelerationTrace?.learning_acceleration_callsite_mismatch ??
     input.scan_readback?.learning_acceleration_callsite_mismatch ??
-    input.active_scan_trace?.learning_acceleration_callsite_mismatch ??
     false;
   const learningAccelerationExpectedBelowThreshold =
-    input.scan_readback?.expected_below_threshold_from_timeline ??
-    input.active_scan_trace
+    learningAccelerationTrace
       ?.learning_acceleration_expected_below_threshold_from_timeline ??
+    input.scan_readback?.expected_below_threshold_from_timeline ??
     learningAccelerationBelowThresholdReadback;
   const learningAccelerationActualBelowThresholdReceived =
-    input.scan_readback?.actual_below_threshold_received_by_persistence ??
-    input.active_scan_trace
+    learningAccelerationTrace
       ?.learning_acceleration_actual_below_threshold_received_by_persistence ??
+    input.scan_readback?.actual_below_threshold_received_by_persistence ??
     learningAccelerationBelowThresholdReadback;
   const learningAccelerationCandidateUniverseReceived =
-    input.scan_readback?.candidate_universe_received_by_persistence ??
-    input.active_scan_trace
+    learningAccelerationTrace
       ?.learning_acceleration_candidate_universe_received_by_persistence ??
+    input.scan_readback?.candidate_universe_received_by_persistence ??
     learningAccelerationCandidateUniverseCount;
   const learningAccelerationResearchOnlyPersisted =
+    learningAccelerationTrace?.learning_acceleration_research_only_persisted_count ??
     input.scan_readback?.learning_acceleration_research_only_persisted_count ??
-    input.active_scan_trace?.learning_acceleration_research_only_persisted_count ??
     learningAccelerationPersisted ??
     learningAccelerationSamplesCollectedToday;
   const learningAccelerationSamplesEvaluatedToday =
+    learningAccelerationTrace?.learning_acceleration_samples_evaluated_count ??
     input.scan_readback?.learning_acceleration_samples_evaluated_today ??
     input.outcome_evaluation?.learning_acceleration_samples_evaluated ??
-    input.active_scan_trace?.learning_acceleration_samples_evaluated_count ??
     0;
   const learningAccelerationTopTickers =
+    learningAccelerationTrace?.learning_acceleration_top_research_sample_tickers ??
     input.scan_readback?.learning_acceleration_top_research_sample_tickers ??
-    input.active_scan_trace?.learning_acceleration_top_research_sample_tickers ??
     [];
   const learningAccelerationQuality =
+    learningAccelerationTrace?.learning_acceleration_sample_quality_summary ??
     input.scan_readback?.learning_acceleration_sample_quality_summary ??
-    input.active_scan_trace?.learning_acceleration_sample_quality_summary ??
     null;
   const learningAccelerationVisibleEvaluated =
     input.outcome_evaluation?.eligible_visible_snapshot_count ?? 0;
@@ -4703,6 +4767,26 @@ function buildSections(
           words(learningAccelerationInputSource),
         ),
         lineValue(
+          "Trace source",
+          words(learningAccelerationTraceSource),
+        ),
+        lineValue(
+          "Trace run / batch",
+          `${compact(learningAccelerationTraceScanRun, "none")} / ${compact(learningAccelerationTraceBatch, "none")}`,
+        ),
+        lineValue(
+          "Selected drop-off run / batch",
+          `${compact(selectedDropOffScanRun, "none")} / ${compact(selectedDropOffBatch, "none")}`,
+        ),
+        lineValue(
+          "Trace matches selected drop-off",
+          bool(learningAccelerationTraceMatchesSelectedDropOff),
+        ),
+        lineValue(
+          "Callsite trace missing for official scan",
+          bool(callsiteTraceMissingForOfficialScanRun),
+        ),
+        lineValue(
           "Callsite / invoked",
           `${words(learningAccelerationCallsiteTrace?.callsite_name ?? "none")} / ${bool(learningAccelerationCallsiteTrace?.persist_function_invoked === true)}`,
         ),
@@ -4805,6 +4889,17 @@ function buildSections(
         learning_acceleration_input_mismatch:
           learningAccelerationInputMismatch,
         learning_acceleration_input_source: learningAccelerationInputSource,
+        learning_acceleration_trace_source: learningAccelerationTraceSource,
+        learning_acceleration_trace_scan_run: learningAccelerationTraceScanRun,
+        learning_acceleration_trace_batch: learningAccelerationTraceBatch,
+        selected_dropoff_scan_run: selectedDropOffScanRun,
+        selected_dropoff_batch: selectedDropOffBatch,
+        learning_acceleration_trace_matches_selected_dropoff:
+          learningAccelerationTraceMatchesSelectedDropOff,
+        callsite_trace_missing_for_official_scan_run:
+          callsiteTraceMissingForOfficialScanRun,
+        expected_scan_run_id: selectedDropOffScanRun,
+        expected_batch_fingerprint: selectedDropOffBatch,
         learning_acceleration_callsite_name:
           learningAccelerationCallsiteTrace?.callsite_name ?? null,
         learning_acceleration_callsite_persist_function_invoked:

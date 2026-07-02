@@ -111,6 +111,7 @@ export type ScheduledScanTimelineEntry = {
   selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
   selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
   reference_refresh: ReferenceRefreshDiagnostics | null;
+  active_scan_trace?: ActiveScanTrace | null;
 };
 
 export type ScheduledScanAttemptInput = Partial<ScheduledScanAttempt> & {
@@ -771,6 +772,7 @@ export function scheduledScanAttemptFromRow(
 function timelineFromAttempt(
   attempt: ScheduledScanAttempt,
 ): ScheduledScanTimelineEntry {
+  const activeScanTrace = activeTraceFromPayload(attempt.payload_json);
   const classification = classifyOfficialScanWindowAttempt({
     allowed: attempt.allowed,
     outcome: attempt.outcome,
@@ -788,7 +790,7 @@ function timelineFromAttempt(
     selected_candidate_build_diagnostics:
       attempt.selected_candidate_build_diagnostics,
     reference_refresh: referenceRefreshAttempted(attempt.reference_refresh),
-    active_scan_trace: activeTraceFromPayload(attempt.payload_json),
+    active_scan_trace: activeScanTrace,
   });
   const isActualScan = officialScanAttemptServesWindow({
     allowed: attempt.allowed,
@@ -807,7 +809,7 @@ function timelineFromAttempt(
     selected_candidate_build_diagnostics:
       attempt.selected_candidate_build_diagnostics,
     reference_refresh: referenceRefreshAttempted(attempt.reference_refresh),
-    active_scan_trace: activeTraceFromPayload(attempt.payload_json),
+    active_scan_trace: activeScanTrace,
   });
 
   return {
@@ -841,6 +843,7 @@ function timelineFromAttempt(
     selected_candidate_build_diagnostics:
       attempt.selected_candidate_build_diagnostics,
     reference_refresh: attempt.reference_refresh,
+    active_scan_trace: activeScanTrace,
   };
 }
 
@@ -904,6 +907,7 @@ function timelineFromScanLog(scanLog: ScanLogEntry): ScheduledScanTimelineEntry 
     selected_candidate_build_diagnostics:
       scanLog.selected_candidate_build_diagnostics ?? [],
     reference_refresh: scanLog.reference_refresh ?? null,
+    active_scan_trace: scanLog.active_scan_trace ?? null,
   };
 }
 
@@ -916,7 +920,7 @@ function timelineFromScanRun(
   const trace =
     scanRun.payload_json.active_scan_trace &&
     typeof scanRun.payload_json.active_scan_trace === "object"
-      ? (scanRun.payload_json.active_scan_trace as {
+      ? (scanRun.payload_json.active_scan_trace as ActiveScanTrace & {
           final?: {
             decision?: string | null;
             no_publish_reason?: string | null;
@@ -1035,6 +1039,7 @@ function timelineFromScanRun(
     selected_to_built_drop_off: dropOff,
     selected_candidate_build_diagnostics: buildDiagnostics,
     reference_refresh: referenceRefresh,
+    active_scan_trace: trace,
   };
 }
 
