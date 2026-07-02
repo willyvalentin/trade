@@ -484,12 +484,13 @@ main {
   right: 0;
   left: 0;
   display: flex;
-  height: 49px;
   align-items: center;
   gap: 32px;
   border-bottom: 1px solid rgb(182 194 213 / 0.15);
-  background: #07090d;
-  padding: 0 16px 0 12px;
+  background: rgba(7, 9, 13, 0.75);
+  backdrop-filter: blur(20px);
+  height: 43px;
+  padding: 0px 16px 0px 8px;
 }
 
 .trade-topbar__logo {
@@ -695,7 +696,7 @@ main {
   min-height: 28px;
   border-left: 1px solid #464953;
   color: #797c86;
-  font-weight: 400;
+  font-weight: 500;
   padding-left: 16px;
 }
 
@@ -889,7 +890,7 @@ main {
   font-size: 22px;
   font-weight: 500;
   line-height: 1;
-  padding: 0 0 2px;
+  padding: 0px 0px 2px 1px;
   transition:
     background 160ms ease,
     color 160ms ease,
