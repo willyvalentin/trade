@@ -779,6 +779,13 @@ import {
 import {
   normalizeUnknownError,
 } from "@/lib/error-logging";
+import {
+  dedupeSymbols,
+  normalizeLogoUrl as normalizeSymbolMetadataLogoUrl,
+  normalizeSymbol,
+  symbolMetadataFromRow,
+  type SymbolMetadata,
+} from "@/lib/symbol-metadata-core";
 
 type Direction = "Long" | "Short";
 type RecommendationStatus =
@@ -8171,6 +8178,9 @@ export function TradeApp({
   const { selectedStatisticsRange, setSelectedStatisticsRange } =
     useStatisticsRangeState();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [symbolMetadataBySymbol, setSymbolMetadataBySymbol] = useState<
+    Record<string, SymbolMetadata>
+  >({});
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
   const [closedPositions, setClosedPositions] = useState<ClosedPosition[]>([]);
@@ -8469,6 +8479,7 @@ export function TradeApp({
   >({});
   const isUpdatingPositionsRef = useRef(false);
   const dataRefreshInFlightRef = useRef(false);
+  const requestedSymbolMetadataRef = useRef<Set<string>>(new Set());
   const loadTradeDataRef = useRef<
     (options?: LoadTradeDataOptions) => Promise<void>
   >(async () => undefined);
@@ -8478,6 +8489,119 @@ export function TradeApp({
   const updatePositionsRef = useRef<
     (source?: "manual" | "auto") => Promise<void>
   >(async () => undefined);
+
+  function logoUrlForCompanyIdentity(
+    ticker: string,
+    directLogoUrl?: string | null,
+  ) {
+    const normalizedDirectLogoUrl = normalizeCompanyLogoUrl(directLogoUrl);
+
+    if (normalizedDirectLogoUrl) {
+      return normalizedDirectLogoUrl;
+    }
+
+    const symbol = normalizeSymbol(ticker);
+    return symbol ? symbolMetadataBySymbol[symbol]?.logoUrl ?? null : null;
+  }
+
+  function withSymbolMetadataLogo<T extends { ticker: string; logoUrl?: string | null }>(
+    item: T,
+  ) {
+    const logoUrl = logoUrlForCompanyIdentity(item.ticker, item.logoUrl);
+
+    if ((item.logoUrl ?? null) === logoUrl) {
+      return item;
+    }
+
+    return {
+      ...item,
+      logoUrl,
+    };
+  }
+
+  async function hydrateSymbolMetadataForDisplay(
+    items: readonly { ticker?: string | null }[],
+  ) {
+    const symbols = dedupeSymbols(items.map((item) => item.ticker));
+    const symbolsToRequest = symbols.filter(
+      (symbol) => !requestedSymbolMetadataRef.current.has(symbol),
+    );
+
+    if (symbolsToRequest.length === 0) {
+      return;
+    }
+
+    for (const symbol of symbolsToRequest) {
+      requestedSymbolMetadataRef.current.add(symbol);
+    }
+
+    try {
+      const response = await fetch("/api/symbol-metadata", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          symbols: symbolsToRequest,
+          refresh: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Symbol metadata request failed: ${response.status}`);
+      }
+
+      const body = (await response.json()) as { metadata?: unknown };
+      const metadata = Array.isArray(body.metadata) ? body.metadata : [];
+      const nextMetadataBySymbol: Record<string, SymbolMetadata> = {};
+
+      for (const item of metadata) {
+        const row =
+          item && typeof item === "object"
+            ? (item as {
+                symbol?: unknown;
+                companyName?: unknown;
+                exchange?: unknown;
+                logoUrl?: unknown;
+                logoSource?: unknown;
+                logoUpdatedAt?: unknown;
+              })
+            : null;
+
+        if (!row) {
+          continue;
+        }
+
+        const normalizedMetadata = symbolMetadataFromRow({
+          symbol: row.symbol,
+          companyName: row.companyName,
+          exchange: row.exchange,
+          logoUrl: normalizeSymbolMetadataLogoUrl(row.logoUrl),
+          logoSource: row.logoSource,
+          logoUpdatedAt: row.logoUpdatedAt,
+        });
+
+        if (normalizedMetadata) {
+          nextMetadataBySymbol[normalizedMetadata.symbol] = normalizedMetadata;
+        }
+      }
+
+      if (Object.keys(nextMetadataBySymbol).length > 0) {
+        setSymbolMetadataBySymbol((current) => ({
+          ...current,
+          ...nextMetadataBySymbol,
+        }));
+      }
+    } catch (error) {
+      console.warn("[trade-app] symbol_metadata_hydration_failed", {
+        error: normalizeUnknownError(error),
+      });
+
+      for (const symbol of symbolsToRequest) {
+        requestedSymbolMetadataRef.current.delete(symbol);
+      }
+    }
+  }
 
   async function loadTradeData(options: LoadTradeDataOptions = {}) {
     await Promise.resolve();
@@ -8676,6 +8800,7 @@ export function TradeApp({
           nextRecommendations.map((recommendation) => recommendation.id),
         );
         setRecommendations(nextRecommendations);
+        void hydrateSymbolMetadataForDisplay(nextRecommendations);
       }
 
       if (userSettingsResult.error) {
@@ -8704,16 +8829,20 @@ export function TradeApp({
           nextActivePositions.map((position) => position.id),
         );
         setActivePositions(nextActivePositions);
+        void hydrateSymbolMetadataForDisplay(nextActivePositions);
       }
 
       if (closedPositionsResult.error) {
         noteIslandError("stats_today", closedPositionsResult.error);
         noteIslandError("history_statistics", closedPositionsResult.error);
       } else {
-        setClosedPositions([
+        const nextClosedPositions = [
           ...demoClosedPositions,
           ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
-        ]);
+        ];
+
+        setClosedPositions(nextClosedPositions);
+        void hydrateSymbolMetadataForDisplay(nextClosedPositions);
       }
 
       if (positionUpdatesResult.error) {
@@ -10151,7 +10280,10 @@ export function TradeApp({
         recommendationId: selectedRecommendation.id,
         ticker: selectedRecommendation.ticker,
         companyName: selectedRecommendation.companyName,
-        logoUrl: selectedRecommendation.logoUrl ?? null,
+        logoUrl: logoUrlForCompanyIdentity(
+          selectedRecommendation.ticker,
+          selectedRecommendation.logoUrl,
+        ),
         direction: selectedRecommendation.direction,
         entryPrice: money(actualEntryPrice),
         entryPriceValue: actualEntryPrice,
@@ -15233,6 +15365,12 @@ export function TradeApp({
   const selectedRecommendationPositionSizing = selectedRecommendation
     ? calculatePositionSizing(selectedRecommendation, userSettings)
     : null;
+  const selectedRecommendationForDisplay = selectedRecommendation
+    ? withSymbolMetadataLogo(selectedRecommendation)
+    : null;
+  const selectedPositionForDisplay = selectedPosition
+    ? withSymbolMetadataLogo(selectedPosition)
+    : null;
   const selectedRecommendationRiskControlsEvaluation =
     selectedRecommendation && selectedRecommendationPositionSizing
       ? evaluateRiskControlsForNewTrade({
@@ -15454,7 +15592,7 @@ export function TradeApp({
                     <CompanyIdentity
                       ticker={item.ticker}
                       companyName={item.companyName}
-                      logoUrl={item.logoUrl}
+                      logoUrl={logoUrlForCompanyIdentity(item.ticker, item.logoUrl)}
                       size="live"
                     />
                   )}
@@ -15482,90 +15620,98 @@ export function TradeApp({
             continuedItems={
               takeProfitLivePositionItems.length > 0 &&
               otherLivePositionItems.length > 0
-                ? otherLivePositionItems.map(({ position, latestUpdate }) => (
-                    <ActivePositionCard
-                      key={`${position.id}:${dailySessionDate}`}
-                      position={position}
-                      latestUpdate={latestUpdate}
-                      marketCloseWarning={marketCloseWarning}
-                      eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
-                      eodSafetyDate={dailySessionDate}
-                      isMarketOpen={topMarketStatus === "open"}
-                      currentTime={currentTime}
-                      executionMode={selectedExecutionMode}
-                      riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
-                        settings: riskControlsSettings,
-                        ticker: position.ticker,
-                        openPositionsCount: activePositions.length,
-                        closedTradesTodayCount: dailyClosedPositions.length,
-                        dailyRealizedPnl,
-                        dailyRealizedR,
-                        currentUnrealizedPnl: calculateUnrealizedPnl({
-                          entryPrice: position.entryPriceValue,
-                          currentPrice: latestUpdate?.currentPriceValue ?? null,
-                          shares: position.positionSizeValue,
-                          direction: position.direction,
-                        }).pnl,
-                        currentR:
-                          latestUpdate?.unrealizedRValue ??
-                          calculateCurrentR({
+                ? otherLivePositionItems.map(({ position, latestUpdate }) => {
+                    const positionForDisplay = withSymbolMetadataLogo(position);
+
+                    return (
+                      <ActivePositionCard
+                        key={`${position.id}:${dailySessionDate}`}
+                        position={positionForDisplay}
+                        latestUpdate={latestUpdate}
+                        marketCloseWarning={marketCloseWarning}
+                        eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
+                        eodSafetyDate={dailySessionDate}
+                        isMarketOpen={topMarketStatus === "open"}
+                        currentTime={currentTime}
+                        executionMode={selectedExecutionMode}
+                        riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
+                          settings: riskControlsSettings,
+                          ticker: position.ticker,
+                          openPositionsCount: activePositions.length,
+                          closedTradesTodayCount: dailyClosedPositions.length,
+                          dailyRealizedPnl,
+                          dailyRealizedR,
+                          currentUnrealizedPnl: calculateUnrealizedPnl({
                             entryPrice: position.entryPriceValue,
-                            stopLoss: position.stopLossValue,
                             currentPrice: latestUpdate?.currentPriceValue ?? null,
+                            shares: position.positionSizeValue,
                             direction: position.direction,
-                          }),
-                        lastLossClosedAt,
-                        now: currentTime,
-                      })}
-                      isSaving={isSaving}
-                      onClosePosition={openClosePositionModal}
-                    />
-                  ))
+                          }).pnl,
+                          currentR:
+                            latestUpdate?.unrealizedRValue ??
+                            calculateCurrentR({
+                              entryPrice: position.entryPriceValue,
+                              stopLoss: position.stopLossValue,
+                              currentPrice: latestUpdate?.currentPriceValue ?? null,
+                              direction: position.direction,
+                            }),
+                          lastLossClosedAt,
+                          now: currentTime,
+                        })}
+                        isSaving={isSaving}
+                        onClosePosition={openClosePositionModal}
+                      />
+                    );
+                  })
                 : null
             }
           >
             {(takeProfitLivePositionItems.length > 0
               ? takeProfitLivePositionItems
               : livePositionItems
-            ).map(({ position, latestUpdate }) => (
-              <ActivePositionCard
-                key={`${position.id}:${dailySessionDate}`}
-                position={position}
-                latestUpdate={latestUpdate}
-                marketCloseWarning={marketCloseWarning}
-                eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
-                eodSafetyDate={dailySessionDate}
-                isMarketOpen={topMarketStatus === "open"}
-                currentTime={currentTime}
-                executionMode={selectedExecutionMode}
-                riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
-                  settings: riskControlsSettings,
-                  ticker: position.ticker,
-                  openPositionsCount: activePositions.length,
-                  closedTradesTodayCount: dailyClosedPositions.length,
-                  dailyRealizedPnl,
-                  dailyRealizedR,
-                  currentUnrealizedPnl: calculateUnrealizedPnl({
-                    entryPrice: position.entryPriceValue,
-                    currentPrice: latestUpdate?.currentPriceValue ?? null,
-                    shares: position.positionSizeValue,
-                    direction: position.direction,
-                  }).pnl,
-                  currentR:
-                    latestUpdate?.unrealizedRValue ??
-                    calculateCurrentR({
+            ).map(({ position, latestUpdate }) => {
+              const positionForDisplay = withSymbolMetadataLogo(position);
+
+              return (
+                <ActivePositionCard
+                  key={`${position.id}:${dailySessionDate}`}
+                  position={positionForDisplay}
+                  latestUpdate={latestUpdate}
+                  marketCloseWarning={marketCloseWarning}
+                  eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
+                  eodSafetyDate={dailySessionDate}
+                  isMarketOpen={topMarketStatus === "open"}
+                  currentTime={currentTime}
+                  executionMode={selectedExecutionMode}
+                  riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
+                    settings: riskControlsSettings,
+                    ticker: position.ticker,
+                    openPositionsCount: activePositions.length,
+                    closedTradesTodayCount: dailyClosedPositions.length,
+                    dailyRealizedPnl,
+                    dailyRealizedR,
+                    currentUnrealizedPnl: calculateUnrealizedPnl({
                       entryPrice: position.entryPriceValue,
-                      stopLoss: position.stopLossValue,
                       currentPrice: latestUpdate?.currentPriceValue ?? null,
+                      shares: position.positionSizeValue,
                       direction: position.direction,
-                    }),
-                  lastLossClosedAt,
-                  now: currentTime,
-                })}
-                isSaving={isSaving}
-                onClosePosition={openClosePositionModal}
-              />
-            ))}
+                    }).pnl,
+                    currentR:
+                      latestUpdate?.unrealizedRValue ??
+                      calculateCurrentR({
+                        entryPrice: position.entryPriceValue,
+                        stopLoss: position.stopLossValue,
+                        currentPrice: latestUpdate?.currentPriceValue ?? null,
+                        direction: position.direction,
+                      }),
+                    lastLossClosedAt,
+                    now: currentTime,
+                  })}
+                  isSaving={isSaving}
+                  onClosePosition={openClosePositionModal}
+                />
+              );
+            })}
           </LiveDayTradesTab>
         )}
 
@@ -16566,13 +16712,13 @@ export function TradeApp({
         )}
       </div>
 
-      {selectedRecommendation && (
+      {selectedRecommendationForDisplay && (
         <TradeModal
-          key={selectedRecommendation.id}
-          recommendation={selectedRecommendation}
+          key={selectedRecommendationForDisplay.id}
+          recommendation={selectedRecommendationForDisplay}
           positionSizing={
             selectedRecommendationPositionSizing ??
-            calculatePositionSizing(selectedRecommendation, userSettings)
+            calculatePositionSizing(selectedRecommendationForDisplay, userSettings)
           }
           validation={selectedTradeValidation}
           validationMessage={selectedTradeValidationMessage}
@@ -16586,13 +16732,13 @@ export function TradeApp({
         />
       )}
 
-      {selectedPosition && (
+      {selectedPositionForDisplay && (
         <ClosePositionModal
-          key={selectedPosition.id}
-          position={selectedPosition}
-          latestUpdate={latestPositionUpdates[selectedPosition.id]}
+          key={selectedPositionForDisplay.id}
+          position={selectedPositionForDisplay}
+          latestUpdate={latestPositionUpdates[selectedPositionForDisplay.id]}
           eodSafetyStatus={getEndOfDaySafetyStatus(
-            selectedPosition,
+            selectedPositionForDisplay,
             marketStatus,
             currentTime,
           )}
