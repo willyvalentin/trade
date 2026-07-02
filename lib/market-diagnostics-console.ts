@@ -28,6 +28,8 @@ import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import {
   clientUnavailableLearningAccelerationConfig,
   type LearningAccelerationModeEvaluation,
+  type LearningAccelerationResearchSkipExample,
+  type LearningAccelerationResearchSkipReason,
 } from "@/lib/learning-acceleration-mode";
 import type { ScheduledScanTimelineEntry } from "@/lib/scheduled-scan-attempts";
 import {
@@ -156,6 +158,21 @@ export type MarketDiagnosticsConsoleInput = {
     research_skipped_stale?: number | null;
     research_skipped_budget?: number | null;
     research_skipped_missing_candidate_match?: number | null;
+    learning_acceleration_research_hard_invalid?: number | null;
+    learning_acceleration_research_soft_gaps_persisted?: number | null;
+    learning_acceleration_research_stale_blocked?: number | null;
+    learning_acceleration_research_skip_reason_counts?: Partial<
+      Record<LearningAccelerationResearchSkipReason, number>
+    > | null;
+    learning_acceleration_research_soft_gap_reason_counts?: Partial<
+      Record<LearningAccelerationResearchSkipReason, number>
+    > | null;
+    learning_acceleration_research_top_skip_examples?:
+      | LearningAccelerationResearchSkipExample[]
+      | null;
+    learning_acceleration_research_top_soft_gap_examples?:
+      | LearningAccelerationResearchSkipExample[]
+      | null;
     learning_acceleration_candidate_universe_count?: number | null;
     learning_acceleration_candidate_universe_missing?: boolean | null;
     learning_acceleration_ticker_matching_failed?: boolean | null;
@@ -504,6 +521,37 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function bool(value: boolean) {
   return value ? "yes" : "no";
+}
+
+function formatReasonCounts(
+  counts:
+    | Partial<Record<LearningAccelerationResearchSkipReason, number>>
+    | null
+    | undefined,
+) {
+  const entries = Object.entries(counts ?? {})
+    .filter(([, value]) => typeof value === "number" && value > 0)
+    .sort((first, second) => Number(second[1]) - Number(first[1]))
+    .slice(0, 6);
+
+  return entries.length > 0
+    ? entries.map(([reason, value]) => `${reason}:${value}`).join(", ")
+    : "none";
+}
+
+function formatResearchExamples(
+  examples: LearningAccelerationResearchSkipExample[] | null | undefined,
+) {
+  const items = (examples ?? []).slice(0, 5);
+
+  return items.length > 0
+    ? items
+        .map(
+          (example) =>
+            `${example.ticker}:${example.reason} (${example.available_fields_summary})`,
+        )
+        .join(" | ")
+    : "none";
 }
 
 function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
@@ -2476,6 +2524,42 @@ function buildSections(
     input.scan_readback?.research_skipped_budget ??
     input.outcome_evaluation?.skipped_due_to_budget_count ??
     0;
+  const learningAccelerationResearchHardInvalid =
+    learningAccelerationTrace?.learning_acceleration_research_hard_invalid_count ??
+    input.scan_readback?.learning_acceleration_research_hard_invalid ??
+    learningAccelerationSkippedInvalid;
+  const learningAccelerationResearchSoftGapsPersisted =
+    learningAccelerationTrace
+      ?.learning_acceleration_research_soft_gaps_persisted_count ??
+    input.scan_readback
+      ?.learning_acceleration_research_soft_gaps_persisted ??
+    0;
+  const learningAccelerationResearchStaleBlocked =
+    learningAccelerationTrace
+      ?.learning_acceleration_research_stale_blocked_count ??
+    input.scan_readback?.learning_acceleration_research_stale_blocked ??
+    learningAccelerationSkippedStale;
+  const learningAccelerationResearchSkipReasonCounts =
+    learningAccelerationTrace
+      ?.learning_acceleration_research_skip_reason_counts ??
+    input.scan_readback?.learning_acceleration_research_skip_reason_counts ??
+    {};
+  const learningAccelerationResearchSoftGapReasonCounts =
+    learningAccelerationTrace
+      ?.learning_acceleration_research_soft_gap_reason_counts ??
+    input.scan_readback
+      ?.learning_acceleration_research_soft_gap_reason_counts ??
+    {};
+  const learningAccelerationResearchTopSkipExamples =
+    learningAccelerationTrace?.learning_acceleration_research_top_skip_examples ??
+    input.scan_readback?.learning_acceleration_research_top_skip_examples ??
+    [];
+  const learningAccelerationResearchTopSoftGapExamples =
+    learningAccelerationTrace
+      ?.learning_acceleration_research_top_soft_gap_examples ??
+    input.scan_readback
+      ?.learning_acceleration_research_top_soft_gap_examples ??
+    [];
   const learningAccelerationSkippedMissingCandidate =
     learningAccelerationTrace?.research_skipped_missing_candidate_match ??
     input.scan_readback?.research_skipped_missing_candidate_match ??
@@ -4831,6 +4915,34 @@ function buildSections(
           `${learningAccelerationPersistAttempted}/${learningAccelerationResearchOnlyPersisted}`,
         ),
         lineValue(
+          "Research hard invalid",
+          String(learningAccelerationResearchHardInvalid),
+        ),
+        lineValue(
+          "Research soft gaps persisted",
+          String(learningAccelerationResearchSoftGapsPersisted),
+        ),
+        lineValue(
+          "Research stale blocked",
+          String(learningAccelerationResearchStaleBlocked),
+        ),
+        lineValue(
+          "Top skip reasons",
+          formatReasonCounts(learningAccelerationResearchSkipReasonCounts),
+        ),
+        lineValue(
+          "Top skip examples",
+          formatResearchExamples(learningAccelerationResearchTopSkipExamples),
+        ),
+        lineValue(
+          "Soft gap reasons",
+          formatReasonCounts(learningAccelerationResearchSoftGapReasonCounts),
+        ),
+        lineValue(
+          "Soft gap examples",
+          formatResearchExamples(learningAccelerationResearchTopSoftGapExamples),
+        ),
+        lineValue(
           "Research duplicates",
           String(learningAccelerationDuplicates),
         ),
@@ -4939,6 +5051,20 @@ function buildSections(
           learningAccelerationPersistAttempted,
         research_persisted: learningAccelerationResearchOnlyPersisted,
         research_duplicates: learningAccelerationDuplicates,
+        research_hard_invalid: learningAccelerationResearchHardInvalid,
+        research_soft_gaps_persisted:
+          learningAccelerationResearchSoftGapsPersisted,
+        research_stale_blocked: learningAccelerationResearchStaleBlocked,
+        research_skip_reason_counts:
+          formatReasonCounts(learningAccelerationResearchSkipReasonCounts),
+        research_soft_gap_reason_counts:
+          formatReasonCounts(learningAccelerationResearchSoftGapReasonCounts),
+        research_top_skip_examples:
+          formatResearchExamples(learningAccelerationResearchTopSkipExamples),
+        research_top_soft_gap_examples:
+          formatResearchExamples(
+            learningAccelerationResearchTopSoftGapExamples,
+          ),
         research_skipped_missing_candidate_match:
           learningAccelerationSkippedMissingCandidate,
         learning_acceleration_candidate_universe_count:

@@ -1,5 +1,9 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type {
+  LearningAccelerationResearchSkipExample,
+  LearningAccelerationResearchSkipReason,
+} from "@/lib/learning-acceleration-mode";
+import type {
   SelectedCandidateBuildDiagnostic,
   SelectedToBuiltDropOffSummary,
 } from "@/lib/recommendation-build-diagnostics";
@@ -119,6 +123,17 @@ export type ActiveScanTrace = {
   learning_acceleration_skipped_due_to_budget_count: number;
   learning_acceleration_skipped_due_to_invalid_risk_count: number;
   learning_acceleration_skipped_due_to_stale_reference_count: number;
+  learning_acceleration_research_hard_invalid_count: number;
+  learning_acceleration_research_soft_gaps_persisted_count: number;
+  learning_acceleration_research_stale_blocked_count: number;
+  learning_acceleration_research_skip_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  learning_acceleration_research_soft_gap_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  learning_acceleration_research_top_skip_examples: LearningAccelerationResearchSkipExample[];
+  learning_acceleration_research_top_soft_gap_examples: LearningAccelerationResearchSkipExample[];
   learning_acceleration_top_research_sample_tickers: string[];
   learning_acceleration_sample_quality_summary: {
     good: number;
@@ -347,6 +362,13 @@ export function createActiveScanTrace({
     learning_acceleration_skipped_due_to_budget_count: 0,
     learning_acceleration_skipped_due_to_invalid_risk_count: 0,
     learning_acceleration_skipped_due_to_stale_reference_count: 0,
+    learning_acceleration_research_hard_invalid_count: 0,
+    learning_acceleration_research_soft_gaps_persisted_count: 0,
+    learning_acceleration_research_stale_blocked_count: 0,
+    learning_acceleration_research_skip_reason_counts: {},
+    learning_acceleration_research_soft_gap_reason_counts: {},
+    learning_acceleration_research_top_skip_examples: [],
+    learning_acceleration_research_top_soft_gap_examples: [],
     learning_acceleration_top_research_sample_tickers: [],
     learning_acceleration_sample_quality_summary: { good: 0, usable: 0 },
     target_ideas_per_window: null,

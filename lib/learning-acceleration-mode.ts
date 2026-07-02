@@ -68,6 +68,29 @@ export type LearningAccelerationResearchSample = {
   explicit_metadata_gaps: string[];
 };
 
+export type LearningAccelerationResearchSkipReason =
+  | "missing_ticker"
+  | "missing_direction"
+  | "missing_entry"
+  | "missing_stop"
+  | "missing_target"
+  | "invalid_risk_geometry"
+  | "missing_reference_price"
+  | "missing_data_timestamp"
+  | "missing_provider_source"
+  | "stale_reference"
+  | "stale_candidate"
+  | "missing_snapshot_payload"
+  | "unsupported_candidate_shape"
+  | "duplicate_research_snapshot"
+  | "provider_budget_blocked";
+
+export type LearningAccelerationResearchSkipExample = {
+  ticker: string;
+  reason: LearningAccelerationResearchSkipReason;
+  available_fields_summary: string;
+};
+
 export type LearningAccelerationResearchSelectionSummary = {
   enabled: boolean;
   mode: "disabled" | "research_only";
@@ -104,6 +127,17 @@ export type LearningAccelerationResearchSelectionSummary = {
   skipped_due_to_stale_reference_count: number;
   skipped_due_to_missing_critical_fields_count: number;
   skipped_due_to_sanitizer_count: number;
+  research_hard_invalid_count: number;
+  research_soft_gaps_persisted_count: number;
+  research_stale_blocked_count: number;
+  research_skip_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  research_soft_gap_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  research_top_skip_examples: LearningAccelerationResearchSkipExample[];
+  research_top_soft_gap_examples: LearningAccelerationResearchSkipExample[];
   top_research_sample_tickers: string[];
   sample_quality_summary: {
     good: number;
@@ -314,6 +348,98 @@ function candidateRiskGeometry(candidate: RealScannerCandidate) {
   };
 }
 
+function incrementReason(
+  counts: Partial<Record<LearningAccelerationResearchSkipReason, number>>,
+  reason: LearningAccelerationResearchSkipReason,
+) {
+  counts[reason] = (counts[reason] ?? 0) + 1;
+}
+
+function availableFieldsSummary(input: {
+  ticker: string | null;
+  side: "long" | "short" | "unknown" | null;
+  candidate: RealScannerCandidate | null;
+  diagnostic: SelectedCandidateBuildDiagnostic | null;
+}) {
+  const candidate = input.candidate;
+  const diagnostic = input.diagnostic;
+  const parts = [
+    `ticker=${input.ticker ? "yes" : "no"}`,
+    `direction=${input.side && input.side !== "unknown" ? "yes" : "default_long"}`,
+    `entry_low=${finiteNumber(candidate?.entry_low) !== null ? "yes" : "no"}`,
+    `entry_high=${finiteNumber(candidate?.entry_high) !== null ? "yes" : "no"}`,
+    `stop=${finiteNumber(candidate?.stop_loss) !== null ? "yes" : "no"}`,
+    `target=${finiteNumber(candidate?.target_1) !== null ? "yes" : "no"}`,
+    `timestamp=${textOrNull(candidate?.market_data_timestamp) ? "yes" : "no"}`,
+    `provider=${textOrNull(candidate?.provider_source) ? "yes" : "no"}`,
+    `reference_status=${textOrNull(diagnostic?.reference_price_status) ?? "unknown"}`,
+    `risk_geometry=${textOrNull(diagnostic?.risk_geometry_status) ?? "unknown"}`,
+  ];
+
+  return parts.join(", ");
+}
+
+function pushReasonExample(
+  examples: LearningAccelerationResearchSkipExample[],
+  input: {
+    ticker: string | null;
+    reason: LearningAccelerationResearchSkipReason;
+    side: "long" | "short" | "unknown" | null;
+    candidate: RealScannerCandidate | null;
+    diagnostic: SelectedCandidateBuildDiagnostic | null;
+  },
+) {
+  if (
+    examples.some(
+      (example) =>
+        example.reason === input.reason &&
+        example.ticker === (input.ticker || "unknown"),
+    )
+  ) {
+    return;
+  }
+
+  if (examples.length >= 12) return;
+
+  examples.push({
+    ticker: input.ticker || "unknown",
+    reason: input.reason,
+    available_fields_summary: availableFieldsSummary(input),
+  });
+}
+
+function diagnosticHasStaleReference(
+  diagnostic: SelectedCandidateBuildDiagnostic | null,
+) {
+  const text = [
+    diagnostic?.reference_price_status,
+    diagnostic?.reference_price_source,
+    diagnostic?.reference_price_read_path,
+    diagnostic?.explanation,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return text.includes("stale") || text.includes("too_old");
+}
+
+function diagnosticMissingReferencePrice(
+  diagnostic: SelectedCandidateBuildDiagnostic | null,
+) {
+  const text = [
+    diagnostic?.reference_price_status,
+    diagnostic?.reference_price_source,
+    diagnostic?.reference_price_read_path,
+    diagnostic?.explanation,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return text.includes("missing_reference") || text.includes("missing fresh");
+}
+
 export function buildLearningAccelerationResearchSelection({
   enabled,
   candidates,
@@ -457,6 +583,13 @@ export function buildLearningAccelerationResearchSelection({
     skipped_due_to_stale_reference_count: 0,
     skipped_due_to_missing_critical_fields_count: 0,
     skipped_due_to_sanitizer_count: 0,
+    research_hard_invalid_count: 0,
+    research_soft_gaps_persisted_count: 0,
+    research_stale_blocked_count: 0,
+    research_skip_reason_counts: {},
+    research_soft_gap_reason_counts: {},
+    research_top_skip_examples: [],
+    research_top_soft_gap_examples: [],
     top_research_sample_tickers: [],
     sample_quality_summary: { good: 0, usable: 0 },
   };
@@ -533,40 +666,87 @@ export function buildLearningAccelerationResearchSelection({
   let skippedStaleReference = 0;
   let skippedMissingCriticalFields = 0;
   let skippedSanitizer = 0;
+  const skipReasonCounts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  > = {};
+  const softGapReasonCounts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  > = {};
+  const skipExamples: LearningAccelerationResearchSkipExample[] = [];
+  const softGapExamples: LearningAccelerationResearchSkipExample[] = [];
 
   for (const result of rankedResults) {
     const ticker = tickerKey(result.ticker);
+    const buildDiagnostic = belowThresholdByTicker.get(ticker) ?? null;
 
     if (!ticker || visibleTickerSet.has(ticker)) {
+      if (!ticker) {
+        incrementReason(skipReasonCounts, "missing_ticker");
+        pushReasonExample(skipExamples, {
+          ticker,
+          reason: "missing_ticker",
+          side: buildDiagnostic?.side ?? null,
+          candidate: null,
+          diagnostic: buildDiagnostic,
+        });
+      }
       continue;
     }
 
     if (seen.has(ticker)) {
       skippedDuplicate += 1;
+      incrementReason(skipReasonCounts, "duplicate_research_snapshot");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "duplicate_research_snapshot",
+        side: buildDiagnostic?.side ?? null,
+        candidate: candidateByTicker.get(ticker) ?? null,
+        diagnostic: buildDiagnostic,
+      });
       continue;
     }
     seen.add(ticker);
 
     const tier = rankingTier(result.score.tier);
     const candidate = candidateByTicker.get(ticker);
-    const buildDiagnostic = belowThresholdByTicker.get(ticker) ?? null;
+    const side = buildDiagnostic?.side === "short" ? "short" : "long";
 
     if (!candidate || tier === null) {
       skippedSanitizer += 1;
-      continue;
-    }
-
-    if (
-      buildDiagnostic &&
-      (!buildDiagnostic.enough_data_to_build_plan ||
-        buildDiagnostic.risk_geometry_status?.includes("invalid") === true)
-    ) {
-      skippedInvalidRisk += 1;
+      incrementReason(skipReasonCounts, "unsupported_candidate_shape");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "unsupported_candidate_shape",
+        side,
+        candidate: candidate ?? null,
+        diagnostic: buildDiagnostic,
+      });
       continue;
     }
 
     if (candidate.stale) {
       skippedStaleReference += 1;
+      incrementReason(skipReasonCounts, "stale_candidate");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "stale_candidate",
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
+      continue;
+    }
+
+    if (diagnosticHasStaleReference(buildDiagnostic)) {
+      skippedStaleReference += 1;
+      incrementReason(skipReasonCounts, "stale_reference");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "stale_reference",
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
       continue;
     }
 
@@ -574,11 +754,41 @@ export function buildLearningAccelerationResearchSelection({
 
     if (geometry.status === "missing_critical_fields") {
       skippedMissingCriticalFields += 1;
+      const missingReasons: LearningAccelerationResearchSkipReason[] = [
+        ...(finiteNumber(candidate.entry_low) === null &&
+        finiteNumber(candidate.entry_high) === null
+          ? ["missing_entry" as const]
+          : []),
+        ...(finiteNumber(candidate.stop_loss) === null
+          ? ["missing_stop" as const]
+          : []),
+        ...(finiteNumber(candidate.target_1) === null
+          ? ["missing_target" as const]
+          : []),
+      ];
+      for (const reason of missingReasons) {
+        incrementReason(skipReasonCounts, reason);
+        pushReasonExample(skipExamples, {
+          ticker,
+          reason,
+          side,
+          candidate,
+          diagnostic: buildDiagnostic,
+        });
+      }
       continue;
     }
 
     if (geometry.status === "invalid_risk") {
       skippedInvalidRisk += 1;
+      incrementReason(skipReasonCounts, "invalid_risk_geometry");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "invalid_risk_geometry",
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
       continue;
     }
 
@@ -587,8 +797,34 @@ export function buildLearningAccelerationResearchSelection({
         ...(candidate.market_data_timestamp ? [] : ["missing_data_timestamp"]),
         ...(candidate.provider_source ? [] : ["provider_source_unavailable"]),
         ...(candidate.data_source ? [] : ["market_data_source_unavailable"]),
+        ...(diagnosticMissingReferencePrice(buildDiagnostic)
+          ? ["missing_reference_price"]
+          : []),
+        ...(buildDiagnostic?.enough_data_to_build_plan === false
+          ? ["build_diagnostic_enough_data_false"]
+          : []),
+        ...(buildDiagnostic?.risk_geometry_status?.includes("invalid") === true
+          ? ["build_diagnostic_risk_geometry_invalid"]
+          : []),
       ]),
     );
+    const softGapReasons: LearningAccelerationResearchSkipReason[] = [
+      ...(candidate.market_data_timestamp ? [] : ["missing_data_timestamp" as const]),
+      ...(candidate.provider_source ? [] : ["missing_provider_source" as const]),
+      ...(diagnosticMissingReferencePrice(buildDiagnostic)
+        ? ["missing_reference_price" as const]
+        : []),
+    ];
+    for (const reason of softGapReasons) {
+      incrementReason(softGapReasonCounts, reason);
+      pushReasonExample(softGapExamples, {
+        ticker,
+        reason,
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
+    }
     const sampleQuality =
       candidate.provider_source && candidate.market_data_timestamp ? "good" : "usable";
 
@@ -639,6 +875,22 @@ export function buildLearningAccelerationResearchSelection({
     learningAccelerationInputSource === "none" && rankedResults.length > 0
       ? "ranking_overflow"
       : learningAccelerationInputSource;
+  const providerBudgetBlockedCount = eligibleRemainder;
+  if (providerBudgetBlockedCount > 0) {
+    skipReasonCounts.provider_budget_blocked = providerBudgetBlockedCount;
+  }
+  const hardInvalidCount =
+    (skipReasonCounts.missing_ticker ?? 0) +
+    (skipReasonCounts.missing_direction ?? 0) +
+    (skipReasonCounts.missing_entry ?? 0) +
+    (skipReasonCounts.missing_stop ?? 0) +
+    (skipReasonCounts.missing_target ?? 0) +
+    (skipReasonCounts.invalid_risk_geometry ?? 0) +
+    (skipReasonCounts.unsupported_candidate_shape ?? 0) +
+    (skipReasonCounts.missing_snapshot_payload ?? 0);
+  const staleBlockedCount =
+    (skipReasonCounts.stale_reference ?? 0) +
+    (skipReasonCounts.stale_candidate ?? 0);
 
   return {
     ...disabledSummary,
@@ -654,6 +906,15 @@ export function buildLearningAccelerationResearchSelection({
     skipped_due_to_stale_reference_count: skippedStaleReference,
     skipped_due_to_missing_critical_fields_count: skippedMissingCriticalFields,
     skipped_due_to_sanitizer_count: skippedSanitizer,
+    research_hard_invalid_count: hardInvalidCount,
+    research_soft_gaps_persisted_count: samples.filter(
+      (sample) => sample.explicit_metadata_gaps.length > 0,
+    ).length,
+    research_stale_blocked_count: staleBlockedCount,
+    research_skip_reason_counts: skipReasonCounts,
+    research_soft_gap_reason_counts: softGapReasonCounts,
+    research_top_skip_examples: skipExamples,
+    research_top_soft_gap_examples: softGapExamples,
     top_research_sample_tickers: samples.map((sample) => sample.ticker).slice(0, 8),
     sample_quality_summary: {
       good: samples.filter((sample) => sample.sample_quality === "good").length,

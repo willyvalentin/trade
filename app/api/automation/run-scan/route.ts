@@ -2407,6 +2407,20 @@ async function persistAutomationArtifacts({
       researchSelection.skipped_due_to_invalid_risk_count,
     learning_acceleration_skipped_due_to_stale_reference_count:
       researchSelection.skipped_due_to_stale_reference_count,
+    learning_acceleration_research_hard_invalid_count:
+      researchSelection.research_hard_invalid_count,
+    learning_acceleration_research_soft_gaps_persisted_count:
+      researchSelection.research_soft_gaps_persisted_count,
+    learning_acceleration_research_stale_blocked_count:
+      researchSelection.research_stale_blocked_count,
+    learning_acceleration_research_skip_reason_counts:
+      researchSelection.research_skip_reason_counts,
+    learning_acceleration_research_soft_gap_reason_counts:
+      researchSelection.research_soft_gap_reason_counts,
+    learning_acceleration_research_top_skip_examples:
+      researchSelection.research_top_skip_examples,
+    learning_acceleration_research_top_soft_gap_examples:
+      researchSelection.research_top_soft_gap_examples,
     learning_acceleration_top_research_sample_tickers:
       researchSelection.top_research_sample_tickers,
     learning_acceleration_sample_quality_summary:
@@ -4272,6 +4286,23 @@ export async function POST(request: Request) {
       learning_acceleration_skipped_due_to_stale_reference:
         artifactResult?.learning_acceleration
           .skipped_due_to_stale_reference_count ?? 0,
+      learning_acceleration_research_hard_invalid:
+        artifactResult?.learning_acceleration.research_hard_invalid_count ?? 0,
+      learning_acceleration_research_soft_gaps_persisted:
+        artifactResult?.learning_acceleration
+          .research_soft_gaps_persisted_count ?? 0,
+      learning_acceleration_research_stale_blocked:
+        artifactResult?.learning_acceleration.research_stale_blocked_count ?? 0,
+      learning_acceleration_research_skip_reason_counts:
+        artifactResult?.learning_acceleration.research_skip_reason_counts ?? {},
+      learning_acceleration_research_soft_gap_reason_counts:
+        artifactResult?.learning_acceleration.research_soft_gap_reason_counts ??
+        {},
+      learning_acceleration_research_top_skip_examples:
+        artifactResult?.learning_acceleration.research_top_skip_examples ?? [],
+      learning_acceleration_research_top_soft_gap_examples:
+        artifactResult?.learning_acceleration
+          .research_top_soft_gap_examples ?? [],
       shadow_entry_trial_attached_count:
         artifactResult?.shadow_snapshot_summary
           .shadow_snapshot_metadata_present_count ?? 0,
