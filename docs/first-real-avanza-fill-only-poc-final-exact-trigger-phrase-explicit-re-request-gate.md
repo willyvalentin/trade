@@ -1,49 +1,49 @@
-# First Real Avanza Fill-Only POC Final Exact Trigger Phrase Separate-Request Gate
+# First Real Avanza Fill-Only POC Final Exact Trigger Phrase Explicit Re-Request Gate
 
 ## Purpose
 
-This document adds the final exact trigger phrase separate-request gate.
+This document adds the final exact trigger phrase explicit re-request gate.
 
 This is not a live run. It does not access Avanza, launch or control a browser, query DOM, fill fields, click anything, open a review modal, submit or place an order, handle credentials/session data, mutate trades/stats/PnL, invoke or execute the exact trigger phrase, or call the trigger/action/wrapper/runner.
 
-This documents that the exact trigger phrase itself must now be explicitly provided again in a separate future request before invocation can be considered.
+This documents that the exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
 
 Ready never means execution occurred.
 
 ## Gate Basis
 
-| Basis item | Status | Notes |
-| --- | --- | --- |
-| Final exact trigger phrase re-provision confirmation gate | PASS | `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` |
-| Final exact trigger phrase re-provision confirmation | PASS | `final_exact_trigger_phrase_re_provision_confirmation_ready` |
-| Final exact trigger phrase re-provision checklist | PASS | `final_exact_trigger_phrase_re_provision_checklist_ready` |
-| Final exact trigger phrase re-provision gate | PASS | `final_exact_trigger_phrase_re_provision_gate_ready` |
-| Final exact trigger phrase invocation request confirmation gate | PASS | `final_exact_trigger_phrase_invocation_request_confirmation_gate_ready` |
-| Exact trigger phrase capture | PASS | `final_live_execute_attempt_exact_trigger_phrase_capture_ready` |
-| Historical exact trigger phrase state | PASS | Captured by Action 1091 but not invoked |
-| Future phrase separate-request requirement | PASS | The exact trigger phrase itself must now be explicitly provided again in a separate future request before invocation can be considered |
-| Wiring state | PASS | Explicit invocation trigger is not wired to UI/routes/provider/scanner/package scripts |
-| Action 1117 invocation state | PASS | Trigger/action/wrapper/runner are not invoked by this action |
-| Hard stops | PASS | All hard stops remain active |
-| Live invocation state | PASS | No live invocation has been performed |
-| Order state | PASS | No order has been placed |
+- Final exact trigger phrase separate-request confirmation gate is ready: `final_exact_trigger_phrase_separate_request_confirmation_gate_ready`.
+- Final exact trigger phrase separate-request confirmation is ready: `final_exact_trigger_phrase_separate_request_confirmation_ready`.
+- Final exact trigger phrase separate-request checklist is ready: `final_exact_trigger_phrase_separate_request_checklist_ready`.
+- Final exact trigger phrase separate-request gate is ready: `final_exact_trigger_phrase_separate_request_gate_ready`.
+- Final exact trigger phrase re-provision confirmation gate is ready: `final_exact_trigger_phrase_re_provision_confirmation_gate_ready`.
+- Exact trigger phrase capture is ready: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
+- Exact trigger phrase was historically captured by Action 1091 but not invoked.
+- Exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Explicit invocation trigger is not wired to UI/routes/provider/scanner/package scripts.
+- Trigger/action/wrapper/runner are not invoked by this action.
+- All hard stops remain active.
+- No live invocation has been performed.
+- No order has been placed.
 
-`final_exact_trigger_phrase_re_provision_confirmation_gate_ready` does not mean execution occurred.
+`final_exact_trigger_phrase_separate_request_confirmation_gate_ready` does not mean execution occurred.
 
-## Final Exact Trigger Phrase Separate-Request Prerequisite Table
+`final_exact_trigger_phrase_explicit_re_request_gate_ready` does not mean execution occurred.
+
+## Final Exact Trigger Phrase Explicit Re-Request Prerequisite Table
 
 | Prerequisite | Status | Notes |
 | --- | --- | --- |
+| Final exact trigger phrase separate-request confirmation gate ready | PASS | `final_exact_trigger_phrase_separate_request_confirmation_gate_ready` |
+| Final exact trigger phrase separate-request confirmation ready | PASS | `final_exact_trigger_phrase_separate_request_confirmation_ready` |
+| Final exact trigger phrase separate-request checklist ready | PASS | `final_exact_trigger_phrase_separate_request_checklist_ready` |
+| Final exact trigger phrase separate-request gate ready | PASS | `final_exact_trigger_phrase_separate_request_gate_ready` |
 | Final exact trigger phrase re-provision confirmation gate ready | PASS | `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` |
-| Final exact trigger phrase re-provision confirmation ready | PASS | `final_exact_trigger_phrase_re_provision_confirmation_ready` |
-| Final exact trigger phrase re-provision checklist ready | PASS | `final_exact_trigger_phrase_re_provision_checklist_ready` |
-| Final exact trigger phrase re-provision gate ready | PASS | `final_exact_trigger_phrase_re_provision_gate_ready` |
-| Final exact trigger phrase invocation request confirmation gate ready | PASS | `final_exact_trigger_phrase_invocation_request_confirmation_gate_ready` |
 | Exact trigger phrase capture ready | PASS | `final_live_execute_attempt_exact_trigger_phrase_capture_ready` |
 | Historical exact trigger phrase captured | PASS | Captured in Action 1091 |
 | Historical exact trigger phrase invoked | BLOCK | Must not be invoked by this action |
-| Exact trigger phrase explicitly re-provided for invocation | BLOCK | Must be separate future request, not Action 1117 |
-| Trigger/action/wrapper/runner invoked by this action | BLOCK | Must not be invoked in this separate-request gate action |
+| Exact trigger phrase explicitly re-provided for invocation | BLOCK | Must be separate future request, not Action 1121 |
+| Trigger/action/wrapper/runner invoked by this action | BLOCK | Must not be invoked in this explicit re-request gate action |
 | Approved account locked | PASS | Valentin Labs KF |
 | Approved instrument locked | PASS | GameStop |
 | Approved side locked | PASS | Buy-only |
@@ -58,24 +58,22 @@ Ready never means execution occurred.
 | Live execute evidence package not captured yet | WARN / EXPECTED | Belongs to a future explicit attempt |
 | No order placement evidence | PASS | No order has been placed |
 
-This gate does not mark a live execution as performed, does not mark live evidence as captured, does not mark the exact trigger phrase as invoked, and does not mark the trigger/action/wrapper/runner as invoked.
+This table does not mark a live execution as performed. It does not mark live evidence as captured. It does not mark the exact trigger phrase as invoked. It does not mark the trigger/action/wrapper/runner as invoked.
 
-## Separate-Request Gate Decision
+## Explicit Re-Request Gate Decision
 
-`final_exact_trigger_phrase_separate_request_gate_ready`
+`final_exact_trigger_phrase_explicit_re_request_gate_ready`
 
-This means the final exact trigger phrase separate-request gate is ready for adding a future final exact trigger phrase separate-request checklist. It does not mean execution has occurred.
-
-Do not use `final_exact_trigger_phrase_separate_request_gate_blocked` unless repository state reveals a real blocker.
+This means the final exact trigger phrase explicit re-request gate is ready for adding a future final exact trigger phrase explicit re-request checklist. It does not mean execution has occurred.
 
 ## Allowed Future Scope
 
-Only the following future scope is allowed unless separately approved:
+The only allowed future scope is:
 
-- Documentation/static final exact trigger phrase separate-request checklist or confirmation action only unless separately approved.
-- Exact trigger phrase is historically captured but not invoked by Action 1117.
-- Exact trigger phrase itself must now be explicitly provided again in a separate future request before invocation can be considered.
-- Trigger/action/wrapper/runner are not invoked by Action 1117.
+- Documentation/static final exact trigger phrase explicit re-request checklist or confirmation action only unless separately approved.
+- Exact trigger phrase is historically captured but not invoked by Action 1121.
+- Exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
+- Trigger/action/wrapper/runner are not invoked by Action 1121.
 - Any future invocation request must still be separate and explicit.
 - Any future invocation must still be explicit-trigger only.
 - Any future invocation must still require operator presence.
@@ -132,6 +130,8 @@ Any future checklist, confirmation capture, gate, action, or explicit trigger mu
 - Exact trigger phrase absent.
 - Exact trigger phrase mismatched.
 - Exact trigger phrase not explicitly re-provided in the future separate request.
+- Fresh final exact trigger phrase explicit re-request confirmation absent.
+- Fresh final exact trigger phrase separate-request confirmation absent or stale.
 - Fresh final exact trigger phrase re-provision confirmation absent or stale.
 - Fresh final exact trigger phrase invocation request confirmation absent or stale.
 - Fresh final explicit trigger invocation checklist confirmation absent or stale.
@@ -172,14 +172,14 @@ Any future checklist, confirmation capture, gate, action, or explicit trigger mu
 - UI/route/provider/scanner/package-script trigger requested.
 - Any uncertainty.
 
-## What Action 1118 May Add
+## What Action 1122 May Add
 
-Action 1118 may add a future final exact trigger phrase separate-request checklist, if still approved.
+Action 1122 may add a future final exact trigger phrase explicit re-request checklist, if still approved.
 
-Action 1118 may only add:
+Action 1122 may only add:
 
 - Documentation/checklist only.
-- A final exact trigger phrase separate-request checklist table.
+- A final exact trigger phrase explicit re-request checklist table.
 - A future operator template that requires the exact trigger phrase itself to be explicitly provided again.
 - Confirmation that exact phrase remains historically captured but not invoked.
 - Confirmation that trigger/action/wrapper/runner remain not invoked.
@@ -189,16 +189,16 @@ Action 1118 may only add:
 - Preservation of approved six-method runner boundary.
 - Preservation of stop before Granska köp.
 
-Action 1118 must preserve:
+Action 1122 must preserve:
 
-- `final_exact_trigger_phrase_separate_request_gate_ready` does not mean execution occurred.
-- The exact trigger phrase itself must now be explicitly provided again in a separate future request.
+- `final_exact_trigger_phrase_explicit_re_request_gate_ready` does not mean execution occurred.
+- The exact trigger phrase itself must be explicitly provided again in a separate future request.
 
-Action 1118 must still not place an order and must still not click Granska köp.
+Action 1122 must still not place an order and must still not click Granska köp.
 
-## What Action 1118 Must Not Add
+## What Action 1122 Must Not Add
 
-Action 1118 must not add:
+Action 1122 must not add:
 
 - No live run.
 - No browser launch/control.
@@ -264,18 +264,24 @@ Action 1118 must not add:
 - `final_exact_trigger_phrase_re_provision_confirmation_ready` does not mean execution occurred.
 - `final_exact_trigger_phrase_re_provision_confirmation_gate_ready` does not mean execution occurred.
 - `final_exact_trigger_phrase_separate_request_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_checklist_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_confirmation_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_separate_request_confirmation_gate_ready` does not mean execution occurred.
+- `final_exact_trigger_phrase_explicit_re_request_gate_ready` does not mean execution occurred.
 
 ## Result Status
 
-`first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_gate_added`
+`first_real_avanza_fill_only_poc_final_exact_trigger_phrase_explicit_re_request_gate_added`
 
 ## Recommended Next Action
 
-`Action 1118 — Add Final Exact Trigger Phrase Separate-Request Checklist`
+Action 1122 — Add Final Exact Trigger Phrase Explicit Re-Request Checklist.
 
-After the final exact trigger phrase separate-request gate is ready, the next step may add a final exact trigger phrase separate-request checklist that prepares the future operator request where the exact trigger phrase itself is explicitly provided again. This still must not place an order, must still not click Granska köp, and must not itself perform a live run.
+After the final exact trigger phrase explicit re-request gate is ready, the next step may add a final exact trigger phrase explicit re-request checklist that prepares the future operator request where the exact trigger phrase itself is explicitly provided again. This still must not place an order, must still not click Granska köp, and must not itself perform a live run.
 
-Action 1118 must still not place an order and must still not click Granska köp. Do not recommend a live attempt yet. Do not run the trigger yet.
+Action 1122 must still not place an order and must still not click Granska köp.
+
+Do not recommend a live attempt yet. Do not run the trigger yet.
 
 ## Progress Update
 
@@ -285,21 +291,21 @@ Action 1118 must still not place an order and must still not click Granska köp.
 - Semi-auto Avanza/browser-agent readiness: 99-100%
 - Real browser automation readiness: 100%
 - First Avanza fill-only POC readiness: 100%
-- Full-auto readiness: 10-15%, deferred
+- Full-auto readiness: 10-15% deferred
 - Total Ture toward semi-auto MVP: 99-100%
 
-Full-auto remains explicitly deferred.
+Full-auto remains deferred.
 
 ## Validation Notes
 
-- This was documentation/static exact trigger phrase separate-request gate only.
-- The final exact trigger phrase re-provision confirmation was captured in Action 1115.
-- The final exact trigger phrase re-provision confirmation gate was added in Action 1116.
+- This was documentation/static exact trigger phrase explicit re-request gate only.
+- The final exact trigger phrase separate-request confirmation was captured in Action 1119.
+- The final exact trigger phrase separate-request confirmation gate was added in Action 1120.
 - The exact trigger phrase was historically captured in Action 1091.
 - The exact trigger phrase was not invoked or executed.
-- The exact trigger phrase itself must now be explicitly provided again in a separate future request.
+- The exact trigger phrase itself must be explicitly provided again in a separate future request.
 - The trigger/action/wrapper/runner was not invoked.
-- This gate is ready only for adding a future final exact trigger phrase separate-request checklist/action.
+- This gate is ready only for adding a future final exact trigger phrase explicit re-request checklist/action.
 - No live run occurred.
 - No browser was launched or controlled.
 - No Avanza access occurred.
@@ -307,95 +313,10 @@ Full-auto remains explicitly deferred.
 - No field fill occurred.
 - No click occurred.
 - No review modal was opened.
-- No submit/order placement occurred.
+- No submit/order-placement occurred.
 - No credentials/session data were handled.
 - No Supabase/provider/scan/audit-writer invocation occurred.
 - Denial harness scripts were skipped because they would execute live Supabase checks.
-
-## Action 1117 Follow-Up - Final Exact Trigger Phrase Separate-Request Gate
-
-- Action: Action 1117 — Add Final Exact Trigger Phrase Separate-Request Gate.
-- Separate-request gate decision: `final_exact_trigger_phrase_separate_request_gate_ready`.
-- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_gate_added`.
-- Recommended next action: Action 1118 — Add Final Exact Trigger Phrase Separate-Request Checklist.
-- Prior re-provision confirmation gate remains: `final_exact_trigger_phrase_re_provision_confirmation_gate_ready`.
-- Prior re-provision confirmation remains: `final_exact_trigger_phrase_re_provision_confirmation_ready`.
-- Prior re-provision checklist remains: `final_exact_trigger_phrase_re_provision_checklist_ready`.
-- Prior re-provision gate remains: `final_exact_trigger_phrase_re_provision_gate_ready`.
-- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
-- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1117.
-- The exact trigger phrase itself must now be explicitly provided again in a separate future request before invocation can be considered.
-- Trigger/action/wrapper/runner were not invoked by Action 1117.
-- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
-- No live invocation, review click, final click, submit, or order placement has happened.
-- Denial harness scripts were skipped because they would execute live Supabase checks.
-- Ready does not mean execution occurred; `final_exact_trigger_phrase_separate_request_gate_ready` does not mean execution occurred.
-- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
-
-## Action 1118 Follow-Up - Final Exact Trigger Phrase Separate-Request Checklist
-
-- Action: Action 1118 — Add Final Exact Trigger Phrase Separate-Request Checklist.
-- Separate-request checklist decision: `final_exact_trigger_phrase_separate_request_checklist_ready`.
-- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_checklist_added`.
-- Recommended next action: Action 1119 — Capture Final Exact Trigger Phrase Separate-Request Confirmation.
-- Prior separate-request gate remains: `final_exact_trigger_phrase_separate_request_gate_ready`.
-- Prior separate-request result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_gate_added`.
-- Prior re-provision confirmation gate remains: `final_exact_trigger_phrase_re_provision_confirmation_gate_ready`.
-- Prior re-provision confirmation remains: `final_exact_trigger_phrase_re_provision_confirmation_ready`.
-- Prior re-provision checklist remains: `final_exact_trigger_phrase_re_provision_checklist_ready`.
-- Prior re-provision gate remains: `final_exact_trigger_phrase_re_provision_gate_ready`.
-- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
-- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1118.
-- The exact trigger phrase itself must now be explicitly provided again in a separate future request before invocation can be considered.
-- Trigger/action/wrapper/runner were not invoked by Action 1118.
-- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
-- No live invocation, review click, final click, submit, or order placement has happened.
-- Denial harness scripts were skipped because they would execute live Supabase checks.
-- Ready does not mean execution occurred; `final_exact_trigger_phrase_separate_request_checklist_ready` does not mean execution occurred.
-- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
-
-## Action 1119 Follow-Up - Final Exact Trigger Phrase Separate-Request Confirmation
-
-- Action: Action 1119 — Capture Final Exact Trigger Phrase Separate-Request Confirmation.
-- Confirmation decision: `final_exact_trigger_phrase_separate_request_confirmation_ready`.
-- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_confirmation_ready`.
-- Recommended next action: Action 1120 — Add Final Exact Trigger Phrase Separate-Request Confirmation Gate.
-- Prior separate-request checklist remains: `final_exact_trigger_phrase_separate_request_checklist_ready`.
-- Prior separate-request checklist result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_checklist_added`.
-- Prior separate-request gate remains: `final_exact_trigger_phrase_separate_request_gate_ready`.
-- Prior separate-request gate result remains: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_gate_added`.
-- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
-- The exact fresh final exact trigger phrase separate-request confirmation was provided and captured in Action 1119.
-- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1119.
-- The exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
-- Trigger/action/wrapper/runner were not invoked by Action 1119.
-- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
-- No live invocation, review click, final click, submit, or order placement has happened.
-- Denial harness scripts were skipped because they would execute live Supabase checks.
-- Ready does not mean execution occurred; `final_exact_trigger_phrase_separate_request_confirmation_ready` does not mean execution occurred.
-- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
-
-## Action 1120 Follow-Up - Final Exact Trigger Phrase Separate-Request Confirmation Gate
-
-- Action: Action 1120 — Add Final Exact Trigger Phrase Separate-Request Confirmation Gate.
-- Confirmation gate decision: `final_exact_trigger_phrase_separate_request_confirmation_gate_ready`.
-- Result status: `first_real_avanza_fill_only_poc_final_exact_trigger_phrase_separate_request_confirmation_gate_added`.
-- Recommended next action: Action 1121 — Add Final Exact Trigger Phrase Explicit Re-Request Gate.
-- Prior separate-request confirmation remains: `final_exact_trigger_phrase_separate_request_confirmation_ready`.
-- Prior separate-request checklist remains: `final_exact_trigger_phrase_separate_request_checklist_ready`.
-- Prior separate-request gate remains: `final_exact_trigger_phrase_separate_request_gate_ready`.
-- Prior re-provision confirmation gate remains: `final_exact_trigger_phrase_re_provision_confirmation_gate_ready`.
-- Prior exact trigger phrase capture remains: `final_live_execute_attempt_exact_trigger_phrase_capture_ready`.
-- The final exact trigger phrase separate-request confirmation was captured in Action 1119.
-- The exact trigger phrase remains historically captured only; it was not invoked or executed by Action 1120.
-- The exact trigger phrase itself must be explicitly provided again in a separate future request before invocation can be considered.
-- Trigger/action/wrapper/runner were not invoked by Action 1120.
-- No live Avanza/browser/DOM/fill/click/review/final/submit/order-placement/Supabase/provider/scan activity was performed.
-- No live invocation, review click, final click, submit, or order placement has happened.
-- Denial harness scripts were skipped because they would execute live Supabase checks.
-- Ready does not mean execution occurred; `final_exact_trigger_phrase_separate_request_confirmation_gate_ready` does not mean execution occurred.
-- Action 1121 may add only a documentation/static final exact trigger phrase explicit re-request gate/checklist; it must still not place an order and must still not click Granska köp.
-- Progress/readiness preserved: Ture production/data-health 95-97%; market-window live dry-run 92-95%; semi-auto agent foundation 98-99%; semi-auto Avanza/browser-agent readiness 99-100%; real browser automation readiness 100%; first Avanza fill-only POC readiness 100%; full-auto readiness 10-15% deferred; total Ture toward semi-auto MVP 99-100%.
 
 ## Action 1121 Follow-Up - Final Exact Trigger Phrase Explicit Re-Request Gate
 
