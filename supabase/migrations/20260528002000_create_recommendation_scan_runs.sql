@@ -2,7 +2,7 @@ create table if not exists public.recommendation_scan_runs (
   id text primary key,
   run_fingerprint text not null unique,
   trading_date date null,
-  window text not null default 'unknown',
+  "window" text not null default 'unknown',
   status text not null default 'unknown',
   observed_at timestamptz not null default now(),
   started_at timestamptz null,
@@ -44,7 +44,7 @@ create index if not exists recommendation_scan_runs_observed_at_idx
   on public.recommendation_scan_runs (observed_at desc);
 
 create index if not exists recommendation_scan_runs_window_status_idx
-  on public.recommendation_scan_runs (window, status);
+  on public.recommendation_scan_runs ("window", status);
 
 comment on table public.recommendation_scan_runs is
   'Historical recommendation scan runs for pipeline observability and recommendation learning diagnostics.';
