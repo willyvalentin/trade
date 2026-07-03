@@ -52,4 +52,17 @@ test.describe("Avanza read-only readiness badge in Trade UI", () => {
       );
     }
   });
+
+  test("records display-only Trade UI placement in the integration plan", () => {
+    const docSource = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+
+    expect(docSource).toContain(
+      "avanza_read_only_readiness_badge_trade_ui_display_added",
+    );
+    expect(docSource).toContain("Current Trade UI display follow-up");
+    expect(docSource).toContain("fixture/default summary data only");
+    expect(docSource).toContain("Settings remains the only UI surface");
+  });
 });
