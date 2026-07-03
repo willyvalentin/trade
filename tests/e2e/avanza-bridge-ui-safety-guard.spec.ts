@@ -5,12 +5,14 @@ import { join } from "node:path";
 const repoRoot = process.cwd();
 
 const uiFacingFiles = [
+  "app/page.tsx",
   "app/settings/page.tsx",
   "components/execution/AvanzaBridgeStatusPanel.tsx",
   "components/execution/AvanzaReadOnlyReadinessBadge.tsx",
   "lib/avanza-bridge-readiness-checklist.ts",
   "lib/avanza-local-bridge-readonly-fetcher.ts",
   "lib/avanza-local-bridge-status.ts",
+  "lib/avanza-read-only-readiness-fixture.ts",
 ] as const;
 
 const allowedReadOnlyEndpointPaths = [
