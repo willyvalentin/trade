@@ -7,6 +7,7 @@ const repoRoot = process.cwd();
 const uiFacingFiles = [
   "app/settings/page.tsx",
   "components/execution/AvanzaBridgeStatusPanel.tsx",
+  "components/execution/AvanzaPrepareHandoffPreviewShell.tsx",
   "components/execution/AvanzaReadOnlyReadinessBadge.tsx",
   "lib/avanza-bridge-readiness-checklist.ts",
   "lib/avanza-local-bridge-readonly-fetcher.ts",

@@ -24,6 +24,8 @@ Follow-up status: `avanza_read_only_readiness_badge_added`
 
 Follow-up status: `avanza_read_only_readiness_badge_trade_ui_display_added`
 
+Follow-up status: `avanza_prepare_handoff_preview_shell_added`
+
 Related milestone:
 `first_real_avanza_quantity_based_fill_only_core_poc_success_total_read_unresolved`
 
@@ -347,7 +349,9 @@ execution readiness.
 
 Current Trade UI display follow-up: the reusable
 `AvanzaReadOnlyReadinessBadge` is now rendered in the Trade dashboard execution
-context using fixture/default summary data only:
+context using fixture/default summary data only. The fixture summary is exported
+from `lib/avanza-read-only-readiness-fixtures.ts` as
+`avanzaTradeReadOnlyReadinessSummaryFixture`:
 
 - ready for read-only observation
 - total-read advisory
@@ -360,6 +364,34 @@ context using fixture/default summary data only:
 This gives Trade and Execution surfaces compact POC context without turning the
 Trade UI into a bridge controller. Settings remains the only UI surface with the
 manual read-only refresh action.
+
+Current preview-only handoff shell follow-up:
+`components/execution/AvanzaPrepareHandoffPreviewShell.tsx` is rendered beside
+the Trade dashboard readiness badge. It is a disabled UX shell only.
+
+The shell communicates:
+
+- `Prepare Avanza handoff`
+- `Preview only`
+- `Not enabled`
+- Ture will not click `Granska köp`
+- Ture will not submit an order
+- manual review is required in Avanza
+- total-read remains unresolved/advisory
+
+It previews the future flow:
+
+1. Ture validates the trade package.
+2. Ture checks read-only Avanza readiness.
+3. Ture prepares the order form.
+4. Ture stops before `Granska köp`.
+5. User manually reviews in Avanza.
+
+The control is disabled and has no handler. The Trade UI still does not fetch
+localhost, call bridge endpoints, add refresh outside Settings, use the exact
+trigger phrase, call live runner/fill endpoints, review, confirm, submit, place
+orders, handle credentials/session/storage, or write Supabase execution
+records.
 
 ## Safety Boundaries
 
