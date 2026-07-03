@@ -126,6 +126,22 @@ import {
   ExecutionSettingsPanel,
 } from "@/components/execution/execution-settings-panel";
 import {
+  AvanzaBridgeStatusPanel,
+  type AvanzaBridgeRefreshMetadata,
+} from "@/components/execution/AvanzaBridgeStatusPanel";
+import type {
+  AvanzaLocalBridgeStatusSummary,
+} from "@/lib/avanza-local-bridge-status";
+import {
+  buildAvanzaBridgeReadinessChecklist,
+  summarizeAvanzaBridgeReadinessChecklist,
+} from "@/lib/avanza-bridge-readiness-checklist";
+import {
+  fetchAvanzaLocalBridgeReadonlyStatus,
+  isAvanzaLocalBridgeReadonlyStatusEnabled,
+  type AvanzaLocalBridgeReadonlyStatusFetchResult,
+} from "@/lib/avanza-local-bridge-readonly-fetcher";
+import {
   ExecutionAuditLogViewer,
 } from "@/components/execution/execution-audit-log-viewer";
 import {
@@ -176,6 +192,92 @@ type SettingsForm = {
   includeEstimatedExitCommission: boolean;
   includeFxFee: boolean;
 };
+
+const avanzaBridgeStatusPanelFixture: AvanzaLocalBridgeStatusSummary = {
+  status: "preflight_ready",
+  bridgeAvailable: true,
+  selfCheckAvailable: true,
+  preflightReady: true,
+  manualObservationReady: true,
+  checkedAt: null,
+  endpoints: {
+    health: "ok",
+    selfCheck: "ok",
+    preflight: "ok",
+  },
+  safeMessage:
+    "Static fixture: first real quantity-based fill-only POC is proven. Total-read remains unresolved/advisory.",
+  blockers: [],
+  warnings: ["total_read_unresolved_advisory"],
+};
+
+const avanzaBridgeFixtureRefreshMetadata: AvanzaBridgeRefreshMetadata = {
+  source: "fixture_default",
+  lastRefreshedAt: null,
+  fetchDurationMs: null,
+  endpointSummary: {
+    health: "available",
+    selfCheck: "available",
+    preflight: "ready",
+  },
+  errorMessage: null,
+};
+
+function sanitizeReadonlyBridgeError(value: string | null | undefined) {
+  const normalized = value?.replace(/\s+/g, " ").trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.slice(0, 180);
+}
+
+function buildAvanzaBridgeRefreshMetadata(
+  result: AvanzaLocalBridgeReadonlyStatusFetchResult | null,
+): AvanzaBridgeRefreshMetadata {
+  if (!result) {
+    return avanzaBridgeFixtureRefreshMetadata;
+  }
+
+  const endpointSummary = result.summary.endpoints;
+  const errorMessage = sanitizeReadonlyBridgeError(
+    [
+      result.endpoints.health?.error,
+      result.endpoints.selfCheck?.error,
+      result.endpoints.preflightOrderForm?.error,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  );
+
+  return {
+    source: "manual_readonly_refresh",
+    lastRefreshedAt: result.completedAt,
+    fetchDurationMs: result.elapsedMs,
+    endpointSummary: {
+      health:
+        endpointSummary.health === "ok"
+          ? "available"
+          : endpointSummary.health === "unavailable"
+            ? "unavailable"
+            : "unknown",
+      selfCheck:
+        endpointSummary.selfCheck === "ok"
+          ? "available"
+          : endpointSummary.selfCheck === "unavailable"
+            ? "unavailable"
+            : "unknown",
+      preflight:
+        endpointSummary.preflight === "ok"
+          ? "ready"
+          : endpointSummary.preflight === "blocked"
+            ? "blocked"
+            : "unknown",
+    },
+    errorMessage,
+  };
+}
 
 type ScheduledScanRun = {
   id: string | number;
@@ -1150,6 +1252,18 @@ export default function SettingsPage() {
     useState<LocalhostBridgeClientHealthCheckResult | null>(null);
   const [isCheckingLocalhostBridge, setIsCheckingLocalhostBridge] =
     useState(false);
+  const [
+    avanzaBridgeReadonlyStatus,
+    setAvanzaBridgeReadonlyStatus,
+  ] = useState<AvanzaLocalBridgeReadonlyStatusFetchResult | null>(null);
+  const [
+    isRefreshingAvanzaBridgeReadonlyStatus,
+    setIsRefreshingAvanzaBridgeReadonlyStatus,
+  ] = useState(false);
+  const [
+    avanzaBridgeReadonlyStatusMessage,
+    setAvanzaBridgeReadonlyStatusMessage,
+  ] = useState("");
   const [avanzaAgentBridgeConfig, setAvanzaAgentBridgeConfig] =
     useState<AvanzaAgentBridgeConfig>(() => readAvanzaAgentBridgeConfig());
   const [avanzaAgentBridgeConfigMessage, setAvanzaAgentBridgeConfigMessage] =
@@ -1193,6 +1307,40 @@ export default function SettingsPage() {
     [avanzaNotesState],
   );
   const executionDevToolsEnabled = isExecutionDevToolsEnabled();
+  const avanzaBridgeReadonlyStatusEnabled =
+    isAvanzaLocalBridgeReadonlyStatusEnabled();
+  const avanzaBridgeStatusPanelStatus =
+    avanzaBridgeReadonlyStatus?.summary ?? avanzaBridgeStatusPanelFixture;
+  const avanzaBridgeRefreshMetadata = buildAvanzaBridgeRefreshMetadata(
+    avanzaBridgeReadonlyStatus,
+  );
+  const avanzaBridgeStatusPanelEvidence = {
+    accountVerified: "Valentin Labs KF",
+    instrumentVerified: "GameStop",
+    orderFormVisible: true,
+    totalReadStatus: "unresolved_advisory",
+  } as const;
+  const avanzaBridgeStatusPanelMilestone = {
+    coreFillAndStopProven: true,
+    evidenceCaptured: true,
+    flow: "quantity_based",
+    noFinalConfirmation: true,
+    noOrderPlacement: true,
+    noReviewModal: true,
+    priceVerifiedVia: "input#inputPrice",
+    quantityVerifiedVia: "input#inputVolume",
+    stoppedBeforeReview: true,
+    totalReadStatus: "unresolved_advisory",
+  } as const;
+  const avanzaBridgeReadinessChecklist = buildAvanzaBridgeReadinessChecklist({
+    evidence: avanzaBridgeStatusPanelEvidence,
+    featureEnabled: avanzaBridgeReadonlyStatusEnabled,
+    milestone: avanzaBridgeStatusPanelMilestone,
+    refreshMetadata: avanzaBridgeRefreshMetadata,
+    status: avanzaBridgeStatusPanelStatus,
+  });
+  const avanzaBridgeReadinessSummary =
+    summarizeAvanzaBridgeReadinessChecklist(avanzaBridgeReadinessChecklist);
   const agentAdapterDiagnosticsEntries = useMemo(
     () => buildAgentAdapterDiagnosticsEntries(executionEventLog.events),
     [executionEventLog.events],
@@ -1403,6 +1551,43 @@ export default function SettingsPage() {
       setLocalhostBridgeHealthCheck(result);
     } finally {
       setIsCheckingLocalhostBridge(false);
+    }
+  }
+
+  async function refreshAvanzaBridgeReadonlyStatus() {
+    if (!avanzaBridgeReadonlyStatusEnabled) {
+      setAvanzaBridgeReadonlyStatus(null);
+      setAvanzaBridgeReadonlyStatusMessage(
+        "Read-only Avanza bridge status is not configured. Fixture status remains visible.",
+      );
+      return;
+    }
+
+    setIsRefreshingAvanzaBridgeReadonlyStatus(true);
+    setAvanzaBridgeReadonlyStatusMessage("Refreshing read-only bridge status...");
+
+    try {
+      const result = await fetchAvanzaLocalBridgeReadonlyStatus({
+        enabled: avanzaBridgeReadonlyStatusEnabled,
+      });
+
+      setAvanzaBridgeReadonlyStatus(result);
+      setAvanzaBridgeReadonlyStatusMessage(
+        result.summary.safeMessage ||
+          "Read-only Avanza bridge status refreshed.",
+      );
+    } catch (error) {
+      const normalizedError = normalizeUnknownError(error);
+
+      setAvanzaBridgeReadonlyStatus(null);
+      setAvanzaBridgeReadonlyStatusMessage(
+        `Read-only Avanza bridge status refresh failed safely: ${
+          sanitizeReadonlyBridgeError(normalizedError.message) ??
+          "unknown_error"
+        }`,
+      );
+    } finally {
+      setIsRefreshingAvanzaBridgeReadonlyStatus(false);
     }
   }
 
@@ -2168,6 +2353,25 @@ export default function SettingsPage() {
               executionModeMessage={executionModeMessage}
               onSelectExecutionMode={updateExecutionModePreference}
             />
+
+            <div className="mt-4">
+              <AvanzaBridgeStatusPanel
+                canRefreshStatus={avanzaBridgeReadonlyStatusEnabled}
+                evidence={avanzaBridgeStatusPanelEvidence}
+                isRefreshingStatus={isRefreshingAvanzaBridgeReadonlyStatus}
+                milestone={avanzaBridgeStatusPanelMilestone}
+                onRefreshStatus={
+                  avanzaBridgeReadonlyStatusEnabled
+                    ? () => void refreshAvanzaBridgeReadonlyStatus()
+                    : undefined
+                }
+                readinessChecklist={avanzaBridgeReadinessChecklist}
+                readinessSummary={avanzaBridgeReadinessSummary}
+                refreshMetadata={avanzaBridgeRefreshMetadata}
+                refreshStatusMessage={avanzaBridgeReadonlyStatusMessage}
+                status={avanzaBridgeStatusPanelStatus}
+              />
+            </div>
 
             {executionDevToolsEnabled ? (
               <>

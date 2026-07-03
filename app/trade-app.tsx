@@ -618,8 +618,14 @@ import {
   LivePositionExecutionStatusSurface,
 } from "@/components/execution/live-position-execution-status-surface";
 import {
+  AvanzaReadOnlyReadinessBadge,
+} from "@/components/execution/AvanzaReadOnlyReadinessBadge";
+import {
   useExecutionLivePositionHandoffState,
 } from "@/hooks/execution/useExecutionLivePositionHandoffState";
+import type {
+  AvanzaBridgeReadinessSummary,
+} from "@/lib/avanza-bridge-readiness-checklist";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -1624,6 +1630,17 @@ const secondaryNavItems: SecondaryNavItem[] = [
   { key: "statistics", label: "Statistics", tab: "Statistics" },
   { key: "engine-insights", label: "Engine Insights", tab: "Market" },
 ];
+const avanzaTradeReadOnlyReadinessSummaryFixture: AvanzaBridgeReadinessSummary = {
+  advisory_count: 1,
+  blocked_count: 0,
+  label: "Ready for read-only observation",
+  ready_count: 11,
+  severity: "warning",
+  shortCopy:
+    "Avanza fill-and-stop POC is proven as display-only context. Total-read remains advisory and this is not execution readiness.",
+  status: "ready_for_read_only_observation",
+  unknown_count: 0,
+};
 const refreshIslandIds: RefreshIslandId[] = [
   "market_status",
   "recommendations",
@@ -15533,6 +15550,14 @@ export function TradeApp({
           onTabChange={setActiveTab}
           statusbar={dashboardStatusbar}
         />
+
+        {activeDashboardTab && (
+          <div className="trade-section">
+            <AvanzaReadOnlyReadinessBadge
+              summary={avanzaTradeReadOnlyReadinessSummaryFixture}
+            />
+          </div>
+        )}
 
         {activeTab === "Recommendations" && (
           <RecommendationsTab

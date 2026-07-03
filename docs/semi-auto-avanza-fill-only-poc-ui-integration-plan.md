@@ -6,6 +6,24 @@ Follow-up status: `avanza_local_bridge_status_adapter_added`
 
 Follow-up status: `avanza_bridge_read_only_status_panel_added`
 
+Follow-up status: `avanza_bridge_read_only_status_panel_settings_fixture_placed`
+
+Follow-up status: `avanza_bridge_read_only_status_data_layer_plan_added`
+
+Follow-up status: `avanza_bridge_read_only_manual_refresh_added`
+
+Follow-up status: `avanza_bridge_read_only_poc_milestone_summary_added`
+
+Follow-up status: `avanza_bridge_read_only_last_refresh_metadata_added`
+
+Follow-up status: `avanza_bridge_read_only_readiness_checklist_added`
+
+Follow-up status: `avanza_bridge_read_only_readiness_summary_added`
+
+Follow-up status: `avanza_read_only_readiness_badge_added`
+
+Follow-up status: `avanza_read_only_readiness_badge_trade_ui_display_added`
+
 Related milestone:
 `first_real_avanza_quantity_based_fill_only_core_poc_success_total_read_unresolved`
 
@@ -198,6 +216,150 @@ does not call localhost, does not call any `/live-fill-only-runner/*` endpoint,
 does not call fill endpoints, and cannot review, confirm, submit, place orders,
 write Supabase execution records, or handle credentials/session/BankID/cookies
 or storage.
+
+Current placement: the read-only panel is rendered in `app/settings/page.tsx`
+near the execution settings surface using safe static fixture props only:
+
+- `preflight_ready`
+- account verified: `Valentin Labs KF`
+- instrument verified: `GameStop`
+- order form visible
+- total-read unresolved/advisory
+- no order-placement capability
+
+This placement does not fetch localhost, does not poll the bridge, does not call
+bridge endpoints, does not add a trigger button, does not add bridge POST calls,
+and does not add fill, click, review, final confirmation, submit, order
+placement, credential/session/storage, or Supabase execution-record behavior.
+
+Current planning follow-up:
+`docs/avanza-bridge-read-only-status-data-layer-plan.md` defines the future
+read-only data path before implementation. It limits the future status layer to
+`GET /health`, `GET /self-check`, and
+`GET /preflight/avanza-order-form`, keeps live runner/fill endpoints forbidden,
+and recommends the next implementation step:
+`read_only_localhost_bridge_status_fetcher_behind_dev_local_flag`.
+
+Current Settings follow-up: the Settings placement now supports a manual
+read-only `Refresh bridge status` action behind
+`NEXT_PUBLIC_AVANZA_BRIDGE_READONLY_STATUS_ENABLED=true`. The action uses the
+read-only fetcher only and remains limited to `GET /health`, `GET /self-check`,
+and `GET /preflight/avanza-order-form`.
+
+The Settings integration does not add polling, does not add a live trigger
+button, does not call live runner/fill endpoints, and does not add review,
+final confirmation, submit, order placement, credential/session/storage, or
+Supabase execution-record behavior.
+
+Current display follow-up: the read-only Settings panel now shows the proven
+POC milestone summary:
+
+- core fill-and-stop POC proven
+- quantity-based flow
+- quantity verified via `input#inputVolume`
+- price verified via `input#inputPrice`
+- evidence captured
+- stopped before `Granska köp`
+- no review modal
+- no final confirmation
+- no order placement
+- total-read unresolved/advisory
+
+This is display-only fixture/milestone context and does not add live automation,
+trigger/fill endpoint calls, polling, bridge POST calls, order actions, or
+Supabase execution-record writes.
+
+Current metadata follow-up: the read-only Settings panel now shows safe
+last-refresh metadata:
+
+- source: fixture/default or manual read-only refresh
+- last refreshed at
+- fetch duration when available
+- health endpoint summary
+- self-check endpoint summary
+- preflight endpoint summary
+- bounded safe timeout/network error text
+
+When the feature flag is disabled, the panel keeps source as fixture/default
+and does not fetch. This remains manual-only and does not add polling or any
+live automation.
+
+Current readiness follow-up: the read-only Settings panel now shows a derived
+readiness checklist for future semi-auto handoff preparation. The derivation is
+centralized in `lib/avanza-bridge-readiness-checklist.ts` and uses existing
+fixture/manual refresh status, safe evidence, milestone context, and last
+refresh metadata only.
+
+Checklist items cover:
+
+- read-only feature flag enabled
+- local bridge reachable
+- health endpoint available
+- self-check endpoint available
+- Avanza page observed
+- order form visible
+- account verified
+- instrument verified
+- buy side verified
+- advanced/limit mode verified
+- stop-before-review boundary documented
+- total-read unresolved/advisory
+
+Each row is labeled `ready`, `blocked`, `advisory`, or `unknown`. Disabled or
+not configured mode shows a blocked feature-flag row and unknown bridge/page
+items without fetching. Preflight-ready state shows verified rows as ready.
+Preflight-blocked state shows the Avanza page/form verification rows as
+blocked. Total-read remains advisory, not ready.
+
+This is display-only readiness copy. It does not add polling, trigger/fill
+endpoint calls, bridge POST calls, review, final confirmation, submit, order
+placement, credential/session/storage handling, or Supabase execution-record
+writes.
+
+Current summary follow-up: `lib/avanza-bridge-readiness-checklist.ts` now also
+derives a compact read-only readiness summary from the checklist rows. The
+Settings panel renders this summary above the checklist with:
+
+- status
+- label
+- severity
+- short copy
+- ready count
+- blocked count
+- advisory count
+- unknown count
+
+When required bridge/preflight/order-form/account/instrument rows are ready and
+only total-read remains advisory, the summary says the bridge is ready for
+read-only observation and warns that this is not execution readiness. Total-read
+unresolved/advisory is counted as advisory and never as ready.
+
+Current reusable badge follow-up:
+`components/execution/AvanzaReadOnlyReadinessBadge.tsx` renders only the compact
+read-only readiness summary. `AvanzaBridgeStatusPanel` uses this badge instead
+of duplicating summary markup. The badge is prop-driven and can later be reused
+in the Trade UI, execution modal, or development dashboard.
+
+The badge does not fetch, poll, know about bridge endpoints, call live
+runner/fill paths, add trigger controls, or perform review/final/submit/order
+behavior. It explicitly labels the state as read-only observation, not
+execution readiness.
+
+Current Trade UI display follow-up: the reusable
+`AvanzaReadOnlyReadinessBadge` is now rendered in the Trade dashboard execution
+context using fixture/default summary data only:
+
+- ready for read-only observation
+- total-read advisory
+- no bridge refresh
+- no localhost fetch
+- no bridge endpoint calls
+- no trigger/fill controls
+- no review/final/submit/order behavior
+
+This gives Trade and Execution surfaces compact POC context without turning the
+Trade UI into a bridge controller. Settings remains the only UI surface with the
+manual read-only refresh action.
 
 ## Safety Boundaries
 
