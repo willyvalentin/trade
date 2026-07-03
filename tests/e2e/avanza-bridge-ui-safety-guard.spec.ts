@@ -21,13 +21,24 @@ const allowedReadOnlyEndpointPaths = [
   "/preflight/avanza-order-form",
 ] as const;
 
+const liveInvocationUppercaseFragment = [
+  "FINAL LIVE EXECUTE ATTEMPT",
+  "EXPLICIT INVOCATION",
+  "TRIGGER",
+].join(" ");
+const liveInvocationNaturalLanguageFragment = [
+  "I explicitly request the final live",
+  "fill-only execute attempt",
+  "trigger now",
+].join(" ");
+
 const forbiddenLiteralFragments = [
   "/live-fill-only-runner/run-approved-quantity-based-fill-only-trigger",
   "/live-fill-only-runner/fill-quantity",
   "/live-fill-only-runner/fill-price",
   "/live-fill-only-runner/fill-amount",
-  "FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER",
-  "I explicitly request the final live fill-only execute attempt trigger now",
+  liveInvocationUppercaseFragment,
+  liveInvocationNaturalLanguageFragment,
   "Bekräfta köp/sälj",
 ] as const;
 
