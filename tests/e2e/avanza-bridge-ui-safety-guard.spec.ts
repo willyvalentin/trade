@@ -5,6 +5,7 @@ import { join } from "node:path";
 const repoRoot = process.cwd();
 
 const uiFacingFiles = [
+  "app/dev/avanza-visual-qa/page.tsx",
   "app/settings/page.tsx",
   "components/execution/AvanzaBridgeStatusPanel.tsx",
   "components/execution/AvanzaHandoffPackagePreviewCard.tsx",
@@ -15,6 +16,19 @@ const uiFacingFiles = [
   "components/execution/AvanzaSelectedRecommendationPreviewStateScenarioGallery.tsx",
   "components/execution/AvanzaSelectedRecommendationPreviewStatePanel.tsx",
   "components/execution/AvanzaSelectedRecommendationPreviewTestOnlyHarness.tsx",
+  "components/execution/AvanzaDevVisibleSelectedRecommendationPreviewSurface.tsx",
+  "components/execution/AvanzaDevVisibleSelectedRecommendationPreviewSurfaceGallery.tsx",
+  "components/execution/AvanzaDevVisualQaRouteStatusPanel.tsx",
+  "components/execution/AvanzaDevVisualQaRouteAccessHarness.tsx",
+  "components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx",
+  "components/execution/AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness.tsx",
+  "lib/avanza-dev-visual-qa-route-access-fixtures.ts",
+  "lib/avanza-dev-visual-qa-route-access.ts",
+  "lib/avanza-dev-visible-preview-surface-fixtures.ts",
+  "lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts",
+  "lib/avanza-read-only-selected-recommendation-derivation-decision.ts",
+  "lib/avanza-read-only-selected-recommendation-dev-preview-fixtures.ts",
+  "lib/avanza-read-only-selected-recommendation-dev-preview-guard.ts",
   "lib/avanza-handoff-package-preview-fixtures.ts",
   "lib/avanza-handoff-package-preview.ts",
   "lib/avanza-handoff-pre-activation-gate.ts",

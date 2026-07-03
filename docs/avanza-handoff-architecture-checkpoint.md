@@ -180,6 +180,10 @@ The final checkpoint for the dev-only preview enablement modeling phase is
 captured in
 [Avanza dev-only preview enablement final checkpoint](avanza-dev-only-preview-enablement-final-checkpoint.md).
 
+The optional next visible dev-only selectedRecommendation preview surface is
+planned in
+[Avanza dev-only visible selectedRecommendation preview surface plan](avanza-dev-only-visible-selected-recommendation-preview-surface-plan.md).
+
 ## References
 
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
@@ -189,5 +193,6 @@ captured in
 - [Avanza dev-only selected-recommendation preview enablement plan](avanza-dev-only-selected-recommendation-preview-enablement-plan.md)
 - [Avanza dev-only preview enablement checkpoint](avanza-dev-only-preview-enablement-checkpoint.md)
 - [Avanza dev-only preview enablement final checkpoint](avanza-dev-only-preview-enablement-final-checkpoint.md)
+- [Avanza dev-only visible selectedRecommendation preview surface plan](avanza-dev-only-visible-selected-recommendation-preview-surface-plan.md)
 - [Avanza bridge read-only status data layer plan](avanza-bridge-read-only-status-data-layer-plan.md)
 - [First real Avanza quantity-based fill-only core POC milestone decision](first-real-avanza-quantity-based-fill-only-core-poc-milestone-decision.md)

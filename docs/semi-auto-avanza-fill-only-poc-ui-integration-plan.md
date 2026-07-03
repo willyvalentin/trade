@@ -68,6 +68,64 @@ Follow-up status: `avanza_test_only_selected_recommendation_preview_activation_c
 
 Follow-up status: `avanza_test_only_selected_recommendation_preview_final_checkpoint_added`
 
+Follow-up status: `avanza_dev_only_visible_selected_recommendation_preview_surface_plan_added`
+
+Follow-up status: `avanza_dev_visible_selected_recommendation_preview_surface_guard_added`
+
+Follow-up status: `avanza_dev_visible_selected_recommendation_preview_surface_component_added`
+
+Follow-up status: `avanza_dev_visible_selected_recommendation_preview_surface_fixtures_added`
+
+Follow-up status: `avanza_dev_visible_selected_recommendation_preview_surface_gallery_added`
+
+Follow-up status: `avanza_dev_only_visible_preview_surface_checkpoint_added`
+
+Follow-up status: `avanza_dev_only_visible_preview_surface_route_plan_added`
+
+Follow-up status: `avanza_dev_visual_qa_route_access_guard_added`
+
+Follow-up status: `avanza_dev_visual_qa_route_access_fixtures_harness_added`
+
+Follow-up status: `avanza_dev_visual_qa_route_access_checkpoint_added`
+
+Follow-up status: `avanza_dev_visual_qa_pre_route_final_checkpoint_added`
+
+Follow-up status: `avanza_isolated_dev_visual_qa_route_shell_added_fixture_only`
+
+Follow-up status: `avanza_isolated_dev_visual_qa_route_hardening_checkpoint_added`
+
+Follow-up status: `avanza_dev_visual_qa_route_status_panel_added`
+
+Follow-up status: `avanza_isolated_dev_visual_qa_route_content_checkpoint_added`
+
+Follow-up status: `avanza_isolated_dev_visual_qa_route_final_checkpoint_added`
+
+Follow-up status: `avanza_isolated_dev_visual_qa_route_phase_completion_checkpoint_added`
+
+Follow-up status: `avanza_read_only_real_selected_recommendation_dev_preview_planned_no_wiring`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_guard_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_fixtures_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_guard_harness_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_guard_checkpoint_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_guard_harness_added_to_dev_route_fixture_model_only`
+
+Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_route_section_checkpoint_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_derivation_planned_no_wiring`
+
+Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_model_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_fixtures_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_harness_added`
+
+Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_checkpoint_added`
+
 Related milestone:
 `first_real_avanza_quantity_based_fill_only_core_poc_success_total_read_unresolved`
 
@@ -1122,6 +1180,377 @@ dependency exists, no bridge calls, no localhost fetch, no polling, no
 runner/fill invocation, no trigger phrase, no click/review/final/submit/order
 behavior, no credential/session handling, no Supabase execution write, and
 total-read remains advisory.
+
+Dev-only visible selectedRecommendation preview surface plan follow-up:
+`docs/avanza-dev-only-visible-selected-recommendation-preview-surface-plan.md`
+plans an optional future visible dev-only preview surface. Allowed future
+surfaces include a dev-only panel inside Trade UI behind explicit test/dev
+config, an isolated dev-only route behind explicit guard, or promoting the
+existing test-only harness to a dev-only visual QA surface.
+
+The plan keeps production-visible defaults, default Trade UI source switching,
+enabled handoff buttons, bridge/fill/order paths, runtime execution, and
+production-readiness claims forbidden. It requires `explicitPreviewOnlyFlag` to
+remain false by default, selectedRecommendation preview disabled by default,
+source indicator to show `selected_recommendation_preview_only` only when
+explicitly enabled, controls disabled, the pre-activation gate locked,
+total-read advisory, no bridge calls, no localhost fetch, no polling, no
+runner/fill invocation, no trigger phrase, no click/review/final/submit/order
+behavior, no credential/session handling, and no Supabase execution write.
+
+Dev-only visible preview surface guard follow-up:
+`lib/avanza-dev-visible-preview-surface-guard.ts` adds a pure guard model for a
+future visible dev-only selectedRecommendation preview surface. The default
+guard is `hidden`, cannot render the visible surface, cannot read
+selectedRecommendation for preview, cannot call the bridge, cannot fetch
+localhost, and cannot execute. A dev/test candidate model state may return
+`visible_dev_only_allowed`, but it still forbids bridge calls, localhost fetch,
+execution, enabled controls, and unlocked gates. Production-forbidden input is
+blocked.
+
+The guard is not wired into `app/trade-app.tsx`, no visible preview surface was
+rendered, no route was added, selectedRecommendation preview remains disabled
+by default, controls remain disabled, and the gate remains locked.
+
+Dev-only visible selectedRecommendation preview surface component follow-up:
+`components/execution/AvanzaDevVisibleSelectedRecommendationPreviewSurface.tsx`
+adds an isolated prop-driven component that can render a future dev-only visible
+preview surface only when passed an allowed guard state and a preview state.
+Hidden or blocked guards render explanation copy only. An allowed guard renders
+the passive `AvanzaSelectedRecommendationPreviewStatePanel`.
+
+The component is not rendered in `app/trade-app.tsx`, no route was added, no
+visible toggle was added, selectedRecommendation preview remains disabled by
+default, controls remain disabled, the gate remains locked, and no bridge calls,
+localhost fetch, polling, trigger/fill runner, click/review/final/submit/order
+behavior, credential/session handling, or Supabase execution write was added.
+
+Dev-only visible selectedRecommendation preview surface fixtures follow-up:
+`lib/avanza-dev-visible-preview-surface-fixtures.ts` adds reusable static
+fixture states for the isolated dev-only visible preview surface: hidden,
+blocked, and `visible_dev_only_allowed`. The visible fixture uses an existing
+valid selectedRecommendation preview state fixture and remains passive:
+preview-only, no bridge calls, no localhost fetch, no execution, controls
+disabled, gate locked, and total-read advisory. These fixtures are not wired
+into `app/trade-app.tsx`, no route was added, and selectedRecommendation
+preview remains disabled by default.
+
+Dev-only visible selectedRecommendation preview surface gallery follow-up:
+`components/execution/AvanzaDevVisibleSelectedRecommendationPreviewSurfaceGallery.tsx`
+adds an isolated fixture-only gallery that renders the hidden, blocked, and
+`visible_dev_only_allowed` fixtures through the visible preview surface
+component. It shows fixture label, expected render state, fixture-only copy, not
+rendered in production Trade UI copy, no bridge calls, no localhost fetch, and
+no execution.
+
+The gallery is not rendered in `app/trade-app.tsx`, no route was added, no
+visible toggle was added, selectedRecommendation preview remains disabled by
+default, controls remain disabled, the gate remains locked, and no bridge calls,
+localhost fetch, polling, trigger/fill runner, click/review/final/submit/order
+behavior, credential/session handling, or Supabase execution write was added.
+
+Dev-only visible preview surface checkpoint follow-up:
+`docs/avanza-dev-only-visible-preview-surface-checkpoint.md` summarizes the
+guard, isolated component, fixtures, and fixture gallery phase before any future
+dev route or visible Trade UI integration. It confirms the default guard is
+hidden, the component and gallery are not rendered in `app/trade-app.tsx`, no
+route exists, selectedRecommendation preview is disabled by default,
+`explicitPreviewOnlyFlag` is false by default, there is no runtime environment
+path, no `.env.local` dependency, controls are disabled, the pre-activation
+gate is locked, no bridge calls, no localhost fetch, no polling, no runner/fill
+invocation, no trigger phrase, no click/review/final/submit/order behavior, no
+credential/session handling, no Supabase execution write, and total-read
+remains advisory.
+
+Dev-only visible preview surface route plan follow-up:
+`docs/avanza-dev-only-visible-preview-surface-route-plan.md` plans an optional
+future dev-only visual QA route or surface for the fixture-only visible preview
+gallery. Allowed future surfaces include a dev-only route behind explicit guard,
+an isolated component harness, or a Storybook-like component surface if adopted
+later.
+
+The plan forbids a production route, default Trade UI render, Settings render by
+default, active handoff controls, bridge/fetch/execution behavior, polling,
+runner/fill invocation, click/review/final/submit/order behavior,
+credential/session handling, and Supabase writes. If a route is ever added, it
+must be guarded explicitly, use fixture-only data by default, avoid real
+selectedRecommendation state unless separately planned, avoid main navigation
+links, and be included in UI safety scanning.
+
+Dev-only visual QA route access guard follow-up:
+`lib/avanza-dev-visual-qa-route-access.ts` adds a pure route access guard for a
+future optional dev-only visual QA surface. The default decision is `hidden`,
+cannot expose a route, cannot link from main navigation, cannot render the
+fixture gallery, cannot use real selectedRecommendation state, cannot call the
+bridge, cannot fetch localhost, and cannot execute. A dev-only fixture may
+return `dev_route_allowed` for fixture-gallery route exposure only, while still
+forbidding main navigation links, real selectedRecommendation state, bridge
+calls, localhost fetches, and execution. No route was added and nothing was
+wired into `app/trade-app.tsx`.
+
+Dev-only visual QA route access fixtures/harness follow-up:
+`lib/avanza-dev-visual-qa-route-access-fixtures.ts` adds reusable hidden,
+production-forbidden blocked, and `dev_route_allowed` fixture-gallery-only route
+access decisions. `components/execution/AvanzaDevVisualQaRouteAccessHarness.tsx`
+renders those fixture decisions in an isolated prop-driven harness with route
+status, fixture-gallery permission, main-navigation link status, real
+selectedRecommendation state status, bridge/local fetch/execution status, and
+explicit copy that no route is created.
+
+The harness is not rendered in `app/trade-app.tsx`, no route was added, no
+visible toggle was added, selectedRecommendation preview remains disabled by
+default, controls remain disabled, the gate remains locked, and no bridge calls,
+localhost fetch, polling, trigger/fill runner, click/review/final/submit/order
+behavior, credential/session handling, or Supabase execution write was added.
+
+Dev-only visual QA route access checkpoint follow-up:
+`docs/avanza-dev-visual-qa-route-access-checkpoint.md` summarizes the route
+access guard, hidden/blocked/`dev_route_allowed` fixtures, and isolated harness
+before any future route creation. It confirms the default guard is hidden,
+cannot expose a route, cannot link from main navigation, cannot render the
+fixture gallery, and that `dev_route_allowed` exists only as fixture/model
+state.
+
+The checkpoint also confirms no route exists, the harness is not rendered in
+`app/trade-app.tsx`, selectedRecommendation preview remains disabled by
+default, no real selectedRecommendation state is used, controls remain
+disabled, the gate remains locked, total-read remains advisory, and no bridge
+calls, localhost fetch, polling, runner/fill invocation, trigger phrase,
+click/review/final/submit/order behavior, credential/session handling, or
+Supabase execution write was added.
+
+Dev-only visual QA pre-route final checkpoint follow-up:
+`docs/avanza-dev-visual-qa-pre-route-final-checkpoint.md` closes the completed
+plan, guard, fixture, harness, and pre-route modeling phase before any future
+dev-only route implementation. It records that no route exists, no app code is
+wired into Trade UI, no component, gallery, or harness is rendered in
+`app/trade-app.tsx`, selectedRecommendation preview remains disabled by
+default, `explicitPreviewOnlyFlag` remains false by default, the default route
+access guard is hidden, default route exposure and main-navigation linking are
+not allowed, and the route plan uses fixture-only data with no real
+selectedRecommendation state.
+
+The checkpoint keeps controls disabled, the pre-activation gate locked,
+total-read advisory, and forbids bridge calls, localhost fetch, polling,
+runner/fill invocation, trigger phrase, fill/click/review/final/submit/order
+behavior, credential/session/BankID/cookie/storage handling, and Supabase
+execution writes. Next-phase options are to stop here, implement an isolated
+dev-only visual QA route for fixture gallery only, or separately plan real
+selectedRecommendation dev preview. All options continue to forbid execution,
+fill, and trigger behavior.
+
+Isolated dev visual QA route shell follow-up:
+`docs/avanza-isolated-dev-visual-qa-route-implementation-plan.md` defines the
+requirements for an isolated dev-only route and records the fixture-only route
+shell at `app/dev/avanza-visual-qa/page.tsx`. The route only renders
+fixture-only gallery/harness data, remains isolated from default Trade UI, stays
+unlinked from main navigation, and remains passive/read-only.
+
+The plan requires the route access guard, fixture-only data, no real Trade UI
+state, no real selectedRecommendation state, no fetch, no bridge calls, no
+localhost calls, no polling, no active controls, no
+execution/fill/click/review/final/submit/order behavior, no credential/session
+handling, no Supabase execution writes, no live endpoint strings, and no exact
+trigger phrase. Route options remain: no route, isolated dev-only QA route for
+fixtures only, or separate future real selectedRecommendation dev preview
+planning.
+
+Isolated dev visual QA route hardening checkpoint follow-up:
+`docs/avanza-isolated-dev-visual-qa-route-hardening-checkpoint.md` confirms the
+route exists only at `app/dev/avanza-visual-qa/page.tsx`, remains isolated, is
+not linked from main navigation, is not imported by `app/trade-app.tsx`, uses
+fixture-only data, does not read real selectedRecommendation state, does not
+read Trade UI state, and keeps selectedRecommendation preview disabled by
+default in Trade UI.
+
+The hardening checkpoint also confirms controls remain disabled, the gate
+remains locked, total-read remains advisory, and the route has no bridge calls,
+localhost fetch, polling, runner/fill invocation, trigger phrase,
+fill/click/review/final/submit/order behavior, credential/session/BankID/cookie
+storage handling, Supabase execution write, or production readiness claim.
+
+Dev-only visual QA route status panel follow-up:
+`components/execution/AvanzaDevVisualQaRouteStatusPanel.tsx` adds a static
+route-local fixture-only status panel and `app/dev/avanza-visual-qa/page.tsx`
+renders it above the route access harness and visible preview surface gallery.
+The panel shows dev-only visual QA route, fixture-only, not linked from main
+navigation, no real selectedRecommendation state, no Trade UI state, no bridge
+calls, no localhost fetch, no polling, no execution, controls disabled, gate
+locked, and total-read advisory copy.
+
+The panel does not fetch, does not call the bridge, does not read app state,
+does not read real selectedRecommendation state, does not import
+`app/trade-app.tsx`, contains no active controls, and adds no live endpoints or
+trigger phrase.
+
+Isolated dev visual QA route content checkpoint follow-up:
+`docs/avanza-isolated-dev-visual-qa-route-content-checkpoint.md` documents the
+exact fixture-only content rendered by `app/dev/avanza-visual-qa/page.tsx`: the
+route-local status panel, route access harness, and visible preview surface
+gallery. It confirms all three are fixture-only, the route is not linked from
+main navigation, the route is not imported by `app/trade-app.tsx`,
+`app/trade-app.tsx` was not changed, and the route reads neither real
+selectedRecommendation state nor Trade UI state.
+
+The checkpoint confirms selectedRecommendation preview remains disabled by
+default in Trade UI, controls remain disabled, the gate remains locked,
+total-read remains advisory, and route content has no bridge calls, localhost
+fetch, polling, runner/fill invocation, trigger phrase,
+fill/click/review/final/submit/order behavior, credential/session handling, or
+Supabase execution write.
+
+Isolated dev visual QA route final checkpoint follow-up:
+`docs/avanza-isolated-dev-visual-qa-route-final-checkpoint.md` closes the
+isolated dev-only visual QA route phase. It summarizes the route at
+`app/dev/avanza-visual-qa/page.tsx`, the route-local status panel, route access
+harness, visible preview surface gallery, fixture-only behavior, default Trade
+UI behavior, isolation guarantees, safety guarantees, explicit non-goals, and
+remaining not-implemented items.
+
+The final checkpoint confirms the route is isolated, fixture-only, not linked
+from main navigation, not imported by `app/trade-app.tsx`, and that
+`app/trade-app.tsx` was not changed. It confirms the route does not read real
+selectedRecommendation state or Trade UI state, selectedRecommendation preview
+remains disabled by default in Trade UI, `explicitPreviewOnlyFlag` remains false
+by default, controls remain disabled, the pre-activation gate remains locked,
+total-read remains advisory, and there are no bridge calls, localhost fetches,
+polling, runner/fill invocation, trigger phrase,
+fill/click/review/final/submit/order behavior, credential/session handling, or
+Supabase execution writes.
+
+Isolated dev visual QA route phase completion checkpoint follow-up:
+`docs/avanza-isolated-dev-visual-qa-route-phase-completion-checkpoint.md` marks
+the isolated dev-only visual QA route phase as complete and safe to pause. It
+records the completed route, status panel, route access harness, visible preview
+surface gallery, fixture-only behavior, default Trade UI behavior, isolation
+guarantees, safety guarantees, validation coverage, and deliberately
+not-implemented items.
+
+The phase completion checkpoint confirms the route remains fixture-only,
+unlinked from main navigation, not imported by `app/trade-app.tsx`, and not
+using real selectedRecommendation or Trade UI state. It confirms
+selectedRecommendation preview remains disabled by default in Trade UI,
+`explicitPreviewOnlyFlag` remains false by default, controls remain disabled,
+the pre-activation gate remains locked, total-read remains advisory, and there
+are no bridge calls, localhost fetches, polling, runner/fill invocation, trigger
+phrase, fill/click/review/final/submit/order behavior,
+credential/session/BankID/cookie/storage handling, Supabase execution writes,
+or production readiness claims.
+
+Read-only real selectedRecommendation dev preview plan follow-up:
+`docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md` plans a
+future dev-only/read-only phase for previewing Avanza handoff state derived from
+a real selectedRecommendation. This is planning only: no app code changed, no
+`app/trade-app.tsx` change, no existing dev route change, no real
+selectedRecommendation wiring, no runtime environment config, and no `.env.local`
+change.
+
+The plan allows future selectedRecommendation reads only after explicit dev-only
+guards, through the existing adapter and derived-preview helper, rendering
+read-only preview state with controls disabled, gate locked, and total-read
+advisory. It requires dev-only route/access, selectedRecommendation read-only
+preview, preview-state derivation, and disabled-controls/gate-locked guards.
+It forbids production/default enablement, main Trade UI activation by default,
+active handoff buttons, bridge calls, localhost fetch, polling, trigger phrase,
+fill/click/review/final/submit/order behavior, credential/session handling,
+Supabase execution writes, and production readiness claims.
+
+Read-only selectedRecommendation dev preview guard follow-up:
+`lib/avanza-read-only-selected-recommendation-dev-preview-guard.ts` adds a pure
+guard model for a future read-only real selectedRecommendation dev preview. The
+default guard is `hidden`, cannot read real selectedRecommendation, cannot
+derive preview state, cannot render read-only preview, can use fixture fallback,
+cannot call the bridge, cannot fetch localhost, cannot poll, cannot execute,
+keeps controls disabled, and keeps the gate locked.
+
+A dev-only fixture/config may return `read_only_dev_preview_allowed` and allow
+real selectedRecommendation reads for read-only preview derivation only, while
+still forbidding bridge calls, localhost fetches, polling, execution, enabled
+controls, and unlocked gates. The helper is not wired into the dev route or
+`app/trade-app.tsx`, and no real selectedRecommendation state is read or
+rendered.
+
+Read-only selectedRecommendation dev preview guard fixture follow-up:
+`lib/avanza-read-only-selected-recommendation-dev-preview-fixtures.ts` adds
+static hidden, blocked production-forbidden, and
+`read_only_dev_preview_allowed` fixture states for the guard model. The allowed
+fixture models read-only selectedRecommendation preview capability only for
+future dev planning; every fixture still forbids bridge calls, localhost
+fetches, polling, execution, enabled controls, and unlocked gates. These
+fixtures are not wired into Trade UI.
+
+Read-only selectedRecommendation dev preview guard harness follow-up:
+`components/execution/AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness.tsx`
+adds an isolated prop-driven harness for the guard fixtures. The harness
+renders fixture labels, guard status, read/derive/render permissions, fixture
+fallback permission, bridge/localhost/polling/execution flags, disabled
+controls, and locked gate state. It is rendered in the isolated dev-only visual
+QA route as fixture/model-only content. It is not wired into Trade UI, does not
+read real selectedRecommendation state, does not fetch, does not call the
+bridge, and does not add active controls.
+
+Read-only selectedRecommendation dev preview guard checkpoint follow-up:
+`docs/avanza-read-only-selected-recommendation-dev-preview-guard-checkpoint.md`
+summarizes the completed guard, fixture, and harness phase. The checkpoint
+records that the default guard is hidden, `read_only_dev_preview_allowed`
+exists only as fixture/model state, the harness is rendered in the isolated
+dev-only visual QA route as fixture/model-only content, the harness is not
+wired into Trade UI, the route remains fixture-only, no real
+selectedRecommendation state is read or rendered, controls remain disabled, and
+the pre-activation gate remains locked.
+
+Read-only selectedRecommendation dev preview route section checkpoint follow-up:
+`docs/avanza-read-only-selected-recommendation-dev-preview-route-section-checkpoint.md`
+summarizes the isolated dev-only visual QA route section that renders the guard
+harness as fixture/model-only content. It confirms that the route remains
+unlinked from main navigation, `app/trade-app.tsx` was not changed, the harness
+is not rendered in Trade UI, no real selectedRecommendation state is read or
+rendered, no real preview state is derived, controls remain disabled, the
+pre-activation gate remains locked, and total-read remains advisory.
+
+Read-only selectedRecommendation derivation plan follow-up:
+`docs/avanza-read-only-selected-recommendation-derivation-plan.md` plans a
+future dev-only/read-only phase for actual selectedRecommendation derivation.
+The plan requires an explicit selectedRecommendation source, adapter
+normalization, derived preview-state building, read-only presentation, disabled
+controls, and a locked gate. It is planning only: no app code, route behavior,
+Trade UI behavior, real selectedRecommendation read, real preview derivation,
+bridge call, localhost fetch, polling, active handoff control, or execution path
+is added.
+
+Read-only selectedRecommendation derivation decision model follow-up:
+`lib/avanza-read-only-selected-recommendation-derivation-decision.ts` adds a
+pure decision model for explicit selectedRecommendation-like inputs. It returns
+`no_input`, `blocked`, `invalid_input`, or `derivation_allowed` while keeping
+bridge calls, localhost fetches, polling, execution, enabled controls, and
+unlocked gates forbidden. The model is not wired into Trade UI or the dev
+route, does not read app or route state, and does not derive real preview state.
+
+Read-only selectedRecommendation derivation decision fixture follow-up:
+`lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts`
+adds static `no_input`, `blocked_guard`, `invalid_input`, and
+`derivation_allowed` fixture states for the pure derivation decision model. The
+allowed fixture remains model-only and still forbids bridge calls, localhost
+fetches, polling, execution, enabled controls, and unlocked gates. The fixtures
+are not wired into Trade UI or the dev route and do not derive real preview
+state.
+
+Read-only selectedRecommendation derivation decision harness follow-up:
+`components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx`
+adds an isolated prop-driven harness for the derivation decision fixtures. The
+harness renders source mode, read/derive/render flags, fixture fallback,
+bridge/localhost/polling/execution flags, disabled controls, and locked gate
+state. It is not wired into Trade UI or the dev route, does not read app or
+route state, and does not derive real preview state.
+
+Read-only selectedRecommendation derivation decision checkpoint follow-up:
+`docs/avanza-read-only-selected-recommendation-derivation-decision-checkpoint.md`
+summarizes the completed decision model, fixture, and isolated harness phase
+before route wiring or real derivation. It records that `no_input` uses fixture
+fallback, blocked and invalid states cannot derive or render, the allowed state
+exists only as fixture/model state, the harness is not wired into Trade UI or
+the dev route, no real selectedRecommendation state is read or rendered, and no
+real preview state is derived or rendered.
 
 ## Safety Boundaries
 
