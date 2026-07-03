@@ -4,17 +4,29 @@ export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptStatus =
   | "final_live_execute_attempt_plan_created"
   | "final_live_execute_attempt_aborted";
 
+export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy =
+  | "amount_based"
+  | "quantity_based";
+
+export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptSelectedPrimaryInput =
+  | "amount"
+  | "quantity";
+
 export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerResult = {
   ok: boolean;
   evidence_id?: string | null;
   observed_total_amount_sek?: number | null;
   note?: string | null;
+  diagnostics?: unknown;
 };
 
 export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunner = {
   verifyVisibleOrderFormState: () => FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerResult;
   fillAmountField: (
     amountSek: number,
+  ) => FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerResult;
+  fillQuantityField?: (
+    quantity: number,
   ) => FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerResult;
   fillPriceField: (
     priceUsd: number,
@@ -32,6 +44,7 @@ export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall = {
   evidence_id: string | null;
   observed_total_amount_sek: number | null;
   note: string | null;
+  diagnostics: unknown;
 };
 
 export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInput = {
@@ -67,7 +80,12 @@ export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInput = {
   expected_instrument?: string | null;
   expected_side?: "buy" | string | null;
   expected_order_mode?: "Avancerad/Limit" | string | null;
+  approved_input_strategy?:
+    | FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy
+    | string
+    | null;
   expected_amount_sek?: number | null;
+  expected_quantity?: number | null;
   expected_price_usd?: number | null;
   expected_total_sek?: number | null;
   cap_sek?: number | null;
@@ -91,7 +109,10 @@ export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan = {
   instrument: "GameStop";
   side: "buy";
   order_mode: "Avancerad/Limit";
+  input_strategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy;
+  selected_primary_input: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptSelectedPrimaryInput;
   amount_sek: 427.26;
+  quantity: 1;
   price_usd: 21.98;
   expected_total_sek: 438.05;
   cap_sek: 1000;
@@ -111,6 +132,17 @@ export type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptResult = {
   blocked_reasons: readonly string[];
   runner_calls: readonly FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall[];
   plan: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan;
+  result_metadata: {
+    approvedInputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy;
+    selectedPrimaryInput: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptSelectedPrimaryInput;
+    selectedPrimaryInputVerified: boolean;
+    quantityFillAttempted: boolean;
+    quantityFillVerified: boolean;
+    amountFillAttempted: boolean;
+    amountFillVerified: boolean;
+    priceFillAttempted: boolean;
+    priceFillVerified: boolean;
+  };
   safety_confirmations: {
     disabled_by_default: true;
     explicit_trigger_only: true;
@@ -134,7 +166,9 @@ const expectedValues = {
   instrument: "GameStop",
   side: "buy",
   orderMode: "Avancerad/Limit",
+  inputStrategy: "amount_based",
   amountSek: 427.26,
+  quantity: 1,
   priceUsd: 21.98,
   totalSek: 438.05,
   capSek: 1000,
@@ -144,6 +178,7 @@ export const firstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptAllowedRunnerMetho
   [
     "verifyVisibleOrderFormState",
     "fillAmountField",
+    "fillQuantityField",
     "fillPriceField",
     "readTotalAmount",
     "captureEvidence",
@@ -180,14 +215,65 @@ const safetyConfirmations = {
   stop_before_granska_kop: true,
 } as const;
 
-function buildPlan(): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
+function normalizeInputStrategy(
+  value: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInput["approved_input_strategy"],
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy {
+  return value === "quantity_based" ? "quantity_based" : "amount_based";
+}
+
+function isSupportedInputStrategy(value: unknown): boolean {
+  return (
+    value === undefined ||
+    value === null ||
+    value === "amount_based" ||
+    value === "quantity_based"
+  );
+}
+
+function selectedPrimaryInput(
+  strategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy,
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptSelectedPrimaryInput {
+  return strategy === "quantity_based" ? "quantity" : "amount";
+}
+
+function metadataForRunnerCalls(
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy,
+  runnerCalls: readonly FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall[],
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptResult["result_metadata"] {
+  const amountCall = runnerCalls.find((call) => call.method === "fillAmountField");
+  const quantityCall = runnerCalls.find(
+    (call) => call.method === "fillQuantityField",
+  );
+  const priceCall = runnerCalls.find((call) => call.method === "fillPriceField");
+  const primaryCall =
+    selectedPrimaryInput(inputStrategy) === "quantity" ? quantityCall : amountCall;
+
+  return {
+    approvedInputStrategy: inputStrategy,
+    selectedPrimaryInput: selectedPrimaryInput(inputStrategy),
+    selectedPrimaryInputVerified: primaryCall?.ok === true,
+    quantityFillAttempted: Boolean(quantityCall),
+    quantityFillVerified: quantityCall?.ok === true,
+    amountFillAttempted: Boolean(amountCall),
+    amountFillVerified: amountCall?.ok === true,
+    priceFillAttempted: Boolean(priceCall),
+    priceFillVerified: priceCall?.ok === true,
+  };
+}
+
+function buildPlan(
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = expectedValues.inputStrategy,
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
   return {
     mode: "fill_only_stop_before_review",
     account: expectedValues.account,
     instrument: expectedValues.instrument,
     side: expectedValues.side,
     order_mode: expectedValues.orderMode,
+    input_strategy: inputStrategy,
+    selected_primary_input: selectedPrimaryInput(inputStrategy),
     amount_sek: expectedValues.amountSek,
+    quantity: expectedValues.quantity,
     price_usd: expectedValues.priceUsd,
     expected_total_sek: expectedValues.totalSek,
     cap_sek: expectedValues.capSek,
@@ -201,6 +287,7 @@ function result(
   status: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptStatus,
   blockedReasons: readonly string[],
   runnerCalls: readonly FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall[] = [],
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = expectedValues.inputStrategy,
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptResult {
   return {
     status,
@@ -215,7 +302,8 @@ function result(
       "final_live_execute_attempt_plan_created_does_not_mean_order_placement",
     blocked_reasons: blockedReasons,
     runner_calls: runnerCalls,
-    plan: buildPlan(),
+    plan: buildPlan(inputStrategy),
+    result_metadata: metadataForRunnerCalls(inputStrategy, runnerCalls),
     safety_confirmations: safetyConfirmations,
   };
 }
@@ -230,6 +318,7 @@ function normalizeRunnerResult(
     evidence_id: runnerResult.evidence_id ?? null,
     observed_total_amount_sek: runnerResult.observed_total_amount_sek ?? null,
     note: runnerResult.note ?? null,
+    diagnostics: runnerResult.diagnostics ?? null,
   };
 }
 
@@ -329,8 +418,24 @@ function inputBlockers(
     blockers.push("order_mode:not_avancerad_limit");
   }
 
-  if (input.expected_amount_sek !== expectedValues.amountSek) {
+  if (!isSupportedInputStrategy(input.approved_input_strategy)) {
+    blockers.push("input_strategy:unsupported");
+  }
+
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
+
+  if (
+    strategy === "amount_based" &&
+    input.expected_amount_sek !== expectedValues.amountSek
+  ) {
     blockers.push("amount:mismatch");
+  }
+
+  if (
+    strategy === "quantity_based" &&
+    input.expected_quantity !== expectedValues.quantity
+  ) {
+    blockers.push("quantity:mismatch");
   }
 
   if (input.expected_price_usd !== expectedValues.priceUsd) {
@@ -395,6 +500,14 @@ function inputBlockers(
     blockers.push("unsupported_runner_method:present");
   }
 
+  if (
+    input.runner &&
+    strategy === "quantity_based" &&
+    typeof input.runner.fillQuantityField !== "function"
+  ) {
+    blockers.push("fill_quantity_field:missing");
+  }
+
   return blockers;
 }
 
@@ -402,6 +515,7 @@ function runInjectedRunner(
   input: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInput,
   runner: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunner,
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptResult {
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
   const verifyCall = normalizeRunnerResult(
     "verifyVisibleOrderFormState",
     runner.verifyVisibleOrderFormState(),
@@ -410,18 +524,35 @@ function runInjectedRunner(
   if (!verifyCall.ok) {
     return result("final_live_execute_attempt_aborted", [
       "runner:visible_state_mismatch",
-    ], [verifyCall]);
+    ], [verifyCall], strategy);
   }
 
-  const amountCall = normalizeRunnerResult(
-    "fillAmountField",
-    runner.fillAmountField(input.expected_amount_sek ?? expectedValues.amountSek),
-  );
+  const primaryCall =
+    strategy === "quantity_based"
+      ? normalizeRunnerResult(
+          "fillQuantityField",
+          runner.fillQuantityField!(
+            input.expected_quantity ?? expectedValues.quantity,
+          ),
+        )
+      : normalizeRunnerResult(
+          "fillAmountField",
+          runner.fillAmountField(
+            input.expected_amount_sek ?? expectedValues.amountSek,
+          ),
+        );
 
-  if (!amountCall.ok) {
-    return result("final_live_execute_attempt_aborted", [
-      "runner:amount_fill_failed",
-    ], [verifyCall, amountCall]);
+  if (!primaryCall.ok) {
+    return result(
+      "final_live_execute_attempt_aborted",
+      [
+        strategy === "quantity_based"
+          ? "runner:quantity_fill_failed"
+          : "runner:amount_fill_failed",
+      ],
+      [verifyCall, primaryCall],
+      strategy,
+    );
   }
 
   const priceCall = normalizeRunnerResult(
@@ -432,21 +563,21 @@ function runInjectedRunner(
   if (!priceCall.ok) {
     return result("final_live_execute_attempt_aborted", [
       "runner:price_fill_failed",
-    ], [verifyCall, amountCall, priceCall]);
+    ], [verifyCall, primaryCall, priceCall], strategy);
   }
 
   const totalCall = normalizeRunnerResult("readTotalAmount", runner.readTotalAmount());
 
   if (!totalCall.ok || !numberInput(totalCall.observed_total_amount_sek)) {
     return result("final_live_execute_attempt_aborted", [
-      "runner:total_parse_failure",
-    ], [verifyCall, amountCall, priceCall, totalCall]);
+      "runner:total_read_invalid_or_uncertain",
+    ], [verifyCall, primaryCall, priceCall, totalCall], strategy);
   }
 
   if (numberInput(input.cap_sek) && totalCall.observed_total_amount_sek > input.cap_sek) {
     return result("final_live_execute_attempt_aborted", [
       "runner:total_above_cap",
-    ], [verifyCall, amountCall, priceCall, totalCall]);
+    ], [verifyCall, primaryCall, priceCall, totalCall], strategy);
   }
 
   const evidenceCall = normalizeRunnerResult(
@@ -457,13 +588,13 @@ function runInjectedRunner(
   if (!evidenceCall.ok) {
     return result("final_live_execute_attempt_aborted", [
       "runner:evidence_capture_failed",
-    ], [verifyCall, amountCall, priceCall, totalCall, evidenceCall]);
+    ], [verifyCall, primaryCall, priceCall, totalCall, evidenceCall], strategy);
   }
 
   const stopCall = normalizeRunnerResult("stopBeforeReview", runner.stopBeforeReview());
   const runnerCalls = [
     verifyCall,
-    amountCall,
+    primaryCall,
     priceCall,
     totalCall,
     evidenceCall,
@@ -473,10 +604,10 @@ function runInjectedRunner(
   if (!stopCall.ok) {
     return result("final_live_execute_attempt_aborted", [
       "runner:stop_before_review_failed",
-    ], runnerCalls);
+    ], runnerCalls, strategy);
   }
 
-  return result("final_live_execute_attempt_plan_created", [], runnerCalls);
+  return result("final_live_execute_attempt_plan_created", [], runnerCalls, strategy);
 }
 
 export function createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
@@ -486,14 +617,16 @@ export function createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
     return result("disabled", ["final_live_execute_attempt_wrapper_disabled"]);
   }
 
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
+
   const blockers = inputBlockers(input);
 
   if (blockers.length > 0) {
-    return result("final_live_execute_attempt_aborted", blockers);
+    return result("final_live_execute_attempt_aborted", blockers, [], strategy);
   }
 
   if (!input.runner) {
-    return result("ready_for_final_live_execute_attempt", []);
+    return result("ready_for_final_live_execute_attempt", [], [], strategy);
   }
 
   return runInjectedRunner(input, input.runner);

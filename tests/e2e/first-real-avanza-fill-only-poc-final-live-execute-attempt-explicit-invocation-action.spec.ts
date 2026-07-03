@@ -19,6 +19,16 @@ const packageJsonPath = join(repoRoot, "package.json");
 const approvedSequence = [
   "verifyVisibleOrderFormState",
   "fillAmountField",
+  "fillQuantityField",
+  "fillPriceField",
+  "readTotalAmount",
+  "captureEvidence",
+  "stopBeforeReview",
+] as const;
+
+const amountBasedRunSequence = [
+  "verifyVisibleOrderFormState",
+  "fillAmountField",
   "fillPriceField",
   "readTotalAmount",
   "captureEvidence",
@@ -206,9 +216,9 @@ test("fake no-op runner path returns final_live_execute_attempt_explicit_invocat
   expect(result.plan_created_meaning).toBe(
     "final_live_execute_attempt_explicit_invocation_plan_created_does_not_mean_order_placement",
   );
-  expect(calls).toEqual([...approvedSequence]);
+  expect(calls).toEqual([...amountBasedRunSequence]);
   expect(result.runner_calls.map((call) => call.method)).toEqual([
-    ...approvedSequence,
+    ...amountBasedRunSequence,
   ]);
   expect(result.runner_calls.at(-1)?.method).toBe("stopBeforeReview");
   expect(result.allowed_runner_methods).toEqual(approvedSequence);
@@ -470,7 +480,9 @@ test("runner total parse failure aborts without completing stop-before-review", 
   expect(result.status).toBe(
     "final_live_execute_attempt_explicit_invocation_aborted",
   );
-  expect(result.blocked_reasons).toContain("runner:total_parse_failure");
+  expect(result.blocked_reasons).toContain(
+    "runner:total_read_invalid_or_uncertain",
+  );
   expect(calls).toEqual([
     "verifyVisibleOrderFormState",
     "fillAmountField",

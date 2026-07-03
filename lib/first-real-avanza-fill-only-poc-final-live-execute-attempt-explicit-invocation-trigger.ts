@@ -7,6 +7,7 @@ import {
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunner,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall,
+  type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy,
 } from "./first-real-avanza-fill-only-poc-final-live-execute-attempt-wrapper";
 
 export const firstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTriggerPhrase =
@@ -102,7 +103,9 @@ const expectedValues = {
   instrument: "GameStop",
   side: "buy",
   orderMode: "Avancerad/Limit",
+  inputStrategy: "amount_based",
   amountSek: 427.26,
+  quantity: 1,
   priceUsd: 21.98,
   totalSek: 438.05,
   capSek: 1000,
@@ -126,14 +129,35 @@ const safetyConfirmations = {
   not_wired_to_external_trigger_or_scripts: true,
 } as const;
 
-function buildPlan(): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
+function normalizeInputStrategy(
+  value: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTriggerInput["approved_input_strategy"],
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy {
+  return value === "quantity_based" ? "quantity_based" : "amount_based";
+}
+
+function isSupportedInputStrategy(value: unknown): boolean {
+  return (
+    value === undefined ||
+    value === null ||
+    value === "amount_based" ||
+    value === "quantity_based"
+  );
+}
+
+function buildPlan(
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = expectedValues.inputStrategy,
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
   return {
     mode: "fill_only_stop_before_review",
     account: expectedValues.account,
     instrument: expectedValues.instrument,
     side: expectedValues.side,
     order_mode: expectedValues.orderMode,
+    input_strategy: inputStrategy,
+    selected_primary_input:
+      inputStrategy === "quantity_based" ? "quantity" : "amount",
     amount_sek: expectedValues.amountSek,
+    quantity: expectedValues.quantity,
     price_usd: expectedValues.priceUsd,
     expected_total_sek: expectedValues.totalSek,
     cap_sek: expectedValues.capSek,
@@ -148,6 +172,7 @@ function result(
   blockedReasons: readonly string[],
   actionStatus: string | null = null,
   runnerCalls: readonly FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall[] = [],
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = expectedValues.inputStrategy,
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTriggerResult {
   return {
     status,
@@ -164,7 +189,7 @@ function result(
     blocked_reasons: blockedReasons,
     action_status: actionStatus,
     runner_calls: runnerCalls,
-    plan: buildPlan(),
+    plan: buildPlan(inputStrategy),
     allowed_runner_methods:
       firstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptAllowedRunnerMethods,
     exact_trigger_phrase_required:
@@ -334,8 +359,24 @@ function triggerBlockers(
     blockers.push("order_mode:not_avancerad_limit");
   }
 
-  if (input.expected_amount_sek !== expectedValues.amountSek) {
+  if (!isSupportedInputStrategy(input.approved_input_strategy)) {
+    blockers.push("input_strategy:unsupported");
+  }
+
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
+
+  if (
+    strategy === "amount_based" &&
+    input.expected_amount_sek !== expectedValues.amountSek
+  ) {
     blockers.push("amount:mismatch");
+  }
+
+  if (
+    strategy === "quantity_based" &&
+    input.expected_quantity !== expectedValues.quantity
+  ) {
+    blockers.push("quantity:mismatch");
   }
 
   if (input.expected_price_usd !== expectedValues.priceUsd) {
@@ -443,12 +484,17 @@ export function buildFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitIn
 export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTrigger(
   input: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTriggerInput = {},
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationTriggerResult {
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
+
   if (
     input.final_live_execute_attempt_explicit_invocation_trigger_enabled !== true
   ) {
     return result(
       "final_live_execute_attempt_explicit_invocation_trigger_disabled",
       ["final_live_execute_attempt_explicit_invocation_trigger_disabled"],
+      null,
+      [],
+      strategy,
     );
   }
 
@@ -458,6 +504,9 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
     return result(
       "final_live_execute_attempt_explicit_invocation_trigger_blocked",
       blockers,
+      null,
+      [],
+      strategy,
     );
   }
 
@@ -465,6 +514,9 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
     return result(
       "ready_for_final_live_execute_attempt_explicit_invocation_trigger",
       [],
+      null,
+      [],
+      strategy,
     );
   }
 
@@ -482,6 +534,7 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
       [],
       actionResult.status,
       actionResult.runner_calls,
+      strategy,
     );
   }
 
@@ -491,6 +544,7 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
       [],
       actionResult.status,
       actionResult.runner_calls,
+      strategy,
     );
   }
 
@@ -499,5 +553,6 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
     actionResult.blocked_reasons,
     actionResult.status,
     actionResult.runner_calls,
+    strategy,
   );
 }

@@ -2,6 +2,7 @@ import {
   createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt,
   firstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptAllowedRunnerMethods,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInput,
+  type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunner,
   type FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall,
@@ -92,7 +93,15 @@ const safetyConfirmations = {
   not_wired_to_external_trigger_or_scripts: true,
 } as const;
 
-function basePlan(): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
+function normalizeInputStrategy(
+  value: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationActionInput["approved_input_strategy"],
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy {
+  return value === "quantity_based" ? "quantity_based" : "amount_based";
+}
+
+function basePlan(
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = "amount_based",
+): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
   return createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt({
     final_live_execute_attempt_wrapper_enabled: true,
     operatorExplicitlyRequestedFinalLiveExecuteAttempt: true,
@@ -116,7 +125,9 @@ function basePlan(): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptPlan {
     expected_instrument: "GameStop",
     expected_side: "buy",
     expected_order_mode: "Avancerad/Limit",
+    approved_input_strategy: inputStrategy,
     expected_amount_sek: 427.26,
+    expected_quantity: 1,
     expected_price_usd: 21.98,
     expected_total_sek: 438.05,
     cap_sek: 1000,
@@ -139,6 +150,7 @@ function result(
   blockedReasons: readonly string[],
   wrapperStatus: string | null = null,
   runnerCalls: readonly FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptRunnerCall[] = [],
+  inputStrategy: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptInputStrategy = "amount_based",
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationActionResult {
   return {
     status,
@@ -155,7 +167,7 @@ function result(
     blocked_reasons: blockedReasons,
     wrapper_status: wrapperStatus,
     runner_calls: runnerCalls,
-    plan: basePlan(),
+    plan: basePlan(inputStrategy),
     allowed_runner_methods:
       firstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptAllowedRunnerMethods,
     safety_confirmations: safetyConfirmations,
@@ -239,19 +251,30 @@ export function buildFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitIn
 export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationAction(
   input: FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationActionInput = {},
 ): FirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvocationActionResult {
+  const strategy = normalizeInputStrategy(input.approved_input_strategy);
+
   if (
     input.final_live_execute_attempt_explicit_invocation_action_enabled !== true
   ) {
     return result(
       "final_live_execute_attempt_explicit_invocation_disabled",
       ["final_live_execute_attempt_explicit_invocation_action_disabled"],
+      null,
+      [],
+      strategy,
     );
   }
 
   const blockers = actionBlockers(input);
 
   if (blockers.length > 0) {
-    return result("final_live_execute_attempt_explicit_invocation_blocked", blockers);
+    return result(
+      "final_live_execute_attempt_explicit_invocation_blocked",
+      blockers,
+      null,
+      [],
+      strategy,
+    );
   }
 
   const wrapperResult =
@@ -263,6 +286,7 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
       [],
       wrapperResult.status,
       wrapperResult.runner_calls,
+      strategy,
     );
   }
 
@@ -272,6 +296,7 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
       [],
       wrapperResult.status,
       wrapperResult.runner_calls,
+      strategy,
     );
   }
 
@@ -280,5 +305,6 @@ export function runFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttemptExplicitInvo
     wrapperResult.blocked_reasons,
     wrapperResult.status,
     wrapperResult.runner_calls,
+    strategy,
   );
 }

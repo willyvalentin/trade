@@ -96,6 +96,14 @@ Manual Avanza order-form preflight:
 curl -sS http://127.0.0.1:47831/preflight/avanza-order-form
 ```
 
+Manual Avanza order-form field discovery:
+
+```bash
+curl -sS http://127.0.0.1:47831/preflight/avanza-order-form/field-discovery
+```
+
+The field-discovery endpoint is observation-only. It returns sanitized, bounded metadata for likely order-form controls so selectors can be hardened without guessing. It may report zero `quantity` candidates; that is diagnostic evidence and does not by itself mean the whole preflight failed.
+
 ## Preflight Checks
 
 The endpoint verifies only:
@@ -112,6 +120,30 @@ The endpoint verifies only:
 - no `Bekräfta köp/sälj` visible
 
 The endpoint returns sanitized status and booleans only. It does not return raw page text, cookies, localStorage, sessionStorage, credentials, or BankID data.
+
+## Field Discovery Report
+
+`GET /preflight/avanza-order-form/field-discovery` inspects visible order-form controls and returns sanitized candidates grouped as:
+
+- `amount`
+- `quantity`
+- `price`
+- `total`
+- `unknown`
+
+For each candidate it may include:
+
+- field group guess
+- nearby visible label, length-limited
+- placeholder, aria-label, name, id, type, role, autocomplete
+- inputmode and pattern
+- disabled, readonly, and hidden status
+- visibility/bounding-box presence without coordinates
+- sanitized value length and bounded normalized value
+- nearby button/control labels, length-limited
+- whether it appears inside a buy-side order-form region
+
+The field-discovery endpoint does not fill fields, click buttons, open review, confirm, submit, or place orders. It does not return raw page text, raw DOM, cookies, localStorage, sessionStorage, credentials, or BankID/session data.
 
 ## Stop
 

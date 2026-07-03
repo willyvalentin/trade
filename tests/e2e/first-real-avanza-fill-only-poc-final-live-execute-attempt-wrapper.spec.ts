@@ -77,6 +77,24 @@ function fakeRunner(
       evidence_id: `fake-${method}`,
       observed_total_amount_sek:
         method === "readTotalAmount" ? 438.05 : null,
+      diagnostics: {
+        bridge_action: method,
+        metadata:
+          method === "fillQuantityField"
+            ? {
+                quantity_candidate_count: 1,
+                quantity_candidate_disabled: false,
+                quantity_candidate_readonly: false,
+                quantity_candidate_hidden: false,
+                quantity_before_value_normalized: "",
+                quantity_after_value_normalized: "",
+                quantity_readback_source_used: "input.value",
+                quantity_expected_normalized: "1",
+                quantity_observed_normalized: "",
+                exact_blocker_reason: "readback_mismatch",
+              }
+            : null,
+      },
     };
   };
 
@@ -86,6 +104,11 @@ function fakeRunner(
       expect(amountSek).toBe(427.26);
 
       return ok("fillAmountField");
+    },
+    fillQuantityField: (quantity) => {
+      expect(quantity).toBe(1);
+
+      return ok("fillQuantityField");
     },
     fillPriceField: (priceUsd) => {
       expect(priceUsd).toBe(21.98);
@@ -333,7 +356,9 @@ test("total parse failure aborts before stop-before-review completion", () => {
   );
 
   expect(result.status).toBe("final_live_execute_attempt_aborted");
-  expect(result.blocked_reasons).toContain("runner:total_parse_failure");
+  expect(result.blocked_reasons).toContain(
+    "runner:total_read_invalid_or_uncertain",
+  );
   expect(calls).toEqual([
     "verifyVisibleOrderFormState",
     "fillAmountField",
@@ -343,6 +368,128 @@ test("total parse failure aborts before stop-before-review completion", () => {
   expect(result.runner_calls.map((call) => call.method)).not.toContain(
     "stopBeforeReview",
   );
+});
+
+test("quantity_based calls fillQuantityField and never fillAmountField", () => {
+  const calls: string[] = [];
+  const result = createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
+    safeInput({
+      approved_input_strategy: "quantity_based",
+      expected_amount_sek: null,
+      expected_quantity: 1,
+      runner: fakeRunner(calls),
+    }),
+  );
+
+  expect(result.status).toBe("final_live_execute_attempt_plan_created");
+  expect(calls).toEqual([
+    "verifyVisibleOrderFormState",
+    "fillQuantityField",
+    "fillPriceField",
+    "readTotalAmount",
+    "captureEvidence",
+    "stopBeforeReview",
+  ]);
+  expect(result.runner_calls.map((call) => call.method)).toEqual(calls);
+  expect(result.plan.input_strategy).toBe("quantity_based");
+  expect(result.plan.selected_primary_input).toBe("quantity");
+  expect(result.result_metadata).toMatchObject({
+    approvedInputStrategy: "quantity_based",
+    selectedPrimaryInput: "quantity",
+    selectedPrimaryInputVerified: true,
+    quantityFillAttempted: true,
+    quantityFillVerified: true,
+    amountFillAttempted: false,
+    amountFillVerified: false,
+    priceFillAttempted: true,
+    priceFillVerified: true,
+  });
+});
+
+test("amount_based calls fillAmountField and never fillQuantityField", () => {
+  const calls: string[] = [];
+  const result = createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
+    safeInput({
+      approved_input_strategy: "amount_based",
+      expected_quantity: null,
+      runner: fakeRunner(calls),
+    }),
+  );
+
+  expect(result.status).toBe("final_live_execute_attempt_plan_created");
+  expect(calls).toEqual([
+    "verifyVisibleOrderFormState",
+    "fillAmountField",
+    "fillPriceField",
+    "readTotalAmount",
+    "captureEvidence",
+    "stopBeforeReview",
+  ]);
+  expect(result.plan.input_strategy).toBe("amount_based");
+  expect(result.plan.selected_primary_input).toBe("amount");
+  expect(result.result_metadata).toMatchObject({
+    approvedInputStrategy: "amount_based",
+    selectedPrimaryInput: "amount",
+    selectedPrimaryInputVerified: true,
+    quantityFillAttempted: false,
+    quantityFillVerified: false,
+    amountFillAttempted: true,
+    amountFillVerified: true,
+    priceFillAttempted: true,
+    priceFillVerified: true,
+  });
+});
+
+test("quantity_based blocks if fillQuantityField is missing", () => {
+  const calls: string[] = [];
+  const runnerWithoutQuantity = fakeRunner(calls);
+  delete runnerWithoutQuantity.fillQuantityField;
+  const result = createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
+    safeInput({
+      approved_input_strategy: "quantity_based",
+      expected_amount_sek: null,
+      expected_quantity: 1,
+      runner: runnerWithoutQuantity,
+    }),
+  );
+
+  expect(result.status).toBe("final_live_execute_attempt_aborted");
+  expect(result.blocked_reasons).toContain("fill_quantity_field:missing");
+  expect(calls).toEqual([]);
+});
+
+test("quantity_based blocks on failed quantity readback before price or total", () => {
+  const calls: string[] = [];
+  const result = createFirstRealAvanzaFillOnlyPocFinalLiveExecuteAttempt(
+    safeInput({
+      approved_input_strategy: "quantity_based",
+      expected_amount_sek: null,
+      expected_quantity: 1,
+      runner: fakeRunner(calls, { fillQuantityField: false }),
+    }),
+  );
+
+  expect(result.status).toBe("final_live_execute_attempt_aborted");
+  expect(result.blocked_reasons).toContain("runner:quantity_fill_failed");
+  expect(calls).toEqual(["verifyVisibleOrderFormState", "fillQuantityField"]);
+  expect(result.runner_calls.map((call) => call.method)).not.toContain(
+    "readTotalAmount",
+  );
+  expect(result.result_metadata).toMatchObject({
+    selectedPrimaryInput: "quantity",
+    selectedPrimaryInputVerified: false,
+    quantityFillAttempted: true,
+    quantityFillVerified: false,
+    priceFillAttempted: false,
+  });
+  expect(result.runner_calls[1]?.diagnostics).toMatchObject({
+    bridge_action: "fillQuantityField",
+    metadata: {
+      quantity_candidate_count: 1,
+      quantity_expected_normalized: "1",
+      exact_blocker_reason: "readback_mismatch",
+    },
+  });
 });
 
 test("runner visible-state mismatch aborts immediately", () => {
