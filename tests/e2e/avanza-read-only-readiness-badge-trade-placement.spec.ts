@@ -17,6 +17,10 @@ test.describe("Avanza read-only readiness badge Trade UI placement", () => {
 
     expect(source).toContain("AvanzaReadOnlyReadinessBadge");
     expect(source).toContain("AvanzaPrepareHandoffPreviewShell");
+    expect(source).toContain("avanzaPrepareHandoffPreviewModel");
+    expect(source).toContain(
+      'from "@/lib/avanza-prepare-handoff-preview"',
+    );
     expect(source).toContain(
       'from "@/lib/avanza-read-only-readiness-fixtures"',
     );
@@ -66,24 +70,57 @@ test.describe("Avanza read-only readiness badge Trade UI placement", () => {
     const shellSource = readRepoFile(
       "components/execution/AvanzaPrepareHandoffPreviewShell.tsx",
     );
+    const modelSource = readRepoFile("lib/avanza-prepare-handoff-preview.ts");
 
     expect(source).toContain("AvanzaPrepareHandoffPreviewShell");
-    expect(shellSource).toContain("Prepare Avanza handoff");
-    expect(shellSource).toContain("Preview only");
-    expect(shellSource).toContain("Not enabled");
+    expect(source).toContain("model={avanzaPrepareHandoffPreviewModel}");
+    expect(modelSource).toContain("Prepare Avanza handoff");
+    expect(modelSource).toContain('"preview_only"');
+    expect(modelSource).toContain('"not_enabled"');
     expect(shellSource).toContain("disabled");
-    expect(shellSource).toContain("Ture will not click Granska köp");
-    expect(shellSource).toContain("Ture will not submit an order");
-    expect(shellSource).toContain("Manual review required in Avanza");
-    expect(shellSource).toContain("Ture validates the trade package.");
-    expect(shellSource).toContain("Ture checks read-only Avanza readiness.");
-    expect(shellSource).toContain("Ture prepares the order form.");
-    expect(shellSource).toContain("Ture stops before Granska köp.");
-    expect(shellSource).toContain("User manually reviews in Avanza.");
-    expect(shellSource).toContain("Total-read remains");
+    expect(shellSource).toContain("model.title");
+    expect(shellSource).toContain("model.description");
+    expect(shellSource).toContain("model.disabledReason");
+    expect(shellSource).toContain("model.safetyCopy");
+    expect(shellSource).toContain("model.futureFlowSteps");
+    expect(shellSource).toContain("model.advisoryNotes");
+    expect(modelSource).toContain("Ture will not click Granska köp");
+    expect(modelSource).toContain("Ture will not submit an order");
+    expect(modelSource).toContain("Manual review required in Avanza");
+    expect(modelSource).toContain("Ture validates the trade package.");
+    expect(modelSource).toContain("Ture checks read-only Avanza readiness.");
+    expect(modelSource).toContain("Ture prepares the order form.");
+    expect(modelSource).toContain("Ture stops before Granska köp.");
+    expect(modelSource).toContain("User manually reviews in Avanza.");
+    expect(modelSource).toContain("Total-read remains");
+    expect(modelSource).toContain("Read-only observation is not execution readiness.");
+    expect(modelSource).toContain("No order placement.");
     expect(shellSource).not.toMatch(/onClick|fetch\s*\(|\/live-fill-only-runner\//);
+    expect(modelSource).not.toMatch(/onClick|fetch\s*\(|\/live-fill-only-runner\//);
     expect(shellSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
+    expect(modelSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(shellSource).not.toMatch(/FINAL LIVE EXECUTE ATTEMPT/);
+    expect(modelSource).not.toMatch(/FINAL LIVE EXECUTE ATTEMPT/);
     expect(shellSource).not.toMatch(/method:\s*["']POST["']/);
+    expect(modelSource).not.toMatch(/method:\s*["']POST["']/);
+  });
+
+  test("pure preview model defines the expected disabled handoff flow", () => {
+    const modelSource = readRepoFile("lib/avanza-prepare-handoff-preview.ts");
+
+    expect(modelSource).toContain("AvanzaPrepareHandoffPreviewModel");
+    expect(modelSource).toContain("avanzaPrepareHandoffPreviewModel");
+    expect(modelSource).toContain('status: "preview_only"');
+    expect(modelSource).toContain('secondaryStatus: "not_enabled"');
+    expect(modelSource).toContain(
+      "Preview only. Not enabled until a future safe handoff flow is explicitly implemented.",
+    );
+    expect(modelSource).toContain("futureFlowSteps");
+    expect(modelSource.match(/Ture .*\./g) ?? []).toHaveLength(4);
+    expect(modelSource).toContain("User manually reviews in Avanza.");
+    expect(modelSource).toContain("advisoryNotes");
+    expect(modelSource).toContain("Total-read remains unresolved/advisory.");
+    expect(modelSource).toContain("Read-only observation is not execution readiness.");
+    expect(modelSource).toContain("No order placement.");
   });
 });

@@ -621,14 +621,44 @@ import {
   AvanzaReadOnlyReadinessBadge,
 } from "@/components/execution/AvanzaReadOnlyReadinessBadge";
 import {
+  AvanzaHandoffPackagePreviewCard,
+} from "@/components/execution/AvanzaHandoffPackagePreviewCard";
+import {
   AvanzaPrepareHandoffPreviewShell,
 } from "@/components/execution/AvanzaPrepareHandoffPreviewShell";
+import {
+  AvanzaSelectedRecommendationPreviewStatePanel,
+} from "@/components/execution/AvanzaSelectedRecommendationPreviewStatePanel";
 import {
   useExecutionLivePositionHandoffState,
 } from "@/hooks/execution/useExecutionLivePositionHandoffState";
 import {
   avanzaTradeReadOnlyReadinessSummaryFixture,
 } from "@/lib/avanza-read-only-readiness-fixtures";
+import {
+  avanzaPrepareHandoffPreviewModel,
+} from "@/lib/avanza-prepare-handoff-preview";
+import {
+  avanzaGameStopHandoffPackagePreviewFixture,
+  avanzaGameStopHandoffPreActivationGateFixture,
+  avanzaGameStopHandoffPreviewSourceModeFixture,
+  avanzaGameStopHandoffSafetyBoundarySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffContractFixture,
+} from "@/lib/avanza-handoff-package-preview-fixtures";
+import {
+  avanzaHandoffPreviewSourceModes,
+} from "@/lib/avanza-handoff-preview-source-mode";
+import {
+  buildAvanzaPreviewStateFromSelectedRecommendation,
+} from "@/lib/avanza-selected-recommendation-derived-preview-state";
+import {
+  buildAvanzaDevPreviewFlagConfig,
+  type AvanzaDevPreviewFlagConfig,
+} from "@/lib/avanza-dev-preview-flag-config";
+import {
+  buildAvanzaSelectedRecommendationPreviewIntegrationGuard,
+} from "@/lib/avanza-selected-recommendation-preview-integration-guard";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -8179,10 +8209,20 @@ function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
 }
 
 type TradeAppProps = {
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
   learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
 };
 
+const avanzaSelectedRecommendationPreviewDevConfig =
+  buildAvanzaDevPreviewFlagConfig({
+    environmentScope: "default",
+    explicitPreviewOnlyFlag: false,
+    source: "default_disabled",
+  });
+
 export function TradeApp({
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
+    avanzaSelectedRecommendationPreviewDevConfig,
   learningAccelerationServerConfig = null,
 }: TradeAppProps = {}) {
   const { activeTab, setActiveTab } = useTradeAppNavigationState();
@@ -15376,6 +15416,39 @@ export function TradeApp({
   const selectedRecommendationPositionSizing = selectedRecommendation
     ? calculatePositionSizing(selectedRecommendation, userSettings)
     : null;
+  const avanzaSelectedRecommendationPreviewIntegrationGuard =
+    buildAvanzaSelectedRecommendationPreviewIntegrationGuard(
+      testOnlyAvanzaSelectedRecommendationPreviewDevConfig,
+    );
+  const avanzaSelectedRecommendationPreviewState =
+    avanzaSelectedRecommendationPreviewIntegrationGuard.status ===
+      "preview_only_allowed" && selectedRecommendation
+      ? buildAvanzaPreviewStateFromSelectedRecommendation({
+          accountDisplayName: "Valentin Labs KF",
+          adapterOptions: {
+            positionSizing: selectedRecommendationPositionSizing,
+          },
+          orderMode: "Avancerad/Limit",
+          readinessSummary: avanzaTradeReadOnlyReadinessSummaryFixture,
+          selectedRecommendation,
+          sourceMode:
+            avanzaHandoffPreviewSourceModes.selected_recommendation_preview_only,
+        })
+      : null;
+  const avanzaSelectedRecommendationPreviewIntegrationStatus =
+    avanzaSelectedRecommendationPreviewState
+      ? [
+          "Avanza preview source: selectedRecommendation preview-only",
+          "Preview-only",
+          "Controls disabled",
+          "Gate locked",
+        ]
+      : [
+          "Avanza preview source: static fixture",
+          "selectedRecommendation preview: disabled",
+          "No bridge calls",
+          "No execution",
+        ];
   const selectedRecommendationForDisplay = selectedRecommendation
     ? withSymbolMetadataLogo(selectedRecommendation)
     : null;
@@ -15548,7 +15621,43 @@ export function TradeApp({
             <AvanzaReadOnlyReadinessBadge
               summary={avanzaTradeReadOnlyReadinessSummaryFixture}
             />
-            <AvanzaPrepareHandoffPreviewShell />
+            <div className="grid gap-3">
+              <div className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex flex-wrap gap-2">
+                  {avanzaSelectedRecommendationPreviewIntegrationStatus.map(
+                    (label) => (
+                      <span
+                        className="rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-zinc-300"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </div>
+              <AvanzaPrepareHandoffPreviewShell
+                model={avanzaPrepareHandoffPreviewModel}
+              />
+              {avanzaSelectedRecommendationPreviewState ? (
+                <AvanzaSelectedRecommendationPreviewStatePanel
+                  previewState={avanzaSelectedRecommendationPreviewState}
+                />
+              ) : (
+                <AvanzaHandoffPackagePreviewCard
+                  contract={avanzaGameStopSelectedRecommendationHandoffContractFixture}
+                  eligibilitySummary={
+                    avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture
+                  }
+                  preActivationGate={avanzaGameStopHandoffPreActivationGateFixture}
+                  preview={avanzaGameStopHandoffPackagePreviewFixture}
+                  safetyBoundarySummary={
+                    avanzaGameStopHandoffSafetyBoundarySummaryFixture
+                  }
+                  sourceMode={avanzaGameStopHandoffPreviewSourceModeFixture}
+                />
+              )}
+            </div>
           </div>
         )}
 

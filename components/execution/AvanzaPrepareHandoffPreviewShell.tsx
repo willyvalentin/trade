@@ -1,30 +1,35 @@
-const futureFlowSteps = [
-  "Ture validates the trade package.",
-  "Ture checks read-only Avanza readiness.",
-  "Ture prepares the order form.",
-  "Ture stops before Granska köp.",
-  "User manually reviews in Avanza.",
-];
+import {
+  formatAvanzaPrepareHandoffPreviewStatus,
+  type AvanzaPrepareHandoffPreviewModel,
+} from "@/lib/avanza-prepare-handoff-preview";
 
-export function AvanzaPrepareHandoffPreviewShell() {
+type AvanzaPrepareHandoffPreviewShellProps = {
+  model: AvanzaPrepareHandoffPreviewModel;
+};
+
+export function AvanzaPrepareHandoffPreviewShell({
+  model,
+}: AvanzaPrepareHandoffPreviewShellProps) {
   return (
     <section className="rounded-md border border-white/10 bg-black/20 p-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-              Preview only
+              {formatAvanzaPrepareHandoffPreviewStatus(model.status)}
             </span>
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-              Not enabled
+              {formatAvanzaPrepareHandoffPreviewStatus(model.secondaryStatus)}
             </span>
           </div>
           <p className="mt-2 text-sm font-semibold text-zinc-100">
-            Prepare Avanza handoff
+            {model.title}
           </p>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-zinc-300">
-            Future semi-auto handoff shell. Total-read remains
-            unresolved/advisory, and manual review is required in Avanza.
+            {model.description}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {model.disabledReason}
           </p>
         </div>
         <button
@@ -32,16 +37,12 @@ export function AvanzaPrepareHandoffPreviewShell() {
           disabled
           type="button"
         >
-          Prepare Avanza handoff
+          {model.ctaLabel}
         </button>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {[
-          "Ture will not click Granska köp",
-          "Ture will not submit an order",
-          "Manual review required in Avanza",
-        ].map((copy) => (
+        {model.safetyCopy.map((copy) => (
           <span
             className="rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-zinc-300"
             key={copy}
@@ -52,7 +53,7 @@ export function AvanzaPrepareHandoffPreviewShell() {
       </div>
 
       <ol className="mt-3 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-2 lg:grid-cols-5">
-        {futureFlowSteps.map((step, index) => (
+        {model.futureFlowSteps.map((step, index) => (
           <li
             className="rounded-md border border-white/10 bg-white/[0.025] p-2"
             key={step}
@@ -64,6 +65,12 @@ export function AvanzaPrepareHandoffPreviewShell() {
           </li>
         ))}
       </ol>
+
+      <ul className="mt-3 grid gap-1 text-xs leading-5 text-zinc-500 sm:grid-cols-3">
+        {model.advisoryNotes.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -26,6 +26,48 @@ Follow-up status: `avanza_read_only_readiness_badge_trade_ui_display_added`
 
 Follow-up status: `avanza_prepare_handoff_preview_shell_added`
 
+Follow-up status: `avanza_prepare_handoff_preview_model_added`
+
+Follow-up status: `avanza_handoff_package_preview_builder_added`
+
+Follow-up status: `avanza_handoff_package_preview_card_added`
+
+Follow-up status: `avanza_recommendation_to_avanza_handoff_preview_fixture_added`
+
+Follow-up status: `avanza_ture_recommendation_handoff_mapper_added`
+
+Follow-up status: `avanza_selected_recommendation_handoff_contract_added`
+
+Follow-up status: `avanza_static_selected_recommendation_contract_rendered`
+
+Follow-up status: `avanza_selected_recommendation_preview_only_milestone_checkpoint_added`
+
+Follow-up status: `avanza_dev_only_selected_recommendation_preview_enablement_candidate_plan_added`
+
+Follow-up status: `avanza_dev_only_selected_recommendation_preview_enablement_checklist_added`
+
+Follow-up status: `avanza_dev_only_selected_recommendation_preview_enablement_checklist_panel_added`
+
+Follow-up status: `avanza_dev_only_preview_enablement_checkpoint_added`
+
+Follow-up status: `avanza_dev_preview_flag_config_model_added`
+
+Follow-up status: `avanza_dev_preview_flag_status_panel_added`
+
+Follow-up status: `avanza_dev_only_preview_enablement_state_builder_added`
+
+Follow-up status: `avanza_dev_only_preview_enablement_final_checkpoint_added`
+
+Follow-up status: `avanza_dev_test_explicit_preview_flag_wiring_plan_added`
+
+Follow-up status: `avanza_trade_ui_named_dev_preview_config_default_false`
+
+Follow-up status: `avanza_selected_recommendation_test_only_preview_config_override_added`
+
+Follow-up status: `avanza_test_only_selected_recommendation_preview_activation_checkpoint_added`
+
+Follow-up status: `avanza_test_only_selected_recommendation_preview_final_checkpoint_added`
+
 Related milestone:
 `first_real_avanza_quantity_based_fill_only_core_poc_success_total_read_unresolved`
 
@@ -367,7 +409,10 @@ manual read-only refresh action.
 
 Current preview-only handoff shell follow-up:
 `components/execution/AvanzaPrepareHandoffPreviewShell.tsx` is rendered beside
-the Trade dashboard readiness badge. It is a disabled UX shell only.
+the Trade dashboard readiness badge. It is a disabled UX shell only. The static
+preview content is exported as a typed pure model from
+`lib/avanza-prepare-handoff-preview.ts`, and the shell only renders the model
+passed from `app/trade-app.tsx`.
 
 The shell communicates:
 
@@ -392,6 +437,691 @@ localhost, call bridge endpoints, add refresh outside Settings, use the exact
 trigger phrase, call live runner/fill endpoints, review, confirm, submit, place
 orders, handle credentials/session/storage, or write Supabase execution
 records.
+
+Current package preview builder follow-up:
+`lib/avanza-handoff-package-preview.ts` adds a pure, side-effect-free preview
+builder for future recommendation/trade handoff packages. It accepts a minimal
+recommendation-like input and returns UI-safe preview data:
+
+- preview id
+- `Prepare Avanza handoff` action label
+- ticker and instrument display labels
+- buy-only side
+- quantity-based strategy and quantity if known
+- limit price if known
+- account display label
+- `Avancerad/Limit` order mode
+- stop boundary before `Granska köp`
+- manual review required
+- total-read unresolved/advisory
+- readiness summary status
+
+The builder blocks missing ticker and non-buy sides for the current buy-only
+POC. Missing quantity or limit price are advisory preview gaps, not live
+automation. The helper does not fetch localhost, call bridge endpoints, include
+the exact trigger phrase, reference live runner/fill endpoints, perform
+review/final/submit/order behavior, handle credentials/session/storage, or
+write Supabase records.
+
+Current package preview card follow-up:
+`components/execution/AvanzaHandoffPackagePreviewCard.tsx` renders a disabled
+preview-only package card from the pure preview model. The Trade dashboard uses
+`lib/avanza-handoff-package-preview-fixtures.ts` to show a static GameStop
+quantity-based sample beside the disabled handoff shell.
+
+The card shows the package action label, ticker/instrument, buy side,
+quantity-based strategy, quantity, limit price, account display label,
+`Avancerad/Limit` mode, stop-before-`Granska köp` boundary, manual review
+requirement, total-read unresolved/advisory state, readiness status, and
+blocked/advisory gaps. Its control is disabled and has no handler. It does not
+fetch localhost, refresh bridge status, poll, call bridge endpoints, call live
+runner/fill paths, use the exact trigger phrase, review, confirm, submit, place
+orders, handle credentials/session/storage, or write Supabase records.
+
+Current recommendation-shaped fixture follow-up:
+`lib/avanza-handoff-package-preview-fixtures.ts` now defines
+`avanzaSelectedTureRecommendationFixture` as a static selected Ture
+recommendation-like input with recommendation id, `GME`, `GameStop`, long/buy
+direction, position size `1`, and entry price `21.98`. The exported
+`avanzaGameStopHandoffPackagePreviewFixture` is built through the same pure path
+future real recommendations would use:
+
+1. static Ture recommendation-like fixture
+2. `mapTureRecommendationToAvanzaHandoffInput`
+3. `buildAvanzaHandoffPackagePreview`
+4. `AvanzaHandoffPackagePreviewCard`
+
+This keeps the Trade card realistic while still static and preview-only. It
+does not connect real recommendations, fetch localhost, refresh bridge status,
+poll, call bridge endpoints, call live runner/fill paths, use the exact trigger
+phrase, review, confirm, submit, place orders, handle credentials/session/storage,
+or write Supabase records.
+
+Current Ture recommendation mapper follow-up:
+`lib/avanza-ture-recommendation-handoff-mapper.ts` adds a pure structural mapper
+from existing Ture recommendation/trade-like objects into
+`buildAvanzaHandoffPackagePreview` input. It maps recommendation id, ticker,
+company/instrument display name, buy/short/sell side, quantity or position size
+when available, quantity-based strategy, entry/limit price when available,
+`Valentin Labs KF`, `Avancerad/Limit`, the stop-before-`Granska köp` boundary,
+and the read-only readiness summary.
+
+The mapper is not wired into the Trade UI yet. Missing ticker, non-buy side,
+missing quantity, missing price, and total-read unresolved/advisory remain
+handled downstream by the preview builder as blocked or advisory states. It does
+not connect real recommendations, fetch localhost, refresh bridge status, poll,
+call bridge endpoints, call live runner/fill paths, use the exact trigger
+phrase, review, confirm, submit, place orders, handle credentials/session/storage,
+or write Supabase records.
+
+Current selected-recommendation contract follow-up:
+`lib/avanza-selected-recommendation-handoff-contract.ts` defines a pure typed
+contract/checklist for the future selected-recommendation integration. It
+requires selected recommendation id, ticker, buy side, readiness summary,
+configured account label, `Avancerad/Limit`, preview-only/not-enabled state, and
+total-read unresolved/advisory. Quantity or position size and entry/limit price
+are represented as advisory gaps when missing.
+
+The future path is:
+
+1. selected recommendation
+2. `mapTureRecommendationToAvanzaHandoffInput`
+3. `buildAvanzaHandoffPackagePreview`
+4. disabled `AvanzaHandoffPackagePreviewCard`
+5. later, a separately gated prepare-handoff flow
+
+The contract is not wired into the Trade UI yet. It does not read React state,
+connect real recommendations, fetch localhost, refresh bridge status, poll, call
+bridge endpoints, call live runner/fill paths, use the exact trigger phrase,
+review, confirm, submit, place orders, handle credentials/session/storage, or
+write Supabase records.
+
+Current static contract rendering follow-up:
+`lib/avanza-handoff-package-preview-fixtures.ts` now also exports
+`avanzaGameStopSelectedRecommendationHandoffContractFixture`, built from the
+same static selected Ture recommendation fixture. The Trade dashboard passes
+that static contract into `AvanzaHandoffPackagePreviewCard`, which renders the
+selected-recommendation checklist/status beside the static package preview.
+
+The rendered checklist shows selected recommendation present, ticker present,
+buy-only side allowed, quantity/position size status, entry/limit price status,
+account label configured, `Avancerad/Limit`, total-read unresolved/advisory, and
+preview-only/not-enabled. It still does not read real selected recommendation
+state, connect real recommendations, fetch localhost, refresh bridge status,
+poll, call bridge endpoints, call live runner/fill paths, use the exact trigger
+phrase, review, confirm, submit, place orders, handle credentials/session/storage,
+or write Supabase records.
+
+Current selected-recommendation eligibility summary follow-up:
+`lib/avanza-selected-recommendation-handoff-contract.ts` now also derives a
+compact eligibility summary from the selected-recommendation contract rows. The
+summary can be `preview_ready`, `blocked`, `advisory_gaps`, `not_enabled`, or
+`unknown`, with counts for ready, blocked, advisory, and unknown items.
+
+The static GameStop fixture exports the derived eligibility summary, and the
+Trade preview card renders it above the contract checklist. The copy explicitly
+keeps the state preview-only, not enabled, not execution-ready, and no order
+placement. Missing selected recommendation, missing ticker, and non-buy side are
+blocked. Missing quantity or price are advisory gaps. Total-read remains
+unresolved/advisory and never becomes ready.
+
+This summary is still derived from static fixture contract data only. It does
+not read real selected recommendation state, connect real recommendations, fetch
+localhost, refresh bridge status, poll, call bridge endpoints, call live
+runner/fill paths, use the exact trigger phrase, review, confirm, submit, place
+orders, handle credentials/session/storage, or write Supabase records.
+
+Current preview source-mode follow-up:
+`lib/avanza-handoff-preview-source-mode.ts` defines the display-only source
+mode model for the package preview. The active/default mode is locked to
+`static_fixture`. The selected-recommendation modes are represented only as
+`selected_recommendation_disabled` and `selected_recommendation_future`.
+
+The static GameStop fixture exports the active source-mode model, and
+`AvanzaHandoffPackagePreviewCard` renders a compact source indicator:
+`Source: static fixture`, `Selected recommendation wiring: disabled`, and
+`No real recommendation state is read`. Every mode disallows real selected
+recommendation state, bridge calls, and execution.
+
+This is a planning/display guard only. It does not connect real selected
+recommendation state, fetch localhost, refresh bridge status, poll, call bridge
+endpoints, call live runner/fill paths, use the exact trigger phrase, review,
+confirm, submit, place orders, handle credentials/session/storage, or write
+Supabase records.
+
+Current safety boundary summary follow-up:
+`lib/avanza-handoff-safety-boundary-summary.ts` defines a static safety boundary
+summary for the Avanza handoff package preview. It lists enforced hard limits
+for preview-only rendering, disabled controls, no live recommendation wiring, no
+Trade UI bridge calls, no Trade UI localhost fetch, no polling, no trigger
+phrase, no runner/fill endpoint, no `Granska köp` click, no review modal, no
+final confirmation, no submit, no order placement, no credential/session/BankID/
+cookie/storage handling, and no Supabase execution write. Total-read remains an
+advisory boundary.
+
+The static GameStop fixture exports this summary, and
+`AvanzaHandoffPackagePreviewCard` renders it in a compact collapsed section so
+the main package preview remains readable while the hard limits are explicit.
+
+This remains static fixture UI only. It does not connect real selected
+recommendation state, fetch localhost, refresh bridge status, poll, call bridge
+endpoints, call live runner/fill paths, use the exact trigger phrase, review,
+confirm, submit, place orders, handle credentials/session/storage, or write
+Supabase records.
+
+Current pre-activation gate follow-up:
+`lib/avanza-handoff-pre-activation-gate.ts` defines a pure gate for the future
+question of whether the Avanza handoff could ever move from preview-only toward
+a separately enabled dev-only state. The gate consumes the source mode,
+selected-recommendation contract, eligibility summary, read-only readiness
+summary, and safety boundary summary.
+
+The current static GameStop fixture resolves to `locked` because the source is
+`static_fixture`, selected-recommendation wiring is disabled, bridge calls and
+execution are disallowed, and the contract remains preview-only. The rendered
+preview card shows `Pre-activation gate: Locked`, `Static fixture source`, and
+`Selected recommendation wiring disabled`.
+
+The gate can model blocked and advisory-only future states for planning, but no
+result implies production readiness. Total-read unresolved/advisory remains
+advisory and cannot become execution readiness.
+
+This remains static fixture UI only. It does not enable the handoff button,
+connect real selected recommendation state, fetch localhost, refresh bridge
+status, poll, call bridge endpoints, call live runner/fill paths, use the exact
+trigger phrase, review, confirm, submit, place orders, handle
+credentials/session/storage, or write Supabase records.
+
+Current dev-only enablement planning follow-up:
+`docs/avanza-handoff-dev-only-enablement-plan.md` defines the future staged path
+from locked preview-only handoff to a possible dev-only enabled handoff. It
+requires selected-recommendation preview-only mapping, read-only Avanza
+readiness, explicit manual operator confirmation, fill-only invocation,
+stop-before-`Granska köp`, evidence capture, and manual user review in Avanza.
+
+The plan does not enable anything. Current UI state remains `static_fixture`,
+`locked`, and disabled, with no real selected recommendation state, no Trade UI
+bridge calls, no Trade UI localhost fetch, no trigger/fill/click/review/final/
+submit/order path, no credential/session/storage handling, and no Supabase
+execution write.
+
+Current architecture checkpoint follow-up:
+`docs/avanza-handoff-architecture-checkpoint.md` summarizes the current Avanza
+handoff architecture: proven fill-only POC milestone, Settings read-only status
+surface, Trade UI preview-only surface, pure helpers/models, safety guards,
+locked state, total-read advisory status, explicitly unimplemented execution
+paths, and the recommended next phase.
+
+Current selected-recommendation preview-only wiring planning follow-up:
+`docs/avanza-selected-recommendation-preview-only-wiring-plan.md` defines the
+future path for replacing static fixture preview data with selected
+recommendation preview data. The plan keeps the phase preview-only, disabled,
+locked, without Trade UI bridge calls, localhost fetches, runner/fill
+invocation, clicks, review/final/submit/order behavior, credential/session
+handling, or Supabase execution writes.
+
+The pure source-mode model now includes
+`selected_recommendation_preview_only` as a future/inactive mode. It still
+disallows real selected recommendation state, Trade UI localhost fetch, bridge
+calls, and execution. The active/default source remains `static_fixture`.
+
+Current selected-recommendation preview state follow-up:
+`lib/avanza-selected-recommendation-preview-state.ts` adds a pure builder for a
+future selected-recommendation preview-only state. It composes the existing
+recommendation mapper, package preview builder, selected-recommendation
+contract, eligibility summary, safety boundary summary, and pre-activation gate.
+
+The builder can represent no selection, blocked, advisory, and
+preview-ready-locked states, but it is not wired into Trade UI. The current
+Trade surface remains sourced from static fixture data only, with no real
+selected recommendation state read and no active handoff behavior.
+
+Current selected-recommendation preview state scenario follow-up:
+`lib/avanza-selected-recommendation-preview-state-fixtures.ts` adds static
+scenario fixtures for the pure preview state builder. The scenarios cover no
+selection, valid buy, non-buy/sell, missing ticker, missing quantity, missing
+price, and missing quantity plus price.
+
+Each scenario is built from a static recommendation-like fixture or `null`
+through `buildAvanzaSelectedRecommendationPreviewState(...)` and exposes a
+scenario id, label, expected display state, and generated preview state. They
+are not wired into Trade UI and do not replace the current static Trade preview
+fixture.
+
+Current selected-recommendation preview state renderer follow-up:
+`components/execution/AvanzaSelectedRecommendationPreviewStatePanel.tsx` adds a
+preview-only renderer for the pure selected-recommendation preview state model.
+It renders fixture/test states for no selection, blocked, advisory, and
+preview-ready-locked scenarios, including source mode, package preview summary
+when available, eligibility summary, locked pre-activation gate, blockers,
+advisories, and total-read unresolved/advisory.
+
+The renderer has no active controls and is not wired into the main Trade UI. It
+does not read real selected recommendation state, fetch localhost, refresh
+bridge status, poll, call bridge endpoints, call live runner/fill paths, use the
+exact trigger phrase, review, confirm, submit, place orders, handle
+credentials/session/storage, or write Supabase records.
+
+Current selected-recommendation preview state gallery follow-up:
+`components/execution/AvanzaSelectedRecommendationPreviewStateScenarioGallery.tsx`
+adds an isolated fixture-only gallery for development/test visibility. It
+renders all selected-recommendation preview state scenarios through
+`AvanzaSelectedRecommendationPreviewStatePanel`, showing scenario label,
+expected display state, and the preview panel.
+
+The gallery is not rendered in the production/main Trade UI by default. It is
+not connected to real selected recommendation state, does not fetch localhost,
+does not call the bridge, does not enable handoff controls, and does not add any
+execution behavior.
+
+The selected-recommendation preview-only wiring plan now also defines a
+test-only/dev-only access plan for this gallery. Future visual QA access may use
+a test-only render harness, a feature-flagged dev-only route, or an isolated
+component-view pattern if adopted. No route is added now, and the gallery remains
+outside the production/main Trade UI by default.
+
+Current scenario gallery access-model follow-up:
+`lib/avanza-scenario-gallery-access.ts` adds a pure access decision model for a
+future dev-only scenario gallery surface. The default decision is disabled and
+`canRenderGallery` is false. An explicit dev-only flag input can allow isolated
+fixture gallery rendering, but it still forbids real selected recommendation
+state, bridge calls, local fetches, and execution.
+
+The access model does not read environment variables, does not add a route, does
+not render the gallery, and does not change the active `static_fixture` source.
+
+Current scenario gallery access-harness follow-up:
+`components/execution/AvanzaSelectedRecommendationPreviewStateScenarioGalleryHarness.tsx`
+adds an isolated component-level harness that consumes the pure access decision
+and static scenario fixtures. Disabled or blocked access renders disabled copy
+only; explicit dev-only access can render the fixture-only scenario gallery.
+
+The harness is not routed and is not rendered in the production/main Trade UI.
+It does not read environment variables, fetch localhost, call the bridge, read
+real selected recommendation state, add active controls, or add execution
+behavior.
+
+Focused harness coverage now verifies every static scenario under dev-only
+fixture access while default access remains disabled: no selection, valid buy,
+non-buy/sell, missing ticker, missing quantity, missing price, and missing
+quantity plus price. All gates remain locked and total-read remains advisory.
+
+Current selected-recommendation wiring boundary planning follow-up:
+`docs/avanza-selected-recommendation-wiring-boundary-plan.md` identifies the
+future integration boundary for reading selected recommendation state without
+implementing it. The plan anchors the future path around the existing
+`selectedRecommendation` state in `app/trade-app.tsx`, the
+`openTradeModal(recommendation)` setter path, and the derived
+`selectedRecommendationForDisplay`, position sizing, and risk-control context.
+
+The planned future data path remains preview-only:
+selected recommendation state -> minimal recommendation adapter ->
+`buildAvanzaSelectedRecommendationPreviewState(...)` -> disabled preview
+renderer/card. The source remains `static_fixture` today, and any future
+`selected_recommendation_preview_only` state must keep the pre-activation gate
+locked with total-read advisory.
+
+Current selectedRecommendation adapter follow-up:
+`lib/avanza-selected-recommendation-adapter.ts` adds the pure structural adapter
+for the actual Trade UI selected-recommendation shape. It normalizes the current
+`Recommendation` fields, including `ticker`, `companyName`, `direction`,
+entry-price fields, and optional suggested shares, into the existing Avanza
+preview pipeline input.
+
+The adapter is not wired into `app/trade-app.tsx`. The Trade UI still uses the
+static fixture source only, the active source mode remains `static_fixture`, and
+selected-recommendation preview wiring remains a future locked/disabled step.
+
+Current adapter-based scenario fixture follow-up:
+`lib/avanza-selected-recommendation-adapter-fixtures.ts` adds static scenarios
+that start from representative actual Trade UI selectedRecommendation-like
+shapes, pass through `adaptSelectedRecommendationToAvanzaHandoffSource(...)`,
+and then build full preview states through
+`buildAvanzaSelectedRecommendationPreviewState(...)`.
+
+The scenarios cover valid buy, missing ticker/symbol, non-buy `Short`, missing
+entry/price, missing suggested shares/quantity, and missing both price and
+quantity. They remain test fixtures only and are not wired into Trade UI.
+
+Current fixture gallery grouping follow-up:
+`AvanzaSelectedRecommendationPreviewStateScenarioGallery` and its harness can
+now render grouped fixture sets. The generic preview-state scenarios and the
+adapter-based selectedRecommendation scenarios are displayed as separate groups
+when the isolated fixture harness is allowed in tests/dev-only access.
+
+The gallery remains fixture-only. It is not rendered in the production/main
+Trade UI by default, does not read real selectedRecommendation state, and does
+not add bridge calls, local fetches, active controls, or execution behavior.
+
+Current selectedRecommendation read-only derivation planning follow-up:
+`docs/avanza-selected-recommendation-wiring-boundary-plan.md` now defines the
+first future read-only derivation step for real selectedRecommendation state:
+`selectedRecommendation` ->
+`adaptSelectedRecommendationToAvanzaHandoffSource(...)` ->
+`buildAvanzaSelectedRecommendationPreviewState(...)` -> preview-only
+card/panel.
+
+That planned step may derive local UI state or pass props into an isolated child
+component, but it must not call the bridge, fetch localhost, use Settings bridge
+fetchers, call execution adapters, write Supabase records, add active controls,
+or switch the default `static_fixture` source without a separate explicit
+implementation step.
+
+Current selectedRecommendation derived preview-state helper follow-up:
+`lib/avanza-selected-recommendation-derived-preview-state.ts` adds the pure
+composition helper for that planned read-only derivation. It accepts a
+selectedRecommendation-like object or `null`, adapts it through
+`adaptSelectedRecommendationToAvanzaHandoffSource(...)`, and builds the final
+preview state through `buildAvanzaSelectedRecommendationPreviewState(...)`.
+
+The helper defaults to the active `static_fixture` source mode unless a caller
+explicitly passes another safe source mode. It is not wired into
+`app/trade-app.tsx`, and the Trade UI continues to use static fixture data only.
+
+Current selectedRecommendation preview integration guard follow-up:
+`lib/avanza-selected-recommendation-preview-integration-guard.ts` adds the pure
+guard that defines whether a future Trade UI step may derive Avanza preview
+state from real selectedRecommendation state. The default guard is disabled and
+does not allow reading selectedRecommendation, using the derived preview helper,
+switching to `selected_recommendation_preview_only`, or rendering selected
+recommendation preview state.
+
+An explicit future/dev preview flag can allow preview-only derivation, but still
+forbids bridge calls, localhost fetches, execution, active handoff controls, and
+any unlocked pre-activation state. The guard is not wired into Trade UI.
+
+Current selectedRecommendation pre-wiring checklist follow-up:
+`lib/avanza-selected-recommendation-pre-wiring-checklist.ts` adds the pure
+checklist that must pass before any future preview-only Trade UI wiring attempt
+is considered. The default checklist returns `not_ready_for_wiring` because the
+integration guard is disabled and the active/default source remains
+`static_fixture`.
+
+An explicit preview-only guard and future source-mode input can produce
+`candidate_for_preview_only_wiring`, but the checklist still enforces no bridge
+calls, no localhost fetch, no execution, disabled controls only, locked
+pre-activation gate, and total-read advisory.
+
+Current pre-wiring checklist panel follow-up:
+`components/execution/AvanzaSelectedRecommendationPreWiringChecklistPanel.tsx`
+adds an isolated prop-driven renderer for the pure pre-wiring checklist. It can
+show `not_ready_for_wiring` and `candidate_for_preview_only_wiring` fixture
+states for test/dev visibility, including safety copy for no bridge calls, no
+localhost fetch, no execution, disabled controls, locked gates, and total-read
+advisory.
+
+The panel is not rendered in `app/trade-app.tsx`, has no route, does not read
+real selectedRecommendation state, and does not add active controls or execution
+behavior.
+
+Current Trade UI guarded-wiring safety assertion follow-up:
+`tests/e2e/avanza-trade-ui-no-selected-recommendation-wiring.spec.ts` verifies
+that `app/trade-app.tsx` still uses static Avanza fixture data for the preview
+card by default and that any selectedRecommendation derivation is guarded by an
+explicit preview-only integration guard.
+
+The assertion allows existing selectedRecommendation modal behavior, but guards
+the Avanza preview path from unguarded selectedRecommendation props,
+uncontrolled source-mode switches, local bridge fetches, trigger/fill endpoints,
+and active handoff controls.
+
+Current first guarded derivation follow-up:
+`app/trade-app.tsx` now includes a local read-only selectedRecommendation
+preview derivation branch guarded by
+`buildAvanzaSelectedRecommendationPreviewIntegrationGuard(...)`. The local
+config keeps `explicitPreviewOnlyFlag: false`, so default UI behavior remains
+the static fixture Avanza preview card and `static_fixture` source mode.
+
+Only a future explicit preview-only config can allow the branch to call
+`buildAvanzaPreviewStateFromSelectedRecommendation(...)` and render
+`AvanzaSelectedRecommendationPreviewStatePanel`. The branch has no bridge call,
+no localhost fetch, no polling, no active controls, no runner/fill endpoint, and
+no submit/order path.
+
+Current Trade UI integration status label follow-up:
+`app/trade-app.tsx` now renders a small read-only Avanza preview integration
+status label near the preview shell/card. The default label shows static fixture
+source, selectedRecommendation preview disabled, no bridge calls, and no
+execution. If a future explicit preview-only guard enables the derived preview
+branch, the label can show selectedRecommendation preview-only, preview-only,
+controls disabled, and gate locked.
+
+The label is informational only and does not add buttons, fetches, bridge calls,
+active controls, or execution behavior.
+
+Current selectedRecommendation preview-only milestone checkpoint follow-up:
+`docs/avanza-selected-recommendation-preview-only-milestone-checkpoint.md`
+closes the selectedRecommendation preview-only preparation phase. It records
+the implemented adapter, derived preview-state helper, integration guard,
+pre-wiring checklist, no-wiring safety assertion, guarded Trade UI derivation,
+integration status label, scenario fixtures, gallery, and harness.
+
+The checkpoint explicitly keeps the default state as `static_fixture` with
+`explicitPreviewOnlyFlag: false`, selectedRecommendation preview disabled,
+controls disabled, the pre-activation gate locked, no bridge calls, no
+localhost fetch, no polling, no runner/fill invocation, no trigger phrase, no
+click/review/final/submit/order behavior, no credential/session/storage
+handling, no Supabase execution write, and total-read advisory.
+
+Current dev-only selectedRecommendation preview enablement planning follow-up:
+`docs/avanza-dev-only-selected-recommendation-preview-enablement-plan.md`
+defines a possible future dev/test-only step for allowing selectedRecommendation
+preview derivation by explicitly setting `explicitPreviewOnlyFlag` true.
+
+The plan is preview enablement only, not handoff execution. It allows only a
+future guarded preview source switch to `selected_recommendation_preview_only`,
+reading selectedRecommendation for preview-state derivation, and rendering
+`AvanzaSelectedRecommendationPreviewStatePanel`. It requires controls to remain
+disabled, the pre-activation gate locked, total-read advisory, no bridge calls,
+no localhost fetch from Trade UI, no polling, no trigger/fill runner, no trigger
+phrase, no click/review/final/submit/order behavior, no credential/session/
+storage handling, no Supabase execution write, and no production-readiness
+claim.
+
+Current dev-only preview enablement checklist follow-up:
+`lib/avanza-dev-only-preview-enablement-checklist.ts` adds a pure checklist for
+whether a future dev/test environment may allow `explicitPreviewOnlyFlag: true`
+for selectedRecommendation preview-only derivation. The default output is
+`not_allowed` because the current state remains `static_fixture`, the
+preview-only flag is false, and the integration guard is disabled.
+
+A candidate fixture may return `candidate_for_dev_preview`, but it still
+enforces no bridge calls, no localhost fetch, no polling, no runner/fill
+invocation, no click/review/final/submit/order behavior, no credential/session
+handling, no Supabase write, disabled controls, locked gate, and total-read
+advisory. The helper is not wired into `app/trade-app.tsx` and does not change
+default UI behavior.
+
+Current dev-only preview enablement checklist panel follow-up:
+`components/execution/AvanzaDevOnlyPreviewEnablementChecklistPanel.tsx` adds an
+isolated renderer for the dev-only preview enablement checklist. It can show the
+default `not_allowed` state and the test/dev `candidate_for_dev_preview` state,
+including blockers, advisories, checklist rows, static fixture default,
+selectedRecommendation preview disabled by default, no bridge calls, no
+localhost fetch, no execution, disabled controls, locked gate, and total-read
+advisory.
+
+The panel is not rendered in `app/trade-app.tsx`, has no route, does not fetch,
+does not call the bridge, does not read app state, has no active controls, and
+does not change default UI behavior.
+
+Current dev-only preview enablement checkpoint follow-up:
+`docs/avanza-dev-only-preview-enablement-checkpoint.md` records the current
+readiness state before any future `explicitPreviewOnlyFlag` enablement. The
+checkpoint states that the default output is `not_allowed`, the candidate
+`candidate_for_dev_preview` state exists only as a model/test state,
+`explicitPreviewOnlyFlag` remains false by default, selectedRecommendation
+preview remains disabled by default, the active/default source remains
+`static_fixture`, `selected_recommendation_preview_only` is not default,
+controls remain disabled, the pre-activation gate remains locked, no bridge
+calls, no localhost fetch, no polling, no runner/fill invocation, no
+click/review/final/submit/order behavior, no credential/session handling, no
+Supabase execution write, and total-read remains advisory.
+
+The recommended next step is a dev/test-only explicit preview flag fixture or
+config model, still default false and still without execution.
+
+Current dev/test preview flag config model follow-up:
+`lib/avanza-dev-preview-flag-config.ts` adds a pure config model for a future
+dev/test-only `explicitPreviewOnlyFlag`. The default config keeps
+`explicitPreviewOnlyFlag: false`, `environmentScope: default`,
+`source: default_disabled`, and cannot enable selectedRecommendation preview.
+
+The explicit test fixture config can set `explicitPreviewOnlyFlag: true` only
+with `environmentScope: dev_test_only`, but it still forbids bridge calls,
+localhost fetch, and execution. Production scope is forbidden. The model is not
+wired into `app/trade-app.tsx`, does not read environment variables directly,
+does not fetch, does not call the bridge, and does not change default UI
+behavior.
+
+Current preview flag config and checklist integration follow-up:
+`lib/avanza-dev-only-preview-enablement-checklist.ts` now accepts the preview
+flag config as explicit input and renders rows for preview flag source,
+`explicitPreviewOnlyFlag` value, environment scope, production-forbidden state,
+`canEnableSelectedRecommendationPreview`, and bridge/local fetch/execution
+prohibitions. The default checklist still returns `not_allowed` with
+`default_disabled`, `explicitPreviewOnlyFlag: false`, `static_fixture`, and the
+integration guard disabled.
+
+The dev/test fixture config can contribute to `candidate_for_dev_preview` only
+with `environmentScope: dev_test_only`, `explicitPreviewOnlyFlag: true`, the
+preview-only integration guard allowed, pre-wiring candidate state, and
+`selected_recommendation_preview_only` source. Production-forbidden config blocks
+the candidate. This remains pure model/test behavior and is not wired into
+`app/trade-app.tsx`.
+
+Current dev/test preview flag status panel follow-up:
+`components/execution/AvanzaDevPreviewFlagStatusPanel.tsx` adds an isolated
+prop-driven renderer for the preview flag config together with the dev-only
+preview enablement checklist. It shows the `explicitPreviewOnlyFlag` value,
+environment scope, config source, `canEnableSelectedRecommendationPreview`,
+checklist status/reason, blockers, advisories, selectedRecommendation preview
+disabled by default, dev/test-only scope, no bridge calls, no localhost fetch,
+no execution, disabled controls, and locked gate.
+
+The panel is not rendered in `app/trade-app.tsx`, has no route, does not fetch,
+does not call the bridge, does not read app state, has no active controls, and
+does not change default UI behavior.
+
+Current dev-only preview enablement state builder follow-up:
+`lib/avanza-dev-only-preview-enablement-state.ts` composes the dev/test preview
+flag config, selectedRecommendation preview integration guard, pre-wiring
+checklist, and dev-only preview enablement checklist into one UI-safe state.
+The default state is `disabled` with `explicitPreviewOnlyFlag: false`,
+selectedRecommendation preview disabled by default, no bridge calls, no
+localhost fetch, and no execution.
+
+The dev/test fixture state may become `candidate_for_dev_preview` and allow
+rendering selectedRecommendation preview, but it still forbids bridge calls,
+localhost fetch, execution, enabled controls, and unlocked gates. The
+production-forbidden input returns `blocked`. The helper is pure model/test
+behavior and is not wired into `app/trade-app.tsx`.
+
+Current dev/test preview flag status panel composed-state follow-up:
+`components/execution/AvanzaDevPreviewFlagStatusPanel.tsx` now accepts the
+composed dev-only preview enablement state as a single prop. It renders
+`overallStatus`, label/reason, `explicitPreviewOnlyFlag`, preview flag config
+source, integration guard status, pre-wiring checklist status, enablement
+checklist status, `canRenderSelectedRecommendationPreview`, bridge/local
+fetch/execution false states, disabled controls, and locked gate. The panel is
+still isolated, route-free, and not rendered in `app/trade-app.tsx`.
+
+Final dev-only preview enablement checkpoint follow-up:
+`docs/avanza-dev-only-preview-enablement-final-checkpoint.md` closes the
+dev-only selectedRecommendation preview enablement modeling phase before any
+future `explicitPreviewOnlyFlag` wiring. It records the dev/test preview flag
+config model, dev-only preview enablement checklist, isolated checklist panel,
+composed enablement state builder, and status panel rendering of the composed
+state.
+
+The final checkpoint confirms that `explicitPreviewOnlyFlag` remains false by
+default, selectedRecommendation preview remains disabled by default, the
+active/default source remains `static_fixture`, `candidate_for_dev_preview`
+exists only as model/test state, no panel is rendered in `app/trade-app.tsx`,
+no route exists, controls remain disabled, the gate remains locked, no bridge
+calls, no localhost fetch, no polling, no runner/fill invocation, no trigger
+phrase, no click/review/final/submit/order behavior, no credential/session
+handling, no Supabase execution write, and total-read remains advisory.
+
+Dev/test explicit preview flag wiring plan follow-up:
+`docs/avanza-dev-test-explicit-preview-flag-wiring-plan.md` defines the next
+possible app-code step before any future `explicitPreviewOnlyFlag` wiring. The
+future target would be `app/trade-app.tsx`, but the current plan does not
+change app code and does not enable the flag.
+
+The plan requires the default path to remain `static_fixture` with
+`explicitPreviewOnlyFlag: false`, selectedRecommendation preview disabled by
+default, disabled controls, and locked gate. It defines a future dev/test-only
+path where selectedRecommendation may be read only for preview-state derivation
+and `selected_recommendation_preview_only` may be used only under explicit
+dev/test config. It keeps bridge calls, localhost fetch, polling,
+trigger/fill runner, click/review/final/submit/order behavior,
+credential/session handling, Supabase writes, and production-readiness claims
+forbidden.
+
+Trade UI named dev/test preview config follow-up:
+`app/trade-app.tsx` now names the default-disabled selectedRecommendation
+preview config as `avanzaSelectedRecommendationPreviewDevConfig` and builds it
+through `buildAvanzaDevPreviewFlagConfig(...)` with
+`explicitPreviewOnlyFlag: false`, `environmentScope: default`, and
+`source: default_disabled`.
+
+This config is fed into the existing integration guard, but the default render
+remains the static fixture path. selectedRecommendation preview remains disabled
+by default, controls remain disabled, the gate remains locked, and no bridge
+calls, localhost fetch, polling, trigger/fill runner, click/review/final/submit
+or order behavior, credential/session handling, or Supabase write was added.
+
+Test-only explicit preview config override follow-up:
+`app/trade-app.tsx` now accepts
+`testOnlyAvanzaSelectedRecommendationPreviewDevConfig`, which defaults to
+`avanzaSelectedRecommendationPreviewDevConfig`. This gives tests a controlled
+override path without `.env.local`, runtime environment reads, or a default
+source-mode switch.
+
+`components/execution/AvanzaSelectedRecommendationPreviewTestOnlyHarness.tsx`
+adds an isolated prop-driven harness that can render the passive
+selectedRecommendation preview panel only when a dev/test fixture config allows
+preview rendering. The harness is not rendered in `app/trade-app.tsx`, has no
+route, does not fetch, does not call the bridge, has no active controls, keeps
+controls disabled and the gate locked, and does not add trigger/fill/click,
+review/final/submit/order behavior, credential/session handling, or Supabase
+writes.
+
+Focused coverage now proves the test-only path end to end through explicit
+dev/test fixture config, preview-only integration guard, selectedRecommendation
+fixture input, derived preview state, `selected_recommendation_preview_only`
+source mode, locked pre-activation gate, disabled controls, and no bridge,
+localhost, polling, trigger/fill/click/review/final/submit/order, exact trigger
+phrase, runtime environment, `.env.local`, or Supabase execution behavior.
+
+Test-only selectedRecommendation preview activation checkpoint follow-up:
+`docs/avanza-test-only-selected-recommendation-preview-activation-checkpoint.md`
+documents the current state before any further dev/test UI exposure. It records
+that `TradeApp` accepts
+`testOnlyAvanzaSelectedRecommendationPreviewDevConfig`, the default fallback
+remains `avanzaSelectedRecommendationPreviewDevConfig`, `explicitPreviewOnlyFlag`
+remains false by default, selectedRecommendation preview remains disabled by
+default, the test-only harness can render passive preview only, there is no
+`.env.local` path, no runtime environment path, controls remain disabled, the
+gate remains locked, no bridge calls, no localhost fetch, no polling, no
+runner/fill invocation, no trigger phrase, no click/review/final/submit/order
+behavior, no credential/session handling, no Supabase write, and total-read
+remains advisory.
+
+Final test-only selectedRecommendation preview checkpoint follow-up:
+`docs/avanza-test-only-selected-recommendation-preview-final-checkpoint.md`
+closes the test-only selectedRecommendation preview activation phase. It records
+that default Trade UI remains `static_fixture`, default selectedRecommendation
+preview remains disabled, default `explicitPreviewOnlyFlag` remains false, the
+test-only config can reach `preview_only_allowed`, the test-only path can render
+passive selectedRecommendation preview state, `selected_recommendation_preview_only`
+is used only in the test-only path, controls remain disabled, the
+pre-activation gate remains locked, no runtime environment path or `.env.local`
+dependency exists, no bridge calls, no localhost fetch, no polling, no
+runner/fill invocation, no trigger phrase, no click/review/final/submit/order
+behavior, no credential/session handling, no Supabase execution write, and
+total-read remains advisory.
 
 ## Safety Boundaries
 
