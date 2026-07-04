@@ -5,18 +5,23 @@ Date: 2026-07-03
 Checkpoint status:
 `avanza_read_only_selected_recommendation_derivation_decision_checkpoint_added`
 
+Route section checkpoint status:
+`avanza_read_only_selected_recommendation_derivation_decision_route_section_checkpoint_added`
+
 ## Current Status
 
 The read-only selectedRecommendation derivation decision model, fixtures, and
-isolated harness phase is complete before any route wiring or real derivation.
+harness phase is complete before any real derivation. The harness is now
+rendered on the isolated dev-only visual QA route as a fixture/model-only
+section.
 
 Current state:
 
 - derivation decision model is pure
 - derivation decision fixtures are static
-- derivation decision harness is isolated
+- derivation decision harness is fixture/model-only
 - harness is not wired into Trade UI
-- harness is not wired into the dev route
+- harness is rendered in the dev route as fixture/model-only content
 - existing dev route remains fixture/model-only
 - selectedRecommendation preview disabled by default in Trade UI
 - controls disabled
@@ -51,15 +56,16 @@ adds fixture states for the decision model:
 
 The fixtures are pure, static, and not wired into Trade UI or the dev route.
 
-## Implemented Isolated Harness
+## Implemented Fixture/Model-Only Harness
 
 `components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx`
 renders the derivation decision fixtures for isolated visibility.
 
-The harness is isolated:
+The harness remains isolated from Trade UI and real state:
 
 - harness is not rendered in `app/trade-app.tsx`
-- harness is not rendered in `app/dev/avanza-visual-qa/page.tsx`
+- harness is rendered in `app/dev/avanza-visual-qa/page.tsx` as a
+  fixture/model-only section
 - harness does not read app state
 - harness does not read real selectedRecommendation state
 - harness does not call the adapter
@@ -135,7 +141,7 @@ This checkpoint preserves:
 Not implemented:
 
 - no harness wiring into Trade UI
-- no harness wiring into the dev route
+- no real selectedRecommendation wiring into the dev route
 - no real selectedRecommendation read
 - no real selectedRecommendation render
 - no real preview derivation
@@ -149,13 +155,19 @@ Not implemented:
 
 ## Recommended Next Decision
 
-Option A: stop here and keep the derivation decision harness isolated.
+Option A: stop here and keep the derivation decision harness on the dev route
+as fixture/model-only content.
 
-Option B: add the derivation decision harness to the dev-only visual QA route as
-a fixture/model-only section.
+Option B: add visual polish to the fixture/model-only derivation decision route
+section.
 
 Option C: plan actual adapter/derived-preview integration separately.
 
 All options must still forbid execution, fill, trigger, bridge calls, localhost
 fetches, polling, active controls, and production readiness claims.
 
+## References
+
+- [Avanza read-only selectedRecommendation derivation decision route section checkpoint](avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation derivation plan](avanza-read-only-selected-recommendation-derivation-plan.md)
+- [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)

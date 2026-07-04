@@ -8,6 +8,15 @@ Checkpoint status:
 Read-only guard route section status:
 `avanza_read_only_selected_recommendation_dev_preview_route_section_checkpoint_added`
 
+Read-only derivation decision route section status:
+`avanza_read_only_selected_recommendation_derivation_decision_harness_added_to_dev_route_fixture_model_only`
+
+Read-only derivation decision route section checkpoint status:
+`avanza_read_only_selected_recommendation_derivation_decision_route_section_checkpoint_added`
+
+Read-only selectedRecommendation dev preview phase completion checkpoint status:
+`avanza_read_only_selected_recommendation_dev_preview_phase_completion_checkpoint_added`
+
 ## Phase Completion Status
 
 The isolated dev-only visual QA route phase is complete and safe to pause.
@@ -31,6 +40,8 @@ Completed components:
 - `components/execution/AvanzaDevVisualQaRouteAccessHarness.tsx`
 - `components/execution/AvanzaDevVisibleSelectedRecommendationPreviewSurfaceGallery.tsx`
 - `components/execution/AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness.tsx`
+- `components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx`
+- `components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness.tsx`
 
 Completed route checkpoints:
 
@@ -38,6 +49,8 @@ Completed route checkpoints:
 - `docs/avanza-isolated-dev-visual-qa-route-hardening-checkpoint.md`
 - `docs/avanza-isolated-dev-visual-qa-route-content-checkpoint.md`
 - `docs/avanza-isolated-dev-visual-qa-route-final-checkpoint.md`
+- `docs/avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md`
+- `docs/avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md`
 
 ## Route Behavior
 
@@ -47,6 +60,10 @@ The route renders:
 - route access harness
 - visible preview surface gallery
 - read-only selectedRecommendation dev preview guard harness as fixture/model-only
+  content
+- read-only selectedRecommendation derivation decision harness as
+  fixture/model-only content
+- adapter/derived-preview integration decision harness as fixture/model-only
   content
 
 The route does not read real selectedRecommendation state and does not read
@@ -61,6 +78,8 @@ Fixture sources:
 - `lib/avanza-dev-visual-qa-route-access-fixtures.ts`
 - `lib/avanza-dev-visible-preview-surface-fixtures.ts`
 - `lib/avanza-read-only-selected-recommendation-dev-preview-fixtures.ts`
+- `lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts`
+- `lib/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-fixtures.ts`
 
 No real selectedRecommendation state feeds the route. No Trade UI state feeds
 the route.
@@ -112,9 +131,14 @@ Focused validation covers:
 - route renders visible preview surface gallery
 - route renders read-only selectedRecommendation guard harness as
   fixture/model-only content
+- route renders read-only selectedRecommendation derivation decision harness as
+  fixture/model-only content
+- route renders adapter/derived-preview integration decision harness as
+  fixture/model-only content
 - route says fixture-only
 - route says no real selectedRecommendation state
 - route says no real selectedRecommendation state is rendered
+- route says no real preview state is derived or rendered
 - route says no Trade UI state
 - route says no bridge/local fetch/polling/execution
 - route says controls disabled and gate locked
@@ -159,7 +183,11 @@ Option C is now planned in
 
 - [Avanza isolated dev visual QA route final checkpoint](avanza-isolated-dev-visual-qa-route-final-checkpoint.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
+- [Avanza read-only selectedRecommendation dev preview phase completion checkpoint](avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md)
 - [Avanza read-only selectedRecommendation dev preview route section checkpoint](avanza-read-only-selected-recommendation-dev-preview-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation derivation decision route section checkpoint](avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision route section checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision phase completion checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-phase-completion-checkpoint.md)
 - [Avanza isolated dev visual QA route content checkpoint](avanza-isolated-dev-visual-qa-route-content-checkpoint.md)
 - [Avanza isolated dev visual QA route hardening checkpoint](avanza-isolated-dev-visual-qa-route-hardening-checkpoint.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)

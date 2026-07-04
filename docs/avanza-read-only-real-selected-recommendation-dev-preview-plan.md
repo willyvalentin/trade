@@ -38,6 +38,63 @@ Derivation decision harness status:
 Derivation decision checkpoint status:
 `avanza_read_only_selected_recommendation_derivation_decision_checkpoint_added`
 
+Derivation decision route harness status:
+`avanza_read_only_selected_recommendation_derivation_decision_harness_added_to_dev_route_fixture_model_only`
+
+Derivation decision route section checkpoint status:
+`avanza_read_only_selected_recommendation_derivation_decision_route_section_checkpoint_added`
+
+Read-only dev preview phase completion checkpoint status:
+`avanza_read_only_selected_recommendation_dev_preview_phase_completion_checkpoint_added`
+
+Adapter/derived-preview integration plan status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_planned_no_wiring`
+
+Adapter/derived-preview integration decision model status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_model_added`
+
+Adapter/derived-preview integration decision fixture status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_fixtures_added`
+
+Adapter/derived-preview integration decision harness status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_harness_added`
+
+Adapter/derived-preview integration decision checkpoint status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_checkpoint_added`
+
+Real selectedRecommendation read-only input plan status:
+`avanza_real_selected_recommendation_read_only_input_plan_added`
+
+Real selectedRecommendation read-only input guard model status:
+`avanza_real_selected_recommendation_read_only_input_guard_model_added`
+
+Real selectedRecommendation read-only input guard fixture status:
+`avanza_real_selected_recommendation_read_only_input_guard_fixtures_added`
+
+Real selectedRecommendation read-only input guard harness status:
+`avanza_real_selected_recommendation_read_only_input_guard_harness_added`
+
+Real selectedRecommendation read-only input guard route section plan status:
+`avanza_real_selected_recommendation_read_only_input_guard_route_section_plan_added`
+
+Real selectedRecommendation read-only input guard route section pre-implementation checkpoint status:
+`avanza_real_selected_recommendation_read_only_input_guard_route_section_pre_implementation_checkpoint_added`
+
+Real selectedRecommendation read-only input guard route section implementation status:
+`avanza_real_selected_recommendation_read_only_input_guard_route_section_rendered_fixture_model_only`
+
+Real selectedRecommendation read-only input guard route section checkpoint status:
+`avanza_real_selected_recommendation_read_only_input_guard_route_section_checkpoint_added`
+
+Real selectedRecommendation read-only input validation model status:
+`avanza_real_selected_recommendation_read_only_input_validation_model_added`
+
+Real selectedRecommendation read-only derivation plan status:
+`avanza_real_selected_recommendation_read_only_derivation_plan_added`
+
+Real selectedRecommendation read-only derivation pre-implementation checkpoint status:
+`avanza_real_selected_recommendation_read_only_derivation_pre_implementation_checkpoint_added`
+
 ## Purpose
 
 Plan a future dev-only/read-only phase that can safely preview Avanza handoff
@@ -237,8 +294,9 @@ or the dev route and do not derive real preview state.
 adds an isolated harness for the derivation decision fixtures. It renders the
 `no_input`, `blocked_guard`, `invalid_input`, and `derivation_allowed` model
 states with source mode, read/derive/render flags, fixture fallback, disabled
-controls, and locked gate state. It is not wired into Trade UI or the dev route
-and does not derive real preview state.
+controls, and locked gate state. It is rendered in the isolated dev-only visual
+QA route as fixture/model-only content. It is not wired into Trade UI and does
+not derive or render real preview state.
 
 ## Read-Only Derivation Decision Checkpoint
 
@@ -246,8 +304,21 @@ and does not derive real preview state.
 captures the decision model, fixture, and isolated harness phase before route
 wiring or real derivation. It confirms that `no_input` uses fixture fallback,
 blocked and invalid states block derivation/rendering, `derivation_allowed`
-exists only as fixture/model state, the harness remains isolated, and no real
-selectedRecommendation state or preview state is read, derived, or rendered.
+exists only as fixture/model state, the harness remains isolated from Trade UI
+and real state, and no real selectedRecommendation state or preview state is
+read, derived, or rendered.
+
+## Read-Only Derivation Decision Route Section Checkpoint
+
+`docs/avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md`
+captures the isolated dev-only visual QA route section that renders the
+derivation decision harness as fixture/model-only content. It confirms that the
+route remains unlinked from main navigation, `app/trade-app.tsx` was not
+changed, the harness is not rendered in Trade UI, no real selectedRecommendation
+state is read or rendered, no real preview state is derived or rendered,
+controls remain disabled, the pre-activation gate remains locked, and
+total-read remains advisory.
+
 
 ## Required Future Tests
 
@@ -281,7 +352,8 @@ Recommended sequence:
    `lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts`.
 6. Add isolated derivation harness. Done in
    `components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx`.
-7. Add optional route section behind explicit dev-only read-only guard.
+7. Add optional route section behind explicit dev-only read-only guard. Done as
+   fixture/model-only content in `app/dev/avanza-visual-qa/page.tsx`.
 8. Keep all controls disabled.
 9. Add checkpoint before any broader Trade UI integration.
 
@@ -305,10 +377,209 @@ Current state remains:
 - no runner/fill invocation
 - no Supabase execution write
 
+## Phase Completion Checkpoint
+
+`docs/avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md`
+summarizes the completed guard, fixture, derivation decision, and route-visible
+fixture/model phase before any real selectedRecommendation adapter or
+derived-preview integration. It confirms both route sections are
+fixture/model-only, the route remains unlinked from main navigation,
+`app/trade-app.tsx` was not changed, no real selectedRecommendation state is
+read or rendered, no real preview state is derived or rendered, controls remain
+disabled, the pre-activation gate remains locked, and total-read remains
+advisory.
+
+## Adapter/Derived-Preview Integration Plan
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-plan.md`
+plans the future adapter and derived-preview helper integration for explicit
+selectedRecommendation-like input. It requires read-only guards, derivation
+decision checks, adapter normalization, derived preview state building,
+read-only presentation, disabled controls, and a locked gate. It does not
+change app code, the dev route, Trade UI, or any runtime behavior.
+
+`lib/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision.ts`
+adds the pure integration decision model for this path. It can classify explicit
+input as `no_input`, `blocked`, `invalid_input`, or
+`adapter_review_required` while still not invoking the selectedRecommendation
+adapter, not invoking the derived-preview builder, not deriving real preview
+state, and not rendering real preview state.
+
+`lib/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-fixtures.ts`
+adds fixture states for the integration decision model, including future
+model-only `integration_allowed`. The fixtures are not wired into Trade UI or
+the dev route and do not call the adapter or derived-preview builder.
+
+`components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness.tsx`
+adds an isolated harness for the integration decision fixtures. The harness is
+rendered in the isolated dev-only visual QA route as a fixture/model-only
+section, is not wired into Trade UI, and does not call the adapter,
+derived-preview builder, bridge, localhost, polling, execution, active controls,
+or real selectedRecommendation state.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-checkpoint.md`
+summarizes the completed integration decision model, fixtures, and isolated
+harness phase before actual adapter/derived-preview invocation. It confirms
+`adapter_review_required` and `integration_allowed` remain fixture/model-only
+states, the harness is rendered on the dev-only visual QA route as
+fixture/model-only content, and no real preview state is derived or rendered.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-route-section-checkpoint.md`
+summarizes the isolated route section that renders the adapter/derived-preview
+integration decision harness as fixture/model-only content. It confirms
+`app/trade-app.tsx` was not changed, the route remains unlinked from main
+navigation, no real selectedRecommendation state is read or rendered, the
+adapter and derived-preview builder are not called, and no real preview state
+is derived or rendered.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-phase-completion-checkpoint.md`
+closes the adapter/derived-preview integration decision route-visible
+fixture/model phase. It confirms the model, fixtures, harness, and route
+section are complete before any future adapter safety review or actual
+adapter/derived-preview invocation.
+
+`docs/avanza-selected-recommendation-adapter-safety-review-plan.md` plans the
+adapter safety review required before any actual selectedRecommendation adapter
+or derived-preview builder invocation. It keeps the phase planning-only and
+continues to forbid real selectedRecommendation reads, real preview derivation,
+bridge calls, localhost fetches, polling, execution, active controls, and
+production readiness claims.
+
+`docs/avanza-selected-recommendation-adapter-safety-static-audit-checkpoint.md`
+records the first static audit coverage for the adapter safety review targets.
+It confirms the candidate adapter and derived-preview helper files are scanned
+for forbidden live behavior patterns and that no route or Trade UI behavior is
+changed by the audit phase.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-phase-completion-checkpoint.md`
+closes the adapter/derived-preview integration phase as
+planning/decision/static-audit/wrapper-plan complete. It confirms the dev route
+remains fixture/model-only, Trade UI remains default-safe, no real
+selectedRecommendation state is read or rendered, and no adapter or
+derived-preview builder is called.
+
+`docs/avanza-real-selected-recommendation-read-only-input-plan.md` plans the
+next possible input-only phase after the static-fixture derived-preview phase.
+It defines how a future explicit dev/read-only selectedRecommendation-like
+input may be classified as `no_input`, `blocked`, `invalid_input`, or valid
+before any later read-only derivation model. It remains planning-only and does
+not change app code, the dev route, Trade UI, or runtime behavior.
+
+`lib/avanza-real-selected-recommendation-read-only-input-guard.ts` implements
+the first pure model for that input boundary. The default decision is
+`hidden` with `sourceMode: fixture_only`, cannot read real selectedRecommendation,
+cannot validate input, cannot proceed to read-only derivation, and can use
+fixture fallback. An explicit dev/read-only decision may return
+`read_only_input_allowed` and
+`sourceMode: real_selected_recommendation_read_only`, but still forbids bridge
+calls, localhost fetches, polling, execution, enabled controls, and unlocked
+gates.
+
+The guard is not wired into Trade UI or the isolated dev QA route, does not read
+real selectedRecommendation state, does not call any adapter, and does not call
+any derived-preview builder.
+
+`lib/avanza-real-selected-recommendation-read-only-input-guard-fixtures.ts`
+adds static guard fixtures for hidden default, blocked production-forbidden,
+and read-only input allowed states. These fixtures expose guard config and
+decision output for tests and later harness work only. They remain unwired from
+Trade UI and the dev route, do not read real selectedRecommendation state, and
+do not derive or render real preview state.
+
+`components/execution/AvanzaRealSelectedRecommendationReadOnlyInputGuardHarness.tsx`
+adds the isolated guard fixture harness. It renders guard status, source mode,
+input capability flags, fixture fallback, and hard safety flags for the static
+fixtures only. It is not wired into Trade UI or the dev route, does not read
+app state, does not read or render real selectedRecommendation state, does not
+call the adapter, and does not call a derived-preview builder.
+
+`docs/avanza-real-selected-recommendation-read-only-input-guard-route-section-plan.md`
+plans a future fixture/model-only section on the isolated dev QA route for the
+guard harness. The plan does not change the route, does not wire the harness
+yet, does not change Trade UI, does not read real selectedRecommendation state,
+and does not derive or render real app/route preview state.
+
+`docs/avanza-real-selected-recommendation-read-only-input-guard-route-section-pre-implementation-checkpoint.md`
+records the go/no-go checklist before that route section is implemented. It
+permits only future fixture/model-only route rendering of the guard harness and
+continues to forbid Trade UI wiring, real selectedRecommendation reads,
+preview derivation, bridge calls, localhost fetches, polling, active controls,
+and execution.
+
+`app/dev/avanza-visual-qa/page.tsx` now renders the real selectedRecommendation
+read-only input guard harness as fixture/model-only route content. It displays
+only static guard fixtures, includes the hidden, blocked, and read-only input
+allowed model states, labels the allowed state model-only/read-only, and keeps
+the route unlinked from main navigation. `app/trade-app.tsx` remains unchanged
+and the harness is not wired into Trade UI.
+
+`docs/avanza-real-selected-recommendation-read-only-input-guard-route-section-checkpoint.md`
+records the completed route section boundary. It confirms the section uses
+only static guard fixtures, reads and renders no real selectedRecommendation
+state, derives and renders no real app/route preview state, keeps controls
+disabled, keeps the pre-activation gate locked, and preserves bridge/localhost/
+poll/execution as false.
+
+`lib/avanza-real-selected-recommendation-read-only-input-validation.ts` adds a
+pure validation model for explicit selectedRecommendation-like input. The model
+does not read app state, route state, React state, browser storage, network, or
+Trade UI state. It is not wired into Trade UI or the dev route, and it does not
+call adapter or derived-preview helpers. Valid output only creates a safe
+normalized input summary for future model-state adapter normalization planning.
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-plan.md` plans
+the future real selectedRecommendation read-only derivation phase. It requires
+explicit input, read-only input guard approval, validation approval, adapter
+normalization after validation, and derived-preview generation only after
+adapter normalization succeeds. It does not implement derivation and does not
+change Trade UI or the dev route.
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-pre-implementation-checkpoint.md`
+records the allowed next implementation scope. It permits only a pure helper
+that accepts explicit input and explicit guard/validation context, and it keeps
+Trade UI, the dev route, app state reads, route state reads, bridge calls,
+localhost fetches, polling, active controls, Supabase writes, and execution
+forbidden.
+
 ## References
 
+- [Avanza real selectedRecommendation read-only input plan](avanza-real-selected-recommendation-read-only-input-plan.md)
+- [Avanza real selectedRecommendation read-only input guard route section plan](avanza-real-selected-recommendation-read-only-input-guard-route-section-plan.md)
+- [Avanza real selectedRecommendation read-only input guard route section pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-input-guard-route-section-pre-implementation-checkpoint.md)
+- [Avanza real selectedRecommendation read-only input guard route section checkpoint](avanza-real-selected-recommendation-read-only-input-guard-route-section-checkpoint.md)
+- [Avanza real selectedRecommendation read-only derivation plan](avanza-real-selected-recommendation-read-only-derivation-plan.md)
+- [Avanza real selectedRecommendation read-only derivation pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-derivation-pre-implementation-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration phase completion checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-phase-completion-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration plan](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-plan.md)
+- [Avanza read-only selectedRecommendation dev preview phase completion checkpoint](avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md)
 - [Avanza isolated dev visual QA route phase completion checkpoint](avanza-isolated-dev-visual-qa-route-phase-completion-checkpoint.md)
 - [Avanza isolated dev visual QA route final checkpoint](avanza-isolated-dev-visual-qa-route-final-checkpoint.md)
 - [Avanza read-only selectedRecommendation derivation plan](avanza-read-only-selected-recommendation-derivation-plan.md)
 - [Avanza read-only selectedRecommendation derivation decision checkpoint](avanza-read-only-selected-recommendation-derivation-decision-checkpoint.md)
+- [Avanza read-only selectedRecommendation derivation decision route section checkpoint](avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision route section checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision phase completion checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-phase-completion-checkpoint.md)
+- [Avanza selectedRecommendation adapter safety review plan](avanza-selected-recommendation-adapter-safety-review-plan.md)
+- [Avanza selectedRecommendation adapter safety static audit checkpoint](avanza-selected-recommendation-adapter-safety-static-audit-checkpoint.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
+
+## Pure Derivation Helper Status
+
+`lib/avanza-real-selected-recommendation-read-only-derivation.ts` now provides a
+pure explicit-input helper for read-only real selectedRecommendation preview
+derivation.
+
+The helper is intentionally not connected to the isolated dev route or Trade
+UI. It accepts explicit input plus an explicit guard decision, validates before
+adapter normalization, normalizes through the existing selectedRecommendation
+adapter only after validation succeeds, and invokes derived-preview output only
+after adapter normalization succeeds.
+
+The only renderable helper state is `read_only_preview_ready`; all other
+states return no `previewState`. Even the ready state remains passive: no
+handoff progression, no bridge calls, no localhost fetch, no polling, no
+execution, controls disabled, and gate locked.
+
+Default Trade UI behavior remains static fixture, selectedRecommendation
+preview remains disabled by default, and the existing dev route remains
+fixture-only.

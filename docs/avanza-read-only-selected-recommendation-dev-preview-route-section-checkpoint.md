@@ -8,6 +8,9 @@ Checkpoint status:
 Next-phase plan status:
 `avanza_read_only_selected_recommendation_derivation_planned_no_wiring`
 
+Phase completion checkpoint status:
+`avanza_read_only_selected_recommendation_dev_preview_phase_completion_checkpoint_added`
+
 ## Current Status
 
 The isolated dev-only visual QA route now renders the read-only
@@ -134,3 +137,9 @@ fetches, polling, active controls, and production readiness claims.
 
 Option C is now planned in
 [Avanza read-only selectedRecommendation derivation plan](avanza-read-only-selected-recommendation-derivation-plan.md).
+
+## References
+
+- [Avanza read-only selectedRecommendation dev preview phase completion checkpoint](avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md)
+- [Avanza read-only selectedRecommendation derivation decision route section checkpoint](avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md)
+- [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)

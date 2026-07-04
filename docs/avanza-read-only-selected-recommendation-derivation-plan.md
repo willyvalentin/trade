@@ -17,6 +17,30 @@ Decision harness status:
 Decision checkpoint status:
 `avanza_read_only_selected_recommendation_derivation_decision_checkpoint_added`
 
+Decision route harness status:
+`avanza_read_only_selected_recommendation_derivation_decision_harness_added_to_dev_route_fixture_model_only`
+
+Decision route section checkpoint status:
+`avanza_read_only_selected_recommendation_derivation_decision_route_section_checkpoint_added`
+
+Read-only dev preview phase completion checkpoint status:
+`avanza_read_only_selected_recommendation_dev_preview_phase_completion_checkpoint_added`
+
+Adapter/derived-preview integration plan status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_planned_no_wiring`
+
+Adapter/derived-preview integration decision model status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_model_added`
+
+Adapter/derived-preview integration decision fixture status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_fixtures_added`
+
+Adapter/derived-preview integration decision harness status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_harness_added`
+
+Adapter/derived-preview integration decision checkpoint status:
+`avanza_read_only_selected_recommendation_adapter_derived_preview_integration_decision_checkpoint_added`
+
 ## Purpose
 
 Plan the next phase for actual read-only selectedRecommendation derivation in a
@@ -168,21 +192,34 @@ The harness renders:
 - disabled controls
 - locked gate
 
-The harness is fixture-only and passive. It is not wired into Trade UI or the
-dev route, does not read app state, does not read real selectedRecommendation
-state, does not call the adapter or derived-preview builder, does not derive
-real preview state, and does not expose active controls.
+The harness is fixture-only and passive. It is rendered in the isolated
+dev-only visual QA route as fixture/model-only content. It is not wired into
+Trade UI, does not read app state, does not read real selectedRecommendation
+state, does not call the adapter or derived-preview builder, does not derive or
+render real preview state, and does not expose active controls.
 
 ## Derivation Decision Checkpoint
 
 `docs/avanza-read-only-selected-recommendation-derivation-decision-checkpoint.md`
 summarizes the completed decision model, fixtures, and isolated harness phase
-before any route wiring or real derivation. It records that `no_input` uses
-fixture fallback, `blocked_guard` and `invalid_input` block derivation and
-rendering, `derivation_allowed` exists only as fixture/model state, the harness
-is not rendered in `app/trade-app.tsx` or
-`app/dev/avanza-visual-qa/page.tsx`, and no real selectedRecommendation or
-preview state is read, derived, or rendered.
+before any real derivation. It records that `no_input` uses fixture fallback,
+`blocked_guard` and `invalid_input` block derivation and rendering,
+`derivation_allowed` exists only as fixture/model state, the harness is
+rendered in `app/dev/avanza-visual-qa/page.tsx` as fixture/model-only content,
+the harness is not rendered in `app/trade-app.tsx`, and no real
+selectedRecommendation or preview state is read, derived, or rendered.
+
+## Derivation Decision Route Section Checkpoint
+
+`docs/avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md`
+summarizes the isolated dev-only visual QA route section that renders the
+derivation decision harness. It records that the section is fixture/model-only,
+the route remains unlinked from main navigation, `app/trade-app.tsx` was not
+changed, the harness is not rendered in Trade UI, no real selectedRecommendation
+state is read or rendered, no real preview state is derived or rendered,
+controls remain disabled, the pre-activation gate remains locked, and
+total-read remains advisory.
+
 
 ## Allowed Future Behavior
 
@@ -243,7 +280,8 @@ Recommended sequence:
    `lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts`.
 3. Add an isolated derivation harness. Done in
    `components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness.tsx`.
-4. Add a dev route section behind explicit read-only guard.
+4. Add a dev route section behind explicit read-only guard. Done as
+   fixture/model-only content in `app/dev/avanza-visual-qa/page.tsx`.
 5. Add a checkpoint before any broader Trade UI integration.
 
 No step should enable execution, fill, trigger, bridge calls, localhost fetches,
@@ -269,9 +307,77 @@ Current state remains:
 - no runner/fill invocation
 - no Supabase execution write
 
+## Phase Completion Checkpoint
+
+`docs/avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md`
+closes the read-only selectedRecommendation dev preview guard, derivation
+decision, and route-visible fixture/model phase. It records that both the guard
+harness and derivation decision harness are rendered on
+`app/dev/avanza-visual-qa/page.tsx` as fixture/model-only sections, the route
+remains unlinked from main navigation, `app/trade-app.tsx` was not changed, no
+real selectedRecommendation state is read or rendered, no real preview state is
+derived or rendered, controls remain disabled, the pre-activation gate remains
+locked, and total-read remains advisory.
+
+## Adapter/Derived-Preview Integration Plan
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-plan.md`
+plans the future integration from an explicit selectedRecommendation-like input
+through the existing selectedRecommendation adapter and derived-preview helper.
+It remains planning only: no app code, route code, Trade UI code, real
+selectedRecommendation read, real preview derivation, or real preview rendering
+is added.
+
+`lib/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision.ts`
+now adds a pure integration decision model for the first future review gate. A
+valid explicit input can reach `adapter_review_required` in model state only;
+the model does not call the selectedRecommendation adapter, does not call the
+derived-preview builder, does not derive real preview state, and does not render
+real preview state.
+
+`lib/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-fixtures.ts`
+adds static fixture states for `no_input`, `blocked_derivation_decision`,
+`invalid_input`, `adapter_review_required`, and `integration_allowed`. The
+`integration_allowed` fixture is future/model-only and still does not call the
+adapter or derived-preview builder, does not derive real preview state, and
+does not render real preview state.
+
+`components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness.tsx`
+adds an isolated harness for those fixture states. It renders integration
+decision flags for adapter review, normalization, derived-preview builder
+access, read-only preview rendering, fixture fallback, disabled controls, and
+locked gate state. It is rendered in the isolated dev-only visual QA route as a
+fixture/model-only section and is not wired into Trade UI.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-checkpoint.md`
+captures the completed integration decision model, fixtures, and isolated
+harness phase. It confirms the harness is not rendered in `app/trade-app.tsx`
+and is rendered in `app/dev/avanza-visual-qa/page.tsx` as a fixture/model-only
+section, the existing dev route remains fixture/model-only, the adapter and
+derived-preview builder are not called, and no real selectedRecommendation or
+preview state is read, derived, or rendered.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-route-section-checkpoint.md`
+summarizes the route section that renders the adapter/derived-preview
+integration decision harness. It confirms the route section is
+fixture/model-only, the route remains unlinked from main navigation,
+`app/trade-app.tsx` was not changed, the harness is not rendered in Trade UI,
+the adapter and derived-preview builder are not called, and no real
+selectedRecommendation or preview state is read, derived, or rendered.
+
+`docs/avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-phase-completion-checkpoint.md`
+closes the adapter/derived-preview integration decision model, fixtures,
+harness, and route-visible fixture/model phase before any adapter safety review
+or actual adapter/derived-preview invocation.
+
 ## References
 
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration plan](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-plan.md)
+- [Avanza read-only selectedRecommendation dev preview phase completion checkpoint](avanza-read-only-selected-recommendation-dev-preview-phase-completion-checkpoint.md)
 - [Avanza read-only selectedRecommendation dev preview route section checkpoint](avanza-read-only-selected-recommendation-dev-preview-route-section-checkpoint.md)
 - [Avanza read-only selectedRecommendation derivation decision checkpoint](avanza-read-only-selected-recommendation-derivation-decision-checkpoint.md)
+- [Avanza read-only selectedRecommendation derivation decision route section checkpoint](avanza-read-only-selected-recommendation-derivation-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision route section checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-route-section-checkpoint.md)
+- [Avanza read-only selectedRecommendation adapter/derived-preview integration decision phase completion checkpoint](avanza-read-only-selected-recommendation-adapter-derived-preview-integration-decision-phase-completion-checkpoint.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)

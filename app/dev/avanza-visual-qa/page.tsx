@@ -11,6 +11,18 @@ import {
 import {
   AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness,
 } from "@/components/execution/AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness";
+import {
+  AvanzaRealSelectedRecommendationReadOnlyInputGuardHarness,
+} from "@/components/execution/AvanzaRealSelectedRecommendationReadOnlyInputGuardHarness";
+import {
+  AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness,
+} from "@/components/execution/AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness";
+import {
+  AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness,
+} from "@/components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness";
+import {
+  AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness,
+} from "@/components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness";
 
 export const metadata: Metadata = {
   title: "Avanza Dev Visual QA",
@@ -104,6 +116,62 @@ export default function AvanzaDevVisualQaPage() {
             </p>
           </div>
           <AvanzaReadOnlySelectedRecommendationDevPreviewGuardHarness />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Real selectedRecommendation read-only input guard
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Guard fixture only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No app/route preview state is derived, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, Gate locked, and read_only_input_allowed remains model-only/read-only."
+              }
+            </p>
+          </div>
+          <AvanzaRealSelectedRecommendationReadOnlyInputGuardHarness />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Read-only selectedRecommendation derivation decision
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Decision fixture only. No real selectedRecommendation state is read from app or route, no real selectedRecommendation state is rendered, no real preview state is derived, no real preview state is rendered, no bridge calls, no localhost fetch, no polling, no execution, controls disabled, and gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaReadOnlySelectedRecommendationDerivationDecisionHarness />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Adapter/derived-preview integration decision
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Decision fixture only. No adapter is called, no derived-preview builder is called, no real selectedRecommendation state is read from app or route, no real selectedRecommendation state is rendered, no real preview state is derived, no real preview state is rendered, no bridge calls, no localhost fetch, no polling, no execution, controls disabled, and gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Adapter/derived-preview wrapper
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Wrapper fixture only. Adapter and derived-preview invocation use static fixtures only. No real selectedRecommendation state is read from app or route, No real selectedRecommendation state is rendered, No real app or route preview state is derived, No real preview state is rendered in Trade UI, previewState appears only for read_only_preview_ready fixture output, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, and Gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness />
         </section>
       </div>
     </main>
