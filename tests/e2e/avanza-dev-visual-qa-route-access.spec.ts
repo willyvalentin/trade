@@ -59,6 +59,27 @@ import {
   type AvanzaTradeUiReadOnlySelectedRecommendationPreviewModel,
 } from "../../lib/avanza-trade-ui-read-only-selected-recommendation-preview-model";
 import {
+  buildAvanzaSelectedRecommendationSourceExtraction,
+  type AvanzaSelectedRecommendationSourceExtractionResult,
+} from "../../lib/avanza-selected-recommendation-source-extraction";
+import {
+  buildAvanzaHardDisabledSourceToPreviewIntegration,
+  type AvanzaHardDisabledSourceToPreviewIntegrationResult,
+} from "../../lib/avanza-hard-disabled-source-to-preview-integration";
+import {
+  buildAvanzaTestOnlyEnabledPreviewFixtureModel,
+  type AvanzaTestOnlyEnabledPreviewFixtureModel,
+} from "../../lib/avanza-test-only-enabled-preview-fixture-model";
+import {
+  avanzaTestOnlyEnabledPreviewFixtureModelFixtures,
+} from "../../lib/avanza-test-only-enabled-preview-fixture-model-fixtures";
+import {
+  avanzaHardDisabledSourceToPreviewIntegrationFixtures,
+} from "../../lib/avanza-hard-disabled-source-to-preview-integration-fixtures";
+import {
+  avanzaSelectedRecommendationSourceExtractionFixtures,
+} from "../../lib/avanza-selected-recommendation-source-extraction-fixtures";
+import {
   avanzaTradeUiReadOnlySelectedRecommendationPreviewModelFixtures,
 } from "../../lib/avanza-trade-ui-read-only-selected-recommendation-preview-model-fixtures";
 import {
@@ -69,6 +90,71 @@ const repoRoot = process.cwd();
 
 function readRepoFile(path: string) {
   return readFileSync(join(repoRoot, path), "utf8");
+}
+
+function expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(
+  tradeAppSource: string,
+) {
+  expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+  expect(tradeAppSource).toMatch(
+    /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+  );
+  expect(tradeAppSource).toMatch(
+    /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
+  );
+  expect(tradeAppSource).toMatch(
+    /@\/lib\/avanza-hard-disabled-source-to-preview-integration["']/,
+  );
+  expect(tradeAppSource).toContain(
+    "buildAvanzaHardDisabledSourceToPreviewIntegration",
+  );
+  expect(tradeAppSource).toContain(
+    "passiveReadOnlySelectedRecommendationPreview",
+  );
+  expect(tradeAppSource).toMatch(
+    /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>\s*\{[\s\S]*?buildAvanzaHardDisabledSourceToPreviewIntegration\(\{[\s\S]*?integrationEnabled:\s*false[\s\S]*?modelResult=\{hardDisabledSourceToPreviewIntegration\.modelResult\}/,
+  );
+  expect(tradeAppSource).not.toContain(
+    "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview",
+  );
+  expect(tradeAppSource).not.toMatch(
+    /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
+  );
+  expect(tradeAppSource).not.toMatch(
+    /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
+  );
+
+  const guardIndex = tradeAppSource.indexOf(
+    "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+  );
+  expect(guardIndex).toBeGreaterThanOrEqual(0);
+
+  const branchIndex = tradeAppSource.indexOf(
+    "const passiveReadOnlySelectedRecommendationPreview",
+  );
+  expect(branchIndex).toBeGreaterThanOrEqual(0);
+
+  const guardSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+
+  expect(guardSnippet).not.toMatch(/process\.env/);
+  expect(guardSnippet).not.toMatch(/localStorage|sessionStorage/);
+  expect(guardSnippet).not.toMatch(/\bfetch\s*\(/);
+  expect(guardSnippet).toContain(
+    "buildAvanzaHardDisabledSourceToPreviewIntegration",
+  );
+  expect(guardSnippet).toMatch(/integrationEnabled:\s*false/);
+  expect(guardSnippet).toContain('sourceKind: "static_fixture"');
+  expect(guardSnippet).toContain(
+    "hardDisabledSourceToPreviewIntegration.modelResult",
+  );
+  expect(guardSnippet).not.toContain("selectedRecommendation={");
+  expect(guardSnippet).not.toContain("selectedRecommendation,");
+  expect(guardSnippet).not.toContain(
+    "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview",
+  );
+  expect(guardSnippet).not.toContain(
+    "buildAvanzaSelectedRecommendationSourceExtraction",
+  );
 }
 
 function fixtureById(id: string) {
@@ -189,6 +275,42 @@ function tradeUiReadOnlySelectedRecommendationPreviewModelFixtureById(
   return fixture;
 }
 
+function expectSourceExtractionSafety(
+  result: AvanzaSelectedRecommendationSourceExtractionResult,
+) {
+  expect(result.canProceedToHandoff).toBe(false);
+  expect(result.canCallBridge).toBe(false);
+  expect(result.canFetchLocalhost).toBe(false);
+  expect(result.canPoll).toBe(false);
+  expect(result.canExecute).toBe(false);
+  expect(result.controlsEnabled).toBe(false);
+  expect(result.gateLocked).toBe(true);
+}
+
+function expectHardDisabledSourceToPreviewSafety(
+  result: AvanzaHardDisabledSourceToPreviewIntegrationResult,
+) {
+  expect(result.canProceedToHandoff).toBe(false);
+  expect(result.canCallBridge).toBe(false);
+  expect(result.canFetchLocalhost).toBe(false);
+  expect(result.canPoll).toBe(false);
+  expect(result.canExecute).toBe(false);
+  expect(result.controlsEnabled).toBe(false);
+  expect(result.gateLocked).toBe(true);
+}
+
+function selectedRecommendationSourceExtractionFixtureById(
+  id: (typeof avanzaSelectedRecommendationSourceExtractionFixtures)[number]["id"],
+) {
+  const fixture = avanzaSelectedRecommendationSourceExtractionFixtures.find(
+    (item) => item.id === id,
+  );
+
+  expect(fixture, `Missing source extraction fixture ${id}`).toBeTruthy();
+
+  return fixture!;
+}
+
 const navigationSourceFiles = [
   "app/page.tsx",
   "app/settings/page.tsx",
@@ -250,6 +372,12 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(routeSource).toContain(
       "AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewIntegrationDecisionHarness",
     );
+    expect(routeSource).toContain(
+      "AvanzaSelectedRecommendationSourceExtractionHarness",
+    );
+    expect(routeSource).toContain(
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+    );
   });
 
   test("isolated route content renders the expected fixture-only sections and copy", () => {
@@ -257,6 +385,34 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
 
     expect(routeSource).toContain("Route access fixtures");
     expect(routeSource).toContain("Visible preview surface fixtures");
+    expect(routeSource).toContain("selectedRecommendation source extraction");
+    expect(routeSource).toContain(
+      "hard-disabled source-to-preview integration",
+    );
+    expect(routeSource).toContain("Source fixture only");
+    expect(routeSource).toContain("Integration fixture only");
+    expect(routeSource).toContain("Explicit candidate input only");
+    expect(routeSource).toContain("Explicit input only");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+    expect(routeSource).toContain("No Trade UI wiring");
+    expect(routeSource).toContain("No bridge calls");
+    expect(routeSource).toContain("No localhost fetch");
+    expect(routeSource).toContain("No polling");
+    expect(routeSource).toContain("No execution");
+    expect(routeSource).toContain("Controls disabled");
+    expect(routeSource).toContain("Gate locked");
+    expect(routeSource).toContain(
+      "source_ready_read_only remains read-only/model-only",
+    );
+    expect(routeSource).toContain(
+      "preview_model_ready_read_only remains read-only/model-only",
+    );
     expect(routeSource).toContain(
       "Read-only selectedRecommendation dev preview guard",
     );
@@ -2652,13 +2808,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(integrationPlanSource).toContain(
       "avanza-trade-ui-read-only-selected-recommendation-preview-pre-implementation-checkpoint.md",
     );
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toContain(
-      "avanza-trade-ui-read-only-selected-recommendation-preview-model",
-    );
-    expect(tradeAppSource).not.toContain(
-      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview",
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
     expect(routeSource).toContain("Derivation fixture only");
     expect(routeSource).toContain("Guard fixture only");
     expect(routeSource).toContain(
@@ -2856,12 +3006,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(modelSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(modelSource).not.toMatch(/execution-ready|production-ready/i);
     expect(modelSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(tradeAppSource).not.toContain(
-      "avanza-trade-ui-read-only-selected-recommendation-preview-model",
-    );
-    expect(tradeAppSource).not.toContain(
-      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview",
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
     expect(routeSource).toContain(
       "AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness",
     );
@@ -3851,13 +3996,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(componentSource).not.toMatch(/method:\s*["']POST["']/);
     expect(componentSource).not.toMatch(/<button|onClick\s*=/);
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreview\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
     expect(routeSource).not.toMatch(
       /<AvanzaTradeUiReadOnlySelectedRecommendationPreview\b/,
     );
@@ -3992,16 +4131,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/method:\s*["']POST["']/);
     }
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
     expect(routeSource).toMatch(
       /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
     );
@@ -4104,16 +4234,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(routeSectionCheckpointSource).toContain(copy);
     }
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
 
     expect(routeSource).toContain("Fixture-only");
     expect(routeSource).toContain(
@@ -4320,16 +4441,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "fixtures={avanzaTradeUiReadOnlySelectedRecommendationPreviewComponentFixtures}",
     );
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
 
     const expectedStatuses = [
       "hidden_default",
@@ -4491,19 +4603,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(architectureCheckpointSource).toContain(copy);
     }
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/lib\/avanza-trade-ui-read-only-selected-recommendation-preview-model["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
 
     expect(routeSource).toContain("Fixture-only");
     expect(routeSource).toContain(
@@ -4628,22 +4728,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(checkpointSource).toContain(copy);
     }
 
-    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /<AvanzaTradeUiReadOnlySelectedRecommendationPreview\b/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/components\/execution\/AvanzaTradeUiReadOnlySelectedRecommendationPreview["']/,
-    );
-    expect(tradeAppSource).not.toMatch(
-      /@\/lib\/avanza-trade-ui-read-only-selected-recommendation-preview-model["']/,
-    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
 
     expect(routeSource).toContain("Fixture-only");
     expect(routeSource).toContain(
@@ -4658,6 +4743,3928 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       );
       expect(source).not.toMatch(/method:\s*["']POST["']/);
     }
+  });
+
+  test("app trade passive read-only selectedRecommendation preview wiring checkpoint records minimal default-off app wiring", () => {
+    const checkpointPath =
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const referencedDocs = [
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-pre-implementation-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-pre-trade-ui-wiring-architecture-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-component-phase-completion-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-default-off-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-integration-plan.md",
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    ];
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const docPath of referencedDocs) {
+      const docSource = readRepoFile(docPath);
+
+      expect(docSource).toContain(
+        "avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md",
+      );
+      expect(docSource).toContain(
+        "completed minimal/default-off app wiring state",
+      );
+    }
+
+    for (const heading of [
+      "Current Status",
+      "Implemented app/trade-app.tsx Behavior",
+      "Default-Off Guard Behavior",
+      "Passive Component Wiring Behavior",
+      "Default UI Behavior",
+      "No Real SelectedRecommendation State Guarantee",
+      "No App/Route Preview Derivation Guarantee",
+      "Safety Guarantees",
+      "What Remains Not Implemented",
+      "Recommended Next Step",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "`app/trade-app.tsx` was touched only for minimal passive/default-off wiring",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` is false",
+      "preview is hard-disabled by default",
+      "Default UI is visually unchanged",
+      "The default path remains `static_fixture`",
+      "The passive preview component cannot render by default",
+      "Only the default model is passed",
+      "does not read real selectedRecommendation state",
+      "does not render real selectedRecommendation state",
+      "No previewState is derived from app/route state",
+      "No dev route changes were made",
+      "selectedRecommendation preview disabled by default in Trade UI",
+      "controls disabled",
+      "pre-activation gate locked",
+      "canProceedToHandoff false",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+      "Add a default-off safety audit for the Trade UI wiring.",
+      "verify no visible preview, no state read, no preview derivation, and no active execution paths",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toContain(
+      "Avanza preview source: static fixture",
+    );
+    expect(tradeAppSource).toContain(
+      "selectedRecommendation preview: disabled",
+    );
+    expect(tradeAppSource).toContain(
+      "modelResult={hardDisabledSourceToPreviewIntegration.modelResult}",
+    );
+    expect(tradeAppSource).not.toContain(
+      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview(",
+    );
+    expect(tradeAppSource).not.toContain(
+      "readOnlySelectedRecommendationPreviewState",
+    );
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("Preview model fixture only");
+    expect(routeSource).not.toContain(
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+    );
+
+    for (const source of [checkpointSource, routeSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+    }
+  });
+
+  test("app trade passive read-only selectedRecommendation preview wiring safety audit proves default-off branch remains passive", () => {
+    const auditPath =
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md";
+    const auditSource = readRepoFile(auditPath);
+    const checkpointSource = readRepoFile(
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md",
+    );
+    const referencedDocs = [
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-pre-implementation-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-pre-trade-ui-wiring-architecture-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-component-phase-completion-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-default-off-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-integration-plan.md",
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    ];
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const componentSource = readRepoFile(
+      "components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, auditPath))).toBe(true);
+    expect(auditSource.trim().length).toBeGreaterThan(0);
+
+    for (const docPath of referencedDocs) {
+      const docSource = readRepoFile(docPath);
+
+      expect(docSource).toContain(
+        "avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md",
+      );
+      expect(docSource).toContain(
+        "minimal default-off branch remains disabled, invisible, read-only",
+      );
+    }
+
+    expect(checkpointSource).toContain(
+      "avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md",
+    );
+
+    for (const heading of [
+      "Audit Scope",
+      "Current Wiring State",
+      "Default-Off Guard Audit",
+      "Visual Behavior Audit",
+      "selectedRecommendation State-Read Audit",
+      "previewState Derivation Audit",
+      "Passive Component Audit",
+      "Safety Guarantees",
+      "Forbidden Behavior Verification",
+      "Remaining Risks",
+      "Recommended Next Step",
+    ]) {
+      expect(auditSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` is false",
+      "preview is hard-disabled by default",
+      "default Trade UI remains visually unchanged",
+      "The passive preview component cannot render by default",
+      "only `avanzaTradeUiReadOnlySelectedRecommendationPreviewDefaultModel` is",
+      "no runtime environment enablement",
+      "no localStorage/sessionStorage enablement",
+      "no visible toggle",
+      "does not read real selectedRecommendation state",
+      "does not render real selectedRecommendation state",
+      "No previewState is derived from app/route state",
+      "does not call the Trade UI read-only preview builder from `app/trade-app.tsx`",
+      "no new fetch/polling/refresh behavior",
+      "no bridge/local calls",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no order behavior",
+      "no credential/session handling",
+      "no Supabase execution write",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` is not true",
+      "real selectedRecommendation state is not read from app/route",
+      "preview is not derived from app/route state",
+      "no production readiness claim is made",
+    ]) {
+      expect(auditSource).toContain(copy);
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview(",
+    );
+    expect(tradeAppSource).not.toContain(
+      "readOnlySelectedRecommendationPreviewState",
+    );
+
+    const passiveBranchIndex = tradeAppSource.indexOf(
+      "passiveReadOnlySelectedRecommendationPreview",
+    );
+
+    expect(passiveBranchIndex).toBeGreaterThanOrEqual(0);
+
+    const passiveBranchSnippet = tradeAppSource.slice(
+      passiveBranchIndex,
+      passiveBranchIndex + 1200,
+    );
+
+    expect(passiveBranchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(passiveBranchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(passiveBranchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(passiveBranchSnippet).not.toMatch(/process\.env/);
+    expect(passiveBranchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(passiveBranchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(passiveBranchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(passiveBranchSnippet).not.toMatch(/bridge|localhost/i);
+    expect(passiveBranchSnippet).not.toMatch(/handoff button/i);
+    expect(passiveBranchSnippet).not.toMatch(/prepare button/i);
+    expect(passiveBranchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation={");
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation,");
+    expect(passiveBranchSnippet).not.toContain("previewState={");
+
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("Preview model fixture only");
+    expect(routeSource).not.toContain(
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+    );
+    expect(componentSource).not.toMatch(/<button|onClick\s*=/);
+
+    for (const navigationSourceFile of navigationSourceFiles) {
+      const navigationSource = readRepoFile(navigationSourceFile);
+
+      expect(navigationSource).not.toContain("/dev/avanza-visual-qa");
+    }
+
+    for (const source of [auditSource, routeSource, componentSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+    }
+  });
+
+  test("app trade passive read-only selectedRecommendation preview wiring phase completion checkpoint closes default-off phase", () => {
+    const phaseCheckpointPath =
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md";
+    const phaseCheckpointSource = readRepoFile(phaseCheckpointPath);
+    const referencedDocs = [
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-pre-implementation-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-pre-trade-ui-wiring-architecture-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-component-phase-completion-checkpoint.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-default-off-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-preview-integration-plan.md",
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    ];
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const componentSource = readRepoFile(
+      "components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, phaseCheckpointPath))).toBe(true);
+    expect(phaseCheckpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const docPath of referencedDocs) {
+      const docSource = readRepoFile(docPath);
+
+      expect(docSource).toContain(
+        "avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md",
+      );
+      expect(docSource).toContain(
+        "marks the first Trade UI passive/default-off wiring phase complete",
+      );
+    }
+
+    for (const heading of [
+      "Phase Completion Status",
+      "Completed Artifacts",
+      "app/trade-app.tsx Wiring Status",
+      "Default-Off Guard Status",
+      "Passive Component Wiring Status",
+      "Default UI Behavior",
+      "selectedRecommendation State-Read Guarantee",
+      "previewState Derivation Guarantee",
+      "Safety Audit Summary",
+      "What Remains Deliberately Not Implemented",
+      "Recommended Next-Phase Options",
+    ]) {
+      expect(phaseCheckpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "Trade UI passive/default-off wiring phase is complete",
+      "`app/trade-app.tsx` was touched only for minimal passive/default-off wiring",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "The preview is hard-disabled by default",
+      "Default Trade UI remains visually unchanged",
+      "The default path remains `static_fixture`",
+      "The passive preview component cannot render by default",
+      "Only `avanzaTradeUiReadOnlySelectedRecommendationPreviewDefaultModel` is passed.",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived from app/route state",
+      "No dev route changes were made in the wiring task",
+      "selectedRecommendation preview remains disabled by default in Trade UI",
+      "controls disabled",
+      "pre-activation gate locked",
+      "canProceedToHandoff false",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+      "Option A: Stop here and keep Trade UI preview hard-disabled.",
+      "Option B: Add selectedRecommendation source map plan before enabling any real",
+      "Option C: Add a test-only/internal enabled path plan, still passive/read-only.",
+      "Option D: Add handoff package readiness plan separately, still no",
+      "All options must still forbid execution/fill/trigger.",
+    ]) {
+      expect(phaseCheckpointSource).toContain(copy);
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview(",
+    );
+    expect(tradeAppSource).not.toContain(
+      "readOnlySelectedRecommendationPreviewState",
+    );
+
+    const passiveBranchIndex = tradeAppSource.indexOf(
+      "passiveReadOnlySelectedRecommendationPreview",
+    );
+
+    expect(passiveBranchIndex).toBeGreaterThanOrEqual(0);
+
+    const passiveBranchSnippet = tradeAppSource.slice(
+      passiveBranchIndex,
+      passiveBranchIndex + 1200,
+    );
+
+    expect(passiveBranchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(passiveBranchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(passiveBranchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(passiveBranchSnippet).not.toMatch(/process\.env/);
+    expect(passiveBranchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(passiveBranchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(passiveBranchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(passiveBranchSnippet).not.toMatch(/bridge|localhost/i);
+    expect(passiveBranchSnippet).not.toMatch(/handoff button/i);
+    expect(passiveBranchSnippet).not.toMatch(/prepare button/i);
+    expect(passiveBranchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation={");
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation,");
+    expect(passiveBranchSnippet).not.toContain("previewState={");
+
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("Preview model fixture only");
+    expect(routeSource).not.toContain(
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+    );
+    expect(componentSource).not.toMatch(/<button|onClick\s*=/);
+
+    for (const navigationSourceFile of navigationSourceFiles) {
+      const navigationSource = readRepoFile(navigationSourceFile);
+
+      expect(navigationSource).not.toContain("/dev/avanza-visual-qa");
+    }
+
+    for (const source of [phaseCheckpointSource, routeSource, componentSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+    }
+  });
+
+  test("selectedRecommendation source map pre-implementation checkpoint records pure helper fixtures and harness", () => {
+    const checkpointPath =
+      "docs/avanza-selected-recommendation-source-map-pre-implementation-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const sourceMapPlanSource = readRepoFile(
+      "docs/avanza-selected-recommendation-source-map-plan.md",
+    );
+    const referencedDocs = [
+      "docs/avanza-selected-recommendation-source-map-plan.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md",
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-plan.md",
+      "docs/avanza-trade-ui-read-only-selected-recommendation-pre-trade-ui-wiring-architecture-checkpoint.md",
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    ];
+    const sourceExtractionHelperPath =
+      "lib/avanza-selected-recommendation-source-extraction.ts";
+    const missingHelperPaths = [
+      "lib/avanza-selected-recommendation-source-map.ts",
+      "lib/avanza-selected-recommendation-source-extractor.ts",
+    ];
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const componentSource = readRepoFile(
+      "components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const docPath of referencedDocs) {
+      const docSource = readRepoFile(docPath);
+
+      expect(docSource).toContain(
+        "avanza-selected-recommendation-source-map-pre-implementation-checkpoint.md",
+      );
+      expect(docSource).toMatch(
+        /permits only\s+a\s+future pure source extraction\s+helper/,
+      );
+    }
+
+    for (const helperPath of missingHelperPaths) {
+      expect(existsSync(join(repoRoot, helperPath))).toBe(false);
+    }
+    expect(existsSync(join(repoRoot, sourceExtractionHelperPath))).toBe(true);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Implemented Pure Helper Scope",
+      "Source Extraction Helper Behavior",
+      "Source Status Model",
+      "Output Model",
+      "Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "The pure source extraction helper exists at",
+      "`lib/avanza-selected-recommendation-source-extraction.ts`",
+      "no real selectedRecommendation input is connected",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "Default Trade UI remains visually unchanged",
+      "no real selectedRecommendation state is read or rendered from app or route state",
+      "no previewState is derived from app or route state",
+      "added only a pure selectedRecommendation source extraction helper",
+      "accept explicit candidate or source input only",
+      "inspect explicitly passed objects only",
+      "produce safe, minimal selectedRecommendation-like output",
+      "read app state implicitly",
+      "read route state",
+      "read React context or global state",
+      "fetch, discover, or search for selectedRecommendation",
+      "connect to the preview model yet",
+      "be wired into `app/trade-app.tsx` yet",
+      "`no_source`",
+      "`source_unavailable`",
+      "`source_blocked`",
+      "`source_invalid`",
+      "`source_ready_read_only`",
+      "`selectedRecommendationLikeInput`, only for `source_ready_read_only`",
+      "`normalizedSourceSummary`, only for `source_ready_read_only`",
+      "`canProceedToPreviewModel`, true only for `source_ready_read_only`",
+      "`canProceedToHandoff: false`",
+      "`canCallBridge: false`",
+      "`canFetchLocalhost: false`",
+      "`canPoll: false`",
+      "`canExecute: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+      "id if available",
+      "ticker or symbol if available",
+      "direction or action if available",
+      "entry or range if available",
+      "stopLoss if available",
+      "target if available",
+      "quantity or shares if available",
+      "confidence if available",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+      "source extraction fixtures cover all source statuses",
+      "isolated source extraction harness exists",
+      "source extraction route section pre-implementation checkpoint exists",
+      "That route section has now been rendered on `app/dev/avanza-visual-qa/page.tsx`",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(sourceMapPlanSource).toContain(
+      "avanza-selected-recommendation-source-map-pre-implementation-checkpoint.md",
+    );
+    expect(sourceMapPlanSource).toContain(
+      "source extraction helper remains pure and unwired",
+    );
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "buildAvanzaTradeUiReadOnlySelectedRecommendationPreview(",
+    );
+    expect(tradeAppSource).not.toContain(
+      "readOnlySelectedRecommendationPreviewState",
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-(map|extraction|extractor)/,
+    );
+
+    const passiveBranchIndex = tradeAppSource.indexOf(
+      "passiveReadOnlySelectedRecommendationPreview",
+    );
+
+    expect(passiveBranchIndex).toBeGreaterThanOrEqual(0);
+
+    const passiveBranchSnippet = tradeAppSource.slice(
+      passiveBranchIndex,
+      passiveBranchIndex + 1200,
+    );
+
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation={");
+    expect(passiveBranchSnippet).not.toContain("selectedRecommendation,");
+    expect(passiveBranchSnippet).not.toContain("previewState={");
+    expect(passiveBranchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(passiveBranchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(passiveBranchSnippet).not.toMatch(/bridge|localhost/i);
+    expect(passiveBranchSnippet).not.toMatch(/handoff button/i);
+    expect(passiveBranchSnippet).not.toMatch(/prepare button/i);
+    expect(passiveBranchSnippet).not.toMatch(/buy\/sell CTA/i);
+
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain(
+      "avanza-selected-recommendation-source-extraction-fixtures",
+    );
+    expect(routeSource).toContain(
+      "AvanzaSelectedRecommendationSourceExtractionHarness",
+    );
+    expect(routeSource).not.toContain("avanza-selected-recommendation-source-map");
+    expect(componentSource).not.toMatch(/<button|onClick\s*=/);
+
+    for (const source of [checkpointSource, routeSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+    }
+  });
+
+  test("selectedRecommendation source extraction route section renders fixture-only harness", () => {
+    const checkpointPath =
+      "docs/avanza-selected-recommendation-source-extraction-route-section-pre-implementation-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const routeSectionPlanSource = readRepoFile(
+      "docs/avanza-selected-recommendation-source-extraction-route-section-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSelectedRecommendationSourceExtractionHarness.tsx",
+    );
+    const helperSource = readRepoFile(
+      "lib/avanza-selected-recommendation-source-extraction.ts",
+    );
+    const fixturesSource = readRepoFile(
+      "lib/avanza-selected-recommendation-source-extraction-fixtures.ts",
+    );
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Route Section Behavior",
+      "Required Fixture/Model-Only Labels",
+      "Required Fixture Visibility",
+      "Required Output Visibility Rules",
+      "Required Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "`app/dev/avanza-visual-qa/page.tsx` to import and render",
+      "`AvanzaSelectedRecommendationSourceExtractionHarness`",
+      "render only static source extraction fixtures",
+      "fixture/model-only",
+      "explicit candidate input only",
+      "no real selectedRecommendation state is read",
+      "no real selectedRecommendation state is rendered",
+      "no previewState is derived",
+      "no Trade UI wiring",
+      "keep the route unlinked from main navigation",
+      "keep `app/trade-app.tsx` unchanged",
+      "keep source extraction disconnected from the preview model",
+      "selectedRecommendation source extraction",
+      "Source fixture only",
+      "Explicit candidate input only",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived",
+      "No Trade UI wiring",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No execution",
+      "Controls disabled",
+      "Gate locked",
+      "`no_source`",
+      "`source_unavailable`",
+      "`source_blocked`",
+      "`source_invalid`",
+      "`source_ready_read_only`",
+      "`selectedRecommendationLikeInput` visible only for `source_ready_read_only`",
+      "`normalizedSourceSummary` visible only for `source_ready_read_only`",
+      "`canProceedToPreviewModel` true only for `source_ready_read_only`",
+      "`canProceedToHandoff` false for all statuses",
+      "`canCallBridge` false for all statuses",
+      "`canFetchLocalhost` false for all statuses",
+      "`canPoll` false for all statuses",
+      "`canExecute` false for all statuses",
+      "controls disabled for all statuses",
+      "gate locked for all statuses",
+      "no active handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(routeSectionPlanSource).toContain(
+      "avanza-selected-recommendation-source-extraction-route-section-pre-implementation-checkpoint.md",
+    );
+    expect(routeSectionPlanSource).toContain(
+      "Trade UI wiring, `app/trade-app.tsx` changes, real selectedRecommendation reads",
+    );
+
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(routeSource).toMatch(
+      /avanza-selected-recommendation-source-extraction-fixtures/,
+    );
+    expect(routeSource).toContain(
+      "avanzaSelectedRecommendationSourceExtractionFixtures",
+    );
+    expect(routeSource).toContain("selectedRecommendation source extraction");
+    expect(routeSource).toContain("Source fixture only");
+    expect(routeSource).toContain("Explicit candidate input only");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+    expect(routeSource).toContain("No Trade UI wiring");
+    expect(routeSource).toContain("No bridge calls");
+    expect(routeSource).toContain("No localhost fetch");
+    expect(routeSource).toContain("No polling");
+    expect(routeSource).toContain("No execution");
+    expect(routeSource).toContain("Controls disabled");
+    expect(routeSource).toContain("Gate locked");
+    expect(routeSource).toContain(
+      "source_ready_read_only remains read-only/model-only",
+    );
+
+    for (const status of [
+      "no_source",
+      "source_unavailable",
+      "source_blocked",
+      "source_invalid",
+      "source_ready_read_only",
+    ]) {
+      expect(fixturesSource).toContain(status);
+    }
+
+    const readyFixture =
+      selectedRecommendationSourceExtractionFixtureById(
+        "source_ready_read_only",
+      );
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      const isReady = fixture.id === "source_ready_read_only";
+
+      expect(Boolean(fixture.extractionResult.selectedRecommendationLikeInput)).toBe(
+        isReady,
+      );
+      expect(Boolean(fixture.extractionResult.normalizedSourceSummary)).toBe(
+        isReady,
+      );
+      expect(fixture.extractionResult.canProceedToPreviewModel).toBe(isReady);
+      expect(fixture.extractionResult.canProceedToHandoff).toBe(false);
+      expect(fixture.extractionResult.canCallBridge).toBe(false);
+      expect(fixture.extractionResult.canFetchLocalhost).toBe(false);
+      expect(fixture.extractionResult.canPoll).toBe(false);
+      expect(fixture.extractionResult.canExecute).toBe(false);
+      expect(fixture.extractionResult.controlsEnabled).toBe(false);
+      expect(fixture.extractionResult.gateLocked).toBe(true);
+    }
+
+    expect(readyFixture.label).toContain("Ready read-only");
+
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction-fixtures/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    for (const source of [
+      checkpointSource,
+      routeSectionPlanSource,
+      routeSource,
+      harnessSource,
+      helperSource,
+    ]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+
+    expect(harnessSource).not.toContain("<button");
+    expect(harnessSource).not.toMatch(/onClick\s*=/);
+    expect(helperSource).not.toMatch(
+      /buildAvanzaTradeUiReadOnlySelectedRecommendationPreview/,
+    );
+    expect(helperSource).not.toMatch(/previewState/);
+  });
+
+  test("selectedRecommendation source extraction route section checkpoint records completed fixture-only section", () => {
+    const checkpointPath =
+      "docs/avanza-selected-recommendation-source-extraction-route-section-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Route Section Status",
+      "Rendered Artifacts",
+      "Fixture/Model-Only Guarantee",
+      "Dev Route Isolation Guarantee",
+      "Trade UI Non-Wiring Guarantee",
+      "Preview Model Non-Connection Guarantee",
+      "Real SelectedRecommendation Non-Read Guarantee",
+      "PreviewState Non-Derivation Guarantee",
+      "Safety Guarantees",
+      "Validation Summary",
+      "Recommended Next Step",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "`app/dev/avanza-visual-qa/page.tsx` now renders",
+      "`AvanzaSelectedRecommendationSourceExtractionHarness`",
+      "`lib/avanza-selected-recommendation-source-extraction-fixtures.ts`",
+      "`no_source`",
+      "`source_unavailable`",
+      "`source_blocked`",
+      "`source_invalid`",
+      "`source_ready_read_only`",
+      "`source_ready_read_only` remains read-only/model-only",
+      "`selectedRecommendationLikeInput` is visible only for `source_ready_read_only`",
+      "`normalizedSourceSummary` is visible only for `source_ready_read_only`",
+      "`canProceedToPreviewModel` is true only for `source_ready_read_only`",
+      "`canProceedToHandoff` is false for all statuses",
+      "`canCallBridge` is false for all statuses",
+      "`canFetchLocalhost` is false for all statuses",
+      "`canPoll` is false for all statuses",
+      "`canExecute` is false for all statuses",
+      "`controlsEnabled` is false for all statuses",
+      "`gateLocked` is true for all statuses",
+      "The dev route remains isolated and unlinked from main navigation.",
+      "`app/trade-app.tsx` was not edited by the route section task.",
+      "prior passive/default-off wiring",
+      "are not imported by",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "Source extraction is not connected to the preview model.",
+      "Real selectedRecommendation input is not connected, read, or rendered.",
+      "No previewState is derived from app or route state.",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "The selectedRecommendation source mapping phase completion checkpoint has now",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaSelectedRecommendationSourceExtractionHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaSelectedRecommendationSourceExtractionFixtures",
+    );
+    expect(routeSource).toContain("Source fixture only");
+    expect(routeSource).toContain("Explicit candidate input only");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      const isReady = fixture.id === "source_ready_read_only";
+
+      expect(fixture.extractionResult.status).toBe(fixture.expectedStatus);
+      expect(Boolean(fixture.extractionResult.selectedRecommendationLikeInput)).toBe(
+        isReady,
+      );
+      expect(Boolean(fixture.extractionResult.normalizedSourceSummary)).toBe(
+        isReady,
+      );
+      expect(fixture.extractionResult.canProceedToPreviewModel).toBe(isReady);
+      expect(fixture.extractionResult.canProceedToHandoff).toBe(false);
+      expect(fixture.extractionResult.canCallBridge).toBe(false);
+      expect(fixture.extractionResult.canFetchLocalhost).toBe(false);
+      expect(fixture.extractionResult.canPoll).toBe(false);
+      expect(fixture.extractionResult.canExecute).toBe(false);
+      expect(fixture.extractionResult.controlsEnabled).toBe(false);
+      expect(fixture.extractionResult.gateLocked).toBe(true);
+    }
+
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    for (const source of [checkpointSource, routeSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("selectedRecommendation source mapping phase completion checkpoint closes fixture-only phase", () => {
+    const checkpointPath =
+      "docs/avanza-selected-recommendation-source-mapping-phase-completion-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const helperPath =
+      "lib/avanza-selected-recommendation-source-extraction.ts";
+    const fixturesPath =
+      "lib/avanza-selected-recommendation-source-extraction-fixtures.ts";
+    const harnessPath =
+      "components/execution/AvanzaSelectedRecommendationSourceExtractionHarness.tsx";
+    const routePath = "app/dev/avanza-visual-qa/page.tsx";
+    const helperSource = readRepoFile(helperPath);
+    const fixturesSource = readRepoFile(fixturesPath);
+    const harnessSource = readRepoFile(harnessPath);
+    const routeSource = readRepoFile(routePath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    for (const path of [
+      checkpointPath,
+      helperPath,
+      fixturesPath,
+      harnessPath,
+      routePath,
+    ]) {
+      expect(existsSync(join(repoRoot, path))).toBe(true);
+    }
+
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Phase Completion Status",
+      "Completed Artifacts",
+      "Helper Status",
+      "Fixtures Status",
+      "Harness Status",
+      "Dev Route Section Status",
+      "Trade UI Non-Wiring Guarantee",
+      "Preview Model Non-Connection Guarantee",
+      "Real SelectedRecommendation Non-Read Guarantee",
+      "PreviewState Non-Derivation Guarantee",
+      "Safety Guarantees",
+      "Validation Summary",
+      "Recommended Next Phase",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "The selectedRecommendation source mapping phase is complete.",
+      "`lib/avanza-selected-recommendation-source-extraction.ts`",
+      "`lib/avanza-selected-recommendation-source-extraction-fixtures.ts`",
+      "`components/execution/AvanzaSelectedRecommendationSourceExtractionHarness.tsx`",
+      "`app/dev/avanza-visual-qa/page.tsx` fixture/model-only route section",
+      "The helper is pure and accepts explicit candidate input only.",
+      "`no_source`",
+      "`source_unavailable`",
+      "`source_blocked`",
+      "`source_invalid`",
+      "`source_ready_read_only`",
+      "The fixture module covers all five source extraction statuses.",
+      "`selectedRecommendationLikeInput` appears only for `source_ready_read_only`",
+      "`normalizedSourceSummary` appears only for `source_ready_read_only`",
+      "`canProceedToPreviewModel` is true only for `source_ready_read_only`",
+      "`canProceedToHandoff` is false for all statuses",
+      "`canCallBridge` is false for all statuses",
+      "`canFetchLocalhost` is false for all statuses",
+      "`canPoll` is false for all statuses",
+      "`canExecute` is false for all statuses",
+      "`controlsEnabled` is false for all statuses",
+      "`gateLocked` is true for all statuses",
+      "The harness is isolated and fixture-only.",
+      "The dev route remains unlinked from main navigation.",
+      "`app/trade-app.tsx` was not edited during the route/checkpoint tasks.",
+      "prior passive/default-off",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "selectedRecommendation preview remains disabled by default in Trade UI",
+      "Source extraction is not connected to the preview model.",
+      "Real selectedRecommendation input is not connected, read, or rendered.",
+      "No previewState is derived from app or route state.",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell behavior",
+      "no bridge calls",
+      "no fetch from Trade UI",
+      "no localhost calls",
+      "no polling",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "hard-disabled source-to-preview integration planning",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaSelectedRecommendationSourceExtractionHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaSelectedRecommendationSourceExtractionFixtures",
+    );
+    expect(routeSource).toContain("Source fixture only");
+    expect(routeSource).toContain("Explicit candidate input only");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+
+    for (const status of [
+      "no_source",
+      "source_unavailable",
+      "source_blocked",
+      "source_invalid",
+      "source_ready_read_only",
+    ]) {
+      expect(helperSource).toContain(status);
+      expect(fixturesSource).toContain(status);
+      expect(checkpointSource).toContain(status);
+    }
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      const isReady = fixture.id === "source_ready_read_only";
+
+      expect(fixture.extractionResult.status).toBe(fixture.expectedStatus);
+      expect(Boolean(fixture.extractionResult.selectedRecommendationLikeInput)).toBe(
+        isReady,
+      );
+      expect(Boolean(fixture.extractionResult.normalizedSourceSummary)).toBe(
+        isReady,
+      );
+      expect(fixture.extractionResult.canProceedToPreviewModel).toBe(isReady);
+      expect(fixture.extractionResult.canProceedToHandoff).toBe(false);
+      expect(fixture.extractionResult.canCallBridge).toBe(false);
+      expect(fixture.extractionResult.canFetchLocalhost).toBe(false);
+      expect(fixture.extractionResult.canPoll).toBe(false);
+      expect(fixture.extractionResult.canExecute).toBe(false);
+      expect(fixture.extractionResult.controlsEnabled).toBe(false);
+      expect(fixture.extractionResult.gateLocked).toBe(true);
+    }
+
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /buildAvanzaSelectedRecommendationSourceExtraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    for (const source of [
+      checkpointSource,
+      helperSource,
+      fixturesSource,
+      harnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+
+    expect(harnessSource).not.toContain("<button");
+    expect(harnessSource).not.toMatch(/onClick\s*=/);
+    expect(helperSource).not.toMatch(
+      /buildAvanzaTradeUiReadOnlySelectedRecommendationPreview/,
+    );
+    expect(helperSource).not.toMatch(/previewState/);
+  });
+
+  test("hard-disabled source-to-preview pre-implementation checkpoint permits only future pure helper", () => {
+    const checkpointPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-pre-implementation-checkpoint.md";
+    const planPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-plan.md";
+    const plannedHelperPath =
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const planSource = readRepoFile(planPath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+    expect(existsSync(join(repoRoot, plannedHelperPath))).toBe(true);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Integration Model/Helper Behavior",
+      "Required Status Model",
+      "Required Output Model",
+      "Required Source-To-Preview Safety Rules",
+      "Required Hard-Disabled Guard Rules",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "The hard-disabled source-to-preview integration plan exists, and the pure",
+      "`docs/avanza-hard-disabled-source-to-preview-integration-plan.md`",
+      "`lib/avanza-selected-recommendation-source-extraction.ts`",
+      "`lib/avanza-hard-disabled-source-to-preview-integration.ts`",
+      "`lib/avanza-trade-ui-read-only-selected-recommendation-preview-model.ts`",
+      "`components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview.tsx`",
+      "The next implementation may add a pure source-to-preview integration",
+      "`lib/avanza-hard-disabled-source-to-preview-integration.ts`",
+      "`integrationEnabled` boolean",
+      "source extraction result",
+      "selectedRecommendation-like candidate if needed",
+      "optional preview model input/result if explicit",
+      "read app state implicitly",
+      "read route state",
+      "read React context or global state",
+      "read `process.env`",
+      "read localStorage or sessionStorage",
+      "fetch",
+      "poll",
+      "call bridge endpoints",
+      "call localhost endpoints",
+      "call Supabase",
+      "be wired into `app/trade-app.tsx`",
+      "be wired into the dev route yet",
+      "enable preview",
+      "`integration_disabled`",
+      "`source_not_ready`",
+      "`source_ready_preview_blocked`",
+      "`preview_model_ready_read_only`",
+      "`integration_blocked`",
+      "`modelResult`, only when `preview_model_ready_read_only`",
+      "`canRenderPreview`, false unless inside explicit hard-disabled/test-only branch",
+      "`canProceedToHandoff: false`",
+      "`canCallBridge: false`",
+      "`canFetchLocalhost: false`",
+      "`canPoll: false`",
+      "`canExecute: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+      "`integrationEnabled: false` must always return `integration_disabled`",
+      "source not ready must not call or build a preview model result",
+      "`source_ready_read_only` may allow preview-model input only, not handoff",
+      "preview model output must remain read-only",
+      "`selectedRecommendationLikeInput` must be sanitized and minimal",
+      "`normalizedSourceSummary` must exclude credentials",
+      "no broker-specific session data may flow into the preview model",
+      "no order-ready state may be produced",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "default Trade UI remains visually unchanged",
+      "selectedRecommendation preview remains disabled by default in Trade UI",
+      "no env, localStorage, sessionStorage, or visible toggle can enable it",
+      "future integration may only run behind explicit test-only/model-only inputs",
+      "This checkpoint does not authorize",
+      "Do not proceed if the implementation requires app state reads",
+      "The pure hard-disabled source-to-preview integration model/helper now exists",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(planSource).toContain(
+      "avanza-hard-disabled-source-to-preview-integration-pre-implementation-checkpoint.md",
+    );
+    expect(planSource).toContain(
+      "now provides the",
+    );
+    expect(planSource).toContain(
+      "pure hard-disabled source-to-preview integration model/helper",
+    );
+
+    expect(routeSource).toMatch(
+      /avanza-hard-disabled-source-to-preview-integration/,
+    );
+    expect(routeSource).toContain(
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+    );
+    expect(routeSource).toContain(
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+    );
+    expect(routeSource).not.toMatch(
+      /buildAvanzaHardDisabledSourceToPreviewIntegration/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    const guardIndex = tradeAppSource.indexOf(
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+    );
+    expect(guardIndex).toBeGreaterThanOrEqual(0);
+    const guardSnippet = tradeAppSource.slice(guardIndex, guardIndex + 1800);
+
+    expect(guardSnippet).not.toMatch(/process\.env/);
+    expect(guardSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(guardSnippet).not.toMatch(/toggle/i);
+    expect(guardSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(guardSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(guardSnippet).not.toMatch(/bridge|localhost/i);
+    expect(guardSnippet).not.toContain("selectedRecommendation={");
+    expect(guardSnippet).not.toContain("selectedRecommendation,");
+    expect(guardSnippet).not.toContain("previewState={");
+    expect(guardSnippet).not.toMatch(/handoff button/i);
+    expect(guardSnippet).not.toMatch(/prepare button/i);
+    expect(guardSnippet).not.toMatch(/buy\/sell CTA/i);
+
+    for (const source of [checkpointSource, planSource, routeSource]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("hard-disabled source-to-preview integration helper keeps default integration disabled", () => {
+    const readySource = selectedRecommendationSourceExtractionFixtureById(
+      "source_ready_read_only",
+    ).extractionResult;
+    const result = buildAvanzaHardDisabledSourceToPreviewIntegration({
+      integrationEnabled: false,
+      sourceExtractionResult: readySource,
+    });
+
+    expect(result.status).toBe("integration_disabled");
+    expect(result.sourceStatus).toBe("source_ready_read_only");
+    expect(result.previewModelStatus).toBeNull();
+    expect(result.modelResult).toBeUndefined();
+    expect(result.canRenderPreview).toBe(false);
+    expectHardDisabledSourceToPreviewSafety(result);
+  });
+
+  test("hard-disabled source-to-preview integration returns source_not_ready without a source result", () => {
+    const result = buildAvanzaHardDisabledSourceToPreviewIntegration({
+      integrationEnabled: true,
+      sourceName: "selectedRecommendation",
+    });
+
+    expect(result.status).toBe("source_not_ready");
+    expect(result.sourceStatus).toBe("missing");
+    expect(result.previewModelStatus).toBeNull();
+    expect(result.modelResult).toBeUndefined();
+    expect(result.canRenderPreview).toBe(false);
+    expectHardDisabledSourceToPreviewSafety(result);
+  });
+
+  test("hard-disabled source-to-preview integration blocks non-ready source extraction statuses", () => {
+    const expectedBySourceStatus = new Map([
+      ["no_source", "source_not_ready"],
+      ["source_unavailable", "source_not_ready"],
+      ["source_blocked", "integration_blocked"],
+      ["source_invalid", "source_not_ready"],
+    ]);
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      if (fixture.id === "source_ready_read_only") {
+        continue;
+      }
+
+      const result = buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: true,
+        sourceExtractionResult: fixture.extractionResult,
+      });
+
+      expect(result.status).toBe(expectedBySourceStatus.get(fixture.id));
+      expect(result.sourceStatus).toBe(fixture.expectedStatus);
+      expect(result.previewModelStatus).toBeNull();
+      expect(result.modelResult).toBeUndefined();
+      expect(result.canRenderPreview).toBe(false);
+      expectHardDisabledSourceToPreviewSafety(result);
+    }
+  });
+
+  test("hard-disabled source-to-preview integration can produce read-only preview model only for explicit ready input", () => {
+    const readySource = selectedRecommendationSourceExtractionFixtureById(
+      "source_ready_read_only",
+    ).extractionResult;
+    const previewReadyFixture = realSelectedRecommendationReadOnlyDerivationFixtureById(
+      "read_only_preview_ready",
+    );
+    const result = buildAvanzaHardDisabledSourceToPreviewIntegration({
+      integrationEnabled: true,
+      selectedRecommendationCandidate:
+        previewReadyFixture.selectedRecommendationLikeInput,
+      sourceExtractionResult: readySource,
+      sourceName: "selectedRecommendation hard-disabled test fixture",
+    });
+
+    expect(result.status).toBe("preview_model_ready_read_only");
+    expect(result.sourceStatus).toBe("source_ready_read_only");
+    expect(result.previewModelStatus).toBe("read_only_preview_ready");
+    expect(result.modelResult?.status).toBe("read_only_preview_ready");
+    expect(result.modelResult?.canRenderReadOnlyPreview).toBe(true);
+    expect(result.canRenderPreview).toBe(true);
+    expect(result.canProceedToHandoff).toBe(false);
+    expect(result.modelResult?.canProceedToHandoff).toBe(false);
+    expect(result.modelResult?.controlsEnabled).toBe(false);
+    expect(result.modelResult?.gateLocked).toBe(true);
+    expect(result.sourceSummary).toEqual(
+      readySource.normalizedSourceSummary,
+    );
+    expectHardDisabledSourceToPreviewSafety(result);
+
+    for (const unsafeKey of [
+      "accountId",
+      "account",
+      "brokerSecret",
+      "cookie",
+      "cookies",
+      "session",
+      "sessionToken",
+      "storage",
+      "storageKey",
+    ]) {
+      expect(result.sourceSummary).not.toHaveProperty(unsafeKey);
+      expect(result.modelResult).not.toHaveProperty(unsafeKey);
+    }
+  });
+
+  test("hard-disabled source-to-preview integration with ready source blocks invalid explicit preview input", () => {
+    const readySource = selectedRecommendationSourceExtractionFixtureById(
+      "source_ready_read_only",
+    ).extractionResult;
+    const result = buildAvanzaHardDisabledSourceToPreviewIntegration({
+      integrationEnabled: true,
+      selectedRecommendationCandidate: {
+        company: "Missing ticker fixture",
+      },
+      sourceExtractionResult: readySource,
+    });
+
+    expect(result.status).toBe("source_ready_preview_blocked");
+    expect(result.sourceStatus).toBe("source_ready_read_only");
+    expect(result.previewModelStatus).toBe("invalid_input");
+    expect(result.modelResult).toBeUndefined();
+    expect(result.canRenderPreview).toBe(false);
+    expectHardDisabledSourceToPreviewSafety(result);
+  });
+
+  test("hard-disabled source-to-preview integration exposes modelResult only for preview_model_ready_read_only", () => {
+    const readySource = selectedRecommendationSourceExtractionFixtureById(
+      "source_ready_read_only",
+    ).extractionResult;
+    const results = [
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceExtractionResult: readySource,
+      }),
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: true,
+      }),
+      ...avanzaSelectedRecommendationSourceExtractionFixtures
+        .filter((fixture) => fixture.id !== "source_ready_read_only")
+        .map((fixture) =>
+          buildAvanzaHardDisabledSourceToPreviewIntegration({
+            integrationEnabled: true,
+            sourceExtractionResult: fixture.extractionResult,
+          }),
+        ),
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: true,
+        selectedRecommendationCandidate: { company: "Missing ticker fixture" },
+        sourceExtractionResult: readySource,
+      }),
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: true,
+        selectedRecommendationCandidate:
+          realSelectedRecommendationReadOnlyDerivationFixtureById(
+            "read_only_preview_ready",
+          ).selectedRecommendationLikeInput,
+        sourceExtractionResult: readySource,
+      }),
+    ];
+
+    for (const result of results) {
+      const isReady = result.status === "preview_model_ready_read_only";
+
+      expect(Boolean(result.modelResult)).toBe(isReady);
+      expect(result.canRenderPreview).toBe(isReady);
+      expectHardDisabledSourceToPreviewSafety(result);
+    }
+  });
+
+  test("hard-disabled source-to-preview integration helper source stays pure and Trade UI unwired", () => {
+    const helperSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(helperSource).not.toMatch(/app\/trade-app|trade-app/);
+    expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
+    expect(helperSource).not.toMatch(/process\.env/);
+    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/\bfetch\s*\(/);
+    expect(helperSource).not.toMatch(/supabase/i);
+    expect(helperSource).not.toMatch(/from\s+["'][^"']*bridge/i);
+    expect(helperSource).not.toMatch(/bridge\s*\(/i);
+    expect(helperSource).not.toMatch(/https?:\/\/(?:localhost|127\.0\.0\.1)/i);
+    expect(helperSource).not.toMatch(/live-fill-only-runner/);
+    expect(helperSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(helperSource).not.toMatch(/execution-ready|production-ready/i);
+
+    expect(routeSource).toMatch(
+      /avanza-hard-disabled-source-to-preview-integration/,
+    );
+    expect(routeSource).toContain(
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+    );
+    expect(routeSource).toContain(
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+    );
+    expect(routeSource).not.toMatch(
+      /buildAvanzaHardDisabledSourceToPreviewIntegration/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+  });
+
+  test("hard-disabled source-to-preview integration fixtures cover all statuses", () => {
+    const expectedStatuses = [
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+    ];
+
+    expect(avanzaHardDisabledSourceToPreviewIntegrationFixtures).toHaveLength(
+      expectedStatuses.length,
+    );
+    expect(
+      avanzaHardDisabledSourceToPreviewIntegrationFixtures.map(
+        (fixture) => fixture.id,
+      ),
+    ).toEqual(expectedStatuses);
+
+    for (const fixture of avanzaHardDisabledSourceToPreviewIntegrationFixtures) {
+      const result = fixture.integrationResult;
+      const isReady = fixture.id === "preview_model_ready_read_only";
+
+      expect(result.status).toBe(fixture.expectedStatus);
+      expect(result.status).toBe(fixture.id);
+      expect(Boolean(result.modelResult)).toBe(isReady);
+      expect(result.canRenderPreview).toBe(isReady);
+      expectHardDisabledSourceToPreviewSafety(result);
+    }
+  });
+
+  test("hard-disabled source-to-preview integration fixtures keep modelResult exclusive and passive", () => {
+    const fixtureById = new Map(
+      avanzaHardDisabledSourceToPreviewIntegrationFixtures.map((fixture) => [
+        fixture.id,
+        fixture,
+      ]),
+    );
+
+    expect(
+      fixtureById.get("integration_disabled")?.integrationResult.status,
+    ).toBe("integration_disabled");
+    expect(fixtureById.get("source_not_ready")?.integrationResult.status).toBe(
+      "source_not_ready",
+    );
+    expect(
+      fixtureById.get("source_ready_preview_blocked")?.integrationResult.status,
+    ).toBe("source_ready_preview_blocked");
+    expect(
+      fixtureById.get("preview_model_ready_read_only")?.integrationResult
+        .status,
+    ).toBe("preview_model_ready_read_only");
+    expect(fixtureById.get("integration_blocked")?.integrationResult.status).toBe(
+      "integration_blocked",
+    );
+
+    for (const fixture of avanzaHardDisabledSourceToPreviewIntegrationFixtures) {
+      const result = fixture.integrationResult;
+      const isReady = result.status === "preview_model_ready_read_only";
+
+      expect(Boolean(result.modelResult)).toBe(isReady);
+      expect(result.canRenderPreview).toBe(isReady);
+      expect(result.canProceedToHandoff).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canPoll).toBe(false);
+      expect(result.canExecute).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+
+      if (result.modelResult) {
+        expect(result.modelResult.canProceedToHandoff).toBe(false);
+        expect(result.modelResult.canCallBridge).toBe(false);
+        expect(result.modelResult.canFetchLocalhost).toBe(false);
+        expect(result.modelResult.canPoll).toBe(false);
+        expect(result.modelResult.canExecute).toBe(false);
+        expect(result.modelResult.controlsEnabled).toBe(false);
+        expect(result.modelResult.gateLocked).toBe(true);
+      }
+    }
+  });
+
+  test("hard-disabled source-to-preview integration harness renders all fixtures and safety copy", () => {
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHardDisabledSourceToPreviewIntegrationHarness.tsx",
+    );
+
+    expect(harnessSource).toContain(
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+    );
+    expect(harnessSource).toContain(
+      "hard-disabled source-to-preview integration",
+    );
+    expect(harnessSource).toContain("Integration fixture only");
+    expect(harnessSource).toContain("Explicit input only");
+    expect(harnessSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(harnessSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(harnessSource).toContain("No previewState is derived");
+    expect(harnessSource).toContain("No Trade UI wiring");
+    expect(harnessSource).toContain("Fixture-only dev route section");
+    expect(harnessSource).toContain("No bridge calls");
+    expect(harnessSource).toContain("No localhost fetch");
+    expect(harnessSource).toContain("No polling");
+    expect(harnessSource).toContain("No execution");
+    expect(harnessSource).toContain("Controls disabled");
+    expect(harnessSource).toContain("Gate locked");
+    expect(harnessSource).toContain("fixture.label");
+    expect(harnessSource).toContain("result.status");
+    expect(harnessSource).toContain("canRenderPreview");
+    expect(harnessSource).toContain("canProceedToHandoff");
+    expect(harnessSource).toContain("canCallBridge");
+    expect(harnessSource).toContain("canFetchLocalhost");
+    expect(harnessSource).toContain("canPoll");
+    expect(harnessSource).toContain("canExecute");
+    expect(harnessSource).toContain("controlsEnabled");
+    expect(harnessSource).toContain("gateLocked");
+    expect(harnessSource).not.toContain("<button");
+    expect(harnessSource).not.toMatch(/onClick\s*=/);
+  });
+
+  test("hard-disabled source-to-preview fixtures and harness stay pure and Trade UI unwired", () => {
+    const fixturesSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHardDisabledSourceToPreviewIntegrationHarness.tsx",
+    );
+    const helperSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const combinedFixtureAndHarnessSource = `${fixturesSource}\n${harnessSource}`;
+
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /app\/trade-app|trade-app/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /app\/dev\/avanza-visual-qa/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/process\.env/);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /localStorage|sessionStorage/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/supabase/i);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /from\s+["'][^"']*bridge/i,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/bridge\s*\(/i);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /https?:\/\/(?:localhost|127\.0\.0\.1)/i,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /live-fill-only-runner/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /FINAL\s+LIVE\s+EXECUTE/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /execution-ready|production-ready/i,
+    );
+
+    expect(routeSource).toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(routeSource).toMatch(
+      /avanza-hard-disabled-source-to-preview-integration-fixtures/,
+    );
+    expect(routeSource).toContain("Integration fixture only");
+    expect(routeSource).toContain("Explicit input only");
+    expect(routeSource).toContain("No previewState is derived");
+    expect(routeSource).toContain("No Trade UI wiring");
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expect(helperSource).not.toMatch(/app\/trade-app|trade-app/);
+    expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+  });
+
+  test("hard-disabled source-to-preview route section renders fixture-only and keeps Trade UI unwired", () => {
+    const checkpointPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-route-section-pre-implementation-checkpoint.md";
+    const routeSectionCheckpointPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-route-section-checkpoint.md";
+    const routeSectionPlanPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-route-section-plan.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const routeSectionCheckpointSource = readRepoFile(
+      routeSectionCheckpointPath,
+    );
+    const routeSectionPlanSource = readRepoFile(routeSectionPlanPath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+    expect(existsSync(join(repoRoot, routeSectionCheckpointPath))).toBe(true);
+    expect(routeSectionCheckpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Route Section Behavior",
+      "Required Fixture/Model-Only Labels",
+      "Required Output Visibility Rules",
+      "Required Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "app/trade-app.tsx",
+      "Integration fixture only",
+      "Explicit input only",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived",
+      "No Trade UI wiring",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No execution",
+      "Controls disabled",
+      "Gate locked",
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+      "modelResult",
+      "canRenderPreview",
+      "canProceedToHandoff",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW",
+      "no active controls",
+      "handoff",
+      "buy/sell",
+      "Supabase",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(routeSectionPlanSource).toContain(
+      "avanza-hard-disabled-source-to-preview-integration-route-section-pre-implementation-checkpoint.md",
+    );
+    expect(routeSectionPlanSource).toContain(
+      "avanza-hard-disabled-source-to-preview-integration-route-section-checkpoint.md",
+    );
+
+    for (const heading of [
+      "Route Section Status",
+      "Rendered Artifacts",
+      "Fixture/Model-Only Guarantee",
+      "Dev Route Isolation Guarantee",
+      "Trade UI Non-Wiring Guarantee",
+      "Real SelectedRecommendation Non-Read Guarantee",
+      "previewState Non-Derivation Guarantee",
+      "Hard-Disabled Preview Guarantee",
+      "Safety Guarantees",
+      "Validation Summary",
+      "Recommended Next Step",
+    ]) {
+      expect(routeSectionCheckpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_source_to_preview_integration_route_section_checkpoint_added",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+      "Integration fixture only",
+      "Explicit input only",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived",
+      "No Trade UI wiring",
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+      "read-only/model-only",
+      "modelResult",
+      "canRenderPreview",
+      "explicit `integrationEnabled: true`",
+      "canProceedToHandoff",
+      "canCallBridge",
+      "canFetchLocalhost",
+      "canPoll",
+      "canExecute",
+      "controlsEnabled",
+      "gateLocked",
+      "unlinked from main navigation",
+      "app/trade-app.tsx` was not edited",
+      "prior passive/default-off wiring diff",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "selectedRecommendation preview remains disabled by default",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no bridge calls",
+      "localhost fetch",
+      "polling",
+      "order behavior",
+      "credential/session",
+      "Supabase",
+      "Add a hard-disabled source-to-preview integration phase completion checkpoint",
+    ]) {
+      expect(routeSectionCheckpointSource).toContain(copy);
+    }
+
+    expect(routeSource).toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(routeSource).toMatch(
+      /avanza-hard-disabled-source-to-preview-integration-fixtures/,
+    );
+    expect(routeSource).toContain(
+      "hard-disabled source-to-preview integration",
+    );
+    expect(routeSource).toContain("Integration fixture only");
+    expect(routeSource).toContain("Explicit input only");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+    expect(routeSource).toContain("No Trade UI wiring");
+    expect(routeSource).toContain("No bridge calls");
+    expect(routeSource).toContain("No localhost fetch");
+    expect(routeSource).toContain("No polling");
+    expect(routeSource).toContain("No execution");
+    expect(routeSource).toContain("Controls disabled");
+    expect(routeSource).toContain("Gate locked");
+    expect(routeSource).toContain(
+      "preview_model_ready_read_only remains read-only/model-only",
+    );
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    for (const source of [
+      checkpointSource,
+      routeSectionCheckpointSource,
+      routeSectionPlanSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("hard-disabled source-to-preview route fixture output remains passive", () => {
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHardDisabledSourceToPreviewIntegrationHarness.tsx",
+    );
+
+    for (const status of [
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+    ]) {
+      expect(
+        avanzaHardDisabledSourceToPreviewIntegrationFixtures.some(
+          (fixture) => fixture.integrationResult.status === status,
+        ),
+      ).toBe(true);
+    }
+
+    const readyFixtures =
+      avanzaHardDisabledSourceToPreviewIntegrationFixtures.filter(
+        (fixture) =>
+          fixture.integrationResult.status === "preview_model_ready_read_only",
+      );
+
+    expect(readyFixtures).toHaveLength(1);
+
+    for (const fixture of avanzaHardDisabledSourceToPreviewIntegrationFixtures) {
+      const result = fixture.integrationResult;
+      const isReady = result.status === "preview_model_ready_read_only";
+
+      expect(Boolean(result.modelResult)).toBe(isReady);
+      expect(result.canRenderPreview).toBe(isReady);
+      expect(result.canProceedToHandoff).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canPoll).toBe(false);
+      expect(result.canExecute).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    expect(routeSource).not.toContain("<button");
+    expect(routeSource).not.toMatch(/onClick\s*=/);
+    expect(routeSource).not.toMatch(/Granska köp|Prepare|Buy|Sell/);
+    expect(harnessSource).toContain("modelResult");
+    expect(harnessSource).toContain("formatModelResult");
+    expect(harnessSource).toContain("canRenderPreview");
+    expect(harnessSource).toContain("canProceedToHandoff");
+    expect(harnessSource).toContain("canCallBridge");
+    expect(harnessSource).toContain("canFetchLocalhost");
+    expect(harnessSource).toContain("canPoll");
+    expect(harnessSource).toContain("canExecute");
+    expect(harnessSource).toContain("controlsEnabled");
+    expect(harnessSource).toContain("gateLocked");
+  });
+
+  test("hard-disabled source-to-preview integration phase completion checkpoint closes fixture-model phase", () => {
+    const checkpointPath =
+      "docs/avanza-hard-disabled-source-to-preview-integration-phase-completion-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const helperSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts",
+    );
+    const fixturesSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHardDisabledSourceToPreviewIntegrationHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Phase Completion Status",
+      "Completed Artifacts",
+      "Integration Helper Status",
+      "Fixtures Status",
+      "Harness Status",
+      "Dev Route Section Status",
+      "Trade UI Non-Wiring Guarantee",
+      "Real SelectedRecommendation Non-Read Guarantee",
+      "previewState Non-Derivation Guarantee",
+      "Hard-Disabled Preview Guarantee",
+      "Safety Guarantees",
+      "Validation Summary",
+      "Recommended Next Phase",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_source_to_preview_integration_phase_completion_checkpoint_added",
+      "hard-disabled source-to-preview integration planning/model phase is complete",
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts",
+      "lib/avanza-hard-disabled-source-to-preview-integration-fixtures.ts",
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "pure and accepts explicit inputs only",
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+      "fixtures cover all five statuses",
+      "isolated and fixture-only",
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+      "unlinked from main navigation",
+      "app/trade-app.tsx` was not edited",
+      "prior passive/default-off wiring diff",
+      "not wired into Trade UI",
+      "not connected to real Trade UI runtime state",
+      "Source extraction remains not wired into Trade UI",
+      "Real selectedRecommendation input is not connected, read, or rendered",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "selectedRecommendation preview remains disabled by default",
+      "No previewState is derived from app or route state",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no bridge calls",
+      "localhost calls",
+      "polling",
+      "order",
+      "credential/session",
+      "Supabase",
+      "hard-disabled Trade UI branch wiring planning",
+      "only inside the existing false guard",
+      "no preview enablement",
+      "no runtime activation",
+      "no handoff",
+      "no bridge",
+      "no execution",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(helperSource).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(fixturesSource).toContain(
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+    );
+    expect(harnessSource).toContain(
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+    );
+    expect(routeSource).toContain(
+      "AvanzaHardDisabledSourceToPreviewIntegrationHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaHardDisabledSourceToPreviewIntegrationFixtures",
+    );
+
+    for (const status of [
+      "integration_disabled",
+      "source_not_ready",
+      "source_ready_preview_blocked",
+      "preview_model_ready_read_only",
+      "integration_blocked",
+    ]) {
+      expect(
+        avanzaHardDisabledSourceToPreviewIntegrationFixtures.some(
+          (fixture) => fixture.integrationResult.status === status,
+        ),
+      ).toBe(true);
+      expect(checkpointSource).toContain(status);
+    }
+
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+
+    for (const source of [
+      checkpointSource,
+      helperSource,
+      fixturesSource,
+      harnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(
+        /fillQuantityField|fillPriceField|fillAmountField/,
+      );
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("hard-disabled Trade UI branch wiring pre-implementation checkpoint permits only future disabled branch wiring", () => {
+    const checkpointPath =
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-pre-implementation-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const planSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const integrationHelperSource = readRepoFile(
+      "lib/avanza-hard-disabled-source-to-preview-integration.ts",
+    );
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Branch-Only Behavior",
+      "Required Hard-Disabled Guard Behavior",
+      "Required Default UI Guarantees",
+      "Required Output Guarantees",
+      "Required Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_trade_ui_branch_wiring_pre_implementation_checkpoint_added",
+      "permits a future minimal `app/trade-app.tsx` branch-only wiring",
+      "documentation only",
+      "does not change app code",
+      "app/trade-app.tsx` changes are minimal",
+      "helper import/reference exists only for the hard-disabled branch",
+      "only inside the existing",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false-guarded branch",
+      "branch unreachable by default",
+      "integrationEnabled` false by default",
+      "explicit default/static safe input only",
+      "no real selectedRecommendation state",
+      "no previewState is derived from app or route state",
+      "pass only `modelResult` from integration output",
+      "default path visually unchanged",
+      "static_fixture",
+      "integration_disabled",
+      "no visible preview by default",
+      "no `modelResult` rendered by default",
+      "canRenderPreview` false by default",
+      "canProceedToHandoff` false",
+      "canCallBridge` false",
+      "canFetchLocalhost` false",
+      "canPoll` false",
+      "canExecute` false",
+      "controlsEnabled` false",
+      "gateLocked` true",
+      "no env value can enable the branch",
+      "no localStorage value can enable the branch",
+      "no sessionStorage value can enable the branch",
+      "no visible toggle",
+      "selectedRecommendation preview remains disabled by default",
+      "normal Trade UI visual output remains unchanged",
+      "no active controls",
+      "handoff button",
+      "prepare",
+      "buy/sell CTA",
+      "localhost fetch",
+      "polling",
+      "order behavior",
+      "credential/session",
+      "Supabase",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(planSource).toContain(
+      "avanza-hard-disabled-trade-ui-branch-wiring-pre-implementation-checkpoint.md",
+    );
+    expect(integrationHelperSource).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [checkpointSource, planSource]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("minimal hard-disabled Trade UI branch integration wiring stays unreachable by default", () => {
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toMatch(
+      /@\/lib\/avanza-hard-disabled-source-to-preview-integration["']/,
+    );
+    expect(tradeAppSource).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaHardDisabledSourceToPreviewIntegrationHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+
+    expect(branchSnippet).toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>/,
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).toContain('sourceKind: "static_fixture"');
+    expect(branchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(branchSnippet).toContain(
+      "<AvanzaTradeUiReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toMatch(/process\.env/);
+    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+
+    const defaultIntegrationResult =
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceKind: "static_fixture",
+        sourceName:
+          "Trade UI hard-disabled selectedRecommendation preview branch",
+      });
+
+    expect(defaultIntegrationResult.status).toBe("integration_disabled");
+    expect(defaultIntegrationResult.modelResult).toBeUndefined();
+    expect(defaultIntegrationResult.canRenderPreview).toBe(false);
+    expect(defaultIntegrationResult.canProceedToHandoff).toBe(false);
+    expect(defaultIntegrationResult.canCallBridge).toBe(false);
+    expect(defaultIntegrationResult.canFetchLocalhost).toBe(false);
+    expect(defaultIntegrationResult.canPoll).toBe(false);
+    expect(defaultIntegrationResult.canExecute).toBe(false);
+    expect(defaultIntegrationResult.controlsEnabled).toBe(false);
+    expect(defaultIntegrationResult.gateLocked).toBe(true);
+  });
+
+  test("hard-disabled Trade UI branch wiring safety audit locks the branch-only integration boundary", () => {
+    const auditPath =
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md";
+    const auditSource = readRepoFile(auditPath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const planSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-plan.md",
+    );
+    const passiveAuditSource = readRepoFile(
+      "docs/avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md",
+    );
+    const semiAutoPlanSource = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+
+    expect(existsSync(join(repoRoot, auditPath))).toBe(true);
+    expect(auditSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Audit Scope",
+      "Current Wiring Status",
+      "Hard-Disabled Guard Audit",
+      "Integration Helper Isolation Audit",
+      "Default UI Behavior Audit",
+      "Static Safe Input Audit",
+      "SelectedRecommendation Non-Read Audit",
+      "PreviewState Non-Derivation Audit",
+      "Safety Guarantees",
+      "Forbidden Behavior Verification",
+      "Remaining Risks",
+      "Recommended Next Step",
+    ]) {
+      expect(auditSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_trade_ui_branch_wiring_safety_audit_added",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "branch is unreachable by default",
+      "integration helper call is only inside the hard-disabled branch",
+      "integrationEnabled` is false by default",
+      "static safe input only",
+      "no real selectedRecommendation state is passed",
+      "no real selectedRecommendation state is read",
+      "no real selectedRecommendation state is rendered",
+      "no previewState is derived from app/route state",
+      "no modelResult renders by default",
+      "preview component does not render by default",
+      "default Trade UI remains visually unchanged",
+      "existing `static_fixture` behavior remains unchanged",
+      "source extraction remains not wired into Trade UI",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+    ]) {
+      expect(auditSource).toContain(copy);
+    }
+
+    for (const source of [planSource, passiveAuditSource, semiAutoPlanSource]) {
+      expect(source).toContain(
+        "avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md",
+      );
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+    expect(tradeAppSource).toContain(
+      "<AvanzaHandoffPackagePreviewCard",
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    const helperCallIndex = tradeAppSource.indexOf(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration({",
+    );
+    expect(helperCallIndex).toBeGreaterThan(branchIndex);
+
+    expect(branchSnippet).toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>/,
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).toContain('sourceKind: "static_fixture"');
+    expect(branchSnippet).toContain(
+      "Trade UI hard-disabled selectedRecommendation preview branch",
+    );
+    expect(branchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toMatch(/process\.env/);
+    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const defaultIntegrationResult =
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceKind: "static_fixture",
+        sourceName:
+          "Trade UI hard-disabled selectedRecommendation preview branch",
+      });
+
+    expect(defaultIntegrationResult.status).toBe("integration_disabled");
+    expect(defaultIntegrationResult.modelResult).toBeUndefined();
+    expect(defaultIntegrationResult.canRenderPreview).toBe(false);
+    expect(defaultIntegrationResult.canProceedToHandoff).toBe(false);
+    expect(defaultIntegrationResult.canCallBridge).toBe(false);
+    expect(defaultIntegrationResult.canFetchLocalhost).toBe(false);
+    expect(defaultIntegrationResult.canPoll).toBe(false);
+    expect(defaultIntegrationResult.canExecute).toBe(false);
+    expect(defaultIntegrationResult.controlsEnabled).toBe(false);
+    expect(defaultIntegrationResult.gateLocked).toBe(true);
+
+    expect(tradeAppSource).not.toContain("/dev/avanza-visual-qa");
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("No real selectedRecommendation state");
+    expect(routeSource).toContain("Not linked from main navigation");
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      auditSource,
+      branchSnippet,
+      routeSource,
+      planSource,
+      passiveAuditSource,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("hard-disabled Trade UI branch wiring checkpoint records the completed disabled branch", () => {
+    const checkpointPath =
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const auditSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md",
+    );
+    const planSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const semiAutoPlanSource = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Branch Wiring Status",
+      "App Trade Wiring Summary",
+      "Hard-Disabled Guard Status",
+      "Integration Helper Isolation Status",
+      "Default UI Behavior",
+      "Static Safe Input Status",
+      "SelectedRecommendation Non-Read Guarantee",
+      "PreviewState Non-Derivation Guarantee",
+      "Safety Audit Summary",
+      "Validation Summary",
+      "Recommended Next Step",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_trade_ui_branch_wiring_checkpoint_added",
+      "app/trade-app.tsx` contains minimal branch-only integration wiring",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "branch is unreachable by default",
+      "integration helper call is only inside the hard-disabled branch",
+      "integrationEnabled` is false by default",
+      "static safe input only",
+      "default integration output is `integration_disabled`",
+      "no `modelResult` renders by default",
+      "preview component does not render by default",
+      "default Trade UI remains visually unchanged",
+      "existing `static_fixture` behavior remains unchanged",
+      "source extraction remains not wired into Trade UI",
+      "no real selectedRecommendation state is passed",
+      "No real selectedRecommendation state is passed, read, or rendered",
+      "No `previewState` is derived from app/route state",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+      "Add a branch wiring phase completion checkpoint",
+      "test-only enabled branch planning",
+      "still read-only and with no execution",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    for (const source of [auditSource, planSource, semiAutoPlanSource]) {
+      expect(source).toContain(
+        "avanza-hard-disabled-trade-ui-branch-wiring-checkpoint.md",
+      );
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+    expect(tradeAppSource).toContain("<AvanzaHandoffPackagePreviewCard");
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    expect(branchSnippet).toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>/,
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).toContain('sourceKind: "static_fixture"');
+    expect(branchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toMatch(/process\.env/);
+    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const defaultIntegrationResult =
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceKind: "static_fixture",
+        sourceName:
+          "Trade UI hard-disabled selectedRecommendation preview branch",
+      });
+
+    expect(defaultIntegrationResult.status).toBe("integration_disabled");
+    expect(defaultIntegrationResult.modelResult).toBeUndefined();
+    expect(defaultIntegrationResult.canRenderPreview).toBe(false);
+    expect(defaultIntegrationResult.canProceedToHandoff).toBe(false);
+    expect(defaultIntegrationResult.canCallBridge).toBe(false);
+    expect(defaultIntegrationResult.canFetchLocalhost).toBe(false);
+    expect(defaultIntegrationResult.canPoll).toBe(false);
+    expect(defaultIntegrationResult.canExecute).toBe(false);
+    expect(defaultIntegrationResult.controlsEnabled).toBe(false);
+    expect(defaultIntegrationResult.gateLocked).toBe(true);
+
+    expect(tradeAppSource).not.toContain("/dev/avanza-visual-qa");
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("No real selectedRecommendation state");
+    expect(routeSource).toContain("Not linked from main navigation");
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      checkpointSource,
+      auditSource,
+      branchSnippet,
+      routeSource,
+      planSource,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("hard-disabled Trade UI branch wiring phase completion checkpoint closes the disabled branch phase", () => {
+    const completionPath =
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-phase-completion-checkpoint.md";
+    const completionSource = readRepoFile(completionPath);
+    const checkpointSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-checkpoint.md",
+    );
+    const auditSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md",
+    );
+    const planSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const semiAutoPlanSource = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+
+    expect(existsSync(join(repoRoot, completionPath))).toBe(true);
+    expect(completionSource.trim().length).toBeGreaterThan(0);
+
+    for (const heading of [
+      "Phase Completion Status",
+      "Completed Artifacts",
+      "App Trade Wiring Status",
+      "Hard-Disabled Guard Status",
+      "Integration Helper Isolation Status",
+      "Default UI Behavior",
+      "Static Safe Input Status",
+      "SelectedRecommendation Non-Read Guarantee",
+      "PreviewState Non-Derivation Guarantee",
+      "Safety Audit Summary",
+      "Validation Summary",
+      "Recommended Next Phase",
+    ]) {
+      expect(completionSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_hard_disabled_trade_ui_branch_wiring_phase_completion_checkpoint_added",
+      "hard-disabled Trade UI branch wiring phase is complete",
+      "app/trade-app.tsx` contains minimal branch-only integration wiring",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "branch is unreachable by default",
+      "integration helper call is only inside the hard-disabled branch",
+      "integrationEnabled` is false by default",
+      "static safe input only",
+      "default integration output is `integration_disabled`",
+      "no `modelResult` renders by default",
+      "preview component does not render by default",
+      "default Trade UI remains visually unchanged",
+      "existing `static_fixture` behavior remains unchanged",
+      "source extraction remains not wired into Trade UI",
+      "no real selectedRecommendation state is passed",
+      "no real selectedRecommendation state is read",
+      "no real selectedRecommendation state is rendered",
+      "no previewState is derived from app/route state",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no new refresh behavior",
+      "no runner/fill invocation",
+      "no trigger phrase",
+      "no fill/click/review/final/submit/order behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution write",
+      "no production readiness claim",
+      "Recommended next phase: test-only enabled branch planning",
+      "static fixture input only",
+      "no real selectedRecommendation input",
+      "no runtime activation",
+      "no handoff",
+      "no execution",
+    ]) {
+      expect(completionSource).toContain(copy);
+    }
+
+    for (const source of [
+      checkpointSource,
+      auditSource,
+      planSource,
+      semiAutoPlanSource,
+    ]) {
+      expect(source).toContain(
+        "avanza-hard-disabled-trade-ui-branch-wiring-phase-completion-checkpoint.md",
+      );
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+    expect(tradeAppSource).toContain("<AvanzaHandoffPackagePreviewCard");
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    expect(branchSnippet).toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>/,
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).toContain('sourceKind: "static_fixture"');
+    expect(branchSnippet).toContain(
+      "hardDisabledSourceToPreviewIntegration.modelResult",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toMatch(/process\.env/);
+    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const defaultIntegrationResult =
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceKind: "static_fixture",
+        sourceName:
+          "Trade UI hard-disabled selectedRecommendation preview branch",
+      });
+
+    expect(defaultIntegrationResult.status).toBe("integration_disabled");
+    expect(defaultIntegrationResult.modelResult).toBeUndefined();
+    expect(defaultIntegrationResult.canRenderPreview).toBe(false);
+    expect(defaultIntegrationResult.canProceedToHandoff).toBe(false);
+    expect(defaultIntegrationResult.canCallBridge).toBe(false);
+    expect(defaultIntegrationResult.canFetchLocalhost).toBe(false);
+    expect(defaultIntegrationResult.canPoll).toBe(false);
+    expect(defaultIntegrationResult.canExecute).toBe(false);
+    expect(defaultIntegrationResult.controlsEnabled).toBe(false);
+    expect(defaultIntegrationResult.gateLocked).toBe(true);
+
+    expect(tradeAppSource).not.toContain("/dev/avanza-visual-qa");
+    expect(routeSource).toContain("Fixture-only");
+    expect(routeSource).toContain("No real selectedRecommendation state");
+    expect(routeSource).toContain("Not linked from main navigation");
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      completionSource,
+      checkpointSource,
+      auditSource,
+      branchSnippet,
+      routeSource,
+      planSource,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("test-only enabled branch pre-implementation checkpoint keeps enabled branch unimplemented", () => {
+    const checkpointPath =
+      "docs/avanza-test-only-enabled-branch-pre-implementation-checkpoint.md";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const planningSource = readRepoFile(
+      "docs/avanza-test-only-enabled-branch-planning.md",
+    );
+    const completionSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-phase-completion-checkpoint.md",
+    );
+    const branchCheckpointSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-checkpoint.md",
+    );
+    const auditSource = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md",
+    );
+    const integrationCompletionSource = readRepoFile(
+      "docs/avanza-hard-disabled-source-to-preview-integration-phase-completion-checkpoint.md",
+    );
+    const realSelectedRecommendationPlanSource = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const semiAutoPlanSource = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-test-only-enabled-branch-fixtures.ts"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-test-only-enabled-branch.ts")),
+    ).toBe(false);
+
+    for (const heading of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Test-Only Behavior",
+      "Required Fixture-Only Input Rules",
+      "Required Output Model",
+      "Required Default UI Guarantees",
+      "Required Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+    ]) {
+      expect(checkpointSource).toContain(heading);
+    }
+
+    for (const copy of [
+      "avanza_test_only_enabled_branch_pre_implementation_checkpoint_added",
+      "The test-only enabled branch remains unimplemented",
+      "test-only enabled branch planning doc exists",
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "integration helper call is only inside the hard-disabled branch",
+      "integrationEnabled` is false with static safe input",
+      "default integration output is `integration_disabled`",
+      "no `modelResult` renders by default",
+      "default Trade UI remains visually unchanged",
+      "existing `static_fixture` behavior remains unchanged",
+      "source extraction remains not wired into Trade UI",
+      "real selectedRecommendation input has not been connected/read/rendered",
+      "no previewState is derived from app/route state",
+      "helper may call the existing hard-disabled source-to-preview integration with",
+      "integrationEnabled: true",
+      "only static sanitized fixture input may be passed",
+      "modelResult` may be produced only inside test-only/fixture-only context",
+      "preview component may render only in test-only/fixture-only context",
+      "normal Trade UI remains unchanged",
+      "canProceedToHandoff` remains false",
+      "controls remain disabled",
+      "gate remains locked",
+      "test_only_disabled",
+      "test_only_fixture_ready",
+      "test_only_preview_ready_read_only",
+      "test_only_blocked",
+      "canRenderPreview` true only in test-only fixture context",
+      "canCallBridge` false",
+      "canFetchLocalhost` false",
+      "canPoll` false",
+      "canExecute` false",
+      "controlsEnabled` false",
+      "gateLocked` true",
+      "normal Trade UI does not render selectedRecommendation preview",
+      "no real selectedRecommendation input is read/rendered",
+      "no active controls",
+      "no handoff button",
+      "no prepare button",
+      "no buy/sell CTA",
+      "no bridge calls",
+      "no localhost fetch",
+      "no polling",
+      "no Supabase execution write",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    for (const source of [
+      planningSource,
+      completionSource,
+      branchCheckpointSource,
+      auditSource,
+      integrationCompletionSource,
+      realSelectedRecommendationPlanSource,
+      semiAutoPlanSource,
+    ]) {
+      expect(source).toContain(
+        "avanza-test-only-enabled-branch-pre-implementation-checkpoint.md",
+      );
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+    expect(tradeAppSource).toContain("<AvanzaHandoffPackagePreviewCard");
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-branch["']/,
+    );
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+
+    expect(branchSnippet).toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*\?\s*\(\(\)\s*=>/,
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).not.toMatch(/integrationEnabled:\s*true/);
+    expect(branchSnippet).toContain('sourceKind: "static_fixture"');
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toMatch(/process\.env/);
+    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const defaultIntegrationResult =
+      buildAvanzaHardDisabledSourceToPreviewIntegration({
+        integrationEnabled: false,
+        sourceKind: "static_fixture",
+        sourceName:
+          "Trade UI hard-disabled selectedRecommendation preview branch",
+      });
+
+    expect(defaultIntegrationResult.status).toBe("integration_disabled");
+    expect(defaultIntegrationResult.modelResult).toBeUndefined();
+    expect(defaultIntegrationResult.canRenderPreview).toBe(false);
+    expect(defaultIntegrationResult.canProceedToHandoff).toBe(false);
+    expect(defaultIntegrationResult.canCallBridge).toBe(false);
+    expect(defaultIntegrationResult.canFetchLocalhost).toBe(false);
+    expect(defaultIntegrationResult.canPoll).toBe(false);
+    expect(defaultIntegrationResult.canExecute).toBe(false);
+    expect(defaultIntegrationResult.controlsEnabled).toBe(false);
+    expect(defaultIntegrationResult.gateLocked).toBe(true);
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      checkpointSource,
+      planningSource,
+      completionSource,
+      branchCheckpointSource,
+      auditSource,
+      integrationCompletionSource,
+      branchSnippet,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("test-only enabled preview fixture model exercises static fixture chain only", () => {
+    const helperPath =
+      "lib/avanza-test-only-enabled-preview-fixture-model.ts";
+    const helperSource = readRepoFile(helperPath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    const disabled = buildAvanzaTestOnlyEnabledPreviewFixtureModel({
+      fixtureCandidate: {
+        action: "buy",
+        entry: 240.5,
+        quantity: 12,
+        symbol: "VOLV B",
+      },
+      fixtureName: "disabled_fixture",
+      sourceKind: "static_fixture",
+      testOnlyEnabled: false,
+    });
+    const missing = buildAvanzaTestOnlyEnabledPreviewFixtureModel({
+      fixtureName: "missing_fixture",
+      sourceKind: "static_fixture",
+      testOnlyEnabled: true,
+    });
+    const invalid = buildAvanzaTestOnlyEnabledPreviewFixtureModel({
+      fixtureCandidate: {
+        company: "Missing ticker fixture",
+        direction: "buy",
+      },
+      fixtureName: "invalid_fixture",
+      sourceKind: "static_fixture",
+      testOnlyEnabled: true,
+    });
+    const readyButPreviewBlocked = buildAvanzaTestOnlyEnabledPreviewFixtureModel({
+      fixtureCandidate: {
+        action: "buy",
+        symbol: "ONLY_TICKER",
+      },
+      fixtureName: "ready_but_preview_blocked_fixture",
+      sourceKind: "static_fixture",
+      testOnlyEnabled: true,
+    });
+    const ready = buildAvanzaTestOnlyEnabledPreviewFixtureModel({
+      fixtureCandidate: {
+        accountId: "secret-account",
+        action: "buy",
+        brokerSecret: "secret-broker",
+        cookie: "secret-cookie",
+        entry: 240.5,
+        id: "fixture-rec-1",
+        quantity: 12,
+        sessionToken: "secret-session",
+        stopLoss: 230,
+        storageKey: "secret-storage",
+        symbol: "VOLV B",
+        target: 260,
+      },
+      fixtureName: "ready_static_fixture",
+      sourceKind: "static_fixture",
+      testOnlyEnabled: true,
+    });
+    const results: AvanzaTestOnlyEnabledPreviewFixtureModel[] = [
+      disabled,
+      missing,
+      invalid,
+      readyButPreviewBlocked,
+      ready,
+    ];
+
+    expect(existsSync(join(repoRoot, helperPath))).toBe(true);
+    expect(disabled.status).toBe("test_only_disabled");
+    expect(disabled.integrationStatus).toBeNull();
+    expect(disabled.modelResult).toBeUndefined();
+    expect(disabled.canRenderPreview).toBe(false);
+
+    expect(missing.status).toBe("test_only_blocked");
+    expect(missing.sourceStatus).toBe("no_source");
+    expect(missing.integrationStatus).toBeNull();
+    expect(missing.modelResult).toBeUndefined();
+
+    expect(invalid.status).toBe("test_only_blocked");
+    expect(invalid.sourceStatus).toBe("source_invalid");
+    expect(invalid.integrationStatus).toBeNull();
+    expect(invalid.modelResult).toBeUndefined();
+
+    expect(readyButPreviewBlocked.status).toBe("test_only_fixture_ready");
+    expect(readyButPreviewBlocked.sourceStatus).toBe("source_ready_read_only");
+    expect(readyButPreviewBlocked.integrationStatus).toBe(
+      "source_ready_preview_blocked",
+    );
+    expect(readyButPreviewBlocked.modelResult).toBeUndefined();
+    expect(readyButPreviewBlocked.canRenderPreview).toBe(false);
+
+    expect(ready.status).toBe("test_only_preview_ready_read_only");
+    expect(ready.sourceStatus).toBe("source_ready_read_only");
+    expect(ready.integrationStatus).toBe("preview_model_ready_read_only");
+    expect(ready.modelResult).toBeDefined();
+    expect(ready.canRenderPreview).toBe(true);
+
+    for (const result of results) {
+      expect(result.canProceedToHandoff).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canPoll).toBe(false);
+      expect(result.canExecute).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+
+      if (result.status !== "test_only_preview_ready_read_only") {
+        expect(result.modelResult).toBeUndefined();
+        expect(result.canRenderPreview).toBe(false);
+      }
+    }
+
+    const serializedReady = JSON.stringify(ready);
+    for (const forbiddenValue of [
+      "secret-account",
+      "secret-broker",
+      "secret-cookie",
+      "secret-session",
+      "secret-storage",
+      "accountId",
+      "brokerSecret",
+      "sessionToken",
+      "storageKey",
+    ]) {
+      expect(serializedReady).not.toContain(forbiddenValue);
+    }
+    expect(serializedReady).not.toMatch(/"cookie"\s*:/);
+
+    expect(helperSource).toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(helperSource).toContain(
+      "buildAvanzaHardDisabledSourceToPreviewIntegration",
+    );
+    expect(helperSource).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
+    expect(helperSource).not.toMatch(/process\.env/);
+    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/\bfetch\s*\(/);
+    expect(helperSource).not.toMatch(/supabase/i);
+    expect(helperSource).not.toMatch(/(?:^|[^A-Za-z])callBridge\s*\(/i);
+    expect(helperSource).not.toMatch(/bridgeEndpoint|bridgeUrl/i);
+    expect(helperSource).not.toMatch(/setInterval|setTimeout/);
+    expect(helperSource).not.toMatch(/fillQuantityField|fillPriceField/);
+    expect(helperSource).not.toMatch(/method:\s*["']POST["']/);
+
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model["']/,
+    );
+    expect(routeSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).not.toMatch(/integrationEnabled:\s*true/);
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [helperSource, branchSnippet]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("test-only enabled preview fixture model fixtures and harness stay isolated", () => {
+    const fixturesPath =
+      "lib/avanza-test-only-enabled-preview-fixture-model-fixtures.ts";
+    const harnessPath =
+      "components/execution/AvanzaTestOnlyEnabledPreviewFixtureModelHarness.tsx";
+    const helperPath =
+      "lib/avanza-test-only-enabled-preview-fixture-model.ts";
+    const fixturesSource = readRepoFile(fixturesPath);
+    const harnessSource = readRepoFile(harnessPath);
+    const helperSource = readRepoFile(helperPath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(existsSync(join(repoRoot, fixturesPath))).toBe(true);
+    expect(existsSync(join(repoRoot, harnessPath))).toBe(true);
+    expect(fixturesSource.trim().length).toBeGreaterThan(0);
+    expect(harnessSource.trim().length).toBeGreaterThan(0);
+
+    const fixturesById = new Map(
+      avanzaTestOnlyEnabledPreviewFixtureModelFixtures.map((fixture) => [
+        fixture.id,
+        fixture,
+      ]),
+    );
+
+    for (const id of [
+      "test_only_disabled",
+      "test_only_fixture_ready",
+      "test_only_preview_ready_read_only",
+      "test_only_blocked",
+    ] as const) {
+      expect(fixturesById.has(id)).toBe(true);
+      expect(fixturesSource).toContain(id);
+    }
+    expect(harnessSource).toContain(
+      "avanzaTestOnlyEnabledPreviewFixtureModelFixtures",
+    );
+
+    expect(fixturesById.get("test_only_disabled")?.modelResult.status).toBe(
+      "test_only_disabled",
+    );
+    expect(fixturesById.get("test_only_fixture_ready")?.modelResult.status).toBe(
+      "test_only_fixture_ready",
+    );
+    expect(
+      fixturesById.get("test_only_preview_ready_read_only")?.modelResult.status,
+    ).toBe("test_only_preview_ready_read_only");
+    expect(fixturesById.get("test_only_blocked")?.modelResult.status).toBe(
+      "test_only_blocked",
+    );
+
+    for (const fixture of avanzaTestOnlyEnabledPreviewFixtureModelFixtures) {
+      const result = fixture.modelResult;
+      const isPreviewReady =
+        result.status === "test_only_preview_ready_read_only";
+
+      expect(result.status).toBe(fixture.expectedStatus);
+      expect(Boolean(result.modelResult)).toBe(isPreviewReady);
+      expect(result.canRenderPreview).toBe(isPreviewReady);
+      expect(result.canProceedToHandoff).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canPoll).toBe(false);
+      expect(result.canExecute).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    const serializedFixtures = JSON.stringify(
+      avanzaTestOnlyEnabledPreviewFixtureModelFixtures,
+    );
+    for (const forbiddenValue of [
+      "secret-account",
+      "secret-broker",
+      "secret-cookie",
+      "secret-session",
+      "secret-storage",
+      "brokerSecret",
+      "sessionToken",
+      "storageKey",
+    ]) {
+      expect(serializedFixtures).not.toContain(forbiddenValue);
+    }
+    expect(serializedFixtures).not.toMatch(/"cookie"\s*:/);
+    expect(serializedFixtures).not.toMatch(/"accountId"\s*:/);
+
+    for (const copy of [
+      "test-only enabled preview fixture model",
+      "Test-only fixture only",
+      "Static sanitized input only",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived",
+      "No Trade UI wiring",
+      "No dev route wiring",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No execution",
+      "Controls disabled",
+      "Gate locked",
+    ]) {
+      expect(harnessSource).toContain(copy);
+    }
+
+    for (const source of [fixturesSource, harnessSource, helperSource]) {
+      expect(source).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/supabase/i);
+      expect(source).not.toMatch(/bridgeEndpoint|bridgeUrl/i);
+      expect(source).not.toMatch(/(?:^|[^A-Za-z])callBridge\s*\(/i);
+      expect(source).not.toMatch(/setInterval|setTimeout/);
+      expect(source).not.toMatch(/fillQuantityField|fillPriceField/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model(?:-fixtures)?["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/components\/execution\/AvanzaTestOnlyEnabledPreviewFixtureModelHarness["']/,
+    );
+    expect(routeSource).toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model-fixtures["']/,
+    );
+    expect(routeSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model["']/,
+    );
+    expect(routeSource).toMatch(
+      /@\/components\/execution\/AvanzaTestOnlyEnabledPreviewFixtureModelHarness["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).not.toMatch(/integrationEnabled:\s*true/);
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      fixturesSource,
+      harnessSource,
+      helperSource,
+      branchSnippet,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+    }
+  });
+
+  test("test-only enabled preview route section renders static fixture harness only", () => {
+    const checkpointPath =
+      "docs/avanza-test-only-enabled-preview-route-section-pre-implementation-checkpoint.md";
+    const planPath =
+      "docs/avanza-test-only-enabled-preview-route-section-plan.md";
+    const helperPath =
+      "lib/avanza-test-only-enabled-preview-fixture-model.ts";
+    const fixturesPath =
+      "lib/avanza-test-only-enabled-preview-fixture-model-fixtures.ts";
+    const harnessPath =
+      "components/execution/AvanzaTestOnlyEnabledPreviewFixtureModelHarness.tsx";
+    const checkpointSource = readRepoFile(checkpointPath);
+    const planSource = readRepoFile(planPath);
+    const helperSource = readRepoFile(helperPath);
+    const fixturesSource = readRepoFile(fixturesPath);
+    const harnessSource = readRepoFile(harnessPath);
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+
+    expect(existsSync(join(repoRoot, checkpointPath))).toBe(true);
+    expect(checkpointSource.trim().length).toBeGreaterThan(0);
+
+    for (const copy of [
+      "Current Status",
+      "Preconditions Met",
+      "Allowed Next Implementation Scope",
+      "Required Route Section Behavior",
+      "Required Fixture/Model-Only Labels",
+      "Required Output Visibility Rules",
+      "Required Safety Guarantees",
+      "Explicit Non-Goals",
+      "Go/No-Go Checklist",
+      "Recommended Next Implementation Task",
+      "AvanzaTestOnlyEnabledPreviewFixtureModelHarness",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "app/trade-app.tsx",
+      "test-only enabled preview fixture model",
+      "Test-only fixture only",
+      "Static sanitized input only",
+      "No real selectedRecommendation state is read",
+      "No real selectedRecommendation state is rendered",
+      "No previewState is derived",
+      "No Trade UI wiring",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No execution",
+      "Controls disabled",
+      "Gate locked",
+      "test_only_disabled",
+      "test_only_fixture_ready",
+      "test_only_preview_ready_read_only",
+      "test_only_blocked",
+      "modelResult",
+      "canRenderPreview",
+      "canProceedToHandoff",
+    ]) {
+      expect(checkpointSource).toContain(copy);
+    }
+
+    expect(planSource).toContain(checkpointPath);
+    expect(checkpointSource).toContain(planPath);
+
+    expect(routeSource).toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model-fixtures["']/,
+    );
+    expect(routeSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model["']/,
+    );
+    expect(routeSource).toMatch(
+      /@\/components\/execution\/AvanzaTestOnlyEnabledPreviewFixtureModelHarness["']/,
+    );
+    expect(routeSource).toContain(
+      "AvanzaTestOnlyEnabledPreviewFixtureModelHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaTestOnlyEnabledPreviewFixtureModelFixtures",
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-test-only-enabled-preview-fixture-model(?:-fixtures)?["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/components\/execution\/AvanzaTestOnlyEnabledPreviewFixtureModelHarness["']/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /@\/lib\/avanza-selected-recommendation-source-extraction["']/,
+    );
+
+    expect(routeSource).toContain("test-only enabled preview fixture model");
+    expect(routeSource).toContain("Test-only fixture only");
+    expect(routeSource).toContain("Static sanitized input only");
+    expect(routeSource).toContain("No real selectedRecommendation state is read");
+    expect(routeSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(routeSource).toContain("No previewState is derived");
+    expect(routeSource).toContain("No Trade UI wiring");
+    expect(routeSource).toContain("No bridge calls");
+    expect(routeSource).toContain("No localhost fetch");
+    expect(routeSource).toContain("No polling");
+    expect(routeSource).toContain("No execution");
+    expect(routeSource).toContain("Controls disabled");
+    expect(routeSource).toContain("Gate locked");
+    expect(routeSource).toContain("test_only_preview_ready_read_only");
+    expect(routeSource).toContain("read-only/model-only");
+    expect(routeSource).not.toMatch(/type=["']button["']/);
+    expect(routeSource).not.toMatch(/prepare button/i);
+    expect(routeSource).not.toMatch(/buy\/sell CTA/i);
+
+    const fixturesById = new Map(
+      avanzaTestOnlyEnabledPreviewFixtureModelFixtures.map((fixture) => [
+        fixture.id,
+        fixture,
+      ]),
+    );
+    for (const id of [
+      "test_only_disabled",
+      "test_only_fixture_ready",
+      "test_only_preview_ready_read_only",
+      "test_only_blocked",
+    ] as const) {
+      expect(fixturesById.has(id)).toBe(true);
+      expect(fixturesSource).toContain(id);
+    }
+    for (const fixture of avanzaTestOnlyEnabledPreviewFixtureModelFixtures) {
+      const result = fixture.modelResult;
+      const isPreviewReady =
+        result.status === "test_only_preview_ready_read_only";
+
+      expect(Boolean(result.modelResult)).toBe(isPreviewReady);
+      expect(result.canRenderPreview).toBe(isPreviewReady);
+      expect(result.canProceedToHandoff).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canPoll).toBe(false);
+      expect(result.canExecute).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(tradeAppSource);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW\s*=\s*true/,
+    );
+    expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
+
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchIndex + 2500);
+    expect(branchSnippet).toMatch(/integrationEnabled:\s*false/);
+    expect(branchSnippet).not.toMatch(/integrationEnabled:\s*true/);
+    expect(branchSnippet).not.toContain(
+      "buildAvanzaSelectedRecommendationSourceExtraction",
+    );
+    expect(branchSnippet).not.toContain("selectedRecommendation={");
+    expect(branchSnippet).not.toContain("selectedRecommendation,");
+    expect(branchSnippet).not.toContain("selectedRecommendation:");
+    expect(branchSnippet).not.toContain("previewState");
+    expect(branchSnippet).not.toMatch(/type=["']button["']/);
+    expect(branchSnippet).not.toMatch(/prepare button/i);
+    expect(branchSnippet).not.toMatch(/buy\/sell CTA/i);
+
+    const navSources = [
+      "app/layout.tsx",
+      "components/Navigation.tsx",
+      "components/AppShell.tsx",
+    ]
+      .filter((path) => existsSync(join(repoRoot, path)))
+      .map((path) => readRepoFile(path));
+    for (const navSource of navSources) {
+      expect(navSource).not.toContain("/dev/avanza-visual-qa");
+    }
+
+    const triggerPhrasePattern = new RegExp(
+      ["FINAL", "LIVE", "EXECUTE"].join("\\s+"),
+    );
+    const liveRunnerPattern = new RegExp(
+      ["live", "fill", "only", "runner"].join("[-/]"),
+    );
+
+    for (const source of [
+      checkpointSource,
+      planSource,
+      helperSource,
+      fixturesSource,
+      harnessSource,
+      routeSource,
+      branchSnippet,
+    ]) {
+      expect(source).not.toMatch(triggerPhrasePattern);
+      expect(source).not.toMatch(liveRunnerPattern);
+      expect(source).not.toMatch(/execution-ready|production-ready/i);
+    }
+  });
+
+  test("selectedRecommendation source extraction helper maps explicit candidates to read-only source statuses", () => {
+    const results = [
+      buildAvanzaSelectedRecommendationSourceExtraction(),
+      buildAvanzaSelectedRecommendationSourceExtraction({ candidate: null }),
+      buildAvanzaSelectedRecommendationSourceExtraction({
+        blocked: true,
+        blockedReason: "Blocked by explicit read-only source guard.",
+        candidate: { ticker: "SHOULD_NOT_READ" },
+        sourceKind: "trade_ui_state",
+        sourceName: "selectedRecommendation",
+      }),
+      buildAvanzaSelectedRecommendationSourceExtraction({ candidate: "VOLV B" }),
+      buildAvanzaSelectedRecommendationSourceExtraction({
+        candidate: { company: "Volvo" },
+      }),
+      buildAvanzaSelectedRecommendationSourceExtraction({
+        candidate: {
+          accountId: "account-secret",
+          action: "buy",
+          brokerSecret: "broker-secret",
+          confidence: 0.74,
+          cookie: "session-cookie",
+          entry: 240.5,
+          id: "rec-1",
+          quantity: 12,
+          sessionToken: "session-token",
+          stopLoss: 230,
+          storageKey: "storage-secret",
+          symbol: "VOLV B",
+          target: 260,
+        },
+        sourceKind: "trade_ui_state",
+        sourceName: "selectedRecommendation",
+      }),
+    ];
+    const [
+      noSource,
+      unavailable,
+      blocked,
+      invalidPrimitive,
+      invalidObject,
+      ready,
+    ] = results;
+
+    expect(noSource.status).toBe("no_source");
+    expect(unavailable.status).toBe("source_unavailable");
+    expect(blocked.status).toBe("source_blocked");
+    expect(invalidPrimitive.status).toBe("source_invalid");
+    expect(invalidObject.status).toBe("source_invalid");
+    expect(ready.status).toBe("source_ready_read_only");
+    expect(ready.sourceName).toBe("selectedRecommendation");
+    expect(ready.sourceKind).toBe("trade_ui_state");
+    expect(ready.canProceedToPreviewModel).toBe(true);
+    expect(ready.selectedRecommendationLikeInput).toEqual({
+      action: "buy",
+      confidence: 0.74,
+      direction: "buy",
+      entry: 240.5,
+      id: "rec-1",
+      quantity: 12,
+      stopLoss: 230,
+      symbol: "VOLV B",
+      target: 260,
+      ticker: "VOLV B",
+    });
+    expect(ready.normalizedSourceSummary).toEqual(
+      ready.selectedRecommendationLikeInput,
+    );
+
+    for (const unsafeKey of [
+      "accountId",
+      "brokerSecret",
+      "cookie",
+      "sessionToken",
+      "storageKey",
+    ]) {
+      expect(ready.normalizedSourceSummary).not.toHaveProperty(unsafeKey);
+      expect(ready.selectedRecommendationLikeInput).not.toHaveProperty(
+        unsafeKey,
+      );
+    }
+
+    for (const result of results) {
+      expectSourceExtractionSafety(result);
+    }
+
+    for (const result of [
+      noSource,
+      unavailable,
+      blocked,
+      invalidPrimitive,
+      invalidObject,
+    ]) {
+      expect(result.canProceedToPreviewModel).toBe(false);
+      expect(result.selectedRecommendationLikeInput).toBeUndefined();
+      expect(result.normalizedSourceSummary).toBeUndefined();
+    }
+  });
+
+  test("selectedRecommendation source extraction helper rejects unsafe direction and numeric fields", () => {
+    const unsafeDirection = buildAvanzaSelectedRecommendationSourceExtraction({
+      candidate: {
+        direction: "execute_now",
+        ticker: "VOLV B",
+      },
+    });
+    const unsafeNumeric = buildAvanzaSelectedRecommendationSourceExtraction({
+      candidate: {
+        action: "buy",
+        price: "240.5",
+        ticker: "VOLV B",
+      },
+    });
+    const optionalDirection = buildAvanzaSelectedRecommendationSourceExtraction({
+      candidate: {
+        range: "240-245",
+        ticker: "VOLV B",
+      },
+    });
+
+    expect(unsafeDirection.status).toBe("source_invalid");
+    expect(unsafeNumeric.status).toBe("source_invalid");
+    expect(optionalDirection.status).toBe("source_ready_read_only");
+    expect(optionalDirection.normalizedSourceSummary).toEqual({
+      range: "240-245",
+      symbol: "VOLV B",
+      ticker: "VOLV B",
+    });
+
+    for (const result of [
+      unsafeDirection,
+      unsafeNumeric,
+      optionalDirection,
+    ]) {
+      expectSourceExtractionSafety(result);
+    }
+  });
+
+  test("selectedRecommendation source extraction helper source stays pure and unwired", () => {
+    const helperSource = readRepoFile(
+      "lib/avanza-selected-recommendation-source-extraction.ts",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+
+    expect(helperSource).not.toMatch(/app\/trade-app|trade-app/);
+    expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
+    expect(helperSource).not.toMatch(/process\.env/);
+    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/\bfetch\s*\(/);
+    expect(helperSource).not.toMatch(/supabase/i);
+    expect(helperSource).not.toMatch(/from\s+["'][^"']*bridge/i);
+    expect(helperSource).not.toMatch(/bridge\s*\(/i);
+    expect(helperSource).not.toMatch(/https?:\/\/(?:localhost|127\.0\.0\.1)/i);
+    expect(helperSource).not.toMatch(/live-fill-only-runner/);
+    expect(helperSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(helperSource).not.toMatch(
+      /buildAvanzaTradeUiReadOnlySelectedRecommendationPreview/,
+    );
+    expect(helperSource).not.toMatch(/previewState/);
+    expect(helperSource).not.toMatch(/execution-ready|production-ready/i);
+
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction/,
+    );
+    expect(routeSource).toMatch(
+      /avanza-selected-recommendation-source-extraction-fixtures/,
+    );
+    expect(routeSource).toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+  });
+
+  test("selectedRecommendation source extraction fixtures cover all statuses", () => {
+    const expectedStatuses = [
+      "no_source",
+      "source_unavailable",
+      "source_blocked",
+      "source_invalid",
+      "source_ready_read_only",
+    ];
+
+    expect(avanzaSelectedRecommendationSourceExtractionFixtures).toHaveLength(
+      expectedStatuses.length,
+    );
+    expect(
+      avanzaSelectedRecommendationSourceExtractionFixtures.map(
+        (fixture) => fixture.id,
+      ),
+    ).toEqual(expectedStatuses);
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      expect(fixture.extractionResult.status).toBe(fixture.expectedStatus);
+      expect(fixture.extractionResult.status).toBe(fixture.id);
+      expectSourceExtractionSafety(fixture.extractionResult);
+    }
+  });
+
+  test("selectedRecommendation source extraction fixtures expose safe ready-only output", () => {
+    const readyFixture = selectedRecommendationSourceExtractionFixtureById(
+      "source_ready_read_only",
+    );
+
+    for (const fixture of avanzaSelectedRecommendationSourceExtractionFixtures) {
+      const result = fixture.extractionResult;
+      const isReady = fixture.id === "source_ready_read_only";
+
+      expect(result.canProceedToPreviewModel).toBe(isReady);
+      expect(Boolean(result.selectedRecommendationLikeInput)).toBe(isReady);
+      expect(Boolean(result.normalizedSourceSummary)).toBe(isReady);
+      expectSourceExtractionSafety(result);
+    }
+
+    expect(
+      readyFixture.extractionResult.selectedRecommendationLikeInput,
+    ).toEqual({
+      action: "buy",
+      confidence: 0.74,
+      direction: "buy",
+      entry: 240.5,
+      id: "fixture-rec-1",
+      quantity: 12,
+      stopLoss: 230,
+      symbol: "VOLV B",
+      target: 260,
+      ticker: "VOLV B",
+    });
+    expect(readyFixture.extractionResult.normalizedSourceSummary).toEqual(
+      readyFixture.extractionResult.selectedRecommendationLikeInput,
+    );
+
+    for (const unsafeKey of [
+      "accountId",
+      "brokerSecret",
+      "cookie",
+      "sessionToken",
+      "storageKey",
+      "account",
+      "session",
+      "cookies",
+      "storage",
+    ]) {
+      expect(
+        readyFixture.extractionResult.normalizedSourceSummary,
+      ).not.toHaveProperty(unsafeKey);
+      expect(
+        readyFixture.extractionResult.selectedRecommendationLikeInput,
+      ).not.toHaveProperty(unsafeKey);
+    }
+  });
+
+  test("selectedRecommendation source extraction harness renders fixture statuses and safety copy", () => {
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSelectedRecommendationSourceExtractionHarness.tsx",
+    );
+
+    expect(harnessSource).toContain(
+      "avanzaSelectedRecommendationSourceExtractionFixtures",
+    );
+    expect(harnessSource).toContain(
+      "selectedRecommendation source extraction",
+    );
+    expect(harnessSource).toContain("Source fixture only");
+    expect(harnessSource).toContain("Explicit candidate input only");
+    expect(harnessSource).toContain(
+      "No real selectedRecommendation state is read",
+    );
+    expect(harnessSource).toContain(
+      "No real selectedRecommendation state is rendered",
+    );
+    expect(harnessSource).toContain("No previewState is derived");
+    expect(harnessSource).toContain("No Trade UI wiring");
+    expect(harnessSource).toContain("No bridge calls");
+    expect(harnessSource).toContain("No localhost fetch");
+    expect(harnessSource).toContain("No polling");
+    expect(harnessSource).toContain("No execution");
+    expect(harnessSource).toContain("Controls disabled");
+    expect(harnessSource).toContain("Gate locked");
+    expect(harnessSource).toContain("fixture.label");
+    expect(harnessSource).toContain("result.status");
+    expect(harnessSource).toContain("canProceedToPreviewModel");
+    expect(harnessSource).toContain("canProceedToHandoff");
+    expect(harnessSource).toContain("canCallBridge");
+    expect(harnessSource).toContain("canFetchLocalhost");
+    expect(harnessSource).toContain("canPoll");
+    expect(harnessSource).toContain("canExecute");
+    expect(harnessSource).toContain("controlsEnabled");
+    expect(harnessSource).toContain("gateLocked");
+    expect(harnessSource).not.toContain("<button");
+    expect(harnessSource).not.toMatch(/onClick\s*=/);
+  });
+
+  test("selectedRecommendation source extraction fixtures and harness stay pure and unwired", () => {
+    const fixturesSource = readRepoFile(
+      "lib/avanza-selected-recommendation-source-extraction-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSelectedRecommendationSourceExtractionHarness.tsx",
+    );
+    const helperSource = readRepoFile(
+      "lib/avanza-selected-recommendation-source-extraction.ts",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const combinedFixtureAndHarnessSource = `${fixturesSource}\n${harnessSource}`;
+
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /app\/trade-app|trade-app/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /app\/dev\/avanza-visual-qa/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/process\.env/);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /localStorage|sessionStorage/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/supabase/i);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /from\s+["'][^"']*bridge/i,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/bridge\s*\(/i);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /https?:\/\/(?:localhost|127\.0\.0\.1)/i,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /live-fill-only-runner/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /FINAL\s+LIVE\s+EXECUTE/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /buildAvanzaTradeUiReadOnlySelectedRecommendationPreview/,
+    );
+    expect(combinedFixtureAndHarnessSource).not.toMatch(/previewState\s*=/);
+    expect(combinedFixtureAndHarnessSource).not.toMatch(
+      /execution-ready|production-ready/i,
+    );
+    expect(helperSource).not.toMatch(
+      /buildAvanzaTradeUiReadOnlySelectedRecommendationPreview/,
+    );
+    expect(helperSource).not.toMatch(/previewState/);
+
+    expect(tradeAppSource).not.toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(tradeAppSource).not.toMatch(
+      /avanza-selected-recommendation-source-extraction-fixtures/,
+    );
+    expect(routeSource).toMatch(
+      /AvanzaSelectedRecommendationSourceExtractionHarness/,
+    );
+    expect(routeSource).toMatch(
+      /avanza-selected-recommendation-source-extraction-fixtures/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
   });
 
   test("read-only selectedRecommendation derivation decision returns no_input with fixture fallback", () => {

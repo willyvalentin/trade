@@ -186,3 +186,53 @@ now records the go/no-go boundary before any future `app/trade-app.tsx` touch.
 - [Avanza read-only selectedRecommendation architecture checkpoint before Trade UI](avanza-read-only-selected-recommendation-architecture-checkpoint-before-trade-ui.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
+
+## Minimal Default-Off Wiring Follow-Up
+
+Status:
+`avanza_trade_app_passive_read_only_selected_recommendation_preview_minimal_default_off_wiring_added`
+
+The first minimal passive wiring now exists in `app/trade-app.tsx` behind the
+hardcoded false guard `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`.
+
+Default behavior remains static fixture. The passive read-only component is not
+visible by default, and its guarded branch receives only the default hidden
+model. Real selectedRecommendation state is not read for this path and no app
+previewState is derived.
+
+The wiring remains non-executing: no bridge calls, localhost fetch, polling,
+refresh, trigger, fill, click, review, final, submit, order,
+credential/session/BankID/cookie/storage handling, Supabase execution writes, or
+live Avanza behavior.
+
+Checkpoint:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md)
+records the completed minimal/default-off app wiring state.
+
+Safety audit:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring safety audit](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md)
+confirms the minimal default-off branch remains disabled, invisible, read-only,
+and non-executable.
+
+Phase completion:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring phase completion checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md)
+marks the first Trade UI passive/default-off wiring phase complete while the
+preview remains hard-disabled, invisible by default, read-only, and
+non-executable.
+
+Source map planning:
+[Avanza selectedRecommendation source map plan](avanza-selected-recommendation-source-map-plan.md)
+requires a planning-only map of already-present `app/trade-app.tsx`
+selectedRecommendation-like data before any real preview input is extracted or
+connected.
+
+Source map pre-implementation:
+[Avanza selectedRecommendation source map pre-implementation checkpoint](avanza-selected-recommendation-source-map-pre-implementation-checkpoint.md)
+permits only a future pure source extraction helper and still forbids preview
+enablement, real input connection, app-state preview derivation, handoff, and
+execution.
+
+Pure source extraction helper:
+`lib/avanza-selected-recommendation-source-extraction.ts` now implements that
+pure helper with explicit candidate input only. It is not wired into
+`app/trade-app.tsx`, the dev route, or the passive preview model path.

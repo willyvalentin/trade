@@ -33,6 +33,15 @@ import {
   AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness,
 } from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness";
 import {
+  AvanzaSelectedRecommendationSourceExtractionHarness,
+} from "@/components/execution/AvanzaSelectedRecommendationSourceExtractionHarness";
+import {
+  AvanzaHardDisabledSourceToPreviewIntegrationHarness,
+} from "@/components/execution/AvanzaHardDisabledSourceToPreviewIntegrationHarness";
+import {
+  AvanzaTestOnlyEnabledPreviewFixtureModelHarness,
+} from "@/components/execution/AvanzaTestOnlyEnabledPreviewFixtureModelHarness";
+import {
   avanzaRealSelectedRecommendationReadOnlyDerivationFixtures,
 } from "@/lib/avanza-real-selected-recommendation-read-only-derivation-fixtures";
 import {
@@ -41,6 +50,15 @@ import {
 import {
   avanzaTradeUiReadOnlySelectedRecommendationPreviewComponentFixtures,
 } from "@/lib/avanza-trade-ui-read-only-selected-recommendation-preview-component-fixtures";
+import {
+  avanzaSelectedRecommendationSourceExtractionFixtures,
+} from "@/lib/avanza-selected-recommendation-source-extraction-fixtures";
+import {
+  avanzaHardDisabledSourceToPreviewIntegrationFixtures,
+} from "@/lib/avanza-hard-disabled-source-to-preview-integration-fixtures";
+import {
+  avanzaTestOnlyEnabledPreviewFixtureModelFixtures,
+} from "@/lib/avanza-test-only-enabled-preview-fixture-model-fixtures";
 
 export const metadata: Metadata = {
   title: "Avanza Dev Visual QA",
@@ -119,6 +137,54 @@ export default function AvanzaDevVisualQaPage() {
             </p>
           </div>
           <AvanzaDevVisibleSelectedRecommendationPreviewSurfaceGallery />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              selectedRecommendation source extraction
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Source fixture only. Explicit candidate input only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No previewState is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, Gate locked, and source_ready_read_only remains read-only/model-only."
+              }
+            </p>
+          </div>
+          <AvanzaSelectedRecommendationSourceExtractionHarness
+            fixtures={avanzaSelectedRecommendationSourceExtractionFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              hard-disabled source-to-preview integration
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Integration fixture only. Explicit input only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No previewState is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, Gate locked, and preview_model_ready_read_only remains read-only/model-only."
+              }
+            </p>
+          </div>
+          <AvanzaHardDisabledSourceToPreviewIntegrationHarness
+            fixtures={avanzaHardDisabledSourceToPreviewIntegrationFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              test-only enabled preview fixture model
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Test-only fixture only. Static sanitized input only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No previewState is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, Gate locked, and test_only_preview_ready_read_only remains read-only/model-only."
+              }
+            </p>
+          </div>
+          <AvanzaTestOnlyEnabledPreviewFixtureModelHarness
+            fixtures={avanzaTestOnlyEnabledPreviewFixtureModelFixtures}
+          />
         </section>
 
         <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">

@@ -630,6 +630,9 @@ import {
   AvanzaSelectedRecommendationPreviewStatePanel,
 } from "@/components/execution/AvanzaSelectedRecommendationPreviewStatePanel";
 import {
+  AvanzaTradeUiReadOnlySelectedRecommendationPreview,
+} from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview";
+import {
   useExecutionLivePositionHandoffState,
 } from "@/hooks/execution/useExecutionLivePositionHandoffState";
 import {
@@ -659,6 +662,9 @@ import {
 import {
   buildAvanzaSelectedRecommendationPreviewIntegrationGuard,
 } from "@/lib/avanza-selected-recommendation-preview-integration-guard";
+import {
+  buildAvanzaHardDisabledSourceToPreviewIntegration,
+} from "@/lib/avanza-hard-disabled-source-to-preview-integration";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -8220,6 +8226,8 @@ const avanzaSelectedRecommendationPreviewDevConfig =
     source: "default_disabled",
   });
 
+const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;
+
 export function TradeApp({
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
     avanzaSelectedRecommendationPreviewDevConfig,
@@ -15449,6 +15457,25 @@ export function TradeApp({
           "No bridge calls",
           "No execution",
         ];
+  const passiveReadOnlySelectedRecommendationPreview =
+    ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW
+      ? (() => {
+          const hardDisabledSourceToPreviewIntegration =
+            buildAvanzaHardDisabledSourceToPreviewIntegration({
+              integrationEnabled: false,
+              sourceKind: "static_fixture",
+              sourceName:
+                "Trade UI hard-disabled selectedRecommendation preview branch",
+            });
+
+          return hardDisabledSourceToPreviewIntegration.modelResult ? (
+            <AvanzaTradeUiReadOnlySelectedRecommendationPreview
+              label="Default-off internal preview"
+              modelResult={hardDisabledSourceToPreviewIntegration.modelResult}
+            />
+          ) : null;
+        })()
+      : null;
   const selectedRecommendationForDisplay = selectedRecommendation
     ? withSymbolMetadataLogo(selectedRecommendation)
     : null;
@@ -15639,6 +15666,7 @@ export function TradeApp({
               <AvanzaPrepareHandoffPreviewShell
                 model={avanzaPrepareHandoffPreviewModel}
               />
+              {passiveReadOnlySelectedRecommendationPreview}
               {avanzaSelectedRecommendationPreviewState ? (
                 <AvanzaSelectedRecommendationPreviewStatePanel
                   previewState={avanzaSelectedRecommendationPreviewState}

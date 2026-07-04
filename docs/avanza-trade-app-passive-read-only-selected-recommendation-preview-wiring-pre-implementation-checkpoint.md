@@ -184,3 +184,40 @@ handling, and Supabase execution writes.
 - [Avanza Trade UI read-only selectedRecommendation preview integration plan](avanza-trade-ui-read-only-selected-recommendation-preview-integration-plan.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
+
+## Minimal Default-Off Wiring Follow-Up
+
+Status:
+`avanza_trade_app_passive_read_only_selected_recommendation_preview_minimal_default_off_wiring_added`
+
+`app/trade-app.tsx` now contains a hardcoded internal guard,
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false`, and a passive
+read-only preview branch behind that guard.
+
+The branch uses only
+`avanzaTradeUiReadOnlySelectedRecommendationPreviewDefaultModel`; it does not
+read real selectedRecommendation state, does not derive previewState from app
+state, and renders `null` by default. Default Trade UI behavior remains visually
+unchanged and continues to show static fixture Avanza preview behavior with
+selectedRecommendation preview disabled.
+
+No visible toggle, runtime environment path, localStorage/sessionStorage path,
+bridge call, localhost fetch, polling, refresh, active handoff, prepare button,
+buy/sell CTA, fill/click/review/final/submit/order behavior,
+credential/session/BankID/cookie/storage handling, Supabase execution write, or
+live Avanza behavior was added.
+
+Checkpoint:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md)
+records the completed minimal/default-off app wiring state.
+
+Safety audit:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring safety audit](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md)
+confirms the minimal default-off branch remains disabled, invisible, read-only,
+and non-executable.
+
+Phase completion:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring phase completion checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md)
+marks the first Trade UI passive/default-off wiring phase complete while the
+preview remains hard-disabled, invisible by default, read-only, and
+non-executable.

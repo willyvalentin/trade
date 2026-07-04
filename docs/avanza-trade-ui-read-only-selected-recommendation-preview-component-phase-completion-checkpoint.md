@@ -249,3 +249,33 @@ now records the go/no-go boundary before app code may be touched.
 - [Avanza read-only selectedRecommendation architecture checkpoint before Trade UI](avanza-read-only-selected-recommendation-architecture-checkpoint-before-trade-ui.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
+
+## Minimal Default-Off Wiring Follow-Up
+
+Status:
+`avanza_trade_app_passive_read_only_selected_recommendation_preview_minimal_default_off_wiring_added`
+
+The passive component is now referenced from `app/trade-app.tsx` only behind
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false`. The branch passes
+`avanzaTradeUiReadOnlySelectedRecommendationPreviewDefaultModel` and therefore
+renders nothing by default.
+
+No real selectedRecommendation state is read or rendered for this path, no app
+previewState is derived, and no active controls, handoff, prepare, buy/sell,
+bridge, fetch, polling, order, credential/session handling, or Supabase write
+was added.
+
+Checkpoint:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-checkpoint.md)
+records the completed minimal/default-off app wiring state.
+
+Safety audit:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring safety audit](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md)
+confirms the minimal default-off branch remains disabled, invisible, read-only,
+and non-executable.
+
+Phase completion:
+[Avanza Trade app passive read-only selectedRecommendation preview wiring phase completion checkpoint](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-phase-completion-checkpoint.md)
+marks the first Trade UI passive/default-off wiring phase complete while the
+preview remains hard-disabled, invisible by default, read-only, and
+non-executable.
