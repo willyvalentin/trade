@@ -234,3 +234,88 @@ This follow-up did not change `app/trade-app.tsx`, did not change
 `app/dev/avanza-visual-qa/page.tsx`, did not wire the helper into Trade UI or
 the dev route, and did not read/render real selectedRecommendation state from
 app or route.
+
+## Static Fixture Follow-Up
+
+`lib/avanza-real-selected-recommendation-read-only-derivation-fixtures.ts` now
+adds reusable static fixtures for all helper statuses: `no_input`,
+`guard_blocked`, `invalid_input`, `adapter_rejected`,
+`derived_preview_failed`, and `read_only_preview_ready`.
+
+The fixtures use explicit inputs and explicit guard decisions only. They are
+not wired into Trade UI or the isolated dev route. `previewState` exists only
+for the `read_only_preview_ready` fixture, and every fixture keeps
+`canProceedToHandoff: false`, bridge/local/poll/execution false, controls
+disabled, and the gate locked.
+
+## Isolated Derivation Harness Follow-Up
+
+`components/execution/AvanzaRealSelectedRecommendationReadOnlyDerivationHarness.tsx`
+now renders the static derivation fixture states for isolated test/dev
+visibility only.
+
+The harness shows fixture id, label, status, source mode, reason, normalized
+input summary presence, preview state presence, and the safety booleans for
+bridge calls, localhost fetch, polling, execution, controls, and gate state.
+It renders all six derivation statuses: `no_input`, `guard_blocked`,
+`invalid_input`, `adapter_rejected`, `derived_preview_failed`, and
+`read_only_preview_ready`.
+
+`read_only_preview_ready` is explicitly labeled read-only/model-only, not
+active. `previewState` remains limited to that explicit fixture result. The
+harness is not imported by `app/trade-app.tsx`, is not imported by
+`app/dev/avanza-visual-qa/page.tsx`, and does not read or render real
+selectedRecommendation state from app or route.
+
+## Route Section Plan Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-plan.md`
+now defines the future route-visible fixture/model-only section for the
+derivation harness.
+
+The plan permits only a later explicit update to the isolated dev QA route,
+using static derivation fixtures only. This checkpoint remains unchanged for
+app code: `app/trade-app.tsx` and `app/dev/avanza-visual-qa/page.tsx` are not
+changed by the plan, and the harness remains unwired from both Trade UI and
+the dev route.
+
+## Route Section Pre-Implementation Checkpoint Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-pre-implementation-checkpoint.md`
+now permits the next task to render the isolated derivation harness on the
+dev-only visual QA route as fixture/model-only content.
+
+That permission is narrow: only static derivation fixtures may be rendered,
+the route must remain unlinked, `app/trade-app.tsx` must remain unchanged, and
+real selectedRecommendation state plus app/route preview derivation remain
+forbidden.
+
+## Route Section Implementation Follow-Up
+
+The isolated dev QA route now renders
+`AvanzaRealSelectedRecommendationReadOnlyDerivationHarness` with
+`avanzaRealSelectedRecommendationReadOnlyDerivationFixtures`.
+
+This does not change Trade UI and does not broaden the helper scope. The route
+section is fixture/model-only, uses explicit static fixtures only, keeps real
+selectedRecommendation unread from app/route, keeps app/route preview state
+underived, and preserves disabled controls, locked gate, and no execution.
+
+## Route Section Checkpoint Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-checkpoint.md`
+now captures the completed route section for the derivation harness.
+
+The completed section remains limited to static fixtures on the isolated dev
+QA route. It is not a Trade UI integration and does not read real
+selectedRecommendation state from app/route.
+
+## Phase Completion Checkpoint Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-phase-completion-checkpoint.md`
+now marks the real selectedRecommendation read-only derivation phase complete
+for pure helper, fixtures, harness, and route-visible fixture/model-only
+display.
+
+The completion checkpoint does not authorize Trade UI wiring, real app/route
+state reads, bridge/fetch/polling behavior, or execution.

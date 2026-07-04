@@ -305,3 +305,87 @@ The new helper is explicit-input only and guard/validation gated. It emits
 `previewState` only for `read_only_preview_ready`, keeps all other states
 non-renderable, and preserves bridge/local/poll/execution false, controls
 disabled, gate locked, and `canProceedToHandoff: false`.
+
+## Real Input Derivation Fixture Follow-Up
+
+`lib/avanza-real-selected-recommendation-read-only-derivation-fixtures.ts` now
+adds static fixtures for the real-input helper's safe status model.
+
+This remains outside the static-fixture route visibility phase. The dev route
+is unchanged by these fixtures, Trade UI is unchanged, and no app/route real
+selectedRecommendation state is read or rendered. The fixtures are reusable
+test/model data only.
+
+## Real Input Derivation Harness Follow-Up
+
+`components/execution/AvanzaRealSelectedRecommendationReadOnlyDerivationHarness.tsx`
+now provides an isolated fixture-only renderer for the real-input derivation
+model.
+
+The harness does not alter the static-fixture route visibility phase. It is
+not imported by `app/dev/avanza-visual-qa/page.tsx`, not imported by
+`app/trade-app.tsx`, and does not read or render real selectedRecommendation
+state. It keeps `read_only_preview_ready` passive/read-only with controls
+disabled, the gate locked, and no handoff progression.
+
+## Real Input Derivation Route Section Plan
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-plan.md`
+has been added as the next planning step after the isolated derivation harness.
+
+The plan keeps this static-fixture phase closed and safe. A future route
+section may render only static derivation fixtures, must keep the route
+unlinked, must not read real selectedRecommendation state, and must preserve
+disabled controls, locked gate, and no execution behavior.
+
+## Real Input Derivation Route Section Pre-Implementation Checkpoint
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-pre-implementation-checkpoint.md`
+has been added before any route rendering of the real-input derivation
+harness.
+
+It confirms the static-fixture phase remains closed and that the next route
+step, if taken, must render static derivation fixtures only. It keeps Trade UI
+unchanged, real selectedRecommendation unread, app/route preview state
+underived, controls disabled, the gate locked, and execution forbidden.
+
+## Real Input Derivation Route Section Implementation
+
+`app/dev/avanza-visual-qa/page.tsx` now renders the real-input derivation
+harness using only static derivation fixtures.
+
+This does not reopen or alter the static-fixture derived-preview phase. The
+route remains a fixture/model-only QA surface, Trade UI remains unchanged,
+selectedRecommendation preview remains disabled by default, controls remain
+disabled, and the gate remains locked.
+
+## Real Input Derivation Route Section Checkpoint
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-route-section-checkpoint.md`
+now records the completed route section that displays static real-input
+derivation fixtures.
+
+This remains outside Trade UI and does not change the static-fixture
+derived-preview phase. The route uses static fixtures only and no real
+selectedRecommendation state is read from app/route.
+
+## Real SelectedRecommendation Derivation Phase Completion
+
+`docs/avanza-real-selected-recommendation-read-only-derivation-phase-completion-checkpoint.md`
+now records the completed real selectedRecommendation read-only derivation
+phase as a separate fixture/model-only layer.
+
+The static-fixture derived-preview phase remains unchanged. The real
+selectedRecommendation layer is route-visible only through static fixtures and
+does not read real app/route state.
+
+## Architecture Checkpoint Before Trade UI
+
+`docs/avanza-read-only-selected-recommendation-architecture-checkpoint-before-trade-ui.md`
+now records the broader architecture boundary that combines the completed
+static-fixture chain with the completed real selectedRecommendation input and
+derivation fixture/model-only chains.
+
+The checkpoint keeps Trade UI unchanged, selectedRecommendation preview
+disabled by default, and the isolated dev route limited to static fixture
+visibility only.

@@ -23,6 +23,24 @@ import {
 import {
   AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness,
 } from "@/components/execution/AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness";
+import {
+  AvanzaRealSelectedRecommendationReadOnlyDerivationHarness,
+} from "@/components/execution/AvanzaRealSelectedRecommendationReadOnlyDerivationHarness";
+import {
+  AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness,
+} from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness";
+import {
+  AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness,
+} from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness";
+import {
+  avanzaRealSelectedRecommendationReadOnlyDerivationFixtures,
+} from "@/lib/avanza-real-selected-recommendation-read-only-derivation-fixtures";
+import {
+  avanzaTradeUiReadOnlySelectedRecommendationPreviewModelFixtures,
+} from "@/lib/avanza-trade-ui-read-only-selected-recommendation-preview-model-fixtures";
+import {
+  avanzaTradeUiReadOnlySelectedRecommendationPreviewComponentFixtures,
+} from "@/lib/avanza-trade-ui-read-only-selected-recommendation-preview-component-fixtures";
 
 export const metadata: Metadata = {
   title: "Avanza Dev Visual QA",
@@ -172,6 +190,54 @@ export default function AvanzaDevVisualQaPage() {
             </p>
           </div>
           <AvanzaReadOnlySelectedRecommendationAdapterDerivedPreviewWrapperHarness />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Real selectedRecommendation read-only derivation
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Derivation fixture only. Explicit input only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No app/route preview state is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, and Gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaRealSelectedRecommendationReadOnlyDerivationHarness
+            fixtures={avanzaRealSelectedRecommendationReadOnlyDerivationFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Trade UI read-only selectedRecommendation preview model
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Preview model fixture only. Default-off. Explicit input/config only. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No app/route preview state is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, and Gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness
+            fixtures={avanzaTradeUiReadOnlySelectedRecommendationPreviewModelFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Passive Trade UI read-only selectedRecommendation preview
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Component fixture only. Explicit modelResult only. Default-off. No real selectedRecommendation state is read, No real selectedRecommendation state is rendered, No app/route preview state is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, and Gate locked."
+              }
+            </p>
+          </div>
+          <AvanzaTradeUiReadOnlySelectedRecommendationPreviewHarness
+            fixtures={avanzaTradeUiReadOnlySelectedRecommendationPreviewComponentFixtures}
+          />
         </section>
       </div>
     </main>
