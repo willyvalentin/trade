@@ -133,3 +133,48 @@ That future phase must remain planning-only until separately implemented and
 must not add fetch, API route calls, route path usage in Trade UI, active UI,
 localhost/bridge calls, Avanza/browser control, real fill, order behavior,
 credential/session handling, or Supabase writes.
+
+## Guarded Fetch Intent Helper Boundary
+
+`lib/avanza-guarded-fetch-intent.ts` now exists as a pure helper for the next
+phase. It accepts only explicit model inputs and returns disabled/internal
+metadata. It is not imported by `app/trade-app.tsx`, not imported by the
+disabled API route, not rendered by the dev QA route, and contains no fetch,
+route call, localhost call, bridge call, browser control, fill, order,
+credential/session handling, or Supabase write behavior.
+
+The guarded fetch intent fixtures and harness are now visible only through the
+isolated dev QA route:
+`lib/avanza-guarded-fetch-intent-fixtures.ts`,
+`components/execution/AvanzaGuardedFetchIntentHarness.tsx`, and the route
+section in `app/dev/avanza-visual-qa/page.tsx`. This route section is
+fixture/model-only, unlinked from main navigation, and does not import into
+Trade UI, call the API route, perform fetch, call localhost or bridge, poll,
+control Avanza/browser state, fill, click review, click confirm, submit orders,
+handle credentials/sessions, or write Supabase execution records.
+
+The guarded fetch intent visibility layer is closed in
+`docs/avanza-guarded-fetch-intent-visibility-phase-completion-checkpoint.md`.
+The next planning-only phase is
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md`.
+That future metadata wiring must stay behind the existing disabled/default-off
+Trade UI branch and must not render fetch intent in normal/default UI, add
+active controls, call routes, fetch, reference the route path, call localhost or
+bridge, control Avanza/browser state, fill, submit orders, handle sensitive
+state, or write Supabase execution records.
+
+## Follow-Up Fetch Intent Metadata Wiring
+
+The minimal hard-disabled Trade UI fetch intent metadata invocation has now been
+added in `app/trade-app.tsx` inside the existing disabled/default-off branch
+only. It passes `fetchIntentEnabled: false` and `mode: "hidden"` to
+`buildAvanzaGuardedFetchIntent(...)`, produces `fetch_intent_hidden` metadata,
+and does not render fetch intent UI in normal/default Trade UI.
+
+This follow-up keeps the same safety boundary: no active controls, no API route
+call, no fetch, no route path reference, no localhost/bridge call, no polling,
+no Avanza/browser behavior, no real fill, no order/review/confirm/submit
+behavior, no credential/session handling, and no Supabase execution write.
+
+The focused follow-up safety audit is recorded in
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md`.

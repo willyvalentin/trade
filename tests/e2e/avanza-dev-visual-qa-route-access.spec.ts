@@ -106,6 +106,19 @@ import {
   type AvanzaGuardedApiRouteCallIntent,
 } from "../../lib/avanza-guarded-api-route-call-intent";
 import {
+  buildAvanzaGuardedFetchIntent,
+  type AvanzaGuardedFetchIntent,
+} from "../../lib/avanza-guarded-fetch-intent";
+import {
+  buildAvanzaDisabledLocalOnlyManualTestPath,
+  type AvanzaDisabledLocalOnlyManualTestPath,
+  type AvanzaDisabledLocalOnlyManualTestPathStatus,
+} from "../../lib/avanza-disabled-local-only-manual-test-path";
+import {
+  avanzaDisabledLocalOnlyManualTestPathFixtures,
+  type AvanzaDisabledLocalOnlyManualTestPathFixtureId,
+} from "../../lib/avanza-disabled-local-only-manual-test-path-fixtures";
+import {
   buildAvanzaExplicitInternalDisabledActionShell,
   type AvanzaExplicitInternalDisabledActionShellModel,
 } from "../../lib/avanza-explicit-internal-disabled-action-shell";
@@ -115,6 +128,9 @@ import {
 import {
   avanzaGuardedApiRouteCallIntentFixtures,
 } from "../../lib/avanza-guarded-api-route-call-intent-fixtures";
+import {
+  avanzaGuardedFetchIntentFixtures,
+} from "../../lib/avanza-guarded-fetch-intent-fixtures";
 import {
   avanzaExplicitInternalVisibleDisabledPrepareShellFixtures,
 } from "../../lib/avanza-explicit-internal-visible-disabled-prepare-shell-fixtures";
@@ -589,6 +605,51 @@ function expectGuardedApiRouteCallIntentSafetyLocked(
   expect(intent.finalHumanClickRequired).toBe(true);
   expect(intent.controlsEnabled).toBe(false);
   expect(intent.gateLocked).toBe(true);
+}
+
+function expectGuardedFetchIntentSafetyLocked(
+  intent: AvanzaGuardedFetchIntent,
+) {
+  expect(intent.canCallApiRoute).toBe(false);
+  expect(intent.canCallBridge).toBe(false);
+  expect(intent.canClickConfirm).toBe(false);
+  expect(intent.canClickReview).toBe(false);
+  expect(intent.canControlBrowser).toBe(false);
+  expect(intent.canFetch).toBe(false);
+  expect(intent.canFetchLocalhost).toBe(false);
+  expect(intent.canFillForm).toBe(false);
+  expect(intent.canHandleCredentials).toBe(false);
+  expect(intent.canReadBankId).toBe(false);
+  expect(intent.canReadCookies).toBe(false);
+  expect(intent.canSubmitOrder).toBe(false);
+  expect(intent.canWriteSupabaseExecution).toBe(false);
+  expect(intent.userMustConfirm).toBe(true);
+  expect(intent.finalHumanClickRequired).toBe(true);
+  expect(intent.controlsEnabled).toBe(false);
+  expect(intent.gateLocked).toBe(true);
+}
+
+function expectDisabledLocalOnlyManualTestPathSafetyLocked(
+  manualTestPath: AvanzaDisabledLocalOnlyManualTestPath,
+) {
+  expect(manualTestPath.canCallApiRoute).toBe(false);
+  expect(manualTestPath.canCallBridge).toBe(false);
+  expect(manualTestPath.canClickConfirm).toBe(false);
+  expect(manualTestPath.canClickReview).toBe(false);
+  expect(manualTestPath.canControlBrowser).toBe(false);
+  expect(manualTestPath.canExposeLocalRoute).toBe(false);
+  expect(manualTestPath.canFetch).toBe(false);
+  expect(manualTestPath.canFetchLocalhost).toBe(false);
+  expect(manualTestPath.canFillForm).toBe(false);
+  expect(manualTestPath.canHandleCredentials).toBe(false);
+  expect(manualTestPath.canReadBankId).toBe(false);
+  expect(manualTestPath.canReadCookies).toBe(false);
+  expect(manualTestPath.canSubmitOrder).toBe(false);
+  expect(manualTestPath.canWriteSupabaseExecution).toBe(false);
+  expect(manualTestPath.userMustConfirm).toBe(true);
+  expect(manualTestPath.finalHumanClickRequired).toBe(true);
+  expect(manualTestPath.controlsEnabled).toBe(false);
+  expect(manualTestPath.gateLocked).toBe(true);
 }
 
 function expectExplicitInternalDisabledActionShellSafetyLocked(
@@ -23471,6 +23532,3296 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(disabledApiDefault.status).toBe("api_stub_disabled");
     expect(routeSource).toContain("Fixture only");
     expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("guarded fetch intent model maps disabled, hidden, blocked, failed, and ready states safely", () => {
+    const safeMetadata = {
+      accountLabel: "ISK",
+      actionShellId: "action-shell-safe",
+      apiCallIntentId: "api-call-intent-safe",
+      limitPrice: 240.5,
+      orderType: "LIMIT",
+      packageId: "pkg-safe",
+      quantity: 12,
+      side: "BUY",
+      sourceRecommendationId: "source-safe",
+      symbol: "SAFE",
+      ticker: "SAFE",
+      warnings: ["fixture only"],
+    };
+    const readyActionShell = {
+      ...safeMetadata,
+      status: "action_shell_ready_internal_disabled",
+    };
+    const readyApiCallIntent = {
+      ...safeMetadata,
+      status: "api_call_ready_internal_disabled",
+    };
+    const readyRoute = { status: "route_available_internal_disabled" };
+    const disabledRoute = { status: "api_stub_disabled" };
+    const allowedInternalGuard = { status: "internal_guard_allowed" };
+    const disabledDefault = buildAvanzaGuardedFetchIntent();
+    const hidden = buildAvanzaGuardedFetchIntent({
+      fetchIntentEnabled: true,
+      mode: "hidden",
+    });
+    const disabledMode = buildAvanzaGuardedFetchIntent({
+      fetchIntentEnabled: true,
+      mode: "disabled",
+    });
+    const missingActionShell = buildAvanzaGuardedFetchIntent({
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+    });
+    const missingRoute = buildAvanzaGuardedFetchIntent({
+      actionShellModel: readyActionShell,
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+    });
+    const disabledRouteIntent = buildAvanzaGuardedFetchIntent({
+      actionShellModel: readyActionShell,
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+      routeAvailability: disabledRoute,
+    });
+    const unknownRoute = buildAvanzaGuardedFetchIntent({
+      actionShellModel: readyActionShell,
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+      routeAvailability: {},
+    });
+    const missingGuard = buildAvanzaGuardedFetchIntent({
+      actionShellModel: readyActionShell,
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+      routeAvailability: readyRoute,
+    });
+    const unsafeInput = buildAvanzaGuardedFetchIntent({
+      actionShellModel: { ...readyActionShell, canFetch: true },
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      internalGuard: allowedInternalGuard,
+      mode: "internal_preview",
+      routeAvailability: readyRoute,
+    });
+    const failedInput = buildAvanzaGuardedFetchIntent({
+      actionShellModel: { status: "action_shell_error" },
+      fetchIntentEnabled: true,
+      mode: "internal_preview",
+    });
+    const missingTicker = buildAvanzaGuardedFetchIntent({
+      actionShellModel: { ...readyActionShell, ticker: undefined },
+      apiCallIntent: { ...readyApiCallIntent, ticker: undefined },
+      fetchIntentEnabled: true,
+      internalGuard: allowedInternalGuard,
+      mode: "internal_preview",
+      routeAvailability: readyRoute,
+    });
+    const readyPreview = buildAvanzaGuardedFetchIntent({
+      actionShellModel: readyActionShell,
+      apiCallIntent: readyApiCallIntent,
+      fetchIntentEnabled: true,
+      fetchIntentId: "fetch-intent-safe",
+      handoffMetadata: safeMetadata,
+      internalGuard: allowedInternalGuard,
+      mode: "internal_preview",
+      now: "2026-07-05T00:00:00Z",
+      routeAvailability: readyRoute,
+    });
+    const readyInternalIntent = buildAvanzaGuardedFetchIntent({
+      actionShellModel: { ...readyActionShell, side: "SELL" },
+      apiCallIntent: { ...readyApiCallIntent, side: "SELL" },
+      fetchIntentEnabled: true,
+      fetchIntentId: "fetch-intent-sell-safe",
+      handoffMetadata: { ...safeMetadata, side: "SELL" },
+      internalGuard: { allowFetchIntent: true },
+      mode: "internal_fetch_intent",
+      now: "2026-07-05T00:00:00Z",
+      routeAvailability: { status: "route_ready_internal_disabled" },
+    });
+
+    expect(disabledDefault.status).toBe("fetch_intent_disabled");
+    expect(disabledDefault.fetchIntentEnabled).toBe(false);
+    expect(disabledDefault.canCreateFetchIntent).toBe(false);
+    expect(hidden.status).toBe("fetch_intent_hidden");
+    expect(disabledMode.status).toBe("fetch_intent_disabled");
+    expect(missingActionShell.status).toBe("action_shell_unavailable");
+    expect(missingRoute.status).toBe("route_unavailable");
+    expect(disabledRouteIntent.status).toBe("route_disabled");
+    expect(disabledRouteIntent.routeStatus).toBe("api_stub_disabled");
+    expect(unknownRoute.status).toBe("unknown");
+    expect(missingGuard.status).toBe("internal_guard_missing");
+    expect(unsafeInput.status).toBe("fetch_intent_blocked");
+    expect(failedInput.status).toBe("fetch_intent_failed");
+    expect(missingTicker.status).toBe("fetch_intent_blocked");
+    expect(missingTicker.blockedReasons).toContain("missing ticker");
+    expect(readyPreview.status).toBe("fetch_intent_ready_internal_disabled");
+    expect(readyPreview.canCreateFetchIntent).toBe(true);
+    expect(readyPreview.canFetch).toBe(false);
+    expect(readyPreview.canCallApiRoute).toBe(false);
+    expect(readyPreview.routeStatus).toBe("route_available_internal_disabled");
+    expect(readyPreview.fetchIntentId).toBe("fetch-intent-safe");
+    expect(readyPreview.packageId).toBe("pkg-safe");
+    expect(readyPreview.actionShellId).toBe("action-shell-safe");
+    expect(readyPreview.apiCallIntentId).toBe("api-call-intent-safe");
+    expect(readyPreview.sourceRecommendationId).toBe("source-safe");
+    expect(readyPreview.ticker).toBe("SAFE");
+    expect(readyPreview.symbol).toBe("SAFE");
+    expect(readyPreview.side).toBe("BUY");
+    expect(readyPreview.quantity).toBe(12);
+    expect(readyPreview.orderType).toBe("LIMIT");
+    expect(readyPreview.limitPrice).toBe(240.5);
+    expect(readyPreview.accountLabel).toBe("ISK");
+    expect(readyInternalIntent.status).toBe(
+      "fetch_intent_ready_internal_disabled",
+    );
+    expect(readyInternalIntent.mode).toBe("internal_fetch_intent");
+    expect(readyInternalIntent.side).toBe("SELL");
+    expect(readyInternalIntent.canCreateFetchIntent).toBe(true);
+    expect(readyInternalIntent.canFetch).toBe(false);
+    expect(readyInternalIntent.canCallApiRoute).toBe(false);
+
+    for (const intent of [
+      disabledDefault,
+      hidden,
+      disabledMode,
+      missingActionShell,
+      missingRoute,
+      disabledRouteIntent,
+      unknownRoute,
+      missingGuard,
+      unsafeInput,
+      failedInput,
+      missingTicker,
+      readyPreview,
+      readyInternalIntent,
+    ]) {
+      expectGuardedFetchIntentSafetyLocked(intent);
+      expect(JSON.stringify(intent)).not.toMatch(
+        /accountId["':]|credential-value|cookie-value|session-value|bankid-value|storage-value|broker-secret|supabase-url/i,
+      );
+    }
+  });
+
+  test("guarded fetch intent helper is pure, explicit-input only, and Trade UI metadata-only", () => {
+    const moduleSource = readRepoFile("lib/avanza-guarded-fetch-intent.ts");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const devRouteSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const fetchIntentInvocations =
+      tradeAppSource.match(/buildAvanzaGuardedFetchIntent\(\{/g) ?? [];
+
+    for (const copy of [
+      "AvanzaGuardedFetchIntentStatus",
+      "AvanzaGuardedFetchIntentMode",
+      "AvanzaGuardedFetchIntent",
+      "AvanzaGuardedFetchIntentSafetyFlags",
+      "buildAvanzaGuardedFetchIntent",
+      "fetch_intent_disabled",
+      "fetch_intent_hidden",
+      "fetch_intent_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "internal_guard_missing",
+      "action_shell_unavailable",
+      "fetch_intent_ready_internal_disabled",
+      "fetch_intent_failed",
+      "unknown",
+      "canFetch: false",
+      "canCallApiRoute: false",
+      "canFetchLocalhost: false",
+      "canCallBridge: false",
+      "canControlBrowser: false",
+      "canFillForm: false",
+      "canClickReview: false",
+      "canClickConfirm: false",
+      "canSubmitOrder: false",
+      "canHandleCredentials: false",
+      "canReadCookies: false",
+      "canReadBankId: false",
+      "canWriteSupabaseExecution: false",
+      "userMustConfirm: true",
+      "finalHumanClickRequired: true",
+      "controlsEnabled: false",
+      "gateLocked: true",
+    ]) {
+      expect(moduleSource).toContain(copy);
+    }
+    expect(moduleSource).not.toMatch(/^import\s/m);
+    expect(moduleSource).not.toMatch(/app\/trade-app/);
+    expect(moduleSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
+    expect(moduleSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(moduleSource).not.toMatch(/process\.env/);
+    expect(moduleSource).not.toMatch(
+      /localStorage|sessionStorage|document\.cookie|cookies\(\)/,
+    );
+    expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
+    expect(moduleSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(moduleSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(moduleSource).not.toMatch(/from ["'].*supabase|supabase\./i);
+    expect(moduleSource).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(moduleSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(moduleSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(moduleSource).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(fetchIntentInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaGuardedFetchIntent");
+    expect(beforeBranch).not.toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("const hardDisabledFetchIntent");
+    expect(branchSnippet).toContain("fetchIntentEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain(
+      "actionShellModel: hardDisabledActionShell",
+    );
+    expect(branchSnippet).toContain(
+      "apiCallIntent: hardDisabledApiRouteCallIntent",
+    );
+    expect(branchSnippet).toContain("void hardDisabledFetchIntent");
+    expect(branchSnippet).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(branchSnippet).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(branchSnippet).not.toMatch(/<AvanzaGuardedFetchIntent\b/);
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(afterBranch).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(devRouteSource).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(apiRouteSource).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaGuardedFetchIntent",
+    );
+    expect(devRouteSource).not.toMatch(/\bfetch\s*\(/);
+    expect(apiRouteSource).not.toContain("guardedFetchIntent");
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("guarded fetch intent fixtures, harness, and dev route section remain fixture-only", () => {
+    const fixturePath = "lib/avanza-guarded-fetch-intent-fixtures.ts";
+    const harnessPath =
+      "components/execution/AvanzaGuardedFetchIntentHarness.tsx";
+    const fixtureSource = readRepoFile(fixturePath);
+    const harnessSource = readRepoFile(harnessPath);
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const fixtureIds = new Set(
+      avanzaGuardedFetchIntentFixtures.map((fixture) => fixture.fixtureId),
+    );
+    const fixtureStatuses = new Set(
+      avanzaGuardedFetchIntentFixtures.map(
+        (fixture) => fixture.modelResult.status,
+      ),
+    );
+    const defaultFixture = avanzaGuardedFetchIntentFixtures.find(
+      (fixture) => fixture.fixtureId === "fetch_intent_disabled",
+    );
+
+    expect(existsSync(join(repoRoot, fixturePath))).toBe(true);
+    expect(existsSync(join(repoRoot, harnessPath))).toBe(true);
+    expect(fixtureSource).toContain("avanzaGuardedFetchIntentFixtures");
+    expect(harnessSource).toContain("AvanzaGuardedFetchIntentHarness");
+    expect(routeSource).toContain("AvanzaGuardedFetchIntentHarness");
+    expect(routeSource).toContain("avanzaGuardedFetchIntentFixtures");
+    expect(routeSource).toContain("Guarded fetch intent");
+
+    expect(fixtureIds).toEqual(
+      new Set([
+        "fetch_intent_disabled",
+        "fetch_intent_hidden",
+        "fetch_intent_blocked",
+        "route_unavailable",
+        "route_disabled",
+        "internal_guard_missing",
+        "action_shell_unavailable",
+        "fetch_intent_ready_internal_disabled",
+        "fetch_intent_failed",
+        "unknown",
+        "safe_buy_internal_preview_intent",
+        "safe_sell_internal_preview_intent",
+        "safe_buy_internal_fetch_intent_disabled",
+        "safe_sell_internal_fetch_intent_disabled",
+        "missing_action_shell",
+        "missing_route_availability",
+        "disabled_route_availability",
+        "missing_internal_guard",
+        "blocked_action_shell",
+        "failed_input",
+        "unsafe_input",
+      ]),
+    );
+    expect(fixtureStatuses).toEqual(
+      new Set([
+        "fetch_intent_disabled",
+        "fetch_intent_hidden",
+        "fetch_intent_blocked",
+        "route_unavailable",
+        "route_disabled",
+        "internal_guard_missing",
+        "action_shell_unavailable",
+        "fetch_intent_ready_internal_disabled",
+        "fetch_intent_failed",
+        "unknown",
+      ]),
+    );
+    expect(defaultFixture?.modelResult.fetchIntentEnabled).toBe(false);
+    expect(defaultFixture?.modelResult.canCreateFetchIntent).toBe(false);
+
+    for (const fixture of avanzaGuardedFetchIntentFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.status).toBe(fixture.expectedStatus);
+      expectGuardedFetchIntentSafetyLocked(result);
+      expect(result.canFetch).toBe(false);
+      expect(result.canCallApiRoute).toBe(false);
+      expect(result.canFetchLocalhost).toBe(false);
+      expect(result.canCallBridge).toBe(false);
+      expect(result.canControlBrowser).toBe(false);
+      expect(result.canClickReview).toBe(false);
+      expect(result.canClickConfirm).toBe(false);
+      expect(result.canSubmitOrder).toBe(false);
+      expect(result.canHandleCredentials).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canReadBankId).toBe(false);
+      expect(result.canWriteSupabaseExecution).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+      expect(JSON.stringify(result)).not.toMatch(
+        /accountId["':]|credential-value|cookie-value|session-value|bankid-value|storage-value|broker-secret|supabase-url/i,
+      );
+    }
+    for (const fixtureId of [
+      "safe_buy_internal_preview_intent",
+      "safe_sell_internal_preview_intent",
+      "safe_buy_internal_fetch_intent_disabled",
+      "safe_sell_internal_fetch_intent_disabled",
+    ]) {
+      const fixture = avanzaGuardedFetchIntentFixtures.find(
+        (item) => item.fixtureId === fixtureId,
+      );
+
+      expect(fixture?.modelResult.status).toBe(
+        "fetch_intent_ready_internal_disabled",
+      );
+      expect(fixture?.modelResult.canCreateFetchIntent).toBe(true);
+      expect(fixture?.modelResult.canFetch).toBe(false);
+      expect(fixture?.modelResult.canCallApiRoute).toBe(false);
+    }
+    for (const copy of [
+      "Fixture only",
+      "Explicit input only",
+      "Internal/dev-only",
+      "Disabled by default",
+      "No Trade UI wiring",
+      "No active prepare button",
+      "No active handoff",
+      "No API route call",
+      "No fetch",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No Avanza/browser control",
+      "No execution",
+      "No real fill",
+      "No order submission",
+      "Never clicks review",
+      "Never clicks confirm",
+      "Never submits order",
+      "User must confirm",
+      "Final human click required",
+      "Controls disabled",
+      "Gate locked",
+      "No broker action",
+      "Not production ready",
+      "Manual confirmation required in Avanza",
+      "fetch_intent_ready_internal_disabled remains disabled/internal-only",
+    ]) {
+      expect(routeSource).toContain(copy);
+      expect(harnessSource).toContain(copy);
+    }
+    for (const status of [
+      "fetch_intent_disabled",
+      "fetch_intent_hidden",
+      "fetch_intent_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "internal_guard_missing",
+      "action_shell_unavailable",
+      "fetch_intent_ready_internal_disabled",
+      "fetch_intent_failed",
+      "unknown",
+    ]) {
+      expect(routeSource).toContain(status);
+      expect(JSON.stringify(avanzaGuardedFetchIntentFixtures)).toContain(
+        status,
+      );
+    }
+    for (const source of [fixtureSource, harnessSource, routeSource]) {
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(
+        /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+      );
+    }
+    expect(tradeAppSource).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(tradeAppSource).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(tradeAppSource).toContain("buildAvanzaGuardedFetchIntent");
+    expect(tradeAppSource).toContain("fetchIntentEnabled: false");
+    expect(tradeAppSource).toContain('mode: "hidden"');
+    expect(apiRouteSource).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(apiRouteSource).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(apiRouteSource).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaGuardedFetchIntentHarness",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanzaGuardedFetchIntentFixtures",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaGuardedFetchIntent",
+    );
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("guarded fetch intent visibility completion and hard-disabled Trade UI wiring plan are documented", () => {
+    const visibilityCheckpointPath =
+      "docs/avanza-guarded-fetch-intent-visibility-phase-completion-checkpoint.md";
+    const fetchIntentWiringPlanPath =
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md";
+    const visibilityCheckpoint = readRepoFile(visibilityCheckpointPath);
+    const fetchIntentWiringPlan = readRepoFile(fetchIntentWiringPlanPath);
+    const guardedFetchPlan = readRepoFile(
+      "docs/avanza-guarded-fetch-intent-plan.md",
+    );
+    const actionShellPhaseCompletion = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-phase-completion-checkpoint.md",
+    );
+    const safetyAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-safety-audit.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const fetchIntentInvocations =
+      tradeAppSource.match(/buildAvanzaGuardedFetchIntent\(\{/g) ?? [];
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      localOnlyEnabled: false,
+      mode: "disabled",
+    });
+    const hardDisabledFetchIntent = buildAvanzaGuardedFetchIntent({
+      fetchIntentEnabled: false,
+      mode: "hidden",
+    });
+
+    expect(existsSync(join(repoRoot, visibilityCheckpointPath))).toBe(true);
+    expect(existsSync(join(repoRoot, fetchIntentWiringPlanPath))).toBe(true);
+    expect(visibilityCheckpoint.length).toBeGreaterThan(0);
+    expect(fetchIntentWiringPlan.length).toBeGreaterThan(0);
+    expect(visibilityCheckpoint).toContain(
+      "avanza_guarded_fetch_intent_visibility_phase_complete",
+    );
+    for (const copy of [
+      "pure guarded fetch intent model/helper",
+      "lib/avanza-guarded-fetch-intent.ts",
+      "lib/avanza-guarded-fetch-intent-fixtures.ts",
+      "components/execution/AvanzaGuardedFetchIntentHarness.tsx",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "route remains unlinked from main navigation",
+      "app/trade-app.tsx",
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+      "the visibility phase did not wire fetch intent into Trade UI",
+      "no fetch intent renders in normal/default UI",
+      "`fetchIntentEnabled` is `false` by default",
+      "`canCreateFetchIntent` is `false` by default",
+      "`canFetch` is `false`",
+      "`canCallApiRoute` is `false`",
+      "`canFetchLocalhost` is `false`",
+      "`canCallBridge` is `false`",
+      "`canControlBrowser` is `false`",
+      "`canClickReview` is `false`",
+      "`canClickConfirm` is `false`",
+      "`canSubmitOrder` is `false`",
+      "`userMustConfirm` is `true`",
+      "`finalHumanClickRequired` is `true`",
+      "active handoff",
+      "active prepare button",
+      "buy/sell CTA",
+      "API route call",
+      "fetch",
+      "localhost calls",
+      "bridge calls",
+      "polling",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order/click/review/final/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase write",
+      "api_stub_disabled",
+      "No production readiness is claimed",
+      "avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md",
+    ]) {
+      expect(visibilityCheckpoint).toContain(copy);
+    }
+    expect(fetchIntentWiringPlan).toContain(
+      "avanza_hard_disabled_trade_ui_fetch_intent_metadata_wiring_planned",
+    );
+    for (const copy of [
+      "future minimal hard-disabled Trade UI fetch intent metadata wiring",
+      "existing disabled/default-off branch",
+      "fetch intent guard remains false by default",
+      "no fetch intent UI in normal/default UI",
+      "no active UI by default",
+      "no active prepare button",
+      "no click handler",
+      "no API route call",
+      "no fetch",
+      "no route path reference",
+      "no Avanza/browser/fill/order behavior",
+      "default Trade UI remains visually unchanged",
+      "final human confirmation remains mandatory",
+      "lib/avanza-guarded-fetch-intent.ts",
+      "`fetch_intent_hidden` or `fetch_intent_disabled` by default",
+      "`fetchIntentEnabled: false` by default",
+      "`canCreateFetchIntent: false` by default",
+      "`canFetch: false`",
+      "`canCallApiRoute: false`",
+      "`canFetchLocalhost: false`",
+      "`canCallBridge: false`",
+      "`canControlBrowser: false`",
+      "`canFillForm: false`",
+      "`canClickReview: false`",
+      "`canClickConfirm: false`",
+      "`canSubmitOrder: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+      "fetch intent status",
+      "fetchIntentId",
+      "actionShellId if present",
+      "apiCallIntentId if present",
+      "sourceRecommendationId",
+      "packageId",
+      "routeStatus if explicit",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "Minimal hard-disabled Trade UI fetch intent model invocation.",
+      "Minimal hard-disabled Trade UI fetch intent metadata wiring is now implemented",
+      "invokes it only inside the existing",
+      "passes `fetchIntentEnabled: false`",
+      "passes `mode: \"hidden\"`",
+      "produces `fetch_intent_hidden` metadata only",
+      "Safety audit.",
+      "Phase completion checkpoint.",
+      "Explicit disabled local-only manual test path planning.",
+    ]) {
+      expect(fetchIntentWiringPlan).toContain(copy);
+    }
+    for (const forbidden of [
+      "render fetch intent in normal/default UI",
+      "add active prepare button",
+      "add active handoff",
+      "add buy/sell CTA",
+      "add `onClick`",
+      "call API route",
+      "add fetch",
+      "reference route path from `app/trade-app.tsx`",
+      "call localhost",
+      "call bridge",
+      "call Avanza/browser",
+      "add real fill",
+      "submit order",
+      "never click Granska köp",
+      "never click Granska sälj",
+      "never open review modal",
+      "never click Bekräfta köp",
+      "never click Bekräfta sälj",
+      "never handle credentials",
+      "never handle BankID",
+      "never read cookies/session/localStorage",
+      "never store Avanza session state",
+      "never bypass manual confirmation",
+      "never write Supabase execution records",
+    ]) {
+      expect(fetchIntentWiringPlan).toContain(forbidden);
+    }
+    for (const doc of [
+      guardedFetchPlan,
+      actionShellPhaseCompletion,
+      safetyAudit,
+      integrationPlan,
+      readOnlyPlan,
+    ]) {
+      expect(doc).toContain(visibilityCheckpointPath);
+      expect(doc).toContain(fetchIntentWiringPlanPath);
+    }
+    expect(routeSource).toContain("AvanzaGuardedFetchIntentHarness");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(tradeAppSource).toContain(
+      "ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(fetchIntentInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaGuardedFetchIntent");
+    expect(beforeBranch).not.toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("const hardDisabledFetchIntent");
+    expect(branchSnippet).toContain("fetchIntentEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain(
+      "actionShellModel: hardDisabledActionShell",
+    );
+    expect(branchSnippet).toContain(
+      "apiCallIntent: hardDisabledApiRouteCallIntent",
+    );
+    expect(branchSnippet).toContain("void hardDisabledFetchIntent");
+    expect(branchSnippet).not.toMatch(/<AvanzaGuardedFetchIntent\b/);
+    expect(branchSnippet).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(branchSnippet).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(afterBranch).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(["fetch_intent_hidden", "fetch_intent_disabled"]).toContain(
+      hardDisabledFetchIntent.status,
+    );
+    expect(hardDisabledFetchIntent.fetchIntentEnabled).toBe(false);
+    expect(hardDisabledFetchIntent.canCreateFetchIntent).toBe(false);
+    expectGuardedFetchIntentSafetyLocked(hardDisabledFetchIntent);
+    expect(tradeAppSource).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(tradeAppSource).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(tradeAppSource).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(apiRouteSource).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(apiRouteSource).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(apiRouteSource).not.toContain("guardedFetchIntent");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaGuardedFetchIntent",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaGuardedFetchIntentHarness",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("hard-disabled Trade UI fetch intent metadata wiring safety audit records hidden metadata-only behavior", () => {
+    const auditPath =
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md";
+    const phaseCompletionPath =
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-phase-completion-checkpoint.md";
+    const manualTestPathPlanPath =
+      "docs/avanza-disabled-local-only-manual-test-path-plan.md";
+    const audit = readRepoFile(auditPath);
+    const phaseCompletion = readRepoFile(phaseCompletionPath);
+    const manualTestPathPlan = readRepoFile(manualTestPathPlanPath);
+    const wiringPlan = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md",
+    );
+    const visibilityCheckpoint = readRepoFile(
+      "docs/avanza-guarded-fetch-intent-visibility-phase-completion-checkpoint.md",
+    );
+    const guardedFetchPlan = readRepoFile(
+      "docs/avanza-guarded-fetch-intent-plan.md",
+    );
+    const actionShellPhaseCompletion = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-phase-completion-checkpoint.md",
+    );
+    const actionShellAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-safety-audit.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const fetchIntentInvocations =
+      tradeAppSource.match(/buildAvanzaGuardedFetchIntent\(\{/g) ?? [];
+    const hardDisabledFetchIntent = buildAvanzaGuardedFetchIntent({
+      fetchIntentEnabled: false,
+      mode: "hidden",
+    });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      localOnlyEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, auditPath))).toBe(true);
+    expect(existsSync(join(repoRoot, phaseCompletionPath))).toBe(true);
+    expect(existsSync(join(repoRoot, manualTestPathPlanPath))).toBe(true);
+    expect(audit.length).toBeGreaterThan(0);
+    expect(phaseCompletion.length).toBeGreaterThan(0);
+    expect(manualTestPathPlan.length).toBeGreaterThan(0);
+    expect(audit).toContain(
+      "avanza_hard_disabled_trade_ui_fetch_intent_metadata_wiring_safety_audited",
+    );
+    expect(phaseCompletion).toContain(
+      "avanza_hard_disabled_trade_ui_fetch_intent_metadata_wiring_phase_complete",
+    );
+    expect(manualTestPathPlan).toContain(
+      "avanza_disabled_local_only_manual_test_path_planned",
+    );
+    for (const copy of [
+      "app/trade-app.tsx contains minimal hard-disabled fetch intent metadata wiring",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains `false`",
+      "`buildAvanzaGuardedFetchIntent(...)` invocation exists only inside the",
+      "hard-disabled/default-off branch",
+      "`fetchIntentEnabled` is false by default",
+      "mode is hidden by default",
+      "output is hidden/disabled metadata only",
+      "output is discarded with `void hardDisabledFetchIntent`",
+      "default Trade UI remains visually unchanged",
+      "no fetch intent UI renders by default",
+      "no action shell UI",
+      "passive component is not imported by `app/trade-app.tsx`",
+      "passive component is not rendered in Trade UI",
+      "API call intent UI",
+      "visible shell UI in normal/default UI",
+      "shell UI by default",
+      "prepare UI by default",
+      "prepare button",
+      "active handoff button",
+      "buy/sell CTA",
+      "No `onClick` handler was added for fetch intent",
+      "`app/trade-app.tsx` does not reference the API route path",
+      "no API route call exists from Trade UI",
+      "no fetch exists from Trade UI for this path",
+      "`app/api/dev/avanza/fill-only/stub/route.ts` was not changed by this wiring task",
+      "the API route still returns `api_stub_disabled` by default",
+      "localhost calls",
+      "bridge calls",
+      "polling/execution behavior",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order behavior",
+      "review/confirm/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase execution write",
+      "`userMustConfirm: true`",
+      "`finalHumanClickRequired: true`",
+      "No production readiness is claimed",
+    ]) {
+      expect(audit).toContain(copy);
+    }
+    for (const copy of [
+      "minimal hard-disabled Trade UI fetch intent metadata wiring phase is",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains `false`",
+      "fetch intent model invocation exists only inside the hard-disabled/default-off",
+      "`fetchIntentEnabled` is false by default",
+      "mode is hidden by default",
+      "output is hidden/disabled metadata only",
+      "output is discarded with `void hardDisabledFetchIntent`",
+      "default Trade UI remains visually unchanged",
+      "no fetch intent UI renders by default",
+      "no action shell UI renders by default",
+      "no API call intent UI renders by default",
+      "no visible shell renders in normal/default UI",
+      "no shell UI renders by default",
+      "no prepare UI renders by default",
+      "passive component is not imported by `app/trade-app.tsx`",
+      "passive component is not rendered in Trade UI",
+      "active handoff",
+      "active prepare button",
+      "buy/sell CTA",
+      "`onClick` handler for fetch intent",
+      "API route call",
+      "fetch",
+      "localhost calls",
+      "bridge calls",
+      "polling",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order/click/review/final/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase write",
+      "`userMustConfirm: true`",
+      "`finalHumanClickRequired: true`",
+      "No production readiness is claimed",
+      manualTestPathPlanPath,
+    ]) {
+      expect(phaseCompletion).toContain(copy);
+    }
+    for (const copy of [
+      "future local-only manual test path for the disabled route/fetch stack",
+      "path must remain disabled by default",
+      "does not add fetch",
+      "does not call the API route",
+      "does not call localhost or bridge",
+      "does not wire anything into normal",
+      "manual_test_path_disabled",
+      "manual_test_path_hidden",
+      "manual_test_path_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "fetch_intent_unavailable",
+      "internal_guard_missing",
+      "local_only_guard_missing",
+      "manual_test_path_ready_internal_disabled",
+      "manual_test_path_failed",
+      "unknown",
+      "`manualTestPathId`",
+      "`fetchIntentId` if present",
+      "`actionShellId` if present",
+      "`apiCallIntentId` if present",
+      "`sourceRecommendationId`",
+      "`packageId`",
+      "`side`",
+      "`ticker` or `symbol`",
+      "`quantity`",
+      "`orderType`",
+      "`limitPrice` if applicable",
+      "`accountLabel` if safe/present",
+      "`routeStatus` if explicit",
+      "`localOnlyGuardStatus` if explicit",
+      "`internalGuardStatus` if explicit",
+      "`userMustConfirm: true`",
+      "`finalHumanClickRequired: true`",
+      "`manualTestPathEnabled: false` by default",
+      "`canCreateManualTestPath: false` by default",
+      "`canExposeLocalRoute: false` by default",
+      "`canFetch: false`",
+      "`canCallApiRoute: false`",
+      "`canFetchLocalhost: false`",
+      "`canCallBridge: false`",
+      "`canControlBrowser: false`",
+      "`canFillForm: false`",
+      "`canClickReview: false`",
+      "`canClickConfirm: false`",
+      "`canSubmitOrder: false`",
+      "`canHandleCredentials: false`",
+      "`canReadCookies: false`",
+      "`canReadBankId: false`",
+      "`canWriteSupabaseExecution: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+      "Pure disabled local-only manual test path model/helper.",
+      "Fixtures, harness, and dev QA route section.",
+      "Hard-disabled Trade UI metadata wiring, still disabled by default.",
+      "Safety audit.",
+      "Phase completion checkpoint.",
+      "No production readiness is claimed",
+    ]) {
+      expect(manualTestPathPlan).toContain(copy);
+    }
+    for (const forbidden of [
+      "add fetch in the planning phase",
+      "call the API route",
+      "reference the route path from `app/trade-app.tsx`",
+      "add active prepare button",
+      "add active handoff",
+      "add buy/sell CTA",
+      "add `onClick`",
+      "call localhost",
+      "call bridge",
+      "call Avanza/browser",
+      "add real fill",
+      "submit order",
+      "handle credentials",
+      "handle BankID",
+      "read cookies/session/localStorage",
+      "store Avanza session state",
+      "bypass manual confirmation",
+      "write Supabase execution records",
+    ]) {
+      expect(manualTestPathPlan).toContain(forbidden);
+    }
+    for (const flag of [
+      "`fetchIntentEnabled: false` by default",
+      "`canCreateFetchIntent: false` by default",
+      "`canFetch: false`",
+      "`canCallApiRoute: false`",
+      "`canFetchLocalhost: false`",
+      "`canCallBridge: false`",
+      "`canControlBrowser: false`",
+      "`canFillForm: false`",
+      "`canClickReview: false`",
+      "`canClickConfirm: false`",
+      "`canSubmitOrder: false`",
+      "`canHandleCredentials: false`",
+      "`canReadCookies: false`",
+      "`canReadBankId: false`",
+      "`canWriteSupabaseExecution: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+    ]) {
+      expect(audit).toContain(flag);
+    }
+    for (const doc of [
+      wiringPlan,
+      visibilityCheckpoint,
+      guardedFetchPlan,
+      phaseCompletion,
+      manualTestPathPlan,
+      actionShellPhaseCompletion,
+      actionShellAudit,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(auditPath);
+    }
+    for (const doc of [
+      audit,
+      wiringPlan,
+      visibilityCheckpoint,
+      guardedFetchPlan,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(phaseCompletionPath);
+      expect(doc).toContain(manualTestPathPlanPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(fetchIntentInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaGuardedFetchIntent");
+    expect(beforeBranch).not.toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("buildAvanzaGuardedFetchIntent({");
+    expect(branchSnippet).toContain("const hardDisabledFetchIntent");
+    expect(branchSnippet).toContain("fetchIntentEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledFetchIntent");
+    expect(branchSnippet).not.toMatch(/<AvanzaGuardedFetchIntent\b/);
+    expect(branchSnippet).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(branchSnippet).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(["fetch_intent_hidden", "fetch_intent_disabled"]).toContain(
+      hardDisabledFetchIntent.status,
+    );
+    expect(hardDisabledFetchIntent.fetchIntentEnabled).toBe(false);
+    expect(hardDisabledFetchIntent.canCreateFetchIntent).toBe(false);
+    expectGuardedFetchIntentSafetyLocked(hardDisabledFetchIntent);
+    expect(tradeAppSource).not.toContain("AvanzaGuardedFetchIntentHarness");
+    expect(tradeAppSource).not.toContain("avanzaGuardedFetchIntentFixtures");
+    expect(tradeAppSource).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(apiRouteSource).not.toContain("buildAvanzaGuardedFetchIntent");
+    expect(apiRouteSource).not.toContain("hardDisabledFetchIntent");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaGuardedFetchIntent",
+    );
+    expect(passiveActionShellSource).not.toContain("hardDisabledFetchIntent");
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only manual test path model maps disabled, unavailable, blocked, failed, and ready states safely", () => {
+    const safeMetadata = {
+      accountLabel: "ISK",
+      actionShellId: "action-shell-safe",
+      apiCallIntentId: "api-call-intent-safe",
+      fetchIntentId: "fetch-intent-safe",
+      limitPrice: 240.5,
+      orderType: "LIMIT",
+      packageId: "pkg-safe",
+      quantity: 12,
+      side: "BUY",
+      sourceRecommendationId: "source-safe",
+      symbol: "SAFE",
+      ticker: "SAFE",
+      warnings: ["fixture only"],
+    };
+    const readyFetchIntent = {
+      ...safeMetadata,
+      status: "fetch_intent_ready_internal_disabled",
+    };
+    const disabledFetchIntent = {
+      ...safeMetadata,
+      status: "fetch_intent_disabled",
+    };
+    const blockedFetchIntent = {
+      ...safeMetadata,
+      blockedReasons: ["fetch intent blocked"],
+      status: "fetch_intent_blocked",
+    };
+    const readyRoute = { status: "route_available_internal_disabled" };
+    const disabledRoute = { status: "api_stub_disabled" };
+    const allowedInternalGuard = { status: "internal_guard_allowed" };
+    const allowedLocalOnlyGuard = { status: "local_only_guard_allowed" };
+    const disabledDefault = buildAvanzaDisabledLocalOnlyManualTestPath();
+    const hidden = buildAvanzaDisabledLocalOnlyManualTestPath({
+      manualTestPathEnabled: true,
+      mode: "hidden",
+    });
+    const disabledMode = buildAvanzaDisabledLocalOnlyManualTestPath({
+      manualTestPathEnabled: true,
+      mode: "disabled",
+    });
+    const missingFetchIntent = buildAvanzaDisabledLocalOnlyManualTestPath({
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+    });
+    const unavailableFetchIntent = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: disabledFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+    });
+    const blockedFromFetchIntent = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: blockedFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+    });
+    const missingRoute = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: readyFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+    });
+    const disabledRoutePath = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: readyFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: disabledRoute,
+    });
+    const unknownRoute = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: readyFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: {},
+    });
+    const missingInternalGuard = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: readyFetchIntent,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: readyRoute,
+    });
+    const missingLocalOnlyGuard = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: readyFetchIntent,
+      internalGuard: allowedInternalGuard,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: readyRoute,
+    });
+    const unsafeInput = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: { ...readyFetchIntent, canFetch: true },
+      internalGuard: allowedInternalGuard,
+      localOnlyGuard: allowedLocalOnlyGuard,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: readyRoute,
+    });
+    const failedInput = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: { status: "fetch_intent_failed" },
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+    });
+    const missingTicker = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: { ...readyFetchIntent, ticker: undefined },
+      handoffMetadata: { ...safeMetadata, ticker: undefined },
+      internalGuard: allowedInternalGuard,
+      localOnlyGuard: allowedLocalOnlyGuard,
+      manualTestPathEnabled: true,
+      mode: "internal_preview",
+      routeState: readyRoute,
+    });
+    const readyPreview = buildAvanzaDisabledLocalOnlyManualTestPath({
+      actionShellModel: safeMetadata,
+      apiCallIntent: safeMetadata,
+      fetchIntent: readyFetchIntent,
+      handoffMetadata: safeMetadata,
+      internalGuard: allowedInternalGuard,
+      localOnlyGuard: allowedLocalOnlyGuard,
+      manualTestPathEnabled: true,
+      manualTestPathId: "manual-test-path-safe",
+      mode: "internal_preview",
+      now: "2026-07-05T00:00:00Z",
+      routeState: readyRoute,
+    });
+    const readyInternalManual = buildAvanzaDisabledLocalOnlyManualTestPath({
+      fetchIntent: { ...readyFetchIntent, side: "SELL" },
+      handoffMetadata: { ...safeMetadata, side: "SELL" },
+      internalGuard: { allowManualTestPath: true },
+      localOnlyGuard: { allowLocalOnlyManualTestPath: true },
+      manualTestPathEnabled: true,
+      manualTestPathId: "manual-test-path-sell-safe",
+      mode: "internal_manual_test_path",
+      now: "2026-07-05T00:00:00Z",
+      routeState: { status: "route_ready_internal_disabled" },
+    });
+
+    expect(disabledDefault.status).toBe("manual_test_path_disabled");
+    expect(disabledDefault.manualTestPathEnabled).toBe(false);
+    expect(disabledDefault.canCreateManualTestPath).toBe(false);
+    expect(hidden.status).toBe("manual_test_path_hidden");
+    expect(disabledMode.status).toBe("manual_test_path_disabled");
+    expect(missingFetchIntent.status).toBe("fetch_intent_unavailable");
+    expect(unavailableFetchIntent.status).toBe("fetch_intent_unavailable");
+    expect(blockedFromFetchIntent.status).toBe("manual_test_path_blocked");
+    expect(missingRoute.status).toBe("route_unavailable");
+    expect(disabledRoutePath.status).toBe("route_disabled");
+    expect(disabledRoutePath.routeStatus).toBe("api_stub_disabled");
+    expect(unknownRoute.status).toBe("unknown");
+    expect(missingInternalGuard.status).toBe("internal_guard_missing");
+    expect(missingLocalOnlyGuard.status).toBe("local_only_guard_missing");
+    expect(unsafeInput.status).toBe("manual_test_path_blocked");
+    expect(failedInput.status).toBe("manual_test_path_failed");
+    expect(missingTicker.status).toBe("manual_test_path_blocked");
+    expect(missingTicker.blockedReasons).toContain("missing ticker");
+    expect(readyPreview.status).toBe(
+      "manual_test_path_ready_internal_disabled",
+    );
+    expect(readyPreview.canCreateManualTestPath).toBe(true);
+    expect(readyPreview.canExposeLocalRoute).toBe(false);
+    expect(readyPreview.canFetch).toBe(false);
+    expect(readyPreview.canCallApiRoute).toBe(false);
+    expect(readyPreview.routeStatus).toBe("route_available_internal_disabled");
+    expect(readyPreview.internalGuardStatus).toBe("internal_guard_allowed");
+    expect(readyPreview.localOnlyGuardStatus).toBe("local_only_guard_allowed");
+    expect(readyPreview.manualTestPathId).toBe("manual-test-path-safe");
+    expect(readyPreview.fetchIntentId).toBe("fetch-intent-safe");
+    expect(readyPreview.packageId).toBe("pkg-safe");
+    expect(readyPreview.actionShellId).toBe("action-shell-safe");
+    expect(readyPreview.apiCallIntentId).toBe("api-call-intent-safe");
+    expect(readyPreview.sourceRecommendationId).toBe("source-safe");
+    expect(readyPreview.ticker).toBe("SAFE");
+    expect(readyPreview.symbol).toBe("SAFE");
+    expect(readyPreview.side).toBe("BUY");
+    expect(readyPreview.quantity).toBe(12);
+    expect(readyPreview.orderType).toBe("LIMIT");
+    expect(readyPreview.limitPrice).toBe(240.5);
+    expect(readyPreview.accountLabel).toBe("ISK");
+    expect(readyInternalManual.status).toBe(
+      "manual_test_path_ready_internal_disabled",
+    );
+    expect(readyInternalManual.mode).toBe("internal_manual_test_path");
+    expect(readyInternalManual.side).toBe("SELL");
+    expect(readyInternalManual.canCreateManualTestPath).toBe(true);
+    expect(readyInternalManual.canFetch).toBe(false);
+    expect(readyInternalManual.canCallApiRoute).toBe(false);
+
+    for (const manualTestPath of [
+      disabledDefault,
+      hidden,
+      disabledMode,
+      missingFetchIntent,
+      unavailableFetchIntent,
+      blockedFromFetchIntent,
+      missingRoute,
+      disabledRoutePath,
+      unknownRoute,
+      missingInternalGuard,
+      missingLocalOnlyGuard,
+      unsafeInput,
+      failedInput,
+      missingTicker,
+      readyPreview,
+      readyInternalManual,
+    ]) {
+      expectDisabledLocalOnlyManualTestPathSafetyLocked(manualTestPath);
+      expect(JSON.stringify(manualTestPath)).not.toMatch(
+        /accountId["':]|credential-value|cookie-value|session-value|bankid-value|storage-value|broker-secret|supabase-url/i,
+      );
+    }
+  });
+
+  test("disabled local-only manual test path helper is pure, explicit-input only, and unwired", () => {
+    const modulePath = "lib/avanza-disabled-local-only-manual-test-path.ts";
+    const moduleSource = readRepoFile(modulePath);
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    for (const copy of [
+      "AvanzaDisabledLocalOnlyManualTestPathStatus",
+      "AvanzaDisabledLocalOnlyManualTestPathMode",
+      "AvanzaDisabledLocalOnlyManualTestPath",
+      "AvanzaDisabledLocalOnlyManualTestPathSafetyFlags",
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+      "manual_test_path_disabled",
+      "manual_test_path_hidden",
+      "manual_test_path_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "fetch_intent_unavailable",
+      "internal_guard_missing",
+      "local_only_guard_missing",
+      "manual_test_path_ready_internal_disabled",
+      "manual_test_path_failed",
+      "unknown",
+      "canCreateManualTestPath: boolean",
+      "canExposeLocalRoute: false",
+      "canFetch: false",
+      "canCallApiRoute: false",
+      "canFetchLocalhost: false",
+      "canCallBridge: false",
+      "canControlBrowser: false",
+      "canFillForm: false",
+      "canClickReview: false",
+      "canClickConfirm: false",
+      "canSubmitOrder: false",
+      "canHandleCredentials: false",
+      "canReadCookies: false",
+      "canReadBankId: false",
+      "canWriteSupabaseExecution: false",
+      "userMustConfirm: true",
+      "finalHumanClickRequired: true",
+      "controlsEnabled: false",
+      "gateLocked: true",
+    ]) {
+      expect(moduleSource).toContain(copy);
+    }
+    expect(moduleSource).not.toMatch(/^import\s/m);
+    expect(moduleSource).not.toMatch(/app\/trade-app/);
+    expect(moduleSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
+    expect(moduleSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(moduleSource).not.toMatch(/process\.env/);
+    expect(moduleSource).not.toMatch(
+      /localStorage|sessionStorage|document\.cookie|cookies\(\)/,
+    );
+    expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
+    expect(moduleSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(moduleSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(moduleSource).not.toMatch(/from ["'].*supabase|supabase\./i);
+    expect(moduleSource).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(moduleSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(moduleSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(moduleSource).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(moduleSource).not.toMatch(/production-ready|production ready/i);
+
+    expect(tradeAppSource).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(tradeAppSource).toContain(
+      "avanza-disabled-local-only-manual-test-path",
+    );
+
+    for (const source of [apiRouteSource, passiveActionShellSource]) {
+      expect(source).not.toContain(
+        "buildAvanzaDisabledLocalOnlyManualTestPath",
+      );
+      expect(source).not.toContain(
+        "avanza-disabled-local-only-manual-test-path",
+      );
+    }
+  });
+
+  test("disabled local-only manual test path fixtures and harness cover all statuses safely", () => {
+    const fixtureSource = readRepoFile(
+      "lib/avanza-disabled-local-only-manual-test-path-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaDisabledLocalOnlyManualTestPathHarness.tsx",
+    );
+    const fixtureIds = new Set(
+      avanzaDisabledLocalOnlyManualTestPathFixtures.map(
+        (fixture) => fixture.fixtureId,
+      ),
+    );
+    const fixtureStatuses = new Set(
+      avanzaDisabledLocalOnlyManualTestPathFixtures.map(
+        (fixture) => fixture.modelResult.status,
+      ),
+    );
+
+    expect(fixtureSource.length).toBeGreaterThan(0);
+    expect(harnessSource.length).toBeGreaterThan(0);
+    expect(fixtureSource).toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(harnessSource).toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+
+    const expectedFixtureIds: AvanzaDisabledLocalOnlyManualTestPathFixtureId[] =
+      [
+      "manual_test_path_disabled",
+      "manual_test_path_hidden",
+      "manual_test_path_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "fetch_intent_unavailable",
+      "internal_guard_missing",
+      "local_only_guard_missing",
+      "manual_test_path_ready_internal_disabled",
+      "manual_test_path_failed",
+      "unknown",
+      "safe_buy_internal_preview_manual_test_path",
+      "safe_sell_internal_preview_manual_test_path",
+      "safe_buy_internal_manual_test_path_disabled",
+      "safe_sell_internal_manual_test_path_disabled",
+      "missing_fetch_intent",
+      "missing_route_state",
+      "disabled_route_state",
+      "missing_internal_guard",
+      "missing_local_only_guard",
+      "blocked_fetch_intent",
+      "failed_input",
+      "unsafe_input",
+    ];
+
+    for (const fixtureId of expectedFixtureIds) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    const expectedStatuses: AvanzaDisabledLocalOnlyManualTestPathStatus[] = [
+      "manual_test_path_disabled",
+      "manual_test_path_hidden",
+      "manual_test_path_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "fetch_intent_unavailable",
+      "internal_guard_missing",
+      "local_only_guard_missing",
+      "manual_test_path_ready_internal_disabled",
+      "manual_test_path_failed",
+      "unknown",
+    ];
+
+    for (const status of expectedStatuses) {
+      expect(fixtureStatuses.has(status)).toBe(true);
+      expect(fixtureSource).toContain(status);
+    }
+
+    const defaultDisabled = avanzaDisabledLocalOnlyManualTestPathFixtures.find(
+      (fixture) => fixture.fixtureId === "manual_test_path_disabled",
+    );
+    const readyFixture = avanzaDisabledLocalOnlyManualTestPathFixtures.find(
+      (fixture) =>
+        fixture.fixtureId === "manual_test_path_ready_internal_disabled",
+    );
+
+    expect(defaultDisabled?.modelResult.manualTestPathEnabled).toBe(false);
+    expect(defaultDisabled?.modelResult.canCreateManualTestPath).toBe(false);
+    expect(readyFixture?.modelResult.status).toBe(
+      "manual_test_path_ready_internal_disabled",
+    );
+    expect(readyFixture?.modelResult.canCreateManualTestPath).toBe(true);
+    expect(readyFixture?.modelResult.canExposeLocalRoute).toBe(false);
+    expect(readyFixture?.modelResult.canFetch).toBe(false);
+    expect(readyFixture?.modelResult.canCallApiRoute).toBe(false);
+
+    for (const fixture of avanzaDisabledLocalOnlyManualTestPathFixtures) {
+      expect(fixture.modelResult.status).toBe(fixture.expectedStatus);
+      expectDisabledLocalOnlyManualTestPathSafetyLocked(fixture.modelResult);
+      expect(fixture.modelResult.canExposeLocalRoute).toBe(false);
+      expect(fixture.modelResult.canFetch).toBe(false);
+      expect(fixture.modelResult.canCallApiRoute).toBe(false);
+      expect(fixture.modelResult.canFetchLocalhost).toBe(false);
+      expect(fixture.modelResult.canCallBridge).toBe(false);
+      expect(fixture.modelResult.canControlBrowser).toBe(false);
+      expect(fixture.modelResult.canClickReview).toBe(false);
+      expect(fixture.modelResult.canClickConfirm).toBe(false);
+      expect(fixture.modelResult.canSubmitOrder).toBe(false);
+      expect(fixture.modelResult.canHandleCredentials).toBe(false);
+      expect(fixture.modelResult.canReadCookies).toBe(false);
+      expect(fixture.modelResult.canReadBankId).toBe(false);
+      expect(fixture.modelResult.canWriteSupabaseExecution).toBe(false);
+      expect(JSON.stringify(fixture.modelResult)).not.toMatch(
+        /accountId["':]|credential-value|cookie-value|session-value|bankid-value|storage-value|broker-secret|supabase-url/i,
+      );
+    }
+
+    for (const source of [fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/from ["'].*supabase|supabase\./i);
+      expect(source).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(
+        /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+      );
+    }
+  });
+
+  test("dev route renders disabled local-only manual test path fixture-only section and remains isolated", () => {
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(routeSource).toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(routeSource).toContain("Disabled local-only manual test path");
+
+    for (const copy of [
+      "Fixture only",
+      "Explicit input only",
+      "Internal/dev-only",
+      "Local-only",
+      "Disabled by default",
+      "No Trade UI wiring",
+      "No active prepare button",
+      "No active handoff",
+      "No API route call",
+      "No fetch",
+      "No route path exposure",
+      "No bridge calls",
+      "No localhost fetch",
+      "No polling",
+      "No Avanza/browser control",
+      "No execution",
+      "No real fill",
+      "No order submission",
+      "Never clicks review",
+      "Never clicks confirm",
+      "Never submits order",
+      "User must confirm",
+      "Final human click required",
+      "Controls disabled",
+      "Gate locked",
+      "No broker action",
+      "Not production ready",
+      "Manual confirmation required in Avanza",
+      "manual_test_path_ready_internal_disabled remains disabled/internal-only",
+    ]) {
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const status of [
+      "manual_test_path_disabled",
+      "manual_test_path_hidden",
+      "manual_test_path_blocked",
+      "route_unavailable",
+      "route_disabled",
+      "fetch_intent_unavailable",
+      "internal_guard_missing",
+      "local_only_guard_missing",
+      "manual_test_path_ready_internal_disabled",
+      "manual_test_path_failed",
+      "unknown",
+      "safe BUY internal preview manual test path",
+      "safe SELL internal preview manual test path",
+      "safe BUY internal manual test path disabled",
+      "safe SELL internal manual test path disabled",
+      "missing fetch intent",
+      "missing route state",
+      "disabled route state",
+      "missing internal guard",
+      "missing local-only guard",
+      "blocked fetch intent",
+      "failed input",
+      "unsafe input",
+    ]) {
+      expect(routeSource).toContain(status);
+    }
+
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only manual test path visibility completion and hard-disabled Trade UI wiring plan are documented", () => {
+    const completionDocPath =
+      "docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md";
+    const wiringPlanPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-plan.md";
+    const completionDoc = readRepoFile(completionDocPath);
+    const wiringPlan = readRepoFile(wiringPlanPath);
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+
+    expect(existsSync(join(repoRoot, completionDocPath))).toBe(true);
+    expect(existsSync(join(repoRoot, wiringPlanPath))).toBe(true);
+    expect(completionDoc.length).toBeGreaterThan(0);
+    expect(wiringPlan.length).toBeGreaterThan(0);
+
+    for (const copy of [
+      "pure disabled local-only manual test path model",
+      "static fixtures",
+      "isolated harness",
+      "fixture/model-only dev QA route section",
+      "The route remains unlinked from main navigation",
+      "The visibility layer did not edit `app/trade-app.tsx`",
+      "The visibility layer did not edit",
+      "AvanzaPassiveDisabledActionShell.tsx",
+      "The manual test path is not wired into Trade UI",
+      "normal/default UI",
+      "`manualTestPathEnabled: false`",
+      "`canCreateManualTestPath: false`",
+      "`canExposeLocalRoute: false`",
+      "`canFetch: false`",
+      "`canCallApiRoute: false`",
+      "`canFetchLocalhost: false`",
+      "`canCallBridge: false`",
+      "`canControlBrowser: false`",
+      "`canClickReview: false`",
+      "`canClickConfirm: false`",
+      "`canSubmitOrder: false`",
+      "`userMustConfirm: true`",
+      "`finalHumanClickRequired: true`",
+      "No production readiness is claimed",
+    ]) {
+      expect(completionDoc).toContain(copy);
+    }
+
+    for (const forbiddenCopy of [
+      "active handoff",
+      "active prepare button",
+      "buy/sell CTA",
+      "`onClick`",
+      "API route call",
+      "fetch",
+      "route path exposure",
+      "localhost calls",
+      "bridge calls",
+      "polling",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order/click/review/final/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase write",
+    ]) {
+      expect(completionDoc).toContain(forbiddenCopy);
+    }
+
+    for (const copy of [
+      "hard-disabled Trade UI wiring",
+      "existing disabled/default-off branch",
+      "manual test path guard must remain false by default",
+      "Default Trade UI must remain visually unchanged",
+      "No manual test path UI may render in normal/default UI",
+      "Semi-auto human confirmation remains mandatory",
+      "lib/avanza-disabled-local-only-manual-test-path.ts",
+      "manualTestPathEnabled` remains false by default",
+      "mode remains hidden or disabled by default",
+      "no manual test path render by default",
+      "no route call by default",
+      "no fetch by default",
+      "app/trade-app.tsx` must not reference the disabled local API route path",
+      "manual test path status",
+      "manualTestPathId",
+      "fetchIntentId if present",
+      "actionShellId if present",
+      "apiCallIntentId if present",
+      "sourceRecommendationId",
+      "packageId",
+      "ticker or symbol",
+      "`userMustConfirm`",
+      "`finalHumanClickRequired`",
+      "`manual_test_path_hidden`",
+      "`manual_test_path_disabled`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+    ]) {
+      expect(wiringPlan).toContain(copy);
+    }
+
+    for (const forbiddenCopy of [
+      "render manual test path in normal/default UI",
+      "add active prepare button",
+      "add active handoff",
+      "add buy/sell CTA",
+      "add `onClick`",
+      "call the API route",
+      "add fetch",
+      "expose route path",
+      "reference route path from `app/trade-app.tsx`",
+      "call localhost",
+      "call bridge",
+      "call Avanza/browser",
+      "add real fill",
+      "submit order",
+      "handle credentials",
+      "handle BankID",
+      "read cookies/session/localStorage",
+      "write Supabase execution records",
+    ]) {
+      expect(wiringPlan).toContain(forbiddenCopy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(routeSource).toContain("Disabled local-only manual test path");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("No API route call");
+    expect(routeSource).toContain("No fetch");
+    expect(routeSource).toContain("No route path exposure");
+    expect(routeSource).toContain("Controls disabled");
+    expect(routeSource).toContain("Gate locked");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("const hardDisabledManualTestPath");
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("fetchIntent: hardDisabledFetchIntent");
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expect(hardDisabledManualTestPath.canCreateManualTestPath).toBe(false);
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("hard-disabled Trade UI manual test path metadata wiring safety audit records hidden metadata-only behavior", () => {
+    const auditPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-safety-audit.md";
+    const wiringPlanPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-plan.md";
+    const visibilityCheckpointPath =
+      "docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md";
+    const manualTestPathPlanPath =
+      "docs/avanza-disabled-local-only-manual-test-path-plan.md";
+    const audit = readRepoFile(auditPath);
+    const wiringPlan = readRepoFile(wiringPlanPath);
+    const visibilityCheckpoint = readRepoFile(visibilityCheckpointPath);
+    const manualTestPathPlan = readRepoFile(manualTestPathPlanPath);
+    const fetchIntentPhaseCompletion = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-phase-completion-checkpoint.md",
+    );
+    const fetchIntentSafetyAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, auditPath))).toBe(true);
+    expect(audit.length).toBeGreaterThan(0);
+    expect(audit).toContain(
+      "avanza_hard_disabled_trade_ui_manual_test_path_metadata_wiring_safety_audited",
+    );
+
+    for (const copy of [
+      "app/trade-app.tsx` contains minimal hard-disabled manual test path metadata",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains `false`",
+      "`buildAvanzaDisabledLocalOnlyManualTestPath(...)` is invoked only inside the",
+      "hard-disabled/default-off branch",
+      "`manualTestPathEnabled` is false by default",
+      "mode is hidden by default",
+      "output is hidden/disabled metadata only",
+      "output is discarded with `void hardDisabledManualTestPath`",
+      "default Trade UI remains visually unchanged",
+      "no manual test path UI renders by default",
+      "no fetch intent UI",
+      "action shell UI",
+      "passive component is not imported by `app/trade-app.tsx`",
+      "passive component is not rendered in Trade UI",
+      "API call intent UI",
+      "visible shell in normal/default UI",
+      "shell UI by default",
+      "prepare UI by default",
+      "prepare button",
+      "active handoff button",
+      "buy/sell CTA",
+      "No `onClick` handler was added for manual test path",
+      "`app/trade-app.tsx` does not reference the API route path",
+      "no API route call exists from Trade UI",
+      "no fetch exists from Trade UI",
+      "no route path exposure exists",
+      "`app/api/dev/avanza/fill-only/stub/route.ts` was not changed by this wiring task",
+      "the API route still returns `api_stub_disabled` by default",
+      "localhost calls",
+      "bridge calls",
+      "polling/execution behavior",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order behavior",
+      "review/confirm/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase execution write",
+      "`userMustConfirm` remains true",
+      "`finalHumanClickRequired` remains true",
+      "No production readiness is claimed",
+    ]) {
+      expect(audit).toContain(copy);
+    }
+
+    for (const flag of [
+      "`manualTestPathEnabled: false` by default",
+      "`canCreateManualTestPath: false` by default",
+      "`canExposeLocalRoute: false`",
+      "`canFetch: false`",
+      "`canCallApiRoute: false`",
+      "`canFetchLocalhost: false`",
+      "`canCallBridge: false`",
+      "`canControlBrowser: false`",
+      "`canFillForm: false`",
+      "`canClickReview: false`",
+      "`canClickConfirm: false`",
+      "`canSubmitOrder: false`",
+      "`canHandleCredentials: false`",
+      "`canReadCookies: false`",
+      "`canReadBankId: false`",
+      "`canWriteSupabaseExecution: false`",
+      "`controlsEnabled: false`",
+      "`gateLocked: true`",
+    ]) {
+      expect(audit).toContain(flag);
+    }
+
+    for (const doc of [
+      wiringPlan,
+      visibilityCheckpoint,
+      manualTestPathPlan,
+      fetchIntentPhaseCompletion,
+      fetchIntentSafetyAudit,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(auditPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("const hardDisabledManualTestPath");
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expect(hardDisabledManualTestPath.canCreateManualTestPath).toBe(false);
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("Disabled local-only manual test path");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("hard-disabled manual test path phase completion and disabled local-only chain closeout plan are documented", () => {
+    const phaseCompletionPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-phase-completion-checkpoint.md";
+    const closeoutPlanPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md";
+    const safetyAuditPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-safety-audit.md";
+    const wiringPlanPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-plan.md";
+    const visibilityCheckpointPath =
+      "docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md";
+    const manualTestPathPlanPath =
+      "docs/avanza-disabled-local-only-manual-test-path-plan.md";
+    const phaseCompletion = readRepoFile(phaseCompletionPath);
+    const closeoutPlan = readRepoFile(closeoutPlanPath);
+    const safetyAudit = readRepoFile(safetyAuditPath);
+    const wiringPlan = readRepoFile(wiringPlanPath);
+    const visibilityCheckpoint = readRepoFile(visibilityCheckpointPath);
+    const manualTestPathPlan = readRepoFile(manualTestPathPlanPath);
+    const fetchIntentPhaseCompletion = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-phase-completion-checkpoint.md",
+    );
+    const fetchIntentSafetyAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, phaseCompletionPath))).toBe(true);
+    expect(existsSync(join(repoRoot, closeoutPlanPath))).toBe(true);
+    expect(phaseCompletion.length).toBeGreaterThan(0);
+    expect(closeoutPlan.length).toBeGreaterThan(0);
+    expect(phaseCompletion).toContain(
+      "avanza_hard_disabled_trade_ui_manual_test_path_metadata_wiring_phase_complete",
+    );
+    expect(closeoutPlan).toContain(
+      "avanza_disabled_local_only_chain_readiness_closeout_planned",
+    );
+
+    for (const copy of [
+      "minimal hard-disabled Trade UI manual test path metadata wiring exists",
+      "safety audit exists",
+      "disabled local-only manual test path model/helper exists",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains `false`",
+      "`buildAvanzaDisabledLocalOnlyManualTestPath(...)` is invoked only inside the",
+      "hard-disabled/default-off branch",
+      "`manualTestPathEnabled` false by default",
+      "mode hidden by default",
+      "output is hidden/disabled metadata only",
+      "output is discarded with `void hardDisabledManualTestPath`",
+      "Default Trade UI remains visually unchanged",
+      "No manual test path UI renders by default",
+      "No fetch intent UI renders by default",
+      "No action shell UI renders by default",
+      "The passive component is not imported by `app/trade-app.tsx`",
+      "The passive component is not rendered in Trade UI",
+      "No API call intent UI renders by default",
+      "No visible shell renders in normal/default UI",
+      "No shell UI renders by default",
+      "No prepare UI renders by default",
+      "No active handoff",
+      "active prepare button",
+      "buy/sell CTA",
+      "`onClick` handler",
+      "API route call",
+      "fetch",
+      "route path exposure",
+      "localhost calls",
+      "bridge calls",
+      "polling",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order/click/review/final/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase write",
+      "`userMustConfirm` remains true",
+      "`finalHumanClickRequired` remains true",
+      "No production readiness is claimed",
+    ]) {
+      expect(phaseCompletion).toContain(copy);
+    }
+
+    for (const copy of [
+      "plan a final closeout of the entire disabled local-only chain",
+      "selectedRecommendation preview",
+      "handoff package",
+      "prepare intent",
+      "API call intent",
+      "fetch intent",
+      "action shell",
+      "manual test path",
+      "internally modeled but not active",
+      "Trade UI default path remains unchanged",
+      "no API route call",
+      "fetch",
+      "localhost",
+      "bridge",
+      "browser",
+      "Avanza",
+      "fill",
+      "order",
+      "review",
+      "confirm",
+      "submit",
+      "credential/session handling",
+      "Supabase write",
+      "Final human confirmation remains mandatory",
+      "No production readiness is claimed",
+      "read-only real selectedRecommendation dev preview",
+      "handoff package builder",
+      "Trade UI handoff preview",
+      "fill-only adapter contract",
+      "dry-run adapter layer",
+      "disabled local bridge contract",
+      "disabled localhost bridge stub",
+      "disabled local-only API route",
+      "Trade UI prepare intent",
+      "hard-disabled prepare shell wiring",
+      "visible disabled shell layer",
+      "guarded API route call intent",
+      "hard-disabled API call intent wiring",
+      "explicit disabled action shell",
+      "passive disabled action shell component",
+      "hard-disabled action shell metadata wiring",
+      "guarded fetch intent",
+      "hard-disabled fetch intent metadata wiring",
+      "disabled local-only manual test path",
+      "hard-disabled manual test path metadata wiring",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false`",
+      "all Trade UI execution/dev-only layers are behind disabled/default-off branch",
+      "default Trade UI visually unchanged",
+      "no active UI renders by default",
+      "no active prepare button",
+      "no active handoff button",
+      "no buy/sell CTA",
+      "no `onClick` execution path",
+      "no API route call from Trade UI",
+      "no fetch from Trade UI",
+      "no route path exposure in Trade UI",
+      "API route remains disabled by default",
+      "API route returns `api_stub_disabled` by default",
+      "dev QA route remains fixture/model-only",
+      "dev QA route remains unlinked from main navigation",
+      "passive component remains not imported/wired into Trade UI",
+      "no localhost calls",
+      "no bridge calls",
+      "no polling",
+      "no Avanza/browser control",
+      "no real fill behavior",
+      "no order/click/review/final/submit behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution writes",
+      "`userMustConfirm` true throughout",
+      "`finalHumanClickRequired` true throughout",
+      "active/dev-only handoff execution remains 0 % activated",
+      "Disabled local-only chain readiness closeout checkpoint",
+      "Optional final global safety sweep",
+      "Only after explicit approval",
+      "internal/dev-only disabled local fetch test",
+      "separate task",
+      "disabled by default",
+      "non-broker-action",
+      "no Avanza/browser control",
+      "no fill",
+      "no order submission",
+      "manual human confirmation",
+    ]) {
+      expect(closeoutPlan).toContain(copy);
+    }
+
+    for (const doc of [
+      safetyAudit,
+      wiringPlan,
+      visibilityCheckpoint,
+      manualTestPathPlan,
+      fetchIntentPhaseCompletion,
+      fetchIntentSafetyAudit,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(phaseCompletionPath);
+      expect(doc).toContain(closeoutPlanPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only chain readiness closeout checkpoint records inactive fixture-visible chain", () => {
+    const closeoutCheckpointPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md";
+    const closeoutPlanPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md";
+    const phaseCompletionPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-phase-completion-checkpoint.md";
+    const closeoutCheckpoint = readRepoFile(closeoutCheckpointPath);
+    const closeoutPlan = readRepoFile(closeoutPlanPath);
+    const phaseCompletion = readRepoFile(phaseCompletionPath);
+    const safetyAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-safety-audit.md",
+    );
+    const visibilityCheckpoint = readRepoFile(
+      "docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md",
+    );
+    const manualTestPathPlan = readRepoFile(
+      "docs/avanza-disabled-local-only-manual-test-path-plan.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, closeoutCheckpointPath))).toBe(true);
+    expect(closeoutCheckpoint.length).toBeGreaterThan(0);
+    expect(closeoutCheckpoint).toContain(
+      "avanza_disabled_local_only_chain_readiness_closeout_complete",
+    );
+
+    for (const phase of [
+      "read-only real selectedRecommendation dev preview",
+      "handoff package builder",
+      "Trade UI handoff preview",
+      "fill-only adapter contract",
+      "dry-run adapter layer",
+      "disabled local bridge contract",
+      "disabled localhost bridge stub",
+      "disabled local-only API route",
+      "Trade UI prepare intent",
+      "hard-disabled prepare shell wiring",
+      "visible disabled shell layer",
+      "guarded API route call intent",
+      "hard-disabled API call intent wiring",
+      "explicit disabled action shell",
+      "passive disabled action shell component",
+      "hard-disabled action shell metadata wiring",
+      "guarded fetch intent",
+      "hard-disabled fetch intent metadata wiring",
+      "disabled local-only manual test path",
+      "hard-disabled manual test path metadata wiring",
+    ]) {
+      expect(closeoutCheckpoint).toContain(phase);
+    }
+
+    for (const copy of [
+      "internally modeled and fixture-visible",
+      "not active",
+      "not executable",
+      "not wired into normal Trade UI",
+      "not production-ready",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false`",
+      "all Trade UI execution/dev-only layers are behind the disabled/default-off branch",
+      "`buildAvanzaDisabledLocalOnlyManualTestPath(...)` is invoked only inside the",
+      "hard-disabled/default-off branch",
+      "`manualTestPathEnabled` remains false by default",
+      "mode remains hidden by default",
+      "output remains hidden/disabled metadata only",
+      "output remains discarded with `void hardDisabledManualTestPath`",
+      "Default Trade UI remains visually unchanged",
+      "No active UI renders by default",
+      "No selectedRecommendation preview renders by default",
+      "No visible shell renders by default",
+      "No API call intent UI renders by default",
+      "No action shell UI renders by default",
+      "No fetch intent UI renders by default",
+      "No manual test path UI renders by default",
+      "The passive component remains not imported/wired into Trade UI",
+      "No active prepare button",
+      "active handoff button",
+      "buy/sell CTA",
+      "`onClick` execution path",
+      "No API route call from Trade UI exists",
+      "No fetch from Trade UI exists",
+      "No route path exposure in Trade UI exists",
+      "No API route path reference from `app/trade-app.tsx` exists",
+      "The API route remains disabled by default",
+      "The API route returns `api_stub_disabled` by default",
+      "The dev QA route remains fixture/model-only",
+      "The dev QA route remains unlinked from main navigation",
+      "localhost calls",
+      "bridge calls",
+      "polling",
+      "Avanza/browser control",
+      "real fill behavior",
+      "order/click/review/final/submit behavior",
+      "credential/session/BankID/cookies/storage handling",
+      "Supabase execution writes",
+      "`userMustConfirm` true throughout the modeled chain",
+      "`finalHumanClickRequired` true throughout the modeled chain",
+      "Active/dev-only handoff execution remains 0 % activated",
+      "No production readiness is claimed",
+      "Modeled/readiness status: internally modeled, fixture-visible, hard-disabled",
+      "Runtime status: inactive",
+      "Trade UI status: default unchanged",
+      "Broker status: no broker action",
+      "API status: disabled route only",
+      "Fetch status: no fetch",
+      "Browser status: no browser control",
+      "Order status: no order submission",
+      "Confirmation status: final human confirmation mandatory",
+      "Production status: not production ready",
+      "Optional final global safety sweep",
+      "Only after explicit approval",
+      "internal/dev-only disabled local fetch test",
+      "separate task",
+      "explicit, local-only",
+      "disabled by default",
+      "non-broker-action",
+      "no Avanza/browser control",
+      "no fill",
+      "no order submission",
+      "manual human confirmation",
+      "separate architecture review",
+      "explicit user approval",
+    ]) {
+      expect(closeoutCheckpoint).toContain(copy);
+    }
+
+    for (const doc of [
+      closeoutPlan,
+      phaseCompletion,
+      safetyAudit,
+      visibilityCheckpoint,
+      manualTestPathPlan,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(closeoutCheckpointPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only chain final global safety sweep locks inactive non-production state", () => {
+    const finalSweepPath =
+      "docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md";
+    const closeoutCheckpointPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md";
+    const closeoutPlanPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md";
+    const phaseCompletionPath =
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-phase-completion-checkpoint.md";
+    const finalSweep = readRepoFile(finalSweepPath);
+    const closeoutCheckpoint = readRepoFile(closeoutCheckpointPath);
+    const closeoutPlan = readRepoFile(closeoutPlanPath);
+    const phaseCompletion = readRepoFile(phaseCompletionPath);
+    const safetyAudit = readRepoFile(
+      "docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-safety-audit.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, finalSweepPath))).toBe(true);
+    expect(finalSweep.length).toBeGreaterThan(0);
+    expect(finalSweep).toContain(
+      "avanza_disabled_local_only_chain_final_global_safety_sweep_complete",
+    );
+
+    for (const copy of [
+      "internally modeled, fixture-visible, hard-disabled in Trade UI",
+      "inactive",
+      "non-executable",
+      "not production-ready",
+      "Modeled/readiness status: internally modeled and fixture-visible",
+      "Runtime status: inactive",
+      "Trade UI status: hard-disabled/default-off",
+      "Broker status: no broker action",
+      "API status: disabled route only",
+      "Fetch status: no fetch",
+      "Browser status: no browser control",
+      "Order status: no order submission",
+      "Confirmation status: final human confirmation mandatory",
+      "Production status: not production ready",
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false`",
+      "all Trade UI execution/dev-only layers are behind the disabled/default-off branch",
+      "default Trade UI remains visually unchanged",
+      "no selectedRecommendation preview renders by default",
+      "no visible shell renders by default",
+      "no API call intent UI renders by default",
+      "no action shell UI renders by default",
+      "no fetch intent UI renders by default",
+      "no manual test path UI renders by default",
+      "no active prepare button",
+      "no active handoff button",
+      "no buy/sell CTA",
+      "no `onClick` execution path",
+      "no API route call from Trade UI",
+      "no fetch from Trade UI",
+      "no route path exposure in Trade UI",
+      "no API route path reference from `app/trade-app.tsx`",
+      "API route remains disabled by default",
+      "API route returns `api_stub_disabled` by default",
+      "dev QA route remains fixture/model-only",
+      "dev QA route remains unlinked from main navigation",
+      "passive component remains not imported/wired into Trade UI",
+      "no localhost calls",
+      "no bridge calls",
+      "no polling",
+      "no Avanza/browser control",
+      "no real fill behavior",
+      "no order/click/review/final/submit behavior",
+      "no credential/session/BankID/cookies/storage handling",
+      "no Supabase execution writes",
+      "`userMustConfirm` true throughout the modeled chain",
+      "`finalHumanClickRequired` true throughout the modeled chain",
+      "active/dev-only handoff execution remains 0 % activated",
+      "no production readiness is claimed",
+      "`buildAvanzaDisabledLocalOnlyManualTestPath(...)` remains invoked only inside",
+      "hard-disabled/default-off branch",
+      "`manualTestPathEnabled` remains false",
+      "mode remains `\"hidden\"`",
+      "output remains metadata-only",
+      "output remains discarded with `void hardDisabledManualTestPath`",
+      "no real Avanza browser automation",
+      "no real form fill",
+      "no real review click",
+      "no real confirm click",
+      "no real order submission",
+      "no real broker session handling",
+      "no credentials/BankID/cookie/session handling",
+      "no Supabase execution write from Avanza flow",
+      "no production-ready execution agent",
+    ]) {
+      expect(finalSweep).toContain(copy);
+    }
+
+    for (const doc of [
+      closeoutCheckpoint,
+      closeoutPlan,
+      phaseCompletion,
+      safetyAudit,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(finalSweepPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only chain approval gate blocks future active progression without approval", () => {
+    const approvalGatePath =
+      "docs/avanza-disabled-local-only-chain-approval-gate.md";
+    const finalSweepPath =
+      "docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md";
+    const approvalGate = readRepoFile(approvalGatePath);
+    const finalSweep = readRepoFile(finalSweepPath);
+    const closeoutCheckpoint = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md",
+    );
+    const closeoutPlan = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, approvalGatePath))).toBe(true);
+    expect(approvalGate.length).toBeGreaterThan(0);
+    expect(approvalGate).toContain(
+      "avanza_disabled_local_only_chain_approval_gate_added",
+    );
+
+    for (const copy of [
+      "internally modeled and fixture-visible only",
+      "Runtime status is inactive",
+      "Trade UI status is hard-disabled/default-off",
+      "Active/dev-only handoff execution remains 0 % activated",
+      "No production readiness is claimed",
+      "Final human confirmation remains mandatory",
+      "No local fetch test is approved yet",
+      "No active route call is approved yet",
+      "No browser automation is approved yet",
+      "No Avanza interaction is approved yet",
+      "No form fill is approved yet",
+      "No review click is approved yet",
+      "No confirm click is approved yet",
+      "No order submission is approved yet",
+      "No credential/session/BankID/cookie/storage handling is approved",
+      "No Supabase execution write is approved",
+      "Explicit user approval to plan a local-only disabled fetch test",
+      "Separate architecture review before any browser/Avanza/fill/order path",
+      "Separate safety review before any credential/session/BankID/cookie/storage-adjacent work",
+      "Separate Supabase write review before any execution persistence",
+      "Separate production readiness review before any live-like behavior",
+      "do not add fetch",
+      "do not call API route",
+      "do not expose route path in Trade UI",
+      "do not add active prepare button",
+      "do not add active handoff button",
+      "do not add buy/sell CTA",
+      "do not add `onClick` execution path",
+      "do not call localhost",
+      "do not call bridge",
+      "do not control browser",
+      "do not interact with Avanza",
+      "do not fill forms",
+      "do not click review",
+      "do not click confirm",
+      "do not submit orders",
+      "do not handle credentials/session/BankID/cookies/storage",
+      "do not write Supabase execution records",
+      "do not claim production readiness",
+    ]) {
+      expect(approvalGate).toContain(copy);
+    }
+
+    for (const doc of [
+      finalSweep,
+      closeoutCheckpoint,
+      closeoutPlan,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(approvalGatePath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    for (const sourceFile of navigationSourceFiles) {
+      const source = readRepoFile(sourceFile);
+
+      expect(source).not.toContain("/dev/avanza-visual-qa");
+    }
+  });
+
+  test("disabled local-only chain handoff summary indexes inactive implementation state", () => {
+    const handoffSummaryPath =
+      "docs/avanza-disabled-local-only-chain-handoff-summary.md";
+    const approvalGatePath =
+      "docs/avanza-disabled-local-only-chain-approval-gate.md";
+    const finalSweepPath =
+      "docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md";
+    const closeoutCheckpointPath =
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md";
+    const handoffSummary = readRepoFile(handoffSummaryPath);
+    const approvalGate = readRepoFile(approvalGatePath);
+    const finalSweep = readRepoFile(finalSweepPath);
+    const closeoutCheckpoint = readRepoFile(closeoutCheckpointPath);
+    const closeoutPlan = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const beforeBranch = tradeAppSource.slice(0, branchIndex);
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+    const afterBranch = tradeAppSource.slice(branchEndIndex);
+    const manualTestPathInvocations =
+      tradeAppSource.match(/buildAvanzaDisabledLocalOnlyManualTestPath\(\{/g) ??
+      [];
+    const hardDisabledManualTestPath =
+      buildAvanzaDisabledLocalOnlyManualTestPath({
+        manualTestPathEnabled: false,
+        mode: "hidden",
+      });
+    const disabledApiDefault = buildAvanzaLocalOnlyApiRouteStubModel({
+      apiRouteEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(existsSync(join(repoRoot, handoffSummaryPath))).toBe(true);
+    expect(handoffSummary.length).toBeGreaterThan(0);
+    expect(handoffSummary).toContain(
+      "avanza_disabled_local_only_chain_handoff_summary_added",
+    );
+
+    for (const copy of [
+      "internally modeled",
+      "fixture-visible",
+      "hard-disabled/default-off",
+      "Runtime status is inactive",
+      "not production-ready",
+      "Active/dev-only handoff execution remains 0 % activated",
+      "Final human confirmation remains mandatory",
+      "No local fetch test is approved yet",
+      "No active route call is approved yet",
+      "No browser automation is approved yet",
+      "No Avanza interaction is approved yet",
+      "No form fill is approved yet",
+      "No review click is approved yet",
+      "No confirm click is approved yet",
+      "No order submission is approved yet",
+      "No credential/session/BankID/cookie/storage handling is approved",
+      "No Supabase execution write is approved",
+      "Separate explicit user approval is required before planning a local-only disabled fetch test",
+      "Separate architecture review is required before any browser/Avanza/fill/order path",
+    ]) {
+      expect(handoffSummary).toContain(copy);
+    }
+
+    for (const layer of [
+      "Read-only real selectedRecommendation dev preview",
+      "Handoff package builder",
+      "Trade UI handoff preview",
+      "Fill-only adapter contract",
+      "Dry-run adapter layer",
+      "Disabled local bridge contract",
+      "Disabled localhost bridge stub",
+      "Disabled local-only API route",
+      "Trade UI prepare intent",
+      "Hard-disabled prepare shell wiring",
+      "Visible disabled shell layer",
+      "Guarded API route call intent",
+      "Hard-disabled API call intent wiring",
+      "Explicit disabled action shell",
+      "Passive disabled action shell component",
+      "Hard-disabled action shell metadata wiring",
+      "Guarded fetch intent",
+      "Hard-disabled fetch intent metadata wiring",
+      "Disabled local-only manual test path",
+      "Hard-disabled manual test path metadata wiring",
+      "Readiness closeout",
+      "Final global safety sweep",
+      "Approval gate",
+    ]) {
+      expect(handoffSummary).toContain(layer);
+    }
+
+    for (const filePath of [
+      "app/trade-app.tsx",
+      "app/dev/avanza-visual-qa/page.tsx",
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+      "components/execution/AvanzaTradeUiHandoffPreview.tsx",
+      "components/execution/AvanzaTradeUiHandoffPreviewHarness.tsx",
+      "lib/avanza-handoff-package-builder.ts",
+      "lib/avanza-fill-only-adapter-contract.ts",
+      "lib/avanza-dry-run-adapter-layer.ts",
+      "lib/avanza-disabled-local-bridge-contract.ts",
+      "lib/avanza-disabled-localhost-bridge-stub.ts",
+      "lib/avanza-local-only-api-route-stub.ts",
+      "lib/avanza-trade-ui-prepare-intent.ts",
+      "lib/avanza-guarded-api-route-call-intent.ts",
+      "lib/avanza-explicit-internal-disabled-action-shell.ts",
+      "lib/avanza-guarded-fetch-intent.ts",
+      "lib/avanza-disabled-local-only-manual-test-path.ts",
+      "docs/avanza-disabled-local-only-chain-approval-gate.md",
+      "docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md",
+      "docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md",
+      "tests/e2e/avanza-dev-visual-qa-route-access.spec.ts",
+      "tests/e2e/avanza-bridge-ui-safety-guard.spec.ts",
+    ]) {
+      expect(handoffSummary).toContain(filePath);
+    }
+
+    for (const invariant of [
+      "`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false",
+      "Default Trade UI remains visually unchanged",
+      "No selectedRecommendation preview renders by default",
+      "No visible shell renders by default",
+      "No API call intent UI renders by default",
+      "No action shell UI renders by default",
+      "No fetch intent UI renders by default",
+      "No manual test path UI renders by default",
+      "No active prepare button",
+      "No active handoff button",
+      "No buy/sell CTA",
+      "No `onClick` execution path",
+      "No API route call from Trade UI",
+      "No fetch from Trade UI",
+      "No route path exposure in Trade UI",
+      "No API route path reference from `app/trade-app.tsx`",
+      "API route disabled by default",
+      "API route returns `api_stub_disabled` by default",
+      "Dev QA route fixture/model-only and unlinked",
+      "Passive component not imported/wired into Trade UI",
+      "No localhost calls",
+      "No bridge calls",
+      "No polling",
+      "No Avanza/browser control",
+      "No real fill behavior",
+      "No order/click/review/final/submit behavior",
+      "No credential/session/BankID/cookies/storage handling",
+      "No Supabase execution writes",
+      "`userMustConfirm` true throughout",
+      "`finalHumanClickRequired` true throughout",
+    ]) {
+      expect(handoffSummary).toContain(invariant);
+    }
+
+    for (const nextStep of [
+      "Stop here and continue product/UI work elsewhere",
+      "Review all docs in a new chat",
+      "After explicit user approval, plan an internal/dev-only disabled local fetch test",
+      "Before any real Avanza/browser/fill/order path, run separate architecture and safety review",
+    ]) {
+      expect(handoffSummary).toContain(nextStep);
+    }
+
+    for (const doc of [
+      approvalGate,
+      finalSweep,
+      closeoutCheckpoint,
+      closeoutPlan,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toContain(handoffSummaryPath);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(manualTestPathInvocations).toHaveLength(1);
+    expect(beforeBranch).toContain("buildAvanzaDisabledLocalOnlyManualTestPath");
+    expect(beforeBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath({",
+    );
+    expect(branchSnippet).toContain("manualTestPathEnabled: false");
+    expect(branchSnippet).toContain('mode: "hidden"');
+    expect(branchSnippet).toContain("void hardDisabledManualTestPath");
+    expect(branchSnippet).not.toMatch(/<AvanzaDisabledLocalOnlyManualTestPath\b/);
+    expect(branchSnippet).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(branchSnippet).not.toContain(
+      "avanzaDisabledLocalOnlyManualTestPathFixtures",
+    );
+    expect(branchSnippet).not.toContain("AvanzaPassiveDisabledActionShell");
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(afterBranch).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(["manual_test_path_hidden", "manual_test_path_disabled"]).toContain(
+      hardDisabledManualTestPath.status,
+    );
+    expect(hardDisabledManualTestPath.manualTestPathEnabled).toBe(false);
+    expect(hardDisabledManualTestPath.mode).toBe("hidden");
+    expectDisabledLocalOnlyManualTestPathSafetyLocked(
+      hardDisabledManualTestPath,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalOnlyManualTestPathHarness",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaPassiveDisabledActionShell",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    expect(apiRouteSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(apiRouteSource).not.toContain("hardDisabledManualTestPath");
+    expect(passiveActionShellSource).not.toContain(
+      "buildAvanzaDisabledLocalOnlyManualTestPath",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "hardDisabledManualTestPath",
+    );
+    expect(disabledApiDefault.status).toBe("api_stub_disabled");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(routeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
+    expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
 
     for (const sourceFile of navigationSourceFiles) {
       const source = readRepoFile(sourceFile);

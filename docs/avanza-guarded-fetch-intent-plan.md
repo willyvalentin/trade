@@ -165,6 +165,135 @@ Existing defaults remain:
 - no Trade UI API route call exists
 - no Trade UI fetch exists for this path
 
+## Pure Helper Implementation
+
+`lib/avanza-guarded-fetch-intent.ts` now implements the first allowed step from
+this plan as a pure explicit-input model/helper.
+
+The helper can model:
+
+- disabled, hidden, blocked, unavailable, failed, unknown, and
+  `fetch_intent_ready_internal_disabled` states
+- explicit disabled action shell metadata
+- explicit guarded API route call intent metadata
+- explicit route availability metadata
+- explicit internal/dev-only guard metadata
+- safe handoff metadata such as package id, source recommendation id, ticker,
+  side, quantity, order type, limit price, and safe account label
+
+The helper still does not:
+
+- perform fetch
+- call the API route
+- expose a live route path
+- call localhost
+- call bridge
+- control Avanza/browser state
+- fill forms
+- click review or confirmation controls
+- submit orders
+- handle credentials, sessions, BankID, cookies, or storage
+- write Supabase execution records
+
+At helper creation time it was not wired into `app/trade-app.tsx`, not rendered
+on the dev QA route, and not connected to any real selectedRecommendation
+state.
+
+## Fixture Visibility Layer
+
+The fixture/model-only visibility layer now exists:
+
+- `lib/avanza-guarded-fetch-intent-fixtures.ts`
+- `components/execution/AvanzaGuardedFetchIntentHarness.tsx`
+- guarded fetch intent section on `app/dev/avanza-visual-qa/page.tsx`
+
+The fixtures cover disabled, hidden, blocked, route unavailable, route
+disabled, internal guard missing, action shell unavailable, failed, unknown, and
+`fetch_intent_ready_internal_disabled` states, including safe BUY/SELL internal
+preview and internal fetch-intent-disabled scenarios.
+
+The dev QA route section is fixture/model-only, unlinked from main navigation,
+and still adds no Trade UI wiring, active prepare button, active handoff,
+buy/sell CTA, API route call, fetch, localhost/bridge call, polling,
+Avanza/browser control, real fill, order/review/confirm/submit behavior,
+credential/session handling, or Supabase execution write.
+
+## Disabled Local-Only Manual Test Path Follow-Up
+
+The disabled local-only manual test path visibility layer is complete as
+fixture/model-only content:
+
+- `docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md`
+
+The next planned phase is hard-disabled Trade UI manual test path metadata
+wiring:
+
+- `docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-plan.md`
+
+That future phase must keep the guarded fetch intent metadata hidden/default-off
+and must not add fetch, route calls, route path references in `app/trade-app.tsx`,
+localhost/bridge calls, active UI, Avanza/browser control, fill, order behavior,
+credential/session handling, or Supabase writes.
+
+## Visibility Phase Completion
+
+The guarded fetch intent visibility layer is closed in:
+
+- `docs/avanza-guarded-fetch-intent-visibility-phase-completion-checkpoint.md`
+
+The next planning-only phase is:
+
+- `docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md`
+
+That future phase may only plan a metadata-only invocation inside the existing
+hard-disabled/default-off Trade UI branch. It must keep `fetchIntentEnabled`
+false by default, render no fetch intent in normal/default UI, add no active
+controls, call no API route, perform no fetch, reference no route path from
+`app/trade-app.tsx`, and add no localhost/bridge, Avanza/browser, fill, order,
+credential/session, or Supabase behavior.
+
 ## Production Boundary
 
 No production readiness is claimed.
+
+## Hard-Disabled Trade UI Metadata Invocation
+
+The minimal hard-disabled Trade UI fetch intent metadata invocation now exists
+in `app/trade-app.tsx`. It imports `buildAvanzaGuardedFetchIntent(...)` and
+uses it only inside the existing disabled/default-off branch guarded by
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`.
+
+The guard remains `false` by default. The invocation passes
+`fetchIntentEnabled: false` and `mode: "hidden"`, produces
+`fetch_intent_hidden` metadata only, and does not render fetch intent UI in
+normal/default Trade UI.
+
+No API route call, fetch, API route path reference, localhost call, bridge call,
+polling, Avanza/browser behavior, fill, order/review/confirm/submit behavior,
+credential/session handling, or Supabase execution write was added.
+
+The dedicated safety audit is recorded in
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md`.
+
+The hard-disabled Trade UI fetch intent metadata wiring phase is closed in
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-phase-completion-checkpoint.md`.
+
+The next planning-only phase is
+`docs/avanza-disabled-local-only-manual-test-path-plan.md`. It may only plan a
+disabled local-only manual test path and must add no fetch, API route call,
+localhost/bridge call, active UI, Avanza/browser control, fill, order,
+credential/session handling, or Supabase execution write.
+
+The pure disabled local-only manual test path helper now exists at
+`lib/avanza-disabled-local-only-manual-test-path.ts`. It remains explicit-input
+only and model-only, and it is not wired into Trade UI, the dev QA route, the
+disabled API route, or the passive disabled action shell component.
+
+The disabled local-only manual test path fixture visibility layer now adds
+`lib/avanza-disabled-local-only-manual-test-path-fixtures.ts`,
+`components/execution/AvanzaDisabledLocalOnlyManualTestPathHarness.tsx`, and a
+fixture/model-only section on `app/dev/avanza-visual-qa/page.tsx`. The section
+remains unlinked from main navigation and does not add Trade UI wiring, API
+route calls, fetch, route path exposure, localhost/bridge calls, polling,
+Avanza/browser control, fill, order behavior, credential/session handling, or
+Supabase execution writes.

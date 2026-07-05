@@ -1866,3 +1866,108 @@ The next planning-only phase is `docs/avanza-guarded-fetch-intent-plan.md`.
 That plan remains separate from real selectedRecommendation preview work and
 must not add fetch, API route calls, active UI, Avanza/browser behavior, fill,
 order, credential/session handling, or Supabase writes.
+
+The guarded fetch intent phase now includes
+`lib/avanza-guarded-fetch-intent.ts` as a pure explicit-input metadata helper.
+It remains separate from read-only real selectedRecommendation preview work, is
+not wired into Trade UI or the dev QA route, does not read real
+selectedRecommendation state, and adds no fetch, API route call, localhost
+call, bridge call, Avanza/browser control, fill, order behavior,
+credential/session handling, or Supabase write.
+
+The guarded fetch intent fixture visibility layer now includes
+`lib/avanza-guarded-fetch-intent-fixtures.ts`,
+`components/execution/AvanzaGuardedFetchIntentHarness.tsx`, and a
+fixture/model-only dev QA route section. This remains separate from real
+selectedRecommendation reads and does not wire into Trade UI, call the API
+route, perform fetch, call localhost or bridge, poll, control Avanza/browser
+state, fill, review, confirm, submit, handle credentials/sessions, or write
+Supabase execution records.
+
+The guarded fetch intent visibility layer is closed in
+`docs/avanza-guarded-fetch-intent-visibility-phase-completion-checkpoint.md`.
+The next planning-only phase is
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-plan.md`.
+That plan remains separate from read-only real selectedRecommendation preview
+work and must keep any future Trade UI fetch intent metadata invocation
+hard-disabled, default-off, non-rendering in normal/default UI, non-fetching,
+non-executing, and separate from credential/session handling and Supabase
+writes.
+
+The minimal hard-disabled Trade UI fetch intent metadata invocation is now
+implemented in `app/trade-app.tsx` inside the existing
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` disabled/default-off branch
+only. It keeps `fetchIntentEnabled: false`, uses `mode: "hidden"`, produces
+`fetch_intent_hidden` metadata only, renders no fetch intent UI in
+normal/default Trade UI, and remains separate from real selectedRecommendation
+reads, API route calls, fetch, localhost/bridge calls, Avanza/browser control,
+fill, order behavior, credential/session handling, and Supabase writes.
+
+The focused safety audit for this hard-disabled metadata-only wiring is recorded
+in `docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-safety-audit.md`.
+
+The hard-disabled Trade UI fetch intent metadata wiring phase is now closed in
+`docs/avanza-hard-disabled-trade-ui-fetch-intent-metadata-wiring-phase-completion-checkpoint.md`.
+
+The next planning-only phase is
+`docs/avanza-disabled-local-only-manual-test-path-plan.md`. That plan remains
+separate from read-only real selectedRecommendation preview work and must keep
+any future disabled local-only manual test path non-fetching, non-executing,
+disabled by default, internal/dev-only, and separate from credential/session
+handling and Supabase writes.
+
+The pure disabled local-only manual test path helper now exists at
+`lib/avanza-disabled-local-only-manual-test-path.ts`. It remains model-only and
+unwired, with no real selectedRecommendation read/render path, no Trade UI
+fetch, no route call, no localhost/bridge call, no Avanza/browser control, no
+fill or order behavior, and no Supabase execution write.
+
+The disabled local-only manual test path fixture visibility layer now adds
+static fixtures, an isolated harness, and a fixture/model-only dev QA route
+section. It remains separate from read-only real selectedRecommendation preview
+work and still adds no real selectedRecommendation read/render path, no Trade UI
+fetch, no route call, no route path exposure, no localhost/bridge call, no
+Avanza/browser control, no fill or order behavior, and no Supabase execution
+write.
+
+The disabled local-only manual test path visibility layer is closed in
+`docs/avanza-disabled-local-only-manual-test-path-visibility-phase-completion-checkpoint.md`.
+The next hard-disabled Trade UI manual test path metadata wiring phase is
+planned in
+`docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-plan.md`.
+It remains separate from read-only real selectedRecommendation preview work,
+must keep `manualTestPathEnabled` false by default, must render no manual test
+path in normal/default UI, and must add no API route call, fetch, route path
+exposure, localhost/bridge call, Avanza/browser control, real fill, order
+behavior, credential/session handling, or Supabase writes.
+
+The minimal hard-disabled manual test path metadata invocation now exists in
+`app/trade-app.tsx` inside the existing disabled/default-off branch only. It is
+not a real selectedRecommendation read/render path; it keeps
+`manualTestPathEnabled: false`, uses `mode: "hidden"`, discards output with
+`void hardDisabledManualTestPath`, references no route path, calls no API route,
+performs no fetch, and adds no broker action.
+
+The focused safety audit for this hard-disabled manual test path metadata wiring
+is recorded in
+`docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-safety-audit.md`.
+
+The hard-disabled Trade UI manual test path metadata wiring phase completion is
+recorded in
+`docs/avanza-hard-disabled-trade-ui-manual-test-path-metadata-wiring-phase-completion-checkpoint.md`.
+
+The disabled local-only chain readiness closeout is planned in
+`docs/avanza-disabled-local-only-chain-readiness-closeout-plan.md`.
+
+The disabled local-only chain readiness closeout checkpoint is recorded in
+`docs/avanza-disabled-local-only-chain-readiness-closeout-checkpoint.md`.
+
+The final global safety sweep is recorded in
+`docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md`.
+
+The approval gate for any future disabled local-only chain progression is
+recorded in `docs/avanza-disabled-local-only-chain-approval-gate.md`.
+
+The final handoff summary and implementation index for the disabled local-only
+Avanza chain is recorded in
+`docs/avanza-disabled-local-only-chain-handoff-summary.md`.

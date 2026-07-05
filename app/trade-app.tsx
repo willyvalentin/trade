@@ -696,6 +696,12 @@ import {
   buildAvanzaExplicitInternalDisabledActionShell,
 } from "@/lib/avanza-explicit-internal-disabled-action-shell";
 import {
+  buildAvanzaGuardedFetchIntent,
+} from "@/lib/avanza-guarded-fetch-intent";
+import {
+  buildAvanzaDisabledLocalOnlyManualTestPath,
+} from "@/lib/avanza-disabled-local-only-manual-test-path";
+import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
 import {
@@ -15560,9 +15566,25 @@ export function TradeApp({
               apiCallIntent: hardDisabledApiRouteCallIntent,
               mode: "hidden",
             });
+          const hardDisabledFetchIntent = buildAvanzaGuardedFetchIntent({
+            actionShellModel: hardDisabledActionShell,
+            apiCallIntent: hardDisabledApiRouteCallIntent,
+            fetchIntentEnabled: false,
+            mode: "hidden",
+          });
+          const hardDisabledManualTestPath =
+            buildAvanzaDisabledLocalOnlyManualTestPath({
+              actionShellModel: hardDisabledActionShell,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              fetchIntent: hardDisabledFetchIntent,
+              manualTestPathEnabled: false,
+              mode: "hidden",
+            });
 
           void hardDisabledApiRouteCallIntent;
           void hardDisabledActionShell;
+          void hardDisabledFetchIntent;
+          void hardDisabledManualTestPath;
 
           return (
             <>

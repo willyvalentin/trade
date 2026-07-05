@@ -66,6 +66,12 @@ import {
   AvanzaGuardedApiRouteCallIntentHarness,
 } from "@/components/execution/AvanzaGuardedApiRouteCallIntentHarness";
 import {
+  AvanzaGuardedFetchIntentHarness,
+} from "@/components/execution/AvanzaGuardedFetchIntentHarness";
+import {
+  AvanzaDisabledLocalOnlyManualTestPathHarness,
+} from "@/components/execution/AvanzaDisabledLocalOnlyManualTestPathHarness";
+import {
   AvanzaExplicitInternalDisabledActionShellHarness,
 } from "@/components/execution/AvanzaExplicitInternalDisabledActionShellHarness";
 import {
@@ -125,6 +131,12 @@ import {
 import {
   avanzaGuardedApiRouteCallIntentFixtures,
 } from "@/lib/avanza-guarded-api-route-call-intent-fixtures";
+import {
+  avanzaGuardedFetchIntentFixtures,
+} from "@/lib/avanza-guarded-fetch-intent-fixtures";
+import {
+  avanzaDisabledLocalOnlyManualTestPathFixtures,
+} from "@/lib/avanza-disabled-local-only-manual-test-path-fixtures";
 import {
   avanzaExplicitInternalDisabledActionShellFixtures,
 } from "@/lib/avanza-explicit-internal-disabled-action-shell-fixtures";
@@ -579,6 +591,38 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaExplicitInternalDisabledActionShellHarness
             fixtures={avanzaExplicitInternalDisabledActionShellFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Guarded fetch intent
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. Internal/dev-only. Disabled by default. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No fetch, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, No broker action, Not production ready, Manual confirmation required in Avanza, statuses include fetch_intent_disabled, fetch_intent_hidden, fetch_intent_blocked, route_unavailable, route_disabled, internal_guard_missing, action_shell_unavailable, fetch_intent_ready_internal_disabled, fetch_intent_failed, unknown, safe BUY internal preview intent, safe SELL internal preview intent, safe BUY internal fetch intent disabled, safe SELL internal fetch intent disabled, missing action shell, missing route availability, disabled route availability, missing internal guard, blocked action shell, failed input, unsafe input, and fetch_intent_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaGuardedFetchIntentHarness
+            fixtures={avanzaGuardedFetchIntentFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Disabled local-only manual test path
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. Internal/dev-only. Local-only. Disabled by default. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No fetch, No route path exposure, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, No broker action, Not production ready, Manual confirmation required in Avanza, statuses include manual_test_path_disabled, manual_test_path_hidden, manual_test_path_blocked, route_unavailable, route_disabled, fetch_intent_unavailable, internal_guard_missing, local_only_guard_missing, manual_test_path_ready_internal_disabled, manual_test_path_failed, unknown, safe BUY internal preview manual test path, safe SELL internal preview manual test path, safe BUY internal manual test path disabled, safe SELL internal manual test path disabled, missing fetch intent, missing route state, disabled route state, missing internal guard, missing local-only guard, blocked fetch intent, failed input, unsafe input, and manual_test_path_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledLocalOnlyManualTestPathHarness
+            fixtures={avanzaDisabledLocalOnlyManualTestPathFixtures}
           />
         </section>
 
