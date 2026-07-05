@@ -57,6 +57,18 @@ import {
   AvanzaDisabledInternalPrepareButtonShellHarness,
 } from "@/components/execution/AvanzaDisabledInternalPrepareButtonShellHarness";
 import {
+  AvanzaPassiveDisabledPrepareShellHarness,
+} from "@/components/execution/AvanzaPassiveDisabledPrepareShellHarness";
+import {
+  AvanzaExplicitInternalVisibleDisabledPrepareShellHarness,
+} from "@/components/execution/AvanzaExplicitInternalVisibleDisabledPrepareShellHarness";
+import {
+  AvanzaGuardedApiRouteCallIntentHarness,
+} from "@/components/execution/AvanzaGuardedApiRouteCallIntentHarness";
+import {
+  AvanzaExplicitInternalDisabledActionShellHarness,
+} from "@/components/execution/AvanzaExplicitInternalDisabledActionShellHarness";
+import {
   AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness,
 } from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness";
 import {
@@ -104,6 +116,18 @@ import {
 import {
   avanzaDisabledInternalPrepareButtonShellFixtures,
 } from "@/lib/avanza-disabled-internal-prepare-button-shell-fixtures";
+import {
+  avanzaPassiveDisabledPrepareShellFixtures,
+} from "@/lib/avanza-passive-disabled-prepare-shell-fixtures";
+import {
+  avanzaExplicitInternalVisibleDisabledPrepareShellFixtures,
+} from "@/lib/avanza-explicit-internal-visible-disabled-prepare-shell-fixtures";
+import {
+  avanzaGuardedApiRouteCallIntentFixtures,
+} from "@/lib/avanza-guarded-api-route-call-intent-fixtures";
+import {
+  avanzaExplicitInternalDisabledActionShellFixtures,
+} from "@/lib/avanza-explicit-internal-disabled-action-shell-fixtures";
 import {
   avanzaTradeUiReadOnlySelectedRecommendationPreviewModelFixtures,
 } from "@/lib/avanza-trade-ui-read-only-selected-recommendation-preview-model-fixtures";
@@ -491,6 +515,70 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaDisabledInternalPrepareButtonShellHarness
             fixtures={avanzaDisabledInternalPrepareButtonShellFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Passive disabled prepare shell
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, Internal preview, Disabled, No broker action, and shell_component_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaPassiveDisabledPrepareShellHarness
+            fixtures={avanzaPassiveDisabledPrepareShellFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Explicit internal visible disabled prepare shell
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. Internal/dev-only. Disabled. Manual confirmation required in Avanza. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, No broker action, and visible_shell_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaExplicitInternalVisibleDisabledPrepareShellHarness
+            fixtures={avanzaExplicitInternalVisibleDisabledPrepareShellFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Guarded API route call intent
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. Internal/dev-only. Disabled by default. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No fetch, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, No broker action, statuses include api_call_intent_disabled, route_unavailable, route_disabled, visible_shell_unavailable, api_call_ready_internal_disabled, api_call_blocked, api_call_failed, unknown, safe BUY internal preview intent, safe SELL internal preview intent, safe BUY internal call intent disabled, safe SELL internal call intent disabled, missing visible shell, disabled route state, blocked visible shell, failed input, unsafe input, and api_call_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaGuardedApiRouteCallIntentHarness
+            fixtures={avanzaGuardedApiRouteCallIntentFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Explicit internal disabled action shell
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. Internal/dev-only. Disabled by default. Passive component. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No fetch, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, No broker action, Not production ready, Manual confirmation required in Avanza, statuses include action_shell_hidden, action_shell_disabled, action_shell_blocked, action_shell_ready_internal_disabled, action_shell_error, unknown, disabled shell with disabled API call intent, blocked shell with blocked API call intent, ready internal disabled shell with safe BUY intent, ready internal disabled shell with safe SELL intent, error shell with failed input, hidden shell by default, disabled mode, internal_disabled mode, missing apiCallIntent, unsafe input, and action_shell_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaExplicitInternalDisabledActionShellHarness
+            fixtures={avanzaExplicitInternalDisabledActionShellFixtures}
           />
         </section>
 

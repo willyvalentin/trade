@@ -124,6 +124,10 @@ Follow-up status: `avanza_disabled_internal_prepare_button_shell_fixtures_harnes
 
 Follow-up status: `avanza_disabled_internal_prepare_button_shell_dev_route_section_added_fixture_model_only`
 
+Follow-up status: `avanza_disabled_internal_prepare_button_shell_visibility_phase_complete`
+
+Follow-up status: `avanza_passive_disabled_prepare_shell_component_planned`
+
 Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_model_added`
 
 Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_fixtures_added`
@@ -2696,6 +2700,30 @@ input, derive no previewState from app or route state, and add no active
 controls, handoff, bridge/fetch/polling, order behavior, credential/session
 handling, or Supabase writes.
 
+Passive disabled prepare shell component phase completion:
+[Avanza passive disabled prepare shell component phase completion checkpoint](avanza-passive-disabled-prepare-shell-component-phase-completion-checkpoint.md)
+closes the component, fixtures, isolated harness, and fixture/model-only dev QA
+route section. The component remains unwired from Trade UI and the disabled API
+route, with no active handoff, active prepare button, buy/sell CTA, API route
+call, localhost/bridge/fetch/polling, Avanza/browser control, real fill, order
+behavior, credential/session handling, or Supabase writes.
+
+Hard-disabled Trade UI prepare shell wiring:
+[Avanza hard-disabled Trade UI prepare shell wiring plan](avanza-hard-disabled-trade-ui-prepare-shell-wiring-plan.md)
+now records the minimal metadata-only invocation inside the existing
+disabled/default-off branch. `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+remains `false`; the branch builds a hidden shell model with
+`shellEnabled: false`, maps it into a passive component model with
+`componentEnabled: false` and `canRenderComponent: false`, and renders no shell
+UI by default. It adds no active button, no click handler, no API route call,
+and no Avanza/browser/fill/order behavior.
+
+Hard-disabled Trade UI prepare shell wiring safety audit:
+[Avanza hard-disabled Trade UI prepare shell wiring safety audit](avanza-hard-disabled-trade-ui-prepare-shell-wiring-safety-audit.md)
+confirms the branch remains isolated, unreachable by default, hidden/disabled
+by default, and incapable of API route, bridge, browser, fill, order, review,
+confirm, submit, credential, session, or Supabase behavior.
+
 Test-only enabled preview route section plan:
 [Avanza test-only enabled preview route section plan](avanza-test-only-enabled-preview-route-section-plan.md)
 documents the planning-only path for a future dev-only visual QA route section
@@ -3205,3 +3233,277 @@ into Trade UI or the disabled API route. The remaining phases must not add an
 active prepare button by default, must not call the API route, and must not add
 localhost, bridge, fetch/polling, Avanza/browser, fill, order,
 credential/session, or Supabase behavior.
+
+Disabled internal prepare button shell visibility completion:
+[Avanza disabled internal prepare button shell visibility phase completion checkpoint](avanza-disabled-internal-prepare-button-shell-visibility-phase-completion-checkpoint.md)
+closes the pure shell model, fixtures, isolated harness, and dev QA route
+fixture/model-only section without Trade UI wiring, API route edits, active
+controls, browser/Avanza behavior, real fill, order behavior, credential/session
+handling, or Supabase writes.
+
+Passive disabled prepare shell component planning:
+[Avanza passive disabled prepare shell component plan](avanza-passive-disabled-prepare-shell-component-plan.md)
+defines the next phase as a passive disabled component that accepts explicit
+shell model props only, renders fixture/model-only first, keeps active prepare
+buttons forbidden, and continues to forbid API route calls, localhost, bridge,
+Avanza/browser, fill, order, credential/session, and Supabase behavior.
+
+Passive disabled prepare shell component implementation:
+`components/execution/AvanzaPassiveDisabledPrepareShell.tsx`,
+`lib/avanza-passive-disabled-prepare-shell-fixtures.ts`, and
+`components/execution/AvanzaPassiveDisabledPrepareShellHarness.tsx` now provide
+an isolated fixture/model-only component layer. The component renders hidden,
+disabled, blocked, ready-internal-disabled, and error states as disabled
+internal preview metadata only. The isolated harness is now rendered on
+`app/dev/avanza-visual-qa/page.tsx` as a fixture/model-only section using static
+fixtures only. It is not wired into `app/trade-app.tsx`, does not call the
+disabled API route, does not call localhost/bridge/fetch, and adds no active
+prepare button, handoff, real fill, order behavior, credential/session
+handling, or Supabase writes.
+
+Hard-disabled Trade UI prepare shell wiring:
+[Avanza hard-disabled Trade UI prepare shell wiring plan](avanza-hard-disabled-trade-ui-prepare-shell-wiring-plan.md)
+now records the minimal default-off invocation in `app/trade-app.tsx`. The
+component and shell helper are referenced only inside the existing
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW === false` branch. The branch
+keeps `shellEnabled: false`, `componentEnabled: false`, `canRenderShell:
+false`, `canRenderComponent: false`, `canClickPrepare: false`,
+`canCallApiRoute: false`, `controlsEnabled: false`, and `gateLocked: true`.
+Default Trade UI remains visually unchanged, with no shell UI by default and no
+API route call, localhost/bridge/fetch/polling, Avanza/browser control, real
+fill, order behavior, credential/session handling, or Supabase writes.
+
+Hard-disabled Trade UI prepare shell wiring safety audit:
+[Avanza hard-disabled Trade UI prepare shell wiring safety audit](avanza-hard-disabled-trade-ui-prepare-shell-wiring-safety-audit.md)
+confirms `app/trade-app.tsx` does not reference the disabled API route path, the
+disabled API route still returns `api_stub_disabled` by default, no shell UI or
+prepare UI renders by default, and `userMustConfirm` plus
+`finalHumanClickRequired` remain true.
+
+Hard-disabled Trade UI prepare shell wiring phase completion:
+[Avanza hard-disabled Trade UI prepare shell wiring phase completion checkpoint](avanza-hard-disabled-trade-ui-prepare-shell-wiring-phase-completion-checkpoint.md)
+closes the minimal default-off shell wiring phase. It confirms
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false, the shell and
+component remain inside the hard-disabled branch, `shellEnabled` and
+`componentEnabled` remain false, the default Trade UI remains visually
+unchanged, and no API route call, localhost/bridge/fetch/polling,
+Avanza/browser control, real fill, order behavior, credential/session handling,
+or Supabase write was added.
+
+Explicit internal visible disabled prepare shell planning:
+[Avanza explicit internal visible disabled prepare shell plan](avanza-explicit-internal-visible-disabled-prepare-shell-plan.md)
+starts the next planning-only phase. Any future visible shell must be behind a
+separate explicit internal/dev-only guard that is false by default, must remain
+disabled and non-clickable, and must not call the API route, localhost, bridge,
+Avanza/browser, fill, review, confirmation, submit, order, credential/session,
+or Supabase paths.
+
+Pure explicit internal visible disabled prepare shell model:
+`lib/avanza-explicit-internal-visible-disabled-prepare-shell.ts` now models the
+future visible disabled shell as explicit-input data only. It can report hidden,
+disabled, blocked, ready-internal-disabled, error, and unknown states while
+keeping `visibleShellEnabled` false by default, `canClickPrepare: false`,
+`canCallApiRoute: false`, `canCallBridge: false`, `canFetchLocalhost: false`,
+controls disabled, and the gate locked. It is not wired into Trade UI, the dev
+QA route, or the disabled API route.
+
+Explicit internal visible disabled prepare shell fixtures and route section:
+`lib/avanza-explicit-internal-visible-disabled-prepare-shell-fixtures.ts` and
+`components/execution/AvanzaExplicitInternalVisibleDisabledPrepareShellHarness.tsx`
+now expose hidden, disabled, blocked, ready-internal-disabled, error, unknown,
+safe BUY, safe SELL, missing base, and invalid base scenarios as fixture/model
+data. The harness is rendered on `app/dev/avanza-visual-qa/page.tsx` as
+dev-only visual QA content. It remains unlinked from main navigation, unwired
+from `app/trade-app.tsx`, separate from the disabled API route, and incapable of
+API route calls, localhost/bridge/fetch/polling, Avanza/browser control, real
+fill, order/click/review/final/submit behavior, credential/session handling, or
+Supabase writes.
+
+Explicit internal visible disabled prepare shell visibility completion:
+[Avanza explicit internal visible disabled prepare shell visibility phase completion checkpoint](avanza-explicit-internal-visible-disabled-prepare-shell-visibility-phase-completion-checkpoint.md)
+closes the pure model, fixtures, isolated harness, and dev QA route
+fixture/model-only section. It confirms `app/trade-app.tsx` and the disabled API
+route were not edited by the visibility layer, the route remains unlinked, and
+no visible shell renders in normal/default UI.
+
+Hard-disabled visible prepare shell wiring plan:
+[Avanza hard-disabled visible prepare shell wiring plan](avanza-hard-disabled-visible-prepare-shell-wiring-plan.md)
+records the minimal metadata-only invocation behind the existing
+disabled/default-off Trade UI branch. The invocation uses
+`visibleShellEnabled: false` and `mode: "hidden"` by default, keeps
+`canRenderVisibleShell: false`, renders no visible shell in normal/default UI,
+adds no active prepare button or click handler, and adds no API route call,
+localhost/bridge/fetch/polling, Avanza/browser control, real fill, order
+behavior, credential/session handling, or Supabase writes.
+
+Hard-disabled visible prepare shell wiring safety audit:
+[Avanza hard-disabled visible prepare shell wiring safety audit](avanza-hard-disabled-visible-prepare-shell-wiring-safety-audit.md)
+confirms the visible shell model invocation is isolated inside the default-off
+branch, hidden by default, non-rendering in normal/default UI, and incapable of
+API-route, bridge, browser, fill, order, review, confirm, submit, credential,
+or Supabase behavior.
+
+Hard-disabled visible prepare shell wiring phase completion:
+[Avanza hard-disabled visible prepare shell wiring phase completion checkpoint](avanza-hard-disabled-visible-prepare-shell-wiring-phase-completion-checkpoint.md)
+closes the hard-disabled visible shell Trade UI wiring phase. It confirms
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains `false`,
+`visibleShellEnabled` remains false, mode remains hidden, default Trade UI is
+visually unchanged, no visible shell renders in normal/default UI, and no API
+route call, localhost, bridge, fetch/polling, Avanza/browser control, real
+fill, order behavior, credential/session handling, or Supabase write was added.
+
+Guarded API route call intent plan:
+[Avanza guarded API route call intent plan](avanza-guarded-api-route-call-intent-plan.md)
+starts the next planning-only phase for a future pure internal/dev-only intent
+model. It remains disabled by default and does not call the disabled API route,
+add fetch, call localhost, call bridge, control Avanza/browser, fill forms,
+submit orders, handle credentials/session state, or write Supabase execution
+records.
+
+Pure guarded API route call intent model:
+`lib/avanza-guarded-api-route-call-intent.ts` now models disabled, unavailable,
+disabled-route, blocked, failed, unknown, and ready-internal-disabled intent
+states from explicit inputs only. It is not wired into Trade UI or the disabled
+API route, exposes no route path, performs no fetch, and adds no active
+handoff, prepare button, buy/sell CTA, localhost/bridge/polling,
+Avanza/browser control, real fill, order behavior, credential/session handling,
+or Supabase write.
+
+Guarded API route call intent fixtures and dev QA visibility:
+`lib/avanza-guarded-api-route-call-intent-fixtures.ts`,
+`components/execution/AvanzaGuardedApiRouteCallIntentHarness.tsx`, and a
+fixture/model-only section on `app/dev/avanza-visual-qa/page.tsx` now expose
+the guarded intent states for visual QA. The section uses static fixtures only,
+remains unlinked from main navigation, and adds no Trade UI wiring, active
+handoff, prepare button, buy/sell CTA, API route call, fetch, localhost,
+bridge, polling, Avanza/browser control, real fill, order behavior,
+credential/session handling, or Supabase write.
+
+Guarded API route call intent visibility completion:
+[Avanza guarded API route call intent visibility phase completion checkpoint](avanza-guarded-api-route-call-intent-visibility-phase-completion-checkpoint.md)
+closes the pure model, fixtures, isolated harness, and dev QA route
+fixture/model-only visibility layer. The route remains unlinked from main
+navigation, and the intent remains unwired from Trade UI and the disabled API
+route.
+
+Hard-disabled Trade UI API call intent wiring plan:
+[Avanza hard-disabled Trade UI API call intent wiring plan](avanza-hard-disabled-trade-ui-api-call-intent-wiring-plan.md)
+now records the minimal hidden/default-off metadata invocation inside the
+existing disabled Trade UI branch. The invocation keeps
+`apiCallIntentEnabled: false`, `mode: "disabled"`, and defaults to
+`api_call_intent_disabled`. It adds no API call intent UI, no route path
+reference from Trade UI, no route call, no fetch, no active button, no active
+controls, no Avanza/browser/fill/order behavior, no credential/session
+handling, and no Supabase write.
+
+Hard-disabled Trade UI API call intent wiring safety audit:
+[Avanza hard-disabled Trade UI API call intent wiring safety audit](avanza-hard-disabled-trade-ui-api-call-intent-wiring-safety-audit.md)
+confirms the minimal API call intent metadata invocation is isolated inside the
+hard-disabled/default-off branch, keeps `apiCallIntentEnabled: false`,
+`mode: "disabled"`, and `api_call_intent_disabled` by default, renders no API
+call intent UI, references no disabled API route path from Trade UI, and adds
+no API route call, fetch, localhost, bridge, polling, Avanza/browser control,
+real fill, review, confirmation, submit, order, credential/session handling, or
+Supabase write.
+
+Hard-disabled Trade UI API call intent wiring phase completion:
+[Avanza hard-disabled Trade UI API call intent wiring phase completion checkpoint](avanza-hard-disabled-trade-ui-api-call-intent-wiring-phase-completion-checkpoint.md)
+closes the minimal hard-disabled Trade UI API call intent wiring phase. It
+confirms the default output remains `api_call_intent_disabled`, the disabled API
+route remains unwired, default Trade UI remains visually unchanged, and no
+active handoff, prepare button, buy/sell CTA, API route call, fetch, localhost,
+bridge, polling, Avanza/browser control, real fill, order/review/confirm/submit
+behavior, credential/session handling, or Supabase write was added.
+
+Explicit internal/dev-only disabled action shell plan:
+[Avanza explicit internal/dev-only disabled action shell plan](avanza-explicit-internal-disabled-action-shell-plan.md)
+starts the next planning-only phase. A future shell may communicate internal
+preview state, but must remain disabled by default, non-clickable, without an
+`onClick` handler, and separate from API route calls, fetch, localhost, bridge,
+Avanza/browser control, real fill, order behavior, credential/session handling,
+and Supabase writes.
+
+Pure explicit internal/dev-only disabled action shell model:
+`lib/avanza-explicit-internal-disabled-action-shell.ts` now models the future
+disabled action shell as explicit-input data only. It defaults to
+`action_shell_hidden` with `actionShellEnabled: false`, keeps all route/fetch/
+bridge/browser/fill/review/confirm/submit/order/credential/Supabase flags
+locked, is not wired into Trade UI, and does not import or call the disabled
+API route.
+
+Explicit internal/dev-only disabled action shell fixtures and harness:
+`lib/avanza-explicit-internal-disabled-action-shell-fixtures.ts`,
+`components/execution/AvanzaExplicitInternalDisabledActionShellHarness.tsx`, and
+the dev-only Avanza visual QA route section now expose the action shell states
+with static fixture/model-only data. The section remains unlinked from main
+navigation, is not wired into Trade UI, does not change the disabled API route,
+does not call the API route, performs no fetch, and adds no localhost, bridge,
+polling, Avanza/browser, real fill, order/review/confirm/submit,
+credential/session, or Supabase behavior.
+
+Explicit internal/dev-only disabled action shell visibility completion:
+[Avanza explicit internal/dev-only disabled action shell visibility phase completion checkpoint](avanza-explicit-internal-disabled-action-shell-visibility-phase-completion-checkpoint.md)
+closes the pure model, fixtures, isolated harness, and dev QA route
+fixture/model-only section. The next phase is
+[Avanza passive disabled action shell component plan](avanza-passive-disabled-action-shell-component-plan.md),
+which permits only a prop-driven passive component with no `onClick`, no API
+route path, no fetch, no localhost/bridge calls, no Avanza/browser control, no
+real fill, no order behavior, no credential/session handling, and no Supabase
+write.
+
+Passive disabled action shell component:
+`components/execution/AvanzaPassiveDisabledActionShell.tsx` now implements the
+planned display-only component. It receives a prebuilt action shell model and
+renders status, label, reason, optional shell/package fields, copy, warnings,
+blocked reasons, confirmation flags, and safety flags. It is not wired into
+Trade UI and is rendered only through the isolated harness/dev QA fixture route.
+It adds no button, `onClick`, `useEffect`, API route path, fetch, localhost/bridge call,
+Avanza/browser control, real fill, order/review/confirm/submit behavior,
+credential/session handling, or Supabase write.
+
+Passive disabled action shell component safety audit:
+[Avanza passive disabled action shell component safety audit](avanza-passive-disabled-action-shell-component-safety-audit.md)
+confirms the component and isolated fixture rendering are display-only,
+fixture/model-only, unwired from Trade UI, unlinked from main navigation, and
+incapable of active handoff, prepare, buy/sell CTA, API route call, fetch,
+localhost/bridge/polling, Avanza/browser control, real fill, order behavior,
+credential/session handling, or Supabase writes.
+
+Passive disabled action shell component phase completion:
+[Avanza passive disabled action shell component phase completion checkpoint](avanza-passive-disabled-action-shell-component-phase-completion-checkpoint.md)
+closes the component, isolated harness, dev QA fixture route rendering, and
+safety audit phase. The next planning-only phase is
+[Avanza hard-disabled Trade UI action shell metadata wiring plan](avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-plan.md),
+which keeps future Trade UI action shell metadata invocation inside the
+disabled/default-off branch, hidden by default, non-rendering in normal/default
+UI, and separate from route calls, fetch, localhost/bridge calls,
+Avanza/browser behavior, real fill, order behavior, credential/session
+handling, and Supabase writes.
+
+Hard-disabled Trade UI action shell metadata wiring:
+`app/trade-app.tsx` now invokes
+`buildAvanzaExplicitInternalDisabledActionShell(...)` inside the existing
+disabled/default-off branch only. The invocation uses
+`actionShellEnabled: false` and `mode: "hidden"`, produces hidden metadata only,
+and is not rendered as UI. `AvanzaPassiveDisabledActionShell` is still not
+imported into Trade UI, and no API route call, fetch, localhost/bridge call,
+polling, Avanza/browser behavior, fill, click, review, final, submit, order,
+credential/session handling, or Supabase write was added.
+
+Hard-disabled Trade UI action shell metadata wiring safety audit:
+[Avanza hard-disabled Trade UI action shell metadata wiring safety audit](avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-safety-audit.md)
+confirms the invocation remains isolated to the hard-disabled/default-off
+branch, hidden by default, metadata-only, non-rendering in normal/default UI,
+unwired from the disabled API route, and separate from fetch,
+localhost/bridge calls, polling, Avanza/browser behavior, real fill, order,
+credential/session handling, and Supabase writes.
+
+Hard-disabled Trade UI action shell metadata wiring phase completion:
+[Avanza hard-disabled Trade UI action shell metadata wiring phase completion checkpoint](avanza-hard-disabled-trade-ui-action-shell-metadata-wiring-phase-completion-checkpoint.md)
+closes the minimal metadata wiring and safety audit phase. The next
+planning-only phase is
+[Avanza guarded fetch intent plan](avanza-guarded-fetch-intent-plan.md), which
+permits only a future pure intent model and still forbids fetch, API route
+calls, route path usage from Trade UI, active UI, localhost/bridge calls,
+Avanza/browser control, real fill, order behavior, credential/session handling,
+and Supabase writes.

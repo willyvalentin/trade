@@ -131,3 +131,11 @@ disabled API route, and adds no active prepare button, active handoff,
 buy/sell CTA, API route call, bridge call, localhost fetch, polling,
 Avanza/browser control, real fill, review, confirmation, submit, order,
 credential/session handling, or Supabase execution write.
+
+The visibility layer is closed in:
+
+- `docs/avanza-disabled-internal-prepare-button-shell-visibility-phase-completion-checkpoint.md`
+
+The next passive disabled prepare shell component phase is planned in:
+
+- `docs/avanza-passive-disabled-prepare-shell-component-plan.md`

@@ -104,6 +104,14 @@ into Trade UI or the disabled API route. It displays static shell fixtures only,
 including hidden, disabled, blocked, ready-internal-disabled, error, unknown,
 safe BUY, and safe SELL examples.
 
+The shell visibility layer is closed in:
+
+- `docs/avanza-disabled-internal-prepare-button-shell-visibility-phase-completion-checkpoint.md`
+
+The next passive component phase is planned in:
+
+- `docs/avanza-passive-disabled-prepare-shell-component-plan.md`
+
 That phase must remain disabled by default and must not call the API route,
 localhost, bridge, Avanza/browser, fill, review, confirmation, submit, order,
 credential/session handling, or Supabase writes.

@@ -635,6 +635,9 @@ import {
 import {
   AvanzaTradeUiHandoffPreview,
 } from "@/components/execution/AvanzaTradeUiHandoffPreview";
+import {
+  AvanzaPassiveDisabledPrepareShell,
+} from "@/components/execution/AvanzaPassiveDisabledPrepareShell";
 import type {
   AvanzaTradeUiHandoffPreviewModel,
 } from "@/lib/avanza-trade-ui-handoff-preview-fixtures";
@@ -677,6 +680,21 @@ import {
 import {
   buildAvanzaTradeUiPrepareIntent,
 } from "@/lib/avanza-trade-ui-prepare-intent";
+import {
+  buildAvanzaDisabledInternalPrepareButtonShell,
+} from "@/lib/avanza-disabled-internal-prepare-button-shell";
+import {
+  buildAvanzaPassiveDisabledPrepareShellComponentModel,
+} from "@/lib/avanza-passive-disabled-prepare-shell-fixtures";
+import {
+  buildAvanzaExplicitInternalVisibleDisabledPrepareShell,
+} from "@/lib/avanza-explicit-internal-visible-disabled-prepare-shell";
+import {
+  buildAvanzaGuardedApiRouteCallIntent,
+} from "@/lib/avanza-guarded-api-route-call-intent";
+import {
+  buildAvanzaExplicitInternalDisabledActionShell,
+} from "@/lib/avanza-explicit-internal-disabled-action-shell";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -15512,8 +15530,39 @@ export function TradeApp({
             mode: "disabled",
             prepareEnabled: false,
           });
+          const hardDisabledPrepareShell =
+            buildAvanzaDisabledInternalPrepareButtonShell({
+              mode: "hidden",
+              prepareIntent: hardDisabledPrepareIntent,
+              shellEnabled: false,
+            });
+          const hardDisabledPrepareShellComponent =
+            buildAvanzaPassiveDisabledPrepareShellComponentModel(
+              hardDisabledPrepareShell,
+            );
+          const hardDisabledVisiblePrepareShell =
+            buildAvanzaExplicitInternalVisibleDisabledPrepareShell({
+              baseShellModel: hardDisabledPrepareShell,
+              mode: "hidden",
+              passiveComponentModel: hardDisabledPrepareShellComponent,
+              visibleShellEnabled: false,
+            });
+          const hardDisabledApiRouteCallIntent =
+            buildAvanzaGuardedApiRouteCallIntent({
+              apiCallIntentEnabled: false,
+              mode: "disabled",
+              prepareIntentModel: hardDisabledPrepareIntent,
+              visibleShellModel: hardDisabledVisiblePrepareShell,
+            });
+          const hardDisabledActionShell =
+            buildAvanzaExplicitInternalDisabledActionShell({
+              actionShellEnabled: false,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              mode: "hidden",
+            });
 
-          void hardDisabledPrepareIntent;
+          void hardDisabledApiRouteCallIntent;
+          void hardDisabledActionShell;
 
           return (
             <>
@@ -15527,6 +15576,12 @@ export function TradeApp({
                 label="Default-off handoff preview"
                 modelResult={hardDisabledHandoffPreviewModel}
               />
+              {hardDisabledPrepareShellComponent.canRenderComponent ? (
+                <AvanzaPassiveDisabledPrepareShell
+                  label="Default-off prepare shell"
+                  modelResult={hardDisabledPrepareShellComponent}
+                />
+              ) : null}
             </>
           );
         })()

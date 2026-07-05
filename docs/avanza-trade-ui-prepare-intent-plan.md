@@ -215,3 +215,11 @@ The phase completion checkpoint is recorded in:
 The next disabled internal prepare button shell phase is planned in:
 
 - `docs/avanza-disabled-internal-prepare-button-shell-plan.md`
+
+That shell visibility layer is closed in:
+
+- `docs/avanza-disabled-internal-prepare-button-shell-visibility-phase-completion-checkpoint.md`
+
+The next passive disabled prepare shell component phase is planned in:
+
+- `docs/avanza-passive-disabled-prepare-shell-component-plan.md`
