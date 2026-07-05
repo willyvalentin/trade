@@ -161,8 +161,35 @@ keeps the gate locked, and keeps handoff, bridge/local fetch, polling,
 execution, order behavior, credential/session handling, and Supabase writes
 unavailable. It does not change `app/trade-app.tsx` or normal/default Trade UI.
 
+## Route Section Checkpoint Follow-Up
+
+`docs/avanza-test-only-enabled-preview-route-section-checkpoint.md` now records
+the completed fixture/model-only route section. It confirms route-only static
+fixture visibility, all four test-only statuses, the read-only/model-only
+`test_only_preview_ready_read_only` status, Trade UI non-wiring, default preview
+disabled, and no execution behavior.
+
+## Safety Audit Follow-Up
+
+`docs/avanza-test-only-enabled-branch-safety-audit.md` now records the safety
+audit for the test-only enabled preview fixture path. It confirms the route
+section remains fixture/model-only, dev-route-only, read-only, disconnected from
+Trade UI and real selectedRecommendation input, unable to derive previewState
+from app/route state, and non-executable.
+
+## Phase Completion Follow-Up
+
+`docs/avanza-test-only-enabled-branch-phase-completion-checkpoint.md` now closes
+the test-only enabled branch phase. The completed phase remains static
+fixture/model-only, keeps the dev route unlinked, keeps Trade UI unwired, and
+adds no real selectedRecommendation read, app/route previewState derivation, or
+execution behavior.
+
 ## References
 
+- [Avanza test-only enabled branch phase completion checkpoint](avanza-test-only-enabled-branch-phase-completion-checkpoint.md)
+- [Avanza test-only enabled branch safety audit](avanza-test-only-enabled-branch-safety-audit.md)
+- [Avanza test-only enabled preview route section checkpoint](avanza-test-only-enabled-preview-route-section-checkpoint.md)
 - [Avanza test-only enabled preview route section pre-implementation checkpoint](avanza-test-only-enabled-preview-route-section-pre-implementation-checkpoint.md)
 - [Avanza test-only enabled branch planning](avanza-test-only-enabled-branch-planning.md)
 - [Avanza test-only enabled branch pre-implementation checkpoint](avanza-test-only-enabled-branch-pre-implementation-checkpoint.md)

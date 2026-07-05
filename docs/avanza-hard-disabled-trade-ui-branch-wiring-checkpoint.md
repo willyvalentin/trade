@@ -243,10 +243,34 @@ The implementation is dev-route-only and does not import the helper or harness
 from `app/trade-app.tsx`, does not connect real selectedRecommendation input,
 and does not derive previewState from app or route state.
 
+## Test-Only Enabled Preview Route Section Checkpoint Follow-Up
+
+`docs/avanza-test-only-enabled-preview-route-section-checkpoint.md` now confirms
+that route-only fixture visibility is complete. It does not alter the
+hard-disabled Trade UI branch or enable normal/default selectedRecommendation
+preview.
+
+## Test-Only Enabled Branch Safety Audit Follow-Up
+
+`docs/avanza-test-only-enabled-branch-safety-audit.md` now audits that the
+test-only enabled preview fixture path remains static sanitized,
+fixture/model-only, dev-route-only, disconnected from Trade UI and real
+selectedRecommendation input, default-disabled, and non-executable.
+
+## Test-Only Enabled Branch Phase Completion Follow-Up
+
+`docs/avanza-test-only-enabled-branch-phase-completion-checkpoint.md` now closes
+the test-only enabled branch phase. It confirms the pure helper, fixtures,
+harness, dev-route section, and safety audit are complete without changing the
+hard-disabled Trade UI branch.
+
 ## References
 
 - [Avanza test-only enabled branch pre-implementation checkpoint](avanza-test-only-enabled-branch-pre-implementation-checkpoint.md)
+- [Avanza test-only enabled branch phase completion checkpoint](avanza-test-only-enabled-branch-phase-completion-checkpoint.md)
+- [Avanza test-only enabled branch safety audit](avanza-test-only-enabled-branch-safety-audit.md)
 - [Avanza test-only enabled branch planning](avanza-test-only-enabled-branch-planning.md)
+- [Avanza test-only enabled preview route section checkpoint](avanza-test-only-enabled-preview-route-section-checkpoint.md)
 - [Avanza test-only enabled preview route section plan](avanza-test-only-enabled-preview-route-section-plan.md)
 - [Avanza test-only enabled preview route section pre-implementation checkpoint](avanza-test-only-enabled-preview-route-section-pre-implementation-checkpoint.md)
 - [Avanza hard-disabled Trade UI branch wiring safety audit](avanza-hard-disabled-trade-ui-branch-wiring-safety-audit.md)

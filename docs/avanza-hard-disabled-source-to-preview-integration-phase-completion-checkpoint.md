@@ -309,3 +309,151 @@ preview fixtures only. The section keeps the source-to-preview chain
 fixture/model-only, does not wire anything into Trade UI, does not connect real
 selectedRecommendation input, and does not derive previewState from app or
 route state.
+
+## Test-Only Enabled Preview Route Section Checkpoint Reference
+
+`docs/avanza-test-only-enabled-preview-route-section-checkpoint.md` now records
+that completed fixture/model-only route visibility. It confirms the route uses
+only static fixtures, all test-only output remains passive, the Trade UI branch
+remains unchanged, and execution behavior remains unavailable.
+
+## Test-Only Enabled Branch Safety Audit Reference
+
+`docs/avanza-test-only-enabled-branch-safety-audit.md` now verifies that the
+test-only enabled preview fixture path remains dev-route-only,
+fixture/model-only, static sanitized, default-disabled, disconnected from Trade
+UI and real selectedRecommendation state, unable to derive previewState from
+app/route state, and non-executable.
+
+## Test-Only Enabled Branch Phase Completion Reference
+
+`docs/avanza-test-only-enabled-branch-phase-completion-checkpoint.md` now marks
+the test-only enabled branch phase complete. It records the pure fixture helper,
+fixtures, isolated harness, dev-route section, and safety audit as complete
+without connecting real selectedRecommendation input or wiring into Trade UI.
+
+## Real SelectedRecommendation Connection Planning Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-plan.md` now
+plans the future real-source read-only connection boundary. It allows only an
+already-existing Trade UI selectedRecommendation-like object to be explicitly
+mapped later, after a checkpoint and pure model/helper phase, while keeping
+default preview disabled and execution forbidden.
+
+## Real SelectedRecommendation Connection Pre-Implementation Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-pre-implementation-checkpoint.md`
+now defines the go/no-go boundary before adding that pure connection
+model/helper. It permits only explicit arguments and pure/model-only calls to
+source extraction and hard-disabled source-to-preview integration, with no app
+state reads, route reads, storage reads, fetch, polling, bridge calls, Supabase
+calls, or execution behavior.
+
+## Real SelectedRecommendation Connection Helper Reference
+
+`lib/avanza-real-selected-recommendation-read-only-connection.ts` now composes
+the source extraction helper and this hard-disabled source-to-preview
+integration helper in pure/model-only code. The connection helper remains
+explicit-input only and is not wired into Trade UI.
+
+The hard-disabled source-to-preview phase remains safe: source extraction is not
+wired into Trade UI, real selectedRecommendation input is not connected/read in
+Trade UI, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false, and
+no active controls, handoff, bridge/fetch/polling, order behavior,
+credential/session handling, or Supabase write was added.
+
+## Real SelectedRecommendation Connection Fixtures Reference
+
+The real selectedRecommendation read-only connection fixtures now exercise the
+connection helper over all six statuses, including the blocked integration and
+read-only preview-ready paths. The isolated harness renders those model results
+without wiring this hard-disabled integration into Trade UI.
+
+## Real SelectedRecommendation Connection Route Section Plan Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-plan.md`
+planned how the isolated connection harness may appear on the dev-only visual
+QA route as fixture/model-only content. The rendered section keeps this
+source-to-preview integration disconnected from app and route runtime state:
+there is no real selectedRecommendation read, no Trade UI wiring, no app/route
+previewState derivation, no bridge/local fetch/polling, and no execution.
+
+## Real SelectedRecommendation Connection Route Section Pre-Implementation Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-pre-implementation-checkpoint.md`
+now adds the go/no-go checkpoint before rendering the connection harness on the
+dev route. It allows only static connection fixtures and keeps this
+source-to-preview integration disconnected from real app/route state, Trade UI
+wiring, bridge/local fetch/polling, handoff, execution, credential/session
+handling, and Supabase writes.
+
+## Real SelectedRecommendation Connection Route Section Implementation Reference
+
+The dev-only visual QA route now renders the isolated connection harness using
+static connection fixtures only. The route section remains fixture/model-only
+and keeps this source-to-preview integration disconnected from Trade UI, real
+app/route selectedRecommendation state, app/route previewState derivation,
+bridge/local fetch/polling, handoff, execution, credential/session handling,
+and Supabase writes.
+
+## Real SelectedRecommendation Connection Route Section Checkpoint Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-checkpoint.md`
+now documents the completed fixture/model-only route section. It confirms the
+route-visible connection output remains static-fixture-only, this
+source-to-preview integration is not connected to Trade UI runtime state, no
+previewState is derived from app or route state, and bridge/local
+fetch/polling/order behavior remains unavailable.
+
+## Real SelectedRecommendation Connection Safety Audit Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-safety-audit.md`
+now audits the route-visible connection fixture path. It confirms the
+source-to-preview integration remains fixture/model-only, no real
+selectedRecommendation state is read from app or route state, source extraction
+remains unwired from Trade UI, `modelResult` exists only for
+`preview_ready_read_only`, and bridge/local fetch/polling/order behavior
+remains unavailable.
+
+## Real SelectedRecommendation Connection Phase Completion Reference
+
+`docs/avanza-real-selected-recommendation-read-only-connection-phase-completion-checkpoint.md`
+now closes the real connection phase. The source-to-preview integration remains
+hard-disabled in Trade UI, source extraction remains unwired from Trade UI, no
+previewState is derived from app or route state, and bridge/local fetch/polling/
+order behavior remains unavailable.
+
+## Hard-Disabled Trade UI Real-Source Branch Plan Reference
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-plan.md` now
+plans a later branch-only integration shape for real-source input. The plan
+keeps this source-to-preview integration unavailable in the default path and
+requires any future real-source invocation to remain inside the existing
+hard-disabled Trade UI branch with `connectionEnabled` and `allowPreviewModel`
+false by default, controls disabled, gate locked, and execution forbidden.
+
+## Hard-Disabled Trade UI Real-Source Branch Pre-Implementation Reference
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-pre-implementation-checkpoint.md`
+now adds the go/no-go boundary before implementation. It keeps this
+source-to-preview integration unavailable in the default path and requires any
+future real-source branch wiring to stay disabled by default, branch-only,
+read-only, and non-executing.
+
+## Minimal Real-Source Branch Wiring Follow-Up
+
+The disabled Trade UI branch now invokes the real selectedRecommendation
+read-only connection helper before the existing hard-disabled source-to-preview
+integration output is inspected. Both remain inside the false-guarded branch.
+`connectionEnabled` and `allowPreviewModel` remain false by default, so the
+source-to-preview integration remains unavailable in the default path and no
+preview model renders by default.
+
+## Trade UI Real-Source Branch Safety Audit Follow-Up
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-safety-audit.md`
+now audits the minimal real-source branch wiring that sits beside this
+hard-disabled source-to-preview integration. The audit confirms both paths stay
+disabled by default, no `modelResult` renders by default, source extraction is
+not wired into the default Trade UI path, no previewState is derived from app or
+route state, and no active controls or execution behavior were added.

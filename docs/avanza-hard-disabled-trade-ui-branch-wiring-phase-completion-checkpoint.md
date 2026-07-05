@@ -256,10 +256,114 @@ hard-disabled Trade UI branch: `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW
 remains false, source extraction remains unwired from Trade UI, and real
 selectedRecommendation input remains disconnected.
 
+## Test-Only Enabled Preview Route Section Checkpoint Follow-Up
+
+`docs/avanza-test-only-enabled-preview-route-section-checkpoint.md` now records
+the completed route section. The checkpoint keeps this branch wiring phase
+unchanged: the route section is fixture/model-only and the Trade UI branch
+remains hard-disabled by default.
+
+## Test-Only Enabled Branch Safety Audit Follow-Up
+
+`docs/avanza-test-only-enabled-branch-safety-audit.md` now audits that the
+test-only enabled preview fixture path remains fixture/model-only,
+dev-route-only, read-only, disconnected from Trade UI and real
+selectedRecommendation input, unable to derive previewState from app/route
+state, default-disabled, and non-executable.
+
+## Test-Only Enabled Branch Phase Completion Follow-Up
+
+`docs/avanza-test-only-enabled-branch-phase-completion-checkpoint.md` now marks
+the test-only enabled branch phase complete. The completed phase remains
+fixture/model-only, dev-route-only, Trade UI unwired, real selectedRecommendation
+input disconnected, default-disabled, and non-executable.
+
+## Real SelectedRecommendation Connection Planning Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-plan.md` now
+plans a future explicit read-only mapping from an existing Trade UI
+selectedRecommendation-like object into the hard-disabled preview chain. The
+plan keeps the branch disabled by default and does not implement source
+extraction wiring, previewState derivation, handoff, bridge calls, or execution.
+
+## Real SelectedRecommendation Connection Pre-Implementation Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-pre-implementation-checkpoint.md`
+now permits only a future pure connection model/helper. It keeps the hard-disabled
+Trade UI branch unwired from real selectedRecommendation input and does not
+permit default preview enablement, route/app previewState derivation, handoff,
+bridge calls, polling, or execution.
+
+## Real SelectedRecommendation Connection Helper Follow-Up
+
+`lib/avanza-real-selected-recommendation-read-only-connection.ts` now implements
+the pure read-only connection helper, but the hard-disabled Trade UI branch is
+unchanged. The helper is not imported by `app/trade-app.tsx`, is not imported by
+the dev route directly, and does not enable the branch.
+
+The active/default state remains hard-disabled:
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` is false, default Trade UI
+remains visually unchanged, source extraction is not wired into Trade UI, and
+no active controls, handoff, prepare, buy/sell CTA, bridge/fetch/polling, order
+behavior, credential/session handling, or Supabase write was added.
+
+## Real SelectedRecommendation Connection Fixtures Follow-Up
+
+The real selectedRecommendation read-only connection fixtures and isolated
+harness now exist for model-only coverage. They are not imported by
+`app/trade-app.tsx`, are now rendered by the dev-only visual QA route as
+fixture/model-only content, and do not change the hard-disabled Trade UI branch.
+
+## Real SelectedRecommendation Connection Route Section Plan Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-plan.md`
+planned the dev-only route section for showing those connection fixtures and
+harness as fixture/model-only content. The hard-disabled Trade UI branch remains
+unchanged: `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains
+false, source extraction remains unwired from Trade UI, no real
+selectedRecommendation input is connected/read/rendered in Trade UI, and no
+previewState is derived from app or route state.
+
+## Real SelectedRecommendation Connection Route Section Pre-Implementation Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-pre-implementation-checkpoint.md`
+now permits only a future dev-route fixture/model-only harness render. It does
+not change the hard-disabled Trade UI branch: `app/trade-app.tsx` remains
+unchanged by this task, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+remains false, no real selectedRecommendation input is connected/read/rendered
+in Trade UI, no previewState is derived from app or route state, and no active
+controls or execution behavior are added.
+
+## Real SelectedRecommendation Connection Route Section Implementation Follow-Up
+
+The dev-only visual QA route now renders the isolated connection harness with
+static fixtures only. The hard-disabled Trade UI branch remains unchanged:
+`app/trade-app.tsx` is not edited, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+remains false, and no previewState is derived from app or route state.
+
+## Real SelectedRecommendation Connection Route Section Checkpoint Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-route-section-checkpoint.md`
+now records the completed route-only fixture section. The hard-disabled Trade UI
+branch remains unchanged: the real connection path is still not wired into
+Trade UI, real selectedRecommendation input is not connected/read/rendered in
+Trade UI, source extraction remains unwired from Trade UI, and no active
+controls or execution behavior are added.
+
 ## References
 
+- [Avanza real selectedRecommendation read-only connection route section plan](avanza-real-selected-recommendation-read-only-connection-route-section-plan.md)
+- [Avanza real selectedRecommendation read-only connection route section pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-connection-route-section-pre-implementation-checkpoint.md)
+- [Avanza real selectedRecommendation read-only connection route section checkpoint](avanza-real-selected-recommendation-read-only-connection-route-section-checkpoint.md)
+- [Avanza real selectedRecommendation read-only connection safety audit](avanza-real-selected-recommendation-read-only-connection-safety-audit.md)
+- [Avanza real selectedRecommendation read-only connection phase completion checkpoint](avanza-real-selected-recommendation-read-only-connection-phase-completion-checkpoint.md)
+- [Avanza real selectedRecommendation read-only connection pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-connection-pre-implementation-checkpoint.md)
+- [Avanza real selectedRecommendation read-only connection plan](avanza-real-selected-recommendation-read-only-connection-plan.md)
 - [Avanza test-only enabled branch pre-implementation checkpoint](avanza-test-only-enabled-branch-pre-implementation-checkpoint.md)
+- [Avanza test-only enabled branch phase completion checkpoint](avanza-test-only-enabled-branch-phase-completion-checkpoint.md)
+- [Avanza test-only enabled branch safety audit](avanza-test-only-enabled-branch-safety-audit.md)
 - [Avanza test-only enabled branch planning](avanza-test-only-enabled-branch-planning.md)
+- [Avanza test-only enabled preview route section checkpoint](avanza-test-only-enabled-preview-route-section-checkpoint.md)
 - [Avanza test-only enabled preview route section plan](avanza-test-only-enabled-preview-route-section-plan.md)
 - [Avanza test-only enabled preview route section pre-implementation checkpoint](avanza-test-only-enabled-preview-route-section-pre-implementation-checkpoint.md)
 - [Avanza hard-disabled Trade UI branch wiring checkpoint](avanza-hard-disabled-trade-ui-branch-wiring-checkpoint.md)
@@ -275,3 +379,63 @@ selectedRecommendation input remains disconnected.
 - [Avanza Trade app passive read-only selectedRecommendation preview wiring safety audit](avanza-trade-app-passive-read-only-selected-recommendation-preview-wiring-safety-audit.md)
 - [Avanza read-only real selectedRecommendation dev preview plan](avanza-read-only-real-selected-recommendation-dev-preview-plan.md)
 - [Semi-auto Avanza fill-only POC UI integration plan](semi-auto-avanza-fill-only-poc-ui-integration-plan.md)
+
+## Real SelectedRecommendation Connection Safety Audit Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-safety-audit.md`
+now verifies the route-visible connection fixture path remains outside the
+hard-disabled Trade UI branch. `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+remains false, source extraction remains unwired from Trade UI, real
+selectedRecommendation input is not connected/read/rendered in Trade UI, no
+previewState is derived from app or route state, and no active controls or
+execution behavior are added.
+
+## Real SelectedRecommendation Connection Phase Completion Follow-Up
+
+`docs/avanza-real-selected-recommendation-read-only-connection-phase-completion-checkpoint.md`
+now completes the real connection phase and recommends hard-disabled Trade UI
+real-source branch wiring planning. The hard-disabled branch remains unchanged:
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false and no real
+selectedRecommendation input is wired into Trade UI.
+
+## Hard-Disabled Real-Source Branch Plan Follow-Up
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-plan.md` now
+plans that branch-only next step. It may later pass an already-existing
+selectedRecommendation-like object into the read-only connection helper only
+inside the same disabled branch. The plan keeps the branch unreachable by
+default, keeps `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, keeps
+normal/default Trade UI visually unchanged, and keeps source extraction and the
+real connection helper out of the default path.
+
+## Hard-Disabled Real-Source Branch Pre-Implementation Follow-Up
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-pre-implementation-checkpoint.md`
+now permits the next minimal implementation task only inside the existing
+false-guarded branch. It keeps the hard-disabled branch unreachable by default,
+keeps `connectionEnabled` and `allowPreviewModel` false by default, and keeps
+default preview rendering, default `modelResult`, bridge/local fetch/polling,
+handoff, and execution unavailable.
+
+## Minimal Real-Source Branch Wiring Follow-Up
+
+The hard-disabled branch now includes a minimal real-source connection helper
+call. It is still inside the existing
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false-guarded branch and
+remains unreachable by default. The call passes the existing
+`selectedRecommendation` object explicitly, with `connectionEnabled: false` and
+`allowPreviewModel: false`.
+
+Default Trade UI remains visually unchanged and the existing `static_fixture`
+behavior remains unchanged.
+
+## Hard-Disabled Real-Source Branch Safety Audit Follow-Up
+
+`docs/avanza-hard-disabled-trade-ui-real-source-branch-wiring-safety-audit.md`
+now audits the later minimal real-source branch wiring inside the same
+false-guarded Trade UI branch. It confirms
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false, the real
+connection helper and selectedRecommendation-like source are confined to the
+hard-disabled branch, `connectionEnabled` and `allowPreviewModel` remain false,
+no real preview or `modelResult` renders by default, static fixture behavior is
+unchanged, and no execution path was added.

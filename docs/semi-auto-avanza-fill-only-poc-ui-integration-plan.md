@@ -118,6 +118,12 @@ Follow-up status: `avanza_read_only_selected_recommendation_dev_preview_route_se
 
 Follow-up status: `avanza_read_only_selected_recommendation_derivation_planned_no_wiring`
 
+Follow-up status: `avanza_disabled_internal_prepare_button_shell_model_added`
+
+Follow-up status: `avanza_disabled_internal_prepare_button_shell_fixtures_harness_added`
+
+Follow-up status: `avanza_disabled_internal_prepare_button_shell_dev_route_section_added_fixture_model_only`
+
 Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_model_added`
 
 Follow-up status: `avanza_read_only_selected_recommendation_derivation_decision_fixtures_added`
@@ -144,6 +150,30 @@ Follow-up status: `avanza_trade_ui_read_only_selected_recommendation_preview_com
 
 Follow-up status: `avanza_trade_ui_read_only_selected_recommendation_preview_component_route_section_checkpoint_added`
 
+Follow-up status: `avanza_real_selected_recommendation_read_only_connection_route_section_planned`
+
+Follow-up status: `avanza_real_selected_recommendation_read_only_connection_route_section_pre_implementation_checkpoint_added`
+
+Follow-up status: `avanza_real_selected_recommendation_read_only_connection_route_section_checkpoint_added`
+
+Follow-up status: `avanza_real_selected_recommendation_read_only_connection_phase_completion_checkpoint_added`
+
+Follow-up status: `avanza_hard_disabled_trade_ui_real_source_branch_wiring_planned`
+
+Follow-up status: `avanza_hard_disabled_trade_ui_real_source_branch_wiring_pre_implementation_checkpoint_added`
+
+Follow-up status: `avanza_hard_disabled_trade_ui_real_source_branch_wiring_added_default_disabled`
+
+Follow-up status: `avanza_disabled_api_route_implementation_phase_complete`
+
+Follow-up status: `avanza_trade_ui_prepare_intent_planned_no_wiring`
+
+Follow-up status: `avanza_trade_ui_prepare_intent_model_added`
+
+Follow-up status: `avanza_trade_ui_prepare_intent_fixtures_harness_added`
+
+Follow-up status: `avanza_trade_ui_prepare_intent_dev_route_section_added_fixture_model_only`
+
 Related milestone:
 `first_real_avanza_quantity_based_fill_only_core_poc_success_total_read_unresolved`
 
@@ -159,6 +189,36 @@ does not add a live trigger button, does not add automatic execution, and does
 not add broker submit, review, final confirmation, Supabase execution-record
 write, credential, session, BankID, cookie, localStorage, or sessionStorage
 handling.
+
+## Disabled API Route Completion And Prepare Intent Planning
+
+The disabled local-only API route implementation phase is closed in
+`docs/avanza-disabled-api-route-implementation-phase-completion-checkpoint.md`.
+The route exists at `app/api/dev/avanza/fill-only/stub/route.ts`, returns
+`api_stub_disabled` by default, keeps `apiRouteEnabled: false`,
+`localOnlyEnabled: false`, and `mode: "disabled"`, and remains unwired from
+Trade UI.
+
+The next phase is planned in `docs/avanza-trade-ui-prepare-intent-plan.md`.
+Prepare intent remains planning only: no active prepare button, no buy/sell CTA,
+no route call from Trade UI, no localhost, no bridge, no fetch/polling, no
+Avanza/browser control, no real fill, no review/confirm/submit/order behavior,
+no credential/session handling, and no Supabase execution write.
+
+The pure helper `lib/avanza-trade-ui-prepare-intent.ts` now models disabled,
+blocked, ready-internal, failed, and unknown prepare intent states from explicit
+inputs only. It remains unwired from Trade UI and cannot call the API route,
+localhost, bridge, Avanza/browser, fill, review, confirmation, submit, order, or
+Supabase paths.
+
+The fixture/harness visibility layer now includes
+`lib/avanza-trade-ui-prepare-intent-fixtures.ts`,
+`components/execution/AvanzaTradeUiPrepareIntentHarness.tsx`, and a fixture-only
+section on `app/dev/avanza-visual-qa/page.tsx`. It remains unlinked from main
+navigation and adds no active prepare button, handoff, buy/sell CTA, API route
+call, localhost/bridge/fetch/polling, Avanza/browser control, real fill,
+review/confirm/submit/order behavior, credential/session handling, or Supabase
+execution write.
 
 ## Product Direction
 
@@ -2664,3 +2724,484 @@ visually unchanged, connects no real selectedRecommendation input, derives no
 previewState from app or route state, and adds no active controls, handoff,
 bridge/fetch/polling, order behavior, credential/session handling, or Supabase
 writes.
+
+Test-only enabled preview route section checkpoint:
+[Avanza test-only enabled preview route section checkpoint](avanza-test-only-enabled-preview-route-section-checkpoint.md)
+documents the completed fixture/model-only route section. It confirms all four
+test-only statuses are visible, `test_only_preview_ready_read_only` remains
+read-only/model-only, the route remains unlinked, Trade UI remains unwired, and
+no execution behavior was added.
+
+Test-only enabled branch safety audit:
+[Avanza test-only enabled branch safety audit](avanza-test-only-enabled-branch-safety-audit.md)
+documents the safety audit for the test-only enabled preview fixture path. It
+confirms static sanitized fixture usage, dev-route-only visibility, Trade UI
+non-wiring, no real selectedRecommendation read/render, no previewState derived
+from app/route state, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false,
+default Trade UI unchanged, and no active controls, handoff, bridge/fetch/polling,
+order behavior, credential/session handling, or Supabase writes.
+
+Test-only enabled branch phase completion:
+[Avanza test-only enabled branch phase completion checkpoint](avanza-test-only-enabled-branch-phase-completion-checkpoint.md)
+marks the test-only enabled branch phase complete. It records the pure helper,
+fixtures, isolated harness, dev-route fixture/model-only section, and safety
+audit as complete while keeping the route fixture/model-only, the test-only path
+unwired from Trade UI, real selectedRecommendation input disconnected,
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, default Trade UI
+unchanged, and all active controls/execution unavailable.
+
+Real selectedRecommendation read-only connection planning:
+[Avanza real selectedRecommendation read-only connection plan](avanza-real-selected-recommendation-read-only-connection-plan.md)
+plans how an already-existing Trade UI selectedRecommendation-like object may
+later be explicitly mapped into the read-only preview chain. The plan is
+planning-only and keeps app code unchanged, source extraction unwired from
+Trade UI, real input disconnected, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+false, default Trade UI unchanged, no previewState derived from app/route state,
+and no active controls, handoff, bridge/fetch/polling, order behavior,
+credential/session handling, or Supabase writes.
+
+Real selectedRecommendation read-only connection pre-implementation checkpoint:
+[Avanza real selectedRecommendation read-only connection pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-connection-pre-implementation-checkpoint.md)
+adds the go/no-go checkpoint before any pure connection model/helper. It allows
+only explicit model-only/test-only inputs, keeps the helper unwired from Trade
+UI and the dev route, keeps real selectedRecommendation input disconnected,
+keeps `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, and forbids
+preview enablement, app/route previewState derivation, active controls,
+handoff, bridge/fetch/polling, order behavior, credential/session handling, and
+Supabase writes.
+
+Real selectedRecommendation read-only connection helper:
+`lib/avanza-real-selected-recommendation-read-only-connection.ts` now implements
+the pure explicit-input connection model/helper. It can compose source
+extraction and hard-disabled source-to-preview integration in model-only code,
+returns `modelResult` only for `preview_ready_read_only`, and keeps all handoff,
+bridge, localhost fetch, polling, execution, controls, and gate safety limits
+enforced.
+
+The helper is not wired into `app/trade-app.tsx`. Real selectedRecommendation
+input is not connected/read/rendered in Trade UI, source extraction remains
+unwired from Trade UI,
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false, default Trade
+UI remains visually unchanged, and no active controls or order behavior were
+added.
+
+Real selectedRecommendation read-only connection fixtures and harness:
+`lib/avanza-real-selected-recommendation-read-only-connection-fixtures.ts` and
+`components/execution/AvanzaRealSelectedRecommendationReadOnlyConnectionHarness.tsx`
+now cover all six pure connection statuses with isolated static fixtures. The
+harness is now rendered on the dev-only visual QA route as fixture/model-only
+content, is not wired into Trade UI, does not read app/route state, and keeps
+bridge/local fetch/polling/execution unavailable.
+
+Real selectedRecommendation read-only connection route section plan:
+[Avanza real selectedRecommendation read-only connection route section plan](avanza-real-selected-recommendation-read-only-connection-route-section-plan.md)
+planned the fixture/model-only dev-route section for the isolated connection
+harness. The route now renders the harness with static fixtures only, does not
+wire anything into Trade UI, does not connect real selectedRecommendation input,
+does not derive previewState from app or route state, and does not add active
+controls, handoff, prepare, buy/sell CTA, bridge/fetch/polling, order behavior,
+credential/session handling, or Supabase writes.
+
+Real selectedRecommendation read-only connection route section pre-implementation checkpoint:
+[Avanza real selectedRecommendation read-only connection route section pre-implementation checkpoint](avanza-real-selected-recommendation-read-only-connection-route-section-pre-implementation-checkpoint.md)
+defined the go/no-go boundary before rendering the isolated connection harness
+on the dev-only visual QA route. The implemented route section keeps
+`app/trade-app.tsx` unchanged, keeps real selectedRecommendation input
+disconnected, keeps source extraction unwired from Trade UI, keeps
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, derives no
+previewState from app or route state, and adds no active controls, handoff,
+prepare, buy/sell CTA, bridge/fetch/polling, order behavior,
+credential/session handling, or Supabase writes.
+
+Real selectedRecommendation read-only connection route section implementation:
+`app/dev/avanza-visual-qa/page.tsx` now renders the isolated connection harness
+with static connection fixtures only. The route remains fixture/model-only and
+unlinked from main navigation, Trade UI remains unchanged, and no real
+selectedRecommendation input is connected/read/rendered in Trade UI.
+
+Real selectedRecommendation read-only connection route section checkpoint:
+[Avanza real selectedRecommendation read-only connection route section checkpoint](avanza-real-selected-recommendation-read-only-connection-route-section-checkpoint.md)
+now documents that completed dev-route fixture/model-only section. It confirms
+all six connection statuses are visible, `modelResult` appears only for
+`preview_ready_read_only`, safe summaries exclude credentials/session/account/
+cookie/storage/broker-secret data, source extraction remains unwired from Trade
+UI, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false, and no
+active controls, handoff, prepare, buy/sell CTA, bridge/fetch/polling, order
+behavior, credential/session handling, or Supabase writes were added.
+
+Real selectedRecommendation read-only connection safety audit:
+[Avanza real selectedRecommendation read-only connection safety audit](avanza-real-selected-recommendation-read-only-connection-safety-audit.md)
+documents and tests that the route-visible connection path remains
+fixture/model-only, dev-route-only, read-only, disconnected from Trade UI,
+disconnected from real selectedRecommendation input, and non-executable. It
+confirms all six statuses remain visible, `modelResult` exists only for
+`preview_ready_read_only`, safe summaries exclude credential/session/account/
+cookie/storage/broker-secret data, `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`
+remains false, no previewState is derived from app or route state, and no
+active controls, handoff, prepare, buy/sell CTA, bridge/fetch/polling, order
+behavior, credential/session handling, or Supabase writes were added.
+
+Real selectedRecommendation read-only connection phase completion:
+[Avanza real selectedRecommendation read-only connection phase completion checkpoint](avanza-real-selected-recommendation-read-only-connection-phase-completion-checkpoint.md)
+marks the real connection phase complete. The phase completed the pure helper,
+fixtures, isolated harness, dev-route fixture/model-only section, and safety
+audit without wiring the path into Trade UI, connecting real selectedRecommendation
+input, deriving previewState from app or route state, changing
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW`, or adding active controls,
+handoff, prepare, buy/sell CTA, bridge/fetch/polling, order behavior,
+credential/session handling, or Supabase writes.
+
+Status:
+`avanza_hard_disabled_trade_ui_real_source_branch_wiring_safety_audit_added`
+
+Hard-disabled Trade UI real-source branch safety audit:
+[Avanza hard-disabled Trade UI real-source branch wiring safety audit](avanza-hard-disabled-trade-ui-real-source-branch-wiring-safety-audit.md)
+confirms the minimal `app/trade-app.tsx` real-source branch remains isolated,
+hard-disabled, read-only, visually unchanged by default, and non-executable.
+The audit confirms `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains
+false, the branch is unreachable by default, the real connection helper and
+selectedRecommendation-like source are only referenced inside the hard-disabled
+branch, `connectionEnabled` and `allowPreviewModel` remain false, no
+`modelResult` or real preview renders by default, existing `static_fixture`
+behavior remains unchanged, source extraction is not wired into the default
+Trade UI path, no previewState is derived from app or route state, and no
+bridge/local fetch, polling, handoff, prepare, buy/sell CTA, order behavior,
+credential/session handling, or Supabase execution write was added.
+
+Status:
+`avanza_hard_disabled_trade_ui_real_source_branch_wiring_phase_complete`
+
+Phase completion:
+[Avanza hard-disabled Trade UI real-source branch wiring phase completion checkpoint](avanza-hard-disabled-trade-ui-real-source-branch-wiring-phase-completion-checkpoint.md)
+closes the hard-disabled real-source branch wiring phase. The phase ends with
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, default Trade UI
+visually unchanged, real connection helper access confined to the hard-disabled
+branch, selectedRecommendation-like source access confined to the same branch,
+`connectionEnabled` false, `allowPreviewModel` false, no default preview, no
+default `modelResult`, no app/route previewState derivation, and no active
+controls or execution behavior.
+
+Status:
+`avanza_handoff_package_builder_planned`
+
+Next planning phase:
+[Avanza handoff package builder plan](avanza-handoff-package-builder-plan.md)
+defines a future pure data package builder for Avanza handoff preparation. It
+does not implement handoff, browser control, bridge/local calls, polling,
+fill/click/review/final/submit/order behavior, credential/session handling, or
+Supabase execution writes.
+
+Status:
+`avanza_handoff_package_builder_implemented`
+
+Handoff package builder helper:
+`lib/avanza-handoff-package-builder.ts` now implements the pure
+`buildAvanzaHandoffPackage` helper with explicit inputs only. It can build a
+whitelisted read-only or fill-only handoff data package from a safe
+recommendation-like candidate or ready read-only connection output, but it does
+not wire into Trade UI, does not call bridge/local/browser/Avanza paths, does
+not poll, does not execute, and does not write Supabase execution records.
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` remains false and default
+Trade UI behavior remains unchanged.
+
+Handoff package builder fixtures and harness:
+`lib/avanza-handoff-package-builder-fixtures.ts` and
+`components/execution/AvanzaHandoffPackageBuilderHarness.tsx` now provide an
+isolated fixture-only inspection layer for the pure builder. Fixtures cover
+disabled, unavailable, invalid, risk-blocked, read-only ready, fill-only ready,
+BUY, SELL, invalid quantity, missing ticker, missing price, expired input, and
+warning states. The harness is not wired into Trade UI or the dev route and
+adds no handoff, prepare, buy/sell CTA, bridge/fetch/polling, browser/Avanza,
+order, credential/session, or Supabase behavior.
+
+Handoff package builder dev route section:
+`app/dev/avanza-visual-qa/page.tsx` now renders
+`AvanzaHandoffPackageBuilderHarness` with
+`avanzaHandoffPackageBuilderFixtures` only. The section is fixture/model-only,
+unlinked from main navigation, and labels the boundary as explicit input only,
+no Trade UI wiring, no bridge calls, no localhost fetch, no polling, no
+Avanza/browser control, no execution, no order submission, controls disabled,
+and gate locked. It does not add Trade UI wiring, handoff, prepare, buy/sell
+CTA, order behavior, credential/session handling, or Supabase writes.
+
+Handoff package builder phase completion:
+[Avanza handoff package builder phase completion checkpoint](avanza-handoff-package-builder-phase-completion-checkpoint.md)
+marks the pure handoff package builder phase complete. It records the helper,
+fixtures, isolated harness, dev-route fixture/model-only section, BUY/SELL
+coverage, blocked-state coverage, read-only readiness, and fill-only readiness
+as non-executable metadata. Trade UI remains unwired and default-safe.
+
+Trade UI handoff preview planning:
+[Avanza Trade UI handoff preview plan](avanza-trade-ui-handoff-preview-plan.md)
+starts the next planning-only phase. It defines a future passive Trade UI
+handoff package preview that may display package fields read-only, while
+keeping active handoff, prepare, buy/sell CTA, bridge/fetch/polling,
+Avanza/browser control, order behavior, credential/session handling, and
+Supabase execution writes forbidden.
+
+Trade UI handoff preview component fixtures and harness:
+`components/execution/AvanzaTradeUiHandoffPreview.tsx`,
+`lib/avanza-trade-ui-handoff-preview-fixtures.ts`, and
+`components/execution/AvanzaTradeUiHandoffPreviewHarness.tsx` now provide an
+isolated read-only preview surface for handoff package results. The component
+accepts explicit model/result props only, renders disabled/blocked/empty and
+ready states, shows fill-only readiness as metadata only, and remains unwired
+from Trade UI. No handoff button, prepare button, buy/sell CTA, bridge/local
+fetch/polling, Avanza/browser control, order behavior, credential/session
+handling, or Supabase write was added.
+
+Trade UI handoff preview dev route section:
+`app/dev/avanza-visual-qa/page.tsx` now renders
+`AvanzaTradeUiHandoffPreviewHarness` with
+`avanzaTradeUiHandoffPreviewFixtures` only. The section is fixture/model-only,
+unlinked from main navigation, and labels the boundary as explicit input only,
+no Trade UI wiring, no bridge calls, no localhost fetch, no polling, no
+Avanza/browser control, no execution, no order submission, controls disabled,
+and gate locked. `app/trade-app.tsx` remains unwired for the handoff preview.
+
+Trade UI handoff preview hard-disabled branch:
+`app/trade-app.tsx` now references `AvanzaTradeUiHandoffPreview` only inside
+the existing `ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` branch. The
+flag remains false, so the branch is unreachable by default and no handoff
+preview renders in the normal Trade UI. The disabled model keeps
+`canProceedToHandoff`, `canPrepareFill`, bridge/local/polling/execution flags,
+and controls false, with the gate locked. No handoff, prepare, buy/sell CTA,
+Avanza/browser, order, credential/session, or Supabase behavior was added.
+
+Trade UI handoff preview phase completion:
+[Avanza Trade UI handoff preview phase completion checkpoint](avanza-trade-ui-handoff-preview-phase-completion-checkpoint.md)
+closes the preview phase. It confirms the read-only component, fixtures,
+harness, dev-route fixture/model-only section, and hard-disabled Trade UI branch
+are complete while default Trade UI remains visually unchanged and no active
+handoff/prepare/buy/sell CTA, bridge/fetch/polling, Avanza/browser control,
+order behavior, credential/session handling, or Supabase write was added.
+
+Avanza fill-only adapter contract planning:
+[Avanza fill-only adapter contract plan](avanza-fill-only-adapter-contract-plan.md)
+starts the next planning-only phase. It defines a future adapter contract for
+safe handoff package form fill preparation, with final human confirmation
+mandatory and review/confirm/submit behavior forbidden.
+
+Pure Avanza fill-only adapter contract model:
+`lib/avanza-fill-only-adapter-contract.ts` now adds the first contract-only
+implementation step. It defines adapter modes, lifecycle statuses, request and
+response types, hard safety flags, and pure request/response builders from
+explicit safe handoff package input only. The model can return disabled,
+unavailable, invalid, dry-run ready, fill-only ready, and fill-only blocked
+states while keeping review/confirm/submit, bridge/local/browser, order,
+credential/session, and Supabase behavior unavailable.
+
+Avanza fill-only adapter contract fixtures, harness, and dev QA route section:
+`lib/avanza-fill-only-adapter-contract-fixtures.ts`,
+`components/execution/AvanzaFillOnlyAdapterContractHarness.tsx`, and a
+fixture/model-only section in `app/dev/avanza-visual-qa/page.tsx` now expose
+the pure contract states for visual QA. The section uses static fixtures only,
+is not linked from main navigation, and adds no Trade UI wiring, active handoff,
+prepare button, buy/sell CTA, bridge/local fetch, polling, Avanza/browser
+control, order behavior, credential/session handling, or Supabase execution
+write.
+
+Avanza fill-only adapter contract visibility completion:
+[Avanza fill-only adapter contract visibility phase completion checkpoint](avanza-fill-only-adapter-contract-visibility-phase-completion-checkpoint.md)
+closes the contract visibility layer and confirms the fixture/model-only dev QA
+route section remains unlinked and non-executing.
+
+Avanza dry-run adapter layer planning:
+[Avanza dry-run adapter layer plan](avanza-dry-run-adapter-layer-plan.md)
+defines the next pure dry-run phase. It may model future adapter progress from
+explicit adapter contract request/response inputs only, while still forbidding
+bridge/local fetch, polling, Avanza/browser control, real fill, order behavior,
+credential/session handling, and Supabase writes.
+
+Pure Avanza dry-run adapter layer helper:
+`lib/avanza-dry-run-adapter-layer.ts` now implements the first model-only
+dry-run adapter layer. It accepts explicit input only, consumes the fill-only
+adapter contract response model, emits display-only progress events, and keeps
+success waiting for manual review. It is not wired into Trade UI and adds no
+active handoff, prepare button, buy/sell CTA, bridge/local fetch, polling,
+Avanza/browser control, real fill behavior, order behavior,
+click/review/confirm/submit behavior, credential/session handling, or Supabase
+execution write.
+
+Avanza dry-run adapter layer fixtures, harness, and dev QA route section:
+`lib/avanza-dry-run-adapter-layer-fixtures.ts`,
+`components/execution/AvanzaDryRunAdapterLayerHarness.tsx`, and a
+fixture/model-only section in `app/dev/avanza-visual-qa/page.tsx` now expose
+the pure dry-run states for visual QA. The section uses static fixtures only,
+is not linked from main navigation, and adds no Trade UI wiring, active
+handoff, prepare button, buy/sell CTA, bridge/local fetch, polling,
+Avanza/browser control, real fill behavior, order behavior,
+click/review/confirm/submit behavior, credential/session handling, or Supabase
+execution write.
+
+Avanza dry-run adapter layer completion:
+[Avanza dry-run adapter layer phase completion checkpoint](avanza-dry-run-adapter-layer-phase-completion-checkpoint.md)
+closes the dry-run adapter layer. It confirms the helper, fixtures, harness,
+and dev QA route fixture/model-only section are complete, that success ends at
+waiting manual review with `manual_review_required`, and that no Trade UI
+wiring, bridge/local fetch, polling, Avanza/browser control, real fill, order,
+credential/session handling, or Supabase execution write was added.
+
+Disabled local bridge contract planning:
+[Avanza disabled local bridge contract plan](avanza-disabled-local-bridge-contract-plan.md)
+starts the next planning-only phase. The planned bridge contract remains
+disabled by default and must not include localhost calls in this task, browser
+control, Avanza interaction, credentials, sessions, BankID, cookies, storage,
+account ids, broker secrets, order submission, or Supabase execution writes.
+
+Pure disabled local bridge contract helper:
+`lib/avanza-disabled-local-bridge-contract.ts` now implements the first
+model-only bridge contract step. It defaults to `bridge_disabled`, accepts
+explicit fill-only adapter responses only, models `dry_run_ready` and
+`fill_only_ready` request payloads without calling anything, and keeps
+`canCallBridge`, `canFetchLocalhost`, `canControlBrowser`, `canFillForm`,
+`canClickReview`, `canClickConfirm`, `canSubmitOrder`,
+`canHandleCredentials`, `canReadCookies`, `canReadBankId`, and
+`canWriteSupabaseExecution` false. No Trade UI wiring, active handoff, prepare
+button, buy/sell CTA, bridge/local fetch, polling, Avanza/browser control,
+real fill, order behavior, credential/session handling, or Supabase write was
+added.
+
+Disabled local bridge contract fixtures, harness, and dev QA route section:
+`lib/avanza-disabled-local-bridge-contract-fixtures.ts`,
+`components/execution/AvanzaDisabledLocalBridgeContractHarness.tsx`, and a
+fixture/model-only section in `app/dev/avanza-visual-qa/page.tsx` now expose
+the disabled bridge contract states for visual QA. The section uses static
+fixtures only, remains unlinked from main navigation, and adds no Trade UI
+wiring, active handoff, prepare button, buy/sell CTA, localhost calls, bridge
+calls, fetch/polling/execution, Avanza/browser control, real fill, order
+behavior, click/review/confirm/submit behavior, credential/session handling, or
+Supabase execution write.
+
+Disabled local bridge contract phase completion:
+[Avanza disabled local bridge contract phase completion checkpoint](avanza-disabled-local-bridge-contract-phase-completion-checkpoint.md)
+closes the contract/helper/fixture/harness/dev-route visibility phase. It
+confirms the dev route remains fixture/model-only and unlinked from main
+navigation, and that no Trade UI wiring, localhost endpoint, bridge call,
+fetch/polling, Avanza/browser control, real fill, order behavior,
+credential/session handling, or Supabase write was added.
+
+Disabled localhost bridge stub planning:
+[Avanza disabled localhost bridge stub plan](avanza-disabled-localhost-bridge-stub-plan.md)
+starts the next planning-only phase. It defines a future local/dev-only stub
+boundary, possible endpoint shapes, request/response statuses, hard safety
+flags, and absolute forbidden behavior while explicitly not implementing
+endpoints, Trade UI calls, browser/Avanza control, real fill, order behavior,
+credential/session handling, or Supabase writes.
+
+Pure disabled localhost bridge stub model:
+`lib/avanza-disabled-localhost-bridge-stub.ts` now implements the disabled
+localhost bridge stub as a model-only helper. It accepts explicit disabled
+local bridge request input only and can model disabled, unavailable, invalid,
+ready, mock started, mock waiting-for-manual-review, blocked, failed,
+cancelled, and unknown responses. It adds no route, no endpoint, no Trade UI
+wiring, no fetch/local polling, no bridge call, no Avanza/browser control, no
+real fill, no order behavior, no credential/session handling, and no Supabase
+execution write.
+
+Disabled localhost bridge stub fixture visibility:
+`lib/avanza-disabled-localhost-bridge-stub-fixtures.ts` and
+`components/execution/AvanzaDisabledLocalhostBridgeStubHarness.tsx` now expose
+the disabled localhost bridge stub on the dev-only Avanza visual QA route as
+static fixture/model-only content. The route section remains unlinked from main
+navigation and adds no API route, localhost endpoint, Trade UI wiring, active
+handoff, prepare button, buy/sell CTA, bridge/local fetch, polling,
+Avanza/browser control, real fill, order behavior, click/review/confirm/submit
+behavior, credential/session handling, or Supabase execution write.
+
+Disabled localhost bridge stub completion and local-only API route planning:
+[Avanza disabled localhost bridge stub phase completion checkpoint](avanza-disabled-localhost-bridge-stub-phase-completion-checkpoint.md)
+closes the stub visibility layer. The next document,
+[Avanza local-only API route stub plan](avanza-local-only-api-route-stub-plan.md),
+plans a future local-only disabled API route stub without implementing an
+endpoint, without adding route calls to Trade UI, and without adding
+bridge/local fetch, polling, Avanza/browser control, real fill, order behavior,
+credential/session handling, or Supabase writes.
+
+Pure local-only API route stub model:
+`lib/avanza-local-only-api-route-stub.ts` now implements the first model-only
+step of the local-only API route stub plan. It validates explicit disabled
+local bridge request payloads and returns mocked dry-run/fill-only statuses as
+data only. It adds no Next.js route, API route, localhost endpoint, Trade UI
+wiring, fetch, polling, bridge call, Avanza/browser control, real fill,
+review/confirm/submit behavior, order behavior, credential/session handling, or
+Supabase execution write.
+
+Local-only API route stub fixtures, harness, and dev QA route section:
+`lib/avanza-local-only-api-route-stub-fixtures.ts`,
+`components/execution/AvanzaLocalOnlyApiRouteStubHarness.tsx`, and a
+fixture/model-only section in `app/dev/avanza-visual-qa/page.tsx` now expose
+the pure local-only API route stub states for visual QA. The section uses
+static fixtures only, remains unlinked from main navigation, and adds no API
+route, localhost endpoint, Trade UI wiring, active handoff, prepare button,
+buy/sell CTA, bridge/local fetch, polling, Avanza/browser control, real fill,
+order behavior, click/review/confirm/submit behavior, credential/session
+handling, or Supabase execution write.
+
+Local-only API route stub visibility completion:
+[Avanza local-only API route stub phase completion checkpoint](avanza-local-only-api-route-stub-phase-completion-checkpoint.md)
+closes the pure model, fixture, harness, and dev QA route visibility layer. The
+route remains fixture/model-only and unlinked from main navigation, while
+`app/trade-app.tsx` remains unwired to the API stub.
+
+Disabled API route implementation planning:
+[Avanza disabled API route implementation plan](avanza-disabled-api-route-implementation-plan.md)
+plans and now records the disabled `POST /api/dev/avanza/fill-only/stub`
+candidate. The route exists at
+`app/api/dev/avanza/fill-only/stub/route.ts`, returns `api_stub_disabled` by
+default, is not called by Trade UI, remains local/dev/internal only, and is
+forbidden from localhost calls, bridge calls, browser/Avanza control, real
+fill, order behavior, credential/session handling, and Supabase writes.
+
+Disabled API route implementation safety audit:
+[Avanza disabled API route implementation safety audit](avanza-disabled-api-route-implementation-safety-audit.md)
+confirms the route is inert by default, has no active caller, is not referenced
+from `app/trade-app.tsx`, and cannot call localhost, bridge, fetch,
+Avanza/browser, real fill, review, confirmation, submit, order,
+credential/session handling, or Supabase execution write behavior.
+
+Trade UI prepare intent visibility completion:
+[Avanza Trade UI prepare intent visibility phase completion checkpoint](avanza-trade-ui-prepare-intent-visibility-phase-completion-checkpoint.md)
+closes the pure model, fixtures, isolated harness, and dev QA route
+fixture/model-only visibility layer. Prepare intent remains unwired from Trade
+UI, the disabled API route remains uncalled, and no active handoff, prepare
+button, buy/sell CTA, real fill, review, confirmation, submit, order,
+credential/session handling, or Supabase write exists.
+
+Hard-disabled Trade UI prepare intent wiring planning:
+[Avanza hard-disabled Trade UI prepare intent wiring plan](avanza-hard-disabled-trade-ui-prepare-intent-wiring-plan.md)
+now records a metadata-only invocation inside the existing disabled/default-off
+branch. It keeps `mode: "disabled"`, `prepareEnabled: false`,
+`prepare_disabled` by default, `canRenderPrepare: false`,
+`canClickPrepare: false`, `canCallApiRoute: false`, controls disabled, and the
+gate locked by default, while still forbidding API route calls, localhost calls,
+bridge calls, fetch/polling, Avanza/browser control, real fill,
+review/confirm/submit/order behavior, credential/session handling, and
+Supabase execution writes.
+
+Hard-disabled Trade UI prepare intent wiring safety audit:
+[Avanza hard-disabled Trade UI prepare intent wiring safety audit](avanza-hard-disabled-trade-ui-prepare-intent-wiring-safety-audit.md)
+confirms the minimal Trade UI invocation is isolated inside the disabled branch,
+unreachable by default, metadata-only, and incapable of API route, localhost,
+bridge, fetch/polling, Avanza/browser, fill, order, review/confirm/submit,
+credential/session, or Supabase behavior.
+
+Trade UI prepare intent hard-disabled wiring phase completion:
+[Avanza Trade UI prepare intent hard-disabled wiring phase completion checkpoint](avanza-trade-ui-prepare-intent-hard-disabled-wiring-phase-completion-checkpoint.md)
+closes the pure model, fixtures, isolated harness, dev QA route section,
+minimal hard-disabled Trade UI wiring, and safety audit. The phase remains
+default-off, metadata-only, and non-executing.
+
+Disabled internal prepare button shell planning:
+[Avanza disabled internal prepare button shell plan](avanza-disabled-internal-prepare-button-shell-plan.md)
+plans the next phase as a disabled/internal-only shell. The pure explicit-input
+model/helper now exists at `lib/avanza-disabled-internal-prepare-button-shell.ts`
+and defaults to hidden with `shellEnabled: false` and `canRenderShell: false`.
+The fixture module
+`lib/avanza-disabled-internal-prepare-button-shell-fixtures.ts`, isolated
+harness `components/execution/AvanzaDisabledInternalPrepareButtonShellHarness.tsx`,
+and dev QA route fixture/model-only section now exist. The shell is not wired
+into Trade UI or the disabled API route. The remaining phases must not add an
+active prepare button by default, must not call the API route, and must not add
+localhost, bridge, fetch/polling, Avanza/browser, fill, order,
+credential/session, or Supabase behavior.

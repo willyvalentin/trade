@@ -633,6 +633,12 @@ import {
   AvanzaTradeUiReadOnlySelectedRecommendationPreview,
 } from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview";
 import {
+  AvanzaTradeUiHandoffPreview,
+} from "@/components/execution/AvanzaTradeUiHandoffPreview";
+import type {
+  AvanzaTradeUiHandoffPreviewModel,
+} from "@/lib/avanza-trade-ui-handoff-preview-fixtures";
+import {
   useExecutionLivePositionHandoffState,
 } from "@/hooks/execution/useExecutionLivePositionHandoffState";
 import {
@@ -665,6 +671,12 @@ import {
 import {
   buildAvanzaHardDisabledSourceToPreviewIntegration,
 } from "@/lib/avanza-hard-disabled-source-to-preview-integration";
+import {
+  buildAvanzaRealSelectedRecommendationReadOnlyConnection,
+} from "@/lib/avanza-real-selected-recommendation-read-only-connection";
+import {
+  buildAvanzaTradeUiPrepareIntent,
+} from "@/lib/avanza-trade-ui-prepare-intent";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -15460,6 +15472,15 @@ export function TradeApp({
   const passiveReadOnlySelectedRecommendationPreview =
     ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW
       ? (() => {
+          const hardDisabledRealSourceConnection =
+            buildAvanzaRealSelectedRecommendationReadOnlyConnection({
+              allowPreviewModel: false,
+              connectionEnabled: false,
+              selectedRecommendationCandidate: selectedRecommendation,
+              sourceKind: "trade_ui_state",
+              sourceName:
+                "Trade UI hard-disabled real selectedRecommendation source branch",
+            });
           const hardDisabledSourceToPreviewIntegration =
             buildAvanzaHardDisabledSourceToPreviewIntegration({
               integrationEnabled: false,
@@ -15468,12 +15489,46 @@ export function TradeApp({
                 "Trade UI hard-disabled selectedRecommendation preview branch",
             });
 
-          return hardDisabledSourceToPreviewIntegration.modelResult ? (
-            <AvanzaTradeUiReadOnlySelectedRecommendationPreview
-              label="Default-off internal preview"
-              modelResult={hardDisabledSourceToPreviewIntegration.modelResult}
-            />
-          ) : null;
+          const hardDisabledPreviewModel =
+            hardDisabledRealSourceConnection.modelResult ??
+            hardDisabledSourceToPreviewIntegration.modelResult;
+          const hardDisabledHandoffPreviewModel: AvanzaTradeUiHandoffPreviewModel = {
+            blockedReasons: ["handoff preview disabled by default"],
+            canCallBridge: false,
+            canExecute: false,
+            canFetchLocalhost: false,
+            canPoll: false,
+            canPrepareFill: false,
+            canProceedToHandoff: false,
+            controlsEnabled: false,
+            gateLocked: true,
+            label: "Default-off handoff preview",
+            reason:
+              "Trade UI handoff preview branch is hard-disabled by default.",
+            status: "preview_disabled",
+            warnings: [],
+          };
+          const hardDisabledPrepareIntent = buildAvanzaTradeUiPrepareIntent({
+            mode: "disabled",
+            prepareEnabled: false,
+          });
+
+          void hardDisabledPrepareIntent;
+
+          return (
+            <>
+              {hardDisabledPreviewModel ? (
+                <AvanzaTradeUiReadOnlySelectedRecommendationPreview
+                  label="Default-off internal preview"
+                  modelResult={hardDisabledPreviewModel}
+                />
+              ) : null}
+              <AvanzaTradeUiHandoffPreview
+                label="Default-off handoff preview"
+                modelResult={hardDisabledHandoffPreviewModel}
+              />
+            </>
+          );
         })()
       : null;
   const selectedRecommendationForDisplay = selectedRecommendation

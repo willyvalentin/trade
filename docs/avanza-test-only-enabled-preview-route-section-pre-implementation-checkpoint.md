@@ -218,8 +218,29 @@ visibility:
 - no active controls, handoff, prepare, buy/sell CTA, bridge/fetch/polling,
   order behavior, credential/session handling, or Supabase write was added
 
+## Route Section Checkpoint Follow-Up
+
+The completed fixture/model-only route section is now recorded in
+`docs/avanza-test-only-enabled-preview-route-section-checkpoint.md`.
+
+It confirms the dev route renders only static test-only enabled preview
+fixtures, remains unlinked from main navigation, keeps Trade UI unwired, keeps
+real selectedRecommendation input disconnected, keeps
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, and adds no active
+controls or execution behavior.
+
+## Phase Completion Follow-Up
+
+`docs/avanza-test-only-enabled-branch-phase-completion-checkpoint.md` now marks
+the broader test-only enabled branch phase complete. It confirms the route
+section remains fixture/model-only and that the helper, fixtures, harness, route
+section, and safety audit are complete without Trade UI wiring or real
+selectedRecommendation reads.
+
 ## References
 
+- [Avanza test-only enabled branch phase completion checkpoint](avanza-test-only-enabled-branch-phase-completion-checkpoint.md)
+- [Avanza test-only enabled preview route section checkpoint](avanza-test-only-enabled-preview-route-section-checkpoint.md)
 - [Avanza test-only enabled preview route section plan](avanza-test-only-enabled-preview-route-section-plan.md)
 - [Avanza test-only enabled branch pre-implementation checkpoint](avanza-test-only-enabled-branch-pre-implementation-checkpoint.md)
 - [Avanza test-only enabled branch planning](avanza-test-only-enabled-branch-planning.md)

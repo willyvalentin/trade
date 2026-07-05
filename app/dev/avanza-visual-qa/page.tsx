@@ -27,6 +27,36 @@ import {
   AvanzaRealSelectedRecommendationReadOnlyDerivationHarness,
 } from "@/components/execution/AvanzaRealSelectedRecommendationReadOnlyDerivationHarness";
 import {
+  AvanzaRealSelectedRecommendationReadOnlyConnectionHarness,
+} from "@/components/execution/AvanzaRealSelectedRecommendationReadOnlyConnectionHarness";
+import {
+  AvanzaHandoffPackageBuilderHarness,
+} from "@/components/execution/AvanzaHandoffPackageBuilderHarness";
+import {
+  AvanzaTradeUiHandoffPreviewHarness,
+} from "@/components/execution/AvanzaTradeUiHandoffPreviewHarness";
+import {
+  AvanzaFillOnlyAdapterContractHarness,
+} from "@/components/execution/AvanzaFillOnlyAdapterContractHarness";
+import {
+  AvanzaDryRunAdapterLayerHarness,
+} from "@/components/execution/AvanzaDryRunAdapterLayerHarness";
+import {
+  AvanzaDisabledLocalBridgeContractHarness,
+} from "@/components/execution/AvanzaDisabledLocalBridgeContractHarness";
+import {
+  AvanzaDisabledLocalhostBridgeStubHarness,
+} from "@/components/execution/AvanzaDisabledLocalhostBridgeStubHarness";
+import {
+  AvanzaLocalOnlyApiRouteStubHarness,
+} from "@/components/execution/AvanzaLocalOnlyApiRouteStubHarness";
+import {
+  AvanzaTradeUiPrepareIntentHarness,
+} from "@/components/execution/AvanzaTradeUiPrepareIntentHarness";
+import {
+  AvanzaDisabledInternalPrepareButtonShellHarness,
+} from "@/components/execution/AvanzaDisabledInternalPrepareButtonShellHarness";
+import {
   AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness,
 } from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreviewModelHarness";
 import {
@@ -44,6 +74,36 @@ import {
 import {
   avanzaRealSelectedRecommendationReadOnlyDerivationFixtures,
 } from "@/lib/avanza-real-selected-recommendation-read-only-derivation-fixtures";
+import {
+  avanzaRealSelectedRecommendationReadOnlyConnectionFixtures,
+} from "@/lib/avanza-real-selected-recommendation-read-only-connection-fixtures";
+import {
+  avanzaHandoffPackageBuilderFixtures,
+} from "@/lib/avanza-handoff-package-builder-fixtures";
+import {
+  avanzaTradeUiHandoffPreviewFixtures,
+} from "@/lib/avanza-trade-ui-handoff-preview-fixtures";
+import {
+  avanzaFillOnlyAdapterContractFixtures,
+} from "@/lib/avanza-fill-only-adapter-contract-fixtures";
+import {
+  avanzaDryRunAdapterLayerFixtures,
+} from "@/lib/avanza-dry-run-adapter-layer-fixtures";
+import {
+  avanzaDisabledLocalBridgeContractFixtures,
+} from "@/lib/avanza-disabled-local-bridge-contract-fixtures";
+import {
+  avanzaDisabledLocalhostBridgeStubFixtures,
+} from "@/lib/avanza-disabled-localhost-bridge-stub-fixtures";
+import {
+  avanzaLocalOnlyApiRouteStubFixtures,
+} from "@/lib/avanza-local-only-api-route-stub-fixtures";
+import {
+  avanzaTradeUiPrepareIntentFixtures,
+} from "@/lib/avanza-trade-ui-prepare-intent-fixtures";
+import {
+  avanzaDisabledInternalPrepareButtonShellFixtures,
+} from "@/lib/avanza-disabled-internal-prepare-button-shell-fixtures";
 import {
   avanzaTradeUiReadOnlySelectedRecommendationPreviewModelFixtures,
 } from "@/lib/avanza-trade-ui-read-only-selected-recommendation-preview-model-fixtures";
@@ -271,6 +331,166 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaRealSelectedRecommendationReadOnlyDerivationHarness
             fixtures={avanzaRealSelectedRecommendationReadOnlyDerivationFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              real selectedRecommendation read-only connection
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Connection fixture only. Explicit candidate input only. No Trade UI state is read, No real selectedRecommendation state is read from app/route, No real selectedRecommendation state is rendered from app/route, No previewState is derived, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No execution, Controls disabled, Gate locked, and preview_ready_read_only remains read-only/model-only."
+              }
+            </p>
+          </div>
+          <AvanzaRealSelectedRecommendationReadOnlyConnectionHarness
+            fixtures={avanzaRealSelectedRecommendationReadOnlyConnectionFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza handoff package builder
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No order submission, Controls disabled, Gate locked, and handoff_ready_fill_only remains fixture/model-only and non-executable."
+              }
+            </p>
+          </div>
+          <AvanzaHandoffPackageBuilderHarness
+            fixtures={avanzaHandoffPackageBuilderFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Trade UI handoff preview
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No order submission, Controls disabled, Gate locked, and package_ready_fill_only_preview remains fixture/model-only and non-executable metadata."
+              }
+            </p>
+          </div>
+          <AvanzaTradeUiHandoffPreviewHarness
+            fixtures={avanzaTradeUiHandoffPreviewFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza fill-only adapter contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No order submission, Never clicks review, Never clicks confirm, User must confirm, Final human click required, Controls disabled by default, and Gate locked by default."
+              }
+            </p>
+          </div>
+          <AvanzaFillOnlyAdapterContractHarness
+            fixtures={avanzaFillOnlyAdapterContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza dry-run adapter layer
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, User must confirm, Final human click required, Controls disabled by default, Gate locked by default, and dry_run_completed_waiting_manual_review remains fixture/model-only and non-executable."
+              }
+            </p>
+          </div>
+          <AvanzaDryRunAdapterLayerHarness
+            fixtures={avanzaDryRunAdapterLayerFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Disabled local bridge contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled by default, and Gate locked by default."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledLocalBridgeContractHarness
+            fixtures={avanzaDisabledLocalBridgeContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Disabled localhost bridge stub
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No API route, No localhost endpoint, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled by default, and Gate locked by default."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledLocalhostBridgeStubHarness
+            fixtures={avanzaDisabledLocalhostBridgeStubFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Local-only API route stub
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No API route, No localhost endpoint, No Trade UI wiring, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled by default, and Gate locked by default."
+              }
+            </p>
+          </div>
+          <AvanzaLocalOnlyApiRouteStubHarness
+            fixtures={avanzaLocalOnlyApiRouteStubFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Trade UI prepare intent
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled by default, Gate locked by default, and prepare_ready_internal remains metadata/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaTradeUiPrepareIntentHarness
+            fixtures={avanzaTradeUiPrepareIntentFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Disabled internal prepare button shell
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture only. Explicit input only. No Trade UI wiring, No active prepare button, No active handoff, No API route call, No bridge calls, No localhost fetch, No polling, No Avanza/browser control, No execution, No real fill, No order submission, Never clicks review, Never clicks confirm, Never submits order, User must confirm, Final human click required, Controls disabled, Gate locked, Internal preview, Disabled, No broker action, and prepare_shell_ready_internal_disabled remains disabled/internal-only."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledInternalPrepareButtonShellHarness
+            fixtures={avanzaDisabledInternalPrepareButtonShellFixtures}
           />
         </section>
 

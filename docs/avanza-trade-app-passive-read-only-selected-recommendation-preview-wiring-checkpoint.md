@@ -40,9 +40,15 @@ default.
 
 The passive component is referenced only behind the hard-disabled guard.
 
-Only the default model is passed. The branch does not receive real app state,
-does not receive real selectedRecommendation state, and does not receive a
-previewState derived from app/route state.
+The branch can name the existing Trade UI selectedRecommendation-like object
+only inside the hard-disabled real-source connection path. That connection uses
+`connectionEnabled: false` and `allowPreviewModel: false`, so it cannot expose a
+model result by default and cannot render preview output.
+
+connectionEnabled false and allowPreviewModel false remain the default facts for
+this branch.
+
+Only the default model is passed to the passive component by default.
 
 The passive preview component cannot render by default.
 
@@ -54,10 +60,12 @@ The default path remains `static_fixture`. The Trade UI continues to show
 selectedRecommendation preview disabled by default and the static fixture Avanza
 preview remains the active/default visible preview path.
 
-## No Real SelectedRecommendation State Guarantee
+## Hard-Disabled Real Source Branch Guarantee
 
-This wiring does not read real selectedRecommendation state for the passive
-read-only preview path.
+This wiring only passes selectedRecommendation to the hard-disabled real-source
+connection branch for future boundary coverage.
+
+selectedRecommendation is only passed to the hard-disabled real-source connection branch.
 
 It does not render real selectedRecommendation state and it does not discover,
 search, fetch, refresh, or poll for selectedRecommendation data.
@@ -66,9 +74,10 @@ search, fetch, refresh, or poll for selectedRecommendation data.
 
 No previewState is derived from app/route state for this passive branch.
 
-The branch passes only
-`avanzaTradeUiReadOnlySelectedRecommendationPreviewDefaultModel`, which keeps
-the default render hidden/disabled and does not imply handoff readiness.
+The branch combines only disabled model outputs. The real-source connection
+keeps `connectionEnabled false` and `allowPreviewModel false`, while the
+source-to-preview integration remains hard-disabled. The default render stays
+hidden/disabled and does not imply handoff readiness.
 
 No dev route changes were made.
 
