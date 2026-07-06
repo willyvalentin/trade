@@ -177,3 +177,117 @@ All next-step options must preserve no active fetch, no active route call, no
 browser automation, no Avanza interaction, no fill, no order submission, no
 credential/session handling, no Supabase execution write, mandatory final human
 confirmation, and no production readiness claim.
+
+## Sharp Semi Auto Phase Opened
+
+The previous disabled local-only chain remains locked as the safety foundation.
+
+A new explicit user-approved Sharp Semi Auto phase is now opened:
+
+- `docs/avanza-sharp-semi-auto-execution-agent-scope.md`
+- `docs/ture-engine-execution-agent-contract.md`
+
+The new phase allows planning for local browser control, username/password
+login if logged out, BUY/SELL limit form fill, result capture, and Ture
+registration.
+
+It still forbids final order confirmation clicks, BankID bypass, credential
+logging, cookie/session extraction, and production readiness claims.
+
+The Recommendation Engine is the decision-maker. The Execution Agent is the
+broker-action executor/preparer. The Ture App is the registration, audit, and
+lifecycle owner.
+
+## Local Browser Runtime Foundation Added
+
+The Sharp Semi Auto phase now has its first active-direction runtime foundation:
+`lib/avanza-local-browser-agent-runtime.ts`,
+`lib/avanza-local-browser-agent-runtime-fixtures.ts`, and
+`components/execution/AvanzaLocalBrowserAgentRuntimeHarness.tsx`.
+
+The dev-only visual QA route renders the harness as fixture/model-only. This
+models local browser runtime readiness only. It does not navigate to Avanza,
+does not log in, does not handle credentials, does not fill forms, does not call
+an API route, does not fetch, does not submit orders, does not click final
+KÖP/SÄLJ, and does not write Supabase execution records. The previous disabled
+local-only chain remains the safety foundation.
+
+## Login And Credential Readiness Foundation Added
+
+The Sharp Semi Auto phase now includes pure login-state and credential-provider
+readiness models:
+
+- `lib/avanza-login-state-detector.ts`
+- `lib/avanza-login-state-detector-fixtures.ts`
+- `lib/avanza-secure-credential-provider.ts`
+- `lib/avanza-secure-credential-provider-fixtures.ts`
+- `components/execution/AvanzaLoginAndCredentialReadinessHarness.tsx`
+
+The dev-only visual QA route renders these as fixture/model-only. No actual
+login exists yet, no credential material access or return exists yet, no
+Keychain access exists yet, no 1Password CLI call exists, no environment
+variable read exists, no cookies/session handling exists, no BankID
+automation/bypass exists, no Avanza navigation or form fill exists, and no
+Supabase execution write exists.
+
+Username/password login remains allowed only after secure provider
+implementation and an explicit local-dev guard. BankID/MFA remains manual user
+action only.
+
+## Local Playwright Browser Adapter Foundation Added
+
+The Sharp Semi Auto phase now includes a pure local Playwright browser adapter
+foundation:
+
+- `lib/avanza-local-playwright-browser-adapter.ts`
+- `lib/avanza-local-playwright-browser-adapter-fixtures.ts`
+- `components/execution/AvanzaLocalPlaywrightBrowserAdapterHarness.tsx`
+
+The dev-only visual QA route renders this layer as fixture/model-only content.
+The adapter is an explicit local-dev model and callable contract only. It does
+not launch a browser during render, does not navigate to Avanza, does not log
+in, does not handle credentials, does not read cookies or export sessions, does
+not fill forms, does not click, does not submit orders, does not automate or
+bypass BankID, and does not write Supabase execution records.
+
+Browser launch, existing-browser connection, and page snapshot read are modeled
+only behind explicit local-dev callable methods. No Trade UI wiring was added.
+
+## Avanza Page State Detector Foundation Added
+
+The Sharp Semi Auto phase now includes a pure Avanza page/state detector:
+
+- `lib/avanza-page-state-detector.ts`
+- `lib/avanza-page-state-detector-fixtures.ts`
+- `components/execution/AvanzaPageStateDetectorHarness.tsx`
+
+The dev-only visual QA route renders this detector as fixture/model-only
+content. The detector classifies explicit page snapshots and observed signals
+only. It does not read browser state directly, does not navigate to Avanza, does
+not log in, does not handle credentials, does not read cookies or export
+sessions, does not fill forms, does not click, does not submit orders, does not
+automate or bypass BankID, and does not write Supabase execution records.
+
+BankID/MFA detection remains a manual-action-only state. No Trade UI wiring was
+added.
+
+## Sanitized Real-World Snapshot Intake Added
+
+The Sharp Semi Auto phase now includes sanitized real-world Avanza snapshot
+intake:
+
+- `lib/avanza-sanitized-page-snapshot.ts`
+- `lib/avanza-sanitized-page-snapshot-fixtures.ts`
+- `components/execution/AvanzaSanitizedPageSnapshotHarness.tsx`
+- `docs/avanza-real-world-snapshot-capture-guide.md`
+
+The dev-only visual QA route renders this as fixture/model-only content. It
+supports manual/sanitized screenshot or DOM signal notes for selector and
+state-planning work only. It does not navigate to Avanza, log in, handle
+credentials, read cookies or sessions, fill forms, click, submit orders,
+automate or bypass BankID, call API routes, fetch, or write Supabase execution
+records.
+
+Passwords, personnummer, account numbers, cookies, session/localStorage data,
+BankID QR, broker secrets, and other sensitive material remain forbidden in
+fixtures and docs.

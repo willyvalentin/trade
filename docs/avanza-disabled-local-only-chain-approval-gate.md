@@ -80,3 +80,22 @@ reviews are completed in separate future tasks.
 The final handoff summary and implementation index for future development
 chats is recorded at
 `docs/avanza-disabled-local-only-chain-handoff-summary.md`.
+
+## New Sharp Semi Auto Planning Direction
+
+The previous disabled local-only chain remains locked as the safety foundation.
+
+A new explicit user-approved Sharp Semi Auto phase is now opened in
+`docs/avanza-sharp-semi-auto-execution-agent-scope.md` and
+`docs/ture-engine-execution-agent-contract.md`.
+
+The new phase allows planning for local browser control, username/password
+login if logged out, BUY/SELL limit form fill, result capture, and Ture
+registration.
+
+It still forbids final order confirmation clicks, BankID bypass, credential
+logging, cookie/session extraction, and production readiness claims.
+
+The Recommendation Engine is the decision-maker. The Execution Agent is the
+broker-action executor/preparer. The Ture App is the registration, audit, and
+lifecycle owner.

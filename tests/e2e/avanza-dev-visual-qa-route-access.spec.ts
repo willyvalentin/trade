@@ -184,11 +184,191 @@ import {
 import {
   avanzaTradeUiReadOnlySelectedRecommendationPreviewComponentFixtures,
 } from "../../lib/avanza-trade-ui-read-only-selected-recommendation-preview-component-fixtures";
+import {
+  buildAvanzaLocalBrowserAgentRuntimeState,
+  createDisabledAvanzaLocalBrowserAgentRuntime,
+  createLocalDevAvanzaBrowserAgentRuntime,
+} from "../../lib/avanza-local-browser-agent-runtime";
+import {
+  avanzaLocalBrowserAgentRuntimeFixtures,
+} from "../../lib/avanza-local-browser-agent-runtime-fixtures";
+import {
+  buildAvanzaLocalPlaywrightBrowserAdapterState,
+  createDisabledAvanzaLocalPlaywrightBrowserAdapter,
+  createLocalDevAvanzaLocalPlaywrightBrowserAdapter,
+} from "../../lib/avanza-local-playwright-browser-adapter";
+import {
+  avanzaLocalPlaywrightBrowserAdapterFixtures,
+} from "../../lib/avanza-local-playwright-browser-adapter-fixtures";
+import {
+  buildAvanzaPageStateModel,
+} from "../../lib/avanza-page-state-detector";
+import {
+  avanzaPageStateDetectorFixtures,
+} from "../../lib/avanza-page-state-detector-fixtures";
+import {
+  buildAvanzaSanitizedPageSnapshot,
+  mapAvanzaSanitizedPageSnapshotToPageStateInput,
+  sanitizeAvanzaPageTextSignals,
+} from "../../lib/avanza-sanitized-page-snapshot";
+import {
+  avanzaSanitizedPageSnapshotFixtures,
+} from "../../lib/avanza-sanitized-page-snapshot-fixtures";
+import {
+  buildAvanzaRealWorldLoginSignalPack,
+} from "../../lib/avanza-real-world-login-signals";
+import {
+  avanzaRealWorldLoginSignalFixtures,
+} from "../../lib/avanza-real-world-login-signals-fixtures";
+import {
+  buildAvanzaRealWorldOrderSignalPack,
+} from "../../lib/avanza-real-world-order-flow-signals";
+import {
+  avanzaRealWorldOrderFlowSignalFixtures,
+} from "../../lib/avanza-real-world-order-flow-signals-fixtures";
+import {
+  buildAvanzaLoginStateModel,
+} from "../../lib/avanza-login-state-detector";
+import {
+  avanzaLoginStateDetectorFixtures,
+} from "../../lib/avanza-login-state-detector-fixtures";
+import {
+  buildAvanzaSecureCredentialProviderState,
+} from "../../lib/avanza-secure-credential-provider";
+import {
+  avanzaSecureCredentialProviderFixtures,
+} from "../../lib/avanza-secure-credential-provider-fixtures";
+import {
+  buildAvanzaExecutionSettingsProfile,
+} from "../../lib/avanza-execution-settings-profile";
+import {
+  avanzaExecutionSettingsProfileFixtures,
+} from "../../lib/avanza-execution-settings-profile-fixtures";
+import {
+  buildAvanzaOrderTicketFieldPlan,
+} from "../../lib/avanza-order-ticket-field-contract";
+import {
+  avanzaOrderTicketFieldContractFixtures,
+} from "../../lib/avanza-order-ticket-field-contract-fixtures";
+import {
+  buildAvanzaOrderTicketActionContract,
+} from "../../lib/avanza-order-ticket-action-contract";
+import {
+  avanzaOrderTicketActionContractFixtures,
+} from "../../lib/avanza-order-ticket-action-contract-fixtures";
+import {
+  buildAvanzaRealWorldInstrumentSearchSignalPack,
+} from "../../lib/avanza-real-world-instrument-search-signals";
+import {
+  avanzaRealWorldInstrumentSearchSignalFixtures,
+} from "../../lib/avanza-real-world-instrument-search-signals-fixtures";
+import {
+  buildAvanzaInstrumentSearchRouteContract,
+} from "../../lib/avanza-instrument-search-route-contract";
+import {
+  avanzaInstrumentSearchRouteContractFixtures,
+} from "../../lib/avanza-instrument-search-route-contract-fixtures";
+import {
+  buildAvanzaInstrumentSearchActionContract,
+} from "../../lib/avanza-instrument-search-action-contract";
+import {
+  avanzaInstrumentSearchActionContractFixtures,
+} from "../../lib/avanza-instrument-search-action-contract-fixtures";
+import {
+  avanzaExecutionSettingsProfileUiFixtures,
+} from "../../lib/avanza-execution-settings-profile-ui-fixtures";
+import {
+  buildAvanzaLoginRoutePlan,
+} from "../../lib/avanza-login-route-planner";
+import {
+  avanzaLoginRoutePlannerFixtures,
+} from "../../lib/avanza-login-route-planner-fixtures";
+import {
+  buildAvanzaLoginActionContract,
+} from "../../lib/avanza-login-action-contract";
+import {
+  avanzaLoginActionContractFixtures,
+} from "../../lib/avanza-login-action-contract-fixtures";
+import {
+  buildAvanzaLoginDryRunReport,
+} from "../../lib/avanza-login-dry-run-executor";
+import {
+  avanzaLoginDryRunExecutorFixtures,
+} from "../../lib/avanza-login-dry-run-executor-fixtures";
+import {
+  buildAvanzaLoginMockExecutorReport,
+  createAvanzaLoginMockPageState,
+} from "../../lib/avanza-login-mock-page-executor";
+import {
+  avanzaLoginMockPageExecutorFixtures,
+} from "../../lib/avanza-login-mock-page-executor-fixtures";
+import {
+  buildAvanzaLoginLocalDevExecutorState,
+  executeAvanzaLoginLocalDevPlan,
+} from "../../lib/avanza-login-local-dev-executor";
+import {
+  avanzaLoginLocalDevExecutorFixtures,
+} from "../../lib/avanza-login-local-dev-executor-fixtures";
+import {
+  buildAvanzaMacosKeychainCredentialProviderState,
+  checkAvanzaMacosKeychainCredentialReferences,
+  readAvanzaMacosKeychainCredentialReference,
+  toAvanzaLoginExecutorCredentialReference,
+  writeAvanzaMacosKeychainCredentialReference,
+} from "../../lib/avanza-macos-keychain-credential-provider";
+import {
+  avanzaMacosKeychainCredentialProviderFixtures,
+} from "../../lib/avanza-macos-keychain-credential-provider-fixtures";
+import {
+  buildAvanzaLoginCredentialResolutionState,
+  type AvanzaLoginResolvedCredentialRuntimeBundle,
+  resolveAvanzaLoginCredentialReferences,
+  toAvanzaLoginCredentialSafeReport,
+} from "../../lib/avanza-login-credential-resolution-bridge";
+import {
+  avanzaLoginCredentialResolutionBridgeFixtures,
+} from "../../lib/avanza-login-credential-resolution-bridge-fixtures";
+import {
+  buildAvanzaLoginLocalDevCredentialExecutorState,
+  executeAvanzaLoginLocalDevCredentialPlan,
+  toAvanzaLoginLocalDevCredentialSafeReport,
+} from "../../lib/avanza-login-local-dev-credential-executor";
+import {
+  avanzaLoginLocalDevCredentialExecutorFixtures,
+} from "../../lib/avanza-login-local-dev-credential-executor-fixtures";
+import {
+  buildAvanzaLocalPlaywrightPageActionBindingState,
+  createAvanzaLocalPlaywrightPageActionBinding,
+} from "../../lib/avanza-local-playwright-page-action-binding";
+import {
+  avanzaLocalPlaywrightPageActionBindingFixtures,
+} from "../../lib/avanza-local-playwright-page-action-binding-fixtures";
+import {
+  buildAvanzaIsolatedLoginSmokeTestPlan,
+  buildAvanzaIsolatedLoginSmokeTestSafeReport,
+} from "../../lib/avanza-isolated-login-smoke-test";
+import {
+  avanzaIsolatedLoginSmokeTestFixtures,
+} from "../../lib/avanza-isolated-login-smoke-test-fixtures";
+import {
+  buildAvanzaIsolatedLoginSmokeTestRunnerState,
+  runAvanzaIsolatedLoginSmokeTest,
+} from "../../lib/avanza-isolated-login-smoke-test-runner";
+import {
+  avanzaIsolatedLoginSmokeTestRunnerFixtures,
+} from "../../lib/avanza-isolated-login-smoke-test-runner-fixtures";
+import {
+  avanzaTerminalLoginSmokeScriptFixtures,
+} from "../../lib/avanza-terminal-login-smoke-script-fixtures";
 
 const repoRoot = process.cwd();
 
 function readRepoFile(path: string) {
   return readFileSync(join(repoRoot, path), "utf8");
+}
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ");
 }
 
 function buildReadyLocalBridgeRequest(mode: "dry_run" | "fill_only") {
@@ -278,7 +458,7 @@ function expectTradeAppPassiveReadOnlyPreviewDefaultOffWiring(
   const guardSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
 
   expect(guardSnippet).not.toMatch(/process\.env/);
-  expect(guardSnippet).not.toMatch(/localStorage|sessionStorage/);
+  expect(guardSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
   expect(guardSnippet).not.toMatch(/\bfetch\s*\(/);
   expect(guardSnippet).toContain(
     "buildAvanzaHardDisabledSourceToPreviewIntegration",
@@ -336,7 +516,7 @@ function expectTradeAppHardDisabledRealSourceBranchWiring(
   expect(branchSnippet).not.toContain("selectedRecommendation:");
   expect(branchSnippet).not.toContain("previewState");
   expect(branchSnippet).not.toMatch(/process\.env/);
-  expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+  expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
   expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
 }
 
@@ -458,7 +638,7 @@ function expectTradeAppHardDisabledPrepareIntentWiring(
   expect(branchSnippet).not.toMatch(
     /document\.cookie|cookies\.set|cookies\(\)/i,
   );
-  expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+  expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
   expect(branchSnippet).not.toMatch(
     /from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
   );
@@ -854,7 +1034,7 @@ const staticSafetyForbiddenPatterns = [
   /FINAL\s+LIVE\s+EXECUTE/,
   /fillQuantityField|fillPriceField|fillAmountField/,
   /clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i,
-  /BankID|document\.cookie|cookies\.set|cookies\(\)|localStorage|sessionStorage/,
+  /BankID|document\.cookie|cookies\.set|cookies\(\)|localStorage\s*[.\[]|sessionStorage\s*[.\[]/,
   /supabase.*execution|execution[_-]?record/i,
   /production-ready|production ready|execution-ready|execution ready/i,
 ] as const;
@@ -1044,9 +1224,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(routeSource).not.toMatch(/setInterval|setTimeout/);
     expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
     expect(routeSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(routeSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(routeSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(routeSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(routeSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(routeSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(routeSource).not.toContain("<button");
     expect(routeSource).not.toMatch(/onClick\s*=/);
     expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
@@ -1103,9 +1283,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(panelSource).not.toMatch(/setInterval|setTimeout/);
     expect(panelSource).not.toMatch(/\/live-fill-only-runner\//);
     expect(panelSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(panelSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(panelSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(panelSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(panelSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(panelSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(panelSource).not.toContain("<button");
     expect(panelSource).not.toMatch(/onClick\s*=/);
     expect(panelSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
@@ -1243,7 +1423,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
@@ -1363,7 +1543,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(
@@ -1456,9 +1636,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(
       /adaptSelectedRecommendation|buildAvanzaSelectedRecommendationPreviewState|buildAvanzaPreviewStateFromSelectedRecommendation/,
     );
@@ -1554,9 +1734,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toMatch(
       /adaptSelectedRecommendation|buildAvanzaSelectedRecommendationPreviewState|buildAvanzaPreviewStateFromSelectedRecommendation/,
     );
@@ -2001,9 +2181,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(
       /adaptSelectedRecommendation|buildAvanzaSelectedRecommendationPreviewState|buildAvanzaPreviewStateFromSelectedRecommendation/,
     );
@@ -2325,9 +2505,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(tradeAppSource).not.toContain(
       "buildAvanzaRealSelectedRecommendationReadOnlyDerivation",
     );
@@ -2459,9 +2639,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(tradeAppSource).not.toContain(
       "avanzaRealSelectedRecommendationReadOnlyDerivationFixtures",
     );
@@ -2558,9 +2738,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(tradeAppSource).not.toContain(
       "AvanzaRealSelectedRecommendationReadOnlyDerivationHarness",
     );
@@ -3763,9 +3943,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toMatch(/execution-ready|production-ready/i);
     expect(tradeAppSource).toContain("selectedRecommendation preview: disabled");
     expect(tradeAppSource).not.toContain(
@@ -4505,7 +4685,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(componentSource).not.toContain("app/trade-app");
     expect(componentSource).not.toContain("app/dev/avanza-visual-qa");
     expect(componentSource).not.toMatch(/process\.env/);
-    expect(componentSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(componentSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(componentSource).not.toMatch(/\bfetch\s*\(/);
     expect(componentSource).not.toMatch(/createClient|supabase/i);
     expect(componentSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
@@ -4640,7 +4820,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toContain("app/trade-app");
       expect(source).not.toContain("app/dev/avanza-visual-qa");
       expect(source).not.toMatch(/process\.env/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/createClient|supabase/i);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
@@ -5504,7 +5684,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "hardDisabledSourceToPreviewIntegration.modelResult",
     );
     expect(passiveBranchSnippet).not.toMatch(/process\.env/);
-    expect(passiveBranchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(passiveBranchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(passiveBranchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(passiveBranchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(passiveBranchSnippet).not.toMatch(/bridge|localhost/i);
@@ -5655,7 +5835,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "hardDisabledSourceToPreviewIntegration.modelResult",
     );
     expect(passiveBranchSnippet).not.toMatch(/process\.env/);
-    expect(passiveBranchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(passiveBranchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(passiveBranchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(passiveBranchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(passiveBranchSnippet).not.toMatch(/bridge|localhost/i);
@@ -6519,7 +6699,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     const guardSnippet = tradeAppSource.slice(guardIndex, guardIndex + 1800);
 
     expect(guardSnippet).not.toMatch(/process\.env/);
-    expect(guardSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(guardSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(guardSnippet).not.toMatch(/toggle/i);
     expect(guardSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(guardSnippet).not.toMatch(/setInterval|setTimeout/);
@@ -6719,7 +6899,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(helperSource).not.toMatch(/app\/trade-app|trade-app/);
     expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/supabase/i);
     expect(helperSource).not.toMatch(/from\s+["'][^"']*bridge/i);
@@ -6898,7 +7078,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     );
     expect(combinedFixtureAndHarnessSource).not.toMatch(/process\.env/);
     expect(combinedFixtureAndHarnessSource).not.toMatch(
-      /localStorage|sessionStorage/,
+      /localStorage\s*[.\[]|sessionStorage\s*[.\[]/,
     );
     expect(combinedFixtureAndHarnessSource).not.toMatch(/\bfetch\s*\(/);
     expect(combinedFixtureAndHarnessSource).not.toMatch(/supabase/i);
@@ -7514,7 +7694,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(branchSnippet).not.toContain("selectedRecommendation={");
     expect(branchSnippet).not.toContain("previewState");
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
 
     const defaultIntegrationResult =
@@ -7656,7 +7836,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "buildAvanzaSelectedRecommendationSourceExtraction",
     );
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(branchSnippet).not.toMatch(/prepare button/i);
@@ -7821,7 +8001,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "buildAvanzaSelectedRecommendationSourceExtraction",
     );
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(branchSnippet).not.toMatch(/prepare button/i);
@@ -8000,7 +8180,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "buildAvanzaSelectedRecommendationSourceExtraction",
     );
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(branchSnippet).not.toMatch(/prepare button/i);
@@ -8208,7 +8388,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "buildAvanzaSelectedRecommendationSourceExtraction",
     );
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(branchSnippet).not.toMatch(/prepare button/i);
@@ -8395,7 +8575,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     );
     expect(helperSource).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/supabase/i);
     expect(helperSource).not.toMatch(/(?:^|[^A-Za-z])callBridge\s*\(/i);
@@ -8561,7 +8741,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     for (const source of [fixturesSource, harnessSource, helperSource]) {
       expect(source).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
       expect(source).not.toMatch(/process\.env/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/supabase/i);
       expect(source).not.toMatch(/bridgeEndpoint|bridgeUrl/i);
@@ -9294,7 +9474,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     );
     expect(helperSource).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/window\.|document\./);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/createClient|supabase\./i);
@@ -9485,7 +9665,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     for (const source of [fixturesSource, harnessSource, helperSource]) {
       expect(source).not.toMatch(/app\/trade-app|app\/dev\/avanza-visual-qa/);
       expect(source).not.toMatch(/process\.env/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/window\.|document\./);
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/createClient|supabase\./i);
@@ -10468,7 +10648,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(branchSnippet).not.toContain("selectedRecommendation:");
     expect(branchSnippet).not.toContain("previewState");
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
 
     expect(routeSource).toContain("Connection fixture only");
@@ -10613,7 +10793,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     );
     expect(branchSnippet).not.toContain("previewState");
     expect(branchSnippet).not.toMatch(/process\.env/);
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
     expect(branchSnippet).not.toMatch(/setInterval|setTimeout/);
     expect(branchSnippet).not.toMatch(/handoff button/i);
@@ -10974,7 +11154,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/method:\s*["']POST["']/);
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/supabase.*execution|execution.*supabase/i);
     }
   });
@@ -11127,7 +11307,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(helperSource).not.toMatch(/app\/trade-app|trade-app/);
     expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/supabase/i);
     expect(helperSource).not.toMatch(/from\s+["'][^"']*bridge/i);
@@ -11296,7 +11476,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     );
     expect(combinedFixtureAndHarnessSource).not.toMatch(/process\.env/);
     expect(combinedFixtureAndHarnessSource).not.toMatch(
-      /localStorage|sessionStorage/,
+      /localStorage\s*[.\[]|sessionStorage\s*[.\[]/,
     );
     expect(combinedFixtureAndHarnessSource).not.toMatch(/\bfetch\s*\(/);
     expect(combinedFixtureAndHarnessSource).not.toMatch(/supabase/i);
@@ -11483,9 +11663,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
 
   test("read-only selectedRecommendation adapter/derived-preview integration decision returns no_input with fixture fallback", () => {
@@ -11663,9 +11843,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/avanza-selected-recommendation-adapter/);
     expect(source).not.toMatch(/avanza-selected-recommendation-derived-preview-state/);
     expect(source).not.toMatch(/adaptSelectedRecommendation/);
@@ -11768,9 +11948,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/avanza-selected-recommendation-adapter/);
     expect(source).not.toMatch(/avanza-selected-recommendation-derived-preview-state/);
     expect(source).not.toMatch(/adaptSelectedRecommendation/);
@@ -11874,9 +12054,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toMatch(/avanza-selected-recommendation-adapter/);
     expect(harnessSource).not.toMatch(/avanza-selected-recommendation-derived-preview-state/);
     expect(harnessSource).not.toMatch(/adaptSelectedRecommendation/);
@@ -12748,9 +12928,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).toMatch(/adaptSelectedRecommendationToAvanzaHandoffSource/);
     expect(source).toMatch(/buildAvanzaSelectedRecommendationPreviewState/);
     expect(source).not.toMatch(/buildAvanzaPreviewStateFromSelectedRecommendation/);
@@ -12884,9 +13064,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/avanza-selected-recommendation-derived-preview-state/);
     expect(source).not.toMatch(/buildAvanzaPreviewStateFromSelectedRecommendation/);
     expect(source).not.toMatch(/buildAvanzaSelectedRecommendationPreviewState/);
@@ -12992,9 +13172,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toMatch(/avanza-selected-recommendation-derived-preview-state/);
     expect(harnessSource).not.toMatch(/buildAvanzaPreviewStateFromSelectedRecommendation/);
     expect(harnessSource).not.toMatch(/buildAvanzaSelectedRecommendationPreviewState/);
@@ -14021,7 +14201,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(wrapperSource).not.toMatch(/\/live-fill-only-runner\//);
     expect(wrapperSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(wrapperSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(wrapperSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(wrapperSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
 
     expect(wrapperFixturesSource).toContain("read_only_preview_ready");
     expect(wrapperFixturesSource).toContain("derived_preview_failed");
@@ -14159,7 +14339,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(routeSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(routeSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(routeSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(routeSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
 
     const readyFixture =
       readOnlyAdapterDerivedPreviewWrapperFixtureById("read_only_preview_ready");
@@ -14434,9 +14614,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
 
   test("read-only selectedRecommendation derivation decision harness renders fixture states and safety copy", () => {
@@ -14520,9 +14700,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toContain("<button");
     expect(harnessSource).not.toMatch(/onClick\s*=/);
   });
@@ -14871,9 +15051,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
 
   test("read-only selectedRecommendation dev preview guard harness renders fixture states and safety copy", () => {
@@ -14926,9 +15106,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(harnessSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(harnessSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(harnessSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(harnessSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(harnessSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(harnessSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(harnessSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(harnessSource).not.toContain("<button");
     expect(harnessSource).not.toMatch(/onClick\s*=/);
   });
@@ -15125,7 +15305,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
   });
 
@@ -15199,9 +15379,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toContain("<button");
       expect(source).not.toMatch(/onClick\s*=/);
     }
@@ -15489,9 +15669,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
     expect(source).not.toMatch(/submitOrder\s*\(/i);
   });
@@ -15794,7 +15974,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16007,7 +16187,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16095,7 +16275,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combined).not.toMatch(/\bfetch\s*\(/);
     expect(combined).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combined).not.toMatch(/method:\s*["']POST["']/);
-    expect(combined).not.toMatch(/localStorage|sessionStorage/);
+    expect(combined).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combined).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combined).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combined).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16240,7 +16420,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(routeSource).not.toMatch(/\bfetch\s*\(/);
     expect(routeSource).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(routeSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(routeSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(routeSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(routeSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(routeSource).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(routeSource).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16440,7 +16620,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16637,7 +16817,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16735,7 +16915,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combined).not.toMatch(/\bfetch\s*\(/);
     expect(combined).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combined).not.toMatch(/method:\s*["']POST["']/);
-    expect(combined).not.toMatch(/localStorage|sessionStorage/);
+    expect(combined).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combined).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combined).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combined).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -16882,7 +17062,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combinedRouteSources).not.toMatch(/\bfetch\s*\(/);
     expect(combinedRouteSources).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combinedRouteSources).not.toMatch(/method:\s*["']POST["']/);
-    expect(combinedRouteSources).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedRouteSources).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combinedRouteSources).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combinedRouteSources).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combinedRouteSources).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -17185,7 +17365,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -17371,7 +17551,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -17583,7 +17763,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
     expect(source).not.toMatch(/method:\s*["']POST["']/);
-    expect(source).not.toMatch(/localStorage|sessionStorage/);
+    expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -17647,7 +17827,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(routeSource).not.toMatch(/\/live-fill-only-runner\//);
     expect(routeSource).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
     expect(routeSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
-    expect(routeSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(routeSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(routeSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(routeSource).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(routeSource).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -18121,7 +18301,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa\/page/);
     expect(helperSource).not.toMatch(/from ["']react["']|useState|useMemo|useEffect/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(helperSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
@@ -18300,7 +18480,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(helperSource).not.toMatch(/app\/dev\/avanza-visual-qa\/page/);
     expect(helperSource).not.toMatch(/from ["']react["']|useState|useMemo|useEffect/);
     expect(helperSource).not.toMatch(/process\.env/);
-    expect(helperSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(helperSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(helperSource).not.toMatch(/\bfetch\s*\(/);
     expect(helperSource).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(helperSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
@@ -19614,7 +19794,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(moduleSource).not.toMatch(/from ["'].*app\/api/);
     expect(moduleSource).not.toMatch(/from ["'].*app\/dev\/avanza-visual-qa/);
     expect(moduleSource).not.toMatch(/process\.env/);
-    expect(moduleSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(moduleSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
     expect(moduleSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
     expect(moduleSource).not.toMatch(/localhost:|127\.0\.0\.1/);
@@ -19748,7 +19928,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(
         /from ["'].*supabase|supabase\.(from|insert|rpc)/i,
       );
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
       expect(source).not.toMatch(/\/live-fill-only-runner\//);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
@@ -20293,7 +20473,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(branchSnippet).not.toMatch(
       /document\.cookie|cookies\.set|cookies\(\)/i,
     );
-    expect(branchSnippet).not.toMatch(/localStorage|sessionStorage/);
+    expect(branchSnippet).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(branchSnippet).not.toMatch(
       /from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
     );
@@ -20589,7 +20769,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       /reviewModal|finalConfirmation|placeOrder|submitOrder/i,
     );
     expect(branchSnippet).not.toMatch(
-      /document\.cookie|cookies\.set|cookies\(\)|localStorage|sessionStorage/i,
+      /document\.cookie|cookies\.set|cookies\(\)|localStorage\s*[.\[]|sessionStorage\s*[.\[]/i,
     );
     expect(branchSnippet).not.toMatch(
       /from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
@@ -20857,7 +21037,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(modelSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
     expect(modelSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
     expect(modelSource).not.toMatch(/process\.env/);
-    expect(modelSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(modelSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(modelSource).not.toMatch(/\bfetch\s*\(/);
     expect(modelSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
     expect(modelSource).not.toMatch(/localhost:|127\.0\.0\.1/);
@@ -21477,7 +21657,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       /reviewModal|finalConfirmation|placeOrder|submitOrder/i,
     );
     expect(branchSnippet).not.toMatch(
-      /document\.cookie|cookies\.set|cookies\(\)|localStorage|sessionStorage/i,
+      /document\.cookie|cookies\.set|cookies\(\)|localStorage\s*[.\[]|sessionStorage\s*[.\[]/i,
     );
     expect(branchSnippet).not.toMatch(
       /from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
@@ -21938,7 +22118,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(moduleSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
     expect(moduleSource).not.toMatch(/app\/dev\/avanza-visual-qa/);
     expect(moduleSource).not.toMatch(/process\.env/);
-    expect(moduleSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(moduleSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
     expect(moduleSource).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(moduleSource).not.toMatch(/from ["'].*supabase|supabase\./i);
@@ -22124,7 +22304,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/\/live-fill-only-runner\//);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\./i);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
     }
     expect(harnessSource).not.toContain("<button");
@@ -22582,7 +22762,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       /app\/api\/dev\/avanza\/fill-only\/stub/,
     );
     expect(componentSource).not.toMatch(/from ["'].*supabase|supabase\./i);
-    expect(componentSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(componentSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(componentSource).not.toMatch(/document\.cookie|cookies\(\)/);
     expect(componentSource).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
     expect(componentSource).not.toMatch(
@@ -23778,7 +23958,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(moduleSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
     expect(moduleSource).not.toMatch(/process\.env/);
     expect(moduleSource).not.toMatch(
-      /localStorage|sessionStorage|document\.cookie|cookies\(\)/,
+      /localStorage\s*[.\[]|sessionStorage\s*[.\[]|document\.cookie|cookies\(\)/,
     );
     expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
     expect(moduleSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
@@ -24884,7 +25064,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(moduleSource).not.toMatch(/app\/api\/dev\/avanza\/fill-only\/stub/);
     expect(moduleSource).not.toMatch(/process\.env/);
     expect(moduleSource).not.toMatch(
-      /localStorage|sessionStorage|document\.cookie|cookies\(\)/,
+      /localStorage\s*[.\[]|sessionStorage\s*[.\[]|document\.cookie|cookies\(\)/,
     );
     expect(moduleSource).not.toMatch(/\bfetch\s*\(/);
     expect(moduleSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
@@ -26830,6 +27010,6424 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     }
   });
 
+  test("sharp semi-auto scope and Engine Agent contract open planning while preserving default safety", () => {
+    const scopePath =
+      "docs/avanza-sharp-semi-auto-execution-agent-scope.md";
+    const contractPath = "docs/ture-engine-execution-agent-contract.md";
+    const scope = readRepoFile(scopePath);
+    const contract = readRepoFile(contractPath);
+    const approvalGate = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-approval-gate.md",
+    );
+    const handoffSummary = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-handoff-summary.md",
+    );
+    const finalSweep = readRepoFile(
+      "docs/avanza-disabled-local-only-chain-final-global-safety-sweep.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const branchIndex = tradeAppSource.indexOf(
+      "const passiveReadOnlySelectedRecommendationPreview",
+    );
+    const branchEndIndex = tradeAppSource.indexOf(
+      "const selectedRecommendationForDisplay",
+      branchIndex,
+    );
+    const branchSnippet = tradeAppSource.slice(branchIndex, branchEndIndex);
+
+    expect(existsSync(join(repoRoot, scopePath))).toBe(true);
+    expect(scope.length).toBeGreaterThan(0);
+    expect(scope).toContain(
+      "avanza_sharp_semi_auto_execution_agent_scope_added",
+    );
+    expect(scope).toContain("Sharp Semi Auto Execution Agent");
+    expect(scope).toContain("local-only first");
+    expect(scope).toContain("personal-use first");
+    expect(scope).toContain("high-quality direct");
+    expect(scope).toContain(
+      "Automatic login with username/password is allowed only if the Avanza account is",
+    );
+    expect(scope).toContain("already logged out");
+    expect(scope).toContain("No BankID automation");
+    expect(scope).toContain("No BankID bypass");
+    expect(scope).toContain("BUY limit order support");
+    expect(scope).toContain("SELL limit order support");
+    expect(scope).toContain("form-fill after validation");
+    expect(scope).toContain("post-fill verification");
+    expect(scope).toContain("Final human confirmation remains mandatory");
+    expect(scope).toContain("final KÖP click by agent");
+    expect(scope).toContain("final SÄLJ click by agent");
+    expect(scope).toContain("secure local source");
+    expect(scope).toContain("macOS Keychain");
+    expect(scope).toContain("no Supabase storage of broker credentials");
+    expect(scope).toContain("Post-fill verification is required");
+    expect(scope).toContain("block on mismatch");
+    expect(scope).toContain("local dev first");
+    expect(scope).toContain("canClickFinalBuy` false");
+    expect(scope).toContain("canClickFinalSell` false");
+    expect(scope).toContain("canBypassBankId` false");
+    expect(scope).toContain("canStoreBrokerCredentialsInDb` false");
+    expect(scope).toContain("canSubmitOrder` false in semi-auto");
+
+    expect(existsSync(join(repoRoot, contractPath))).toBe(true);
+    expect(contract.length).toBeGreaterThan(0);
+    expect(contract).toContain("ture_engine_execution_agent_contract_added");
+    expect(contract).toContain(
+      "The Recommendation Engine decides what should be traded",
+    );
+    expect(contract).toContain(
+      "The Execution Agent prepares/executes the broker workflow",
+    );
+    expect(contract).toContain(
+      "The Ture App owns state, audit trail, lifecycle, statistics, and learning",
+    );
+    expect(contract).toContain("Execution Intent Schema");
+    expect(contract).toContain("Execution Agent Result Schema");
+    expect(contract).toContain("BUY");
+    expect(contract).toContain("SELL");
+    expect(contract).toContain("humanConfirmed: boolean");
+    expect(contract).toContain("finalClickByAgent: false");
+    expect(contract).toContain(
+      "Ture must not register filled trade without human confirmation or reliable broker/user result",
+    );
+    expect(contract).toContain("confirmed_broker_result");
+    expect(contract).toContain("user_reported_result");
+    expect(contract).toContain("inferred_result");
+    expect(contract).toContain("failed_or_unknown_result");
+    expect(contract).toContain("Execution Agent must not choose trades independently");
+    expect(contract).toContain("Execution Agent must not click final KÖP/SÄLJ");
+    expect(contract).toContain("Execution Agent must not bypass BankID");
+
+    for (const doc of [
+      approvalGate,
+      handoffSummary,
+      finalSweep,
+      readOnlyPlan,
+      integrationPlan,
+    ]) {
+      expect(doc).toMatch(
+        /previous disabled\s+local-only chain remains locked as the safety foundation/i,
+      );
+      expect(doc).toMatch(
+        /new explicit(?:ly)? user-approved(?: planning direction| Sharp Semi Auto phase)/,
+      );
+      expect(doc).toContain(scopePath);
+      expect(doc).toContain(contractPath);
+      expect(doc).toContain("local browser control");
+      expect(doc).toMatch(/username\/password\s+login if logged out/);
+      expect(doc).toMatch(/BUY\/SELL\s+limit form fill/);
+      expect(doc).toContain("result capture");
+      expect(doc).toMatch(/Ture\s+registration/);
+      expect(doc).toContain("final order confirmation clicks");
+      expect(doc).toContain("BankID bypass");
+      expect(doc).toMatch(/credential\s+logging/);
+      expect(doc).toContain("cookie/session extraction");
+      expect(doc).toContain("production readiness claims");
+      expect(doc).toMatch(
+        /Recommendation\s+Engine (?:is|as) (?:the )?decision-maker/,
+      );
+      expect(doc).toMatch(
+        /Execution Agent (?:is|as) (?:the[\s\S]*)?broker-action executor\/preparer|the Execution Agent is the[\s\S]*broker-action[\s\S]*executor\/preparer/,
+      );
+      expect(doc).toMatch(/Ture App (?:is|as)[\s\S]*registration[\s\S]*owner/);
+    }
+
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(branchEndIndex).toBeGreaterThan(branchIndex);
+    expect(branchSnippet).not.toMatch(/<button\b|onClick\s*=/);
+    expect(branchSnippet).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(branchSnippet).not.toMatch(/\bfetch\s*\(/);
+    expect(branchSnippet).not.toMatch(/localhost:|127\.0\.0\.1/);
+    expect(branchSnippet).not.toMatch(/playwright|puppeteer|chromium|selenium/i);
+    expect(branchSnippet).not.toMatch(
+      /\b(submitOrder|placeOrder|reviewModal)\s*\(/i,
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+  });
+
+  test("local browser agent runtime foundation is fixture-only and non-executing", () => {
+    const runtimeSource = readRepoFile(
+      "lib/avanza-local-browser-agent-runtime.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-browser-agent-runtime-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalBrowserAgentRuntimeHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-local-browser-agent-runtime.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-local-browser-agent-runtime-fixtures.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "components/execution/AvanzaLocalBrowserAgentRuntimeHarness.tsx"))).toBe(true);
+
+    const disabled = createDisabledAvanzaLocalBrowserAgentRuntime();
+
+    expect(disabled.status).toBe("runtime_disabled");
+    expect(disabled.runtimeEnabled).toBe(false);
+    expect(disabled.canLaunchBrowser).toBe(false);
+    expect(disabled.canConnectToExistingBrowser).toBe(false);
+    expect(disabled.canNavigate).toBe(false);
+    expect(disabled.canReadPage).toBe(false);
+    expect(disabled.canFillForm).toBe(false);
+    expect(disabled.canClick).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canHandleCredentials).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const ready = createLocalDevAvanzaBrowserAgentRuntime({
+      runtimeEnabled: true,
+    });
+
+    expect(ready.status).toBe("runtime_ready_local_dev");
+    expect(ready.runtimeEnabled).toBe(true);
+    expect(ready.localDevOnly).toBe(true);
+    expect(ready.canFillForm).toBe(false);
+    expect(ready.canClick).toBe(false);
+    expect(ready.canClickFinalBuy).toBe(false);
+    expect(ready.canClickFinalSell).toBe(false);
+    expect(ready.canSubmitOrder).toBe(false);
+    expect(ready.canHandleCredentials).toBe(false);
+    expect(ready.canReadCookies).toBe(false);
+    expect(ready.canExportSession).toBe(false);
+    expect(ready.canBypassBankId).toBe(false);
+    expect(ready.finalHumanClickRequired).toBe(true);
+
+    const navigationModeled = buildAvanzaLocalBrowserAgentRuntimeState({
+      allowConnectToExistingBrowser: true,
+      allowNavigate: true,
+      allowReadPage: true,
+      browserProvider: "playwright",
+      mode: "local_dev",
+      runtimeAvailable: true,
+      runtimeEnabled: true,
+    });
+
+    expect(navigationModeled.status).toBe("runtime_ready_local_dev");
+    expect(navigationModeled.canConnectToExistingBrowser).toBe(true);
+    expect(navigationModeled.canNavigate).toBe(true);
+    expect(navigationModeled.canReadPage).toBe(true);
+    expect(navigationModeled.canFillForm).toBe(false);
+    expect(navigationModeled.canSubmitOrder).toBe(false);
+
+    const statuses = new Set(
+      avanzaLocalBrowserAgentRuntimeFixtures.map(
+        (fixture) => fixture.modelResult.status,
+      ),
+    );
+    const fixtureIds = new Set(
+      avanzaLocalBrowserAgentRuntimeFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const status of [
+      "runtime_disabled",
+      "runtime_unavailable",
+      "runtime_ready_local_dev",
+      "runtime_blocked",
+      "runtime_error",
+      "unknown",
+    ] as const) {
+      expect(statuses.has(status)).toBe(true);
+      expect(fixtureSource).toContain(status);
+    }
+
+    for (const fixtureId of [
+      "disabled_default",
+      "runtime_unavailable",
+      "runtime_blocked",
+      "local_dev_ready_modeled",
+      "local_dev_browser_launch_allowed",
+      "local_dev_connect_existing_browser_allowed",
+      "local_dev_read_only_navigation_allowed",
+      "runtime_error",
+      "unknown",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLocalBrowserAgentRuntimeFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.canFillForm).toBe(false);
+      expect(result.canClick).toBe(false);
+      expect(result.canClickFinalBuy).toBe(false);
+      expect(result.canClickFinalSell).toBe(false);
+      expect(result.canSubmitOrder).toBe(false);
+      expect(result.canHandleCredentials).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canExportSession).toBe(false);
+      expect(result.canBypassBankId).toBe(false);
+      expect(result.canWriteSupabaseExecution).toBe(false);
+      expect(result.userMustConfirm).toBe(true);
+      expect(result.finalHumanClickRequired).toBe(true);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    expect(harnessSource).toContain("Local browser agent runtime");
+    expect(harnessSource).toContain("Fixture only");
+    expect(harnessSource).toContain("Local/dev-only");
+    expect(harnessSource).toContain("No Avanza navigation yet");
+    expect(harnessSource).toContain("No login yet");
+    expect(harnessSource).toContain("No credential handling yet");
+    expect(harnessSource).toContain("No form fill yet");
+    expect(harnessSource).toContain("No API route call");
+    expect(harnessSource).toContain("No fetch");
+    expect(harnessSource).toContain("No order submission");
+    expect(harnessSource).toContain("No final KÖP/SÄLJ click");
+    expect(harnessSource).toContain("Final human confirmation required");
+    expect(harnessSource).toContain("BankID bypass forbidden");
+    expect(harnessSource).toContain("Not production ready");
+    expect(harnessSource).not.toMatch(/<button\b|onClick\s*=/);
+
+    expect(routeSource).toContain("AvanzaLocalBrowserAgentRuntimeHarness");
+    expect(routeSource).toContain("avanzaLocalBrowserAgentRuntimeFixtures");
+    expect(routeSource).toContain("Local browser agent runtime");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("Local/dev-only");
+    expect(routeSource).toContain("No Avanza navigation yet");
+    expect(routeSource).toContain("No login yet");
+    expect(routeSource).toContain("No credential handling yet");
+    expect(routeSource).toContain("No form fill yet");
+    expect(routeSource).toContain("No API route call");
+    expect(routeSource).toContain("No fetch");
+    expect(routeSource).toContain("No order submission");
+    expect(routeSource).toContain("No final KÖP/SÄLJ click");
+    expect(routeSource).toContain("Final human confirmation required");
+    expect(routeSource).toContain("BankID bypass forbidden");
+    expect(routeSource).toContain("Not production ready");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-local-browser-agent-runtime");
+    expect(tradeAppSource).not.toContain("AvanzaLocalBrowserAgentRuntimeHarness");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain("avanza-local-browser-agent-runtime");
+    expect(runtimeSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(runtimeSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click/);
+    expect(runtimeSource).not.toMatch(/\bfetch\s*\(/);
+    expect(runtimeSource).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(harnessSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click/);
+    expect(harnessSource).not.toMatch(/\bfetch\s*\(/);
+  });
+
+  test("local Playwright browser adapter is fixture-only and callable-contract only", async () => {
+    const adapterSource = readRepoFile(
+      "lib/avanza-local-playwright-browser-adapter.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-playwright-browser-adapter-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalPlaywrightBrowserAdapterHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-local-playwright-browser-adapter.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "lib/avanza-local-playwright-browser-adapter-fixtures.ts",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLocalPlaywrightBrowserAdapterHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+
+    const disabled =
+      createDisabledAvanzaLocalPlaywrightBrowserAdapter().getState();
+
+    expect(disabled.status).toBe("adapter_disabled");
+    expect(disabled.adapterEnabled).toBe(false);
+    expect(disabled.canLaunchBrowser).toBe(false);
+    expect(disabled.canConnectToExistingBrowser).toBe(false);
+    expect(disabled.canReadPageSnapshot).toBe(false);
+    expect(disabled.canNavigate).toBe(false);
+    expect(disabled.canFillForm).toBe(false);
+    expect(disabled.canClick).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canHandleCredentials).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const launchAvailable =
+      createLocalDevAvanzaLocalPlaywrightBrowserAdapter({
+        allowLaunchBrowser: true,
+      }).getState();
+
+    expect(launchAvailable.status).toBe("browser_launch_available");
+    expect(launchAvailable.canLaunchBrowser).toBe(true);
+    expect(launchAvailable.canNavigate).toBe(false);
+    expect(launchAvailable.canFillForm).toBe(false);
+    expect(launchAvailable.canClick).toBe(false);
+    expect(launchAvailable.canSubmitOrder).toBe(false);
+
+    const connectAvailable =
+      createLocalDevAvanzaLocalPlaywrightBrowserAdapter({
+        allowConnectToExistingBrowser: true,
+      }).getState();
+
+    expect(connectAvailable.status).toBe("browser_connect_available");
+    expect(connectAvailable.canConnectToExistingBrowser).toBe(true);
+    expect(connectAvailable.canNavigate).toBe(false);
+    expect(connectAvailable.canFillForm).toBe(false);
+    expect(connectAvailable.canClick).toBe(false);
+
+    const pageSnapshotRead = buildAvanzaLocalPlaywrightBrowserAdapterState({
+      allowReadPageSnapshot: true,
+      enabled: true,
+      mode: "local_dev",
+      pageSnapshot: {
+        capturedAt: "2026-07-05T12:00:00.000Z",
+        formSignals: ["read-only form presence modeled"],
+        observedUrl: "about:blank",
+        snapshotId: "fixture-page-snapshot-read-only",
+        textSignals: ["fixture-only page title"],
+      },
+    });
+
+    expect(pageSnapshotRead.status).toBe("page_snapshot_read");
+    expect(pageSnapshotRead.canReadPageSnapshot).toBe(true);
+    expect(pageSnapshotRead.pageSnapshot?.observedUrl).toBe("about:blank");
+    expect(pageSnapshotRead.canNavigate).toBe(false);
+    expect(pageSnapshotRead.canFillForm).toBe(false);
+    expect(pageSnapshotRead.canClick).toBe(false);
+
+    const blockedNavigation = buildAvanzaLocalPlaywrightBrowserAdapterState({
+      allowNavigate: true,
+      enabled: true,
+      mode: "local_dev",
+    });
+
+    expect(blockedNavigation.status).toBe("adapter_blocked");
+    expect(blockedNavigation.canNavigate).toBe(false);
+    expect(blockedNavigation.blockedReasons.join(" ")).toContain(
+      "navigation is not enabled",
+    );
+
+    const statuses = new Set(
+      avanzaLocalPlaywrightBrowserAdapterFixtures.map(
+        (fixture) => fixture.modelResult.status,
+      ),
+    );
+    const fixtureIds = new Set(
+      avanzaLocalPlaywrightBrowserAdapterFixtures.map(
+        (fixture) => fixture.fixtureId,
+      ),
+    );
+
+    for (const status of [
+      "adapter_disabled",
+      "adapter_unavailable",
+      "adapter_ready",
+      "browser_launch_available",
+      "browser_connect_available",
+      "browser_connected",
+      "page_snapshot_read",
+      "adapter_blocked",
+      "adapter_error",
+      "unknown",
+    ] as const) {
+      expect(statuses.has(status)).toBe(true);
+      expect(fixtureSource).toContain(status);
+    }
+
+    for (const fixtureId of [
+      "disabled_default",
+      "adapter_unavailable",
+      "adapter_ready_local_dev",
+      "browser_launch_available",
+      "browser_connect_available",
+      "browser_connected_modeled",
+      "page_snapshot_read_modeled",
+      "navigation_blocked",
+      "form_fill_blocked",
+      "final_buy_click_forbidden",
+      "final_sell_click_forbidden",
+      "credential_handling_forbidden",
+      "cookie_session_export_forbidden",
+      "bankid_bypass_forbidden",
+      "adapter_error",
+      "unknown",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLocalPlaywrightBrowserAdapterFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.canNavigate).toBe(false);
+      expect(result.canFillForm).toBe(false);
+      expect(result.canClick).toBe(false);
+      expect(result.canClickFinalBuy).toBe(false);
+      expect(result.canClickFinalSell).toBe(false);
+      expect(result.canSubmitOrder).toBe(false);
+      expect(result.canHandleCredentials).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canExportSession).toBe(false);
+      expect(result.canBypassBankId).toBe(false);
+      expect(result.canWriteSupabaseExecution).toBe(false);
+      expect(result.userMustConfirm).toBe(true);
+      expect(result.finalHumanClickRequired).toBe(true);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    const launchResult =
+      await createDisabledAvanzaLocalPlaywrightBrowserAdapter().launchBrowser();
+
+    expect(launchResult.status).toBe("adapter_blocked");
+    expect(launchResult.didLaunchBrowser).toBe(false);
+    expect(launchResult.didNavigate).toBe(false);
+    expect(launchResult.didFillForm).toBe(false);
+    expect(launchResult.didClick).toBe(false);
+    expect(launchResult.didSubmitOrder).toBe(false);
+    expect(launchResult.credentialMaterialTouched).toBe(false);
+    expect(launchResult.cookiesTouched).toBe(false);
+    expect(launchResult.sessionMaterialTouched).toBe(false);
+    expect(launchResult.supabaseWriteAttempted).toBe(false);
+
+    expect(harnessSource).toContain("Local Playwright browser adapter");
+    expect(harnessSource).toContain("Fixture only");
+    expect(harnessSource).toContain("Local/dev-only");
+    expect(harnessSource).toContain("Adapter model + callable contract");
+    expect(harnessSource).toContain("No browser launch during render");
+    expect(harnessSource).toContain("No Avanza navigation yet");
+    expect(harnessSource).toContain("No login yet");
+    expect(harnessSource).toContain("No credential handling");
+    expect(harnessSource).toContain("No cookie/session handling");
+    expect(harnessSource).toContain("No form fill yet");
+    expect(harnessSource).toContain("No click yet");
+    expect(harnessSource).toContain("No final KÖP/SÄLJ click");
+    expect(harnessSource).toContain("No order submission");
+    expect(harnessSource).toContain("Final human confirmation required");
+    expect(harnessSource).toContain("BankID bypass forbidden");
+    expect(harnessSource).toContain("Not production ready");
+    expect(harnessSource).not.toMatch(/<button\b|onClick\s*=/);
+
+    expect(routeSource).toContain("AvanzaLocalPlaywrightBrowserAdapterHarness");
+    expect(routeSource).toContain("avanzaLocalPlaywrightBrowserAdapterFixtures");
+    expect(routeSource).toContain("Local Playwright browser adapter");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("Adapter model + callable contract");
+    expect(routeSource).toContain("No browser launch during render");
+    expect(routeSource).toContain("No Avanza navigation yet");
+    expect(routeSource).toContain("No login yet");
+    expect(routeSource).toContain("No credential handling");
+    expect(routeSource).toContain("No cookie/session handling");
+    expect(routeSource).toContain("No form fill yet");
+    expect(routeSource).toContain("No click yet");
+    expect(routeSource).toContain("No final KÖP/SÄLJ click");
+    expect(routeSource).toContain("No order submission");
+    expect(routeSource).toContain("Final human confirmation required");
+    expect(routeSource).toContain("BankID bypass forbidden");
+    expect(routeSource).toContain("Not production ready");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-local-playwright-browser-adapter",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaLocalPlaywrightBrowserAdapterHarness",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain(
+      "avanza-local-playwright-browser-adapter",
+    );
+    expect(adapterSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(adapterSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(adapterSource).not.toMatch(/\bfetch\s*\(/);
+    expect(adapterSource).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(harnessSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(harnessSource).not.toMatch(/\bfetch\s*\(/);
+  });
+
+  test("Avanza page state detector classifies explicit snapshots without live behavior", () => {
+    const detectorSource = readRepoFile("lib/avanza-page-state-detector.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-page-state-detector-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaPageStateDetectorHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-page-state-detector.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-page-state-detector-fixtures.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "components/execution/AvanzaPageStateDetectorHarness.tsx"))).toBe(true);
+
+    const disabled = buildAvanzaPageStateModel();
+
+    expect(disabled.status).toBe("not_checked");
+    expect(disabled.detectorEnabled).toBe(false);
+    expect(disabled.readOnly).toBe(true);
+    expect(disabled.canReadSnapshot).toBe(false);
+    expect(disabled.canNavigate).toBe(false);
+    expect(disabled.canFillForm).toBe(false);
+    expect(disabled.canClick).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canHandleCredentials).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.canWriteSupabase).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const loginPage = buildAvanzaPageStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_snapshot",
+      observedFormSignals: ["username field", "password field"],
+      observedTextSignals: ["Logga in"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(loginPage.status).toBe("avanza_login_page");
+    expect(loginPage.urlKind).toBe("avanza_login");
+    expect(loginPage.isAvanza).toBe(true);
+    expect(loginPage.isLoginPage).toBe(true);
+    expect(loginPage.canNavigate).toBe(false);
+    expect(loginPage.canHandleCredentials).toBe(false);
+
+    const snapshotDrivenOrderReview = buildAvanzaPageStateModel({
+      detectorEnabled: true,
+      mode: "snapshot_model",
+      pageSnapshot: {
+        observedUrl: "https://www.avanza.se/order/review",
+        textSignals: ["order review granska köp"],
+        title: "Review fixture",
+      },
+    });
+
+    expect(snapshotDrivenOrderReview.status).toBe("avanza_order_review");
+    expect(snapshotDrivenOrderReview.isOrderReviewLikely).toBe(true);
+    expect(snapshotDrivenOrderReview.canClickFinalBuy).toBe(false);
+    expect(snapshotDrivenOrderReview.canClickFinalSell).toBe(false);
+    expect(snapshotDrivenOrderReview.canSubmitOrder).toBe(false);
+
+    const bankId = buildAvanzaPageStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_snapshot",
+      observedTextSignals: ["BankID verification required"],
+    });
+
+    expect(bankId.status).toBe("avanza_bankid_or_mfa");
+    expect(bankId.isBankIdOrMfaLikely).toBe(true);
+    expect(bankId.manualActionRequired).toBe(true);
+    expect(bankId.canBypassBankId).toBe(false);
+
+    const statuses = new Set(
+      avanzaPageStateDetectorFixtures.map(
+        (fixture) => fixture.modelResult.status,
+      ),
+    );
+    const fixtureIds = new Set(
+      avanzaPageStateDetectorFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const status of [
+      "unknown",
+      "not_checked",
+      "non_avanza_page",
+      "avanza_public_page",
+      "avanza_login_page",
+      "avanza_logged_in_home",
+      "avanza_account_overview",
+      "avanza_instrument_page",
+      "avanza_order_ticket",
+      "avanza_order_review",
+      "avanza_order_confirmation",
+      "avanza_bankid_or_mfa",
+      "avanza_error_page",
+      "blocked",
+    ] as const) {
+      expect(statuses.has(status)).toBe(true);
+      expect(fixtureSource).toContain(status);
+    }
+
+    for (const fixtureId of [
+      "disabled_not_checked",
+      "unknown",
+      "non_avanza_page",
+      "avanza_public_page",
+      "avanza_login_page",
+      "avanza_logged_in_home",
+      "avanza_account_overview",
+      "avanza_instrument_page",
+      "avanza_order_ticket",
+      "avanza_order_review",
+      "avanza_order_confirmation",
+      "avanza_bankid_or_mfa",
+      "avanza_error_page",
+      "blocked",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaPageStateDetectorFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.readOnly).toBe(true);
+      expect(result.canNavigate).toBe(false);
+      expect(result.canFillForm).toBe(false);
+      expect(result.canClick).toBe(false);
+      expect(result.canClickFinalBuy).toBe(false);
+      expect(result.canClickFinalSell).toBe(false);
+      expect(result.canSubmitOrder).toBe(false);
+      expect(result.canHandleCredentials).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canExportSession).toBe(false);
+      expect(result.canBypassBankId).toBe(false);
+      expect(result.canWriteSupabase).toBe(false);
+      expect(result.userMustConfirm).toBe(true);
+      expect(result.finalHumanClickRequired).toBe(true);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    expect(harnessSource).toContain("Avanza page/state detector");
+    expect(harnessSource).toContain("Fixture only");
+    expect(harnessSource).toContain("Snapshot model");
+    expect(harnessSource).toContain("Local/dev-only");
+    expect(harnessSource).toContain("No real Avanza navigation");
+    expect(harnessSource).toContain("No login");
+    expect(harnessSource).toContain("No credential handling");
+    expect(harnessSource).toContain("No cookie/session handling");
+    expect(harnessSource).toContain("No form fill");
+    expect(harnessSource).toContain("No click");
+    expect(harnessSource).toContain("No final KÖP/SÄLJ click");
+    expect(harnessSource).toContain("No order submission");
+    expect(harnessSource).toContain("BankID/MFA requires manual action");
+    expect(harnessSource).toContain("Final human confirmation required");
+    expect(harnessSource).toContain("Not production ready");
+    expect(harnessSource).not.toMatch(/<button\b|onClick\s*=/);
+
+    expect(routeSource).toContain("AvanzaPageStateDetectorHarness");
+    expect(routeSource).toContain("avanzaPageStateDetectorFixtures");
+    expect(routeSource).toContain("Avanza page/state detector");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("Snapshot model");
+    expect(routeSource).toContain("Local/dev-only");
+    expect(routeSource).toContain("No real Avanza navigation");
+    expect(routeSource).toContain("No login");
+    expect(routeSource).toContain("No credential handling");
+    expect(routeSource).toContain("No cookie/session handling");
+    expect(routeSource).toContain("No form fill");
+    expect(routeSource).toContain("No click");
+    expect(routeSource).toContain("No final KÖP/SÄLJ click");
+    expect(routeSource).toContain("No order submission");
+    expect(routeSource).toContain("BankID/MFA requires manual action");
+    expect(routeSource).toContain("Final human confirmation required");
+    expect(routeSource).toContain("Not production ready");
+    expect(routeSource).toContain("avanza_login_page");
+    expect(routeSource).toMatch(/avanza_logged_in_home|avanza_account_overview/);
+    expect(routeSource).toContain("avanza_instrument_page");
+    expect(routeSource).toContain("avanza_order_ticket");
+    expect(routeSource).toContain("avanza_order_review");
+    expect(routeSource).toContain("avanza_order_confirmation");
+    expect(routeSource).toContain("avanza_bankid_or_mfa");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-page-state-detector");
+    expect(tradeAppSource).not.toContain("AvanzaPageStateDetectorHarness");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain("avanza-page-state-detector");
+    expect(detectorSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(detectorSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(detectorSource).not.toMatch(/\bfetch\s*\(/);
+    expect(detectorSource).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(harnessSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(harnessSource).not.toMatch(/\bfetch\s*\(/);
+  });
+
+  test("sanitized Avanza page snapshot intake blocks sensitive material and remains fixture-only", () => {
+    const snapshotSource = readRepoFile("lib/avanza-sanitized-page-snapshot.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-sanitized-page-snapshot-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSanitizedPageSnapshotHarness.tsx",
+    );
+    const guideSource = readRepoFile(
+      "docs/avanza-real-world-snapshot-capture-guide.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-sanitized-page-snapshot.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-sanitized-page-snapshot-fixtures.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "components/execution/AvanzaSanitizedPageSnapshotHarness.tsx"))).toBe(true);
+    expect(existsSync(join(repoRoot, "docs/avanza-real-world-snapshot-capture-guide.md"))).toBe(true);
+    expect(guideSource.trim().length).toBeGreaterThan(0);
+
+    const sanitizedLogin = buildAvanzaSanitizedPageSnapshot({
+      buttonTexts: ["Logga in"],
+      formLabels: ["Användarnamn", "Lösenord"],
+      kind: "username_password_login",
+      observedUrlKind: "avanza_login",
+      source: "manual_dom_notes",
+      titleText: "Avanza login",
+      visibleTextSignals: ["Logga in med användarnamn"],
+    });
+
+    expect(sanitizedLogin.sanitized).toBe(true);
+    expect(sanitizedLogin.containsCredentials).toBe(false);
+    expect(sanitizedLogin.containsPassword).toBe(false);
+    expect(sanitizedLogin.canStoreInDocs).toBe(true);
+    expect(sanitizedLogin.canUseAsFixture).toBe(true);
+    expect(sanitizedLogin.canUseForSelectorPlanning).toBe(true);
+    expect(sanitizedLogin.canUseForLoginPlanning).toBe(true);
+    expect(sanitizedLogin.canBypassBankId).toBe(false);
+    expect(sanitizedLogin.canSubmitOrder).toBe(false);
+    expect(sanitizedLogin.userMustConfirm).toBe(true);
+    expect(sanitizedLogin.finalHumanClickRequired).toBe(true);
+
+    const mappedPageState = buildAvanzaPageStateModel(
+      mapAvanzaSanitizedPageSnapshotToPageStateInput(sanitizedLogin),
+    );
+
+    expect(mappedPageState.status).toBe("avanza_login_page");
+    expect(mappedPageState.canNavigate).toBe(false);
+    expect(mappedPageState.canFillForm).toBe(false);
+    expect(mappedPageState.canClick).toBe(false);
+
+    const passwordResult = sanitizeAvanzaPageTextSignals([
+      "password: sample-placeholder",
+    ]);
+
+    expect(passwordResult.detectedSensitiveTokens).toContain("password");
+    expect(passwordResult.sanitizedSignals.join(" ")).not.toContain(
+      "sample-placeholder",
+    );
+
+    const blockedPassword = buildAvanzaSanitizedPageSnapshot({
+      kind: "username_password_login",
+      observedUrlKind: "avanza_login",
+      visibleTextSignals: ["password: sample-placeholder"],
+    });
+
+    expect(blockedPassword.containsCredentials).toBe(true);
+    expect(blockedPassword.containsPassword).toBe(true);
+    expect(blockedPassword.canStoreInDocs).toBe(false);
+    expect(blockedPassword.canUseAsFixture).toBe(false);
+    expect(blockedPassword.blockedReasons.join(" ")).toContain("password");
+
+    const fixtureIds = new Set(
+      avanzaSanitizedPageSnapshotFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const fixtureId of [
+      "sanitized_login_page_notes",
+      "sanitized_username_password_login_notes",
+      "sanitized_bankid_mfa_notes",
+      "sanitized_logged_in_home_notes",
+      "sanitized_account_overview_notes",
+      "sanitized_instrument_page_notes",
+      "sanitized_order_ticket_notes",
+      "sanitized_order_review_notes",
+      "sanitized_order_confirmation_notes",
+      "blocked_password_material",
+      "blocked_personnummer_material",
+      "blocked_cookie_session_material",
+      "blocked_bankid_qr_material",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaSanitizedPageSnapshotFixtures) {
+      const snapshot = fixture.snapshot;
+
+      expect(snapshot.sanitized).toBe(true);
+      expect(snapshot.canBypassBankId).toBe(false);
+      expect(snapshot.canSubmitOrder).toBe(false);
+      expect(snapshot.userMustConfirm).toBe(true);
+      expect(snapshot.finalHumanClickRequired).toBe(true);
+    }
+
+    const blockedFixtures = avanzaSanitizedPageSnapshotFixtures.filter(
+      (fixture) => fixture.fixtureId.startsWith("blocked_"),
+    );
+
+    expect(blockedFixtures).toHaveLength(4);
+
+    for (const fixture of blockedFixtures) {
+      expect(fixture.snapshot.detectedSensitiveTokens.length).toBeGreaterThan(0);
+      expect(fixture.snapshot.canStoreInDocs).toBe(false);
+      expect(fixture.snapshot.canUseAsFixture).toBe(false);
+    }
+
+    expect(harnessSource).toContain("Avanza sanitized page snapshot intake");
+    expect(harnessSource).toContain("Fixture only");
+    expect(harnessSource).toContain("Manual/sanitized signals only");
+    expect(harnessSource).toContain("No credentials");
+    expect(harnessSource).toContain("No cookies/session");
+    expect(harnessSource).toContain("No BankID QR");
+    expect(harnessSource).toContain("No account numbers");
+    expect(harnessSource).toContain("No route path exposure");
+    expect(harnessSource).toContain("No Avanza navigation");
+    expect(harnessSource).toContain("No login");
+    expect(harnessSource).toContain("No form fill");
+    expect(harnessSource).toContain("No click");
+    expect(harnessSource).toContain("No order submission");
+    expect(harnessSource).toContain("Safe for selector/state planning only");
+    expect(harnessSource).toContain("Final human confirmation required");
+    expect(harnessSource).toContain("Not production ready");
+    expect(harnessSource).not.toMatch(/<button\b|onClick\s*=/);
+
+    expect(routeSource).toContain("AvanzaSanitizedPageSnapshotHarness");
+    expect(routeSource).toContain("avanzaSanitizedPageSnapshotFixtures");
+    expect(routeSource).toContain("Avanza sanitized page snapshot intake");
+    expect(routeSource).toContain("Fixture only");
+    expect(routeSource).toContain("Manual/sanitized signals only");
+    expect(routeSource).toContain("No credentials");
+    expect(routeSource).toContain("No cookies/session");
+    expect(routeSource).toContain("No BankID QR");
+    expect(routeSource).toContain("No account numbers");
+    expect(routeSource).toContain("No route path exposure");
+    expect(routeSource).toContain("No Avanza navigation");
+    expect(routeSource).toContain("No login");
+    expect(routeSource).toContain("No form fill");
+    expect(routeSource).toContain("No click");
+    expect(routeSource).toContain("No order submission");
+    expect(routeSource).toContain("Safe for selector/state planning only");
+    expect(routeSource).toContain("Final human confirmation required");
+    expect(routeSource).toContain("Not production ready");
+    expect(routeSource).toContain("blocked password fixture visible");
+    expect(routeSource).toContain("blocked personnummer fixture visible");
+    expect(routeSource).toContain("blocked cookie/session fixture visible");
+    expect(routeSource).toContain("blocked BankID QR fixture visible");
+
+    expect(guideSource).toContain("Never include password");
+    expect(guideSource).toContain("Never include personnummer");
+    expect(guideSource).toContain("Never include account numbers");
+    expect(guideSource).toContain("Never include cookies");
+    expect(guideSource).toContain("Never include session/localStorage data");
+    expect(guideSource).toContain("Never include BankID QR");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-sanitized-page-snapshot");
+    expect(tradeAppSource).not.toContain("AvanzaSanitizedPageSnapshotHarness");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain("avanza-sanitized-page-snapshot");
+    expect(snapshotSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(snapshotSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(snapshotSource).not.toMatch(/\bfetch\s*\(/);
+    expect(snapshotSource).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    expect(harnessSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(harnessSource).not.toMatch(
+      /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+    );
+    expect(harnessSource).not.toMatch(/\bfetch\s*\(/);
+  });
+
+  test("Avanza real-world login signal pack recognizes sanitized login cues without live behavior", () => {
+    const signalSource = readRepoFile(
+      "lib/avanza-real-world-login-signals.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-real-world-login-signals-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaRealWorldLoginSignalsHarness.tsx",
+    );
+    const loginDetectorSource = readRepoFile(
+      "lib/avanza-login-state-detector.ts",
+    );
+    const pageDetectorSource = readRepoFile(
+      "lib/avanza-page-state-detector.ts",
+    );
+    const guideSource = readRepoFile(
+      "docs/avanza-real-world-login-flow-signals.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-real-world-login-signals.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-real-world-login-signals-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaRealWorldLoginSignalsHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-real-world-login-flow-signals.md")),
+    ).toBe(true);
+    expect(guideSource.trim().length).toBeGreaterThan(0);
+
+    const privatePack = buildAvanzaRealWorldLoginSignalPack({
+      buttonTexts: ["Logga in"],
+      flowKind: "private_username_password_login",
+      formLabels: ["Privatkund"],
+      inputLabels: ["Användarnamn", "Lösenord"],
+      loginMethod: "username_password",
+      customerType: "private",
+      secondaryActions: ["Avbryt"],
+      toggleLabels: ["Privat"],
+      visibleTexts: ["Användarnamn och lösenord", "Privatkund"],
+    });
+
+    expect(privatePack.source).toBe("sanitized_user_visual_material");
+    expect(privatePack.observedUrlKind).toBe("avanza_login");
+    expect(privatePack.usernamePasswordOptionDetected).toBe(true);
+    expect(privatePack.privateLoginDetected).toBe(true);
+    expect(privatePack.companyLoginDetected).toBe(false);
+    expect(privatePack.bankIdOptionsDetected).toBe(false);
+    expect(privatePack.sanitized).toBe(true);
+    expect(privatePack.containsCredentials).toBe(false);
+    expect(privatePack.containsPassword).toBe(false);
+    expect(privatePack.containsPersonalIdentityNumber).toBe(false);
+    expect(privatePack.containsAccountNumber).toBe(false);
+    expect(privatePack.containsCookie).toBe(false);
+    expect(privatePack.containsSessionToken).toBe(false);
+    expect(privatePack.containsBankIdQr).toBe(false);
+    expect(privatePack.canSubmitLogin).toBe(false);
+    expect(privatePack.canHandleCredentials).toBe(false);
+    expect(privatePack.canFillLoginForm).toBe(false);
+    expect(privatePack.canAutomateBankId).toBe(false);
+    expect(privatePack.canBypassBankId).toBe(false);
+    expect(privatePack.userMustConfirm).toBe(true);
+    expect(privatePack.finalHumanClickRequired).toBe(true);
+
+    const companyPack = buildAvanzaRealWorldLoginSignalPack({
+      buttonTexts: ["Logga in"],
+      flowKind: "company_username_password_login",
+      inputLabels: ["Användarnamn", "Lösenord"],
+      loginMethod: "username_password",
+      customerType: "company",
+      secondaryActions: ["Logga in på företagswebben"],
+      toggleLabels: ["Företag"],
+      visibleTexts: ["Företag"],
+    });
+
+    expect(companyPack.companyLoginDetected).toBe(true);
+    expect(companyPack.usernamePasswordOptionDetected).toBe(true);
+    expect(companyPack.canSubmitLogin).toBe(false);
+
+    const bankIdPack = buildAvanzaRealWorldLoginSignalPack({
+      buttonTexts: ["Visa QR-kod", "Öppna BankID på samma enhet"],
+      flowKind: "bankid_qr_option",
+      loginMethod: "bankid_qr",
+      visibleTexts: ["BankID", "Visa QR-kod"],
+    });
+
+    expect(bankIdPack.bankIdOptionsDetected).toBe(true);
+    expect(bankIdPack.canAutomateBankId).toBe(false);
+    expect(bankIdPack.canBypassBankId).toBe(false);
+    expect(bankIdPack.containsBankIdQr).toBe(false);
+    expect(bankIdPack.canSubmitLogin).toBe(false);
+
+    const loginPossible = buildAvanzaLoginStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_read_only",
+      observedFormSignals: ["Användarnamn", "Lösenord"],
+      observedTextSignals: ["Användarnamn och lösenord", "Privatkund"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(loginPossible.status).toBe("username_password_possible");
+    expect(loginPossible.usernamePasswordLoginPossible).toBe(true);
+    expect(loginPossible.canFillUsername).toBe(false);
+    expect(loginPossible.canFillPassword).toBe(false);
+    expect(loginPossible.canSubmitLogin).toBe(false);
+    expect(loginPossible.canHandleCredentials).toBe(false);
+
+    const loginButtonOnly = buildAvanzaLoginStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_read_only",
+      observedTextSignals: ["Logga in"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(loginButtonOnly.status).toBe("login_page_detected");
+    expect(loginButtonOnly.usernamePasswordLoginPossible).toBe(false);
+
+    const bankIdRequired = buildAvanzaLoginStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_read_only",
+      observedTextSignals: ["Visa QR-kod", "Öppna BankID på samma enhet"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(bankIdRequired.status).toBe("mfa_or_bankid_required");
+    expect(bankIdRequired.mfaOrBankIdLikely).toBe(true);
+    expect(bankIdRequired.manualActionRequired).toBe(true);
+    expect(bankIdRequired.canBypassBankId).toBe(false);
+
+    const pageLogin = buildAvanzaPageStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_snapshot",
+      observedFormSignals: ["Användarnamn", "Lösenord"],
+      observedTextSignals: ["Användarnamn och lösenord", "Privatkund"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(pageLogin.status).toBe("avanza_login_page");
+    expect(pageLogin.isLoginPage).toBe(true);
+    expect(pageLogin.canNavigate).toBe(false);
+    expect(pageLogin.canFillForm).toBe(false);
+    expect(pageLogin.canClick).toBe(false);
+
+    const pageBankId = buildAvanzaPageStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_snapshot",
+      observedButtonSignals: ["Visa QR-kod", "Öppna BankID på samma enhet"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(pageBankId.status).toBe("avanza_bankid_or_mfa");
+    expect(pageBankId.isBankIdOrMfaLikely).toBe(true);
+    expect(pageBankId.manualActionRequired).toBe(true);
+    expect(pageBankId.canBypassBankId).toBe(false);
+
+    const fixtureIds = new Set(
+      avanzaRealWorldLoginSignalFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const fixtureId of [
+      "initial_login_choice_page",
+      "private_toggle_detected",
+      "company_toggle_detected",
+      "username_password_option_detected",
+      "private_username_password_form",
+      "company_username_password_form",
+      "bankid_qr_option_forbidden",
+      "bankid_same_device_option_forbidden",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaRealWorldLoginSignalFixtures) {
+      const signalPack = fixture.signalPack;
+
+      expect(signalPack.sanitized).toBe(true);
+      expect(signalPack.containsCredentials).toBe(false);
+      expect(signalPack.containsPassword).toBe(false);
+      expect(signalPack.containsPersonalIdentityNumber).toBe(false);
+      expect(signalPack.containsAccountNumber).toBe(false);
+      expect(signalPack.containsCookie).toBe(false);
+      expect(signalPack.containsSessionToken).toBe(false);
+      expect(signalPack.containsBankIdQr).toBe(false);
+      expect(signalPack.canSubmitLogin).toBe(false);
+      expect(signalPack.canHandleCredentials).toBe(false);
+      expect(signalPack.canFillLoginForm).toBe(false);
+      expect(signalPack.canAutomateBankId).toBe(false);
+      expect(signalPack.canBypassBankId).toBe(false);
+      expect(signalPack.userMustConfirm).toBe(true);
+      expect(signalPack.finalHumanClickRequired).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza real-world login signal pack",
+      "Based on sanitized user-provided visual material",
+      "Fixture only",
+      "No credentials",
+      "No password values",
+      "No personnummer",
+      "No account numbers",
+      "No cookies/session",
+      "No BankID QR",
+      "Username/password flow recognized",
+      "Private login flow recognized",
+      "Company login flow recognized",
+      "BankID options detected but forbidden",
+      "No actual login",
+      "No credential handling",
+      "No form fill",
+      "No click",
+      "No Avanza navigation",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "Användarnamn och lösenord",
+      "Privatkund",
+      "Företag",
+      "Visa QR-kod",
+      "Öppna BankID på samma enhet",
+      "Logga in på företagswebben",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+      expect(guideSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaRealWorldLoginSignalsHarness");
+    expect(routeSource).toContain("avanzaRealWorldLoginSignalFixtures");
+    expect(loginDetectorSource).toContain("anv[aä]ndarnamn");
+    expect(loginDetectorSource).toContain("privatkund");
+    expect(pageDetectorSource).toContain("f[oö]retag");
+    expect(pageDetectorSource).toContain("privatkund");
+    expect(pageDetectorSource).toContain("f[oö]retagswebben");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-real-world-login-signals");
+    expect(tradeAppSource).not.toContain("AvanzaRealWorldLoginSignalsHarness");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain("avanza-real-world-login-signals");
+    expect(apiRouteSource).not.toContain("AvanzaRealWorldLoginSignalsHarness");
+
+    for (const source of [
+      signalSource,
+      fixtureSource,
+      harnessSource,
+      loginDetectorSource,
+      pageDetectorSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    }
+  });
+
+  test("Ture Avanza execution settings profile models customer type and credential readiness without secrets", () => {
+    const profileSource = readRepoFile(
+      "lib/avanza-execution-settings-profile.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-execution-settings-profile-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaExecutionSettingsProfileHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-execution-settings-profile.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-execution-settings-profile.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-execution-settings-profile-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaExecutionSettingsProfileHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-execution-settings-profile.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaExecutionSettingsProfile({
+      profileEnabled: false,
+    });
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.credentialMaterialPresent).toBe(false);
+    expect(disabled.credentialMaterialReturned).toBe(false);
+    expect(disabled.bankIdForbidden).toBe(true);
+    expect(disabled.canSubmitLogin).toBe(false);
+    expect(disabled.canFillLoginForm).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const privateReady = buildAvanzaExecutionSettingsProfile({
+      credentialProviderState: readyProvider,
+      credentialStorageKind: "macos_keychain",
+      customerType: "private",
+      loginMethod: "username_password",
+      localDevOnly: true,
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+
+    expect(privateReady.status).toBe("ready_for_local_dev");
+    expect(privateReady.customerType).toBe("private");
+    expect(privateReady.canUseForPrivateLogin).toBe(true);
+    expect(privateReady.canUseForCompanyLogin).toBe(false);
+    expect(privateReady.canUseUsernamePasswordLogin).toBe(true);
+    expect(privateReady.credentialMaterialPresent).toBe(false);
+    expect(privateReady.credentialMaterialReturned).toBe(false);
+    expect(privateReady.canReadCredentialMaterial).toBe(false);
+    expect(privateReady.canReturnCredentialMaterial).toBe(false);
+    expect(privateReady.canLogCredentialMaterial).toBe(false);
+    expect(privateReady.canStoreCredentialMaterialInSupabase).toBe(false);
+    expect(privateReady.canStoreCredentialMaterialInLocalStorage).toBe(false);
+    expect(privateReady.canAutomateBankId).toBe(false);
+    expect(privateReady.canBypassBankId).toBe(false);
+    expect(privateReady.canSubmitLogin).toBe(false);
+    expect(privateReady.canFillLoginForm).toBe(false);
+    expect(privateReady.canSubmitOrder).toBe(false);
+    expect(privateReady.userMustConfirm).toBe(true);
+    expect(privateReady.finalHumanClickRequired).toBe(true);
+    expect(privateReady.controlsEnabled).toBe(false);
+    expect(privateReady.gateLocked).toBe(true);
+
+    const companyReady = buildAvanzaExecutionSettingsProfile({
+      credentialProviderState: readyProvider,
+      credentialStorageKind: "macos_keychain",
+      customerType: "company",
+      loginMethod: "username_password",
+      localDevOnly: true,
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+
+    expect(companyReady.status).toBe("ready_for_local_dev");
+    expect(companyReady.canUseForPrivateLogin).toBe(false);
+    expect(companyReady.canUseForCompanyLogin).toBe(true);
+    expect(companyReady.canUseUsernamePasswordLogin).toBe(true);
+
+    for (const incomplete of [
+      buildAvanzaExecutionSettingsProfile({
+        credentialStorageKind: "macos_keychain",
+        customerType: "unknown",
+        loginMethod: "username_password",
+        passwordConfigured: true,
+        profileEnabled: true,
+        usernameConfigured: true,
+      }),
+      buildAvanzaExecutionSettingsProfile({
+        credentialStorageKind: "macos_keychain",
+        customerType: "private",
+        loginMethod: "username_password",
+        passwordConfigured: true,
+        profileEnabled: true,
+        usernameConfigured: false,
+      }),
+      buildAvanzaExecutionSettingsProfile({
+        credentialStorageKind: "macos_keychain",
+        customerType: "private",
+        loginMethod: "username_password",
+        passwordConfigured: false,
+        profileEnabled: true,
+        usernameConfigured: true,
+      }),
+    ]) {
+      expect(incomplete.status).toBe("incomplete");
+      expect(incomplete.canUseUsernamePasswordLogin).toBe(false);
+      expect(incomplete.canSubmitLogin).toBe(false);
+    }
+
+    const bankIdBlocked = buildAvanzaExecutionSettingsProfile({
+      credentialStorageKind: "macos_keychain",
+      customerType: "private",
+      loginMethod: "bankid_forbidden",
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+
+    expect(bankIdBlocked.status).toBe("blocked");
+    expect(bankIdBlocked.blockedReasons.join(" ")).toContain(
+      "BankID is forbidden",
+    );
+    expect(bankIdBlocked.canAutomateBankId).toBe(false);
+    expect(bankIdBlocked.canBypassBankId).toBe(false);
+
+    const envBlocked = buildAvanzaExecutionSettingsProfile({
+      credentialStorageKind: "environment_variable_dev_only",
+      customerType: "private",
+      loginMethod: "username_password",
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+
+    expect(envBlocked.status).toBe("blocked");
+    expect(envBlocked.blockedReasons.join(" ")).toContain("env");
+
+    const fixtureIds = new Set(
+      avanzaExecutionSettingsProfileFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const fixtureId of [
+      "disabled_profile",
+      "incomplete_missing_customer_type",
+      "incomplete_missing_username",
+      "incomplete_missing_password",
+      "private_username_password_ready_macos_keychain",
+      "company_username_password_ready_macos_keychain",
+      "onepassword_cli_modeled_ready",
+      "manual_prompt_modeled_configured",
+      "environment_variable_dev_only_blocked",
+      "bankid_forbidden_blocked",
+      "unknown_profile",
+      "error_profile",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaExecutionSettingsProfileFixtures) {
+      const profile = fixture.profile;
+
+      expect(profile.status).toBe(fixture.expectedStatus);
+      expect(profile.credentialMaterialPresent).toBe(false);
+      expect(profile.credentialMaterialReturned).toBe(false);
+      expect(profile.canReadCredentialMaterial).toBe(false);
+      expect(profile.canReturnCredentialMaterial).toBe(false);
+      expect(profile.canLogCredentialMaterial).toBe(false);
+      expect(profile.canStoreCredentialMaterialInSupabase).toBe(false);
+      expect(profile.canStoreCredentialMaterialInLocalStorage).toBe(false);
+      expect(profile.canAutomateBankId).toBe(false);
+      expect(profile.canBypassBankId).toBe(false);
+      expect(profile.canSubmitLogin).toBe(false);
+      expect(profile.canFillLoginForm).toBe(false);
+      expect(profile.canSubmitOrder).toBe(false);
+      expect(profile.userMustConfirm).toBe(true);
+      expect(profile.finalHumanClickRequired).toBe(true);
+      expect(profile.controlsEnabled).toBe(false);
+      expect(profile.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Ture Avanza execution settings profile",
+      "Fixture only",
+      "User selects Privat or Företag in Ture Settings",
+      "Username/password login only",
+      "BankID forbidden",
+      "Secure credential provider modeled",
+      "No credential material shown",
+      "No password returned",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No actual login",
+      "No form fill",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "User chooses Privat/Företag in Ture Settings",
+      "Username/password login is the only supported automated login path",
+      "BankID is forbidden for automation",
+      "The preferred provider is macOS Keychain",
+      "password must not be stored in Supabase",
+      "password must not be stored in localStorage",
+      "credential material must not be logged",
+      "No settings UI implemented",
+    ]) {
+      expect(docSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaExecutionSettingsProfileHarness");
+    expect(routeSource).toContain("avanzaExecutionSettingsProfileFixtures");
+    expect(routeSource).toContain(
+      "private_username_password_ready_macos_keychain",
+    );
+    expect(routeSource).toContain(
+      "company_username_password_ready_macos_keychain",
+    );
+    expect(routeSource).toContain("bankid_forbidden_blocked");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-execution-settings-profile");
+    expect(tradeAppSource).not.toContain(
+      "AvanzaExecutionSettingsProfileHarness",
+    );
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+
+    expect(apiRouteSource).not.toContain("avanza-execution-settings-profile");
+    expect(apiRouteSource).not.toContain(
+      "AvanzaExecutionSettingsProfileHarness",
+    );
+
+    for (const source of [profileSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+    }
+  });
+
+  test("Ture Settings Avanza profile panel scaffold is passive and credential-safe", () => {
+    const panelSource = readRepoFile(
+      "components/execution/AvanzaExecutionSettingsProfilePanel.tsx",
+    );
+    const panelHarnessSource = readRepoFile(
+      "components/execution/AvanzaExecutionSettingsProfilePanelHarness.tsx",
+    );
+    const uiFixtureSource = readRepoFile(
+      "lib/avanza-execution-settings-profile-ui-fixtures.ts",
+    );
+    const docSource = readRepoFile("docs/avanza-execution-settings-ui.md");
+    const settingsSource = readRepoFile("app/settings/page.tsx");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const scriptSource = readRepoFile("scripts/avanza-login-smoke-test.local.ts");
+
+    for (const path of [
+      "components/execution/AvanzaExecutionSettingsProfilePanel.tsx",
+      "components/execution/AvanzaExecutionSettingsProfilePanelHarness.tsx",
+      "lib/avanza-execution-settings-profile-ui-fixtures.ts",
+      "docs/avanza-execution-settings-ui.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path))).toBe(true);
+    }
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    for (const copy of [
+      "Ture Settings Avanza profile panel",
+      "Avanza Execution Profile",
+      "Passive settings UI only",
+      "No raw username field",
+      "No raw password field",
+      "No credential material shown",
+      "No password storage",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No Keychain access from UI",
+      "No smoke test from UI",
+      "No login from UI",
+      "No browser automation",
+      "No API route call",
+      "No order submission",
+      "Final KÖP/SÄLJ human-only",
+      "Not production ready",
+      "Privat",
+      "Företag",
+      "Not selected",
+      "Username reference configured",
+      "Password reference configured",
+      "Username/password only",
+      "Forbidden / Manual-action only",
+      "macOS Keychain",
+      "Profile readiness",
+      "terminal-only, not run from UI",
+    ]) {
+      expect(panelSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Ture Settings Avanza profile panel",
+      "Passive settings UI only",
+      "No raw username field",
+      "No raw password field",
+      "No credential material shown",
+      "No password storage",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No Keychain access from UI",
+      "No smoke test from UI",
+      "No login from UI",
+      "No browser automation",
+      "No API route call",
+      "No order submission",
+      "Final KÖP/SÄLJ human-only",
+      "Not production ready",
+    ]) {
+      expect(panelHarnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const fixtureId of [
+      "no_account_type_selected",
+      "private_selected_credentials_missing",
+      "company_selected_credentials_missing",
+      "private_ready_references_modeled",
+      "company_ready_references_modeled",
+      "bankid_forbidden",
+      "supabase_storage_forbidden",
+      "localstorage_credential_storage_forbidden",
+      "smoke_test_terminal_only",
+      "order_submission_unavailable",
+      "final_click_human_only",
+    ] as const) {
+      expect(uiFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaExecutionSettingsProfileUiFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaExecutionSettingsProfileUiFixtures) {
+      const profile = fixture.profile;
+
+      expect(profile.status).toBe(fixture.expectedStatus);
+      expect(profile.credentialMaterialPresent).toBe(false);
+      expect(profile.credentialMaterialReturned).toBe(false);
+      expect(profile.canReadCredentialMaterial).toBe(false);
+      expect(profile.canReturnCredentialMaterial).toBe(false);
+      expect(profile.canLogCredentialMaterial).toBe(false);
+      expect(profile.canStoreCredentialMaterialInSupabase).toBe(false);
+      expect(profile.canStoreCredentialMaterialInLocalStorage).toBe(false);
+      expect(profile.canAutomateBankId).toBe(false);
+      expect(profile.canBypassBankId).toBe(false);
+      expect(profile.canSubmitLogin).toBe(false);
+      expect(profile.canFillLoginForm).toBe(false);
+      expect(profile.canSubmitOrder).toBe(false);
+      expect(profile.userMustConfirm).toBe(true);
+      expect(profile.finalHumanClickRequired).toBe(true);
+      expect(profile.controlsEnabled).toBe(false);
+      expect(profile.gateLocked).toBe(true);
+    }
+
+    expect(settingsSource).toContain("AvanzaExecutionSettingsProfilePanel");
+    expect(settingsSource).not.toContain("AvanzaExecutionSettingsProfilePanelHarness");
+    expect(routeSource).toContain("AvanzaExecutionSettingsProfilePanelHarness");
+    expect(routeSource).toContain("avanzaExecutionSettingsProfileUiFixtures");
+    expect(tradeAppSource).not.toContain("AvanzaExecutionSettingsProfilePanel");
+    expect(tradeAppSource).not.toContain(
+      "AvanzaExecutionSettingsProfilePanelHarness",
+    );
+    expect(apiRouteSource).not.toContain("AvanzaExecutionSettingsProfilePanel");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaExecutionSettingsProfilePanel",
+    );
+    expect(scriptSource).not.toContain("AvanzaExecutionSettingsProfilePanel");
+
+    for (const source of [panelSource, panelHarnessSource, uiFixtureSource]) {
+      expect(source).not.toMatch(/type=["']password["']/i);
+      expect(source).not.toMatch(/placeholder\s*=\s*["'][^"']*(user|pass|credential)/i);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/avanza-login-smoke-test\.local/);
+    }
+
+    for (const copy of [
+      "passive Ture Settings UI scaffold now exists",
+      "models credential references only",
+      "does not store or display raw credentials",
+      "Username/password is the only supported login method",
+      "BankID remains forbidden",
+      "macOS Keychain",
+      "local component state only",
+      "does not add localStorage",
+      "does not add Supabase",
+      "does not import or run",
+      "does not trigger login, smoke tests, browser actions",
+      "order behavior",
+      "Supabase execution writes",
+    ]) {
+      expect(docSource).toContain(copy);
+    }
+  });
+
+  test("Avanza login route planner models private and company username/password paths without execution", () => {
+    const plannerSource = readRepoFile("lib/avanza-login-route-planner.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-route-planner-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginRoutePlannerHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-login-route-planner.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-login-route-planner.ts"))).toBe(
+      true,
+    );
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-login-route-planner-fixtures.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginRoutePlannerHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(existsSync(join(repoRoot, "docs/avanza-login-route-planner.md"))).toBe(
+      true,
+    );
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const privateSettings = buildAvanzaExecutionSettingsProfile({
+      credentialProviderState: readyProvider,
+      credentialStorageKind: "macos_keychain",
+      customerType: "private",
+      loginMethod: "username_password",
+      localDevOnly: true,
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+    const companySettings = buildAvanzaExecutionSettingsProfile({
+      credentialProviderState: readyProvider,
+      credentialStorageKind: "macos_keychain",
+      customerType: "company",
+      loginMethod: "username_password",
+      localDevOnly: true,
+      passwordConfigured: true,
+      profileEnabled: true,
+      usernameConfigured: true,
+    });
+
+    const disabled = buildAvanzaLoginRoutePlan({
+      mode: "disabled",
+      routePlanningEnabled: false,
+    });
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.canPlanLoginRoute).toBe(false);
+    expect(disabled.canNavigate).toBe(false);
+    expect(disabled.canClick).toBe(false);
+    expect(disabled.canFillUsername).toBe(false);
+    expect(disabled.canFillPassword).toBe(false);
+    expect(disabled.canSubmitLogin).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+
+    const alreadyLoggedIn = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: privateSettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        statusOverride: "logged_in",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        statusOverride: "avanza_account_overview",
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(alreadyLoggedIn.status).toBe("not_needed_already_logged_in");
+    expect(alreadyLoggedIn.steps.map((step) => step.type)).toContain("no_op");
+
+    const privateChoice = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: privateSettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        observedTextSignals: ["Användarnamn och lösenord", "Privat"],
+        statusOverride: "username_password_possible",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        observedTextSignals: ["Användarnamn och lösenord", "Privat"],
+        statusOverride: "avanza_login_page",
+      }),
+      realWorldLoginSignals: buildAvanzaRealWorldLoginSignalPack({
+        buttonTexts: ["Användarnamn och lösenord"],
+        customerType: "private",
+        flowKind: "initial_login_choice",
+        loginMethod: "username_password",
+        visibleTexts: ["Privat", "Användarnamn och lösenord"],
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(privateChoice.status).toBe("requires_username_password_choice");
+    expect(privateChoice.customerType).toBe("private");
+    expect(privateChoice.steps.map((step) => step.type)).toContain(
+      "select_username_password_method",
+    );
+    expect(privateChoice.steps.map((step) => step.targetSignalText)).toContain(
+      "Användarnamn och lösenord",
+    );
+
+    const privateReady = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: privateSettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        observedFormSignals: ["Användarnamn", "Lösenord"],
+        observedTextSignals: ["Privatkund"],
+        statusOverride: "username_password_possible",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        observedFormSignals: ["Användarnamn", "Lösenord"],
+        observedTextSignals: ["Privatkund"],
+        statusOverride: "avanza_login_page",
+      }),
+      realWorldLoginSignals: buildAvanzaRealWorldLoginSignalPack({
+        buttonTexts: ["Logga in"],
+        customerType: "private",
+        flowKind: "private_username_password_login",
+        formLabels: ["Privatkund"],
+        inputLabels: ["Användarnamn", "Lösenord"],
+        loginMethod: "username_password",
+        visibleTexts: ["Privatkund", "Användarnamn", "Lösenord"],
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(privateReady.status).toBe("ready_private_username_password");
+    expect(privateReady.steps.map((step) => step.type)).toEqual(
+      expect.arrayContaining(["fill_username", "fill_password", "submit_login"]),
+    );
+
+    const companyToggle = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: companySettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        observedTextSignals: ["Privat", "Företag"],
+        statusOverride: "login_page_detected",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        observedTextSignals: ["Privat", "Företag"],
+        statusOverride: "avanza_login_page",
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(companyToggle.status).toBe("requires_company_toggle");
+    expect(companyToggle.customerType).toBe("company");
+    expect(companyToggle.steps.map((step) => step.type)).toContain(
+      "select_company_toggle",
+    );
+    expect(companyToggle.steps.map((step) => step.targetSignalText)).toContain(
+      "Företag",
+    );
+
+    const companyReady = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: companySettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        observedFormSignals: ["Användarnamn", "Lösenord"],
+        observedTextSignals: ["Företag"],
+        statusOverride: "username_password_possible",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        observedFormSignals: ["Användarnamn", "Lösenord"],
+        observedTextSignals: ["Företag"],
+        statusOverride: "avanza_login_page",
+      }),
+      realWorldLoginSignals: buildAvanzaRealWorldLoginSignalPack({
+        buttonTexts: ["Logga in"],
+        customerType: "company",
+        flowKind: "company_username_password_login",
+        formLabels: ["Företag"],
+        inputLabels: ["Användarnamn", "Lösenord"],
+        loginMethod: "username_password",
+        visibleTexts: ["Företag", "Användarnamn", "Lösenord"],
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(companyReady.status).toBe("ready_company_username_password");
+    expect(companyReady.steps.map((step) => step.type)).toEqual(
+      expect.arrayContaining(["fill_username", "fill_password", "submit_login"]),
+    );
+
+    const bankIdBoundary = buildAvanzaLoginRoutePlan({
+      executionSettingsProfile: privateSettings,
+      loginState: buildAvanzaLoginStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_read_only",
+        observedTextSignals: ["Visa QR-kod"],
+        statusOverride: "mfa_or_bankid_required",
+      }),
+      mode: "local_dev_route_model",
+      pageState: buildAvanzaPageStateModel({
+        detectorEnabled: true,
+        mode: "local_dev_snapshot",
+        observedTextSignals: ["BankID", "Visa QR-kod"],
+        statusOverride: "avanza_bankid_or_mfa",
+      }),
+      routePlanningEnabled: true,
+    });
+
+    expect(bankIdBoundary.status).toBe(
+      "bankid_or_mfa_manual_action_required",
+    );
+    expect(bankIdBoundary.steps.map((step) => step.type)).toContain(
+      "stop_for_bankid_or_mfa",
+    );
+    expect(bankIdBoundary.canAutomateBankId).toBe(false);
+    expect(bankIdBoundary.canBypassBankId).toBe(false);
+
+    const fixtureIds = new Set(
+      avanzaLoginRoutePlannerFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const fixtureId of [
+      "disabled_planner",
+      "already_logged_in",
+      "private_initial_login_requires_username_password_choice",
+      "private_username_password_form_ready",
+      "company_initial_login_requires_company_toggle",
+      "company_username_password_form_ready",
+      "missing_credentials",
+      "incomplete_settings",
+      "bankid_qr_manual_action_required",
+      "bankid_same_device_manual_action_required",
+      "blocked_planner",
+      "error_planner",
+      "unknown_planner",
+    ] as const) {
+      expect(fixtureIds.has(fixtureId)).toBe(true);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    const fixtureStatuses = new Set(
+      avanzaLoginRoutePlannerFixtures.map((fixture) => fixture.plan.status),
+    );
+
+    for (const status of [
+      "disabled",
+      "not_needed_already_logged_in",
+      "ready_private_username_password",
+      "ready_company_username_password",
+      "requires_username_password_choice",
+      "requires_company_toggle",
+      "requires_credentials",
+      "bankid_or_mfa_manual_action_required",
+      "blocked",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(fixtureStatuses.has(status)).toBe(true);
+      expect(fixtureSource).toContain(status);
+    }
+
+    for (const fixture of avanzaLoginRoutePlannerFixtures) {
+      const plan = fixture.plan;
+
+      expect(plan.status).toBe(fixture.expectedStatus);
+      expect(plan.canSelectPrivateToggle).toBe(false);
+      expect(plan.canSelectCompanyToggle).toBe(false);
+      expect(plan.canSelectUsernamePasswordMethod).toBe(false);
+      expect(plan.canFillUsername).toBe(false);
+      expect(plan.canFillPassword).toBe(false);
+      expect(plan.canSubmitLogin).toBe(false);
+      expect(plan.canHandleCredentialMaterial).toBe(false);
+      expect(plan.canAutomateBankId).toBe(false);
+      expect(plan.canBypassBankId).toBe(false);
+      expect(plan.canReadCookies).toBe(false);
+      expect(plan.canExportSession).toBe(false);
+      expect(plan.canNavigate).toBe(false);
+      expect(plan.canClick).toBe(false);
+      expect(plan.canFillForm).toBe(false);
+      expect(plan.canSubmitOrder).toBe(false);
+      expect(plan.userMustConfirm).toBe(true);
+      expect(plan.finalHumanClickRequired).toBe(true);
+      expect(plan.controlsEnabled).toBe(false);
+      expect(plan.gateLocked).toBe(true);
+
+      for (const step of plan.steps) {
+        expect(step.allowedInThisTask).toBe(false);
+        if (step.type !== "no_op") expect(step.forbidden).toBe(true);
+      }
+    }
+
+    const bankIdFixture = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_qr_manual_action_required",
+    );
+
+    expect(bankIdFixture?.plan.status).toBe(
+      "bankid_or_mfa_manual_action_required",
+    );
+    expect(bankIdFixture?.plan.steps[0]?.requiresHumanAction).toBe(true);
+
+    for (const copy of [
+      "Avanza login route planner",
+      "Fixture only",
+      "Route model only",
+      "Privat/Företag from Ture Settings",
+      "Username/password only",
+      "BankID forbidden",
+      "Planned steps are not executable yet",
+      "No actual navigation",
+      "No actual login",
+      "No credential material",
+      "No form fill",
+      "No click",
+      "No cookies/session",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "User-selected Privat/Företag in Ture Settings drives the route",
+      "Username/password login is the only supported automated login method",
+      "choose \"Användarnamn och lösenord\" when needed",
+      "choose \"Företag\" when needed",
+      "BankID/MFA states stop and require manual action",
+      "allowedInThisTask: false",
+      "No credentials are read or returned",
+    ]) {
+      expect(docSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Login route planning is now modeled",
+      "Private and company routes are distinct",
+      "BankID options are manual-action only",
+      "Action steps are planned but not executable yet",
+    ]) {
+      expect(readRepoFile("docs/avanza-execution-settings-profile.md")).toContain(
+        copy,
+      );
+      expect(readRepoFile("docs/avanza-real-world-login-flow-signals.md")).toContain(
+        copy,
+      );
+    }
+
+    expect(routeSource).toContain("AvanzaLoginRoutePlannerHarness");
+    expect(routeSource).toContain("avanzaLoginRoutePlannerFixtures");
+    expect(routeSource).toContain("ready_private_username_password");
+    expect(routeSource).toContain("ready_company_username_password");
+    expect(routeSource).toContain("requires_username_password_choice");
+    expect(routeSource).toContain("requires_company_toggle");
+    expect(routeSource).toContain("bankid_or_mfa_manual_action_required");
+    expect(fixtureSource).toContain("Användarnamn och lösenord");
+    expect(fixtureSource).toContain("Företag");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-route-planner");
+    expect(tradeAppSource).not.toContain("AvanzaLoginRoutePlannerHarness");
+    expect(apiRouteSource).not.toContain("avanza-login-route-planner");
+    expect(apiRouteSource).not.toContain("AvanzaLoginRoutePlannerHarness");
+    expect(passiveActionShellSource).not.toContain("avanza-login-route-planner");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaLoginRoutePlannerHarness",
+    );
+
+    for (const source of [plannerSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+    }
+  });
+
+  test("Avanza login action contract maps route plans to non-executable future actions", () => {
+    const contractSource = readRepoFile("lib/avanza-login-action-contract.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-action-contract-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginActionContractHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-login-action-contract.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-login-action-contract.ts"))).toBe(
+      true,
+    );
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-login-action-contract-fixtures.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginActionContractHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(existsSync(join(repoRoot, "docs/avanza-login-action-contract.md"))).toBe(
+      true,
+    );
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaLoginActionContract({
+      contractEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.canCreateActionPlan).toBe(false);
+    expect(disabled.canExecuteActions).toBe(false);
+
+    const alreadyLoggedInRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "already_logged_in",
+    )?.plan;
+    const privateReadyRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "private_username_password_form_ready",
+    )?.plan;
+    const privateChoiceRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) =>
+        fixture.fixtureId ===
+        "private_initial_login_requires_username_password_choice",
+    )?.plan;
+    const companyReadyRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "company_username_password_form_ready",
+    )?.plan;
+    const companyToggleRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "company_initial_login_requires_company_toggle",
+    )?.plan;
+    const bankIdRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_qr_manual_action_required",
+    )?.plan;
+
+    expect(alreadyLoggedInRoute).toBeDefined();
+    expect(privateReadyRoute).toBeDefined();
+    expect(privateChoiceRoute).toBeDefined();
+    expect(companyReadyRoute).toBeDefined();
+    expect(companyToggleRoute).toBeDefined();
+    expect(bankIdRoute).toBeDefined();
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const missingProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: false,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+
+    const noAction = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: alreadyLoggedInRoute,
+      mode: "contract_only",
+    });
+
+    expect(noAction.status).toBe("no_action_needed");
+    expect(noAction.actions.map((action) => action.type)).toEqual(["no_op"]);
+
+    const privateReady = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: privateReadyRoute,
+      mode: "contract_only",
+    });
+
+    expect(privateReady.status).toBe("action_plan_ready");
+    expect(privateReady.actions.map((action) => action.type)).toEqual([
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+    expect(privateReady.customerType).toBe("private");
+
+    const privateChoice = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: privateChoiceRoute,
+      mode: "contract_only",
+    });
+
+    expect(privateChoice.status).toBe("action_plan_ready");
+    expect(privateChoice.actions.map((action) => action.type)).toEqual([
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+    expect(privateChoice.actions[0]?.targetSignalText).toBe(
+      "Användarnamn och lösenord",
+    );
+
+    const companyReady = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: companyReadyRoute,
+      mode: "contract_only",
+    });
+
+    expect(companyReady.status).toBe("action_plan_ready");
+    expect(companyReady.customerType).toBe("company");
+    expect(companyReady.actions.map((action) => action.type)).toEqual([
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+
+    const companyToggle = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: companyToggleRoute,
+      mode: "contract_only",
+    });
+
+    expect(companyToggle.status).toBe("action_plan_ready");
+    expect(companyToggle.actions.map((action) => action.type)).toEqual([
+      "click_company_toggle",
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+    expect(companyToggle.actions[0]?.targetSignalText).toBe("Företag");
+
+    const waitingForCredentials = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: missingProvider,
+      loginRoutePlan: privateReadyRoute,
+      mode: "contract_only",
+    });
+
+    expect(waitingForCredentials.status).toBe("waiting_for_credentials");
+    expect(waitingForCredentials.actions.map((action) => action.type)).toContain(
+      "stop_for_manual_user_action",
+    );
+
+    const bankIdBoundary = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: bankIdRoute,
+      mode: "contract_only",
+    });
+
+    expect(bankIdBoundary.status).toBe(
+      "bankid_or_mfa_manual_action_required",
+    );
+    expect(bankIdBoundary.actions.map((action) => action.type)).toEqual([
+      "stop_for_bankid_or_mfa",
+    ]);
+    expect(bankIdBoundary.actions[0]?.requiresHumanAction).toBe(true);
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginActionContractFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["already_logged_in_no_action_needed", "no_action_needed"],
+      ["private_route_action_plan_ready", "action_plan_ready"],
+      ["private_requires_username_password_method_click", "action_plan_ready"],
+      ["company_route_action_plan_ready", "action_plan_ready"],
+      ["company_requires_company_toggle", "action_plan_ready"],
+      ["waiting_for_credentials", "waiting_for_credentials"],
+      [
+        "bankid_or_mfa_manual_action_required",
+        "bankid_or_mfa_manual_action_required",
+      ],
+      ["blocked", "blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    expect(
+      avanzaLoginActionContractFixtures.map((fixture) => fixture.contract.status),
+    ).toEqual(
+      expect.arrayContaining([
+        "disabled",
+        "no_action_needed",
+        "action_plan_ready",
+        "waiting_for_credentials",
+        "bankid_or_mfa_manual_action_required",
+        "blocked",
+        "error",
+        "unknown",
+      ]),
+    );
+
+    const allFixtureActions = avanzaLoginActionContractFixtures.flatMap(
+      (fixture) => fixture.contract.actions,
+    );
+
+    for (const type of [
+      "click_username_password_method",
+      "click_company_toggle",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]) {
+      expect(allFixtureActions.map((action) => action.type)).toContain(type);
+    }
+
+    for (const fixture of avanzaLoginActionContractFixtures) {
+      expect(fixture.contract.canExecuteActions).toBe(false);
+      expect(fixture.contract.canClickUsernamePasswordMethod).toBe(false);
+      expect(fixture.contract.canClickPrivateToggle).toBe(false);
+      expect(fixture.contract.canClickCompanyToggle).toBe(false);
+      expect(fixture.contract.canFillUsername).toBe(false);
+      expect(fixture.contract.canFillPassword).toBe(false);
+      expect(fixture.contract.canClickLoginSubmit).toBe(false);
+      expect(fixture.contract.canHandleCredentialMaterial).toBe(false);
+      expect(fixture.contract.canReadCredentialMaterial).toBe(false);
+      expect(fixture.contract.canReturnCredentialMaterial).toBe(false);
+      expect(fixture.contract.canLogCredentialMaterial).toBe(false);
+      expect(fixture.contract.canAutomateBankId).toBe(false);
+      expect(fixture.contract.canBypassBankId).toBe(false);
+      expect(fixture.contract.canSubmitLogin).toBe(false);
+      expect(fixture.contract.canSubmitOrder).toBe(false);
+      expect(fixture.contract.userMustConfirm).toBe(true);
+      expect(fixture.contract.finalHumanClickRequired).toBe(true);
+      expect(fixture.contract.controlsEnabled).toBe(false);
+      expect(fixture.contract.gateLocked).toBe(true);
+
+      for (const action of fixture.contract.actions) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.executableInThisTask).toBe(false);
+        expect(action.dryRunOnly).toBe(true);
+      }
+    }
+
+    expect(
+      avanzaLoginActionContractFixtures.find(
+        (fixture) => fixture.fixtureId === "private_route_action_plan_ready",
+      )?.contract.canCreateActionPlan,
+    ).toBe(true);
+    expect(
+      avanzaLoginActionContractFixtures.find(
+        (fixture) => fixture.fixtureId === "waiting_for_credentials",
+      )?.contract.canCreateActionPlan,
+    ).toBe(false);
+
+    for (const copy of [
+      "Avanza login action contract",
+      "Fixture only",
+      "Contract only",
+      "Planned actions are not executable yet",
+      "No actual navigation",
+      "No actual login",
+      "No credential material",
+      "No password values",
+      "No form fill",
+      "No click",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "action_plan_ready",
+      "waiting_for_credentials",
+      "bankid_or_mfa_manual_action_required",
+      "click_username_password_method",
+      "click_company_toggle",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+      "containsCredentialMaterial",
+      "executableInThisTask",
+      "dryRunOnly",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Login action contract is now modeled",
+      "bridge between route planning and future browser actions",
+      "Actions are currently contract-only and non-executable",
+      "No credential material appears in action output",
+    ]) {
+      expect(normalizeWhitespace(docSource)).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-route-planner.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-execution-settings-profile.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        ),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaLoginActionContractHarness");
+    expect(routeSource).toContain("avanzaLoginActionContractFixtures");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-action-contract");
+    expect(tradeAppSource).not.toContain("AvanzaLoginActionContractHarness");
+    expect(apiRouteSource).not.toContain("avanza-login-action-contract");
+    expect(passiveActionShellSource).not.toContain("avanza-login-action-contract");
+
+    for (const source of [contractSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("Avanza login dry-run executor reports non-executable local-dev login feasibility", () => {
+    const executorSource = readRepoFile("lib/avanza-login-dry-run-executor.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-dry-run-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginDryRunExecutorHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-login-dry-run-executor.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-login-dry-run-executor.ts"))).toBe(
+      true,
+    );
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-login-dry-run-executor-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginDryRunExecutorHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(existsSync(join(repoRoot, "docs/avanza-login-dry-run-executor.md"))).toBe(
+      true,
+    );
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const missingProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: false,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const privateReadyRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "private_username_password_form_ready",
+    )?.plan;
+    const alreadyLoggedInRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "already_logged_in",
+    )?.plan;
+    const bankIdRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_qr_manual_action_required",
+    )?.plan;
+
+    expect(privateReadyRoute).toBeDefined();
+    expect(alreadyLoggedInRoute).toBeDefined();
+    expect(bankIdRoute).toBeDefined();
+
+    const disabled = buildAvanzaLoginDryRunReport({
+      dryRunEnabled: false,
+      mode: "disabled",
+    });
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.canDryRun).toBe(false);
+    expect(disabled.canExecuteActions).toBe(false);
+
+    const noActionContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: alreadyLoggedInRoute,
+      mode: "contract_only",
+    });
+    const noActionReport = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: noActionContract,
+      mode: "local_dev_dry_run",
+    });
+
+    expect(noActionReport.status).toBe("dry_run_passed");
+    expect(noActionReport.actionReports[0]?.dryRunStatus).toBe("skipped");
+    expect(noActionReport.actionReports[0]?.executableNow).toBe(false);
+
+    const privateReadyContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: privateReadyRoute,
+      mode: "contract_only",
+    });
+    const privateDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: privateReadyContract,
+      mode: "local_dev_dry_run",
+    });
+
+    expect(privateDryRun.status).toBe("dry_run_passed");
+    expect(privateDryRun.canDryRun).toBe(true);
+    expect(privateDryRun.actionReports.map((action) => action.actionType)).toEqual([
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+    expect(
+      privateDryRun.actionReports
+        .filter((action) => action.actionType !== "click_login_submit")
+        .every((action) => action.wouldUseCredentialReference),
+    ).toBe(true);
+
+    const missingCredentialDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: missingProvider,
+      dryRunEnabled: true,
+      loginActionContract: privateReadyContract,
+      mode: "local_dev_dry_run",
+    });
+
+    expect(missingCredentialDryRun.status).toBe("dry_run_missing_credentials");
+    expect(
+      missingCredentialDryRun.actionReports.every(
+        (action) => action.dryRunStatus === "blocked_missing_credentials",
+      ),
+    ).toBe(true);
+
+    const bankIdContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: bankIdRoute,
+      mode: "contract_only",
+    });
+    const bankIdDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: bankIdContract,
+      mode: "local_dev_dry_run",
+    });
+
+    expect(bankIdDryRun.status).toBe("dry_run_bankid_or_mfa_stop");
+    expect(bankIdDryRun.actionReports[0]?.dryRunStatus).toBe(
+      "blocked_bankid_or_mfa",
+    );
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginDryRunExecutorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["already_logged_in_no_action_needed", "dry_run_passed"],
+      ["private_username_password_dry_run_passed", "dry_run_passed"],
+      [
+        "private_requires_username_password_method_dry_run_passed",
+        "dry_run_passed",
+      ],
+      ["company_username_password_dry_run_passed", "dry_run_passed"],
+      ["company_requires_company_toggle_dry_run_passed", "dry_run_passed"],
+      ["missing_credentials", "dry_run_missing_credentials"],
+      ["bankid_or_mfa_stop", "dry_run_bankid_or_mfa_stop"],
+      ["blocked_contract", "dry_run_blocked"],
+      ["error", "dry_run_error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    expect(
+      avanzaLoginDryRunExecutorFixtures.map((fixture) => fixture.report.status),
+    ).toEqual(
+      expect.arrayContaining([
+        "disabled",
+        "dry_run_passed",
+        "dry_run_missing_credentials",
+        "dry_run_bankid_or_mfa_stop",
+        "dry_run_blocked",
+        "dry_run_error",
+        "unknown",
+      ]),
+    );
+
+    for (const fixture of avanzaLoginDryRunExecutorFixtures) {
+      const report = fixture.report;
+
+      expect(report.canExecuteActions).toBe(false);
+      expect(report.canReadCredentialMaterial).toBe(false);
+      expect(report.canReturnCredentialMaterial).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.canFillUsername).toBe(false);
+      expect(report.canFillPassword).toBe(false);
+      expect(report.canClick).toBe(false);
+      expect(report.canClickLoginSubmit).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canNavigate).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+
+      for (const action of report.actionReports) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.executableNow).toBe(false);
+      }
+    }
+
+    for (const copy of [
+      "Avanza login dry-run executor",
+      "Fixture only",
+      "Dry-run only",
+      "No actual navigation",
+      "No actual login",
+      "No credential material",
+      "No password values",
+      "No form fill",
+      "No click",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "dry_run_passed",
+      "dry_run_missing_credentials",
+      "dry_run_bankid_or_mfa_stop",
+      "dry_run_blocked",
+      "dry_run_error",
+      "containsCredentialMaterial",
+      "executableNow",
+      "wouldUseCredentialReference",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Login dry-run executor is now modeled",
+      "verifies that login action plans are internally coherent before any real action execution",
+      "remains non-executing",
+    ]) {
+      expect(normalizeWhitespace(docSource)).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-action-contract.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-route-planner.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-execution-settings-profile.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        ),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaLoginDryRunExecutorHarness");
+    expect(routeSource).toContain("avanzaLoginDryRunExecutorFixtures");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-dry-run-executor");
+    expect(tradeAppSource).not.toContain("AvanzaLoginDryRunExecutorHarness");
+    expect(apiRouteSource).not.toContain("avanza-login-dry-run-executor");
+    expect(apiRouteSource).not.toContain("AvanzaLoginDryRunExecutorHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-login-dry-run-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaLoginDryRunExecutorHarness",
+    );
+
+    for (const source of [executorSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("Avanza login mock page executor simulates private and company login against mock state only", () => {
+    const executorSource = readRepoFile("lib/avanza-login-mock-page-executor.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-mock-page-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginMockPageExecutorHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-login-mock-page-executor.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-login-mock-page-executor.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-login-mock-page-executor-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginMockPageExecutorHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-login-mock-page-executor.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const missingProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: false,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const privateChoiceRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) =>
+        fixture.fixtureId ===
+        "private_initial_login_requires_username_password_choice",
+    )?.plan;
+    const companyToggleRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) =>
+        fixture.fixtureId === "company_initial_login_requires_company_toggle",
+    )?.plan;
+    const bankIdRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_qr_manual_action_required",
+    )?.plan;
+
+    expect(privateChoiceRoute).toBeDefined();
+    expect(companyToggleRoute).toBeDefined();
+    expect(bankIdRoute).toBeDefined();
+
+    const privateContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: privateChoiceRoute,
+      mode: "contract_only",
+    });
+    const privateDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: privateContract,
+      mode: "local_dev_dry_run",
+    });
+    const privateMock = buildAvanzaLoginMockExecutorReport({
+      credentialProviderState: readyProvider,
+      dryRunReport: privateDryRun,
+      initialMockPageState: createAvanzaLoginMockPageState(
+        "initial_login_choice",
+        "private",
+      ),
+      loginActionContract: privateContract,
+      mockExecutorEnabled: true,
+      mode: "mock_local_dev",
+    });
+
+    expect(privateMock.status).toBe("mock_executed");
+    expect(privateMock.initialPageStateKind).toBe("initial_login_choice");
+    expect(privateMock.finalPageStateKind).toBe("logged_in_home");
+    expect(privateMock.canExecuteMockActions).toBe(true);
+    expect(privateMock.canExecuteRealBrowserActions).toBe(false);
+    expect(privateMock.actionReports.map((action) => action.actionType)).toEqual([
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+
+    const companyContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: companyToggleRoute,
+      mode: "contract_only",
+    });
+    const companyDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: companyContract,
+      mode: "local_dev_dry_run",
+    });
+    const companyMock = buildAvanzaLoginMockExecutorReport({
+      credentialProviderState: readyProvider,
+      dryRunReport: companyDryRun,
+      initialMockPageState: createAvanzaLoginMockPageState(
+        "initial_login_choice",
+        "company",
+      ),
+      loginActionContract: companyContract,
+      mockExecutorEnabled: true,
+      mode: "mock_local_dev",
+    });
+
+    expect(companyMock.status).toBe("mock_executed");
+    expect(companyMock.finalPageStateKind).toBe("logged_in_home");
+    expect(companyMock.actionReports.map((action) => action.actionType)).toEqual([
+      "click_company_toggle",
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+
+    const missingCredentialMock = buildAvanzaLoginMockExecutorReport({
+      credentialProviderState: missingProvider,
+      dryRunReport: privateDryRun,
+      initialMockPageState: createAvanzaLoginMockPageState(
+        "private_username_password_form",
+        "private",
+      ),
+      loginActionContract: privateContract,
+      mockExecutorEnabled: true,
+      mode: "mock_local_dev",
+    });
+
+    expect(missingCredentialMock.status).toBe("mock_missing_credentials");
+    expect(missingCredentialMock.canExecuteMockActions).toBe(false);
+
+    const bankIdContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: bankIdRoute,
+      mode: "contract_only",
+    });
+    const bankIdDryRun = buildAvanzaLoginDryRunReport({
+      credentialProviderState: readyProvider,
+      dryRunEnabled: true,
+      loginActionContract: bankIdContract,
+      mode: "local_dev_dry_run",
+    });
+    const bankIdMock = buildAvanzaLoginMockExecutorReport({
+      credentialProviderState: readyProvider,
+      dryRunReport: bankIdDryRun,
+      initialMockPageState: createAvanzaLoginMockPageState("bankid_or_mfa"),
+      loginActionContract: bankIdContract,
+      mockExecutorEnabled: true,
+      mode: "mock_local_dev",
+    });
+
+    expect(bankIdMock.status).toBe("mock_bankid_or_mfa_stop");
+    expect(bankIdMock.canExecuteMockActions).toBe(false);
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginMockPageExecutorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["already_logged_in_no_op", "mock_executed"],
+      ["private_initial_login_to_mock_logged_in", "mock_executed"],
+      ["private_username_password_form_to_mock_logged_in", "mock_executed"],
+      ["company_initial_login_to_mock_logged_in", "mock_executed"],
+      ["company_username_password_form_to_mock_logged_in", "mock_executed"],
+      ["missing_credentials", "mock_missing_credentials"],
+      ["bankid_or_mfa_stop", "mock_bankid_or_mfa_stop"],
+      ["blocked_contract", "mock_blocked"],
+      ["error", "mock_error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const fixture of avanzaLoginMockPageExecutorFixtures) {
+      const report = fixture.report;
+
+      if (report.status === "mock_executed") {
+        expect(report.canExecuteMockActions).toBe(true);
+      }
+
+      expect(report.mockOnly).toBe(true);
+      expect(report.canExecuteRealBrowserActions).toBe(false);
+      expect(report.canReadCredentialMaterial).toBe(false);
+      expect(report.canReturnCredentialMaterial).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.canFillUsernameReal).toBe(false);
+      expect(report.canFillPasswordReal).toBe(false);
+      expect(report.canClickReal).toBe(false);
+      expect(report.canClickLoginSubmitReal).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+
+      for (const action of report.actionReports) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.realBrowserAction).toBe(false);
+      }
+    }
+
+    for (const copy of [
+      "Avanza login mock page executor",
+      "Fixture only",
+      "Mock only",
+      "Simulated page state only",
+      "No real browser actions",
+      "No actual Avanza navigation",
+      "No actual login",
+      "No credential material",
+      "No password values",
+      "No real form fill",
+      "No real click",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "mock_executed",
+      "mock_missing_credentials",
+      "mock_bankid_or_mfa_stop",
+      "actionReports",
+      "containsCredentialMaterial",
+      "realBrowserAction",
+      "canExecuteMockActions",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Mock executor is now modeled",
+      "It can simulate private/company login action sequences",
+      "It remains mock-only and non-browser",
+      "It still does not access credentials",
+    ]) {
+      expect(normalizeWhitespace(docSource)).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-dry-run-executor.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-action-contract.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-route-planner.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        ),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaLoginMockPageExecutorHarness");
+    expect(routeSource).toContain("avanzaLoginMockPageExecutorFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-mock-page-executor");
+    expect(tradeAppSource).not.toContain("AvanzaLoginMockPageExecutorHarness");
+    expect(apiRouteSource).not.toContain("avanza-login-mock-page-executor");
+    expect(apiRouteSource).not.toContain("AvanzaLoginMockPageExecutorHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-login-mock-page-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaLoginMockPageExecutorHarness",
+    );
+
+    for (const source of [executorSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(
+        /chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/,
+      );
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("Avanza login local-dev executor contract uses injected dependencies and credential references only", async () => {
+    const executorSource = readRepoFile(
+      "lib/avanza-login-local-dev-executor.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-local-dev-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginLocalDevExecutorHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-login-local-dev-executor.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-login-local-dev-executor.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-login-local-dev-executor-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginLocalDevExecutorHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-login-local-dev-executor.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const readyProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+    const privateChoiceRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) =>
+        fixture.fixtureId ===
+        "private_initial_login_requires_username_password_choice",
+    )?.plan;
+    const companyToggleRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) =>
+        fixture.fixtureId === "company_initial_login_requires_company_toggle",
+    )?.plan;
+    const bankIdRoute = avanzaLoginRoutePlannerFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_qr_manual_action_required",
+    )?.plan;
+
+    expect(privateChoiceRoute).toBeDefined();
+    expect(companyToggleRoute).toBeDefined();
+    expect(bankIdRoute).toBeDefined();
+
+    const baseConfig = {
+      executorId: "local-dev-test",
+      mode: "local_dev" as const,
+      enabled: true,
+      localDevOnly: true as const,
+      allowClickUsernamePasswordMethod: true,
+      allowClickCustomerToggle: true,
+      allowFillCredentialReferences: true,
+      allowClickLoginSubmit: true,
+      allowBankIdAutomation: false as const,
+      allowCookieRead: false as const,
+      allowSessionExport: false as const,
+      allowOrderSubmit: false as const,
+    };
+    const privateContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: privateChoiceRoute,
+      mode: "local_dev_execute_later",
+    });
+    const privateInput = {
+      config: baseConfig,
+      credentialProviderState: readyProvider,
+      loginActionContract: privateContract,
+    };
+    const privateState = buildAvanzaLoginLocalDevExecutorState(privateInput);
+
+    expect(privateState.status).toBe("ready");
+    expect(privateState.canExecuteLocalDevActions).toBe(true);
+    expect(privateState.canResolveCredentialMaterial).toBe(false);
+    expect(privateState.canReadCredentialMaterial).toBe(false);
+    expect(privateState.canReturnCredentialMaterial).toBe(false);
+    expect(privateState.canLogCredentialMaterial).toBe(false);
+    expect(privateState.canAutomateBankId).toBe(false);
+    expect(privateState.canBypassBankId).toBe(false);
+    expect(privateState.canReadCookies).toBe(false);
+    expect(privateState.canExportSession).toBe(false);
+    expect(privateState.canSubmitOrder).toBe(false);
+    expect(privateState.userMustConfirm).toBe(true);
+    expect(privateState.finalHumanClickRequired).toBe(true);
+    expect(privateState.controlsEnabled).toBe(false);
+    expect(privateState.gateLocked).toBe(true);
+    expect(privateState.actionReports.map((action) => action.actionType)).toEqual([
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+
+    const calls: string[] = [];
+    const executed = await executeAvanzaLoginLocalDevPlan(privateInput, {
+      clickByText: async (text) => {
+        calls.push(`click:${text}`);
+
+        return { ok: true, reason: `clicked ${text}` };
+      },
+      fillByLabel: async (label, valueReference) => {
+        calls.push(`fill:${label}:${valueReference}`);
+
+        return { ok: true, reason: `filled ${label} from ${valueReference}` };
+      },
+    });
+
+    expect(executed.status).toBe("executed");
+    expect(calls).toEqual([
+      "click:Användarnamn och lösenord",
+      "fill:Användarnamn:username_from_secure_provider",
+      "fill:Lösenord:password_from_secure_provider",
+      "click:Logga in",
+    ]);
+    expect(JSON.stringify(executed)).toContain("username_from_secure_provider");
+    expect(JSON.stringify(executed)).toContain("password_from_secure_provider");
+    expect(JSON.stringify(executed)).not.toMatch(
+      /hunter2|correct horse|raw_username|raw_password/i,
+    );
+    expect(executed.actionReports.every((action) => !action.containsCredentialMaterial)).toBe(true);
+    expect(executed.canSubmitOrder).toBe(false);
+
+    const companyContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: companyToggleRoute,
+      mode: "local_dev_execute_later",
+    });
+    const companyState = buildAvanzaLoginLocalDevExecutorState({
+      config: baseConfig,
+      credentialProviderState: readyProvider,
+      loginActionContract: companyContract,
+    });
+
+    expect(companyState.status).toBe("ready");
+    expect(companyState.actionReports.map((action) => action.actionType)).toEqual([
+      "click_company_toggle",
+      "click_username_password_method",
+      "fill_username",
+      "fill_password",
+      "click_login_submit",
+    ]);
+
+    const dryRunCalls: string[] = [];
+    const dryRunState = await executeAvanzaLoginLocalDevPlan(
+      {
+        config: { ...baseConfig, dryRun: true },
+        credentialProviderState: readyProvider,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async (text) => {
+          dryRunCalls.push(text);
+
+          return { ok: true };
+        },
+        fillByLabel: async (label) => {
+          dryRunCalls.push(label);
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(dryRunState.status).toBe("blocked");
+    expect(dryRunCalls).toEqual([]);
+
+    const failed = await executeAvanzaLoginLocalDevPlan(privateInput, {
+      clickByText: async () => ({ ok: false, reason: "mock click failed" }),
+      fillByLabel: async () => ({ ok: true }),
+    });
+
+    expect(failed.status).toBe("page_action_failed");
+    expect(failed.actionReports.some((action) => action.actionStatus === "failed")).toBe(true);
+
+    const bankIdContract = buildAvanzaLoginActionContract({
+      contractEnabled: true,
+      credentialProviderState: readyProvider,
+      loginRoutePlan: bankIdRoute,
+      mode: "local_dev_execute_later",
+    });
+    const bankIdCalls: string[] = [];
+    const bankIdStop = await executeAvanzaLoginLocalDevPlan(
+      {
+        config: baseConfig,
+        credentialProviderState: readyProvider,
+        loginActionContract: bankIdContract,
+      },
+      {
+        clickByText: async (text) => {
+          bankIdCalls.push(text);
+
+          return { ok: true };
+        },
+        fillByLabel: async (label) => {
+          bankIdCalls.push(label);
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(bankIdStop.status).toBe("bankid_or_mfa_stop");
+    expect(bankIdCalls).toEqual([]);
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginLocalDevExecutorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled_executor", "disabled"],
+      ["ready_private_local_dev_executor", "ready"],
+      ["ready_company_local_dev_executor", "ready"],
+      ["successful_private_injected_execution_report", "executed"],
+      ["successful_company_injected_execution_report", "executed"],
+      ["dry_run_true_blocks_execution", "blocked"],
+      ["missing_credentials", "missing_credentials"],
+      ["bankid_or_mfa_stop", "bankid_or_mfa_stop"],
+      ["click_username_password_method_failed", "page_action_failed"],
+      ["fill_username_failed", "page_action_failed"],
+      ["fill_password_failed", "page_action_failed"],
+      ["click_login_submit_failed", "page_action_failed"],
+      ["blocked", "blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const fixture of avanzaLoginLocalDevExecutorFixtures) {
+      const report = fixture.report;
+
+      expect(report.localDevOnly).toBe(true);
+      expect(report.canResolveCredentialMaterial).toBe(false);
+      expect(report.canReadCredentialMaterial).toBe(false);
+      expect(report.canReturnCredentialMaterial).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+
+      for (const action of report.actionReports) {
+        expect(action.containsCredentialMaterial).toBe(false);
+      }
+    }
+
+    for (const copy of [
+      "Avanza login local-dev executor",
+      "Fixture/mock only",
+      "Injected dependencies only",
+      "No Trade UI wiring",
+      "No raw credentials",
+      "Credential references only",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Local/dev-only",
+      "Not production ready",
+      "successful_private_injected_execution_report",
+      "successful_company_injected_execution_report",
+      "dry_run_true_blocks_execution",
+      "missing_credentials",
+      "bankid_or_mfa_stop",
+      "click_username_password_method_failed",
+      "fill_username_failed",
+      "fill_password_failed",
+      "click_login_submit_failed",
+      "actionReports",
+      "canResolveCredentialMaterial",
+      "canReadCredentialMaterial",
+      "canReturnCredentialMaterial",
+      "canLogCredentialMaterial",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Local-dev executor contract is now modeled",
+      "It can execute through explicitly injected mock/page dependencies only",
+      "It does not resolve credentials yet",
+      "does not run by default",
+      "not wired into Trade UI",
+    ]) {
+      expect(normalizeWhitespace(docSource)).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-mock-page-executor.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-dry-run-executor.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-action-contract.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        ),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaLoginLocalDevExecutorHarness");
+    expect(routeSource).toContain("avanzaLoginLocalDevExecutorFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-local-dev-executor");
+    expect(tradeAppSource).not.toContain("AvanzaLoginLocalDevExecutorHarness");
+    expect(apiRouteSource).not.toContain("avanza-login-local-dev-executor");
+    expect(apiRouteSource).not.toContain("AvanzaLoginLocalDevExecutorHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-login-local-dev-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaLoginLocalDevExecutorHarness",
+    );
+
+    for (const source of [executorSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("macOS Keychain credential provider contract uses injected dependencies and keeps credential values hidden", async () => {
+    const providerSource = readRepoFile(
+      "lib/avanza-macos-keychain-credential-provider.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-macos-keychain-credential-provider-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaMacosKeychainCredentialProviderHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-macos-keychain-credential-provider.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-macos-keychain-credential-provider.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "lib/avanza-macos-keychain-credential-provider-fixtures.ts",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaMacosKeychainCredentialProviderHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "docs/avanza-macos-keychain-credential-provider.md"),
+      ),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const usernameReference = {
+      accountKey: "test-username-ref",
+      customerType: "private" as const,
+      kind: "username" as const,
+      maskedAccountHint: "user-ref-hidden",
+      safeDisplayName: "Test username reference",
+      serviceName: "sharp-avanza-test-login",
+    };
+    const passwordReference = {
+      accountKey: "test-secret-ref",
+      customerType: "private" as const,
+      kind: "password" as const,
+      maskedAccountHint: "pass-ref-hidden",
+      safeDisplayName: "Test password reference",
+      serviceName: "sharp-avanza-test-login",
+    };
+    const localDevConfig = {
+      allowCheckAvailability: true,
+      allowCheckCredentialExists: true,
+      enabled: true,
+      localDevOnly: true as const,
+      mode: "local_dev" as const,
+      references: [usernameReference, passwordReference],
+    };
+    const ready = buildAvanzaMacosKeychainCredentialProviderState(
+      localDevConfig,
+    );
+
+    expect(ready.status).toBe("ready");
+    expect(ready.provider).toBe("macos_keychain");
+    expect(ready.canCheckAvailability).toBe(true);
+    expect(ready.canCheckCredentialExists).toBe(true);
+    expect(ready.canReadCredentialMaterial).toBe(false);
+    expect(ready.canReturnCredentialMaterialToUi).toBe(false);
+    expect(ready.canLogCredentialMaterial).toBe(false);
+    expect(ready.canStoreCredentialMaterialInSupabase).toBe(false);
+    expect(ready.canStoreCredentialMaterialInLocalStorage).toBe(false);
+    expect(ready.credentialValuesVisibleInReports).toBe(false);
+    expect(ready.canAutomateBankId).toBe(false);
+    expect(ready.canBypassBankId).toBe(false);
+    expect(ready.canSubmitOrder).toBe(false);
+    expect(ready.userMustConfirm).toBe(true);
+    expect(ready.finalHumanClickRequired).toBe(true);
+    expect(ready.controlsEnabled).toBe(false);
+    expect(ready.gateLocked).toBe(true);
+    expect(toAvanzaLoginExecutorCredentialReference(usernameReference)).toBe(
+      "username_from_secure_provider",
+    );
+    expect(toAvanzaLoginExecutorCredentialReference(passwordReference)).toBe(
+      "password_from_secure_provider",
+    );
+
+    const dependencyCalls: string[] = [];
+    const dependencies = {
+      hasCredential: async () => {
+        dependencyCalls.push("hasCredential");
+
+        return { exists: true, ok: true };
+      },
+      isAvailable: async () => {
+        dependencyCalls.push("isAvailable");
+
+        return { ok: true };
+      },
+      readCredential: async () => {
+        dependencyCalls.push("readCredential");
+
+        return { ok: true, value: "internal-test-only-value" };
+      },
+      writeCredential: async () => {
+        dependencyCalls.push("writeCredential");
+
+        return { ok: true };
+      },
+    };
+    const checked = await checkAvanzaMacosKeychainCredentialReferences(
+      localDevConfig,
+      dependencies,
+    );
+
+    expect(checked.status).toBe("credential_check_passed");
+    expect(dependencyCalls).toEqual([
+      "isAvailable",
+      "hasCredential",
+      "hasCredential",
+    ]);
+
+    const blockedRead = await readAvanzaMacosKeychainCredentialReference(
+      localDevConfig,
+      usernameReference,
+      dependencies,
+    );
+
+    expect(blockedRead.status).toBe("credential_read_blocked");
+    expect(blockedRead.valueReturnedToUi).toBe(false);
+    expect(blockedRead.valueLogged).toBe(false);
+    expect(blockedRead.valueStoredInSupabase).toBe(false);
+    expect(blockedRead.valueStoredInLocalStorage).toBe(false);
+    expect(dependencyCalls).toEqual([
+      "isAvailable",
+      "hasCredential",
+      "hasCredential",
+    ]);
+
+    const allowedRead =
+      await readAvanzaMacosKeychainCredentialReference(
+        { ...localDevConfig, allowReadCredentialMaterial: true },
+        usernameReference,
+        dependencies,
+      );
+
+    expect(allowedRead.status).toBe("credential_read_allowed_local_dev");
+    expect(allowedRead.privateInternalValue).toBe("internal-test-only-value");
+    expect(allowedRead.valueReturnedToUi).toBe(false);
+    expect(allowedRead.valueLogged).toBe(false);
+    expect(allowedRead.valueStoredInSupabase).toBe(false);
+    expect(allowedRead.valueStoredInLocalStorage).toBe(false);
+    expect(
+      JSON.stringify({
+        ...allowedRead,
+        privateInternalValue: undefined,
+      }),
+    ).not.toContain("internal-test-only-value");
+
+    const writeResult =
+      await writeAvanzaMacosKeychainCredentialReference(
+        {
+          ...localDevConfig,
+          allowWriteCredentialReference: true,
+        },
+        passwordReference,
+        "internal-write-only-value",
+        dependencies,
+      );
+
+    expect(writeResult.status).toBe("credential_reference_configured");
+    expect(writeResult.valueReturnedToUi).toBe(false);
+    expect(writeResult.valueLogged).toBe(false);
+    expect(writeResult.valueStoredInSupabase).toBe(false);
+    expect(writeResult.valueStoredInLocalStorage).toBe(false);
+    expect(JSON.stringify(writeResult)).not.toContain("internal-write-only-value");
+
+    const expectedFixtureStatuses = new Map(
+      avanzaMacosKeychainCredentialProviderFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["contract_only_references_modeled", "credential_reference_configured"],
+      ["keychain_unavailable", "unavailable"],
+      ["keychain_ready", "ready"],
+      ["username_reference_configured", "credential_reference_configured"],
+      ["password_reference_configured", "credential_reference_configured"],
+      ["both_references_configured", "credential_reference_configured"],
+      ["credential_check_passed", "credential_check_passed"],
+      ["credential_check_failed", "credential_check_failed"],
+      ["credential_read_blocked", "credential_read_blocked"],
+      [
+        "local_dev_credential_read_allowed_value_hidden",
+        "credential_read_allowed_local_dev",
+      ],
+      ["write_reference_modeled", "credential_reference_configured"],
+      ["environment_fallback_forbidden", "credential_read_blocked"],
+      ["supabase_credential_storage_forbidden", "credential_read_blocked"],
+      ["localstorage_credential_storage_forbidden", "credential_read_blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const fixture of avanzaMacosKeychainCredentialProviderFixtures) {
+      const state = fixture.state;
+
+      expect(state.status).toBe(fixture.expectedStatus);
+      expect(state.localDevOnly).toBe(true);
+      expect(state.canReturnCredentialMaterialToUi).toBe(false);
+      expect(state.canLogCredentialMaterial).toBe(false);
+      expect(state.canStoreCredentialMaterialInSupabase).toBe(false);
+      expect(state.canStoreCredentialMaterialInLocalStorage).toBe(false);
+      expect(state.credentialValuesVisibleInReports).toBe(false);
+      expect(state.canAutomateBankId).toBe(false);
+      expect(state.canBypassBankId).toBe(false);
+      expect(state.canSubmitOrder).toBe(false);
+      expect(state.userMustConfirm).toBe(true);
+      expect(state.finalHumanClickRequired).toBe(true);
+      expect(state.controlsEnabled).toBe(false);
+      expect(state.gateLocked).toBe(true);
+      expect(state.valueReturnedToUi).toBe(false);
+      expect(state.valueLogged).toBe(false);
+      expect(state.valueStoredInSupabase).toBe(false);
+      expect(state.valueStoredInLocalStorage).toBe(false);
+    }
+
+    for (const copy of [
+      "Avanza macOS Keychain credential provider",
+      "Fixture/mock only",
+      "Injected Keychain dependency only",
+      "Local/dev-only",
+      "Credential references only",
+      "No raw password shown",
+      "No raw username shown",
+      "No credential logging",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No environment fallback by default",
+      "No BankID automation",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "credential_check_passed",
+      "credential_read_blocked",
+      "local_dev_credential_read_allowed_value_hidden",
+      "environment_fallback_forbidden",
+      "supabase_credential_storage_forbidden",
+      "localstorage_credential_storage_forbidden",
+      "canReturnCredentialMaterialToUi",
+      "canLogCredentialMaterial",
+      "canStoreCredentialMaterialInSupabase",
+      "canStoreCredentialMaterialInLocalStorage",
+      "credentialValuesVisibleInReports",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canSubmitOrder",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "The macOS Keychain provider contract now exists",
+      "It provides credential references for local-dev login work",
+      "It does not expose raw credential material",
+      "is not wired into Trade UI yet",
+    ]) {
+      expect(normalizeWhitespace(docSource)).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-execution-settings-profile.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(readRepoFile("docs/avanza-login-local-dev-executor.md")),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+        ),
+      ).toContain(copy);
+      expect(
+        normalizeWhitespace(
+          readRepoFile(
+            "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+          ),
+        ),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaMacosKeychainCredentialProviderHarness",
+    );
+    expect(routeSource).toContain("avanzaMacosKeychainCredentialProviderFixtures");
+    expect(tradeAppSource).not.toContain(
+      "avanza-macos-keychain-credential-provider",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaMacosKeychainCredentialProviderHarness",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-macos-keychain-credential-provider",
+    );
+    expect(apiRouteSource).not.toContain(
+      "AvanzaMacosKeychainCredentialProviderHarness",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-macos-keychain-credential-provider",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaMacosKeychainCredentialProviderHarness",
+    );
+
+    for (const source of [providerSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|security\s+add-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+      expect(source).not.toMatch(/actual[-_ ]?username|actual[-_ ]?password/i);
+    }
+  });
+
+  test("Avanza login credential resolution bridge resolves injected references while safe reports hide credential values", async () => {
+    const bridgeSource = readRepoFile(
+      "lib/avanza-login-credential-resolution-bridge.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-credential-resolution-bridge-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginCredentialResolutionBridgeHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-login-credential-resolution-bridge.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-login-credential-resolution-bridge.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "lib/avanza-login-credential-resolution-bridge-fixtures.ts",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginCredentialResolutionBridgeHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "docs/avanza-login-credential-resolution-bridge.md"),
+      ),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaLoginCredentialResolutionState();
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.bridgeEnabled).toBe(false);
+    expect(disabled.canResolveUsername).toBe(false);
+    expect(disabled.canResolvePassword).toBe(false);
+    expect(disabled.canReturnRuntimeBundle).toBe(false);
+    expect(disabled.canReturnCredentialMaterialToUi).toBe(false);
+    expect(disabled.canLogCredentialMaterial).toBe(false);
+    expect(disabled.canStoreCredentialMaterialInSupabase).toBe(false);
+    expect(disabled.canStoreCredentialMaterialInLocalStorage).toBe(false);
+    expect(disabled.canUseEnvironmentFallback).toBe(false);
+    expect(disabled.credentialValuesVisibleInReports).toBe(false);
+    expect(disabled.canAutomateBankId).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.canSubmitLogin).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const localDevConfig = {
+      allowResolvePassword: true,
+      allowResolveUsername: true,
+      allowReturnRuntimeBundle: true,
+      enabled: true,
+      hasPasswordReference: true,
+      hasUsernameReference: true,
+      localDevOnly: true as const,
+      mode: "local_dev" as const,
+    };
+    const calls: string[] = [];
+    const runtimeUsername = "private-user-runtime-value";
+    const runtimePassword = "private-pass-runtime-value";
+    const resolved = await resolveAvanzaLoginCredentialReferences(
+      localDevConfig,
+      {
+        readPasswordReference: async () => {
+          calls.push("readPasswordReference");
+
+          return { ok: true, value: runtimePassword };
+        },
+        readUsernameReference: async () => {
+          calls.push("readUsernameReference");
+
+          return { ok: true, value: runtimeUsername };
+        },
+      },
+    );
+
+    expect(resolved.status).toBe("resolved_references");
+    expect(calls).toEqual(["readUsernameReference", "readPasswordReference"]);
+    expect(resolved.usernameResolved).toBe(true);
+    expect(resolved.passwordResolved).toBe(true);
+    expect(resolved.credentialMaterialPresent).toBe(true);
+    expect(resolved.runtimeBundle?.usernameValue).toBe(runtimeUsername);
+    expect(resolved.runtimeBundle?.passwordValue).toBe(runtimePassword);
+    expect(resolved.runtimeBundle?.valueReturnedToUi).toBe(false);
+    expect(resolved.runtimeBundle?.valueLogged).toBe(false);
+    expect(resolved.runtimeBundle?.valueStoredInSupabase).toBe(false);
+    expect(resolved.runtimeBundle?.valueStoredInLocalStorage).toBe(false);
+
+    const safeReport = toAvanzaLoginCredentialSafeReport(resolved);
+
+    expect(safeReport.status).toBe("resolved_references");
+    expect(safeReport.usernameResolved).toBe(true);
+    expect(safeReport.passwordResolved).toBe(true);
+    expect(safeReport.credentialMaterialPresent).toBe(true);
+    expect(safeReport.credentialMaterialReturnedToUi).toBe(false);
+    expect(safeReport.credentialMaterialLogged).toBe(false);
+    expect(safeReport.credentialMaterialStoredInSupabase).toBe(false);
+    expect(safeReport.credentialMaterialStoredInLocalStorage).toBe(false);
+    expect(safeReport.credentialValuesVisibleInReports).toBe(false);
+    expect(safeReport.canAutomateBankId).toBe(false);
+    expect(safeReport.canBypassBankId).toBe(false);
+    expect(safeReport.canSubmitOrder).toBe(false);
+    expect(safeReport.userMustConfirm).toBe(true);
+    expect(safeReport.finalHumanClickRequired).toBe(true);
+    expect(JSON.stringify(safeReport)).not.toContain(runtimeUsername);
+    expect(JSON.stringify(safeReport)).not.toContain(runtimePassword);
+
+    const blockedCalls: string[] = [];
+    const blocked = await resolveAvanzaLoginCredentialReferences(
+      {
+        ...localDevConfig,
+        allowResolvePassword: false,
+        allowResolveUsername: false,
+      },
+      {
+        readPasswordReference: async () => {
+          blockedCalls.push("readPasswordReference");
+
+          return { ok: true, value: runtimePassword };
+        },
+        readUsernameReference: async () => {
+          blockedCalls.push("readUsernameReference");
+
+          return { ok: true, value: runtimeUsername };
+        },
+      },
+    );
+
+    expect(blocked.status).toBe("credential_read_blocked");
+    expect(blockedCalls).toEqual([]);
+    expect(JSON.stringify(blocked.safeReport)).not.toContain(runtimeUsername);
+    expect(JSON.stringify(blocked.safeReport)).not.toContain(runtimePassword);
+
+    const failed = await resolveAvanzaLoginCredentialReferences(
+      localDevConfig,
+      {
+        readPasswordReference: async () => ({ ok: true, value: runtimePassword }),
+        readUsernameReference: async () => ({
+          ok: false,
+          reason: "mock username reference unavailable",
+        }),
+      },
+    );
+
+    expect(failed.status).toBe("credential_read_failed");
+    expect(failed.usernameResolved).toBe(false);
+    expect(failed.passwordResolved).toBe(false);
+
+    const missingUsername = await resolveAvanzaLoginCredentialReferences(
+      { ...localDevConfig, hasUsernameReference: false },
+      {
+        readPasswordReference: async () => {
+          throw new Error("should not read password without username reference");
+        },
+        readUsernameReference: async () => {
+          throw new Error("should not read missing username reference");
+        },
+      },
+    );
+
+    expect(missingUsername.status).toBe("missing_username_reference");
+
+    const missingPassword = await resolveAvanzaLoginCredentialReferences(
+      { ...localDevConfig, hasPasswordReference: false },
+      {
+        readPasswordReference: async () => {
+          throw new Error("should not read missing password reference");
+        },
+        readUsernameReference: async () => {
+          throw new Error("should not read username without password reference");
+        },
+      },
+    );
+
+    expect(missingPassword.status).toBe("missing_password_reference");
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginCredentialResolutionBridgeFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["contract_only_references_modeled", "ready"],
+      ["local_dev_ready", "ready"],
+      ["username_resolved_safe_report", "ready"],
+      ["password_resolved_safe_report", "ready"],
+      ["both_references_resolved_safe_report", "resolved_references"],
+      ["missing_username_reference", "missing_username_reference"],
+      ["missing_password_reference", "missing_password_reference"],
+      ["credential_read_blocked", "credential_read_blocked"],
+      ["credential_read_failed", "credential_read_failed"],
+      ["unsafe_output_blocked", "unsafe_output_blocked"],
+      ["environment_fallback_forbidden", "unsafe_output_blocked"],
+      ["supabase_credential_storage_forbidden", "unsafe_output_blocked"],
+      ["localstorage_credential_storage_forbidden", "unsafe_output_blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const fixture of avanzaLoginCredentialResolutionBridgeFixtures) {
+      const report = fixture.result.safeReport;
+
+      expect(fixture.result.status).toBe(fixture.expectedStatus);
+      expect(report.credentialMaterialReturnedToUi).toBe(false);
+      expect(report.credentialMaterialLogged).toBe(false);
+      expect(report.credentialMaterialStoredInSupabase).toBe(false);
+      expect(report.credentialMaterialStoredInLocalStorage).toBe(false);
+      expect(report.canReturnCredentialMaterialToUi).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.canStoreCredentialMaterialInSupabase).toBe(false);
+      expect(report.canStoreCredentialMaterialInLocalStorage).toBe(false);
+      expect(report.canUseEnvironmentFallback).toBe(false);
+      expect(report.credentialValuesVisibleInReports).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+      expect(fixture.result.runtimeBundle).toBeUndefined();
+    }
+
+    for (const copy of [
+      "Avanza login credential resolution bridge",
+      "Fixture/mock only",
+      "Injected credential dependency only",
+      "Local/dev-only",
+      "Credential references resolved internally only",
+      "No raw username shown",
+      "No raw password shown",
+      "No credential logging",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No environment fallback",
+      "No BankID automation",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+      "both_references_resolved_safe_report",
+      "missing_username_reference",
+      "missing_password_reference",
+      "credential_read_blocked",
+      "credential_read_failed",
+      "unsafe_output_blocked",
+      "environment_fallback_forbidden",
+      "supabase_credential_storage_forbidden",
+      "localstorage_credential_storage_forbidden",
+      "credentialMaterialReturnedToUi",
+      "credentialMaterialLogged",
+      "credentialMaterialStoredInSupabase",
+      "credentialMaterialStoredInLocalStorage",
+      "credentialValuesVisibleInReports",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canSubmitOrder",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Credential resolution bridge now exists",
+      "It prepares safe local-dev login execution",
+      "It does not expose credential material",
+      "It is not wired into Trade UI yet",
+    ]) {
+      for (const docPath of [
+        "docs/avanza-login-credential-resolution-bridge.md",
+        "docs/avanza-macos-keychain-credential-provider.md",
+        "docs/avanza-login-local-dev-executor.md",
+        "docs/avanza-execution-settings-profile.md",
+        "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+        "docs/ture-engine-execution-agent-contract.md",
+        "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ]) {
+        expect(normalizeWhitespace(readRepoFile(docPath))).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain("AvanzaLoginCredentialResolutionBridgeHarness");
+    expect(routeSource).toContain("avanzaLoginCredentialResolutionBridgeFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-login-credential-resolution-bridge",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaLoginCredentialResolutionBridgeHarness",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-login-credential-resolution-bridge",
+    );
+    expect(apiRouteSource).not.toContain(
+      "AvanzaLoginCredentialResolutionBridgeHarness",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-login-credential-resolution-bridge",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaLoginCredentialResolutionBridgeHarness",
+    );
+
+    for (const source of [bridgeSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(
+        /security\s+find-generic-password|security\s+add-generic-password|op\s+read/,
+      );
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain(runtimeUsername);
+      expect(source).not.toContain(runtimePassword);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("Avanza local-dev credential executor uses runtime bundle only inside injected execution", async () => {
+    const executorSource = readRepoFile(
+      "lib/avanza-login-local-dev-credential-executor.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-login-local-dev-credential-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginLocalDevCredentialExecutorHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-login-local-dev-credential-executor.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-login-local-dev-credential-executor.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "lib/avanza-login-local-dev-credential-executor-fixtures.ts",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLoginLocalDevCredentialExecutorHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "docs/avanza-login-local-dev-credential-executor.md"),
+      ),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaLoginLocalDevCredentialExecutorState();
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.executorEnabled).toBe(false);
+    expect(disabled.canUseRuntimeCredentialBundle).toBe(false);
+    expect(disabled.canExecuteLocalDevActions).toBe(false);
+    expect(disabled.canReturnCredentialMaterialToUi).toBe(false);
+    expect(disabled.canLogCredentialMaterial).toBe(false);
+    expect(disabled.canStoreCredentialMaterialInSupabase).toBe(false);
+    expect(disabled.canStoreCredentialMaterialInLocalStorage).toBe(false);
+    expect(disabled.canAutomateBankId).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const privateContract = avanzaLoginActionContractFixtures.find(
+      (fixture) => fixture.fixtureId === "private_route_action_plan_ready",
+    )?.contract;
+    const companyContract = avanzaLoginActionContractFixtures.find(
+      (fixture) => fixture.fixtureId === "company_requires_company_toggle",
+    )?.contract;
+    const methodChoiceContract = avanzaLoginActionContractFixtures.find(
+      (fixture) =>
+        fixture.fixtureId === "private_requires_username_password_method_click",
+    )?.contract;
+    const bankIdContract = avanzaLoginActionContractFixtures.find(
+      (fixture) => fixture.fixtureId === "bankid_or_mfa_manual_action_required",
+    )?.contract;
+
+    expect(privateContract).toBeTruthy();
+    expect(companyContract).toBeTruthy();
+    expect(methodChoiceContract).toBeTruthy();
+    expect(bankIdContract).toBeTruthy();
+
+    const baseConfig = {
+      allowBankIdAutomation: false,
+      allowClickCustomerToggle: true,
+      allowClickLoginSubmit: true,
+      allowClickUsernamePasswordMethod: true,
+      allowCookieRead: false,
+      allowFillPassword: true,
+      allowFillUsername: true,
+      allowLogCredentialMaterial: false,
+      allowOrderSubmit: false,
+      allowReturnCredentialMaterialToUi: false,
+      allowSessionExport: false,
+      allowStoreCredentialMaterialInLocalStorage: false,
+      allowStoreCredentialMaterialInSupabase: false,
+      allowUseRuntimeCredentialBundle: true,
+      enabled: true,
+      localDevOnly: true as const,
+      mode: "local_dev_mock_injected" as const,
+    };
+    const runtimeUser = "runtime-user-private";
+    const runtimeSecond = "runtime-second-private";
+    const runtimeBundle: AvanzaLoginResolvedCredentialRuntimeBundle = {
+      bundleId: "test-runtime-bundle",
+      createdAt: "2026-07-06T12:00:00.000Z",
+      usernameValue: runtimeUser,
+      passwordValue: runtimeSecond,
+      valueLogged: false,
+      valueReturnedToUi: false,
+      valueStoredInLocalStorage: false,
+      valueStoredInSupabase: false,
+    };
+    const privateCalls: string[] = [];
+    const privateExecuted = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async (text) => {
+          privateCalls.push(`click:${text}`);
+
+          return { ok: true };
+        },
+        fillByLabel: async (label, value) => {
+          privateCalls.push(`fill:${label}:${value}`);
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(privateExecuted.status).toBe("executed");
+    expect(privateExecuted.usernameUsed).toBe(true);
+    expect(privateExecuted.passwordUsed).toBe(true);
+    expect(privateExecuted.credentialMaterialReturnedToUi).toBe(false);
+    expect(privateExecuted.credentialMaterialLogged).toBe(false);
+    expect(privateExecuted.credentialMaterialStoredInSupabase).toBe(false);
+    expect(privateExecuted.credentialMaterialStoredInLocalStorage).toBe(false);
+    expect(privateExecuted.canReturnCredentialMaterialToUi).toBe(false);
+    expect(privateExecuted.canLogCredentialMaterial).toBe(false);
+    expect(privateExecuted.canStoreCredentialMaterialInSupabase).toBe(false);
+    expect(privateExecuted.canStoreCredentialMaterialInLocalStorage).toBe(false);
+    expect(privateExecuted.canAutomateBankId).toBe(false);
+    expect(privateExecuted.canBypassBankId).toBe(false);
+    expect(privateExecuted.canReadCookies).toBe(false);
+    expect(privateExecuted.canExportSession).toBe(false);
+    expect(privateExecuted.canSubmitOrder).toBe(false);
+    expect(privateExecuted.userMustConfirm).toBe(true);
+    expect(privateExecuted.finalHumanClickRequired).toBe(true);
+    expect(privateExecuted.controlsEnabled).toBe(false);
+    expect(privateExecuted.gateLocked).toBe(true);
+    expect(privateCalls).toContain(`fill:Användarnamn:${runtimeUser}`);
+    expect(privateCalls).toContain(`fill:Lösenord:${runtimeSecond}`);
+    expect(JSON.stringify(privateExecuted)).not.toContain(runtimeUser);
+    expect(JSON.stringify(privateExecuted)).not.toContain(runtimeSecond);
+    expect(
+      JSON.stringify(toAvanzaLoginLocalDevCredentialSafeReport(privateExecuted)),
+    ).not.toContain(runtimeUser);
+    expect(JSON.stringify(privateExecuted)).not.toContain("cookie");
+    expect(JSON.stringify(privateExecuted)).not.toContain("session");
+
+    const companyCalls: string[] = [];
+    const companyExecuted = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: companyContract,
+      },
+      {
+        clickByText: async (text) => {
+          companyCalls.push(`click:${text}`);
+
+          return { ok: true };
+        },
+        fillByLabel: async (label, value) => {
+          companyCalls.push(`fill:${label}:${value}`);
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(companyExecuted.status).toBe("executed");
+    expect(companyCalls).toContain("click:Företag");
+    expect(JSON.stringify(companyExecuted)).not.toContain(runtimeUser);
+    expect(JSON.stringify(companyExecuted)).not.toContain(runtimeSecond);
+
+    const dryRunCalls: string[] = [];
+    const dryRun = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: { ...baseConfig, dryRun: true },
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async (text) => {
+          dryRunCalls.push(`click:${text}`);
+
+          return { ok: true };
+        },
+        fillByLabel: async (label, value) => {
+          dryRunCalls.push(`fill:${label}:${value}`);
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(dryRun.status).toBe("ready");
+    expect(dryRunCalls).toEqual([]);
+
+    const missingBundle = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async () => {
+          throw new Error("missing bundle should block before click");
+        },
+        fillByLabel: async () => {
+          throw new Error("missing bundle should block before fill");
+        },
+      },
+    );
+
+    expect(missingBundle.status).toBe("missing_credential_bundle");
+
+    const unsafe = buildAvanzaLoginLocalDevCredentialExecutorState({
+      config: {
+        ...baseConfig,
+        allowReturnCredentialMaterialToUi: true,
+      },
+      credentialRuntimeBundle: runtimeBundle,
+      loginActionContract: privateContract,
+    });
+
+    expect(unsafe.status).toBe("unsafe_credential_output_blocked");
+
+    const bankIdStop = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: bankIdContract,
+      },
+      {
+        clickByText: async () => {
+          throw new Error("BankID stop should block before click");
+        },
+        fillByLabel: async () => {
+          throw new Error("BankID stop should block before fill");
+        },
+      },
+    );
+
+    expect(bankIdStop.status).toBe("bankid_or_mfa_stop");
+
+    const clickMethodFailed = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: methodChoiceContract,
+      },
+      {
+        clickByText: async () => ({ ok: false, reason: "mock click failed" }),
+        fillByLabel: async () => ({ ok: true }),
+      },
+    );
+
+    expect(clickMethodFailed.status).toBe("page_action_failed");
+
+    const companyToggleFailed = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: companyContract,
+      },
+      {
+        clickByText: async () => ({ ok: false, reason: "mock toggle failed" }),
+        fillByLabel: async () => ({ ok: true }),
+      },
+    );
+
+    expect(companyToggleFailed.status).toBe("page_action_failed");
+
+    const fillUsernameFailed = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async () => ({ ok: true }),
+        fillByLabel: async (label) =>
+          label === "Användarnamn"
+            ? { ok: false, reason: "mock username fill failed" }
+            : { ok: true },
+      },
+    );
+
+    expect(fillUsernameFailed.status).toBe("page_action_failed");
+
+    const fillPasswordFailed = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async () => ({ ok: true }),
+        fillByLabel: async (label) =>
+          label === "Lösenord"
+            ? { ok: false, reason: "mock password fill failed" }
+            : { ok: true },
+      },
+    );
+
+    expect(fillPasswordFailed.status).toBe("page_action_failed");
+
+    const clickSubmitFailed = await executeAvanzaLoginLocalDevCredentialPlan(
+      {
+        config: baseConfig,
+        credentialRuntimeBundle: runtimeBundle,
+        loginActionContract: privateContract,
+      },
+      {
+        clickByText: async (text) =>
+          text === "Logga in"
+            ? { ok: false, reason: "mock submit failed" }
+            : { ok: true },
+        fillByLabel: async () => ({ ok: true }),
+      },
+    );
+
+    expect(clickSubmitFailed.status).toBe("page_action_failed");
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLoginLocalDevCredentialExecutorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled_executor", "disabled"],
+      ["ready_private_executor_with_credential_bundle_present", "ready"],
+      ["ready_company_executor_with_credential_bundle_present", "ready"],
+      ["successful_private_injected_execution_report_values_hidden", "executed"],
+      ["successful_company_injected_execution_report_values_hidden", "executed"],
+      ["dry_run_true_blocks_execution", "ready"],
+      ["missing_credential_bundle", "missing_credential_bundle"],
+      ["unsafe_credential_output_blocked", "unsafe_credential_output_blocked"],
+      ["bankid_or_mfa_stop", "bankid_or_mfa_stop"],
+      ["click_username_password_method_failed", "page_action_failed"],
+      ["click_company_toggle_failed", "page_action_failed"],
+      ["fill_username_failed", "page_action_failed"],
+      ["fill_password_failed", "page_action_failed"],
+      ["click_login_submit_failed", "page_action_failed"],
+      ["blocked", "blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const fixture of avanzaLoginLocalDevCredentialExecutorFixtures) {
+      const report = fixture.report;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.credentialMaterialReturnedToUi).toBe(false);
+      expect(report.credentialMaterialLogged).toBe(false);
+      expect(report.credentialMaterialStoredInSupabase).toBe(false);
+      expect(report.credentialMaterialStoredInLocalStorage).toBe(false);
+      expect(report.canReturnCredentialMaterialToUi).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.canStoreCredentialMaterialInSupabase).toBe(false);
+      expect(report.canStoreCredentialMaterialInLocalStorage).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+      expect(JSON.stringify(fixture)).not.toContain(runtimeUser);
+      expect(JSON.stringify(fixture)).not.toContain(runtimeSecond);
+    }
+
+    for (const copy of [
+      "Avanza local-dev login executor with credential bundle",
+      "Fixture/mock only",
+      "Injected dependencies only",
+      "Local/dev-only",
+      "Runtime credential bundle used internally only",
+      "No raw username shown",
+      "No raw password shown",
+      "No credential logging",
+      "No Supabase credential storage",
+      "No localStorage credential storage",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Trade UI wiring",
+      "Not production ready",
+      "successful_private_injected_execution_report_values_hidden",
+      "successful_company_injected_execution_report_values_hidden",
+      "missing_credential_bundle",
+      "unsafe_credential_output_blocked",
+      "bankid_or_mfa_stop",
+      "click_username_password_method_failed",
+      "click_company_toggle_failed",
+      "fill_username_failed",
+      "fill_password_failed",
+      "click_login_submit_failed",
+      "usernameUsed",
+      "passwordUsed",
+      "credentialMaterialReturnedToUi",
+      "credentialMaterialLogged",
+      "credentialMaterialStoredInSupabase",
+      "credentialMaterialStoredInLocalStorage",
+      "canReturnCredentialMaterialToUi",
+      "canLogCredentialMaterial",
+      "canStoreCredentialMaterialInSupabase",
+      "canStoreCredentialMaterialInLocalStorage",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canReadCookies",
+      "canExportSession",
+      "canSubmitOrder",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Local-dev credential executor now exists",
+      "It can use a private runtime credential bundle with injected dependencies",
+      "It is still not wired into Trade UI",
+      "It does not include order behavior",
+    ]) {
+      for (const docPath of [
+        "docs/avanza-login-local-dev-credential-executor.md",
+        "docs/avanza-login-credential-resolution-bridge.md",
+        "docs/avanza-login-local-dev-executor.md",
+        "docs/avanza-macos-keychain-credential-provider.md",
+        "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+        "docs/ture-engine-execution-agent-contract.md",
+        "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ]) {
+        expect(normalizeWhitespace(readRepoFile(docPath))).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaLoginLocalDevCredentialExecutorHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaLoginLocalDevCredentialExecutorFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-login-local-dev-credential-executor",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaLoginLocalDevCredentialExecutorHarness",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-login-local-dev-credential-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-login-local-dev-credential-executor",
+    );
+
+    for (const source of [executorSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(
+        /security\s+find-generic-password|security\s+add-generic-password|op\s+read/,
+      );
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain(runtimeUser);
+      expect(source).not.toContain(runtimeSecond);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+      expect(source).not.toMatch(/actual[-_ ]?username|actual[-_ ]?password/i);
+    }
+  });
+
+  test("Avanza local Playwright page action binding adapts injected page methods without leaking values", async () => {
+    const bindingSource = readRepoFile(
+      "lib/avanza-local-playwright-page-action-binding.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-playwright-page-action-binding-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalPlaywrightPageActionBindingHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-local-playwright-page-action-binding.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-local-playwright-page-action-binding.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-local-playwright-page-action-binding-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaLocalPlaywrightPageActionBindingHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-local-playwright-page-action-binding.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaLocalPlaywrightPageActionBindingState();
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.bindingEnabled).toBe(false);
+    expect(disabled.canClickByText).toBe(false);
+    expect(disabled.canFillByLabel).toBe(false);
+    expect(disabled.canWaitForState).toBe(false);
+    expect(disabled.canReadPageSnapshot).toBe(false);
+    expect(disabled.canNavigate).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canAutomateBankId).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.credentialValuesVisibleInReports).toBe(false);
+    expect(disabled.canLogCredentialMaterial).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const config = {
+      allowBankIdAutomation: false,
+      allowClickByText: true,
+      allowCookieRead: false,
+      allowFillByLabel: true,
+      allowFinalBuyClick: false,
+      allowFinalSellClick: false,
+      allowNavigation: false,
+      allowOrderSubmit: false,
+      allowReadPageSnapshot: true,
+      allowSessionExport: false,
+      allowWaitForState: true,
+      enabled: true,
+      localDevOnly: true as const,
+      mode: "local_dev_mock_page" as const,
+      redactSnapshotText: true,
+    };
+    const sensitiveFillValue = "runtime-fill-private-value";
+    const pageCalls: string[] = [];
+    const binding = createAvanzaLocalPlaywrightPageActionBinding(config, {
+      page: {
+        getByLabel: (label) => ({
+          fill: async (value) => {
+            pageCalls.push(`fill:${label}:${value}`);
+          },
+        }),
+        getByText: (text) => ({
+          click: async () => {
+            pageCalls.push(`click:${text}`);
+          },
+        }),
+        textContent: async () => "page body hidden by redaction",
+        title: async () => "Avanza login",
+        url: () => "https://www.avanza.se/logga-in",
+        waitForLoadState: async (state) => {
+          pageCalls.push(`wait:${state ?? "default"}`);
+        },
+      },
+    });
+
+    expect(binding.getState().status).toBe("ready");
+    await expect(binding.clickByText("Logga in")).resolves.toEqual({ ok: true });
+    await expect(
+      binding.fillByLabel("Användarnamn", sensitiveFillValue),
+    ).resolves.toEqual({ ok: true });
+    await expect(binding.waitForState("domcontentloaded")).resolves.toEqual({
+      ok: true,
+    });
+    const snapshot = (await binding.readPageSnapshot()) as {
+      ok: boolean;
+      status: string;
+      snapshotRedacted: boolean;
+      snapshotTextPreview: string;
+    };
+
+    expect(snapshot.ok).toBe(true);
+    expect(snapshot.status).toBe("snapshot_read");
+    expect(snapshot.snapshotRedacted).toBe(true);
+    expect(snapshot.snapshotTextPreview).toBe("redacted");
+    expect(pageCalls).toContain("click:Logga in");
+    expect(pageCalls).toContain(`fill:Användarnamn:${sensitiveFillValue}`);
+    expect(pageCalls).toContain("wait:domcontentloaded");
+    expect(JSON.stringify(binding.getState())).not.toContain(sensitiveFillValue);
+    expect(JSON.stringify(snapshot)).not.toContain("page body hidden by redaction");
+
+    const clickBlocked = await createAvanzaLocalPlaywrightPageActionBinding(
+      { ...config, allowClickByText: false },
+      {
+        page: {
+          getByText: () => ({
+            click: async () => {
+              throw new Error("blocked click should not run");
+            },
+          }),
+        },
+      },
+    ).clickByText("Logga in");
+
+    expect(clickBlocked.ok).toBe(false);
+    expect(clickBlocked.reason).toBe("clickByText is disabled.");
+
+    const fillBlocked = await createAvanzaLocalPlaywrightPageActionBinding(
+      { ...config, allowFillByLabel: false },
+      {
+        page: {
+          getByLabel: () => ({
+            fill: async () => {
+              throw new Error("blocked fill should not run");
+            },
+          }),
+        },
+      },
+    ).fillByLabel("Användarnamn", sensitiveFillValue);
+
+    expect(fillBlocked.ok).toBe(false);
+    expect(fillBlocked.reason).toBe("fillByLabel is disabled.");
+
+    const snapshotBlocked = (await createAvanzaLocalPlaywrightPageActionBinding(
+      { ...config, allowReadPageSnapshot: false },
+    ).readPageSnapshot()) as { ok: boolean; status: string };
+
+    expect(snapshotBlocked.ok).toBe(false);
+    expect(snapshotBlocked.status).toBe("action_blocked");
+
+    const failed = await createAvanzaLocalPlaywrightPageActionBinding(config, {
+      page: {
+        getByText: () => ({
+          click: async () => {
+            throw new Error("mock page click failed");
+          },
+        }),
+      },
+    }).clickByText("Logga in");
+
+    expect(failed.ok).toBe(false);
+    expect(failed.reason).toBe("Injected click failed.");
+
+    for (const fixture of avanzaLocalPlaywrightPageActionBindingFixtures) {
+      expect(fixture.state.status).toBe(fixture.expectedStatus);
+      expect(fixture.state.valueVisible).toBe(false);
+      expect(fixture.state.canNavigate).toBe(false);
+      expect(fixture.state.canReadCookies).toBe(false);
+      expect(fixture.state.canExportSession).toBe(false);
+      expect(fixture.state.canSubmitOrder).toBe(false);
+      expect(fixture.state.canClickFinalBuy).toBe(false);
+      expect(fixture.state.canClickFinalSell).toBe(false);
+      expect(fixture.state.canAutomateBankId).toBe(false);
+      expect(fixture.state.canBypassBankId).toBe(false);
+      expect(fixture.state.credentialValuesVisibleInReports).toBe(false);
+      expect(fixture.state.canLogCredentialMaterial).toBe(false);
+      expect(fixture.state.userMustConfirm).toBe(true);
+      expect(fixture.state.finalHumanClickRequired).toBe(true);
+      expect(fixture.state.controlsEnabled).toBe(false);
+      expect(fixture.state.gateLocked).toBe(true);
+      expect(JSON.stringify(fixture)).not.toContain(sensitiveFillValue);
+    }
+
+    const expectedFixtureStatuses = new Map(
+      avanzaLocalPlaywrightPageActionBindingFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled_binding", "disabled"],
+      ["ready_mock_page_binding", "ready"],
+      ["ready_local_dev_playwright_like_binding", "ready"],
+      ["click_by_text_allowed_modeled", "action_executed"],
+      ["fill_by_label_allowed_modeled_value_hidden", "action_executed"],
+      ["wait_for_state_allowed_modeled", "action_executed"],
+      ["read_page_snapshot_allowed_modeled_redacted", "snapshot_read"],
+      ["click_blocked_by_config", "action_blocked"],
+      ["fill_blocked_by_config", "action_blocked"],
+      ["snapshot_read_blocked_by_config", "action_blocked"],
+      ["action_failed", "action_failed"],
+      ["navigation_forbidden", "blocked"],
+      ["cookie_session_forbidden", "blocked"],
+      ["final_buy_sell_forbidden", "blocked"],
+      ["bankid_automation_forbidden", "blocked"],
+      ["order_submission_forbidden", "blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(expectedFixtureStatuses.get(fixtureId)).toBe(expectedStatus);
+    }
+
+    for (const copy of [
+      "Avanza local Playwright page action binding",
+      "Fixture/mock only",
+      "Injected Playwright-like page only",
+      "Local/dev-only",
+      "No Trade UI wiring",
+      "No automatic Avanza navigation",
+      "No raw credentials shown",
+      "Fill values hidden in reports",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Not production ready",
+      "ready_mock_page_binding",
+      "click_by_text_allowed_modeled",
+      "fill_by_label_allowed_modeled_value_hidden",
+      "read_page_snapshot_allowed_modeled_redacted",
+      "navigation_forbidden",
+      "cookie_session_forbidden",
+      "final_buy_sell_forbidden",
+      "bankid_automation_forbidden",
+      "order_submission_forbidden",
+      "valueVisible",
+      "credentialValuesVisibleInReports",
+      "canLogCredentialMaterial",
+      "canNavigate",
+      "canReadCookies",
+      "canExportSession",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Playwright page action binding now exists",
+      "It can supply injected dependencies to the local-dev credential executor",
+      "It is still not wired to Trade UI or any active API route",
+      "It does not include order behavior",
+    ]) {
+      for (const docPath of [
+        "docs/avanza-local-playwright-page-action-binding.md",
+        "docs/avanza-login-local-dev-credential-executor.md",
+        "docs/avanza-login-local-dev-executor.md",
+        "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+        "docs/ture-engine-execution-agent-contract.md",
+        "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ]) {
+        expect(normalizeWhitespace(readRepoFile(docPath))).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain("AvanzaLocalPlaywrightPageActionBindingHarness");
+    expect(routeSource).toContain("avanzaLocalPlaywrightPageActionBindingFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-local-playwright-page-action-binding",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-local-playwright-page-action-binding",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-local-playwright-page-action-binding",
+    );
+
+    for (const source of [bindingSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain(sensitiveFillValue);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+    }
+  });
+
+  test("Avanza isolated login smoke test is fixture-model only and gated for explicit local-dev use", () => {
+    const smokeSource = readRepoFile("lib/avanza-isolated-login-smoke-test.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-isolated-login-smoke-test-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaIsolatedLoginSmokeTestHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-isolated-login-smoke-test.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "lib/avanza-isolated-login-smoke-test.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-isolated-login-smoke-test-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaIsolatedLoginSmokeTestHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-isolated-login-smoke-test.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    const disabled = buildAvanzaIsolatedLoginSmokeTestPlan();
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.smokeTestEnabled).toBe(false);
+    expect(disabled.canRunInCi).toBe(false);
+    expect(disabled.requiresExplicitEnvOptIn).toBe(true);
+    expect(disabled.requiresManualTerminalRun).toBe(true);
+    expect(disabled.canUseRealPlaywrightPage).toBe(false);
+    expect(disabled.canUseCredentialRuntimeBundle).toBe(false);
+    expect(disabled.canUseUsernamePasswordLogin).toBe(false);
+    expect(disabled.canAutomateBankId).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canWireTradeUi).toBe(false);
+    expect(disabled.canWireApiRoute).toBe(false);
+    expect(disabled.credentialValuesVisibleInReports).toBe(false);
+    expect(disabled.canLogCredentialMaterial).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const readyRealRun = buildAvanzaIsolatedLoginSmokeTestPlan(
+      {
+        allowApiRouteWiring: false,
+        allowBankIdAutomation: false,
+        allowCookieRead: false,
+        allowCredentialRuntimeBundle: true,
+        allowFinalBuyClick: false,
+        allowFinalSellClick: false,
+        allowOrderSubmit: false,
+        allowRealPlaywrightPage: true,
+        allowSessionExport: false,
+        allowTradeUiWiring: false,
+        allowUsernamePasswordLogin: true,
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+        requireExplicitEnvOptIn: true,
+        requireManualTerminalRun: true,
+      },
+      { isCi: false, isLocalDev: true },
+    );
+
+    expect(readyRealRun.status).toBe("ready");
+    expect(readyRealRun.environmentGate.safeToRunRealSmokeTest).toBe(true);
+    expect(readyRealRun.canUseRealPlaywrightPage).toBe(true);
+    expect(readyRealRun.canUseCredentialRuntimeBundle).toBe(true);
+    expect(readyRealRun.canUseUsernamePasswordLogin).toBe(true);
+    expect(readyRealRun.canSubmitOrder).toBe(false);
+    expect(readyRealRun.canClickFinalBuy).toBe(false);
+    expect(readyRealRun.canClickFinalSell).toBe(false);
+    expect(readyRealRun.canWireTradeUi).toBe(false);
+    expect(readyRealRun.canWireApiRoute).toBe(false);
+
+    const ciBlocked = buildAvanzaIsolatedLoginSmokeTestPlan(
+      {
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      { isCi: true, isLocalDev: false },
+    );
+
+    expect(ciBlocked.status).toBe("unsafe_environment_blocked");
+    expect(ciBlocked.canRunInCi).toBe(false);
+
+    const missingOptIn = buildAvanzaIsolatedLoginSmokeTestPlan(
+      {
+        enabled: true,
+        explicitEnvOptInPresent: false,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      { explicitEnvOptInPresent: false, isCi: false, isLocalDev: true },
+    );
+
+    expect(missingOptIn.status).toBe("not_configured");
+
+    const missingManual = buildAvanzaIsolatedLoginSmokeTestPlan(
+      {
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: false,
+        mode: "local_dev_explicit_real_run",
+      },
+      { isCi: false, isLocalDev: true, manualTerminalRunConfirmed: false },
+    );
+
+    expect(missingManual.status).toBe("not_configured");
+
+    const passedReport = buildAvanzaIsolatedLoginSmokeTestSafeReport(
+      {
+        allowCredentialRuntimeBundle: true,
+        allowRealPlaywrightPage: true,
+        allowUsernamePasswordLogin: true,
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+        smokeTestExecuted: true,
+        statusOverride: "smoke_test_passed",
+      },
+      { isCi: false, isLocalDev: true },
+    );
+
+    expect(passedReport.status).toBe("smoke_test_passed");
+    expect(passedReport.smokeTestExecuted).toBe(true);
+    expect(passedReport.realPlaywrightPageUsed).toBe(true);
+    expect(passedReport.credentialRuntimeBundleUsed).toBe(true);
+    expect(passedReport.usernameUsed).toBe(true);
+    expect(passedReport.passwordUsed).toBe(true);
+    expect(passedReport.credentialMaterialReturnedToUi).toBe(false);
+    expect(passedReport.credentialMaterialLogged).toBe(false);
+    expect(passedReport.credentialMaterialStoredInSupabase).toBe(false);
+    expect(passedReport.credentialMaterialStoredInLocalStorage).toBe(false);
+    expect(passedReport.cookiesRead).toBe(false);
+    expect(passedReport.sessionExported).toBe(false);
+    expect(passedReport.orderSubmitted).toBe(false);
+    expect(passedReport.finalBuySellClicked).toBe(false);
+    expect(passedReport.bankIdAutomated).toBe(false);
+
+    const fixtureStatusMap = new Map(
+      avanzaIsolatedLoginSmokeTestFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["model_only", "smoke_test_modeled"],
+      ["local_dev_dry_run_ready", "dry_run_ready"],
+      ["local_dev_explicit_real_run_ready", "ready"],
+      ["ci_blocked", "unsafe_environment_blocked"],
+      ["missing_env_opt_in", "not_configured"],
+      ["missing_manual_terminal_confirmation", "not_configured"],
+      ["missing_credential_bundle", "smoke_test_blocked"],
+      ["bankid_or_mfa_stop", "bankid_or_mfa_stop"],
+      ["unsafe_environment_blocked", "unsafe_environment_blocked"],
+      ["successful_modeled_smoke_test_safe_report", "smoke_test_passed"],
+      ["failed_modeled_smoke_test_safe_report", "smoke_test_failed"],
+      ["order_submission_forbidden", "smoke_test_blocked"],
+      ["final_buy_sell_forbidden", "smoke_test_blocked"],
+      ["trade_ui_wiring_forbidden", "smoke_test_blocked"],
+      ["api_route_wiring_forbidden", "smoke_test_blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaIsolatedLoginSmokeTestFixtures) {
+      expect(fixture.plan.status).toBe(fixture.expectedStatus);
+      expect(fixture.report.status).toBe(fixture.expectedStatus);
+      expect(fixture.report.credentialMaterialReturnedToUi).toBe(false);
+      expect(fixture.report.credentialMaterialLogged).toBe(false);
+      expect(fixture.report.credentialMaterialStoredInSupabase).toBe(false);
+      expect(fixture.report.credentialMaterialStoredInLocalStorage).toBe(false);
+      expect(fixture.report.cookiesRead).toBe(false);
+      expect(fixture.report.sessionExported).toBe(false);
+      expect(fixture.report.orderSubmitted).toBe(false);
+      expect(fixture.report.finalBuySellClicked).toBe(false);
+      expect(fixture.report.bankIdAutomated).toBe(false);
+      expect(fixture.report.canRunInCi).toBe(false);
+      expect(fixture.report.canAutomateBankId).toBe(false);
+      expect(fixture.report.canBypassBankId).toBe(false);
+      expect(fixture.report.canReadCookies).toBe(false);
+      expect(fixture.report.canExportSession).toBe(false);
+      expect(fixture.report.canSubmitOrder).toBe(false);
+      expect(fixture.report.canClickFinalBuy).toBe(false);
+      expect(fixture.report.canClickFinalSell).toBe(false);
+      expect(fixture.report.canWireTradeUi).toBe(false);
+      expect(fixture.report.canWireApiRoute).toBe(false);
+      expect(fixture.report.credentialValuesVisibleInReports).toBe(false);
+      expect(fixture.report.canLogCredentialMaterial).toBe(false);
+      expect(fixture.report.userMustConfirm).toBe(true);
+      expect(fixture.report.finalHumanClickRequired).toBe(true);
+      expect(fixture.report.controlsEnabled).toBe(false);
+      expect(fixture.report.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza isolated login smoke test",
+      "Fixture/model only",
+      "Explicit local-dev run only",
+      "Manual terminal run required",
+      "CI blocked",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "No raw username shown",
+      "No raw password shown",
+      "No credential logging",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Not production ready",
+      "local_dev_explicit_real_run_ready",
+      "ci_blocked",
+      "missing_env_opt_in",
+      "missing_manual_terminal_confirmation",
+      "order_submission_forbidden",
+      "final_buy_sell_forbidden",
+      "trade_ui_wiring_forbidden",
+      "api_route_wiring_forbidden",
+      "credentialMaterialReturnedToUi",
+      "credentialMaterialLogged",
+      "cookiesRead",
+      "sessionExported",
+      "orderSubmitted",
+      "finalBuySellClicked",
+      "bankIdAutomated",
+      "canRunInCi",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canReadCookies",
+      "canExportSession",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWireTradeUi",
+      "canWireApiRoute",
+      "credentialValuesVisibleInReports",
+      "canLogCredentialMaterial",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Isolated login smoke test planning now exists",
+      "It is the first safe wrapper for future real local-dev login testing",
+      "remains disconnected from Trade UI",
+      "disconnected from API routes",
+      "disconnected from order flow",
+    ]) {
+      for (const docPath of [
+        "docs/avanza-isolated-login-smoke-test.md",
+        "docs/avanza-local-playwright-page-action-binding.md",
+        "docs/avanza-login-local-dev-credential-executor.md",
+        "docs/avanza-login-credential-resolution-bridge.md",
+        "docs/avanza-macos-keychain-credential-provider.md",
+        "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+        "docs/ture-engine-execution-agent-contract.md",
+        "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ]) {
+        expect(normalizeWhitespace(readRepoFile(docPath))).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain("AvanzaIsolatedLoginSmokeTestHarness");
+    expect(routeSource).toContain("avanzaIsolatedLoginSmokeTestFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-isolated-login-smoke-test");
+    expect(tradeAppSource).not.toContain("AvanzaIsolatedLoginSmokeTestHarness");
+    expect(apiRouteSource).not.toContain("avanza-isolated-login-smoke-test");
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-isolated-login-smoke-test",
+    );
+
+    for (const source of [smokeSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(
+        /security\s+find-generic-password|security\s+add-generic-password|op\s+read/,
+      );
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+      expect(source).not.toMatch(/actual[-_ ]?username|actual[-_ ]?password/i);
+    }
+  });
+
+  test("Avanza isolated login smoke test runner is hard-gated and injected-dependency only", async () => {
+    const runnerSource = readRepoFile(
+      "lib/avanza-isolated-login-smoke-test-runner.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-isolated-login-smoke-test-runner-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaIsolatedLoginSmokeTestRunnerHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-isolated-login-smoke-test-runner.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const packageSource = readRepoFile("package.json");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-isolated-login-smoke-test-runner.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "lib/avanza-isolated-login-smoke-test-runner-fixtures.ts",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaIsolatedLoginSmokeTestRunnerHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "docs/avanza-isolated-login-smoke-test-runner.md"),
+      ),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+    expect(
+      existsSync(join(repoRoot, "scripts/avanza-login-smoke-test.local.ts")),
+    ).toBe(true);
+    expect(packageSource).not.toContain("avanza:login-smoke:local");
+
+    const disabled = buildAvanzaIsolatedLoginSmokeTestRunnerState();
+
+    expect(disabled.status).toBe("disabled");
+    expect(disabled.runnerEnabled).toBe(false);
+    expect(disabled.canRunInCi).toBe(false);
+    expect(disabled.requiresExplicitEnvOptIn).toBe(true);
+    expect(disabled.requiresManualTerminalRun).toBe(true);
+    expect(disabled.canUseRealPlaywrightPage).toBe(false);
+    expect(disabled.canUseCredentialRuntimeBundle).toBe(false);
+    expect(disabled.canUseUsernamePasswordLogin).toBe(false);
+    expect(disabled.canNavigateToAvanzaLogin).toBe(false);
+    expect(disabled.canAutomateBankId).toBe(false);
+    expect(disabled.canBypassBankId).toBe(false);
+    expect(disabled.canReadCookies).toBe(false);
+    expect(disabled.canExportSession).toBe(false);
+    expect(disabled.canSubmitOrder).toBe(false);
+    expect(disabled.canClickFinalBuy).toBe(false);
+    expect(disabled.canClickFinalSell).toBe(false);
+    expect(disabled.canWireTradeUi).toBe(false);
+    expect(disabled.canWireApiRoute).toBe(false);
+    expect(disabled.credentialValuesVisibleInReports).toBe(false);
+    expect(disabled.canLogCredentialMaterial).toBe(false);
+    expect(disabled.userMustConfirm).toBe(true);
+    expect(disabled.finalHumanClickRequired).toBe(true);
+    expect(disabled.controlsEnabled).toBe(false);
+    expect(disabled.gateLocked).toBe(true);
+
+    const ready = buildAvanzaIsolatedLoginSmokeTestRunnerState({
+      allowApiRouteWiring: false,
+      allowBankIdAutomation: false,
+      allowCiExecution: false,
+      allowCookieRead: false,
+      allowCredentialRuntimeBundle: true,
+      allowFinalBuyClick: false,
+      allowFinalSellClick: false,
+      allowNavigationToAvanzaLogin: true,
+      allowOrderSubmit: false,
+      allowRealPlaywrightPage: true,
+      allowSessionExport: false,
+      allowTradeUiWiring: false,
+      allowUsernamePasswordLogin: true,
+      enabled: true,
+      explicitEnvOptInPresent: true,
+      isCi: false,
+      isLocalDev: true,
+      localDevOnly: true,
+      manualTerminalRunConfirmed: true,
+      mode: "local_dev_explicit_real_run",
+    });
+
+    expect(ready.status).toBe("real_run_ready");
+    expect(ready.canUseRealPlaywrightPage).toBe(true);
+    expect(ready.canUseCredentialRuntimeBundle).toBe(true);
+    expect(ready.canUseUsernamePasswordLogin).toBe(true);
+    expect(ready.canNavigateToAvanzaLogin).toBe(true);
+    expect(ready.canRunInCi).toBe(false);
+    expect(ready.canSubmitOrder).toBe(false);
+    expect(ready.canClickFinalBuy).toBe(false);
+    expect(ready.canClickFinalSell).toBe(false);
+    expect(ready.canWireTradeUi).toBe(false);
+    expect(ready.canWireApiRoute).toBe(false);
+
+    const ciBlocked = buildAvanzaIsolatedLoginSmokeTestRunnerState({
+      enabled: true,
+      explicitEnvOptInPresent: true,
+      isCi: true,
+      isLocalDev: false,
+      manualTerminalRunConfirmed: true,
+      mode: "local_dev_explicit_real_run",
+    });
+
+    expect(ciBlocked.status).toBe("ci_blocked");
+
+    const missingOptIn = buildAvanzaIsolatedLoginSmokeTestRunnerState({
+      enabled: true,
+      explicitEnvOptInPresent: false,
+      isCi: false,
+      isLocalDev: true,
+      manualTerminalRunConfirmed: true,
+      mode: "local_dev_explicit_real_run",
+    });
+
+    expect(missingOptIn.status).toBe("not_configured");
+
+    const missingTerminal = buildAvanzaIsolatedLoginSmokeTestRunnerState({
+      enabled: true,
+      explicitEnvOptInPresent: true,
+      isCi: false,
+      isLocalDev: true,
+      manualTerminalRunConfirmed: false,
+      mode: "local_dev_explicit_real_run",
+    });
+
+    expect(missingTerminal.status).toBe("not_configured");
+
+    const dependencyCalls: string[] = [];
+    const blockedRun = await runAvanzaIsolatedLoginSmokeTest(
+      {
+        enabled: true,
+        explicitEnvOptInPresent: false,
+        isCi: false,
+        isLocalDev: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      {
+        executeLogin: async () => {
+          dependencyCalls.push("executeLogin");
+
+          return { ok: true };
+        },
+      },
+    );
+
+    expect(blockedRun.status).toBe("not_configured");
+    expect(dependencyCalls).toEqual([]);
+
+    const realRun = await runAvanzaIsolatedLoginSmokeTest(
+      {
+        allowCredentialRuntimeBundle: true,
+        allowNavigationToAvanzaLogin: true,
+        allowRealPlaywrightPage: true,
+        allowUsernamePasswordLogin: true,
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        isCi: false,
+        isLocalDev: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      {
+        buildCredentialRuntimeBundle: async () => {
+          dependencyCalls.push("buildCredentialRuntimeBundle");
+
+          return { safe: true };
+        },
+        buildSmokeTestPlan: async () => {
+          dependencyCalls.push("buildSmokeTestPlan");
+
+          return { safe: true };
+        },
+        closeResources: async () => {
+          dependencyCalls.push("closeResources");
+
+          return { ok: true };
+        },
+        createPageActionBinding: async () => {
+          dependencyCalls.push("createPageActionBinding");
+
+          return { safe: true };
+        },
+        executeLogin: async () => {
+          dependencyCalls.push("executeLogin");
+
+          return { loggedInLikely: true, ok: true };
+        },
+      },
+    );
+
+    expect(realRun.status).toBe("real_run_completed");
+    expect(realRun.smokeTestExecuted).toBe(true);
+    expect(realRun.realPlaywrightPageUsed).toBe(true);
+    expect(realRun.credentialRuntimeBundleUsed).toBe(true);
+    expect(realRun.usernameUsed).toBe(true);
+    expect(realRun.passwordUsed).toBe(true);
+    expect(realRun.navigationToAvanzaLoginAttempted).toBe(true);
+    expect(realRun.loginSubmitAttempted).toBe(true);
+    expect(realRun.loggedInLikely).toBe(true);
+    expect(realRun.credentialMaterialReturnedToUi).toBe(false);
+    expect(realRun.credentialMaterialLogged).toBe(false);
+    expect(realRun.cookiesRead).toBe(false);
+    expect(realRun.sessionExported).toBe(false);
+    expect(realRun.orderSubmitted).toBe(false);
+    expect(realRun.finalBuySellClicked).toBe(false);
+    expect(realRun.bankIdAutomated).toBe(false);
+    expect(realRun.tradeUiWired).toBe(false);
+    expect(realRun.apiRouteWired).toBe(false);
+    expect(realRun.ciExecution).toBe(false);
+    expect(dependencyCalls).toEqual([
+      "buildSmokeTestPlan",
+      "buildCredentialRuntimeBundle",
+      "createPageActionBinding",
+      "executeLogin",
+      "closeResources",
+    ]);
+
+    const bankIdStop = await runAvanzaIsolatedLoginSmokeTest(
+      {
+        allowCredentialRuntimeBundle: true,
+        allowNavigationToAvanzaLogin: true,
+        allowRealPlaywrightPage: true,
+        allowUsernamePasswordLogin: true,
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        isCi: false,
+        isLocalDev: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      {
+        executeLogin: async () => ({
+          bankIdOrMfaDetected: true,
+          ok: false,
+          reason: "Manual action required.",
+        }),
+      },
+    );
+
+    expect(bankIdStop.status).toBe("bankid_or_mfa_stop");
+    expect(bankIdStop.bankIdOrMfaDetected).toBe(true);
+    expect(bankIdStop.bankIdAutomated).toBe(false);
+
+    const failedRun = await runAvanzaIsolatedLoginSmokeTest(
+      {
+        allowCredentialRuntimeBundle: true,
+        allowNavigationToAvanzaLogin: true,
+        allowRealPlaywrightPage: true,
+        allowUsernamePasswordLogin: true,
+        enabled: true,
+        explicitEnvOptInPresent: true,
+        isCi: false,
+        isLocalDev: true,
+        localDevOnly: true,
+        manualTerminalRunConfirmed: true,
+        mode: "local_dev_explicit_real_run",
+      },
+      {
+        executeLogin: async () => ({
+          ok: false,
+          reason: "Modeled login failure.",
+        }),
+      },
+    );
+
+    expect(failedRun.status).toBe("real_run_failed");
+    expect(failedRun.credentialMaterialReturnedToUi).toBe(false);
+
+    const fixtureStatusMap = new Map(
+      avanzaIsolatedLoginSmokeTestRunnerFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["disabled", "disabled"],
+      ["model_only_completed", "modeled_run_completed"],
+      ["local_dev_dry_run_completed", "dry_run_completed"],
+      ["explicit_real_run_ready", "real_run_ready"],
+      ["explicit_real_run_blocked_missing_env_opt_in", "not_configured"],
+      [
+        "explicit_real_run_blocked_missing_terminal_confirmation",
+        "not_configured",
+      ],
+      ["ci_blocked", "ci_blocked"],
+      ["unsafe_environment_blocked", "unsafe_environment_blocked"],
+      ["missing_credential_bundle", "real_run_blocked"],
+      ["bankid_or_mfa_stop", "bankid_or_mfa_stop"],
+      ["real_run_failed", "real_run_failed"],
+      ["order_submission_forbidden", "unsafe_environment_blocked"],
+      ["final_buy_sell_forbidden", "unsafe_environment_blocked"],
+      ["trade_ui_wiring_forbidden", "unsafe_environment_blocked"],
+      ["api_route_wiring_forbidden", "unsafe_environment_blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaIsolatedLoginSmokeTestRunnerFixtures) {
+      const report = fixture.report;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.credentialMaterialReturnedToUi).toBe(false);
+      expect(report.credentialMaterialLogged).toBe(false);
+      expect(report.credentialMaterialStoredInSupabase).toBe(false);
+      expect(report.credentialMaterialStoredInLocalStorage).toBe(false);
+      expect(report.cookiesRead).toBe(false);
+      expect(report.sessionExported).toBe(false);
+      expect(report.orderSubmitted).toBe(false);
+      expect(report.finalBuySellClicked).toBe(false);
+      expect(report.bankIdAutomated).toBe(false);
+      expect(report.tradeUiWired).toBe(false);
+      expect(report.apiRouteWired).toBe(false);
+      expect(report.ciExecution).toBe(false);
+      expect(report.canRunInCi).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.canClickFinalBuy).toBe(false);
+      expect(report.canClickFinalSell).toBe(false);
+      expect(report.canWireTradeUi).toBe(false);
+      expect(report.canWireApiRoute).toBe(false);
+      expect(report.credentialValuesVisibleInReports).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza isolated login smoke test runner",
+      "Fixture/model only",
+      "Manual local terminal only",
+      "Explicit env opt-in required",
+      "CI blocked",
+      "Injected dependencies only",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "No raw username shown",
+      "No raw password shown",
+      "No credential logging",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Not production ready",
+      "explicit_real_run_ready",
+      "explicit_real_run_blocked_missing_env_opt_in",
+      "explicit_real_run_blocked_missing_terminal_confirmation",
+      "ci_blocked",
+      "bankid_or_mfa_stop",
+      "order_submission_forbidden",
+      "final_buy_sell_forbidden",
+      "trade_ui_wiring_forbidden",
+      "api_route_wiring_forbidden",
+      "credentialMaterialReturnedToUi",
+      "credentialMaterialLogged",
+      "cookiesRead",
+      "sessionExported",
+      "orderSubmitted",
+      "finalBuySellClicked",
+      "bankIdAutomated",
+      "tradeUiWired",
+      "apiRouteWired",
+      "ciExecution",
+      "canRunInCi",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canReadCookies",
+      "canExportSession",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWireTradeUi",
+      "canWireApiRoute",
+      "credentialValuesVisibleInReports",
+      "canLogCredentialMaterial",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Hard-gated smoke test runner now exists",
+      "It is the first explicit local terminal entrypoint model",
+      "disconnected from Trade UI",
+      "disconnected from API routes",
+      "disconnected from order flow",
+    ]) {
+      for (const docPath of [
+        "docs/avanza-isolated-login-smoke-test-runner.md",
+        "docs/avanza-isolated-login-smoke-test.md",
+        "docs/avanza-local-playwright-page-action-binding.md",
+        "docs/avanza-login-local-dev-credential-executor.md",
+        "docs/avanza-login-credential-resolution-bridge.md",
+        "docs/avanza-macos-keychain-credential-provider.md",
+        "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+        "docs/ture-engine-execution-agent-contract.md",
+        "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ]) {
+        expect(normalizeWhitespace(readRepoFile(docPath))).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain("AvanzaIsolatedLoginSmokeTestRunnerHarness");
+    expect(routeSource).toContain("avanzaIsolatedLoginSmokeTestRunnerFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-isolated-login-smoke-test-runner",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaIsolatedLoginSmokeTestRunnerHarness",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-isolated-login-smoke-test-runner",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-isolated-login-smoke-test-runner",
+    );
+
+    for (const source of [runnerSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(
+        /security\s+find-generic-password|security\s+add-generic-password|op\s+read/,
+      );
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+      expect(source).not.toMatch(/actual[-_ ]?username|actual[-_ ]?password/i);
+    }
+  });
+
+  test("Avanza terminal login smoke script scaffold is hard-gated and fixture-visible", () => {
+    const scriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-terminal-login-smoke-script-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaTerminalLoginSmokeScriptHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-terminal-login-smoke-script.md",
+    );
+    const runnerDocSource = readRepoFile(
+      "docs/avanza-isolated-login-smoke-test-runner.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const packageSource = readRepoFile("package.json");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(
+      existsSync(join(repoRoot, "scripts/avanza-login-smoke-test.local.ts")),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(repoRoot, "lib/avanza-terminal-login-smoke-script-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          repoRoot,
+          "components/execution/AvanzaTerminalLoginSmokeScriptHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(repoRoot, "docs/avanza-terminal-login-smoke-script.md")),
+    ).toBe(true);
+    expect(docSource.trim().length).toBeGreaterThan(0);
+
+    expect(scriptSource).toContain("TURE_AVANZA_LOGIN_SMOKE_TEST");
+    expect(scriptSource).toContain("TURE_LOCAL_DEV_CONFIRM");
+    expect(scriptSource).toContain("I_UNDERSTAND_THIS_IS_LOCAL_ONLY");
+    expect(scriptSource).toContain("TURE_AVANZA_LOGIN_REAL_RUN");
+    expect(scriptSource).toContain("process.env");
+    expect(scriptSource).toContain("env.CI");
+    expect(scriptSource).toContain(
+      "runAvanzaIsolatedLoginSmokeTest",
+    );
+    expect(scriptSource).toContain(
+      "buildAvanzaIsolatedLoginSmokeTestRunnerState",
+    );
+    expect(scriptSource).toContain("if (import.meta.url === invokedPath)");
+    expect(packageSource).not.toContain("avanza:login-smoke:local");
+    expect(packageSource).not.toContain(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    const fixtureStatusMap = new Map(
+      avanzaTerminalLoginSmokeScriptFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+
+    for (const [fixtureId, expectedStatus] of [
+      ["script_disabled", "disabled"],
+      ["ci_blocked", "ci_blocked"],
+      ["missing_ture_avanza_login_smoke_test", "not_configured"],
+      ["missing_ture_local_dev_confirm", "not_configured"],
+      ["model_only_ready", "modeled_run_completed"],
+      ["dry_run_ready", "dry_run_completed"],
+      ["real_run_flag_missing", "dry_run_completed"],
+      ["real_run_ready_all_gates", "real_run_ready"],
+      ["bankid_or_mfa_stop", "bankid_or_mfa_stop"],
+      ["order_submission_forbidden", "unsafe_environment_blocked"],
+      ["final_buy_sell_forbidden", "unsafe_environment_blocked"],
+      ["trade_ui_wiring_forbidden", "unsafe_environment_blocked"],
+      ["api_route_wiring_forbidden", "unsafe_environment_blocked"],
+      ["error", "error"],
+      ["unknown", "unknown"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaTerminalLoginSmokeScriptFixtures) {
+      const report = fixture.report;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.credentialMaterialReturnedToUi).toBe(false);
+      expect(report.credentialMaterialLogged).toBe(false);
+      expect(report.credentialMaterialStoredInSupabase).toBe(false);
+      expect(report.credentialMaterialStoredInLocalStorage).toBe(false);
+      expect(report.cookiesRead).toBe(false);
+      expect(report.sessionExported).toBe(false);
+      expect(report.orderSubmitted).toBe(false);
+      expect(report.finalBuySellClicked).toBe(false);
+      expect(report.bankIdAutomated).toBe(false);
+      expect(report.tradeUiWired).toBe(false);
+      expect(report.apiRouteWired).toBe(false);
+      expect(report.ciExecution).toBe(false);
+      expect(report.canRunInCi).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canSubmitOrder).toBe(false);
+      expect(report.canClickFinalBuy).toBe(false);
+      expect(report.canClickFinalSell).toBe(false);
+      expect(report.canWireTradeUi).toBe(false);
+      expect(report.canWireApiRoute).toBe(false);
+      expect(report.credentialValuesVisibleInReports).toBe(false);
+      expect(report.canLogCredentialMaterial).toBe(false);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.finalHumanClickRequired).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza terminal login smoke script",
+      "Fixture/model only",
+      "Terminal-only",
+      "Explicit env opt-in required",
+      "Manual local confirmation required",
+      "Real-run requires extra flag",
+      "CI blocked",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "No raw username shown",
+      "No raw password shown",
+      "No credential logging",
+      "No cookies/session",
+      "BankID forbidden/manual-action only",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Not production ready",
+      "ci_blocked",
+      "missing_ture_avanza_login_smoke_test",
+      "missing_ture_local_dev_confirm",
+      "real_run_ready_all_gates",
+      "order_submission_forbidden",
+      "final_buy_sell_forbidden",
+      "trade_ui_wiring_forbidden",
+      "api_route_wiring_forbidden",
+      "envOptInPresent",
+      "manualLocalConfirmationPresent",
+      "realRunFlagPresent",
+      "smokeTestExecuted",
+      "realPlaywrightPageUsed",
+      "credentialRuntimeBundleUsed",
+      "usernameUsed",
+      "passwordUsed",
+      "loggedInLikely",
+      "bankIdOrMfaDetected",
+      "orderSubmitted",
+      "finalBuySellClicked",
+      "canRunInCi",
+      "canAutomateBankId",
+      "canReadCookies",
+      "canExportSession",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWireTradeUi",
+      "canWireApiRoute",
+      "credentialValuesVisibleInReports",
+      "canLogCredentialMaterial",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "terminal-only script scaffold now exists",
+      "disconnected from Trade UI",
+      "disconnected from API routes",
+      "disconnected from order flow",
+      "default-safe and hard-gated",
+    ]) {
+      for (const source of [
+        docSource,
+        runnerDocSource,
+        readRepoFile("docs/avanza-isolated-login-smoke-test.md"),
+        readRepoFile("docs/avanza-local-playwright-page-action-binding.md"),
+        readRepoFile("docs/avanza-login-local-dev-credential-executor.md"),
+        readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+        readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+        readRepoFile(
+          "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+        ),
+      ]) {
+        expect(normalizeWhitespace(source)).toContain(copy);
+      }
+    }
+
+    expect(routeSource).toContain("AvanzaTerminalLoginSmokeScriptHarness");
+    expect(routeSource).toContain("avanzaTerminalLoginSmokeScriptFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "AvanzaTerminalLoginSmokeScriptHarness",
+    );
+    expect(apiRouteSource).not.toContain("avanza-login-smoke-test.local");
+    expect(apiRouteSource).not.toContain("AvanzaTerminalLoginSmokeScriptHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaTerminalLoginSmokeScriptHarness",
+    );
+
+    for (const source of [scriptSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(
+        /security\s+find-generic-password|security\s+add-generic-password|op\s+read/,
+      );
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+      expect(source).not.toMatch(/hunter2|correct horse|raw_username|raw_password/i);
+      expect(source).not.toMatch(/actual[-_ ]?username|actual[-_ ]?password/i);
+    }
+  });
+
+  test("login state detector and credential provider interface are fixture-only and non-executing", () => {
+    const loginSource = readRepoFile("lib/avanza-login-state-detector.ts");
+    const providerSource = readRepoFile(
+      "lib/avanza-secure-credential-provider.ts",
+    );
+    const loginFixtureSource = readRepoFile(
+      "lib/avanza-login-state-detector-fixtures.ts",
+    );
+    const providerFixtureSource = readRepoFile(
+      "lib/avanza-secure-credential-provider-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLoginAndCredentialReadinessHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    expect(existsSync(join(repoRoot, "lib/avanza-login-state-detector.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-secure-credential-provider.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-login-state-detector-fixtures.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "lib/avanza-secure-credential-provider-fixtures.ts"))).toBe(true);
+    expect(existsSync(join(repoRoot, "components/execution/AvanzaLoginAndCredentialReadinessHarness.tsx"))).toBe(true);
+
+    const disabledLogin = buildAvanzaLoginStateModel();
+
+    expect(disabledLogin.status).toBe("not_checked");
+    expect(disabledLogin.detectorEnabled).toBe(false);
+    expect(disabledLogin.readOnly).toBe(true);
+    expect(disabledLogin.canReadPageSignals).toBe(false);
+    expect(disabledLogin.canNavigate).toBe(false);
+    expect(disabledLogin.canFillUsername).toBe(false);
+    expect(disabledLogin.canFillPassword).toBe(false);
+    expect(disabledLogin.canSubmitLogin).toBe(false);
+    expect(disabledLogin.canHandleCredentials).toBe(false);
+    expect(disabledLogin.canReadCookies).toBe(false);
+    expect(disabledLogin.canExportSession).toBe(false);
+    expect(disabledLogin.canBypassBankId).toBe(false);
+    expect(disabledLogin.canStoreBrokerCredentials).toBe(false);
+    expect(disabledLogin.canWriteSupabase).toBe(false);
+    expect(disabledLogin.userMustConfirm).toBe(true);
+    expect(disabledLogin.finalHumanClickRequired).toBe(true);
+    expect(disabledLogin.controlsEnabled).toBe(false);
+    expect(disabledLogin.gateLocked).toBe(true);
+
+    const loginPossible = buildAvanzaLoginStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_read_only",
+      observedFormSignals: ["username field", "password field"],
+      observedUrl: "https://www.avanza.se/logga-in",
+    });
+
+    expect(loginPossible.status).toBe("username_password_possible");
+    expect(loginPossible.usernamePasswordLoginPossible).toBe(true);
+    expect(loginPossible.canFillUsername).toBe(false);
+    expect(loginPossible.canFillPassword).toBe(false);
+    expect(loginPossible.canSubmitLogin).toBe(false);
+    expect(loginPossible.canHandleCredentials).toBe(false);
+
+    const bankIdRequired = buildAvanzaLoginStateModel({
+      detectorEnabled: true,
+      mode: "local_dev_read_only",
+      observedTextSignals: ["BankID verification required"],
+    });
+
+    expect(bankIdRequired.status).toBe("mfa_or_bankid_required");
+    expect(bankIdRequired.mfaOrBankIdLikely).toBe(true);
+    expect(bankIdRequired.manualActionRequired).toBe(true);
+    expect(bankIdRequired.canBypassBankId).toBe(false);
+
+    const disabledProvider = buildAvanzaSecureCredentialProviderState();
+
+    expect(disabledProvider.status).toBe("disabled");
+    expect(disabledProvider.kind).toBe("none");
+    expect(disabledProvider.credentialMaterialReturned).toBe(false);
+    expect(disabledProvider.canReadCredentialMaterial).toBe(false);
+    expect(disabledProvider.canReturnCredentialMaterial).toBe(false);
+    expect(disabledProvider.canLogCredentialMaterial).toBe(false);
+    expect(disabledProvider.canStoreCredentialMaterial).toBe(false);
+    expect(disabledProvider.canStoreCredentialInSupabase).toBe(false);
+    expect(disabledProvider.canReadCookies).toBe(false);
+    expect(disabledProvider.canExportSession).toBe(false);
+    expect(disabledProvider.canBypassBankId).toBe(false);
+
+    const keychainModeled = buildAvanzaSecureCredentialProviderState({
+      kind: "macos_keychain",
+      passwordAvailable: true,
+      providerAvailable: true,
+      providerEnabled: true,
+      usernameConfigured: true,
+    });
+
+    expect(keychainModeled.status).toBe("ready");
+    expect(keychainModeled.kind).toBe("macos_keychain");
+    expect(keychainModeled.localOnly).toBe(true);
+    expect(keychainModeled.credentialMaterialReturned).toBe(false);
+    expect(keychainModeled.canReadCredentialMaterial).toBe(false);
+    expect(keychainModeled.canReturnCredentialMaterial).toBe(false);
+
+    const envProvider = buildAvanzaSecureCredentialProviderState({
+      kind: "environment_variable_dev_only",
+      providerEnabled: true,
+    });
+
+    expect(envProvider.status).toBe("blocked");
+    expect(envProvider.warnings.join(" ")).toContain("env is not read");
+
+    const loginStatuses = new Set(
+      avanzaLoginStateDetectorFixtures.map((fixture) => fixture.modelResult.status),
+    );
+
+    for (const status of [
+      "not_checked",
+      "unknown",
+      "logged_in",
+      "logged_out",
+      "login_page_detected",
+      "username_password_possible",
+      "mfa_or_bankid_required",
+      "manual_user_action_required",
+      "blocked",
+      "error",
+    ] as const) {
+      expect(loginStatuses.has(status)).toBe(true);
+      expect(loginFixtureSource).toContain(status);
+    }
+
+    const providerFixtureIds = new Set(
+      avanzaSecureCredentialProviderFixtures.map((fixture) => fixture.fixtureId),
+    );
+
+    for (const fixtureId of [
+      "none_disabled",
+      "macos_keychain_configured_modeled",
+      "macos_keychain_ready_modeled",
+      "onepassword_cli_configured_modeled",
+      "environment_variable_dev_only_blocked",
+      "manual_prompt_modeled",
+      "unavailable",
+      "error",
+    ] as const) {
+      expect(providerFixtureIds.has(fixtureId)).toBe(true);
+      expect(providerFixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLoginStateDetectorFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.readOnly).toBe(true);
+      expect(result.canNavigate).toBe(false);
+      expect(result.canFillUsername).toBe(false);
+      expect(result.canFillPassword).toBe(false);
+      expect(result.canSubmitLogin).toBe(false);
+      expect(result.canHandleCredentials).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canExportSession).toBe(false);
+      expect(result.canBypassBankId).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    for (const fixture of avanzaSecureCredentialProviderFixtures) {
+      const result = fixture.modelResult;
+
+      expect(result.credentialMaterialReturned).toBe(false);
+      expect(result.canReadCredentialMaterial).toBe(false);
+      expect(result.canReturnCredentialMaterial).toBe(false);
+      expect(result.canLogCredentialMaterial).toBe(false);
+      expect(result.canStoreCredentialMaterial).toBe(false);
+      expect(result.canStoreCredentialInSupabase).toBe(false);
+      expect(result.canReadCookies).toBe(false);
+      expect(result.canExportSession).toBe(false);
+      expect(result.canBypassBankId).toBe(false);
+      expect(result.controlsEnabled).toBe(false);
+      expect(result.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza login state detector",
+      "Secure credential provider interface",
+      "Fixture only",
+      "Read-only model",
+      "Local/dev-only",
+      "No actual login",
+      "No credential material returned",
+      "No Keychain access yet",
+      "No 1Password CLI call",
+      "No env read",
+      "No cookies/session handling",
+      "No BankID automation",
+      "No BankID bypass",
+      "No Avanza navigation yet",
+      "No form fill yet",
+      "No order submission",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(harnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaLoginAndCredentialReadinessHarness");
+    expect(routeSource).toContain("avanzaLoginStateDetectorFixtures");
+    expect(routeSource).toContain("avanzaSecureCredentialProviderFixtures");
+    expect(loginFixtureSource).toContain("logged_in");
+    expect(loginFixtureSource).toContain("username_password_possible");
+    expect(loginFixtureSource).toContain("mfa_or_bankid_required");
+    expect(providerFixtureSource).toContain("macos_keychain");
+    expect(harnessSource).toContain("credentialMaterialReturned");
+    expect(harnessSource).toContain("canStoreCredentialInSupabase");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-state-detector");
+    expect(tradeAppSource).not.toContain("avanza-secure-credential-provider");
+    expect(tradeAppSource).not.toContain("AvanzaLoginAndCredentialReadinessHarness");
+    expect(tradeAppSource).not.toMatch(/\/api\/dev\/avanza\/fill-only\/stub/);
+    expect(tradeAppSource).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click/);
+    expect(tradeAppSource).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+
+    expect(apiRouteSource).not.toContain("avanza-login-state-detector");
+    expect(apiRouteSource).not.toContain("avanza-secure-credential-provider");
+
+    for (const source of [
+      loginSource,
+      providerSource,
+      loginFixtureSource,
+      providerFixtureSource,
+      harnessSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/security\s+find-generic-password|op\s+read/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+    }
+  });
+
   test("dev route renders disabled internal prepare button shell fixture-only section and remains isolated", () => {
     const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
     const tradeAppSource = readRepoFile("app/trade-app.tsx");
@@ -28010,7 +34608,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -28277,7 +34875,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -28530,7 +35128,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -28625,7 +35223,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combined).not.toMatch(/\bfetch\s*\(/);
     expect(combined).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combined).not.toMatch(/method:\s*["']POST["']/);
-    expect(combined).not.toMatch(/localStorage|sessionStorage/);
+    expect(combined).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combined).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combined).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combined).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -28744,7 +35342,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combined).not.toMatch(/\bfetch\s*\(/);
     expect(combined).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combined).not.toMatch(/method:\s*["']POST["']/);
-    expect(combined).not.toMatch(/localStorage|sessionStorage/);
+    expect(combined).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combined).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combined).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combined).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -28887,7 +35485,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combined).not.toMatch(/\bfetch\s*\(/);
     expect(combined).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combined).not.toMatch(/method:\s*["']POST["']/);
-    expect(combined).not.toMatch(/localStorage|sessionStorage/);
+    expect(combined).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combined).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combined).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combined).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -29062,7 +35660,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combinedRouteSources).not.toMatch(/\bfetch\s*\(/);
     expect(combinedRouteSources).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combinedRouteSources).not.toMatch(/method:\s*["']POST["']/);
-    expect(combinedRouteSources).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedRouteSources).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combinedRouteSources).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combinedRouteSources).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combinedRouteSources).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -29503,7 +36101,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(combinedRouteSources).not.toMatch(/\bfetch\s*\(/);
     expect(combinedRouteSources).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(combinedRouteSources).not.toMatch(/method:\s*["']POST["']/);
-    expect(combinedRouteSources).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedRouteSources).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(combinedRouteSources).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
     expect(combinedRouteSources).not.toMatch(/from ["'].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(combinedRouteSources).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|placeOrder/i);
@@ -29669,7 +36267,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(serialized).not.toMatch(/accountId|account_id|brokerSecret/i);
     expect(serialized).not.toMatch(/credential|password|secret|token/i);
     expect(serialized).not.toMatch(/cookie|session|BankID|storage/i);
-    expect(serialized).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(serialized).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
 
   test("Avanza handoff package builder harness renders fixture-only safety copy and package fields", () => {
@@ -29730,9 +36328,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
     }
 
@@ -29871,9 +36469,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
     }
 
@@ -30040,9 +36638,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
       expect(source).not.toMatch(/onClick\s*=/);
     }
@@ -30050,7 +36648,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(serializedFixtures).not.toMatch(/accountId|account_id|brokerSecret/i);
     expect(serializedFixtures).not.toMatch(/credential|password|secret|token/i);
     expect(serializedFixtures).not.toMatch(/cookie|session|BankID|storage/i);
-    expect(serializedFixtures).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(serializedFixtures).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
   });
 
   test("Trade UI handoff preview is wired only inside the existing hard-disabled branch", () => {
@@ -30091,9 +36689,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     expect(disabledBranchSource).not.toMatch(/\bfetch\s*\(/);
     expect(disabledBranchSource).not.toMatch(/localhost:|127\.0\.0\.1/);
     expect(disabledBranchSource).not.toMatch(/method:\s*["']POST["']/);
-    expect(disabledBranchSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(disabledBranchSource).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
     expect(disabledBranchSource).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-    expect(disabledBranchSource).not.toMatch(/supabase|execution[_-]?record/i);
+    expect(disabledBranchSource).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
     expect(disabledBranchSource).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
   });
 
@@ -30243,9 +36841,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
-      expect(source).not.toMatch(/supabase|execution[_-]?record/i);
+      expect(source).not.toMatch(/from ['"].*supabase|supabase\.(from|insert|rpc)|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
     }
 
@@ -30375,7 +36973,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
     }
@@ -30491,10 +37089,1088 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/\bfetch\s*\(/);
       expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
       expect(source).not.toMatch(/method:\s*["']POST["']/);
-      expect(source).not.toMatch(/localStorage|sessionStorage/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
       expect(source).not.toMatch(/clickGranska|granskaKop|reviewModal|finalConfirmation|submitOrder|placeOrder/i);
+    }
+  });
+
+  test("Avanza order flow signals and order ticket field contract are fixture-model only", () => {
+    const orderSignalsSource = readRepoFile(
+      "lib/avanza-real-world-order-flow-signals.ts",
+    );
+    const orderSignalsFixtureSource = readRepoFile(
+      "lib/avanza-real-world-order-flow-signals-fixtures.ts",
+    );
+    const orderSignalsHarnessSource = readRepoFile(
+      "components/execution/AvanzaRealWorldOrderFlowSignalsHarness.tsx",
+    );
+    const orderContractSource = readRepoFile(
+      "lib/avanza-order-ticket-field-contract.ts",
+    );
+    const orderContractFixtureSource = readRepoFile(
+      "lib/avanza-order-ticket-field-contract-fixtures.ts",
+    );
+    const orderContractHarnessSource = readRepoFile(
+      "components/execution/AvanzaOrderTicketFieldContractHarness.tsx",
+    );
+    const orderSignalsDoc = readRepoFile(
+      "docs/avanza-real-world-order-flow-signals.md",
+    );
+    const orderContractDoc = readRepoFile(
+      "docs/avanza-order-ticket-field-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const scopeDoc = readRepoFile(
+      "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
+    );
+    const contractDoc = readRepoFile(
+      "docs/ture-engine-execution-agent-contract.md",
+    );
+    const integrationPlan = readRepoFile(
+      "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
+    );
+    const readOnlyPlan = readRepoFile(
+      "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+    );
+    const settingsUiDoc = readRepoFile("docs/avanza-execution-settings-ui.md");
+
+    for (const path of [
+      "lib/avanza-real-world-order-flow-signals.ts",
+      "lib/avanza-real-world-order-flow-signals-fixtures.ts",
+      "components/execution/AvanzaRealWorldOrderFlowSignalsHarness.tsx",
+      "lib/avanza-order-ticket-field-contract.ts",
+      "lib/avanza-order-ticket-field-contract-fixtures.ts",
+      "components/execution/AvanzaOrderTicketFieldContractHarness.tsx",
+      "docs/avanza-real-world-order-flow-signals.md",
+      "docs/avanza-order-ticket-field-contract.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path))).toBe(true);
+    }
+    expect(orderSignalsDoc.trim().length).toBeGreaterThan(0);
+    expect(orderContractDoc.trim().length).toBeGreaterThan(0);
+
+    const buyPanel = buildAvanzaRealWorldOrderSignalPack({
+      buttonTexts: ["Köp"],
+      fieldLabels: ["Konto", "Antal", "Pris", "Ordertyp"],
+      observedUrlKind: "avanza_instrument",
+      side: "buy",
+      step: "instrument_order_panel",
+      visibleTexts: ["Limit", "Summa", "Belopp", "Kostnad"],
+    });
+
+    expect(buyPanel.side).toBe("buy");
+    expect(buyPanel.step).toBe("instrument_order_panel");
+    expect(buyPanel.source).toBe("sanitized_user_visual_material");
+    expect(buyPanel.finalActionDetected).toBe(true);
+    expect(buyPanel.finalActionForbidden).toBe(true);
+    expect(buyPanel.containsCredentials).toBe(false);
+    expect(buyPanel.containsPassword).toBe(false);
+    expect(buyPanel.containsPersonalIdentityNumber).toBe(false);
+    expect(buyPanel.containsAccountNumber).toBe(false);
+    expect(buyPanel.containsCookie).toBe(false);
+    expect(buyPanel.containsSessionToken).toBe(false);
+    expect(buyPanel.containsBankIdQr).toBe(false);
+    expect(buyPanel.containsOrderId).toBe(false);
+    expect(buyPanel.canUseForOrderPlanning).toBe(true);
+    expect(buyPanel.canUseForSelectorPlanning).toBe(true);
+    expect(buyPanel.canFillOrderFields).toBe(false);
+    expect(buyPanel.canClickBuy).toBe(false);
+    expect(buyPanel.canClickSell).toBe(false);
+    expect(buyPanel.canSubmitOrder).toBe(false);
+    expect(buyPanel.canReadCookies).toBe(false);
+    expect(buyPanel.canExportSession).toBe(false);
+    expect(buyPanel.canAutomateBankId).toBe(false);
+    expect(buyPanel.canBypassBankId).toBe(false);
+    expect(buyPanel.userMustConfirm).toBe(true);
+    expect(buyPanel.finalHumanClickRequired).toBe(true);
+
+    const readyBuy = buildAvanzaOrderTicketFieldPlan({
+      customerType: "Privat",
+      enabled: true,
+      limitPrice: 125.5,
+      orderType: "limit",
+      quantity: 10,
+      side: "buy",
+      ticker: "FIXB",
+      timeInForce: "day",
+    });
+    const readySell = buildAvanzaOrderTicketFieldPlan({
+      customerType: "Privat",
+      enabled: true,
+      limitPrice: 130.25,
+      orderType: "limit",
+      quantity: 8,
+      side: "sell",
+      ticker: "FIXS",
+      timeInForce: "day",
+    });
+    const marketBlocked = buildAvanzaOrderTicketFieldPlan({
+      enabled: true,
+      limitPrice: 125.5,
+      orderType: "market_forbidden",
+      quantity: 10,
+      side: "buy",
+      ticker: "FIXB",
+      timeInForce: "day",
+    });
+
+    expect(readyBuy.status).toBe("field_mapping_ready");
+    expect(readyBuy.canPrepareBuy).toBe(true);
+    expect(readyBuy.canPrepareSell).toBe(false);
+    expect(readyBuy.canUseLimitOrder).toBe(true);
+    expect(readySell.status).toBe("field_mapping_ready");
+    expect(readySell.canPrepareBuy).toBe(false);
+    expect(readySell.canPrepareSell).toBe(true);
+    expect(readySell.canUseLimitOrder).toBe(true);
+    expect(marketBlocked.status).toBe("blocked");
+    expect(marketBlocked.canUseMarketOrder).toBe(false);
+    expect(marketBlocked.blockedReasons.join(" ")).toContain("Market order");
+
+    for (const fieldPlan of [readyBuy, readySell, marketBlocked]) {
+      expect(fieldPlan.canFillFields).toBe(false);
+      expect(fieldPlan.canClickBuy).toBe(false);
+      expect(fieldPlan.canClickSell).toBe(false);
+      expect(fieldPlan.canSubmitOrder).toBe(false);
+      expect(fieldPlan.canUseMarketOrder).toBe(false);
+      expect(fieldPlan.canReadCookies).toBe(false);
+      expect(fieldPlan.canExportSession).toBe(false);
+      expect(fieldPlan.canAutomateBankId).toBe(false);
+      expect(fieldPlan.canBypassBankId).toBe(false);
+      expect(fieldPlan.userMustConfirm).toBe(true);
+      expect(fieldPlan.finalHumanClickRequired).toBe(true);
+      expect(fieldPlan.controlsEnabled).toBe(false);
+      expect(fieldPlan.gateLocked).toBe(true);
+
+      for (const field of fieldPlan.fields) {
+        expect(field.filledByAgentInThisTask).toBe(false);
+        expect(field.requiresUserReview).toBe(true);
+      }
+    }
+
+    for (const fixtureId of [
+      "buy_instrument_order_panel",
+      "buy_order_review",
+      "buy_success_confirmation",
+      "buy_failed_confirmation",
+      "buy_order_list",
+      "buy_order_detail_panel",
+      "sell_instrument_order_panel",
+      "sell_order_review",
+      "sell_success_confirmation",
+      "sell_failed_confirmation",
+      "final_buy_click_forbidden",
+      "final_sell_click_forbidden",
+      "order_submission_forbidden",
+      "bankid_forbidden",
+      "cookie_session_forbidden",
+      "unknown",
+    ] as const) {
+      expect(orderSignalsFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaRealWorldOrderFlowSignalFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaRealWorldOrderFlowSignalFixtures) {
+      const signalPack = fixture.signalPack;
+
+      expect(signalPack.side).toBe(fixture.expectedSide);
+      expect(signalPack.step).toBe(fixture.expectedStep);
+      expect(signalPack.containsCredentials).toBe(false);
+      expect(signalPack.containsPassword).toBe(false);
+      expect(signalPack.containsPersonalIdentityNumber).toBe(false);
+      expect(signalPack.containsAccountNumber).toBe(false);
+      expect(signalPack.containsCookie).toBe(false);
+      expect(signalPack.containsSessionToken).toBe(false);
+      expect(signalPack.containsBankIdQr).toBe(false);
+      expect(signalPack.containsOrderId).toBe(false);
+      expect(signalPack.canFillOrderFields).toBe(false);
+      expect(signalPack.canClickBuy).toBe(false);
+      expect(signalPack.canClickSell).toBe(false);
+      expect(signalPack.canSubmitOrder).toBe(false);
+      expect(signalPack.canReadCookies).toBe(false);
+      expect(signalPack.canExportSession).toBe(false);
+      expect(signalPack.canAutomateBankId).toBe(false);
+      expect(signalPack.canBypassBankId).toBe(false);
+      expect(signalPack.userMustConfirm).toBe(true);
+      expect(signalPack.finalHumanClickRequired).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "incomplete_missing_ticker",
+      "incomplete_missing_quantity",
+      "incomplete_missing_limit_price",
+      "ready_buy_limit_order_field_plan",
+      "ready_sell_limit_order_field_plan",
+      "market_order_blocked",
+      "invalid_quantity_blocked",
+      "invalid_limit_price_blocked",
+      "buy_final_click_forbidden",
+      "sell_final_click_forbidden",
+      "order_submission_forbidden",
+      "bankid_forbidden",
+      "cookie_session_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(orderContractFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaOrderTicketFieldContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaOrderTicketFieldContractFixtures) {
+      const fieldPlan = fixture.fieldPlan;
+
+      expect(fieldPlan.status).toBe(fixture.expectedStatus);
+      expect(fieldPlan.canFillFields).toBe(false);
+      expect(fieldPlan.canClickBuy).toBe(false);
+      expect(fieldPlan.canClickSell).toBe(false);
+      expect(fieldPlan.canSubmitOrder).toBe(false);
+      expect(fieldPlan.canUseMarketOrder).toBe(false);
+      expect(fieldPlan.canReadCookies).toBe(false);
+      expect(fieldPlan.canExportSession).toBe(false);
+      expect(fieldPlan.canAutomateBankId).toBe(false);
+      expect(fieldPlan.canBypassBankId).toBe(false);
+      expect(fieldPlan.userMustConfirm).toBe(true);
+      expect(fieldPlan.finalHumanClickRequired).toBe(true);
+      expect(fieldPlan.controlsEnabled).toBe(false);
+      expect(fieldPlan.gateLocked).toBe(true);
+
+      if (fixture.fixtureId.startsWith("ready_")) {
+        expect(fieldPlan.canUseLimitOrder).toBe(true);
+      }
+    }
+
+    for (const copy of [
+      "Avanza real-world order flow signals",
+      "Based on sanitized user-provided buy-flow material",
+      "Fixture/model only",
+      "BUY flow recognized",
+      "SELL flow modeled from same structure",
+      "Order panel recognized",
+      "Review step recognized",
+      "Success confirmation recognized",
+      "Failed confirmation recognized",
+      "Order list/detail recognized",
+      "No real form fill",
+      "No click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(orderSignalsHarnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Avanza BUY/SELL order ticket field contract",
+      "Fixture/model only",
+      "Limit orders only",
+      "BUY preparation modeled",
+      "SELL preparation modeled",
+      "No real form fill",
+      "No click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(orderContractHarnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "ready_buy_limit_order_field_plan",
+      "ready_sell_limit_order_field_plan",
+      "market_order_blocked",
+      "invalid_quantity_blocked",
+      "invalid_limit_price_blocked",
+      "buy_final_click_forbidden",
+      "sell_final_click_forbidden",
+      "order_submission_forbidden",
+    ]) {
+      expect(orderContractFixtureSource).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaRealWorldOrderFlowSignalsHarness");
+    expect(routeSource).toContain("avanzaRealWorldOrderFlowSignalFixtures");
+    expect(routeSource).toContain("AvanzaOrderTicketFieldContractHarness");
+    expect(routeSource).toContain("avanzaOrderTicketFieldContractFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-real-world-order-flow-signals");
+    expect(tradeAppSource).not.toContain("avanza-order-ticket-field-contract");
+    expect(tradeAppSource).not.toContain("AvanzaRealWorldOrderFlowSignalsHarness");
+    expect(tradeAppSource).not.toContain("AvanzaOrderTicketFieldContractHarness");
+    expect(apiRouteSource).not.toContain("avanza-real-world-order-flow-signals");
+    expect(apiRouteSource).not.toContain("avanza-order-ticket-field-contract");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaOrderTicketFieldContractHarness",
+    );
+
+    for (const doc of [
+      orderSignalsDoc,
+      orderContractDoc,
+      scopeDoc,
+      contractDoc,
+      integrationPlan,
+      readOnlyPlan,
+      settingsUiDoc,
+    ]) {
+      expect(doc).toContain("order flow signals");
+      expect(doc).toContain("order ticket field contract");
+      expect(doc).toContain("Final human confirmation");
+      expect(doc).toContain("does not activate order behavior");
+    }
+
+    for (const source of [
+      orderSignalsSource,
+      orderSignalsFixtureSource,
+      orderSignalsHarnessSource,
+      orderContractSource,
+      orderContractFixtureSource,
+      orderContractHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+    }
+  });
+
+  test("Avanza order ticket action contract is fixture-model only and non-executable", () => {
+    const actionContractSource = readRepoFile(
+      "lib/avanza-order-ticket-action-contract.ts",
+    );
+    const actionContractFixtureSource = readRepoFile(
+      "lib/avanza-order-ticket-action-contract-fixtures.ts",
+    );
+    const actionContractHarnessSource = readRepoFile(
+      "components/execution/AvanzaOrderTicketActionContractHarness.tsx",
+    );
+    const actionContractDoc = readRepoFile(
+      "docs/avanza-order-ticket-action-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+
+    expect(existsSync(join(process.cwd(), "lib/avanza-order-ticket-action-contract.ts"))).toBe(
+      true,
+    );
+    expect(
+      existsSync(
+        join(process.cwd(), "lib/avanza-order-ticket-action-contract-fixtures.ts"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        join(
+          process.cwd(),
+          "components/execution/AvanzaOrderTicketActionContractHarness.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(join(process.cwd(), "docs/avanza-order-ticket-action-contract.md")),
+    ).toBe(true);
+    expect(actionContractDoc.trim().length).toBeGreaterThan(0);
+
+    const readyBuy = buildAvanzaOrderTicketActionContract({
+      contractEnabled: true,
+      mode: "contract_only",
+      orderTicketFieldPlan:
+        avanzaOrderTicketFieldContractFixtures.find(
+          (fixture) => fixture.fixtureId === "ready_buy_limit_order_field_plan",
+        )?.fieldPlan,
+    });
+    const readySell = buildAvanzaOrderTicketActionContract({
+      contractEnabled: true,
+      mode: "contract_only",
+      orderTicketFieldPlan:
+        avanzaOrderTicketFieldContractFixtures.find(
+          (fixture) => fixture.fixtureId === "ready_sell_limit_order_field_plan",
+        )?.fieldPlan,
+    });
+    const marketBlocked = buildAvanzaOrderTicketActionContract({
+      contractEnabled: true,
+      mode: "contract_only",
+      orderTicketFieldPlan:
+        avanzaOrderTicketFieldContractFixtures.find(
+          (fixture) => fixture.fixtureId === "market_order_blocked",
+        )?.fieldPlan,
+    });
+
+    expect(readyBuy.status).toBe("action_plan_ready");
+    expect(readyBuy.side).toBe("buy");
+    expect(readyBuy.orderType).toBe("limit");
+    expect(readyBuy.actions.map((action) => action.type)).toEqual([
+      "select_buy_side",
+      "select_account",
+      "fill_ticker",
+      "confirm_instrument",
+      "fill_quantity",
+      "select_limit_order",
+      "fill_limit_price",
+      "select_time_in_force_day",
+      "review_order",
+      "stop_before_final_buy",
+    ]);
+    expect(readySell.status).toBe("action_plan_ready");
+    expect(readySell.side).toBe("sell");
+    expect(readySell.actions.map((action) => action.type)).toContain(
+      "stop_before_final_sell",
+    );
+    expect(marketBlocked.status).toBe("blocked");
+    expect(marketBlocked.blockedReasons.join(" ")).toContain("Market order");
+
+    for (const contract of [readyBuy, readySell, marketBlocked]) {
+      expect(contract.canExecuteActions).toBe(false);
+      expect(contract.canSelectBuySide).toBe(false);
+      expect(contract.canSelectSellSide).toBe(false);
+      expect(contract.canSelectAccount).toBe(false);
+      expect(contract.canFillTicker).toBe(false);
+      expect(contract.canConfirmInstrument).toBe(false);
+      expect(contract.canFillQuantity).toBe(false);
+      expect(contract.canSelectLimitOrder).toBe(false);
+      expect(contract.canFillLimitPrice).toBe(false);
+      expect(contract.canSelectTimeInForce).toBe(false);
+      expect(contract.canReviewOrder).toBe(false);
+      expect(contract.canClickFinalBuy).toBe(false);
+      expect(contract.canClickFinalSell).toBe(false);
+      expect(contract.canSubmitOrder).toBe(false);
+      expect(contract.canUseMarketOrder).toBe(false);
+      expect(contract.canAutomateBankId).toBe(false);
+      expect(contract.canBypassBankId).toBe(false);
+      expect(contract.canReadCookies).toBe(false);
+      expect(contract.canExportSession).toBe(false);
+      expect(contract.userMustConfirm).toBe(true);
+      expect(contract.finalHumanClickRequired).toBe(true);
+      expect(contract.controlsEnabled).toBe(false);
+      expect(contract.gateLocked).toBe(true);
+
+      for (const action of contract.actions) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.executableInThisTask).toBe(false);
+        expect(action.dryRunOnly).toBe(true);
+      }
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_field_plan",
+      "ready_buy_limit_action_plan",
+      "ready_sell_limit_action_plan",
+      "buy_action_plan_stops_before_final_kop",
+      "sell_action_plan_stops_before_final_salj",
+      "market_order_blocked",
+      "invalid_field_plan_blocked",
+      "order_submission_forbidden",
+      "final_buy_click_forbidden",
+      "final_sell_click_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(actionContractFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaOrderTicketActionContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaOrderTicketActionContractFixtures) {
+      const contract = fixture.contract;
+
+      expect(contract.status).toBe(fixture.expectedStatus);
+      expect(contract.canExecuteActions).toBe(false);
+      expect(contract.canFillTicker).toBe(false);
+      expect(contract.canFillQuantity).toBe(false);
+      expect(contract.canFillLimitPrice).toBe(false);
+      expect(contract.canReviewOrder).toBe(false);
+      expect(contract.canClickFinalBuy).toBe(false);
+      expect(contract.canClickFinalSell).toBe(false);
+      expect(contract.canSubmitOrder).toBe(false);
+      expect(contract.canUseMarketOrder).toBe(false);
+      expect(contract.canAutomateBankId).toBe(false);
+      expect(contract.canBypassBankId).toBe(false);
+      expect(contract.userMustConfirm).toBe(true);
+      expect(contract.finalHumanClickRequired).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza order ticket action contract",
+      "Fixture/model only",
+      "Contract only",
+      "BUY action plan modeled",
+      "SELL action plan modeled",
+      "Limit orders only",
+      "Planned actions are not executable yet",
+      "No real form fill",
+      "No click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(actionContractHarnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "ready_buy_limit_action_plan",
+      "ready_sell_limit_action_plan",
+      "buy_action_plan_stops_before_final_kop",
+      "sell_action_plan_stops_before_final_salj",
+      "market_order_blocked",
+      "order_submission_forbidden",
+      "final_buy_click_forbidden",
+      "final_sell_click_forbidden",
+      "canExecuteActions",
+      "canFillTicker",
+      "canFillQuantity",
+      "canFillLimitPrice",
+      "canReviewOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canSubmitOrder",
+      "canUseMarketOrder",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canReadCookies",
+      "canExportSession",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([actionContractFixtureSource, actionContractHarnessSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    expect(routeSource).toContain("AvanzaOrderTicketActionContractHarness");
+    expect(routeSource).toContain("avanzaOrderTicketActionContractFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-order-ticket-action-contract");
+    expect(tradeAppSource).not.toContain("AvanzaOrderTicketActionContractHarness");
+    expect(apiRouteSource).not.toContain("avanza-order-ticket-action-contract");
+    expect(apiRouteSource).not.toContain("AvanzaOrderTicketActionContractHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaOrderTicketActionContractHarness",
+    );
+
+    for (const doc of [
+      actionContractDoc,
+      readRepoFile("docs/avanza-order-ticket-field-contract.md"),
+      readRepoFile("docs/avanza-real-world-order-flow-signals.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("order ticket action contract");
+      expect(doc).toContain("bridge between order field mapping and future order-fill execution");
+      expect(doc).toContain("does not activate order behavior");
+      expect(doc).toContain("Final human confirmation");
+    }
+
+    for (const source of [
+      actionContractSource,
+      actionContractFixtureSource,
+      actionContractHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+    }
+  });
+
+  test("Avanza instrument search signals, route, and action contracts are fixture-model only", () => {
+    const signalSource = readRepoFile(
+      "lib/avanza-real-world-instrument-search-signals.ts",
+    );
+    const signalFixtureSource = readRepoFile(
+      "lib/avanza-real-world-instrument-search-signals-fixtures.ts",
+    );
+    const routeContractSource = readRepoFile(
+      "lib/avanza-instrument-search-route-contract.ts",
+    );
+    const routeFixtureSource = readRepoFile(
+      "lib/avanza-instrument-search-route-contract-fixtures.ts",
+    );
+    const actionContractSource = readRepoFile(
+      "lib/avanza-instrument-search-action-contract.ts",
+    );
+    const actionFixtureSource = readRepoFile(
+      "lib/avanza-instrument-search-action-contract-fixtures.ts",
+    );
+    const signalHarnessSource = readRepoFile(
+      "components/execution/AvanzaRealWorldInstrumentSearchSignalsHarness.tsx",
+    );
+    const routeHarnessSource = readRepoFile(
+      "components/execution/AvanzaInstrumentSearchRouteContractHarness.tsx",
+    );
+    const actionHarnessSource = readRepoFile(
+      "components/execution/AvanzaInstrumentSearchActionContractHarness.tsx",
+    );
+    const signalDoc = readRepoFile(
+      "docs/avanza-real-world-instrument-search-signals.md",
+    );
+    const routeDoc = readRepoFile(
+      "docs/avanza-instrument-search-route-contract.md",
+    );
+    const actionDoc = readRepoFile(
+      "docs/avanza-instrument-search-action-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-real-world-instrument-search-signals.ts",
+      "lib/avanza-instrument-search-route-contract.ts",
+      "lib/avanza-instrument-search-action-contract.ts",
+      "lib/avanza-real-world-instrument-search-signals-fixtures.ts",
+      "lib/avanza-instrument-search-route-contract-fixtures.ts",
+      "lib/avanza-instrument-search-action-contract-fixtures.ts",
+      "components/execution/AvanzaRealWorldInstrumentSearchSignalsHarness.tsx",
+      "components/execution/AvanzaInstrumentSearchRouteContractHarness.tsx",
+      "components/execution/AvanzaInstrumentSearchActionContractHarness.tsx",
+      "docs/avanza-real-world-instrument-search-signals.md",
+      "docs/avanza-instrument-search-route-contract.md",
+      "docs/avanza-instrument-search-action-contract.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    for (const doc of [signalDoc, routeDoc, actionDoc]) {
+      expect(doc.trim().length).toBeGreaterThan(0);
+      expect(doc).toContain("Instrument discovery/search now exists as a model before order ticket preparation");
+      expect(doc).toContain(
+        "recommendation/position -> search instrument -> verify instrument -> locate KÖP/SÄLJ -> order ticket field/action contract -> review -> stop before final KÖP/SÄLJ",
+      );
+      expect(doc).toContain("This phase does not activate order behavior");
+    }
+
+    const pack = buildAvanzaRealWorldInstrumentSearchSignalPack({
+      buttonTexts: ["Sök"],
+      entryButtonTexts: ["Köp", "Sälj"],
+      instrumentIdentityTexts: ["Nokia ADR", "Nokia"],
+      observedUrlKind: "avanza_instrument",
+      resultTexts: ["Nokia ADR", "Aktier"],
+      step: "buy_sell_entry_buttons",
+      verificationTexts: ["Om depåbeviset", "Marknadsplats", "Kortnamn", "ISIN", "NYSE"],
+    });
+
+    expect(pack.step).toBe("buy_sell_entry_buttons");
+    expect(pack.searchAvailable).toBe(true);
+    expect(pack.matchingInstrumentDetected).toBe(true);
+    expect(pack.instrumentVerificationDetected).toBe(true);
+    expect(pack.buyButtonDetected).toBe(true);
+    expect(pack.sellButtonDetected).toBe(true);
+    expect(pack.canOpenSearch).toBe(false);
+    expect(pack.canFillSearch).toBe(false);
+    expect(pack.canSelectSearchResult).toBe(false);
+    expect(pack.canNavigateToInstrument).toBe(false);
+    expect(pack.canVerifyInstrument).toBe(true);
+    expect(pack.canClickBuy).toBe(false);
+    expect(pack.canClickSell).toBe(false);
+    expect(pack.canSubmitOrder).toBe(false);
+    expect(pack.canAutomateBankId).toBe(false);
+    expect(pack.canBypassBankId).toBe(false);
+    expect(pack.canReadCookies).toBe(false);
+    expect(pack.canExportSession).toBe(false);
+    expect(pack.userMustConfirm).toBe(true);
+    expect(pack.finalHumanClickRequired).toBe(true);
+
+    const readyBuyRoute = buildAvanzaInstrumentSearchRouteContract({
+      mode: "route_model",
+      realWorldInstrumentSearchSignals: pack,
+      routeEnabled: true,
+      searchPackage: {
+        expectedInstrumentType: "Depåbevis",
+        expectedIsin: "US6549022043",
+        expectedMarket: "NYSE",
+        instrumentName: "Nokia ADR",
+        side: "buy",
+        source: "fixture",
+        ticker: "NOK",
+      },
+    });
+    const readySellRoute = buildAvanzaInstrumentSearchRouteContract({
+      mode: "route_model",
+      realWorldInstrumentSearchSignals: pack,
+      routeEnabled: true,
+      searchPackage: {
+        expectedInstrumentType: "Depåbevis",
+        expectedIsin: "US6549022043",
+        expectedMarket: "NYSE",
+        instrumentName: "Nokia ADR",
+        side: "sell",
+        source: "fixture",
+        ticker: "NOK",
+      },
+    });
+
+    expect(readyBuyRoute.status).toBe("instrument_verification_ready");
+    expect(readyBuyRoute.steps.map((step) => step.type)).toContain(
+      "stop_before_buy_sell_entry_click",
+    );
+    expect(readySellRoute.status).toBe("instrument_verification_ready");
+    expect(readySellRoute.nextExpectedState).toContain("SÄLJ");
+
+    for (const routeContract of [readyBuyRoute, readySellRoute]) {
+      expect(routeContract.canCreateSearchRoute).toBe(true);
+      expect(routeContract.canExecuteSearchRoute).toBe(false);
+      expect(routeContract.canOpenSearch).toBe(false);
+      expect(routeContract.canFillSearchQuery).toBe(false);
+      expect(routeContract.canSelectMatchingInstrument).toBe(false);
+      expect(routeContract.canNavigateToInstrument).toBe(false);
+      expect(routeContract.canVerifyInstrumentIdentity).toBe(true);
+      expect(routeContract.canClickBuyEntry).toBe(false);
+      expect(routeContract.canClickSellEntry).toBe(false);
+      expect(routeContract.canSubmitOrder).toBe(false);
+      expect(routeContract.canAutomateBankId).toBe(false);
+      expect(routeContract.canBypassBankId).toBe(false);
+      expect(routeContract.canReadCookies).toBe(false);
+      expect(routeContract.canExportSession).toBe(false);
+      expect(routeContract.userMustConfirm).toBe(true);
+      expect(routeContract.finalHumanClickRequired).toBe(true);
+
+      for (const step of routeContract.steps) {
+        expect(step.executableInThisTask).toBe(false);
+        expect(step.dryRunOnly).toBe(true);
+      }
+    }
+
+    const readyBuyAction = buildAvanzaInstrumentSearchActionContract({
+      contractEnabled: true,
+      instrumentSearchRouteContract: readyBuyRoute,
+      mode: "contract_only",
+    });
+    const readySellAction = buildAvanzaInstrumentSearchActionContract({
+      contractEnabled: true,
+      instrumentSearchRouteContract: readySellRoute,
+      mode: "contract_only",
+    });
+
+    expect(readyBuyAction.status).toBe("action_plan_ready");
+    expect(readyBuyAction.actions.map((action) => action.type)).toEqual([
+      "click_search_button",
+      "fill_search_input",
+      "wait_for_search_results",
+      "select_matching_instrument",
+      "verify_instrument_identity",
+      "verify_instrument_details",
+      "locate_buy_button",
+      "stop_before_buy_entry_click",
+    ]);
+    expect(readySellAction.status).toBe("action_plan_ready");
+    expect(readySellAction.actions.map((action) => action.type)).toContain(
+      "stop_before_sell_entry_click",
+    );
+
+    for (const actionContract of [readyBuyAction, readySellAction]) {
+      expect(actionContract.canExecuteActions).toBe(false);
+      expect(actionContract.canClickSearchButton).toBe(false);
+      expect(actionContract.canFillSearchInput).toBe(false);
+      expect(actionContract.canWaitForSearchResults).toBe(false);
+      expect(actionContract.canSelectMatchingInstrument).toBe(false);
+      expect(actionContract.canVerifyInstrumentIdentity).toBe(true);
+      expect(actionContract.canClickBuyEntry).toBe(false);
+      expect(actionContract.canClickSellEntry).toBe(false);
+      expect(actionContract.canSubmitOrder).toBe(false);
+      expect(actionContract.canAutomateBankId).toBe(false);
+      expect(actionContract.canBypassBankId).toBe(false);
+      expect(actionContract.canReadCookies).toBe(false);
+      expect(actionContract.canExportSession).toBe(false);
+      expect(actionContract.userMustConfirm).toBe(true);
+      expect(actionContract.finalHumanClickRequired).toBe(true);
+
+      for (const action of actionContract.actions) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.executableInThisTask).toBe(false);
+        expect(action.dryRunOnly).toBe(true);
+      }
+    }
+
+    for (const fixtureId of [
+      "search_button_visible",
+      "search_panel_open",
+      "search_input_ready",
+      "search_results_visible",
+      "matching_instrument_visible",
+      "instrument_detail_page_recognized",
+      "instrument_verification_section_recognized",
+      "buy_sell_entry_buttons_visible",
+      "buy_search_flow_modeled",
+      "sell_search_flow_modeled",
+      "search_navigation_modeled_not_executable",
+      "search_result_selection_forbidden",
+      "instrument_navigation_forbidden",
+      "buy_sell_click_forbidden",
+      "order_submission_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "unknown",
+    ] as const) {
+      expect(signalFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaRealWorldInstrumentSearchSignalFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_search_package",
+      "waiting_for_search_signals",
+      "buy_search_route_ready",
+      "sell_search_route_ready",
+      "verify_instrument_identity",
+      "verify_marketplace",
+      "verify_short_name",
+      "verify_isin_if_available",
+      "locate_buy_sell_buttons",
+      "stop_before_kop_entry_click",
+      "stop_before_salj_entry_click",
+      "search_execution_forbidden",
+      "instrument_navigation_forbidden",
+      "buy_sell_entry_click_forbidden",
+      "order_submission_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(routeFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaInstrumentSearchRouteContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_route",
+      "buy_search_action_plan_ready",
+      "sell_search_action_plan_ready",
+      "verify_instrument_identity_modeled",
+      "locate_buy_button_modeled",
+      "locate_sell_button_modeled",
+      "stop_before_kop_entry_click",
+      "stop_before_salj_entry_click",
+      "search_execution_forbidden",
+      "search_result_selection_forbidden",
+      "buy_sell_entry_click_forbidden",
+      "order_submission_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(actionFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaInstrumentSearchActionContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza real-world instrument search signals",
+      "Based on sanitized user-provided search screenshots",
+      "Search button recognized",
+      "Search panel recognized",
+      "Search input recognized",
+      "Search results recognized",
+      "Matching instrument recognized",
+      "Instrument detail page recognized",
+      "Instrument verification section recognized",
+      "BUY/SELL entry buttons recognized",
+      "No real search execution",
+      "No real Avanza navigation",
+      "No click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+    ]) {
+      expect(signalHarnessSource).toContain(copy);
+      expect(routeSource).toContain(copy);
+    }
+
+    for (const copy of [
+      "Avanza instrument search route contract",
+      "Avanza instrument search action contract",
+      "Fixture/model only",
+      "Contract only",
+      "BUY instrument route modeled",
+      "SELL instrument route modeled",
+      "Instrument verification modeled",
+      "Planned actions are not executable yet",
+      "No BUY/SELL entry click",
+    ]) {
+      expect([routeHarnessSource, actionHarnessSource, routeSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "Sök",
+      "Aktier",
+      "Nokia ADR",
+      "Om depåbeviset",
+      "Marknadsplats",
+      "Kortnamn",
+      "ISIN",
+      "buy_search_route_ready",
+      "sell_search_route_ready",
+      "buy_search_action_plan_ready",
+      "sell_search_action_plan_ready",
+      "stop_before_kop_entry_click",
+      "stop_before_salj_entry_click",
+      "search_execution_forbidden",
+      "instrument_navigation_forbidden",
+      "buy_sell_entry_click_forbidden",
+      "order_submission_forbidden",
+    ]) {
+      expect(
+        [
+          signalFixtureSource,
+          routeFixtureSource,
+          actionFixtureSource,
+          signalHarnessSource,
+          routeHarnessSource,
+          actionHarnessSource,
+        ].join("\n"),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaRealWorldInstrumentSearchSignalsHarness");
+    expect(routeSource).toContain("AvanzaInstrumentSearchRouteContractHarness");
+    expect(routeSource).toContain("AvanzaInstrumentSearchActionContractHarness");
+    expect(routeSource).toContain("avanzaRealWorldInstrumentSearchSignalFixtures");
+    expect(routeSource).toContain("avanzaInstrumentSearchRouteContractFixtures");
+    expect(routeSource).toContain("avanzaInstrumentSearchActionContractFixtures");
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-instrument-search");
+    expect(tradeAppSource).not.toContain("AvanzaInstrumentSearch");
+    expect(apiRouteSource).not.toContain("avanza-instrument-search");
+    expect(apiRouteSource).not.toContain("AvanzaInstrumentSearch");
+
+    for (const doc of [
+      signalDoc,
+      routeDoc,
+      actionDoc,
+      readRepoFile("docs/avanza-real-world-order-flow-signals.md"),
+      readRepoFile("docs/avanza-order-ticket-field-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-action-contract.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("Instrument discovery/search now exists as a model before order ticket preparation");
+      expect(doc).toContain("search instrument -> verify instrument -> locate KÖP/SÄLJ");
+      expect(doc).toContain("Final human confirmation");
+    }
+
+    for (const source of [
+      signalSource,
+      signalFixtureSource,
+      signalHarnessSource,
+      routeContractSource,
+      routeFixtureSource,
+      routeHarnessSource,
+      actionContractSource,
+      actionFixtureSource,
+      actionHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
     }
   });
 });

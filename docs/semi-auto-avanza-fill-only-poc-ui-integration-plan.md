@@ -3698,3 +3698,385 @@ Trade UI boundary, the inactive runtime state, the completed layer index, key
 files, safety invariants, approval gate, and safe next-step options.
 Canonical handoff summary path:
 `docs/avanza-disabled-local-only-chain-handoff-summary.md`.
+
+Sharp Semi Auto Execution Agent scope:
+[Avanza Sharp Semi Auto Execution Agent scope](avanza-sharp-semi-auto-execution-agent-scope.md)
+opens the new explicit user-approved planning direction. The previous disabled
+local-only chain remains locked as the safety foundation. The new phase allows
+planning for local browser control, username/password login if logged out,
+BUY/SELL limit form fill, result capture, and Ture registration while still
+forbidding final order confirmation clicks, BankID bypass, credential logging,
+cookie/session extraction, and production readiness claims.
+
+Engine/Execution Agent contract:
+[Ture Engine Execution Agent contract](ture-engine-execution-agent-contract.md)
+defines the Recommendation Engine as decision-maker, the Execution Agent as the
+broker-action executor/preparer, and the Ture App as registration, audit,
+lifecycle, statistics, and learning owner.
+
+Canonical Sharp Semi Auto paths:
+`docs/avanza-sharp-semi-auto-execution-agent-scope.md` and
+`docs/ture-engine-execution-agent-contract.md`.
+
+Local browser agent runtime foundation:
+`lib/avanza-local-browser-agent-runtime.ts`,
+`lib/avanza-local-browser-agent-runtime-fixtures.ts`, and
+`components/execution/AvanzaLocalBrowserAgentRuntimeHarness.tsx` add the first
+active-direction runtime model for the Sharp Semi Auto Execution Agent. The
+dev-only Avanza visual QA route renders this layer as fixture/model-only.
+
+The layer models local browser runtime readiness but remains non-executing in
+this task. It does not launch or connect to a browser, navigate to Avanza, log
+in, handle credentials, fill BUY/SELL forms, call API routes, fetch, submit
+orders, click final KÖP/SÄLJ, automate/bypass BankID, or write Supabase
+execution records.
+
+Login and credential readiness foundation:
+`lib/avanza-login-state-detector.ts`,
+`lib/avanza-login-state-detector-fixtures.ts`,
+`lib/avanza-secure-credential-provider.ts`,
+`lib/avanza-secure-credential-provider-fixtures.ts`, and
+`components/execution/AvanzaLoginAndCredentialReadinessHarness.tsx` add pure
+modeling for Avanza login-state classification and secure local credential
+provider readiness. The dev-only Avanza visual QA route renders these as
+fixture/model-only.
+
+No actual login is implemented. No credential material access or return is
+implemented. No Keychain access, 1Password CLI call, environment-variable read,
+cookies/session handling, Avanza navigation, form fill, order submission,
+BankID automation/bypass, final KÖP/SÄLJ click, or Supabase execution write is
+implemented. Username/password login remains allowed only after secure provider
+implementation and explicit local-dev guard. BankID/MFA remains manual user
+action only.
+
+Local Playwright browser adapter foundation:
+`lib/avanza-local-playwright-browser-adapter.ts`,
+`lib/avanza-local-playwright-browser-adapter-fixtures.ts`, and
+`components/execution/AvanzaLocalPlaywrightBrowserAdapterHarness.tsx` add an
+explicit local/dev adapter model and callable contract. The dev-only Avanza
+visual QA route renders this layer as fixture/model-only.
+
+The adapter does not launch a browser during render, navigate to Avanza, log
+in, handle credentials, read cookies, export sessions, fill forms, click,
+submit orders, click final KÖP/SÄLJ, automate or bypass BankID, call API
+routes, fetch, or write Supabase execution records. Browser launch,
+existing-browser connection, and page snapshot reads are modeled only through
+explicit local/dev callable methods.
+
+Avanza page/state detector foundation:
+`lib/avanza-page-state-detector.ts`,
+`lib/avanza-page-state-detector-fixtures.ts`, and
+`components/execution/AvanzaPageStateDetectorHarness.tsx` add read-only
+classification for explicit page snapshot/signals. The dev-only Avanza visual
+QA route renders this layer as fixture/model-only.
+
+The detector does not navigate, log in, handle credentials, read cookies,
+export sessions, fill forms, click, submit orders, click final KÖP/SÄLJ,
+automate or bypass BankID, call API routes, fetch, or write Supabase execution
+records. BankID/MFA states remain manual-action only.
+
+Sanitized real-world snapshot intake:
+`lib/avanza-sanitized-page-snapshot.ts`,
+`lib/avanza-sanitized-page-snapshot-fixtures.ts`,
+`components/execution/AvanzaSanitizedPageSnapshotHarness.tsx`, and
+`docs/avanza-real-world-snapshot-capture-guide.md` add a safe path for manual
+Avanza screenshot/DOM notes.
+
+This prepares accurate detector and form-mapping work without adding live
+navigation, login, credential handling, form fill, click, order submission,
+API route calls, fetch, BankID automation/bypass, or Supabase execution writes.
+Sensitive material is forbidden in fixtures and docs.
+
+Real-world Avanza login signal pack:
+`lib/avanza-real-world-login-signals.ts`,
+`lib/avanza-real-world-login-signals-fixtures.ts`,
+`components/execution/AvanzaRealWorldLoginSignalsHarness.tsx`, and
+`docs/avanza-real-world-login-flow-signals.md` add a sanitized signal pack for
+the user-provided login-flow visual material.
+
+The dev-only Avanza visual QA route renders this layer as fixture/model-only
+content. It recognizes `Användarnamn och lösenord`, `Privatkund`, `Företag`,
+`Logga in`, `Avbryt`, `Logga in på företagswebben`, `Visa QR-kod`, and
+`Öppna BankID på samma enhet` without adding Trade UI wiring, login,
+credential handling, form fill, click, Avanza navigation, API calls, fetch,
+order submission, BankID automation/bypass, or Supabase execution writes.
+
+Ture Avanza execution settings profile:
+`lib/avanza-execution-settings-profile.ts`,
+`lib/avanza-execution-settings-profile-fixtures.ts`,
+`components/execution/AvanzaExecutionSettingsProfileHarness.tsx`, and
+`docs/avanza-execution-settings-profile.md` add fixture/model-only visibility
+for user-selected `Privat`/`Företag`, username/password-only login method, and
+secure credential provider readiness.
+
+The model does not add settings UI, settings persistence, credential access,
+Keychain access, 1Password CLI calls, environment reads, cookie/session
+handling, actual login, form fill, active controls, API calls, fetches, order
+behavior, or Supabase writes. BankID remains forbidden for automation.
+
+Avanza login route planner:
+`lib/avanza-login-route-planner.ts`,
+`lib/avanza-login-route-planner-fixtures.ts`,
+`components/execution/AvanzaLoginRoutePlannerHarness.tsx`, and
+`docs/avanza-login-route-planner.md` add fixture/model-only route planning for
+the Sharp Semi Auto Execution Agent.
+
+The planner uses explicit inputs only and lets `Privat`/`Företag` from Ture
+Settings drive distinct username/password route plans. BankID/MFA options are
+manual-action only. Action steps such as selecting the username/password method,
+choosing the company toggle, filling username/password, and submitting login are
+planned but not executable yet. No Trade UI wiring, actual navigation, login,
+credential handling, form fill, click, API route call, fetch, order behavior, or
+Supabase execution write is added.
+
+## Avanza Login Action Contract
+
+Login action contract is now modeled in
+`lib/avanza-login-action-contract.ts`,
+`lib/avanza-login-action-contract-fixtures.ts`,
+`components/execution/AvanzaLoginActionContractHarness.tsx`, and
+`docs/avanza-login-action-contract.md`.
+
+It is the bridge between route planning and future browser actions. Actions are
+currently contract-only and non-executable. No credential material appears in
+action output.
+
+The fixture/model-only dev QA route can display private and company
+username/password action plans, credentials-waiting states, and BankID/MFA
+manual-action stops. No actual navigation, login, credential access, form fill,
+click, API route call, fetch, order behavior, final KÖP/SÄLJ click, or Supabase
+write is implemented by this phase.
+
+## Avanza Login Dry-Run Executor
+
+Login dry-run executor is now modeled in
+`lib/avanza-login-dry-run-executor.ts`,
+`lib/avanza-login-dry-run-executor-fixtures.ts`,
+`components/execution/AvanzaLoginDryRunExecutorHarness.tsx`, and
+`docs/avanza-login-dry-run-executor.md`.
+
+It verifies that login action plans are internally coherent before any real
+action execution. It consumes the login action contract and produces dry-run
+action reports for fixture/model-only visibility on the dev QA route.
+
+This phase remains non-executing: no Trade UI wiring, no actual navigation, no
+login, no credential access or return, no username/password form fill, no
+click, no API route call, no fetch, no cookies/session handling, no order
+behavior, no final KÖP/SÄLJ click, no BankID automation/bypass, and no Supabase
+execution write is added.
+
+## Avanza Login Mock Page Executor
+
+Mock executor is now modeled in
+`lib/avanza-login-mock-page-executor.ts`,
+`lib/avanza-login-mock-page-executor-fixtures.ts`,
+`components/execution/AvanzaLoginMockPageExecutorHarness.tsx`, and
+`docs/avanza-login-mock-page-executor.md`.
+
+It can simulate private/company login action sequences against an in-memory
+mock page model. It remains mock-only and non-browser. It still does not access
+credentials.
+
+This phase adds fixture/dev-QA visibility only: no Trade UI wiring, no actual
+Avanza navigation, no actual login, no credential access or return, no real
+form fill, no real click, no API route call, no fetch, no cookies/session
+handling, no order behavior, no final KÖP/SÄLJ click, no BankID
+automation/bypass, and no Supabase execution write is added.
+
+## Avanza Login Local-Dev Executor
+
+Local-dev executor contract is now modeled in
+`lib/avanza-login-local-dev-executor.ts`,
+`lib/avanza-login-local-dev-executor-fixtures.ts`,
+`components/execution/AvanzaLoginLocalDevExecutorHarness.tsx`, and
+`docs/avanza-login-local-dev-executor.md`.
+
+It can execute through explicitly injected mock/page dependencies only. It does
+not resolve credentials yet, does not run by default, and is not wired into
+Trade UI. It uses credential references only.
+
+This phase adds fixture/dev-QA visibility for the contract only: no Trade UI
+wiring, no actual Avanza navigation orchestration, no real credential provider
+access, no raw credential return, no cookies/session handling, no order
+behavior, no final KÖP/SÄLJ click, no API route call from Trade UI, no fetch
+from Trade UI, and no Supabase execution write is added.
+
+### macOS Keychain credential provider contract
+
+The macOS Keychain provider contract now exists at
+`lib/avanza-macos-keychain-credential-provider.ts`, with fixtures in
+`lib/avanza-macos-keychain-credential-provider-fixtures.ts`, a harness in
+`components/execution/AvanzaMacosKeychainCredentialProviderHarness.tsx`, and a
+fixture/mock-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It provides credential references for local-dev login work. It does not expose
+raw credential material. It is not wired into Trade UI yet, does not change the
+disabled fill-only API route, does not read environment variables, does not use
+Supabase/localStorage credential storage, does not automate BankID, and does
+not submit orders.
+
+It is not wired into Trade UI yet.
+
+### Avanza login credential resolution bridge
+
+Credential resolution bridge now exists at
+`lib/avanza-login-credential-resolution-bridge.ts`, with fixtures in
+`lib/avanza-login-credential-resolution-bridge-fixtures.ts`, a harness in
+`components/execution/AvanzaLoginCredentialResolutionBridgeHarness.tsx`, and a
+fixture/mock-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It prepares safe local-dev login execution. It does not expose credential
+material. It is not wired into Trade UI yet. No API route call, fetch, settings
+UI, settings persistence, environment fallback, Supabase/localStorage
+credential storage, BankID automation, or order behavior is added.
+
+### Avanza local-dev credential executor with runtime bundle
+
+Local-dev credential executor now exists at
+`lib/avanza-login-local-dev-credential-executor.ts`, with fixtures in
+`lib/avanza-login-local-dev-credential-executor-fixtures.ts`, a harness in
+`components/execution/AvanzaLoginLocalDevCredentialExecutorHarness.tsx`, and a
+fixture/mock-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It can use a private runtime credential bundle with injected dependencies. It is
+still not wired into Trade UI. It does not include order behavior.
+
+### Avanza local Playwright page action binding
+
+Playwright page action binding now exists at
+`lib/avanza-local-playwright-page-action-binding.ts`, with fixtures in
+`lib/avanza-local-playwright-page-action-binding-fixtures.ts`, a harness in
+`components/execution/AvanzaLocalPlaywrightPageActionBindingHarness.tsx`, and a
+fixture/mock-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It can supply injected dependencies to the local-dev credential executor. It is
+still not wired to Trade UI or any active API route. It does not include order
+behavior.
+
+### Avanza isolated login smoke test
+
+Isolated login smoke test planning now exists at
+`lib/avanza-isolated-login-smoke-test.ts`, with fixtures in
+`lib/avanza-isolated-login-smoke-test-fixtures.ts`, a harness in
+`components/execution/AvanzaIsolatedLoginSmokeTestHarness.tsx`, and a
+fixture/model-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It is the first safe wrapper for future real local-dev login testing. It
+remains disconnected from Trade UI, disconnected from API routes, and
+disconnected from order flow. It models explicit local-dev/manual terminal/env
+opt-in gates, blocks CI, hides credential values, does not read cookies/session,
+does not automate BankID, does not submit orders, and does not click final
+KÖP/SÄLJ.
+
+### Avanza isolated login smoke test runner
+
+Hard-gated smoke test runner now exists at
+`lib/avanza-isolated-login-smoke-test-runner.ts`, with fixtures in
+`lib/avanza-isolated-login-smoke-test-runner-fixtures.ts`, a harness in
+`components/execution/AvanzaIsolatedLoginSmokeTestRunnerHarness.tsx`, and a
+fixture/model-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It is the first explicit local terminal entrypoint model. It remains
+disconnected from Trade UI, disconnected from API routes, and disconnected from
+order flow. It calls injected dependencies only after local-dev, non-CI,
+explicit env opt-in, manual terminal confirmation, real page, credential
+bundle, username/password, and navigation gates pass. It does not expose
+credentials, read cookies/session, automate BankID, submit orders, or click
+final KÖP/SÄLJ.
+
+### Avanza terminal login smoke script scaffold
+
+The terminal-only script scaffold now exists at
+`scripts/avanza-login-smoke-test.local.ts`, with fixture states in
+`lib/avanza-terminal-login-smoke-script-fixtures.ts`, a harness in
+`components/execution/AvanzaTerminalLoginSmokeScriptHarness.tsx`, and a
+fixture/model-only section on `app/dev/avanza-visual-qa/page.tsx`.
+
+It remains disconnected from Trade UI, disconnected from API routes, and
+disconnected from order flow. It is default-safe and hard-gated: CI is blocked,
+`TURE_AVANZA_LOGIN_SMOKE_TEST=1` is required, manual local confirmation is
+required, and `TURE_AVANZA_LOGIN_REAL_RUN=1` is required before explicit
+real-run mode can be modeled. It does not expose credentials, read
+cookies/session, automate BankID, submit orders, or click final KÖP/SÄLJ.
+
+### Passive Ture Settings UI scaffold
+
+A passive Ture Settings UI scaffold now exists in
+`components/execution/AvanzaExecutionSettingsProfilePanel.tsx` and is rendered
+from Settings. Fixture/model-only coverage lives in
+`lib/avanza-execution-settings-profile-ui-fixtures.ts` and
+`components/execution/AvanzaExecutionSettingsProfilePanelHarness.tsx`, with a
+dev-only visual QA route section.
+
+The scaffold models account type and credential readiness only. It supports
+`Privat`, `Företag`, and `Not selected`, uses username/password only, keeps
+BankID forbidden/manual-action only, and models macOS Keychain as preferred.
+
+It uses local component state only. It does not store or display raw
+credentials, does not persist credential material in Supabase or localStorage,
+does not access Keychain from UI, and does not execute login, smoke tests,
+browser actions, API calls, orders, or final KÖP/SÄLJ.
+
+### Avanza order flow signals and ticket field contract
+
+Real-world order flow signals now exist in
+`lib/avanza-real-world-order-flow-signals.ts`, with fixtures in
+`lib/avanza-real-world-order-flow-signals-fixtures.ts`, a harness in
+`components/execution/AvanzaRealWorldOrderFlowSignalsHarness.tsx`, and a
+fixture/model-only dev QA route section.
+
+The signal pack is based on sanitized user-provided BUY-flow material. SELL is
+modeled from the same structure with sell labels. It recognizes instrument
+order panel, review, success confirmation, failed confirmation, order list, and
+order detail states.
+
+The Avanza BUY/SELL order ticket field contract now exists in
+`lib/avanza-order-ticket-field-contract.ts`, with fixtures in
+`lib/avanza-order-ticket-field-contract-fixtures.ts`, a harness in
+`components/execution/AvanzaOrderTicketFieldContractHarness.tsx`, and a
+fixture/model-only dev QA route section.
+
+This is the first order-side model after login readiness. It supports limit
+orders only and models BUY/SELL preparation without activating order behavior.
+No real Avanza form fill, click behavior, final KÖP/SÄLJ click, order
+submission, Trade UI wiring, API route wiring, or Supabase execution write is
+added. Final human confirmation remains mandatory.
+
+This phase does not activate order behavior.
+
+### Avanza order ticket action contract
+
+The Avanza order ticket action contract now exists in
+`lib/avanza-order-ticket-action-contract.ts`, with fixtures in
+`lib/avanza-order-ticket-action-contract-fixtures.ts`, a harness in
+`components/execution/AvanzaOrderTicketActionContractHarness.tsx`, and a
+fixture/model-only dev QA route section.
+
+It is the bridge between order field mapping and future order-fill execution.
+It converts `AvanzaOrderTicketFieldPlan` into future BUY/SELL limit-order
+preparation actions.
+
+The action plan remains contract-only. Planned actions are not executable yet.
+The agent must stop before final KÖP/SÄLJ, and final human confirmation remains
+mandatory.
+
+This phase does not activate order behavior. No Trade UI wiring, API route
+wiring, real Avanza form fill, click behavior, order submission, confirmation
+capture, or Supabase execution write is added.
+
+### Avanza instrument search route and action contracts
+
+Instrument discovery/search now exists as a model before order ticket preparation.
+
+The new model layers are:
+
+- `lib/avanza-real-world-instrument-search-signals.ts`
+- `lib/avanza-instrument-search-route-contract.ts`
+- `lib/avanza-instrument-search-action-contract.ts`
+
+The execution package flow is now: recommendation/position -> search instrument -> verify instrument -> locate KÖP/SÄLJ -> order ticket field/action contract -> review -> stop before final KÖP/SÄLJ.
+
+This phase does not activate order behavior. No real search execution, Avanza
+navigation, click behavior, BUY/SELL entry click, order submission, Trade UI
+wiring, API route wiring, confirmation capture, or Supabase execution write is
+added. Final human confirmation remains mandatory.
