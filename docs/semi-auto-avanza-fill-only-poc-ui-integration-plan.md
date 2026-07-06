@@ -4080,3 +4080,98 @@ This phase does not activate order behavior. No real search execution, Avanza
 navigation, click behavior, BUY/SELL entry click, order submission, Trade UI
 wiring, API route wiring, confirmation capture, or Supabase execution write is
 added. Final human confirmation remains mandatory.
+
+### Avanza instrument to order handoff chain
+
+The pre-submit order chain is now modeled end-to-end in `lib/avanza-instrument-to-order-handoff-chain.ts`.
+
+It links execution package -> instrument search package -> search route contract -> search action contract -> verified instrument handoff state -> order ticket field plan -> order ticket action contract -> stop before final KÖP/SÄLJ.
+
+This still does not activate execution. No real search execution, Avanza navigation, form fill, click behavior, BUY/SELL entry click, final KÖP/SÄLJ click, order submission, Trade UI wiring, API route wiring, confirmation capture, or Supabase execution write is added. Final human confirmation remains mandatory.
+
+### Avanza instrument to order dry-run executor
+
+The chain now has a dry-run validation layer in
+`lib/avanza-instrument-to-order-dry-run-executor.ts`.
+
+It renders on the dev-only visual QA route as fixture/model-only visibility for
+disabled, waiting, blocked, failed verification, failed order plan, BUY dry-run,
+SELL dry-run, forbidden final click, cookie/session forbidden, BankID forbidden,
+error, and unknown states.
+
+This still does not activate execution. No real search execution, Avanza
+navigation, form fill, click behavior, BUY/SELL entry click, final KÖP/SÄLJ
+click, order submission, Trade UI wiring, API route wiring, confirmation
+capture, or Supabase execution write is added. Final human confirmation remains
+mandatory.
+
+### Avanza instrument to order mock executor
+
+The chain now has a mock execution layer after dry-run in
+`lib/avanza-instrument-to-order-mock-executor.ts`.
+
+It renders on the dev-only visual QA route as fixture/model-only visibility for
+BUY, SELL, search simulation, instrument verification, order ticket preparation,
+review-ready state, missing instrument, verification failure, order ticket
+blocked, forbidden real search/navigation/fill/click/order submission,
+cookie/session forbidden, BankID forbidden, error, and unknown states.
+
+This still does not activate real Avanza execution. No real search execution,
+Avanza navigation, form fill, click behavior, BUY/SELL entry click, final
+KÖP/SÄLJ click, order submission, Trade UI wiring, API route wiring,
+confirmation capture, or Supabase execution write is added. Final human
+confirmation remains mandatory.
+
+### Avanza settlement note / order information signals
+
+Settlement note signals now exist as the post-trade reconciliation foundation.
+Exact courtage, FX/exchange rate, settlement amount, and realized execution
+cost are future extraction targets from Avanza avräkningsnota after the user
+manually confirms execution.
+
+This is fixture/model-only in this phase. It does not activate post-trade
+navigation, PDF/download/read, OCR, value extraction, trade reconciliation
+writes, Trade UI wiring, API route wiring, cookie/session handling, BankID
+automation, or Supabase execution writes.
+
+Settlement route/action contracts now exist. They prepare future note
+retrieval/extraction by modeling the route from trade reference to matching
+transaction and Avräkningsnota. They do not activate reconciliation or writes.
+
+### Settlement extraction schema and reconciliation mapping
+
+Settlement extraction schema and reconciliation mapping now exist. Exact
+cost/FX reconciliation is modeled but not applied.
+
+The schema models courtage, FX/växelkurs, settlement amount, trade date,
+settlement date, quantity, price, and currency as future avräkningsnota
+targets. The mapping previews future execution, trade result, statistics/PnL,
+and audit metadata targets.
+
+This still does not activate document reading, OCR, value extraction,
+reconciliation writes, Supabase writes, Trade UI wiring, API route wiring,
+cookie/session handling, or BankID automation.
+
+### Settlement reconciliation dry-run executor
+
+Settlement reconciliation now has a dry-run validation layer. It simulates the
+full post-trade path from executed trade reference through
+route/action/schema/mapping to manual review and stop-before-write.
+
+Exact cost/FX reconciliation remains modeled only. No document reading,
+PDF/download/read, OCR, value extraction, reconciliation writes, Supabase
+writes, Trade UI wiring, or API route wiring is active.
+
+### Settlement reconciliation mock executor
+
+Settlement reconciliation now has a mock execution layer after dry-run. It
+simulates the full post-trade path from executed trade reference through
+transaction matching, Avräkningsnota availability, masked/synthetic courtage,
+masked/synthetic FX/växelkurs, masked/synthetic settlement amount,
+reconciliation preview, and manual review.
+
+The mock layer renders on the dev-only visual QA route as fixture/model-only
+visibility. It does not activate real Avanza navigation, document reading,
+PDF/download/read, OCR, real value extraction, reconciliation writes, Supabase
+writes, Trade UI wiring, or API route wiring. Exact cost/FX reconciliation
+remains modeled/mock-only.

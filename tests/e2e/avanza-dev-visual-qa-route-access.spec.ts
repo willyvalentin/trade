@@ -227,6 +227,48 @@ import {
   avanzaRealWorldOrderFlowSignalFixtures,
 } from "../../lib/avanza-real-world-order-flow-signals-fixtures";
 import {
+  buildAvanzaSettlementNoteSignalPack,
+} from "../../lib/avanza-real-world-settlement-note-signals";
+import {
+  avanzaSettlementNoteSignalFixtures,
+} from "../../lib/avanza-real-world-settlement-note-signals-fixtures";
+import {
+  buildAvanzaSettlementNoteRouteContract,
+} from "../../lib/avanza-settlement-note-route-contract";
+import {
+  avanzaSettlementNoteRouteContractFixtures,
+} from "../../lib/avanza-settlement-note-route-contract-fixtures";
+import {
+  buildAvanzaSettlementNoteActionContract,
+} from "../../lib/avanza-settlement-note-action-contract";
+import {
+  avanzaSettlementNoteActionContractFixtures,
+} from "../../lib/avanza-settlement-note-action-contract-fixtures";
+import {
+  buildAvanzaSettlementExtractionTargetSchema,
+} from "../../lib/avanza-settlement-note-extraction-schema";
+import {
+  avanzaSettlementNoteExtractionSchemaFixtures,
+} from "../../lib/avanza-settlement-note-extraction-schema-fixtures";
+import {
+  buildAvanzaSettlementReconciliationPreview,
+} from "../../lib/avanza-settlement-reconciliation-mapping";
+import {
+  avanzaSettlementReconciliationMappingFixtures,
+} from "../../lib/avanza-settlement-reconciliation-mapping-fixtures";
+import {
+  buildAvanzaSettlementReconciliationDryRunReport,
+} from "../../lib/avanza-settlement-reconciliation-dry-run-executor";
+import {
+  avanzaSettlementReconciliationDryRunExecutorFixtures,
+} from "../../lib/avanza-settlement-reconciliation-dry-run-executor-fixtures";
+import {
+  buildAvanzaSettlementReconciliationMockExecutorReport,
+} from "../../lib/avanza-settlement-reconciliation-mock-executor";
+import {
+  avanzaSettlementReconciliationMockExecutorFixtures,
+} from "../../lib/avanza-settlement-reconciliation-mock-executor-fixtures";
+import {
   buildAvanzaLoginStateModel,
 } from "../../lib/avanza-login-state-detector";
 import {
@@ -274,6 +316,24 @@ import {
 import {
   avanzaInstrumentSearchActionContractFixtures,
 } from "../../lib/avanza-instrument-search-action-contract-fixtures";
+import {
+  buildAvanzaInstrumentToOrderHandoffChain,
+} from "../../lib/avanza-instrument-to-order-handoff-chain";
+import {
+  avanzaInstrumentToOrderHandoffChainFixtures,
+} from "../../lib/avanza-instrument-to-order-handoff-chain-fixtures";
+import {
+  buildAvanzaInstrumentToOrderDryRunReport,
+} from "../../lib/avanza-instrument-to-order-dry-run-executor";
+import {
+  avanzaInstrumentToOrderDryRunExecutorFixtures,
+} from "../../lib/avanza-instrument-to-order-dry-run-executor-fixtures";
+import {
+  buildAvanzaInstrumentToOrderMockExecutorReport,
+} from "../../lib/avanza-instrument-to-order-mock-executor";
+import {
+  avanzaInstrumentToOrderMockExecutorFixtures,
+} from "../../lib/avanza-instrument-to-order-mock-executor-fixtures";
 import {
   avanzaExecutionSettingsProfileUiFixtures,
 } from "../../lib/avanza-execution-settings-profile-ui-fixtures";
@@ -38171,6 +38231,2429 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(
         /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
       );
+    }
+  });
+
+  test("Avanza instrument search to order ticket handoff chain is fixture-model only", () => {
+    const chainSource = readRepoFile(
+      "lib/avanza-instrument-to-order-handoff-chain.ts",
+    );
+    const chainFixtureSource = readRepoFile(
+      "lib/avanza-instrument-to-order-handoff-chain-fixtures.ts",
+    );
+    const chainHarnessSource = readRepoFile(
+      "components/execution/AvanzaInstrumentToOrderHandoffChainHarness.tsx",
+    );
+    const chainDoc = readRepoFile(
+      "docs/avanza-instrument-to-order-handoff-chain.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-instrument-to-order-handoff-chain.ts",
+      "lib/avanza-instrument-to-order-handoff-chain-fixtures.ts",
+      "components/execution/AvanzaInstrumentToOrderHandoffChainHarness.tsx",
+      "docs/avanza-instrument-to-order-handoff-chain.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    expect(chainDoc.trim().length).toBeGreaterThan(0);
+    expect(chainDoc).toContain("The handoff chain links instrument search and order ticket preparation");
+    expect(chainDoc).toContain("recommendation/live position -> search instrument -> verify instrument -> locate KÖP/SÄLJ");
+    expect(chainDoc).toContain("No real search execution");
+    expect(chainDoc).toContain("No navigation/click yet");
+    expect(chainDoc).toContain("Final human confirmation remains mandatory");
+
+    const readyBuyFixture = avanzaInstrumentToOrderHandoffChainFixtures.find(
+      (fixture) => fixture.fixtureId === "complete_buy_handoff_chain_ready",
+    );
+    const readySellFixture = avanzaInstrumentToOrderHandoffChainFixtures.find(
+      (fixture) => fixture.fixtureId === "complete_sell_handoff_chain_ready",
+    );
+
+    expect(readyBuyFixture).toBeTruthy();
+    expect(readySellFixture).toBeTruthy();
+
+    const readyBuy = readyBuyFixture!.chain;
+    const readySell = readySellFixture!.chain;
+
+    expect(readyBuy.status).toBe("handoff_chain_ready");
+    expect(readySell.status).toBe("handoff_chain_ready");
+    expect(readyBuy.side).toBe("buy");
+    expect(readySell.side).toBe("sell");
+    expect(readyBuy.steps.map((step) => step.type)).toEqual([
+      "build_instrument_search_package",
+      "plan_instrument_search_route",
+      "plan_instrument_search_actions",
+      "verify_instrument_identity",
+      "build_verified_instrument_state",
+      "build_order_ticket_field_plan",
+      "build_order_ticket_action_contract",
+      "stop_before_final_buy",
+      "stop_for_manual_user_action",
+    ]);
+    expect(readySell.steps.map((step) => step.type)).toContain(
+      "stop_before_final_sell",
+    );
+
+    for (const chain of [readyBuy, readySell]) {
+      expect(chain.canBuildChain).toBe(true);
+      expect(chain.canExecuteChain).toBe(false);
+      expect(chain.canSearchInstrument).toBe(false);
+      expect(chain.canNavigateToInstrument).toBe(false);
+      expect(chain.canVerifyInstrument).toBe(true);
+      expect(chain.canOpenBuyEntry).toBe(false);
+      expect(chain.canOpenSellEntry).toBe(false);
+      expect(chain.canBuildOrderFieldPlan).toBe(true);
+      expect(chain.canBuildOrderActionContract).toBe(true);
+      expect(chain.canFillOrderFields).toBe(false);
+      expect(chain.canClickFinalBuy).toBe(false);
+      expect(chain.canClickFinalSell).toBe(false);
+      expect(chain.canSubmitOrder).toBe(false);
+      expect(chain.canAutomateBankId).toBe(false);
+      expect(chain.canBypassBankId).toBe(false);
+      expect(chain.canReadCookies).toBe(false);
+      expect(chain.canExportSession).toBe(false);
+      expect(chain.userMustConfirm).toBe(true);
+      expect(chain.finalHumanClickRequired).toBe(true);
+      expect(chain.controlsEnabled).toBe(false);
+      expect(chain.gateLocked).toBe(true);
+      expect(chain.verifiedInstrumentState.status).toBe("verified_model_only");
+
+      for (const step of chain.steps) {
+        expect(step.executableInThisTask).toBe(false);
+        expect(step.dryRunOnly).toBe(true);
+      }
+    }
+
+    const waitingSearch = buildAvanzaInstrumentToOrderHandoffChain({
+      chainEnabled: true,
+      executionPackage: {
+        limitPrice: 125.5,
+        orderType: "limit",
+        quantity: 10,
+        side: "buy",
+        source: "fixture",
+        ticker: "NOK",
+      },
+      mode: "chain_model",
+    });
+    const invalidPackage = buildAvanzaInstrumentToOrderHandoffChain({
+      chainEnabled: true,
+      executionPackage: {
+        limitPrice: 0,
+        orderType: "market_forbidden",
+        quantity: 0,
+        side: "unknown",
+      },
+      mode: "chain_model",
+    });
+
+    expect(waitingSearch.status).toBe("waiting_for_instrument_search");
+    expect(invalidPackage.status).toBe("blocked");
+    expect(invalidPackage.canExecuteChain).toBe(false);
+    expect(invalidPackage.canSubmitOrder).toBe(false);
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_execution_package",
+      "invalid_execution_package",
+      "waiting_for_instrument_search",
+      "waiting_for_instrument_verification",
+      "instrument_verification_blocked",
+      "verified_buy_instrument_handoff_state",
+      "verified_sell_instrument_handoff_state",
+      "waiting_for_order_field_plan",
+      "waiting_for_order_action_contract",
+      "complete_buy_handoff_chain_ready",
+      "complete_sell_handoff_chain_ready",
+      "stop_before_final_kop",
+      "stop_before_final_salj",
+      "order_submission_forbidden",
+      "search_execution_forbidden",
+      "navigation_forbidden",
+      "form_fill_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(chainFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaInstrumentToOrderHandoffChainFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza instrument search to order ticket handoff chain",
+      "Fixture/model only",
+      "Full pre-submit chain modeled",
+      "Execution package to instrument search modeled",
+      "Instrument verification modeled",
+      "Verified instrument to order ticket modeled",
+      "BUY handoff chain modeled",
+      "SELL handoff chain modeled",
+      "Planned steps are not executable yet",
+      "No real search execution",
+      "No real Avanza navigation",
+      "No real form fill",
+      "No click",
+      "No BUY/SELL entry click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+      "canExecuteChain",
+      "canSearchInstrument",
+      "canNavigateToInstrument",
+      "canVerifyInstrument",
+      "canOpenBuyEntry",
+      "canOpenSellEntry",
+      "canFillOrderFields",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canSubmitOrder",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "canReadCookies",
+      "canExportSession",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([chainHarnessSource, routeSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaInstrumentToOrderHandoffChainHarness");
+    expect(routeSource).toContain("avanzaInstrumentToOrderHandoffChainFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-instrument-to-order-handoff-chain");
+    expect(tradeAppSource).not.toContain("AvanzaInstrumentToOrderHandoffChain");
+    expect(apiRouteSource).not.toContain("avanza-instrument-to-order-handoff-chain");
+    expect(apiRouteSource).not.toContain("AvanzaInstrumentToOrderHandoffChain");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaInstrumentToOrderHandoffChain",
+    );
+    expect(smokeScriptSource).not.toContain("avanza-instrument-to-order-handoff-chain");
+
+    for (const doc of [
+      chainDoc,
+      readRepoFile("docs/avanza-real-world-instrument-search-signals.md"),
+      readRepoFile("docs/avanza-instrument-search-route-contract.md"),
+      readRepoFile("docs/avanza-instrument-search-action-contract.md"),
+      readRepoFile("docs/avanza-real-world-order-flow-signals.md"),
+      readRepoFile("docs/avanza-order-ticket-field-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-action-contract.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("pre-submit order chain is now modeled end-to-end");
+      expect(doc).toContain("does not activate execution");
+      expect(doc).toContain("Final human confirmation");
+    }
+
+    for (const source of [
+      chainSource,
+      chainFixtureSource,
+      chainHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+    }
+  });
+
+  test("Avanza instrument to order dry-run executor is fixture-model only", () => {
+    const dryRunSource = readRepoFile(
+      "lib/avanza-instrument-to-order-dry-run-executor.ts",
+    );
+    const dryRunFixtureSource = readRepoFile(
+      "lib/avanza-instrument-to-order-dry-run-executor-fixtures.ts",
+    );
+    const dryRunHarnessSource = readRepoFile(
+      "components/execution/AvanzaInstrumentToOrderDryRunExecutorHarness.tsx",
+    );
+    const dryRunDoc = readRepoFile(
+      "docs/avanza-instrument-to-order-dry-run-executor.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-instrument-to-order-dry-run-executor.ts",
+      "lib/avanza-instrument-to-order-dry-run-executor-fixtures.ts",
+      "components/execution/AvanzaInstrumentToOrderDryRunExecutorHarness.tsx",
+      "docs/avanza-instrument-to-order-dry-run-executor.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    expect(dryRunDoc.trim().length).toBeGreaterThan(0);
+    expect(dryRunDoc).toContain("The chain now has a dry-run validation layer");
+    expect(dryRunDoc).toContain("This still does not activate execution");
+    expect(dryRunDoc).toContain("Final human confirmation remains mandatory");
+    expect(dryRunDoc).toContain("No real search execution");
+    expect(dryRunDoc).toContain("No final KÖP/SÄLJ click");
+
+    const readyBuyFixture = avanzaInstrumentToOrderDryRunExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "buy_dry_run_passed_to_final_human_action",
+    );
+    const readySellFixture = avanzaInstrumentToOrderDryRunExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "sell_dry_run_passed_to_final_human_action",
+    );
+    const failedVerificationFixture =
+      avanzaInstrumentToOrderDryRunExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "instrument_verification_failed",
+      );
+    const failedOrderPlanFixture =
+      avanzaInstrumentToOrderDryRunExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "order_field_plan_failed",
+      );
+
+    expect(readyBuyFixture).toBeTruthy();
+    expect(readySellFixture).toBeTruthy();
+    expect(failedVerificationFixture).toBeTruthy();
+    expect(failedOrderPlanFixture).toBeTruthy();
+
+    for (const fixture of [readyBuyFixture!, readySellFixture!]) {
+      const { report } = fixture;
+
+      expect(report.status).toBe("dry_run_final_human_action_required");
+      expect(report.canDryRun).toBe(true);
+      expect(report.instrumentVerificationPassed).toBe(true);
+      expect(report.orderFieldPlanReady).toBe(true);
+      expect(report.orderActionPlanReady).toBe(true);
+      expect(report.finalHumanActionRequired).toBe(true);
+      expect(report.safetyFlags.canExecuteChain).toBe(false);
+      expect(report.safetyFlags.canSearchInstrument).toBe(false);
+      expect(report.safetyFlags.canNavigateToInstrument).toBe(false);
+      expect(report.safetyFlags.canFillOrderFields).toBe(false);
+      expect(report.safetyFlags.canReviewOrder).toBe(false);
+      expect(report.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(report.safetyFlags.canClickFinalSell).toBe(false);
+      expect(report.safetyFlags.canSubmitOrder).toBe(false);
+      expect(report.safetyFlags.canReadCookies).toBe(false);
+      expect(report.safetyFlags.canExportSession).toBe(false);
+      expect(report.safetyFlags.canAutomateBankId).toBe(false);
+      expect(report.safetyFlags.canBypassBankId).toBe(false);
+      expect(report.safetyFlags.userMustConfirm).toBe(true);
+      expect(report.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(report.safetyFlags.controlsEnabled).toBe(false);
+      expect(report.safetyFlags.gateLocked).toBe(true);
+      expect(report.stepReports.length).toBeGreaterThan(0);
+
+      for (const step of report.stepReports) {
+        expect(step.executableNow).toBe(false);
+        expect(step.realBrowserAction).toBe(false);
+      }
+    }
+
+    expect(readyBuyFixture!.report.stepReports.map((step) => step.stepType)).toContain(
+      "stop_before_final_buy",
+    );
+    expect(readySellFixture!.report.stepReports.map((step) => step.stepType)).toContain(
+      "stop_before_final_sell",
+    );
+    expect(readyBuyFixture!.report.nextExpectedState).toContain("KÖP");
+    expect(readySellFixture!.report.nextExpectedState).toContain("SÄLJ");
+    expect(failedVerificationFixture!.report.status).toBe(
+      "dry_run_instrument_verification_failed",
+    );
+    expect(failedOrderPlanFixture!.report.status).toBe(
+      "dry_run_order_plan_failed",
+    );
+
+    const waitingReport = buildAvanzaInstrumentToOrderDryRunReport({
+      dryRunEnabled: true,
+      mode: "chain_dry_run_model",
+    });
+
+    expect(waitingReport.status).toBe("dry_run_waiting_for_chain");
+    expect(waitingReport.canExecuteChain).toBe(false);
+    expect(waitingReport.canSubmitOrder).toBe(false);
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_chain",
+      "blocked_chain",
+      "instrument_verification_failed",
+      "order_field_plan_failed",
+      "buy_dry_run_passed_to_final_human_action",
+      "sell_dry_run_passed_to_final_human_action",
+      "stop_before_final_kop",
+      "stop_before_final_salj",
+      "search_simulated_not_executed",
+      "navigation_simulated_not_executed",
+      "order_fields_simulated_not_filled",
+      "review_simulated_not_clicked",
+      "order_submission_forbidden",
+      "final_buy_sell_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(dryRunFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaInstrumentToOrderDryRunExecutorFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza instrument-to-order dry-run executor",
+      "Fixture/model only",
+      "Dry-run only",
+      "Full pre-submit flow simulated",
+      "BUY dry-run to final human action",
+      "SELL dry-run to final human action",
+      "Instrument verification checked",
+      "Order ticket readiness checked",
+      "Planned steps are not executable yet",
+      "No real search execution",
+      "No real Avanza navigation",
+      "No real form fill",
+      "No click",
+      "No BUY/SELL entry click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+      "canExecuteChain",
+      "canSearchInstrument",
+      "canNavigateToInstrument",
+      "canVerifyInstrument",
+      "canFillOrderFields",
+      "canReviewOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canSubmitOrder",
+      "canReadCookies",
+      "canExportSession",
+      "canAutomateBankId",
+      "canBypassBankId",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+    ]) {
+      expect([dryRunHarnessSource, routeSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaInstrumentToOrderDryRunExecutorHarness");
+    expect(routeSource).toContain("avanzaInstrumentToOrderDryRunExecutorFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-instrument-to-order-dry-run-executor",
+    );
+    expect(tradeAppSource).not.toContain("AvanzaInstrumentToOrderDryRun");
+    expect(apiRouteSource).not.toContain(
+      "avanza-instrument-to-order-dry-run-executor",
+    );
+    expect(apiRouteSource).not.toContain("AvanzaInstrumentToOrderDryRun");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaInstrumentToOrderDryRun",
+    );
+    expect(smokeScriptSource).not.toContain(
+      "avanza-instrument-to-order-dry-run-executor",
+    );
+
+    for (const doc of [
+      dryRunDoc,
+      readRepoFile("docs/avanza-instrument-to-order-handoff-chain.md"),
+      readRepoFile("docs/avanza-real-world-instrument-search-signals.md"),
+      readRepoFile("docs/avanza-instrument-search-route-contract.md"),
+      readRepoFile("docs/avanza-instrument-search-action-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-field-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-action-contract.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("The chain now has a dry-run validation layer");
+      expect(doc).toContain("does not activate execution");
+      expect(doc).toContain("Final human confirmation");
+    }
+
+    for (const source of [
+      dryRunSource,
+      dryRunFixtureSource,
+      dryRunHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+    }
+  });
+
+  test("Avanza instrument to order mock executor is fixture-model only", () => {
+    const mockSource = readRepoFile(
+      "lib/avanza-instrument-to-order-mock-executor.ts",
+    );
+    const mockFixtureSource = readRepoFile(
+      "lib/avanza-instrument-to-order-mock-executor-fixtures.ts",
+    );
+    const mockHarnessSource = readRepoFile(
+      "components/execution/AvanzaInstrumentToOrderMockExecutorHarness.tsx",
+    );
+    const mockDoc = readRepoFile(
+      "docs/avanza-instrument-to-order-mock-executor.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-instrument-to-order-mock-executor.ts",
+      "lib/avanza-instrument-to-order-mock-executor-fixtures.ts",
+      "components/execution/AvanzaInstrumentToOrderMockExecutorHarness.tsx",
+      "docs/avanza-instrument-to-order-mock-executor.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    expect(mockDoc.trim().length).toBeGreaterThan(0);
+    expect(mockDoc).toContain("The chain now has a mock execution layer after dry-run");
+    expect(mockDoc).toContain("This still does not activate real Avanza execution");
+    expect(mockDoc).toContain("Final human confirmation remains mandatory");
+    expect(mockDoc).toContain("simulated Avanza page state");
+    expect(mockDoc).toContain("No final KÖP/SÄLJ click");
+
+    const readyBuyFixture = avanzaInstrumentToOrderMockExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "valid_buy_mock_executed_to_final_human_action",
+    );
+    const readySellFixture = avanzaInstrumentToOrderMockExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "valid_sell_mock_executed_to_final_human_action",
+    );
+    const missingInstrumentFixture =
+      avanzaInstrumentToOrderMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "missing_matching_instrument",
+      );
+    const failedVerificationFixture =
+      avanzaInstrumentToOrderMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "instrument_verification_failed",
+      );
+    const blockedOrderTicketFixture =
+      avanzaInstrumentToOrderMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "order_ticket_blocked",
+      );
+
+    expect(readyBuyFixture).toBeTruthy();
+    expect(readySellFixture).toBeTruthy();
+    expect(missingInstrumentFixture).toBeTruthy();
+    expect(failedVerificationFixture).toBeTruthy();
+    expect(blockedOrderTicketFixture).toBeTruthy();
+
+    for (const fixture of [readyBuyFixture!, readySellFixture!]) {
+      const { report } = fixture;
+
+      expect(report.status).toBe("mock_final_human_action_required");
+      expect(report.canExecuteMockActions).toBe(true);
+      expect(report.finalPageStateKind).toBe("final_human_action");
+      expect(report.instrumentVerificationPassed).toBe(true);
+      expect(report.orderTicketPrepared).toBe(true);
+      expect(report.orderReviewReady).toBe(true);
+      expect(report.finalHumanActionRequired).toBe(true);
+      expect(report.orderSubmitted).toBe(false);
+      expect(report.safetyFlags.canExecuteRealBrowserActions).toBe(false);
+      expect(report.safetyFlags.canSearchInstrumentReal).toBe(false);
+      expect(report.safetyFlags.canNavigateRealBrowser).toBe(false);
+      expect(report.safetyFlags.canFillOrderFieldsReal).toBe(false);
+      expect(report.safetyFlags.canClickReal).toBe(false);
+      expect(report.safetyFlags.canOpenBuyEntryReal).toBe(false);
+      expect(report.safetyFlags.canOpenSellEntryReal).toBe(false);
+      expect(report.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(report.safetyFlags.canClickFinalSell).toBe(false);
+      expect(report.safetyFlags.canSubmitOrder).toBe(false);
+      expect(report.safetyFlags.canAutomateBankId).toBe(false);
+      expect(report.safetyFlags.canBypassBankId).toBe(false);
+      expect(report.safetyFlags.canReadCookies).toBe(false);
+      expect(report.safetyFlags.canExportSession).toBe(false);
+      expect(report.safetyFlags.userMustConfirm).toBe(true);
+      expect(report.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(report.safetyFlags.controlsEnabled).toBe(false);
+      expect(report.safetyFlags.gateLocked).toBe(true);
+
+      for (const action of report.actionReports) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.realBrowserAction).toBe(false);
+      }
+    }
+
+    expect(readyBuyFixture!.report.actionReports.map((action) => action.actionType)).toContain(
+      "stop_before_final_kop",
+    );
+    expect(readySellFixture!.report.actionReports.map((action) => action.actionType)).toContain(
+      "stop_before_final_salj",
+    );
+    expect(missingInstrumentFixture!.report.status).toBe(
+      "mock_instrument_not_found",
+    );
+    expect(failedVerificationFixture!.report.status).toBe(
+      "mock_instrument_verification_failed",
+    );
+    expect(blockedOrderTicketFixture!.report.status).toBe(
+      "mock_order_ticket_blocked",
+    );
+
+    const blockedReport = buildAvanzaInstrumentToOrderMockExecutorReport({
+      mockExecutorEnabled: true,
+      mode: "mock_local_dev",
+    });
+
+    expect(blockedReport.status).toBe("mock_blocked");
+    expect(blockedReport.canExecuteRealBrowserActions).toBe(false);
+    expect(blockedReport.canSubmitOrder).toBe(false);
+
+    for (const fixtureId of [
+      "disabled",
+      "valid_buy_mock_executed_to_final_human_action",
+      "valid_sell_mock_executed_to_final_human_action",
+      "search_panel_simulated",
+      "search_results_simulated",
+      "matching_instrument_selected_simulated",
+      "instrument_verification_simulated",
+      "buy_entry_located_simulated",
+      "sell_entry_located_simulated",
+      "order_ticket_prepared_simulated",
+      "order_review_ready_simulated",
+      "missing_matching_instrument",
+      "instrument_verification_failed",
+      "order_ticket_blocked",
+      "stop_before_final_kop",
+      "stop_before_final_salj",
+      "search_real_execution_forbidden",
+      "navigation_real_execution_forbidden",
+      "form_fill_real_execution_forbidden",
+      "click_real_execution_forbidden",
+      "order_submission_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(mockFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaInstrumentToOrderMockExecutorFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza instrument-to-order mock executor",
+      "Fixture/model only",
+      "Mock only",
+      "Simulated Avanza page state only",
+      "Full pre-submit flow simulated",
+      "BUY mock reaches final human action",
+      "SELL mock reaches final human action",
+      "Search simulated",
+      "Instrument verification simulated",
+      "Order ticket preparation simulated",
+      "Review-ready state simulated",
+      "No real search execution",
+      "No real Avanza navigation",
+      "No real form fill",
+      "No click",
+      "No BUY/SELL entry click",
+      "No final KÖP/SÄLJ click",
+      "No order submission",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Final human confirmation required",
+      "Not production ready",
+      "canExecuteMockActions",
+      "canExecuteRealBrowserActions",
+      "canSearchInstrumentReal",
+      "canNavigateRealBrowser",
+      "canFillOrderFieldsReal",
+      "canClickReal",
+      "canOpenBuyEntryReal",
+      "canOpenSellEntryReal",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canSubmitOrder",
+    ]) {
+      expect([mockHarnessSource, routeSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaInstrumentToOrderMockExecutorHarness");
+    expect(routeSource).toContain("avanzaInstrumentToOrderMockExecutorFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-instrument-to-order-mock-executor",
+    );
+    expect(tradeAppSource).not.toContain("AvanzaInstrumentToOrderMock");
+    expect(apiRouteSource).not.toContain(
+      "avanza-instrument-to-order-mock-executor",
+    );
+    expect(apiRouteSource).not.toContain("AvanzaInstrumentToOrderMock");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaInstrumentToOrderMock",
+    );
+    expect(smokeScriptSource).not.toContain(
+      "avanza-instrument-to-order-mock-executor",
+    );
+
+    for (const doc of [
+      mockDoc,
+      readRepoFile("docs/avanza-instrument-to-order-dry-run-executor.md"),
+      readRepoFile("docs/avanza-instrument-to-order-handoff-chain.md"),
+      readRepoFile("docs/avanza-real-world-instrument-search-signals.md"),
+      readRepoFile("docs/avanza-instrument-search-route-contract.md"),
+      readRepoFile("docs/avanza-instrument-search-action-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-field-contract.md"),
+      readRepoFile("docs/avanza-order-ticket-action-contract.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("The chain now has a mock execution layer after dry-run");
+      expect(doc).toMatch(/does\s+not activate\s+real\s+Avanza\s+execution/);
+      expect(doc).toContain("Final human confirmation");
+    }
+
+    for (const source of [
+      mockSource,
+      mockFixtureSource,
+      mockHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+    }
+  });
+
+  test("Avanza settlement note signals are fixture-model only", () => {
+    const settlementSource = readRepoFile(
+      "lib/avanza-real-world-settlement-note-signals.ts",
+    );
+    const settlementFixtureSource = readRepoFile(
+      "lib/avanza-real-world-settlement-note-signals-fixtures.ts",
+    );
+    const settlementHarnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementNoteSignalsHarness.tsx",
+    );
+    const settlementDoc = readRepoFile(
+      "docs/avanza-real-world-settlement-note-signals.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-real-world-settlement-note-signals.ts",
+      "lib/avanza-real-world-settlement-note-signals-fixtures.ts",
+      "components/execution/AvanzaSettlementNoteSignalsHarness.tsx",
+      "docs/avanza-real-world-settlement-note-signals.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    expect(settlementDoc.trim().length).toBeGreaterThan(0);
+    expect(settlementDoc).toContain(
+      "Avanza settlement note / order information signal pack",
+    );
+    expect(settlementDoc).toContain("exact courtage");
+    expect(settlementDoc).toContain("exact FX/exchange rate");
+    expect(settlementDoc).toContain("exact settlement amount");
+    expect(settlementDoc).toContain("No real Avanza navigation is implemented");
+    expect(settlementDoc).toContain("No PDF/download/read is implemented");
+    expect(settlementDoc).toContain("No OCR is implemented");
+    expect(settlementDoc).toContain("No settlement value extraction is implemented");
+    expect(settlementDoc).toContain("No Ture reconciliation write is implemented");
+
+    const settlementPack = buildAvanzaSettlementNoteSignalPack({
+      step: "settlement_note_values_visible",
+      side: "buy",
+      observedUrlKind: "avanza_settlement_note",
+      visibleTexts: ["Min ekonomi", "Transaktioner", "Avräkningsnota"],
+      settlementValueLabels: ["Courtage", "Växelkurs", "Likvidbelopp"],
+      feeLabels: ["Courtage"],
+      fxLabels: ["Växelkurs"],
+    });
+
+    expect(settlementPack.source).toBe("sanitized_user_visual_material");
+    expect(settlementPack.minEkonomiDetected).toBe(true);
+    expect(settlementPack.transactionsDetected).toBe(true);
+    expect(settlementPack.settlementNoteDetected).toBe(true);
+    expect(settlementPack.settlementValuesDetected).toBe(true);
+    expect(settlementPack.containsCredentials).toBe(false);
+    expect(settlementPack.containsPassword).toBe(false);
+    expect(settlementPack.containsPersonalIdentityNumber).toBe(false);
+    expect(settlementPack.containsAccountNumber).toBe(false);
+    expect(settlementPack.containsCookie).toBe(false);
+    expect(settlementPack.containsSessionToken).toBe(false);
+    expect(settlementPack.containsBankIdQr).toBe(false);
+    expect(settlementPack.containsOrderId).toBe(false);
+    expect(settlementPack.containsSensitiveAmounts).toBe(false);
+    expect(settlementPack.canNavigateToTransactions).toBe(false);
+    expect(settlementPack.canSelectTransaction).toBe(false);
+    expect(settlementPack.canOpenSettlementNote).toBe(false);
+    expect(settlementPack.canReadSettlementDocument).toBe(false);
+    expect(settlementPack.canExtractSettlementValues).toBe(false);
+    expect(settlementPack.canWriteTradeReconciliation).toBe(false);
+    expect(settlementPack.canReadCookies).toBe(false);
+    expect(settlementPack.canExportSession).toBe(false);
+    expect(settlementPack.canAutomateBankId).toBe(false);
+    expect(settlementPack.canBypassBankId).toBe(false);
+    expect(settlementPack.userMustConfirm).toBe(true);
+    expect(settlementPack.finalHumanClickRequired).toBe(true);
+
+    for (const fixtureId of [
+      "min_ekonomi_entry_visible",
+      "transaktioner_tab_visible",
+      "transaction_list_visible",
+      "matching_buy_transaction_row_modeled",
+      "matching_sell_transaction_row_modeled",
+      "transaction_detail_panel_visible",
+      "settlement_note_available",
+      "settlement_note_document_visible",
+      "settlement_values_labels_visible",
+      "courtage_label_visible",
+      "fx_vaxelkurs_label_visible",
+      "likvidbelopp_label_visible",
+      "note_navigation_modeled_not_executable",
+      "note_reading_modeled_not_executable",
+      "value_extraction_modeled_not_executable",
+      "reconciliation_write_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "unknown",
+    ] as const) {
+      expect(settlementFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementNoteSignalFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    const buyFixture = avanzaSettlementNoteSignalFixtures.find(
+      (fixture) => fixture.fixtureId === "matching_buy_transaction_row_modeled",
+    );
+    const sellFixture = avanzaSettlementNoteSignalFixtures.find(
+      (fixture) => fixture.fixtureId === "matching_sell_transaction_row_modeled",
+    );
+    const reconciliationFixture = avanzaSettlementNoteSignalFixtures.find(
+      (fixture) => fixture.fixtureId === "reconciliation_write_forbidden",
+    );
+
+    expect(buyFixture?.signalPack.side).toBe("buy");
+    expect(buyFixture?.signalPack.rowTexts).toContain("Köp");
+    expect(sellFixture?.signalPack.side).toBe("sell");
+    expect(sellFixture?.signalPack.rowTexts).toContain("Sälj");
+    expect(reconciliationFixture?.signalPack.canWriteTradeReconciliation).toBe(
+      false,
+    );
+    expect(reconciliationFixture?.signalPack.blockedReasons.join(" ")).toContain(
+      "Trade reconciliation write forbidden",
+    );
+
+    for (const fixture of avanzaSettlementNoteSignalFixtures) {
+      const { signalPack } = fixture;
+
+      expect(signalPack.canNavigateToTransactions).toBe(false);
+      expect(signalPack.canSelectTransaction).toBe(false);
+      expect(signalPack.canOpenSettlementNote).toBe(false);
+      expect(signalPack.canReadSettlementDocument).toBe(false);
+      expect(signalPack.canExtractSettlementValues).toBe(false);
+      expect(signalPack.canWriteTradeReconciliation).toBe(false);
+      expect(signalPack.canAutomateBankId).toBe(false);
+      expect(signalPack.canBypassBankId).toBe(false);
+      expect(signalPack.canReadCookies).toBe(false);
+      expect(signalPack.canExportSession).toBe(false);
+      expect(signalPack.containsOrderId).toBe(false);
+      expect(signalPack.containsAccountNumber).toBe(false);
+      expect(signalPack.containsSensitiveAmounts).toBe(false);
+    }
+
+    for (const copy of [
+      "Avanza settlement note / order information signals",
+      "Based on sanitized user-provided settlement-flow material",
+      "Fixture/model only",
+      "Min ekonomi recognized",
+      "Transaktioner recognized",
+      "Transaction list recognized",
+      "Matching BUY/SELL transaction modeled",
+      "Transaction detail panel recognized",
+      "Avräkningsnota recognized",
+      "Courtage / FX / settlement labels recognized",
+      "No real Avanza navigation",
+      "No PDF/download/read",
+      "No OCR",
+      "No value extraction",
+      "No trade reconciliation write",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Not production ready",
+      "Min ekonomi",
+      "Transaktioner",
+      "Avräkningsnota",
+      "Courtage",
+      "Växelkurs",
+      "Likvidbelopp",
+      "canNavigateToTransactions",
+      "canSelectTransaction",
+      "canOpenSettlementNote",
+      "canReadSettlementDocument",
+      "canExtractSettlementValues",
+      "canWriteTradeReconciliation",
+    ]) {
+      expect([settlementHarnessSource, routeSource, settlementFixtureSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    expect(routeSource).toContain("AvanzaSettlementNoteSignalsHarness");
+    expect(routeSource).toContain("avanzaSettlementNoteSignalFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-real-world-settlement-note-signals",
+    );
+    expect(tradeAppSource).not.toContain("AvanzaSettlementNoteSignalsHarness");
+    expect(apiRouteSource).not.toContain(
+      "avanza-real-world-settlement-note-signals",
+    );
+    expect(apiRouteSource).not.toContain("AvanzaSettlementNoteSignalsHarness");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementNoteSignalsHarness",
+    );
+    expect(smokeScriptSource).not.toContain(
+      "avanza-real-world-settlement-note-signals",
+    );
+
+    for (const doc of [
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-instrument-to-order-mock-executor.md"),
+      readRepoFile("docs/avanza-instrument-to-order-dry-run-executor.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("Settlement note signals now exist");
+      expect(doc).toContain("Exact courtage");
+      expect(doc).toContain("FX/exchange rate");
+      expect(doc).toContain("avräkningsnota");
+      expect(doc).toMatch(/does not activate post-trade|does not connect read-only/);
+    }
+
+    for (const source of [
+      settlementSource,
+      settlementFixtureSource,
+      settlementHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+      expect(source).not.toMatch(/\d{6}[-+]?\d{4}|\d{8}[-+]?\d{4}/);
+    }
+  });
+
+  test("Avanza settlement note route and action contracts are fixture-model only", () => {
+    const routeContractSource = readRepoFile(
+      "lib/avanza-settlement-note-route-contract.ts",
+    );
+    const actionContractSource = readRepoFile(
+      "lib/avanza-settlement-note-action-contract.ts",
+    );
+    const routeFixtureSource = readRepoFile(
+      "lib/avanza-settlement-note-route-contract-fixtures.ts",
+    );
+    const actionFixtureSource = readRepoFile(
+      "lib/avanza-settlement-note-action-contract-fixtures.ts",
+    );
+    const routeHarnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementNoteRouteContractHarness.tsx",
+    );
+    const actionHarnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementNoteActionContractHarness.tsx",
+    );
+    const routeDoc = readRepoFile("docs/avanza-settlement-note-route-contract.md");
+    const actionDoc = readRepoFile(
+      "docs/avanza-settlement-note-action-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-settlement-note-route-contract.ts",
+      "lib/avanza-settlement-note-action-contract.ts",
+      "lib/avanza-settlement-note-route-contract-fixtures.ts",
+      "lib/avanza-settlement-note-action-contract-fixtures.ts",
+      "components/execution/AvanzaSettlementNoteRouteContractHarness.tsx",
+      "components/execution/AvanzaSettlementNoteActionContractHarness.tsx",
+      "docs/avanza-settlement-note-route-contract.md",
+      "docs/avanza-settlement-note-action-contract.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+    }
+
+    expect(routeDoc.trim().length).toBeGreaterThan(0);
+    expect(actionDoc.trim().length).toBeGreaterThan(0);
+    for (const doc of [routeDoc, actionDoc]) {
+      expect(doc).toContain("BUY and SELL");
+      expect(doc).toContain("Avräkningsnota");
+      expect(doc).toContain("No real Avanza navigation");
+      expect(doc).toContain("No document/PDF read");
+      expect(doc).toContain("No OCR");
+      expect(doc).toContain("No value extraction");
+      expect(doc).toContain("No reconciliation write");
+      expect(doc).toContain("No Trade UI wiring");
+      expect(doc).toContain("No API route wiring");
+      expect(doc).toContain("not production ready");
+    }
+
+    const readyRoute = buildAvanzaSettlementNoteRouteContract({
+      mode: "route_model",
+      routeEnabled: true,
+      tradeReference: {
+        source: "fixture",
+        side: "buy",
+        ticker: "NOKIA",
+        instrumentName: "Nokia ADR",
+        quantity: 12,
+        estimatedTradeDate: "2026-07-06",
+        expectedSettlementDate: "2026-07-07",
+        currency: "USD",
+      },
+      realWorldSettlementSignals:
+        avanzaSettlementNoteSignalFixtures.find(
+          (fixture) => fixture.fixtureId === "settlement_note_available",
+        )?.signalPack,
+    });
+
+    expect(readyRoute.status).toBe("settlement_note_ready");
+    expect(readyRoute.canCreateSettlementRoute).toBe(true);
+    expect(readyRoute.canExecuteSettlementRoute).toBe(false);
+    expect(readyRoute.canOpenMinEkonomi).toBe(false);
+    expect(readyRoute.canOpenTransactions).toBe(false);
+    expect(readyRoute.canFilterTransactions).toBe(false);
+    expect(readyRoute.canMatchTransaction).toBe(false);
+    expect(readyRoute.canOpenTransactionDetail).toBe(false);
+    expect(readyRoute.canLocateSettlementNote).toBe(true);
+    expect(readyRoute.canOpenSettlementNote).toBe(false);
+    expect(readyRoute.canReadSettlementDocument).toBe(false);
+    expect(readyRoute.canExtractSettlementValues).toBe(false);
+    expect(readyRoute.canWriteTradeReconciliation).toBe(false);
+    expect(readyRoute.canReadCookies).toBe(false);
+    expect(readyRoute.canExportSession).toBe(false);
+    expect(readyRoute.canAutomateBankId).toBe(false);
+    expect(readyRoute.canBypassBankId).toBe(false);
+    expect(readyRoute.controlsEnabled).toBe(false);
+    expect(readyRoute.gateLocked).toBe(true);
+    expect(readyRoute.steps.map((step) => step.type)).toEqual([
+      "open_min_ekonomi",
+      "open_transactions_tab",
+      "filter_or_locate_transaction",
+      "match_transaction_by_trade_reference",
+      "open_transaction_detail_panel",
+      "locate_settlement_note",
+      "open_settlement_note",
+      "stop_before_note_read",
+    ]);
+
+    for (const step of readyRoute.steps) {
+      expect(step.executableInThisTask).toBe(false);
+      expect(step.dryRunOnly).toBe(true);
+    }
+
+    const readyAction = buildAvanzaSettlementNoteActionContract({
+      mode: "contract_only",
+      contractEnabled: true,
+      settlementNoteRouteContract: readyRoute,
+    });
+
+    expect(readyAction.status).toBe("action_plan_ready");
+    expect(readyAction.canCreateActionPlan).toBe(true);
+    expect(readyAction.canExecuteActions).toBe(false);
+    expect(readyAction.canClickMinEkonomi).toBe(false);
+    expect(readyAction.canClickTransactionsTab).toBe(false);
+    expect(readyAction.canFilterTransactions).toBe(false);
+    expect(readyAction.canLocateMatchingTransaction).toBe(false);
+    expect(readyAction.canOpenTransactionDetailPanel).toBe(false);
+    expect(readyAction.canLocateSettlementNote).toBe(true);
+    expect(readyAction.canOpenSettlementNote).toBe(false);
+    expect(readyAction.canReadSettlementDocument).toBe(false);
+    expect(readyAction.canExtractSettlementValues).toBe(false);
+    expect(readyAction.canWriteTradeReconciliation).toBe(false);
+    expect(readyAction.canReadCookies).toBe(false);
+    expect(readyAction.canExportSession).toBe(false);
+    expect(readyAction.canAutomateBankId).toBe(false);
+    expect(readyAction.canBypassBankId).toBe(false);
+    expect(readyAction.controlsEnabled).toBe(false);
+    expect(readyAction.gateLocked).toBe(true);
+    expect(readyAction.actions.map((action) => action.type)).toContain(
+      "stop_before_document_read",
+    );
+
+    for (const action of readyAction.actions) {
+      expect(action.containsCredentialMaterial).toBe(false);
+      expect(action.executableInThisTask).toBe(false);
+      expect(action.dryRunOnly).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_trade_reference",
+      "waiting_for_settlement_signals",
+      "buy_settlement_route_ready",
+      "sell_settlement_route_ready",
+      "transaction_match_ready",
+      "settlement_note_ready",
+      "stop_before_note_read",
+      "missing_transaction_reference_blocked",
+      "transaction_match_blocked",
+      "note_unavailable_blocked",
+      "navigation_forbidden",
+      "note_read_forbidden",
+      "extraction_forbidden",
+      "reconciliation_write_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(routeFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementNoteRouteContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_route",
+      "buy_settlement_action_plan_ready",
+      "sell_settlement_action_plan_ready",
+      "locate_matching_transaction_modeled",
+      "locate_settlement_note_modeled",
+      "stop_before_document_read",
+      "navigation_forbidden",
+      "transaction_detail_open_forbidden",
+      "settlement_note_open_forbidden",
+      "document_read_forbidden",
+      "extraction_forbidden",
+      "reconciliation_write_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(actionFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementNoteActionContractFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    expect(
+      avanzaSettlementNoteRouteContractFixtures.find(
+        (fixture) => fixture.fixtureId === "buy_settlement_route_ready",
+      )?.routeContract.side,
+    ).toBe("buy");
+    expect(
+      avanzaSettlementNoteRouteContractFixtures.find(
+        (fixture) => fixture.fixtureId === "sell_settlement_route_ready",
+      )?.routeContract.side,
+    ).toBe("sell");
+    expect(
+      avanzaSettlementNoteActionContractFixtures.find(
+        (fixture) => fixture.fixtureId === "buy_settlement_action_plan_ready",
+      )?.actionContract.side,
+    ).toBe("buy");
+    expect(
+      avanzaSettlementNoteActionContractFixtures.find(
+        (fixture) => fixture.fixtureId === "sell_settlement_action_plan_ready",
+      )?.actionContract.side,
+    ).toBe("sell");
+
+    for (const fixture of avanzaSettlementNoteRouteContractFixtures) {
+      const routeContract = fixture.routeContract;
+      expect(routeContract.canExecuteSettlementRoute).toBe(false);
+      expect(routeContract.canOpenMinEkonomi).toBe(false);
+      expect(routeContract.canOpenTransactions).toBe(false);
+      expect(routeContract.canFilterTransactions).toBe(false);
+      expect(routeContract.canOpenTransactionDetail).toBe(false);
+      expect(routeContract.canOpenSettlementNote).toBe(false);
+      expect(routeContract.canReadSettlementDocument).toBe(false);
+      expect(routeContract.canExtractSettlementValues).toBe(false);
+      expect(routeContract.canWriteTradeReconciliation).toBe(false);
+      expect(routeContract.canAutomateBankId).toBe(false);
+      expect(routeContract.canBypassBankId).toBe(false);
+      expect(routeContract.canReadCookies).toBe(false);
+      expect(routeContract.canExportSession).toBe(false);
+    }
+
+    for (const fixture of avanzaSettlementNoteActionContractFixtures) {
+      const actionContract = fixture.actionContract;
+      expect(actionContract.canExecuteActions).toBe(false);
+      expect(actionContract.canClickMinEkonomi).toBe(false);
+      expect(actionContract.canClickTransactionsTab).toBe(false);
+      expect(actionContract.canFilterTransactions).toBe(false);
+      expect(actionContract.canOpenTransactionDetailPanel).toBe(false);
+      expect(actionContract.canOpenSettlementNote).toBe(false);
+      expect(actionContract.canReadSettlementDocument).toBe(false);
+      expect(actionContract.canExtractSettlementValues).toBe(false);
+      expect(actionContract.canWriteTradeReconciliation).toBe(false);
+      expect(actionContract.canAutomateBankId).toBe(false);
+      expect(actionContract.canBypassBankId).toBe(false);
+      expect(actionContract.canReadCookies).toBe(false);
+      expect(actionContract.canExportSession).toBe(false);
+    }
+
+    for (const copy of [
+      "Avanza settlement note route contract",
+      "Fixture/model only",
+      "Settlement route modeled",
+      "BUY/SELL trade reference supported",
+      "Min ekonomi route modeled",
+      "Transaktioner route modeled",
+      "Transaction matching modeled",
+      "Avräkningsnota location modeled",
+      "Planned route is not executable yet",
+      "Avanza settlement note action contract",
+      "Contract only",
+      "Settlement action plan modeled",
+      "Matching transaction action modeled",
+      "Avräkningsnota action modeled",
+      "Planned actions are not executable yet",
+      "No real Avanza navigation",
+      "No document read",
+      "No OCR",
+      "No value extraction",
+      "No reconciliation write",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Not production ready",
+      "canExecuteSettlementRoute",
+      "canExecuteActions",
+      "canOpenMinEkonomi",
+      "canOpenTransactions",
+      "canFilterTransactions",
+      "canMatchTransaction",
+      "canOpenTransactionDetail",
+      "canLocateSettlementNote",
+      "canOpenSettlementNote",
+      "canReadSettlementDocument",
+      "canExtractSettlementValues",
+      "canWriteTradeReconciliation",
+    ]) {
+      expect([routeHarnessSource, actionHarnessSource, routeSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const copy of [
+      "buy_settlement_route_ready",
+      "sell_settlement_route_ready",
+      "buy_settlement_action_plan_ready",
+      "sell_settlement_action_plan_ready",
+      "stop_before_document_read",
+      "document_read_forbidden",
+      "extraction_forbidden",
+      "reconciliation_write_forbidden",
+    ]) {
+      expect([routeFixtureSource, actionFixtureSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaSettlementNoteRouteContractHarness");
+    expect(routeSource).toContain("AvanzaSettlementNoteActionContractHarness");
+    expect(routeSource).toContain("avanzaSettlementNoteRouteContractFixtures");
+    expect(routeSource).toContain("avanzaSettlementNoteActionContractFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-settlement-note-route-contract");
+    expect(tradeAppSource).not.toContain("avanza-settlement-note-action-contract");
+    expect(tradeAppSource).not.toContain("AvanzaSettlementNoteRouteContract");
+    expect(tradeAppSource).not.toContain("AvanzaSettlementNoteActionContract");
+    expect(apiRouteSource).not.toContain("avanza-settlement-note-route-contract");
+    expect(apiRouteSource).not.toContain("avanza-settlement-note-action-contract");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementNoteRouteContract",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementNoteActionContract",
+    );
+    expect(smokeScriptSource).not.toContain("avanza-settlement-note-route-contract");
+    expect(smokeScriptSource).not.toContain("avanza-settlement-note-action-contract");
+
+    for (const doc of [
+      readRepoFile("docs/avanza-real-world-settlement-note-signals.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("Settlement route/action contracts now exist");
+      expect(doc).toMatch(/future\s+note\s+retrieval\/extraction/);
+      expect(doc).toContain("Avräkningsnota");
+      expect(doc).toMatch(
+        /do not activate reconciliation|does not activate reconciliation|do not connect[\s\S]*to reconciliation/,
+      );
+    }
+
+    for (const source of [
+      routeContractSource,
+      actionContractSource,
+      routeFixtureSource,
+      actionFixtureSource,
+      routeHarnessSource,
+      actionHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|execution[_-]?record/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+      expect(source).not.toMatch(/\d{6}[-+]?\d{4}|\d{8}[-+]?\d{4}/);
+    }
+  });
+
+  test("Avanza settlement extraction schema and reconciliation mapping are fixture-model only", () => {
+    const extractionSource = readRepoFile(
+      "lib/avanza-settlement-note-extraction-schema.ts",
+    );
+    const mappingSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-mapping.ts",
+    );
+    const extractionFixtureSource = readRepoFile(
+      "lib/avanza-settlement-note-extraction-schema-fixtures.ts",
+    );
+    const mappingFixtureSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-mapping-fixtures.ts",
+    );
+    const extractionHarnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementNoteExtractionSchemaHarness.tsx",
+    );
+    const mappingHarnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementReconciliationMappingHarness.tsx",
+    );
+    const extractionDoc = readRepoFile(
+      "docs/avanza-settlement-note-extraction-schema.md",
+    );
+    const mappingDoc = readRepoFile(
+      "docs/avanza-settlement-reconciliation-mapping.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-settlement-note-extraction-schema.ts",
+      "lib/avanza-settlement-reconciliation-mapping.ts",
+      "lib/avanza-settlement-note-extraction-schema-fixtures.ts",
+      "lib/avanza-settlement-reconciliation-mapping-fixtures.ts",
+      "components/execution/AvanzaSettlementNoteExtractionSchemaHarness.tsx",
+      "components/execution/AvanzaSettlementReconciliationMappingHarness.tsx",
+      "docs/avanza-settlement-note-extraction-schema.md",
+      "docs/avanza-settlement-reconciliation-mapping.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+      expect(readRepoFile(path).trim().length, `${path} non-empty`).toBeGreaterThan(0);
+    }
+
+    for (const doc of [extractionDoc, mappingDoc]) {
+      expect(doc).toContain("courtage");
+      expect(doc).toContain("FX");
+      expect(doc).toContain("settlement amount");
+      expect(doc).toContain("execution");
+      expect(doc).toContain("trade result");
+      expect(doc).toMatch(/statistics\/PnL|statistics/);
+      expect(doc).toContain("audit metadata");
+      expect(doc).toContain("No real PDF");
+      expect(doc).toContain("OCR");
+      expect(doc).toContain("No reconciliation");
+      expect(doc).toContain("not production-ready");
+    }
+
+    const noteSignals = avanzaSettlementNoteSignalFixtures.find(
+      (fixture) => fixture.fixtureId === "settlement_values_labels_visible",
+    )?.signalPack;
+    const buySchema = buildAvanzaSettlementExtractionTargetSchema({
+      schemaEnabled: true,
+      tradeReference: {
+        source: "fixture",
+        side: "buy",
+        ticker: "NOKIA",
+        instrumentName: "Nokia ADR",
+        currency: "USD",
+      },
+      settlementSignals: noteSignals,
+      mappedForReconciliation: true,
+    });
+
+    expect(buySchema.status).toBe("mapped_for_reconciliation");
+    expect(buySchema.canDefineExtractionTargets).toBe(true);
+    expect(buySchema.canReadSettlementDocument).toBe(false);
+    expect(buySchema.canDownloadPdf).toBe(false);
+    expect(buySchema.canUseOcr).toBe(false);
+    expect(buySchema.canExtractValues).toBe(false);
+    expect(buySchema.canWriteTradeReconciliation).toBe(false);
+    expect(buySchema.canWriteSupabase).toBe(false);
+    expect(buySchema.canReadCookies).toBe(false);
+    expect(buySchema.canExportSession).toBe(false);
+    expect(buySchema.canAutomateBankId).toBe(false);
+    expect(buySchema.canBypassBankId).toBe(false);
+    expect(buySchema.userMustConfirm).toBe(true);
+    expect(buySchema.finalHumanClickRequired).toBe(true);
+    expect(buySchema.controlsEnabled).toBe(false);
+    expect(buySchema.gateLocked).toBe(true);
+
+    for (const key of [
+      "tradeDate",
+      "settlementDate",
+      "quantity",
+      "executionPrice",
+      "currency",
+      "courtage",
+      "fxRate",
+      "settlementAmount",
+      "noteReference",
+    ] as const) {
+      const target = buySchema.extractionTargets.find((item) => item.key === key);
+      expect(target, `${key} target`).toBeTruthy();
+      expect(target?.extractedInThisTask).toBe(false);
+      expect(target?.requiresManualReview).toBe(true);
+    }
+
+    const preview = buildAvanzaSettlementReconciliationPreview({
+      mappingEnabled: true,
+      extractionSchema: buySchema,
+      pnlImpactMode: "cost_adjustment_only",
+    });
+
+    expect(preview.status).toBe("reconciliation_preview_ready");
+    expect(preview.canBuildReconciliationPreview).toBe(true);
+    expect(preview.canApplyReconciliation).toBe(false);
+    expect(preview.canWriteExecutionRecord).toBe(false);
+    expect(preview.canWriteTradeResult).toBe(false);
+    expect(preview.canWriteStatistics).toBe(false);
+    expect(preview.canWriteAuditMetadata).toBe(false);
+    expect(preview.canWriteSupabase).toBe(false);
+    expect(preview.canReadSettlementDocument).toBe(false);
+    expect(preview.canUseOcr).toBe(false);
+    expect(preview.requiresManualReview).toBe(true);
+    expect(preview.userMustConfirm).toBe(true);
+    expect(preview.controlsEnabled).toBe(false);
+    expect(preview.gateLocked).toBe(true);
+    expect(preview.pnlImpactMode).toBe("cost_adjustment_only");
+
+    for (const key of ["courtage", "fxRate", "settlementAmount"] as const) {
+      const field = preview.fields.find((item) => item.sourceValueKey === key);
+      expect(field, `${key} mapped`).toBeTruthy();
+      expect(field?.mappedInThisTask).toBe(false);
+      expect(field?.writesInThisTask).toBe(false);
+      expect(field?.requiresManualReview).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_note",
+      "schema_ready",
+      "buy_extraction_targets_ready",
+      "sell_extraction_targets_ready",
+      "courtage_target",
+      "fx_rate_target",
+      "settlement_amount_target",
+      "trade_settlement_date_targets",
+      "note_reference_target",
+      "ocr_forbidden",
+      "pdf_read_forbidden",
+      "extraction_forbidden",
+      "supabase_write_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(extractionFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementNoteExtractionSchemaFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_extraction",
+      "buy_reconciliation_preview_ready",
+      "sell_reconciliation_preview_ready",
+      "courtage_mapped",
+      "fx_mapped",
+      "settlement_amount_mapped",
+      "pnl_adjustment_modeled",
+      "manual_review_required",
+      "writes_forbidden",
+      "supabase_write_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(mappingFixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementReconciliationMappingFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    expect(
+      avanzaSettlementNoteExtractionSchemaFixtures.find(
+        (fixture) => fixture.fixtureId === "buy_extraction_targets_ready",
+      )?.schema.side,
+    ).toBe("buy");
+    expect(
+      avanzaSettlementNoteExtractionSchemaFixtures.find(
+        (fixture) => fixture.fixtureId === "sell_extraction_targets_ready",
+      )?.schema.side,
+    ).toBe("sell");
+    expect(
+      avanzaSettlementReconciliationMappingFixtures.find(
+        (fixture) => fixture.fixtureId === "buy_reconciliation_preview_ready",
+      )?.preview.side,
+    ).toBe("buy");
+    expect(
+      avanzaSettlementReconciliationMappingFixtures.find(
+        (fixture) => fixture.fixtureId === "sell_reconciliation_preview_ready",
+      )?.preview.side,
+    ).toBe("sell");
+
+    for (const fixture of avanzaSettlementNoteExtractionSchemaFixtures) {
+      const schema = fixture.schema;
+      expect(schema.canReadSettlementDocument).toBe(false);
+      expect(schema.canDownloadPdf).toBe(false);
+      expect(schema.canUseOcr).toBe(false);
+      expect(schema.canExtractValues).toBe(false);
+      expect(schema.canWriteTradeReconciliation).toBe(false);
+      expect(schema.canWriteSupabase).toBe(false);
+      expect(schema.controlsEnabled).toBe(false);
+      expect(schema.gateLocked).toBe(true);
+      for (const target of schema.extractionTargets) {
+        expect(target.extractedInThisTask).toBe(false);
+      }
+    }
+
+    for (const fixture of avanzaSettlementReconciliationMappingFixtures) {
+      const reconciliationPreview = fixture.preview;
+      expect(reconciliationPreview.canApplyReconciliation).toBe(false);
+      expect(reconciliationPreview.canWriteExecutionRecord).toBe(false);
+      expect(reconciliationPreview.canWriteTradeResult).toBe(false);
+      expect(reconciliationPreview.canWriteStatistics).toBe(false);
+      expect(reconciliationPreview.canWriteAuditMetadata).toBe(false);
+      expect(reconciliationPreview.canWriteSupabase).toBe(false);
+      expect(reconciliationPreview.controlsEnabled).toBe(false);
+      expect(reconciliationPreview.gateLocked).toBe(true);
+      for (const field of reconciliationPreview.fields) {
+        expect(field.mappedInThisTask).toBe(false);
+        expect(field.writesInThisTask).toBe(false);
+      }
+    }
+
+    for (const copy of [
+      "Avanza settlement note extraction schema",
+      "Fixture/model only",
+      "Extraction targets only",
+      "Courtage target modeled",
+      "FX/växelkurs target modeled",
+      "Settlement amount target modeled",
+      "Trade/settlement dates modeled",
+      "No PDF/download/read",
+      "No OCR",
+      "No value extraction",
+      "No reconciliation write",
+      "No Supabase write",
+      "Manual review required",
+      "Not production ready",
+      "Avanza settlement reconciliation mapping",
+      "Reconciliation preview only",
+      "Courtage mapped",
+      "FX mapped",
+      "Settlement amount mapped",
+      "PnL adjustment modeled",
+      "Writes are forbidden",
+      "pnlImpactMode",
+      "canBuildReconciliationPreview",
+      "canApplyReconciliation",
+      "canWriteExecutionRecord",
+      "canWriteTradeResult",
+      "canWriteStatistics",
+      "canWriteAuditMetadata",
+    ]) {
+      expect(
+        [extractionHarnessSource, mappingHarnessSource, routeSource].join("\n"),
+      ).toContain(copy);
+    }
+
+    expect(routeSource).toContain("AvanzaSettlementNoteExtractionSchemaHarness");
+    expect(routeSource).toContain("AvanzaSettlementReconciliationMappingHarness");
+    expect(routeSource).toContain("avanzaSettlementNoteExtractionSchemaFixtures");
+    expect(routeSource).toContain("avanzaSettlementReconciliationMappingFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-settlement-note-extraction-schema");
+    expect(tradeAppSource).not.toContain("avanza-settlement-reconciliation-mapping");
+    expect(apiRouteSource).not.toContain("avanza-settlement-note-extraction-schema");
+    expect(apiRouteSource).not.toContain("avanza-settlement-reconciliation-mapping");
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementNoteExtractionSchema",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementReconciliationMapping",
+    );
+    expect(smokeScriptSource).not.toContain("avanza-settlement-note-extraction-schema");
+    expect(smokeScriptSource).not.toContain("avanza-settlement-reconciliation-mapping");
+
+    for (const doc of [
+      readRepoFile("docs/avanza-real-world-settlement-note-signals.md"),
+      readRepoFile("docs/avanza-settlement-note-route-contract.md"),
+      readRepoFile("docs/avanza-settlement-note-action-contract.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("Settlement extraction schema and reconciliation mapping now exist");
+      expect(doc).toMatch(
+        /Exact\s+cost\/FX\s+reconciliation\s+is\s+modeled\s+but\s+not\s+applied/,
+      );
+      expect(doc).toContain("document reading");
+      expect(doc).toContain("value extraction");
+      expect(doc).toContain("reconciliation writes");
+      expect(doc).toContain("Supabase writes");
+    }
+
+    for (const source of [
+      extractionSource,
+      mappingSource,
+      extractionFixtureSource,
+      mappingFixtureSource,
+      extractionHarnessSource,
+      mappingHarnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|from\(["']execution/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+      expect(source).not.toMatch(/\d{6}[-+]?\d{4}|\d{8}[-+]?\d{4}/);
+    }
+  });
+
+  test("Avanza settlement reconciliation dry-run executor is fixture-model only", () => {
+    const executorSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-dry-run-executor.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-dry-run-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementReconciliationDryRunExecutorHarness.tsx",
+    );
+    const dryRunDoc = readRepoFile(
+      "docs/avanza-settlement-reconciliation-dry-run-executor.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-settlement-reconciliation-dry-run-executor.ts",
+      "lib/avanza-settlement-reconciliation-dry-run-executor-fixtures.ts",
+      "components/execution/AvanzaSettlementReconciliationDryRunExecutorHarness.tsx",
+      "docs/avanza-settlement-reconciliation-dry-run-executor.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+      expect(readRepoFile(path).trim().length, `${path} non-empty`).toBeGreaterThan(0);
+    }
+
+    for (const copy of [
+      "Dry-run validates settlement route/action/schema/mapping coherence",
+      "full post-trade reconciliation path",
+      "supports BUY and SELL",
+      "manual review",
+      "does not navigate Avanza",
+      "does not read PDF",
+      "does not use OCR",
+      "does not extract values",
+      "does not write reconciliation",
+      "does not write Supabase",
+      "not production-ready",
+    ]) {
+      expect(dryRunDoc.toLowerCase()).toContain(copy.toLowerCase());
+    }
+
+    const buyFixture = avanzaSettlementReconciliationDryRunExecutorFixtures.find(
+      (fixture) =>
+        fixture.fixtureId ===
+        "buy_settlement_dry_run_passed_manual_review_required",
+    );
+    const sellFixture = avanzaSettlementReconciliationDryRunExecutorFixtures.find(
+      (fixture) =>
+        fixture.fixtureId ===
+        "sell_settlement_dry_run_passed_manual_review_required",
+    );
+
+    expect(buyFixture?.report.status).toBe("dry_run_passed");
+    expect(buyFixture?.report.side).toBe("buy");
+    expect(sellFixture?.report.status).toBe("dry_run_passed");
+    expect(sellFixture?.report.side).toBe("sell");
+
+    const manualReviewFixture =
+      avanzaSettlementReconciliationDryRunExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "manual_review_required",
+      );
+
+    expect(manualReviewFixture?.report.status).toBe(
+      "dry_run_manual_review_required",
+    );
+    expect(manualReviewFixture?.report.manualReviewRequired).toBe(true);
+
+    const disabledReport = buildAvanzaSettlementReconciliationDryRunReport({
+      mode: "disabled",
+      dryRunEnabled: false,
+    });
+
+    expect(disabledReport.status).toBe("disabled");
+    expect(disabledReport.canDryRun).toBe(false);
+
+    const waitingForRoute = buildAvanzaSettlementReconciliationDryRunReport({
+      mode: "settlement_dry_run_model",
+      dryRunEnabled: true,
+      tradeReference: {
+        source: "fixture",
+        side: "buy",
+        ticker: "NOKIA",
+        instrumentName: "Nokia ADR",
+        quantity: 12,
+        estimatedTradeDate: "2026-07-06",
+        expectedSettlementDate: "2026-07-07",
+      },
+    });
+
+    expect(waitingForRoute.status).toBe("dry_run_waiting_for_route");
+    expect(waitingForRoute.stepReports.some((step) => step.dryRunStatus === "blocked_route")).toBe(true);
+
+    for (const fixtureId of [
+      "disabled",
+      "waiting_for_route",
+      "waiting_for_action_contract",
+      "waiting_for_extraction_schema",
+      "waiting_for_reconciliation_mapping",
+      "buy_settlement_dry_run_passed_manual_review_required",
+      "sell_settlement_dry_run_passed_manual_review_required",
+      "courtage_extraction_target_simulated",
+      "fx_vaxelkurs_extraction_target_simulated",
+      "settlement_amount_extraction_target_simulated",
+      "execution_record_target_simulated",
+      "trade_result_target_simulated",
+      "statistics_target_simulated",
+      "audit_metadata_target_simulated",
+      "manual_review_required",
+      "stop_before_reconciliation_write",
+      "document_read_forbidden",
+      "ocr_forbidden",
+      "extraction_forbidden",
+      "supabase_write_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(fixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementReconciliationDryRunExecutorFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaSettlementReconciliationDryRunExecutorFixtures) {
+      const { report } = fixture;
+
+      expect(report.canExecuteSettlementRoute).toBe(false);
+      expect(report.canExecuteSettlementActions).toBe(false);
+      expect(report.canNavigateToTransactions).toBe(false);
+      expect(report.canOpenSettlementNote).toBe(false);
+      expect(report.canReadSettlementDocument).toBe(false);
+      expect(report.canDownloadPdf).toBe(false);
+      expect(report.canUseOcr).toBe(false);
+      expect(report.canExtractValues).toBe(false);
+      expect(report.canApplyReconciliation).toBe(false);
+      expect(report.canWriteExecutionRecord).toBe(false);
+      expect(report.canWriteTradeResult).toBe(false);
+      expect(report.canWriteStatistics).toBe(false);
+      expect(report.canWriteAuditMetadata).toBe(false);
+      expect(report.canWriteSupabase).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.requiresManualReview).toBe(true);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+
+      for (const step of report.stepReports) {
+        expect(step.executableNow).toBe(false);
+        expect(step.realBrowserAction).toBe(false);
+        expect(step.writesInThisTask).toBe(false);
+      }
+    }
+
+    const readyReports = [
+      buyFixture?.report,
+      sellFixture?.report,
+      manualReviewFixture?.report,
+    ].filter(Boolean);
+
+    for (const report of readyReports) {
+      expect(report?.expectedExtractionTargets).toEqual(
+        expect.arrayContaining([
+          "courtage",
+          "fxRate / växelkurs",
+          "settlementAmount / likvidbelopp",
+          "quantity",
+          "executionPrice",
+          "tradeDate",
+          "settlementDate",
+          "currency",
+        ]),
+      );
+      expect(report?.expectedReconciliationTargets).toEqual(
+        expect.arrayContaining([
+          "execution_record",
+          "trade_result",
+          "statistics",
+          "audit_metadata",
+        ]),
+      );
+      expect(report?.stepReports.map((step) => step.stepType)).toEqual(
+        expect.arrayContaining([
+          "validate_trade_reference",
+          "validate_settlement_route",
+          "validate_settlement_actions",
+          "validate_extraction_schema",
+          "validate_reconciliation_mapping",
+          "simulate_manual_review_gate",
+          "stop_before_reconciliation_write",
+        ]),
+      );
+    }
+
+    for (const copy of [
+      "Avanza settlement reconciliation dry-run executor",
+      "Fixture/model only",
+      "Dry-run only",
+      "Full post-trade reconciliation path simulated",
+      "Courtage extraction target simulated",
+      "FX/växelkurs extraction target simulated",
+      "Settlement amount target simulated",
+      "Reconciliation targets simulated",
+      "Manual review required",
+      "No real Avanza navigation",
+      "No PDF/download/read",
+      "No OCR",
+      "No value extraction",
+      "No reconciliation write",
+      "No Supabase write",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Not production ready",
+      "execution_record",
+      "trade_result",
+      "statistics",
+      "audit_metadata",
+      "stop_before_reconciliation_write",
+      "canExecuteSettlementRoute",
+      "canExecuteSettlementActions",
+      "canNavigateToTransactions",
+      "canOpenSettlementNote",
+      "canReadSettlementDocument",
+      "canDownloadPdf",
+      "canUseOcr",
+      "canExtractValues",
+      "canApplyReconciliation",
+      "canWriteExecutionRecord",
+      "canWriteTradeResult",
+      "canWriteStatistics",
+      "canWriteAuditMetadata",
+      "canWriteSupabase",
+      "requiresManualReview",
+      "userMustConfirm",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect([executorSource, fixtureSource, harnessSource, routeSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaSettlementReconciliationDryRunExecutorHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaSettlementReconciliationDryRunExecutorFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-settlement-reconciliation-dry-run-executor",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-settlement-reconciliation-dry-run-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementReconciliationDryRunExecutor",
+    );
+    expect(smokeScriptSource).not.toContain(
+      "avanza-settlement-reconciliation-dry-run-executor",
+    );
+
+    for (const doc of [
+      readRepoFile("docs/avanza-real-world-settlement-note-signals.md"),
+      readRepoFile("docs/avanza-settlement-note-route-contract.md"),
+      readRepoFile("docs/avanza-settlement-note-action-contract.md"),
+      readRepoFile("docs/avanza-settlement-note-extraction-schema.md"),
+      readRepoFile("docs/avanza-settlement-reconciliation-mapping.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("dry-run validation layer");
+      expect(doc).toContain("Exact cost/FX reconciliation remains modeled only");
+      expect(doc).toContain("document reading");
+      expect(doc).toContain("value extraction");
+      expect(doc).toContain("reconciliation writes");
+      expect(doc).toContain("Supabase");
+    }
+
+    for (const source of [
+      executorSource,
+      fixtureSource,
+      harnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|from\(["']execution/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+      expect(source).not.toMatch(/\d{6}[-+]?\d{4}|\d{8}[-+]?\d{4}/);
+    }
+  });
+
+  test("Avanza settlement reconciliation mock executor is fixture-model only", () => {
+    const executorSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-mock-executor.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-settlement-reconciliation-mock-executor-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSettlementReconciliationMockExecutorHarness.tsx",
+    );
+    const mockDoc = readRepoFile(
+      "docs/avanza-settlement-reconciliation-mock-executor.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const smokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-settlement-reconciliation-mock-executor.ts",
+      "lib/avanza-settlement-reconciliation-mock-executor-fixtures.ts",
+      "components/execution/AvanzaSettlementReconciliationMockExecutorHarness.tsx",
+      "docs/avanza-settlement-reconciliation-mock-executor.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), path)), `${path} exists`).toBe(true);
+      expect(readRepoFile(path).trim().length, `${path} non-empty`).toBeGreaterThan(0);
+    }
+
+    for (const copy of [
+      "simulates the full post-trade reconciliation path",
+      "supports BUY and SELL",
+      "transaction matching",
+      "Avräkningsnota",
+      "courtage mocked",
+      "FX/växelkurs mocked",
+      "settlement amount mocked",
+      "reconciliation preview",
+      "manual review",
+      "does not navigate Avanza",
+      "read PDFs",
+      "use OCR",
+      "extract real values",
+      "write Supabase",
+      "not production-ready",
+    ]) {
+      expect(mockDoc.toLowerCase()).toContain(copy.toLowerCase());
+    }
+
+    const disabledReport = buildAvanzaSettlementReconciliationMockExecutorReport({
+      mode: "disabled",
+      mockExecutorEnabled: false,
+    });
+
+    expect(disabledReport.status).toBe("disabled");
+    expect(disabledReport.canExecuteMockActions).toBe(false);
+    expect(disabledReport.canNavigateRealBrowser).toBe(false);
+    expect(disabledReport.controlsEnabled).toBe(false);
+    expect(disabledReport.gateLocked).toBe(true);
+
+    const buyFixture = avanzaSettlementReconciliationMockExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "valid_buy_settlement_mock_manual_review",
+    );
+    const sellFixture = avanzaSettlementReconciliationMockExecutorFixtures.find(
+      (fixture) => fixture.fixtureId === "valid_sell_settlement_mock_manual_review",
+    );
+    const missingTransactionFixture =
+      avanzaSettlementReconciliationMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "missing_matching_transaction",
+      );
+    const noteUnavailableFixture =
+      avanzaSettlementReconciliationMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "settlement_note_unavailable",
+      );
+    const extractionBlockedFixture =
+      avanzaSettlementReconciliationMockExecutorFixtures.find(
+        (fixture) => fixture.fixtureId === "extraction_blocked",
+      );
+
+    expect(buyFixture?.report.status).toBe("mock_manual_review_required");
+    expect(buyFixture?.report.side).toBe("buy");
+    expect(sellFixture?.report.status).toBe("mock_manual_review_required");
+    expect(sellFixture?.report.side).toBe("sell");
+    expect(missingTransactionFixture?.report.status).toBe(
+      "mock_transaction_not_found",
+    );
+    expect(noteUnavailableFixture?.report.status).toBe("mock_note_unavailable");
+    expect(extractionBlockedFixture?.report.status).toBe(
+      "mock_extraction_blocked",
+    );
+
+    for (const fixtureId of [
+      "disabled",
+      "valid_buy_settlement_mock_manual_review",
+      "valid_sell_settlement_mock_manual_review",
+      "min_ekonomi_simulated",
+      "transaktioner_simulated",
+      "transaction_list_simulated",
+      "matching_transaction_simulated",
+      "transaction_detail_panel_simulated",
+      "avrakningsnota_simulated",
+      "settlement_values_simulated",
+      "courtage_mocked_masked_synthetic",
+      "fx_vaxelkurs_mocked_masked_synthetic",
+      "settlement_amount_mocked_masked_synthetic",
+      "reconciliation_preview_ready",
+      "manual_review_required",
+      "missing_matching_transaction",
+      "settlement_note_unavailable",
+      "extraction_blocked",
+      "document_read_forbidden",
+      "ocr_forbidden",
+      "reconciliation_write_forbidden",
+      "supabase_write_forbidden",
+      "cookie_session_forbidden",
+      "bankid_forbidden",
+      "error",
+      "unknown",
+    ] as const) {
+      expect(fixtureSource).toContain(fixtureId);
+      expect(
+        avanzaSettlementReconciliationMockExecutorFixtures.some(
+          (fixture) => fixture.fixtureId === fixtureId,
+        ),
+      ).toBe(true);
+    }
+
+    for (const fixture of avanzaSettlementReconciliationMockExecutorFixtures) {
+      const { report } = fixture;
+
+      expect(report.mockOnly).toBe(true);
+      expect(report.canExecuteRealBrowserActions).toBe(false);
+      expect(report.canNavigateRealBrowser).toBe(false);
+      expect(report.canOpenSettlementNoteReal).toBe(false);
+      expect(report.canReadSettlementDocumentReal).toBe(false);
+      expect(report.canDownloadPdfReal).toBe(false);
+      expect(report.canUseOcrReal).toBe(false);
+      expect(report.canExtractValuesReal).toBe(false);
+      expect(report.canApplyReconciliation).toBe(false);
+      expect(report.canWriteExecutionRecord).toBe(false);
+      expect(report.canWriteTradeResult).toBe(false);
+      expect(report.canWriteStatistics).toBe(false);
+      expect(report.canWriteAuditMetadata).toBe(false);
+      expect(report.canWriteSupabase).toBe(false);
+      expect(report.canReadCookies).toBe(false);
+      expect(report.canExportSession).toBe(false);
+      expect(report.canAutomateBankId).toBe(false);
+      expect(report.canBypassBankId).toBe(false);
+      expect(report.valuesAreMaskedOrSynthetic).toBe(true);
+      expect(report.requiresManualReview).toBe(true);
+      expect(report.userMustConfirm).toBe(true);
+      expect(report.controlsEnabled).toBe(false);
+      expect(report.gateLocked).toBe(true);
+
+      for (const action of report.actionReports) {
+        expect(action.containsCredentialMaterial).toBe(false);
+        expect(action.realBrowserAction).toBe(false);
+        expect(action.documentRead).toBe(false);
+        expect(action.ocrUsed).toBe(false);
+        expect(action.valueExtractedFromRealDocument).toBe(false);
+        expect(action.writesInThisTask).toBe(false);
+      }
+
+      for (const value of report.mockedExtractedValues) {
+        expect(value.masked).toBe(true);
+        expect(value.synthetic).toBe(true);
+        expect(value.valueExtractedFromRealDocument).toBe(false);
+        expect(value.requiresManualReview).toBe(true);
+        expect(value.safeDisplayValue).toMatch(/masked|synthetic/);
+      }
+    }
+
+    for (const report of [buyFixture?.report, sellFixture?.report].filter(Boolean)) {
+      expect(report?.transactionMatched).toBe(true);
+      expect(report?.settlementNoteAvailable).toBe(true);
+      expect(report?.settlementValuesModeled).toBe(true);
+      expect(report?.reconciliationPreviewReady).toBe(true);
+      expect(report?.manualReviewRequired).toBe(true);
+      expect(report?.mockedExtractedValues.map((value) => value.valueKey)).toEqual(
+        expect.arrayContaining([
+          "courtage",
+          "fxRate",
+          "settlementAmount",
+          "tradeDate",
+          "settlementDate",
+          "quantity",
+          "executionPrice",
+          "currency",
+        ]),
+      );
+      expect(report?.actionReports.map((action) => action.actionId)).toEqual(
+        expect.arrayContaining([
+          "open_min_ekonomi_mock",
+          "open_transactions_mock",
+          "show_transaction_list_mock",
+          "match_transaction_mock",
+          "open_transaction_detail_mock",
+          "locate_settlement_note_mock",
+          "show_settlement_document_mock",
+          "show_settlement_values_mock",
+          "mock_courtage_value",
+          "mock_fx_rate_value",
+          "mock_settlement_amount_value",
+          "mock_reconciliation_preview",
+          "manual_review_gate",
+          "stop_before_reconciliation_write",
+        ]),
+      );
+    }
+
+    for (const copy of [
+      "Avanza settlement reconciliation mock executor",
+      "Fixture/model only",
+      "Mock only",
+      "Simulated Avanza settlement state only",
+      "Full post-trade reconciliation path simulated",
+      "BUY settlement mock reaches manual review",
+      "SELL settlement mock reaches manual review",
+      "Transaction matching simulated",
+      "Avräkningsnota simulated",
+      "Courtage mocked",
+      "FX/växelkurs mocked",
+      "Settlement amount mocked",
+      "Reconciliation preview simulated",
+      "Manual review required",
+      "No real Avanza navigation",
+      "No PDF/download/read",
+      "No OCR",
+      "No real value extraction",
+      "No reconciliation write",
+      "No Supabase write",
+      "No cookies/session",
+      "No BankID automation",
+      "No Trade UI wiring",
+      "No API route wiring",
+      "Not production ready",
+      "canExecuteRealBrowserActions",
+      "canNavigateRealBrowser",
+      "canOpenSettlementNoteReal",
+      "canReadSettlementDocumentReal",
+      "canDownloadPdfReal",
+      "canUseOcrReal",
+      "canExtractValuesReal",
+      "canApplyReconciliation",
+      "canWriteExecutionRecord",
+      "canWriteTradeResult",
+      "canWriteStatistics",
+      "canWriteAuditMetadata",
+      "canWriteSupabase",
+      "valuesAreMaskedOrSynthetic",
+      "controlsEnabled",
+      "gateLocked",
+      "mock_transaction_not_found",
+      "mock_note_unavailable",
+      "mock_extraction_blocked",
+      "masked-courtage",
+      "masked-fx-rate",
+      "masked-settlement-amount",
+    ]) {
+      expect([executorSource, fixtureSource, harnessSource, routeSource].join("\n")).toContain(copy);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaSettlementReconciliationMockExecutorHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaSettlementReconciliationMockExecutorFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-settlement-reconciliation-mock-executor",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-settlement-reconciliation-mock-executor",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "AvanzaSettlementReconciliationMockExecutor",
+    );
+    expect(smokeScriptSource).not.toContain(
+      "avanza-settlement-reconciliation-mock-executor",
+    );
+
+    for (const doc of [
+      readRepoFile("docs/avanza-settlement-reconciliation-dry-run-executor.md"),
+      readRepoFile("docs/avanza-real-world-settlement-note-signals.md"),
+      readRepoFile("docs/avanza-settlement-note-route-contract.md"),
+      readRepoFile("docs/avanza-settlement-note-action-contract.md"),
+      readRepoFile("docs/avanza-settlement-note-extraction-schema.md"),
+      readRepoFile("docs/avanza-settlement-reconciliation-mapping.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
+      readRepoFile("docs/avanza-execution-settings-ui.md"),
+    ]) {
+      expect(doc).toContain("mock execution layer after dry-run");
+      expect(doc).toContain("masked/synthetic");
+      expect(doc).toMatch(/manual review/i);
+      expect(doc).toMatch(
+        /Exact cost\/FX reconciliation\s+remains\s+modeled\/mock-only/,
+      );
+      expect(doc).toContain("document reading");
+      expect(doc).toContain("OCR");
+      expect(doc).toMatch(/real value extraction|value extraction/);
+      expect(doc).toContain("reconciliation writes");
+      expect(doc).toContain("Supabase");
+    }
+
+    for (const source of [
+      executorSource,
+      fixtureSource,
+      harnessSource,
+      routeSource,
+    ]) {
+      expect(source).not.toMatch(/\/live-fill-only-runner\//);
+      expect(source).not.toMatch(/FINAL\s+LIVE\s+EXECUTE/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/localhost:|127\.0\.0\.1/);
+      expect(source).not.toMatch(/method:\s*["']POST["']/);
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto|page\.fill|page\.click|page\.press/);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
+      expect(source).not.toMatch(/supabase.*insert|from\(["']execution/i);
+      expect(source).not.toMatch(
+        /clickGranska|granskaKop|reviewModal|\b(submitOrder|placeOrder)\s*\(/i,
+      );
+      expect(source).not.toMatch(/\d{6}[-+]?\d{4}|\d{8}[-+]?\d{4}/);
     }
   });
 });

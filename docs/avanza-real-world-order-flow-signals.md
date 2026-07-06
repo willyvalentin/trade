@@ -87,3 +87,9 @@ It is the bridge between order field mapping and future order-fill execution.
 It does not activate order behavior. No real form fill, click behavior, order
 submission, Trade UI wiring, or API route wiring is added. Final human
 confirmation remains mandatory.
+
+## Instrument To Order Handoff Chain
+
+The pre-submit order chain is now modeled end-to-end in `lib/avanza-instrument-to-order-handoff-chain.ts`.
+
+It links instrument search and verified instrument handoff state to order ticket field/action preparation. This still does not activate execution. Final human confirmation remains mandatory.

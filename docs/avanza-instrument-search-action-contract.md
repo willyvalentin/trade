@@ -51,3 +51,26 @@ Instrument discovery/search now exists as a model before order ticket preparatio
 The execution package flow is now: recommendation/position -> search instrument -> verify instrument -> locate KÖP/SÄLJ -> order ticket field/action contract -> review -> stop before final KÖP/SÄLJ.
 
 This phase does not activate order behavior.
+
+## Instrument To Order Handoff Chain
+
+The pre-submit order chain is now modeled end-to-end in `lib/avanza-instrument-to-order-handoff-chain.ts`.
+
+It links the instrument search action contract to verified instrument handoff state, order ticket field planning, and order ticket action planning. This still does not activate execution. Final human confirmation remains mandatory.
+
+## Instrument To Order Dry-Run Executor
+
+The chain now has a dry-run validation layer in
+`lib/avanza-instrument-to-order-dry-run-executor.ts`.
+
+The action contract remains a model input to dry-run validation only. This still
+does not activate execution. Final human confirmation remains mandatory.
+
+## Instrument To Order Mock Executor
+
+The chain now has a mock execution layer after dry-run in
+`lib/avanza-instrument-to-order-mock-executor.ts`.
+
+The action contract can be inspected through simulated page-state flow only.
+This still does not activate real Avanza execution. Final human confirmation
+remains mandatory.

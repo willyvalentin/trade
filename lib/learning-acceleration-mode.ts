@@ -78,6 +78,8 @@ export type LearningAccelerationResearchSkipReason =
   | "missing_reference_price"
   | "missing_data_timestamp"
   | "missing_provider_source"
+  | "risk_geometry_not_checked_due_missing_reference"
+  | "diagnostic_enough_data_false"
   | "stale_reference"
   | "stale_candidate"
   | "missing_snapshot_payload"
@@ -437,7 +439,28 @@ function diagnosticMissingReferencePrice(
     .join(" ")
     .toLowerCase();
 
-  return text.includes("missing_reference") || text.includes("missing fresh");
+  return (
+    text.includes("missing_reference") ||
+    text.includes("missing_price") ||
+    text.includes("missing price") ||
+    text.includes("missing fresh")
+  );
+}
+
+function diagnosticRiskGeometryNotCheckedDueMissingReference(
+  diagnostic: SelectedCandidateBuildDiagnostic | null,
+) {
+  if (!diagnosticMissingReferencePrice(diagnostic)) return false;
+
+  const riskGeometryStatus = (diagnostic?.risk_geometry_status ?? "")
+    .toString()
+    .toLowerCase();
+
+  return (
+    riskGeometryStatus.length === 0 ||
+    riskGeometryStatus.includes("not_checked") ||
+    riskGeometryStatus.includes("not checked")
+  );
 }
 
 export function buildLearningAccelerationResearchSelection({
@@ -724,32 +747,6 @@ export function buildLearningAccelerationResearchSelection({
       continue;
     }
 
-    if (candidate.stale) {
-      skippedStaleReference += 1;
-      incrementReason(skipReasonCounts, "stale_candidate");
-      pushReasonExample(skipExamples, {
-        ticker,
-        reason: "stale_candidate",
-        side,
-        candidate,
-        diagnostic: buildDiagnostic,
-      });
-      continue;
-    }
-
-    if (diagnosticHasStaleReference(buildDiagnostic)) {
-      skippedStaleReference += 1;
-      incrementReason(skipReasonCounts, "stale_reference");
-      pushReasonExample(skipExamples, {
-        ticker,
-        reason: "stale_reference",
-        side,
-        candidate,
-        diagnostic: buildDiagnostic,
-      });
-      continue;
-    }
-
     const geometry = candidateRiskGeometry(candidate);
 
     if (geometry.status === "missing_critical_fields") {
@@ -792,16 +789,49 @@ export function buildLearningAccelerationResearchSelection({
       continue;
     }
 
+    const missingReferencePrice = diagnosticMissingReferencePrice(buildDiagnostic);
+    const riskGeometryNotCheckedDueMissingReference =
+      diagnosticRiskGeometryNotCheckedDueMissingReference(buildDiagnostic);
+    const staleCanPersistAsSoftReferenceGap =
+      missingReferencePrice || riskGeometryNotCheckedDueMissingReference;
+
+    if (candidate.stale && !staleCanPersistAsSoftReferenceGap) {
+      skippedStaleReference += 1;
+      incrementReason(skipReasonCounts, "stale_candidate");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "stale_candidate",
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
+      continue;
+    }
+
+    if (diagnosticHasStaleReference(buildDiagnostic) && !missingReferencePrice) {
+      skippedStaleReference += 1;
+      incrementReason(skipReasonCounts, "stale_reference");
+      pushReasonExample(skipExamples, {
+        ticker,
+        reason: "stale_reference",
+        side,
+        candidate,
+        diagnostic: buildDiagnostic,
+      });
+      continue;
+    }
+
     const explicitMetadataGaps = Array.from(
       new Set([
         ...(candidate.market_data_timestamp ? [] : ["missing_data_timestamp"]),
-        ...(candidate.provider_source ? [] : ["provider_source_unavailable"]),
+        ...(candidate.provider_source ? [] : ["missing_provider_source"]),
         ...(candidate.data_source ? [] : ["market_data_source_unavailable"]),
-        ...(diagnosticMissingReferencePrice(buildDiagnostic)
-          ? ["missing_reference_price"]
+        ...(missingReferencePrice ? ["missing_reference_price"] : []),
+        ...(riskGeometryNotCheckedDueMissingReference
+          ? ["risk_geometry_not_checked_due_missing_reference"]
           : []),
         ...(buildDiagnostic?.enough_data_to_build_plan === false
-          ? ["build_diagnostic_enough_data_false"]
+          ? ["diagnostic_enough_data_false"]
           : []),
         ...(buildDiagnostic?.risk_geometry_status?.includes("invalid") === true
           ? ["build_diagnostic_risk_geometry_invalid"]
@@ -811,8 +841,12 @@ export function buildLearningAccelerationResearchSelection({
     const softGapReasons: LearningAccelerationResearchSkipReason[] = [
       ...(candidate.market_data_timestamp ? [] : ["missing_data_timestamp" as const]),
       ...(candidate.provider_source ? [] : ["missing_provider_source" as const]),
-      ...(diagnosticMissingReferencePrice(buildDiagnostic)
-        ? ["missing_reference_price" as const]
+      ...(missingReferencePrice ? ["missing_reference_price" as const] : []),
+      ...(riskGeometryNotCheckedDueMissingReference
+        ? ["risk_geometry_not_checked_due_missing_reference" as const]
+        : []),
+      ...(buildDiagnostic?.enough_data_to_build_plan === false
+        ? ["diagnostic_enough_data_false" as const]
         : []),
     ];
     for (const reason of softGapReasons) {

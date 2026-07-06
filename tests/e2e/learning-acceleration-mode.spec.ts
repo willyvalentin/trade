@@ -507,6 +507,7 @@ test("soft metadata gaps persist when research plan geometry is valid", () => {
     enabled: true,
     candidates: [
       candidate("PLTR", {
+        stale: true,
         provider_source: null,
         market_data_timestamp: null,
       }),
@@ -519,8 +520,8 @@ test("soft metadata gaps persist when research plan geometry is valid", () => {
         tier: "rejected",
         built: false,
         enoughDataToBuildPlan: false,
-        riskGeometryStatus: "invalid_risk_geometry",
-        referencePriceStatus: "missing_reference_price",
+        riskGeometryStatus: "not_checked",
+        referencePriceStatus: "missing_price",
         rejectionReason: "below_publish_threshold",
       }),
     ],
@@ -534,18 +535,25 @@ test("soft metadata gaps persist when research plan geometry is valid", () => {
   expect(selection.samples[0].explicit_metadata_gaps).toEqual(
     expect.arrayContaining([
       "missing_data_timestamp",
-      "provider_source_unavailable",
+      "missing_provider_source",
       "missing_reference_price",
-      "build_diagnostic_enough_data_false",
-      "build_diagnostic_risk_geometry_invalid",
+      "risk_geometry_not_checked_due_missing_reference",
+      "diagnostic_enough_data_false",
     ]),
   );
   expect(selection.research_soft_gaps_persisted_count).toBe(1);
   expect(selection.research_soft_gap_reason_counts.missing_data_timestamp).toBe(1);
   expect(selection.research_soft_gap_reason_counts.missing_provider_source).toBe(1);
   expect(selection.research_soft_gap_reason_counts.missing_reference_price).toBe(1);
+  expect(
+    selection.research_soft_gap_reason_counts
+      .risk_geometry_not_checked_due_missing_reference,
+  ).toBe(1);
+  expect(selection.research_soft_gap_reason_counts.diagnostic_enough_data_false).toBe(1);
   expect(selection.research_hard_invalid_count).toBe(0);
+  expect(selection.research_stale_blocked_count).toBe(0);
   expect(selection.skipped_due_to_invalid_risk_count).toBe(0);
+  expect(selection.skipped_due_to_stale_reference_count).toBe(0);
 });
 
 test("outcome evaluation includes research-only samples only when enabled", () => {

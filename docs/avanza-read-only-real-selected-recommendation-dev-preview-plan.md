@@ -2243,6 +2243,12 @@ execution write is added. Final human confirmation remains mandatory.
 
 This phase does not activate order behavior.
 
+## Instrument To Order Handoff Chain
+
+The pre-submit order chain is now modeled end-to-end in `lib/avanza-instrument-to-order-handoff-chain.ts`.
+
+It links execution package -> instrument search -> verification -> order ticket field/action path -> stop before final KÖP/SÄLJ. This still does not activate execution. Final human confirmation remains mandatory.
+
 ## Instrument Search Before Order Ticket Boundary
 
 Instrument discovery/search now exists as a model before order ticket preparation.
@@ -2275,3 +2281,73 @@ behavior, order submission, confirmation capture, final KÖP/SÄLJ click, or
 Supabase execution write is added. Final human confirmation remains mandatory.
 
 This phase does not activate order behavior.
+
+## Instrument To Order Dry-Run Executor Boundary
+
+The chain now has a dry-run validation layer in
+`lib/avanza-instrument-to-order-dry-run-executor.ts`.
+
+The dry-run layer remains separate from real selectedRecommendation reading. It
+uses explicit model/fixture input only and still does not activate execution.
+Final human confirmation remains mandatory.
+
+## Instrument To Order Mock Executor Boundary
+
+The chain now has a mock execution layer after dry-run in
+`lib/avanza-instrument-to-order-mock-executor.ts`.
+
+The mock layer remains separate from real selectedRecommendation reading and
+uses simulated page state only. This still does not activate real Avanza
+execution. Final human confirmation remains mandatory.
+
+## Settlement Note / Order Information Signals Boundary
+
+Settlement note signals now exist as a post-trade reconciliation foundation.
+Exact courtage, FX/exchange rate, settlement amount, and realized execution
+cost are future extraction targets from Avanza avräkningsnota after manual
+execution. This does not connect read-only selectedRecommendation state to
+post-trade navigation, PDF/download/read, OCR, value extraction,
+reconciliation writes, Trade UI wiring, API route wiring, cookie/session
+handling, BankID automation, or Supabase writes.
+
+Settlement route/action contracts now exist. They prepare future note
+retrieval/extraction by modeling the route from trade reference to matching
+transaction and Avräkningsnota. They do not connect read-only
+selectedRecommendation preview to reconciliation or writes.
+
+## Settlement Extraction Schema And Reconciliation Mapping
+
+Settlement extraction schema and reconciliation mapping now exist. Exact
+cost/FX reconciliation is modeled but not applied.
+
+The schema models future avräkningsnota targets for courtage, FX/växelkurs,
+settlement amount, trade date, settlement date, quantity, price, and currency.
+The mapping previews future execution, trade result, statistics/PnL, and audit
+metadata targets.
+
+This still does not activate document reading, OCR, value extraction,
+reconciliation writes, Supabase writes, Trade UI wiring, API route wiring, or
+read-only selectedRecommendation preview writes.
+
+## Settlement Reconciliation Dry-Run Follow-Up
+
+Settlement reconciliation now has a dry-run validation layer. It is
+fixture/model-only and does not connect real selectedRecommendation state to
+post-trade reconciliation.
+
+Exact cost/FX reconciliation remains modeled only. No document reading,
+PDF/download/read, OCR, value extraction, reconciliation writes, Supabase
+writes, Trade UI wiring, or API route wiring is active.
+
+## Settlement Reconciliation Mock Executor Boundary
+
+Settlement reconciliation now has a mock execution layer after dry-run. It is
+fixture/model-only and does not connect real selectedRecommendation state to
+post-trade reconciliation.
+
+The mock layer simulates transaction matching, Avräkningsnota availability,
+masked/synthetic courtage, masked/synthetic FX/växelkurs, masked/synthetic
+settlement amount, reconciliation preview, and manual review. It still does
+not activate real navigation, document reading, PDF/download/read, OCR, real
+value extraction, reconciliation writes, Supabase writes, Trade UI wiring, or
+API route wiring. Exact cost/FX reconciliation remains modeled/mock-only.

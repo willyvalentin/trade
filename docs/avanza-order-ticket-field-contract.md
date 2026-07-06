@@ -85,3 +85,27 @@ This does not activate order behavior. No real search execution, Avanza
 navigation, click behavior, BUY/SELL entry click, order submission, Trade UI
 wiring, or API route wiring is added. Final human confirmation remains
 mandatory.
+
+## Instrument To Order Handoff Chain
+
+The pre-submit order chain is now modeled end-to-end in `lib/avanza-instrument-to-order-handoff-chain.ts`.
+
+It links verified instrument handoff state to the order ticket field plan before the order ticket action contract. This still does not activate execution. Final human confirmation remains mandatory.
+
+## Instrument To Order Dry-Run Executor
+
+The chain now has a dry-run validation layer in
+`lib/avanza-instrument-to-order-dry-run-executor.ts`.
+
+The dry-run layer verifies that order ticket field readiness is modeled before
+the final human-only stop. This still does not activate execution. Final human
+confirmation remains mandatory.
+
+## Instrument To Order Mock Executor
+
+The chain now has a mock execution layer after dry-run in
+`lib/avanza-instrument-to-order-mock-executor.ts`.
+
+The mock layer simulates order ticket field preparation but performs no real
+form fill. This still does not activate real Avanza execution. Final human
+confirmation remains mandatory.

@@ -93,6 +93,27 @@ import {
   AvanzaRealWorldOrderFlowSignalsHarness,
 } from "@/components/execution/AvanzaRealWorldOrderFlowSignalsHarness";
 import {
+  AvanzaSettlementNoteSignalsHarness,
+} from "@/components/execution/AvanzaSettlementNoteSignalsHarness";
+import {
+  AvanzaSettlementNoteRouteContractHarness,
+} from "@/components/execution/AvanzaSettlementNoteRouteContractHarness";
+import {
+  AvanzaSettlementNoteActionContractHarness,
+} from "@/components/execution/AvanzaSettlementNoteActionContractHarness";
+import {
+  AvanzaSettlementNoteExtractionSchemaHarness,
+} from "@/components/execution/AvanzaSettlementNoteExtractionSchemaHarness";
+import {
+  AvanzaSettlementReconciliationMappingHarness,
+} from "@/components/execution/AvanzaSettlementReconciliationMappingHarness";
+import {
+  AvanzaSettlementReconciliationDryRunExecutorHarness,
+} from "@/components/execution/AvanzaSettlementReconciliationDryRunExecutorHarness";
+import {
+  AvanzaSettlementReconciliationMockExecutorHarness,
+} from "@/components/execution/AvanzaSettlementReconciliationMockExecutorHarness";
+import {
   AvanzaRealWorldInstrumentSearchSignalsHarness,
 } from "@/components/execution/AvanzaRealWorldInstrumentSearchSignalsHarness";
 import {
@@ -101,6 +122,15 @@ import {
 import {
   AvanzaInstrumentSearchActionContractHarness,
 } from "@/components/execution/AvanzaInstrumentSearchActionContractHarness";
+import {
+  AvanzaInstrumentToOrderHandoffChainHarness,
+} from "@/components/execution/AvanzaInstrumentToOrderHandoffChainHarness";
+import {
+  AvanzaInstrumentToOrderDryRunExecutorHarness,
+} from "@/components/execution/AvanzaInstrumentToOrderDryRunExecutorHarness";
+import {
+  AvanzaInstrumentToOrderMockExecutorHarness,
+} from "@/components/execution/AvanzaInstrumentToOrderMockExecutorHarness";
 import {
   AvanzaExecutionSettingsProfileHarness,
 } from "@/components/execution/AvanzaExecutionSettingsProfileHarness";
@@ -237,6 +267,27 @@ import {
   avanzaRealWorldOrderFlowSignalFixtures,
 } from "@/lib/avanza-real-world-order-flow-signals-fixtures";
 import {
+  avanzaSettlementNoteSignalFixtures,
+} from "@/lib/avanza-real-world-settlement-note-signals-fixtures";
+import {
+  avanzaSettlementNoteRouteContractFixtures,
+} from "@/lib/avanza-settlement-note-route-contract-fixtures";
+import {
+  avanzaSettlementNoteActionContractFixtures,
+} from "@/lib/avanza-settlement-note-action-contract-fixtures";
+import {
+  avanzaSettlementNoteExtractionSchemaFixtures,
+} from "@/lib/avanza-settlement-note-extraction-schema-fixtures";
+import {
+  avanzaSettlementReconciliationMappingFixtures,
+} from "@/lib/avanza-settlement-reconciliation-mapping-fixtures";
+import {
+  avanzaSettlementReconciliationDryRunExecutorFixtures,
+} from "@/lib/avanza-settlement-reconciliation-dry-run-executor-fixtures";
+import {
+  avanzaSettlementReconciliationMockExecutorFixtures,
+} from "@/lib/avanza-settlement-reconciliation-mock-executor-fixtures";
+import {
   avanzaRealWorldInstrumentSearchSignalFixtures,
 } from "@/lib/avanza-real-world-instrument-search-signals-fixtures";
 import {
@@ -245,6 +296,15 @@ import {
 import {
   avanzaInstrumentSearchActionContractFixtures,
 } from "@/lib/avanza-instrument-search-action-contract-fixtures";
+import {
+  avanzaInstrumentToOrderHandoffChainFixtures,
+} from "@/lib/avanza-instrument-to-order-handoff-chain-fixtures";
+import {
+  avanzaInstrumentToOrderDryRunExecutorFixtures,
+} from "@/lib/avanza-instrument-to-order-dry-run-executor-fixtures";
+import {
+  avanzaInstrumentToOrderMockExecutorFixtures,
+} from "@/lib/avanza-instrument-to-order-mock-executor-fixtures";
 import {
   avanzaExecutionSettingsProfileFixtures,
 } from "@/lib/avanza-execution-settings-profile-fixtures";
@@ -498,6 +558,118 @@ export default function AvanzaDevVisualQaPage() {
         <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement note / order information signals
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Based on sanitized user-provided settlement-flow material. Fixture/model only. Min ekonomi recognized. Transaktioner recognized. Transaction list recognized. Matching BUY/SELL transaction modeled. Transaction detail panel recognized. Avräkningsnota recognized. Courtage / FX / settlement labels recognized. No real Avanza navigation. No PDF/download/read. No OCR. No value extraction. No trade reconciliation write. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementNoteSignalsHarness
+            fixtures={avanzaSettlementNoteSignalFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement note route contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Settlement route modeled. BUY/SELL trade reference supported. Min ekonomi route modeled. Transaktioner route modeled. Transaction matching modeled. Avräkningsnota location modeled. Planned route is not executable yet. No real Avanza navigation. No document read. No OCR. No value extraction. No reconciliation write. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementNoteRouteContractHarness
+            fixtures={avanzaSettlementNoteRouteContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement note action contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Contract only. Settlement action plan modeled. Matching transaction action modeled. Avräkningsnota action modeled. Planned actions are not executable yet. No real Avanza navigation. No document read. No OCR. No value extraction. No reconciliation write. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementNoteActionContractHarness
+            fixtures={avanzaSettlementNoteActionContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement note extraction schema
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Extraction targets only. Courtage target modeled. FX/växelkurs target modeled. Settlement amount target modeled. Trade/settlement dates modeled. No PDF/download/read. No OCR. No value extraction. No reconciliation write. No Supabase write. Manual review required. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementNoteExtractionSchemaHarness
+            fixtures={avanzaSettlementNoteExtractionSchemaFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement reconciliation mapping
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Reconciliation preview only. Courtage mapped. FX mapped. Settlement amount mapped. PnL adjustment modeled. Writes are forbidden. No Supabase write. Manual review required. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementReconciliationMappingHarness
+            fixtures={avanzaSettlementReconciliationMappingFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement reconciliation dry-run executor
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Dry-run only. Full post-trade reconciliation path simulated. Courtage extraction target simulated. FX/växelkurs extraction target simulated. Settlement amount target simulated. Reconciliation targets simulated. Manual review required. No real Avanza navigation. No PDF/download/read. No OCR. No value extraction. No reconciliation write. No Supabase write. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementReconciliationDryRunExecutorHarness
+            fixtures={avanzaSettlementReconciliationDryRunExecutorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza settlement reconciliation mock executor
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Mock only. Simulated Avanza settlement state only. Full post-trade reconciliation path simulated. BUY settlement mock reaches manual review. SELL settlement mock reaches manual review. Transaction matching simulated. Avräkningsnota simulated. Courtage mocked. FX/växelkurs mocked. Settlement amount mocked. Reconciliation preview simulated. Manual review required. No real Avanza navigation. No PDF/download/read. No OCR. No real value extraction. No reconciliation write. No Supabase write. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettlementReconciliationMockExecutorHarness
+            fixtures={avanzaSettlementReconciliationMockExecutorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
               Avanza real-world instrument search signals
             </h2>
             <p className="mt-1 text-xs leading-5 text-zinc-400">
@@ -540,6 +712,54 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaInstrumentSearchActionContractHarness
             fixtures={avanzaInstrumentSearchActionContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza instrument search to order ticket handoff chain
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Full pre-submit chain modeled. Execution package to instrument search modeled. Instrument verification modeled. Verified instrument to order ticket modeled. BUY handoff chain modeled. SELL handoff chain modeled. Planned steps are not executable yet. No real search execution. No real Avanza navigation. No real form fill. No click. No BUY/SELL entry click. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Final human confirmation required. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaInstrumentToOrderHandoffChainHarness
+            fixtures={avanzaInstrumentToOrderHandoffChainFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza instrument-to-order dry-run executor
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Dry-run only. Full pre-submit flow simulated. BUY dry-run to final human action. SELL dry-run to final human action. Instrument verification checked. Order ticket readiness checked. Planned steps are not executable yet. No real search execution. No real Avanza navigation. No real form fill. No click. No BUY/SELL entry click. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Final human confirmation required. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaInstrumentToOrderDryRunExecutorHarness
+            fixtures={avanzaInstrumentToOrderDryRunExecutorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza instrument-to-order mock executor
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Mock only. Simulated Avanza page state only. Full pre-submit flow simulated. BUY mock reaches final human action. SELL mock reaches final human action. Search simulated. Instrument verification simulated. Order ticket preparation simulated. Review-ready state simulated. No real search execution. No real Avanza navigation. No real form fill. No click. No BUY/SELL entry click. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Final human confirmation required. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaInstrumentToOrderMockExecutorHarness
+            fixtures={avanzaInstrumentToOrderMockExecutorFixtures}
           />
         </section>
 
