@@ -6,6 +6,17 @@
 
 The layer is model/dev-QA only. It prepares future read-only card visibility for entry BUY readiness, exit SELL readiness, and settlement readiness without activating execution.
 
+The UI direction remains intentionally minimal. Future Execution Agent
+capability should primarily be represented as hidden/headless contract metadata
+rather than visual clutter on recommendation cards. The headless execution data
+contract is documented in `docs/avanza-headless-execution-data-contract.md`;
+visual readiness badges remain optional, default-off, and dev-QA only.
+
+The headless selector in `docs/avanza-headless-execution-contract-selector.md`
+chooses the next agent-readable contract without adding visible Trade UI. Exits
+outrank entries, stop-loss exits outrank target exits, and target exits outrank
+entries.
+
 ## What It Computes
 
 - recommendation BUY readiness;
@@ -38,6 +49,12 @@ live-position SELL/exit readiness metadata only; it does not activate handoff,
 order preparation, browser automation, API calls, fetch, polling, smoke tests,
 order submission, Supabase writes, or final KÖP/SÄLJ clicks.
 
+The isolated dev-only Avanza visual QA route now also renders a fixture/model
+visual preview for the badge enabled state. The preview covers recommendation
+BUY, live-position SELL/exit, incomplete profile, blocked market-order, missing
+quantity/limit-price, and local-dev-only badge states without enabling the
+default Trade UI flag.
+
 ## Safety Boundary
 
 This metadata shows theoretical readiness only. It does not start handoff, does not prepare orders, cannot run smoke tests, cannot call APIs, cannot fetch or poll, cannot start browser automation, cannot access credentials, cannot read cookies/session, cannot automate BankID, cannot submit orders, cannot click final KÖP/SÄLJ, cannot write Supabase, and is not production-ready.
@@ -62,4 +79,5 @@ Hard stops remain:
 - No API route integration.
 - No smoke test invocation from UI.
 - No browser action.
+- No production/default badge enablement from the dev QA visual preview.
 - No production readiness claim.

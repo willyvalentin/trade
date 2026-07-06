@@ -6,6 +6,16 @@
 
 The adapter prepares future passive card visibility for recommendation cards and live-position cards. It is passive model/component/dev-QA only.
 
+The current Trade UI strategy is intentionally minimal: recommendation cards
+stay clean, and deeper Execution Agent data should live under the surface in
+headless contracts. `docs/avanza-headless-execution-data-contract.md` now
+captures that hidden/agent-readable direction. Visual readiness badges remain
+optional, default-off, and dev-QA only.
+
+`docs/avanza-headless-execution-contract-selector.md` extends that direction by
+selecting the next agent-readable contract headlessly. Exits outrank entries,
+stop-loss exits outrank target exits, and the UI remains visually unchanged.
+
 Trade UI now has a feature-flagged integration path for the read-only badge:
 `ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE` defaults to `false`.
 When the flag is false, no badge renders in the default Trade UI. When the
@@ -36,6 +46,12 @@ changed by this badge integration.
 
 `components/execution/AvanzaTradeCardExecutionReadinessAdapterHarness.tsx` renders static fixtures on the isolated dev-only Avanza visual QA route.
 
+`components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx` and
+`components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx`
+render a dev QA visual preview of the badge enabled state using fixture/model
+data only. The preview lets the badge UI be reviewed before enabling the
+default-off feature flag and does not change default Trade UI behavior.
+
 ## Safety Boundary
 
 The adapter does not start handoff, does not prepare orders, cannot run smoke tests, cannot call APIs, cannot fetch or poll, cannot start browser automation, cannot submit orders, cannot click final KÖP/SÄLJ, does not expose credentials, does not use cookies/session, does not automate BankID, cannot write Supabase, and is not production-ready.
@@ -48,6 +64,11 @@ The Trade card badge integration is also read-only only. It does not add an
 active handoff button, prepare action, buy/sell CTA, browser/API/fetch/polling
 path, UI smoke-test invocation, credential access, cookies/session handling,
 BankID automation, Supabase write, order submission, or final KÖP/SÄLJ click.
+
+The visual preview follows the same boundary: dev QA only, fixture/model only,
+no active controls, no API route call, no browser automation, no smoke test from
+UI, no credential access, no cookies/session handling, no BankID automation, no
+order submission, and no final KÖP/SÄLJ click.
 
 ## Non-Goals
 

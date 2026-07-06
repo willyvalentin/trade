@@ -218,6 +218,32 @@ polling, Avanza/browser, fill, review, confirmation, submit, order,
 credential/session handling, or Supabase writes.
 
 The Trade card execution readiness badge is now available through a separate
+default-off visual QA path. `components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx`
+and `components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx`
+show how the badge enabled state would look on fixture recommendation and
+live-position cards before enabling `ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE`.
+The preview is dev QA only, uses fixture/model data only, keeps
+`ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW` false, and does not read real
+selectedRecommendation state, activate default Trade UI behavior, call APIs,
+fetch, poll, run smoke tests, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KÖP/SÄLJ, or write Supabase.
+
+The next under-the-surface direction is the headless execution data contract in
+`docs/avanza-headless-execution-data-contract.md`. It keeps the Trade UI
+visually simple while giving a future Execution Agent an agent-readable,
+UI-hidden contract for source identity, BUY/SELL intent, limit-order fields,
+risk context, human confirmation requirements, forbidden actions, audit
+metadata, and settlement expectations. It is not visible on cards and does not
+activate handoff, prepare actions, API calls, browser automation, order
+submission, final KÖP/SÄLJ clicks, or Supabase writes.
+
+`docs/avanza-headless-execution-contract-selector.md` adds the headless
+selection layer for those contracts. It can choose exits over entries,
+stop-loss exits over target exits, and target exits over entry BUY candidates
+without changing visible Trade UI or activating execution.
+
+In selector terms, exits outrank entries, stop-loss exits outrank target exits,
+and target exits outrank entries.
 default-off flag, `ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE`. This
 badge consumes passive recommendation/live-position readiness metadata only and
 does not enable the read-only selectedRecommendation preview flag. The
@@ -2413,3 +2439,15 @@ Supabase write, and no production readiness claim.
 Read-only selectedRecommendation planning can now reference passive trade execution readiness metadata. The metadata can describe recommendation BUY readiness and live-position SELL/exit readiness for future read-only display, but it does not read or render real Trade UI execution state and does not activate execution.
 
 The Trade card execution readiness adapter can later turn that passive metadata into read-only card labels and badges for future passive card visibility. It does not activate execution.
+
+## Headless Agent Plan Builder Separation
+
+`docs/avanza-headless-agent-plan-builder.md` is downstream of the headless
+contract selector and remains separate from read-only selectedRecommendation
+preview wiring. It can model a future agent-readable Avanza preparation plan
+from a selected contract, but it does not render real selectedRecommendation
+state, does not change default Trade UI, does not call APIs, does not fetch or
+poll, does not start browser automation now, does not access credentials,
+does not handle cookies/session, does not automate BankID, does not submit
+orders, does not click final KOP/SALJ, and does not write Supabase execution
+records.

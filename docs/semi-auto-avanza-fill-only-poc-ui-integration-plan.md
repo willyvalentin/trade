@@ -225,6 +225,31 @@ fetch, polling, UI smoke-test invocation, credential access, cookie/session
 handling, BankID automation, order submission, final KÖP/SÄLJ clicks, or
 Supabase writes.
 
+The isolated dev-only Avanza visual QA route now includes a fixture/model-only
+visual preview of that badge enabled state. It is documented in
+`docs/avanza-trade-card-readiness-badge-visual-preview.md` and uses static
+adapter fixtures only. It does not change the default flag, activate Trade UI
+behavior, add handoff or prepare controls, call APIs, fetch, poll, run smoke
+tests from UI, access credentials, handle cookies/session, automate BankID,
+submit orders, click final KÖP/SÄLJ, or write Supabase.
+
+The UI direction after this point is intentionally minimal. Additional
+Execution Agent capability should be modeled in hidden/headless contracts, not
+as more visible recommendation-card clutter. The headless execution data
+contract is documented in `docs/avanza-headless-execution-data-contract.md` and
+remains agent-readable, UI-hidden, fixture/model-only, and unable to call APIs,
+fetch, poll, control a browser, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KÖP/SÄLJ, or write Supabase.
+
+The headless selector is documented in
+`docs/avanza-headless-execution-contract-selector.md`. It ranks
+agent-readable contracts under the surface so future agent planning can select
+exits over entries and stop-loss exits over target exits without adding visible
+Trade UI or activating order behavior.
+
+In selector terms, exits outrank entries, stop-loss exits outrank target exits,
+and target exits outrank entries.
+
 The fixture/harness visibility layer now includes
 `lib/avanza-trade-ui-prepare-intent-fixtures.ts`,
 `components/execution/AvanzaTradeUiPrepareIntentHarness.tsx`, and a fixture-only
@@ -4243,3 +4268,16 @@ no final KOP/SALJ click, no Supabase write, and no production readiness claim.
 `lib/avanza-passive-trade-execution-readiness.ts` adds passive recommendation/live-position execution readiness metadata for future read-only UI visibility. It is fixture/model-only today and does not enable Trade UI execution, API route calls, browser automation, order submission, or final KÖP/SÄLJ clicks.
 
 `lib/avanza-trade-card-execution-readiness-adapter.ts` adds a card-level read-only adapter for future passive card visibility. It converts readiness metadata into display-safe badges and does not activate execution.
+
+## Headless Agent Plan Builder
+
+`docs/avanza-headless-agent-plan-builder.md` adds the under-the-surface plan
+builder after the headless contract selector. It converts a selected execution
+contract into a future Avanza preparation plan for agent consumption without
+visible Trade UI changes or execution. It is fixture/model-only in the dev QA
+route, plans recommendation BUY and live-position SELL preparation, stops
+before final confirmation, requires human final KOP/SALJ, and keeps no active
+handoff, no prepare action, no buy/sell CTA, no browser automation now, no API
+route call, no fetch/polling, no credential access, no cookies/session, no
+BankID automation, no order submission, no final KOP/SALJ click, no Supabase
+write, and no production readiness.

@@ -40,6 +40,11 @@ const uiFacingFiles = [
   "components/execution/AvanzaPassiveTradeExecutionReadinessHarness.tsx",
   "components/execution/AvanzaTradeCardExecutionReadinessBadge.tsx",
   "components/execution/AvanzaTradeCardExecutionReadinessAdapterHarness.tsx",
+  "components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx",
+  "components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx",
+  "components/execution/AvanzaHeadlessExecutionDataContractHarness.tsx",
+  "components/execution/AvanzaHeadlessExecutionContractSelectorHarness.tsx",
+  "components/execution/AvanzaHeadlessAgentPlanBuilderHarness.tsx",
   "components/execution/AvanzaPageStateDetectorHarness.tsx",
   "components/execution/AvanzaSanitizedPageSnapshotHarness.tsx",
   "components/execution/AvanzaRealWorldLoginSignalsHarness.tsx",
@@ -311,6 +316,248 @@ test.describe("Avanza bridge UI safety guard", () => {
     expect(passiveBadgeWiringSource).not.toMatch(/keychain/i);
     expect(passiveBadgeWiringSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
     expect(passiveBadgeWiringSource).not.toMatch(
+      /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+    );
+  });
+
+  test("Trade card readiness badge visual preview stays fixture-only", () => {
+    const previewSource = readRepoFile(
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const combinedSource = [previewSource, harnessSource].join("\n");
+
+    expect(routeSource).toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreviewHarness",
+    );
+    expect(routeSource).toContain(
+      "Trade card readiness badge visual preview",
+    );
+    expect(combinedSource).toContain("Feature flag remains default-off");
+    expect(combinedSource).toContain("Fixture/model only");
+    expect(combinedSource).toContain("Recommendation card badge preview");
+    expect(combinedSource).toContain("Live-position card badge preview");
+    expect(combinedSource).toContain("No active handoff");
+    expect(combinedSource).toContain("No prepare action");
+    expect(combinedSource).toContain("No buy/sell CTA");
+    expect(combinedSource).toContain("No API route call");
+    expect(combinedSource).toContain("No fetch/polling");
+    expect(combinedSource).toContain("No smoke test from UI");
+    expect(combinedSource).toContain("No credential access");
+    expect(combinedSource).toContain("No cookies/session");
+    expect(combinedSource).toContain("No BankID automation");
+    expect(combinedSource).toContain("No order submission");
+    expect(combinedSource).toContain("No final KÖP/SÄLJ click");
+    expect(combinedSource).toContain("Not production ready");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;",
+    );
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreview",
+    );
+    expect(combinedSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedSource).not.toMatch(/\/api\/|app\/api\//);
+    expect(combinedSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(combinedSource).not.toMatch(/chromium\.launch|page\.goto/);
+    expect(combinedSource).not.toMatch(/document\.cookie|cookies\(\)/i);
+    expect(combinedSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedSource).not.toMatch(/keychain/i);
+    expect(combinedSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
+    expect(combinedSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(combinedSource).not.toMatch(
+      /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+    );
+  });
+
+  test("headless execution data contract stays UI-hidden and passive", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-headless-execution-data-contract.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-data-contract-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionDataContractHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const combinedSource = [modelSource, fixtureSource, harnessSource].join("\n");
+
+    expect(routeSource).toContain("AvanzaHeadlessExecutionDataContractHarness");
+    expect(routeSource).toContain("Avanza headless execution data contract");
+    expect(combinedSource).toContain("Hidden under the surface");
+    expect(combinedSource).toContain("Agent-readable, UI-hidden");
+    expect(combinedSource).toContain("Recommendation entry BUY contract modeled");
+    expect(combinedSource).toContain("Live-position exit SELL contract modeled");
+    expect(combinedSource).toContain("Settlement expectation modeled");
+    expect(combinedSource).toContain("Human final KÖP/SÄLJ required");
+    expect(combinedSource).toContain("No visible Trade UI changes");
+    expect(combinedSource).toContain("visibleInUi: false");
+    expect(combinedSource).toContain("canRenderVisualBadge: false");
+    expect(combinedSource).toContain("canStartHandoff: false");
+    expect(combinedSource).toContain("canPrepareOrder: false");
+    expect(combinedSource).toContain("canCallApiRoute: false");
+    expect(combinedSource).toContain("canFetch: false");
+    expect(combinedSource).toContain("canPoll: false");
+    expect(combinedSource).toContain("canUseBrowserAutomation: false");
+    expect(combinedSource).toContain("canAccessCredentials: false");
+    expect(combinedSource).toContain("canReadCookies: false");
+    expect(combinedSource).toContain("canSubmitOrder: false");
+    expect(combinedSource).toContain("canClickFinalBuy: false");
+    expect(combinedSource).toContain("canClickFinalSell: false");
+    expect(combinedSource).toContain("canWriteSupabase: false");
+    expect(combinedSource).toContain("gateLocked: true");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;",
+    );
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(tradeAppSource).not.toContain("avanza-headless-execution-data-contract");
+    expect(combinedSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedSource).not.toMatch(/\/api\/|app\/api\//);
+    expect(combinedSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(combinedSource).not.toMatch(/chromium\.launch|page\.goto/);
+    expect(combinedSource).not.toMatch(/document\.cookie|cookies\(\)/i);
+    expect(combinedSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedSource).not.toMatch(/keychain/i);
+    expect(combinedSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
+    expect(combinedSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(combinedSource).not.toMatch(
+      /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+    );
+  });
+
+  test("headless execution contract selector stays UI-hidden and passive", () => {
+    const selectorSource = readRepoFile(
+      "lib/avanza-headless-execution-contract-selector.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-contract-selector-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionContractSelectorHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const combinedSource = [selectorSource, fixtureSource, harnessSource].join("\n");
+
+    expect(routeSource).toContain("AvanzaHeadlessExecutionContractSelectorHarness");
+    expect(routeSource).toContain("Avanza headless execution contract selector");
+    expect(combinedSource).toContain("Hidden under the surface");
+    expect(combinedSource).toContain("Agent-readable, UI-hidden");
+    expect(combinedSource).toContain("Exits outrank entries");
+    expect(combinedSource).toContain("Stop-loss outranks target");
+    expect(combinedSource).toContain("Target outranks entry");
+    expect(combinedSource).toContain("Recommendation entry BUY selection modeled");
+    expect(combinedSource).toContain("Live-position exit SELL selection modeled");
+    expect(combinedSource).toContain("No visible Trade UI changes");
+    expect(combinedSource).toContain("visibleInUi: false");
+    expect(combinedSource).toContain("canStartHandoff: false");
+    expect(combinedSource).toContain("canPrepareOrder: false");
+    expect(combinedSource).toContain("canCallApiRoute: false");
+    expect(combinedSource).toContain("canFetch: false");
+    expect(combinedSource).toContain("canPoll: false");
+    expect(combinedSource).toContain("canUseBrowserAutomation: false");
+    expect(combinedSource).toContain("canAccessCredentials: false");
+    expect(combinedSource).toContain("canReadCookies: false");
+    expect(combinedSource).toContain("canSubmitOrder: false");
+    expect(combinedSource).toContain("canClickFinalBuy: false");
+    expect(combinedSource).toContain("canClickFinalSell: false");
+    expect(combinedSource).toContain("canWriteSupabase: false");
+    expect(combinedSource).toContain("gateLocked: true");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;",
+    );
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-headless-execution-contract-selector",
+    );
+    expect(combinedSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedSource).not.toMatch(/\/api\/|app\/api\//);
+    expect(combinedSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(combinedSource).not.toMatch(/chromium\.launch|page\.goto/);
+    expect(combinedSource).not.toMatch(/document\.cookie|cookies\(\)/i);
+    expect(combinedSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedSource).not.toMatch(/keychain/i);
+    expect(combinedSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
+    expect(combinedSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(combinedSource).not.toMatch(
+      /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+    );
+  });
+
+  test("headless agent plan builder stays UI-hidden and passive", () => {
+    const builderSource = readRepoFile(
+      "lib/avanza-headless-agent-plan-builder.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-agent-plan-builder-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessAgentPlanBuilderHarness.tsx",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const combinedSource = [builderSource, fixtureSource, harnessSource].join("\n");
+
+    expect(routeSource).toContain("AvanzaHeadlessAgentPlanBuilderHarness");
+    expect(routeSource).toContain("Avanza headless agent plan builder");
+    expect(combinedSource).toContain("Hidden under the surface");
+    expect(combinedSource).toContain("Agent-readable, UI-hidden");
+    expect(combinedSource).toContain("Recommendation BUY plan modeled");
+    expect(combinedSource).toContain("Live-position SELL plan modeled");
+    expect(combinedSource).toContain("Login path planned only");
+    expect(combinedSource).toContain("Instrument search planned only");
+    expect(combinedSource).toContain("Limit order preparation planned only");
+    expect(combinedSource).toContain("Stop before final confirmation");
+    expect(combinedSource).toContain("Human final KÖP/SÄLJ required");
+    expect(combinedSource).toContain("Settlement reconciliation planned");
+    expect(combinedSource).toContain("No visible Trade UI changes");
+    expect(combinedSource).toContain("No browser automation now");
+    expect(combinedSource).toContain("visibleInUi: false");
+    expect(combinedSource).toContain("canStartHandoff: false");
+    expect(combinedSource).toContain("canPrepareOrderNow: false");
+    expect(combinedSource).toContain("canRunSmokeTestFromUi: false");
+    expect(combinedSource).toContain("canCallApiRoute: false");
+    expect(combinedSource).toContain("canFetch: false");
+    expect(combinedSource).toContain("canPoll: false");
+    expect(combinedSource).toContain("canUseBrowserAutomationNow: false");
+    expect(combinedSource).toContain("canAccessCredentials: false");
+    expect(combinedSource).toContain("canReadCookies: false");
+    expect(combinedSource).toContain("canSubmitOrder: false");
+    expect(combinedSource).toContain("canClickFinalBuy: false");
+    expect(combinedSource).toContain("canClickFinalSell: false");
+    expect(combinedSource).toContain("canWriteSupabase: false");
+    expect(combinedSource).toContain("canClaimProductionReady: false");
+    expect(combinedSource).toContain("finalHumanClickRequired: true");
+    expect(combinedSource).toContain("gateLocked: true");
+    expect(tradeAppSource).toContain(
+      "const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;",
+    );
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+    expect(tradeAppSource).not.toContain("avanza-headless-agent-plan-builder");
+    expect(combinedSource).not.toMatch(/\bfetch\s*\(/);
+    expect(combinedSource).not.toMatch(/\/api\/|app\/api\//);
+    expect(combinedSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(combinedSource).not.toMatch(/chromium\.launch|page\.goto/);
+    expect(combinedSource).not.toMatch(/document\.cookie|cookies\(\)/i);
+    expect(combinedSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(combinedSource).not.toMatch(/keychain/i);
+    expect(combinedSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
+    expect(combinedSource).not.toMatch(/<button\b|onClick\s*=/);
+    expect(combinedSource).not.toMatch(
       /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
     );
   });

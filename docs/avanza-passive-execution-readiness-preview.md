@@ -6,6 +6,12 @@
 
 This is passive UI/model/dev-QA only. It provides visibility before any active integration and does not activate execution.
 
+The current UI strategy is intentionally minimal. Recommendation cards should
+stay clean, while deeper Execution Agent capability is represented under the
+surface through hidden/headless contracts. The headless execution data contract
+is documented in `docs/avanza-headless-execution-data-contract.md`. Visual
+readiness badges remain optional/default-off/dev-QA only.
+
 ## What It Shows
 
 - Ture Settings profile readiness.

@@ -13,6 +13,29 @@ The Ture App owns state, audit trail, lifecycle, statistics, and learning.
 
 The Execution Agent must not choose trades independently.
 
+The current UI strategy is intentionally minimal. Recommendation cards should
+stay clean; deeper execution capability should be represented as hidden
+headless data that the Execution Agent can read later, not as visual card
+clutter.
+
+`docs/avanza-headless-execution-data-contract.md` defines that under-the-surface
+contract. It is agent-readable and UI-hidden, carries BUY/SELL limit-order
+metadata, human final confirmation requirements, forbidden actions, audit
+metadata, and settlement expectations, and remains unable to start handoff,
+prepare orders, call APIs, fetch, poll, control a browser, access credentials,
+handle cookies/session, automate BankID, submit orders, click final KÖP/SÄLJ,
+or write Supabase.
+
+Visual readiness badges remain optional, default-off, and dev-QA only.
+
+The headless selector is documented in
+`docs/avanza-headless-execution-contract-selector.md`. It chooses the next
+agent-readable contract without visible UI changes: exits outrank entries,
+stop-loss exits outrank target exits, and target exits outrank entries. It does
+not start handoff, prepare orders, call APIs, fetch, poll, control a browser,
+access credentials, handle cookies/session, automate BankID, submit orders,
+click final KÖP/SÄLJ, or write Supabase.
+
 ## Full Closed-Loop Flow
 
 1. Engine scans and ranks setups.
@@ -647,3 +670,15 @@ The passive execution readiness preview is documented in `docs/avanza-passive-ex
 The Engine/Agent contract may expose passive recommendation/live-position readiness metadata for future read-only card visibility. The metadata is not an execution contract, does not activate execution, does not activate handoff or prepare actions, and keeps final KÖP/SÄLJ human-only.
 
 The Trade card execution readiness adapter may convert this metadata into read-only labels and badges for future passive card visibility. It does not activate execution.
+
+## Headless Agent Plan Builder Boundary
+
+The Engine/Agent contract now includes
+`docs/avanza-headless-agent-plan-builder.md` as a planning-only layer. The
+headless selector can feed a selected contract into an agent-readable Avanza
+preparation plan, but the plan is UI-hidden and cannot execute. It models
+login planning, instrument search, BUY/SELL route planning, limit order field
+preparation, review stop, human-only final KOP/SALJ, and later settlement
+reconciliation without API calls, fetch/polling, browser automation now,
+credential access, cookies/session handling, BankID automation, order
+submission, final clicks, Supabase writes, or production-readiness claims.

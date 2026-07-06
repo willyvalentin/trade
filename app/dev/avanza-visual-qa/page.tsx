@@ -111,6 +111,18 @@ import {
   AvanzaTradeCardExecutionReadinessAdapterHarness,
 } from "@/components/execution/AvanzaTradeCardExecutionReadinessAdapterHarness";
 import {
+  AvanzaTradeCardExecutionReadinessVisualPreviewHarness,
+} from "@/components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness";
+import {
+  AvanzaHeadlessExecutionDataContractHarness,
+} from "@/components/execution/AvanzaHeadlessExecutionDataContractHarness";
+import {
+  AvanzaHeadlessExecutionContractSelectorHarness,
+} from "@/components/execution/AvanzaHeadlessExecutionContractSelectorHarness";
+import {
+  AvanzaHeadlessAgentPlanBuilderHarness,
+} from "@/components/execution/AvanzaHeadlessAgentPlanBuilderHarness";
+import {
   AvanzaPageStateDetectorHarness,
 } from "@/components/execution/AvanzaPageStateDetectorHarness";
 import {
@@ -317,6 +329,15 @@ import {
 import {
   avanzaTradeCardExecutionReadinessAdapterFixtures,
 } from "@/lib/avanza-trade-card-execution-readiness-adapter-fixtures";
+import {
+  avanzaHeadlessExecutionDataContractFixtures,
+} from "@/lib/avanza-headless-execution-data-contract-fixtures";
+import {
+  avanzaHeadlessExecutionContractSelectorFixtures,
+} from "@/lib/avanza-headless-execution-contract-selector-fixtures";
+import {
+  avanzaHeadlessAgentPlanBuilderFixtures,
+} from "@/lib/avanza-headless-agent-plan-builder-fixtures";
 import {
   avanzaPageStateDetectorFixtures,
 } from "@/lib/avanza-page-state-detector-fixtures";
@@ -730,6 +751,70 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaTradeCardExecutionReadinessAdapterHarness
             fixtures={avanzaTradeCardExecutionReadinessAdapterFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Trade card readiness badge visual preview
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Dev QA only. Feature flag remains default-off. Fixture/model only. Recommendation card badge preview. Live-position card badge preview. No active handoff. No prepare action. No buy/sell CTA. No onClick action. No browser automation. No API route call. No fetch/polling. No smoke test from UI. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaTradeCardExecutionReadinessVisualPreviewHarness
+            fixtures={avanzaTradeCardExecutionReadinessAdapterFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless execution data contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Recommendation entry BUY contract modeled. Live-position exit SELL contract modeled. Settlement expectation modeled. Human final KÖP/SÄLJ required. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation. No API route call. No fetch/polling. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessExecutionDataContractHarness
+            fixtures={avanzaHeadlessExecutionDataContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless execution contract selector
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Exits outrank entries. Stop-loss outranks target. Target outranks entry. Recommendation entry BUY selection modeled. Live-position exit SELL selection modeled. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation. No API route call. No fetch/polling. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessExecutionContractSelectorHarness
+            fixtures={avanzaHeadlessExecutionContractSelectorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless agent plan builder
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Recommendation BUY plan modeled. Live-position SELL plan modeled. Login path planned only. Instrument search planned only. Limit order preparation planned only. Stop before final confirmation. Human final KÖP/SÄLJ required. Settlement reconciliation planned. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessAgentPlanBuilderHarness
+            fixtures={avanzaHeadlessAgentPlanBuilderFixtures}
           />
         </section>
 

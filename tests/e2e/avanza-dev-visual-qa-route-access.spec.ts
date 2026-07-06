@@ -462,6 +462,24 @@ import {
   avanzaTradeCardExecutionReadinessAdapterFixtures,
 } from "../../lib/avanza-trade-card-execution-readiness-adapter-fixtures";
 import {
+  buildAvanzaHeadlessExecutionContract,
+} from "../../lib/avanza-headless-execution-data-contract";
+import {
+  avanzaHeadlessExecutionDataContractFixtures,
+} from "../../lib/avanza-headless-execution-data-contract-fixtures";
+import {
+  selectNextAvanzaHeadlessExecutionContract,
+} from "../../lib/avanza-headless-execution-contract-selector";
+import {
+  avanzaHeadlessExecutionContractSelectorFixtures,
+} from "../../lib/avanza-headless-execution-contract-selector-fixtures";
+import {
+  buildAvanzaHeadlessAgentPlan,
+} from "../../lib/avanza-headless-agent-plan-builder";
+import {
+  avanzaHeadlessAgentPlanBuilderFixtures,
+} from "../../lib/avanza-headless-agent-plan-builder-fixtures";
+import {
   avanzaSettingsPassiveExecutionReadinessFixtures,
 } from "../../lib/avanza-settings-passive-execution-readiness-fixtures";
 import {
@@ -36567,6 +36585,1148 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/<button\b|onClick\s*=/);
       expect(source).not.toContain("app/trade-app");
       expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Trade card readiness badge visual preview is dev-QA only and default-off", () => {
+    const previewSource = readRepoFile(
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-trade-card-readiness-badge-visual-preview.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreview.tsx",
+      "components/execution/AvanzaTradeCardExecutionReadinessVisualPreviewHarness.tsx",
+      "docs/avanza-trade-card-readiness-badge-visual-preview.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreviewHarness",
+    );
+    expect(routeSource).toContain(
+      "Trade card readiness badge visual preview",
+    );
+    expect(routeSource).toContain(
+      "avanzaTradeCardExecutionReadinessAdapterFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+
+    for (const copy of [
+      "Trade card readiness badge visual preview",
+      "Dev QA only",
+      "Feature flag remains default-off",
+      "Fixture/model only",
+      "Recommendation card badge preview",
+      "Live-position card badge preview",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No onClick action",
+      "No browser automation",
+      "No API route call",
+      "No fetch/polling",
+      "No smoke test from UI",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "Not production ready",
+      "Recommendation BUY card with readiness badge",
+      "Live-position SELL/exit card with readiness badge",
+      "Incomplete profile card with warning badge",
+      "Blocked market-order card",
+      "Missing quantity/limit-price card",
+      "Local-dev-only info card",
+    ]) {
+      expect([routeSource, previewSource, harnessSource, docSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    expect(previewSource).toContain("AvanzaTradeCardExecutionReadinessBadge");
+    expect(previewSource).toContain(
+      "avanzaTradeCardExecutionReadinessAdapterFixtures",
+    );
+    expect(previewSource).toContain("recommendation_buy_ready_badge");
+    expect(previewSource).toContain("live_position_sell_exit_ready_badge");
+    expect(previewSource).toContain("incomplete_profile_badge");
+    expect(previewSource).toContain("market_order_blocked_badge");
+    expect(previewSource).toContain("missing_quantity_badge");
+    expect(previewSource).toContain("missing_limit_price_badge");
+    expect(previewSource).toContain("local_dev_only_badge");
+
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreview",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreviewHarness",
+    );
+    expect(apiRouteSource).not.toContain(
+      "AvanzaTradeCardExecutionReadinessVisualPreview",
+    );
+
+    for (const source of [previewSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless execution data contract is UI-hidden and route-visible", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-headless-execution-data-contract.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-data-contract-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionDataContractHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-headless-execution-data-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-headless-execution-data-contract.ts",
+      "lib/avanza-headless-execution-data-contract-fixtures.ts",
+      "components/execution/AvanzaHeadlessExecutionDataContractHarness.tsx",
+      "docs/avanza-headless-execution-data-contract.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const readyBuy = buildAvanzaHeadlessExecutionContract({
+      intent: "entry_buy",
+      limitPrice: 58.4,
+      orderType: "limit",
+      profileReady: true,
+      quantity: 120,
+      recommendationId: "rec-headless-test",
+      side: "buy",
+      source: "recommendation",
+      ticker: "NOKIA",
+    });
+    const readySell = buildAvanzaHeadlessExecutionContract({
+      intent: "exit_sell",
+      limitPrice: 286.2,
+      orderType: "limit",
+      positionId: "position-headless-test",
+      profileReady: true,
+      quantity: 40,
+      side: "sell",
+      source: "live_position",
+      ticker: "VOLV B",
+    });
+    const missingTicker = buildAvanzaHeadlessExecutionContract({
+      intent: "entry_buy",
+      limitPrice: 58.4,
+      orderType: "limit",
+      profileReady: true,
+      quantity: 120,
+      side: "buy",
+      source: "recommendation",
+    });
+    const marketBlocked = buildAvanzaHeadlessExecutionContract({
+      intent: "entry_buy",
+      limitPrice: 58.4,
+      orderType: "market_forbidden",
+      profileReady: true,
+      quantity: 120,
+      side: "buy",
+      source: "recommendation",
+      ticker: "NOKIA",
+    });
+    const incompleteProfile = buildAvanzaHeadlessExecutionContract({
+      intent: "entry_buy",
+      limitPrice: 58.4,
+      orderType: "limit",
+      profileReady: false,
+      quantity: 120,
+      side: "buy",
+      source: "recommendation",
+      ticker: "NOKIA",
+    });
+
+    expect(readyBuy.status).toBe("ready_headless");
+    expect(readySell.status).toBe("ready_headless");
+    expect(missingTicker.status).toBe("missing_ticker");
+    expect(missingTicker.missingFields).toContain("ticker");
+    expect(marketBlocked.status).toBe("blocked");
+    expect(incompleteProfile.status).toBe("ready_headless");
+    expect(incompleteProfile.warnings).toContain(
+      "Execution profile is incomplete.",
+    );
+    expect(readyBuy.canBeUsedByAgentLater).toBe(true);
+    expect(readyBuy.auditMetadata).toMatchObject({
+      generatedBy: "ture_headless_execution_contract",
+      intendedConsumer: "execution_agent",
+      uiDisplayMode: "hidden_under_surface",
+      visibleInUi: false,
+    });
+    expect(readyBuy.settlementExpectation).toMatchObject({
+      expectedBrokerDocument: "avanza_avrakningsnota",
+      reconciliationMode: "manual_or_future_agent",
+      settlementRequiredAfterExecution: true,
+      writeEnabled: false,
+    });
+    expect(readyBuy.settlementExpectation.expectedFields).toEqual([
+      "courtage",
+      "fxRate",
+      "settlementAmount",
+      "executionPrice",
+      "quantity",
+      "tradeDate",
+      "settlementDate",
+    ]);
+    expect(readyBuy.humanConfirmationRequirement).toMatch(
+      /Final KÖP\/SÄLJ is human-only/i,
+    );
+    expect(readyBuy.forbiddenActions).toEqual(
+      expect.arrayContaining([
+        "submit_order",
+        "click_final_buy",
+        "click_final_sell",
+        "automate_bankid",
+        "read_cookies",
+        "export_session",
+        "store_raw_credentials",
+        "write_supabase_execution",
+      ]),
+    );
+    expect(readyBuy.agentReadableInstructions).toEqual(
+      expect.arrayContaining([
+        "verify instrument identity",
+        "prepare limit order fields",
+        "stop at broker review/final confirmation",
+        "wait for user final click",
+        "capture result later only through approved flow",
+      ]),
+    );
+
+    expect(readyBuy.safetyFlags).toMatchObject({
+      canAccessCredentials: false,
+      canAutomateBankId: false,
+      canCallApiRoute: false,
+      canClaimProductionReady: false,
+      canClickFinalBuy: false,
+      canClickFinalSell: false,
+      canExportSession: false,
+      canFetch: false,
+      canPoll: false,
+      canPrepareOrder: false,
+      canReadCookies: false,
+      canRenderVisualBadge: false,
+      canRunSmokeTestFromUi: false,
+      canStartHandoff: false,
+      canSubmitOrder: false,
+      canUseBrowserAutomation: false,
+      canWriteSupabase: false,
+      controlsEnabled: false,
+      finalHumanClickRequired: true,
+      gateLocked: true,
+      headlessOnly: true,
+      userMustConfirm: true,
+      visibleInUi: false,
+    });
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessExecutionDataContractFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["recommendation_entry_buy_ready_headless", "ready_headless"],
+      ["live_position_exit_sell_ready_headless", "ready_headless"],
+      ["missing_ticker", "missing_ticker"],
+      ["missing_side", "missing_side"],
+      ["missing_quantity", "missing_quantity"],
+      ["missing_limit_price", "missing_limit_price"],
+      ["market_order_blocked", "blocked"],
+      ["incomplete_profile_warning", "ready_headless"],
+      ["settlement_expectation_present", "ready_headless"],
+      ["human_final_click_required", "ready_headless"],
+      ["forbidden_order_submission", "blocked"],
+      ["forbidden_bankid_automation", "blocked"],
+      ["forbidden_cookies_session", "blocked"],
+      ["forbidden_supabase_write", "blocked"],
+      ["ui_hidden_under_surface", "local_dev_only"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessExecutionDataContractFixtures) {
+      const { contract } = fixture;
+
+      expect(contract.status).toBe(fixture.expectedStatus);
+      expect(contract.auditMetadata.visibleInUi).toBe(false);
+      expect(contract.auditMetadata.uiDisplayMode).toBe("hidden_under_surface");
+      expect(contract.auditMetadata.intendedConsumer).toBe("execution_agent");
+      expect(contract.settlementExpectation.writeEnabled).toBe(false);
+      expect(contract.safetyFlags.headlessOnly).toBe(true);
+      expect(contract.safetyFlags.visibleInUi).toBe(false);
+      expect(contract.safetyFlags.canRenderVisualBadge).toBe(false);
+      expect(contract.safetyFlags.canStartHandoff).toBe(false);
+      expect(contract.safetyFlags.canPrepareOrder).toBe(false);
+      expect(contract.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(contract.safetyFlags.canCallApiRoute).toBe(false);
+      expect(contract.safetyFlags.canFetch).toBe(false);
+      expect(contract.safetyFlags.canPoll).toBe(false);
+      expect(contract.safetyFlags.canUseBrowserAutomation).toBe(false);
+      expect(contract.safetyFlags.canAccessCredentials).toBe(false);
+      expect(contract.safetyFlags.canReadCookies).toBe(false);
+      expect(contract.safetyFlags.canExportSession).toBe(false);
+      expect(contract.safetyFlags.canAutomateBankId).toBe(false);
+      expect(contract.safetyFlags.canSubmitOrder).toBe(false);
+      expect(contract.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(contract.safetyFlags.canClickFinalSell).toBe(false);
+      expect(contract.safetyFlags.canWriteSupabase).toBe(false);
+      expect(contract.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(contract.safetyFlags.userMustConfirm).toBe(true);
+      expect(contract.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(contract.safetyFlags.controlsEnabled).toBe(false);
+      expect(contract.safetyFlags.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza headless execution data contract",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Recommendation entry BUY contract modeled",
+      "Live-position exit SELL contract modeled",
+      "Settlement expectation modeled",
+      "Human final KÖP/SÄLJ required",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "visibleInUi",
+      "canRenderVisualBadge",
+      "canBeUsedByAgentLater",
+      "settlementExpectation",
+      "auditMetadata",
+      "avanza_avrakningsnota",
+      "ui_hidden_under_surface",
+      "market_order_blocked",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource, modelSource, docSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-trade-card-readiness-badge-visual-preview.md"),
+      readRepoFile("docs/avanza-trade-card-execution-readiness-adapter.md"),
+      readRepoFile("docs/avanza-passive-trade-execution-readiness.md"),
+      readRepoFile("docs/avanza-passive-execution-readiness-preview.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/visually simple|minimal/i);
+      expect(normalized).toMatch(/hidden|headless|under the surface/i);
+      expect(normalized).toMatch(/visual readiness badges remain optional|default-off|dev-QA/i);
+    }
+
+    expect(routeSource).toContain("AvanzaHeadlessExecutionDataContractHarness");
+    expect(routeSource).toContain("avanzaHeadlessExecutionDataContractFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("AvanzaHeadlessExecutionDataContract");
+    expect(tradeAppSource).not.toContain("avanza-headless-execution-data-contract");
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain("avanza-headless-execution-data-contract");
+
+    for (const source of [modelSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless execution contract selector is UI-hidden and route-visible", () => {
+    const selectorSource = readRepoFile(
+      "lib/avanza-headless-execution-contract-selector.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-contract-selector-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionContractSelectorHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-headless-execution-contract-selector.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-headless-execution-contract-selector.ts",
+      "lib/avanza-headless-execution-contract-selector-fixtures.ts",
+      "components/execution/AvanzaHeadlessExecutionContractSelectorHarness.tsx",
+      "docs/avanza-headless-execution-contract-selector.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const entryOnly = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      recommendations: [
+        {
+          confidence: 0.8,
+          intent: "entry_buy",
+          limitPrice: 58.4,
+          orderType: "limit",
+          quantity: 120,
+          rewardRisk: 2.1,
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+      ],
+    });
+    const exitOverEntry = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      livePositions: [
+        {
+          intent: "exit_sell",
+          limitPrice: 286.2,
+          orderType: "limit",
+          positionId: "position-selector-test",
+          quantity: 40,
+          side: "sell",
+          source: "live_position",
+          stopLoss: 266.4,
+          targetPrice: 286.2,
+          ticker: "VOLV B",
+        },
+      ],
+      recommendations: [
+        {
+          confidence: 0.98,
+          intent: "entry_buy",
+          limitPrice: 58.4,
+          orderType: "limit",
+          quantity: 120,
+          rewardRisk: 4.1,
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+      ],
+    });
+    const stopLossOverTarget = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      livePositions: [
+        {
+          intent: "exit_sell",
+          limitPrice: 286.2,
+          orderType: "limit",
+          positionId: "position-target-test",
+          quantity: 40,
+          side: "sell",
+          source: "live_position",
+          stopLoss: 266.4,
+          targetPrice: 286.2,
+          ticker: "VOLV B",
+        },
+        {
+          intent: "exit_sell",
+          limitPrice: 266.4,
+          orderType: "limit",
+          positionId: "position-stop-test",
+          quantity: 40,
+          side: "sell",
+          source: "live_position",
+          stopLoss: 266.4,
+          targetPrice: 286.2,
+          ticker: "VOLV B",
+          warnings: ["Stop-loss exit candidate modeled."],
+        },
+      ],
+    });
+    const confidenceEntry = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      recommendations: [
+        {
+          confidence: 0.6,
+          intent: "entry_buy",
+          limitPrice: 58.4,
+          orderType: "limit",
+          quantity: 120,
+          rewardRisk: 5,
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+        {
+          confidence: 0.9,
+          intent: "entry_buy",
+          limitPrice: 102.5,
+          orderType: "limit",
+          quantity: 15,
+          rewardRisk: 1.2,
+          side: "buy",
+          source: "recommendation",
+          ticker: "ERIC B",
+        },
+      ],
+    });
+    const blocked = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      recommendations: [
+        {
+          intent: "entry_buy",
+          limitPrice: 58.4,
+          orderType: "market_forbidden",
+          quantity: 120,
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+      ],
+    });
+    const noCandidates = selectNextAvanzaHeadlessExecutionContract({
+      livePositions: [],
+      recommendations: [],
+    });
+
+    expect(entryOnly.status).toBe("selected");
+    expect(entryOnly.selectedCandidate?.priorityReason).toBe("entry_buy_ready");
+    expect(exitOverEntry.selectedCandidate?.intent).toBe("exit_sell");
+    expect(exitOverEntry.selectedCandidate?.priorityReason).toBe(
+      "target_exit_priority",
+    );
+    expect(stopLossOverTarget.selectedCandidate?.priorityReason).toBe(
+      "stop_loss_exit_priority",
+    );
+    expect(confidenceEntry.selectedCandidate?.priorityReason).toBe(
+      "highest_confidence",
+    );
+    expect(confidenceEntry.selectedCandidate?.contract.ticker).toBe("ERIC B");
+    expect(blocked.status).toBe("all_candidates_blocked");
+    expect(blocked.blockedReasons.join(" ")).toMatch(/Market order/i);
+    expect(noCandidates.status).toBe("no_candidates");
+
+    for (const result of [
+      entryOnly,
+      exitOverEntry,
+      stopLossOverTarget,
+      confidenceEntry,
+      blocked,
+      noCandidates,
+    ]) {
+      expect(result.safetyFlags).toMatchObject({
+        canAccessCredentials: false,
+        canAutomateBankId: false,
+        canCallApiRoute: false,
+        canClaimProductionReady: false,
+        canClickFinalBuy: false,
+        canClickFinalSell: false,
+        canExportSession: false,
+        canFetch: false,
+        canPoll: false,
+        canPrepareOrder: false,
+        canReadCookies: false,
+        canRunSmokeTestFromUi: false,
+        canStartHandoff: false,
+        canSubmitOrder: false,
+        canUseBrowserAutomation: false,
+        canWriteSupabase: false,
+        controlsEnabled: false,
+        finalHumanClickRequired: true,
+        gateLocked: true,
+        headlessOnly: true,
+        selectorOnly: true,
+        userMustConfirm: true,
+        visibleInUi: false,
+      });
+    }
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessExecutionContractSelectorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["selects_recommendation_entry_buy", "selected"],
+      ["selects_live_position_exit_over_entry", "selected"],
+      ["selects_stop_loss_exit_over_target", "selected"],
+      ["selects_target_exit_over_entry", "selected"],
+      ["selects_highest_confidence_entry", "selected"],
+      ["selects_best_reward_risk_entry", "selected"],
+      ["all_candidates_blocked", "all_candidates_blocked"],
+      ["no_candidates", "no_candidates"],
+      ["missing_ticker_candidate_blocked", "all_candidates_blocked"],
+      ["market_order_candidate_blocked", "all_candidates_blocked"],
+      ["ui_hidden_under_surface", "selected"],
+      ["no_order_submission", "selected"],
+      ["final_human_click_required", "selected"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessExecutionContractSelectorFixtures) {
+      const { result } = fixture;
+
+      expect(result.status).toBe(fixture.expectedStatus);
+      if (result.selectedCandidate) {
+        expect(result.selectedCandidate.priorityReason).toBe(
+          fixture.expectedSelectionReason,
+        );
+      }
+      expect(result.safetyFlags.selectorOnly).toBe(true);
+      expect(result.safetyFlags.headlessOnly).toBe(true);
+      expect(result.safetyFlags.visibleInUi).toBe(false);
+      expect(result.safetyFlags.canStartHandoff).toBe(false);
+      expect(result.safetyFlags.canPrepareOrder).toBe(false);
+      expect(result.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(result.safetyFlags.canCallApiRoute).toBe(false);
+      expect(result.safetyFlags.canFetch).toBe(false);
+      expect(result.safetyFlags.canPoll).toBe(false);
+      expect(result.safetyFlags.canUseBrowserAutomation).toBe(false);
+      expect(result.safetyFlags.canAccessCredentials).toBe(false);
+      expect(result.safetyFlags.canReadCookies).toBe(false);
+      expect(result.safetyFlags.canExportSession).toBe(false);
+      expect(result.safetyFlags.canAutomateBankId).toBe(false);
+      expect(result.safetyFlags.canSubmitOrder).toBe(false);
+      expect(result.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(result.safetyFlags.canClickFinalSell).toBe(false);
+      expect(result.safetyFlags.canWriteSupabase).toBe(false);
+      expect(result.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(result.safetyFlags.userMustConfirm).toBe(true);
+      expect(result.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(result.safetyFlags.controlsEnabled).toBe(false);
+      expect(result.safetyFlags.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza headless execution contract selector",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Exits outrank entries",
+      "Stop-loss outranks target",
+      "Target outranks entry",
+      "Recommendation entry BUY selection modeled",
+      "Live-position exit SELL selection modeled",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "selects_recommendation_entry_buy",
+      "selects_live_position_exit_over_entry",
+      "selects_stop_loss_exit_over_target",
+      "selects_target_exit_over_entry",
+      "all_candidates_blocked",
+      "no_candidates",
+      "ui_hidden_under_surface",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource, selectorSource, docSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-trade-card-readiness-badge-visual-preview.md"),
+      readRepoFile("docs/avanza-trade-card-execution-readiness-adapter.md"),
+      readRepoFile("docs/avanza-passive-trade-execution-readiness.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/headless|under the surface/i);
+      expect(normalized).toMatch(/UI remains simple|visually simple|minimal/i);
+      expect(normalized).toMatch(/exits? outrank entries/i);
+      expect(normalized).toMatch(/stop-loss exits? outrank target/i);
+    }
+
+    expect(routeSource).toContain("AvanzaHeadlessExecutionContractSelectorHarness");
+    expect(routeSource).toContain("avanzaHeadlessExecutionContractSelectorFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-headless-execution-contract-selector");
+    expect(tradeAppSource).not.toContain("AvanzaHeadlessExecutionContractSelector");
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain("avanza-headless-execution-contract-selector");
+
+    for (const source of [selectorSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless agent plan builder is UI-hidden and route-visible", () => {
+    const builderSource = readRepoFile(
+      "lib/avanza-headless-agent-plan-builder.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-agent-plan-builder-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessAgentPlanBuilderHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-headless-agent-plan-builder.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-headless-agent-plan-builder.ts",
+      "lib/avanza-headless-agent-plan-builder-fixtures.ts",
+      "components/execution/AvanzaHeadlessAgentPlanBuilderHarness.tsx",
+      "docs/avanza-headless-agent-plan-builder.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const buySelector = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      recommendations: [
+        {
+          confidence: 0.8,
+          intent: "entry_buy",
+          isin: "FI0009000681",
+          limitPrice: 58.4,
+          marketPlace: "Stockholm",
+          orderType: "limit",
+          quantity: 120,
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+      ],
+    });
+    const sellSelector = selectNextAvanzaHeadlessExecutionContract({
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      livePositions: [
+        {
+          intent: "exit_sell",
+          isin: "SE0000115446",
+          limitPrice: 286.2,
+          marketPlace: "Stockholm",
+          orderType: "limit",
+          positionId: "position-plan-test",
+          quantity: 40,
+          side: "sell",
+          source: "live_position",
+          targetPrice: 286.2,
+          ticker: "VOLV B",
+        },
+      ],
+    });
+    const buyPlan = buildAvanzaHeadlessAgentPlan({
+      customerType: "private",
+      loginKnown: true,
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      selectorResult: buySelector,
+    });
+    const sellPlan = buildAvanzaHeadlessAgentPlan({
+      customerType: "company",
+      loginKnown: true,
+      now: "2026-07-06T12:00:00.000Z",
+      profileReady: true,
+      selectorResult: sellSelector,
+    });
+    const missingPlan = buildAvanzaHeadlessAgentPlan({
+      now: "2026-07-06T12:00:00.000Z",
+    });
+    const incompletePlan = buildAvanzaHeadlessAgentPlan({
+      now: "2026-07-06T12:00:00.000Z",
+      selectedContract: buildAvanzaHeadlessExecutionContract({
+        intent: "entry_buy",
+        limitPrice: 58.4,
+        orderType: "limit",
+        quantity: undefined,
+        side: "buy",
+        source: "recommendation",
+        ticker: "NOKIA",
+      }),
+    });
+    const marketPlan = buildAvanzaHeadlessAgentPlan({
+      now: "2026-07-06T12:00:00.000Z",
+      selectedContract: buildAvanzaHeadlessExecutionContract({
+        intent: "entry_buy",
+        limitPrice: 58.4,
+        orderType: "market_forbidden",
+        quantity: 120,
+        side: "buy",
+        source: "recommendation",
+        ticker: "NOKIA",
+      }),
+    });
+
+    expect(buyPlan.status).toBe("ready_plan");
+    expect(buyPlan.intent).toBe("entry_buy");
+    expect(buyPlan.side).toBe("buy");
+    expect(buyPlan.steps.some((step) => step.type === "open_buy_sell_entry")).toBe(
+      true,
+    );
+    expect(buyPlan.agentReadableSummary).toContain("BUY");
+    expect(sellPlan.status).toBe("ready_plan");
+    expect(sellPlan.intent).toBe("exit_sell");
+    expect(sellPlan.side).toBe("sell");
+    expect(sellPlan.agentReadableSummary).toContain("SELL");
+    expect(missingPlan.status).toBe("missing_selected_contract");
+    expect(incompletePlan.status).toBe("incomplete_contract");
+    expect(marketPlan.status).toBe("unsafe_contract");
+    expect(marketPlan.blockedReasons.join(" ")).toMatch(/Market orders are forbidden/i);
+
+    for (const plan of [
+      buyPlan,
+      sellPlan,
+      missingPlan,
+      incompletePlan,
+      marketPlan,
+      ...avanzaHeadlessAgentPlanBuilderFixtures.map((fixture) => fixture.plan),
+    ]) {
+      expect(plan.steps.some((step) => step.type === "avoid_bankid")).toBe(true);
+      expect(
+        plan.steps.some((step) => step.type === "stop_before_final_confirmation"),
+      ).toBe(true);
+      expect(
+        plan.steps.some((step) => step.type === "wait_for_user_final_click"),
+      ).toBe(true);
+      expect(plan.steps.every((step) => step.userVisible === false)).toBe(true);
+      expect(plan.forbiddenActions).toEqual(
+        expect.arrayContaining([
+          "submit_order",
+          "click_final_buy",
+          "click_final_sell",
+          "automate_bankid",
+          "read_cookies",
+          "export_session",
+          "store_raw_credentials",
+          "write_supabase_execution",
+          "call_trade_ui_execution",
+          "call_disabled_api_route",
+        ]),
+      );
+      expect(plan.manualRequirements).toEqual(
+        expect.arrayContaining([
+          "user_final_buy_sell_click",
+          "user_bankid_if_avanza_requires_it",
+          "user_review_order_details",
+        ]),
+      );
+      expect(plan.safetyFlags).toMatchObject({
+        canAccessCredentials: false,
+        canAutomateBankId: false,
+        canCallApiRoute: false,
+        canClaimProductionReady: false,
+        canClickFinalBuy: false,
+        canClickFinalSell: false,
+        canExportSession: false,
+        canFetch: false,
+        canPoll: false,
+        canPrepareOrderNow: false,
+        canReadCookies: false,
+        canRunSmokeTestFromUi: false,
+        canStartHandoff: false,
+        canSubmitOrder: false,
+        canUseBrowserAutomationNow: false,
+        canWriteSupabase: false,
+        controlsEnabled: false,
+        finalHumanClickRequired: true,
+        gateLocked: true,
+        headlessOnly: true,
+        planOnly: true,
+        userMustConfirm: true,
+        visibleInUi: false,
+      });
+    }
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessAgentPlanBuilderFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["recommendation_entry_buy_ready_plan", "ready_plan"],
+      ["live_position_exit_sell_ready_plan", "ready_plan"],
+      ["missing_selected_contract", "missing_selected_contract"],
+      ["selected_contract_blocked", "selected_contract_blocked"],
+      ["incomplete_contract", "incomplete_contract"],
+      ["market_order_blocked", "unsafe_contract"],
+      ["profile_incomplete_warning", "ready_plan"],
+      ["login_unknown_plan", "ready_plan"],
+      ["private_customer_login_path", "ready_plan"],
+      ["company_customer_login_path", "ready_plan"],
+      ["stop_before_final_confirmation", "ready_plan"],
+      ["user_final_click_required", "ready_plan"],
+      ["bankid_forbidden_manual_only", "ready_plan"],
+      ["settlement_reconciliation_planned", "ready_plan"],
+      ["no_order_submission", "ready_plan"],
+      ["no_supabase_write", "ready_plan"],
+      ["ui_hidden_under_surface", "ready_plan"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessAgentPlanBuilderFixtures) {
+      expect(fixture.plan.status).toBe(fixture.expectedStatus);
+    }
+
+    for (const copy of [
+      "Avanza headless agent plan builder",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Recommendation BUY plan modeled",
+      "Live-position SELL plan modeled",
+      "Login path planned only",
+      "Instrument search planned only",
+      "Limit order preparation planned only",
+      "Stop before final confirmation",
+      "Human final KÖP/SÄLJ required",
+      "Settlement reconciliation planned",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "recommendation_entry_buy_ready_plan",
+      "live_position_exit_sell_ready_plan",
+      "missing_selected_contract",
+      "selected_contract_blocked",
+      "stop_before_final_confirmation",
+      "user_final_click_required",
+      "bankid_forbidden_manual_only",
+      "settlement_reconciliation_planned",
+    ]) {
+      expect([routeSource, harnessSource, fixtureSource, builderSource, docSource].join("\n")).toContain(
+        copy,
+      );
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-execution-contract-selector.md"),
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/headless agent plan builder/i);
+      expect(normalized).toMatch(/agent-readable|agent readable/i);
+      expect(normalized).toMatch(/UI-hidden|UI hidden|under-the-surface|under the surface/i);
+      expect(normalized).toMatch(/without visual UI or execution|does not execute|cannot execute|without changing the UI/i);
+    }
+
+    expect(routeSource).toContain("AvanzaHeadlessAgentPlanBuilderHarness");
+    expect(routeSource).toContain("avanzaHeadlessAgentPlanBuilderFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-headless-agent-plan-builder");
+    expect(tradeAppSource).not.toContain("AvanzaHeadlessAgentPlanBuilder");
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain("avanza-headless-agent-plan-builder");
+
+    for (const source of [builderSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
       expect(source).not.toMatch(
         /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
       );

@@ -4,6 +4,11 @@
 
 This readiness map summarizes the Sharp Semi Auto Execution architecture as a pure fixture/model-only architecture checkpoint. It helps inspect which layers are complete, which are waiting for local-dev binding, which are forbidden, and which next actions are recommended before any future Trade UI or API route execution work.
 
+The current UI strategy is intentionally minimal. Recommendation cards stay
+visually simple while future Execution Agent data is modeled under the surface
+through hidden/headless contracts. Visual readiness badges remain
+optional/default-off/dev-QA only.
+
 ## Map artifacts
 
 - Pure model: `lib/avanza-execution-architecture-readiness-map.ts`
@@ -11,6 +16,8 @@ This readiness map summarizes the Sharp Semi Auto Execution architecture as a pu
 - Isolated harness: `components/execution/AvanzaExecutionArchitectureReadinessMapHarness.tsx`
 - Dev QA route section: `app/dev/avanza-visual-qa/page.tsx`
 - Local-dev order/search page action binding: `lib/avanza-local-playwright-order-page-action-binding.ts`
+- Headless execution data contract: `lib/avanza-headless-execution-data-contract.ts`
+- Headless execution contract selector: `lib/avanza-headless-execution-contract-selector.ts`
 
 ## Readiness areas
 
@@ -87,3 +94,45 @@ review-ready/final human action.
 The readiness map now includes a passive recommendation/live-position metadata layer through `lib/avanza-passive-trade-execution-readiness.ts`. It models entry BUY readiness, exit SELL readiness, and settlement readiness for future read-only visibility only; it does not activate execution.
 
 The card-level read-only adapter in `lib/avanza-trade-card-execution-readiness-adapter.ts` prepares future passive card visibility by converting readiness metadata into labels, badges, severity, tooltips, warnings, and blocked reasons without activating execution.
+
+## Headless Execution Data Contract
+
+`docs/avanza-headless-execution-data-contract.md` records the agent-readable,
+UI-hidden contract layer for future BUY/SELL preparation. It can describe
+source identity, intent, ticker/instrument identity, quantity, limit price,
+stop/target/risk context, human final confirmation requirements, forbidden
+actions, audit metadata, and settlement expectations while keeping
+`visibleInUi: false` and `canRenderVisualBadge: false`.
+
+The contract is not a handoff, not a prepare action, not visible card UI, and
+cannot call APIs, fetch, poll, control a browser, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, or write
+Supabase.
+
+## Headless Execution Contract Selector
+
+`docs/avanza-headless-execution-contract-selector.md` records the headless
+selection layer for future Execution Agent planning. It chooses the next
+agent-readable contract under the surface, with exits outranking entries,
+stop-loss exits outranking target exits, target exits outranking entries, and
+entry candidates sorted by confidence, reward:risk, then newness.
+
+The selector is not visible Trade UI, not a handoff, not a prepare action, and
+cannot call APIs, fetch, poll, control a browser, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, or write
+Supabase.
+
+In selector terms, exits outrank entries, stop-loss exits outrank target exits,
+and target exits outrank entries.
+
+## Headless Agent Plan Builder
+
+`docs/avanza-headless-agent-plan-builder.md` records the next under-the-surface
+layer after selection. The contract selector now feeds a headless agent plan
+builder that models future Avanza preparation steps without visual UI or
+execution. It is agent-readable but UI-hidden, keeps Ture UI minimal and simple,
+plans recommendation BUY and live-position SELL flows, stops before final
+confirmation, requires human final KOP/SALJ, and forbids active handoff,
+prepare actions, API calls, fetch/polling, browser automation now, credential
+access, cookies/session handling, BankID automation, order submission, final
+clicks, Supabase writes, and production-readiness claims.

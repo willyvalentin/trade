@@ -192,6 +192,41 @@ buy/sell CTA, call APIs, fetch, poll, run UI smoke tests, control a browser,
 access credentials, handle cookies/session, automate BankID, submit orders,
 click final KÖP/SÄLJ, write Supabase, or claim production readiness.
 
+The dev-only Avanza visual QA route also includes a fixture/model-only visual
+preview for this badge enabled state. It is for UI review before any separate
+feature-flag decision and keeps the default Trade UI unchanged. It adds no
+active handoff, no prepare action, no buy/sell CTA, no API route call, no
+fetch/polling, no browser automation, no smoke test from UI, no credential
+access, no cookies/session handling, no BankID automation, no order submission,
+no final KÖP/SÄLJ click, and no Supabase write.
+
+## Headless Execution Data Contract
+
+The next Sharp Semi Auto direction keeps Ture UI visually simple while
+describing Execution Agent needs under the surface. The headless execution data
+contract is documented in `docs/avanza-headless-execution-data-contract.md`.
+
+It is agent-readable and UI-hidden. It can describe source identity, entry BUY
+or exit SELL intent, ticker/instrument identity, quantity, limit price,
+stop/target context, risk context, human confirmation requirements, forbidden
+actions, audit metadata, and settlement expectations for later avräkningsnota
+reconciliation.
+
+The contract is not visible on cards, not a handoff, not a prepare action, not
+a buy/sell CTA, cannot call APIs, cannot fetch or poll, cannot control a
+browser, cannot access credentials, cannot handle cookies/session, cannot
+automate BankID, cannot submit orders, cannot click final KÖP/SÄLJ, and cannot
+write Supabase.
+
+`docs/avanza-headless-execution-contract-selector.md` adds the selector for
+these hidden contracts. It keeps selection agent-readable and UI-hidden, with
+exits outranking entries, stop-loss exits outranking target exits, and target
+exits outranking entries. It does not start handoff, prepare orders, call APIs,
+control a browser, submit orders, or click final KÖP/SÄLJ.
+
+In selector terms, exits outrank entries, stop-loss exits outrank target exits,
+and target exits outrank entries.
+
 ## Isolated Login Smoke Test Wrapper
 
 Isolated login smoke test planning now exists at
@@ -697,3 +732,15 @@ The passive execution readiness preview is documented in `docs/avanza-passive-ex
 Recommendation/live-position execution readiness metadata is in scope only as passive model/dev-QA visibility. It prepares future read-only card display and does not permit active handoff, prepare actions, API calls, browser automation, smoke tests from UI, order submission, or final KÖP/SÄLJ clicks.
 
 The Trade card execution readiness adapter is also in scope only as a read-only adapter for future passive card visibility. It does not activate execution.
+
+## Headless Contract Selection And Planning
+
+The headless agent plan builder is now part of the planning-only scope. The
+headless execution contract selector now feeds
+`docs/avanza-headless-agent-plan-builder.md`. This is still within the Sharp
+Semi Auto scope as an under-the-surface, agent-readable planning layer only.
+It models future Avanza preparation steps from a selected contract while
+keeping the UI visually simple and without adding active handoff, prepare
+actions, API calls, fetch/polling, browser automation now, credential access,
+cookies/session handling, BankID automation, order submission, final KOP/SALJ
+clicks, Supabase writes, or production readiness.
