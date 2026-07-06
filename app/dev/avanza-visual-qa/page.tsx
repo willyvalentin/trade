@@ -81,6 +81,36 @@ import {
   AvanzaLocalPlaywrightPageActionBindingHarness,
 } from "@/components/execution/AvanzaLocalPlaywrightPageActionBindingHarness";
 import {
+  AvanzaLocalPlaywrightOrderPageActionBindingHarness,
+} from "@/components/execution/AvanzaLocalPlaywrightOrderPageActionBindingHarness";
+import {
+  AvanzaInstrumentToOrderLocalDevExecutorHarness,
+} from "@/components/execution/AvanzaInstrumentToOrderLocalDevExecutorHarness";
+import {
+  AvanzaOrderChainSmokeTestRunnerHarness,
+} from "@/components/execution/AvanzaOrderChainSmokeTestRunnerHarness";
+import {
+  AvanzaTerminalOrderSmokeScriptHarness,
+} from "@/components/execution/AvanzaTerminalOrderSmokeScriptHarness";
+import {
+  AvanzaLocalDevExecutionRunbookHarness,
+} from "@/components/execution/AvanzaLocalDevExecutionRunbookHarness";
+import {
+  AvanzaLocalSmokeTestResultCaptureHarness,
+} from "@/components/execution/AvanzaLocalSmokeTestResultCaptureHarness";
+import {
+  AvanzaPassiveExecutionReadinessPreviewHarness,
+} from "@/components/execution/AvanzaPassiveExecutionReadinessPreviewHarness";
+import {
+  AvanzaSettingsPassiveExecutionReadinessPanelHarness,
+} from "@/components/execution/AvanzaSettingsPassiveExecutionReadinessPanelHarness";
+import {
+  AvanzaPassiveTradeExecutionReadinessHarness,
+} from "@/components/execution/AvanzaPassiveTradeExecutionReadinessHarness";
+import {
+  AvanzaTradeCardExecutionReadinessAdapterHarness,
+} from "@/components/execution/AvanzaTradeCardExecutionReadinessAdapterHarness";
+import {
   AvanzaPageStateDetectorHarness,
 } from "@/components/execution/AvanzaPageStateDetectorHarness";
 import {
@@ -198,6 +228,9 @@ import {
   AvanzaTestOnlyEnabledPreviewFixtureModelHarness,
 } from "@/components/execution/AvanzaTestOnlyEnabledPreviewFixtureModelHarness";
 import {
+  AvanzaExecutionArchitectureReadinessMapHarness,
+} from "@/components/execution/AvanzaExecutionArchitectureReadinessMapHarness";
+import {
   avanzaRealSelectedRecommendationReadOnlyDerivationFixtures,
 } from "@/lib/avanza-real-selected-recommendation-read-only-derivation-fixtures";
 import {
@@ -254,6 +287,36 @@ import {
 import {
   avanzaLocalPlaywrightPageActionBindingFixtures,
 } from "@/lib/avanza-local-playwright-page-action-binding-fixtures";
+import {
+  avanzaLocalPlaywrightOrderPageActionBindingFixtures,
+} from "@/lib/avanza-local-playwright-order-page-action-binding-fixtures";
+import {
+  avanzaInstrumentToOrderLocalDevExecutorFixtures,
+} from "@/lib/avanza-instrument-to-order-local-dev-executor-fixtures";
+import {
+  avanzaOrderChainSmokeTestRunnerFixtures,
+} from "@/lib/avanza-order-chain-smoke-test-runner-fixtures";
+import {
+  avanzaTerminalOrderSmokeScriptFixtures,
+} from "@/lib/avanza-terminal-order-smoke-script-fixtures";
+import {
+  avanzaLocalDevExecutionRunbookFixtures,
+} from "@/lib/avanza-local-dev-execution-runbook-fixtures";
+import {
+  avanzaLocalSmokeTestResultCaptureFixtures,
+} from "@/lib/avanza-local-smoke-test-result-capture-fixtures";
+import {
+  avanzaPassiveExecutionReadinessPreviewFixtures,
+} from "@/lib/avanza-passive-execution-readiness-preview-fixtures";
+import {
+  avanzaSettingsPassiveExecutionReadinessFixtures,
+} from "@/lib/avanza-settings-passive-execution-readiness-fixtures";
+import {
+  avanzaPassiveTradeExecutionReadinessFixtures,
+} from "@/lib/avanza-passive-trade-execution-readiness-fixtures";
+import {
+  avanzaTradeCardExecutionReadinessAdapterFixtures,
+} from "@/lib/avanza-trade-card-execution-readiness-adapter-fixtures";
 import {
   avanzaPageStateDetectorFixtures,
 } from "@/lib/avanza-page-state-detector-fixtures";
@@ -374,6 +437,9 @@ import {
 import {
   avanzaTestOnlyEnabledPreviewFixtureModelFixtures,
 } from "@/lib/avanza-test-only-enabled-preview-fixture-model-fixtures";
+import {
+  avanzaExecutionArchitectureReadinessMapFixtures,
+} from "@/lib/avanza-execution-architecture-readiness-map-fixtures";
 
 export const metadata: Metadata = {
   title: "Avanza Dev Visual QA",
@@ -425,6 +491,22 @@ export default function AvanzaDevVisualQaPage() {
         </header>
 
         <AvanzaDevVisualQaRouteStatusPanel />
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Sharp Semi Auto Execution Architecture Readiness Map
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Login stack summarized. Pre-submit order chain summarized. Settlement reconciliation chain summarized. Safety boundaries summarized. Next recommended actions summarized. Production not ready. No Avanza execution. No real navigation. No form fill. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. No credential exposure. No Trade UI execution wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaExecutionArchitectureReadinessMapHarness
+            fixtures={avanzaExecutionArchitectureReadinessMapFixtures}
+          />
+        </section>
 
         <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
           <div>
@@ -488,6 +570,166 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaLocalPlaywrightPageActionBindingHarness
             fixtures={avanzaLocalPlaywrightPageActionBindingFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local Playwright order/search page action binding
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/mock only. Injected Playwright-like page only. Local/dev-only. Search actions modeled. Instrument verification snapshots modeled. BUY/SELL entry location modeled. Order field fill actions modeled. Order review snapshot modeled. Fill values hidden in reports. No automatic Avanza navigation. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalPlaywrightOrderPageActionBindingHarness
+            fixtures={avanzaLocalPlaywrightOrderPageActionBindingFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza instrument-to-order local-dev executor
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/mock only. Injected dependencies only. Local/dev-only. Search execution via injected dependency modeled. Instrument verification via snapshot modeled. Order field preparation via injected dependency modeled. Review-ready state modeled. Fill values hidden in reports. Final human action required. No Trade UI wiring. No API route wiring. No automatic app-runtime Avanza navigation. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaInstrumentToOrderLocalDevExecutorHarness
+            fixtures={avanzaInstrumentToOrderLocalDevExecutorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza order chain smoke test runner
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Manual local terminal only. Explicit env opt-in required. CI blocked. Injected dependencies only. Search/instrument/order-prep smoke path. Review-ready stop modeled. Final human action required. No Trade UI wiring. No API route wiring. No final KÖP/SÄLJ click. No order submission. No cookies/session. No BankID automation. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaOrderChainSmokeTestRunnerHarness
+            fixtures={avanzaOrderChainSmokeTestRunnerFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza terminal order smoke script
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Terminal-only. Explicit env opt-in required. Manual local confirmation required. Real-run requires extra flag. CI blocked. Review-ready maximum endpoint. No Trade UI wiring. No API route wiring. No raw fill values shown. No account numbers/order ids shown. No cookies/session. BankID forbidden/manual-action only. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaTerminalOrderSmokeScriptHarness
+            fixtures={avanzaTerminalOrderSmokeScriptFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local-dev execution runbook
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Operator sequence only. Login smoke sequence summarized. Order-prep smoke sequence summarized. Safety boundaries summarized. No real execution in this task. No Trade UI wiring. No API route wiring. No app-runtime navigation. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalDevExecutionRunbookHarness
+            fixtures={avanzaLocalDevExecutionRunbookFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local smoke test checklist and result capture
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Safe result capture only. Login checklist modeled. Order-prep checklist modeled. Settlement checklist modeled. Review-ready outcome captured. Manual review required. No raw credentials. No cookies/session. No account numbers/order ids. No unredacted screenshots. No final KÖP/SÄLJ click. No order submission. No Trade UI wiring. No API route wiring. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalSmokeTestResultCaptureHarness
+            fixtures={avanzaLocalSmokeTestResultCaptureFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza passive execution readiness preview
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Passive preview only. No active handoff. No prepare action. No buy/sell CTA. No browser automation. No API route call. No fetch/polling. No smoke test from UI. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaPassiveExecutionReadinessPreviewHarness
+            fixtures={avanzaPassiveExecutionReadinessPreviewFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza Settings passive execution readiness panel
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Passive Settings UI only. No active handoff. No prepare action. No buy/sell CTA. No browser automation. No API route call. No fetch/polling. No smoke test from UI. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSettingsPassiveExecutionReadinessPanelHarness
+            fixtures={avanzaSettingsPassiveExecutionReadinessFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza passive trade execution readiness
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Recommendation readiness modeled. Live-position exit readiness modeled. Entry BUY readiness modeled. Exit SELL readiness modeled. Settlement readiness modeled. Local-dev only. No active handoff. No prepare action. No buy/sell CTA. No browser automation. No API route call. No fetch/polling. No smoke test from UI. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaPassiveTradeExecutionReadinessHarness
+            fixtures={avanzaPassiveTradeExecutionReadinessFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza Trade card execution readiness adapter
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Read-only badge only. Recommendation BUY badge modeled. Live-position SELL/exit badge modeled. No active handoff. No prepare action. No buy/sell CTA. No onClick action. No browser automation. No API route call. No fetch/polling. No smoke test from UI. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaTradeCardExecutionReadinessAdapterHarness
+            fixtures={avanzaTradeCardExecutionReadinessAdapterFixtures}
           />
         </section>
 

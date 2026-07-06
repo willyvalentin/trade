@@ -99,3 +99,20 @@ It models account type and credential readiness only. It does not execute login,
 does not run this terminal smoke script, does not call a browser, does not call
 an API route, does not access Keychain, does not expose raw username/password
 values, and does not submit orders or final KÖP/SÄLJ.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The terminal login smoke script is included in the login stack readiness item in `docs/avanza-execution-readiness-map.md`, with the full architecture checkpoint in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`.
+
+The login stack is ready for local-dev binding, not production, and not production ready. It does not imply Avanza execution readiness, order form fill readiness, final KOP/SALJ click readiness, credential exposure, cookies/session handling, BankID automation, Trade UI execution wiring, API route execution wiring, or Supabase writes.
+## Local-Dev Execution Runbook
+
+The Avanza local-dev execution runbook now exists in
+`docs/avanza-local-dev-execution-runbook.md`. It places the terminal-only login
+smoke path inside a wider operator sequence for login plus order-prep smoke
+review, but it does not run scripts, add an order terminal script, wire Trade
+UI/API, export cookies/session, automate BankID, submit orders, click final
+KOP/SALJ, write Supabase records, or claim production readiness.
+
+## Local Smoke Result Capture
+
+`docs/avanza-local-smoke-test-result-capture.md` now defines the safe result capture model for recording login smoke outcomes without storing sensitive data. It does not activate smoke tests, does not activate this terminal script, persist results, expose credentials, export cookies/session, automate BankID, wire Trade UI/API, submit orders, click final KOP/SALJ, write Supabase, or claim production readiness.

@@ -81,3 +81,8 @@ Safety flags remain locked:
 This layer is not production-ready. Exact cost/FX reconciliation remains
 modeled/mock-only. The mock executor is a visibility and validation aid before
 any separately approved real document intake or reconciliation-write phase.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The settlement reconciliation mock executor is summarized in the Sharp Semi Auto Execution readiness map at `docs/avanza-execution-readiness-map.md`, with the full checkpoint in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`.
+
+Settlement reconciliation is model/dry-run/mock mature only and is not production ready. Exact PnL remains dependent on a future settlement local-dev signal/document binding plan before any real document reading, OCR, value extraction, reconciliation write, Supabase write, Trade UI execution wiring, or API route execution wiring.

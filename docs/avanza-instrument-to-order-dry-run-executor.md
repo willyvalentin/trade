@@ -98,3 +98,14 @@ execution. The dry-run layer still does not activate post-trade navigation,
 PDF/download/read, OCR, value extraction, trade reconciliation writes, Trade UI
 wiring, API route wiring, cookie/session handling, BankID automation, or
 Supabase writes.
+## Local-Dev Order/Search Page Action Binding
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`.
+
+It can supply injected Playwright-like dependencies to a future local-dev order chain executor for search actions, instrument verification snapshots, BUY/SELL entry location, order field fills, and order review snapshots. It is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+## Local-Dev Instrument-To-Order Executor
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state.
+
+It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.

@@ -601,3 +601,49 @@ not executable yet.
 This does not activate order behavior. No Trade UI wiring, API route wiring,
 real form fill, click behavior, order submission, confirmation capture, or
 final KÖP/SÄLJ click is added. Final human confirmation remains mandatory.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The Sharp Semi Auto Execution readiness checkpoint is recorded in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md` and summarized by `docs/avanza-execution-readiness-map.md`.
+
+The map confirms the current state as fixture/model-only and not production ready. Login, instrument/order, and settlement stacks are summarized for readiness, but real local-dev binding, passive Trade UI integration, and any future active API route review remain separate gated phases with no execution, no form fill, no final KOP/SALJ click, no document read/OCR/extraction, and no Supabase write.
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`. It can supply injected Playwright-like dependencies to a future local-dev order chain executor, but it is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state. It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.
+
+The Avanza order chain smoke test runner now exists in
+`lib/avanza-order-chain-smoke-test-runner.ts`. It is the order-side counterpart
+to the login smoke runner and remains local-dev, terminal-gated, and injected
+dependency only. It is disconnected from Trade UI/API and order submission,
+cannot click final KOP/SALJ, and keeps final human action required.
+## Local-Dev Execution Runbook
+
+The Avanza local-dev execution runbook now exists as a model-only operator
+sequence for login plus order-prep smoke tests. It does not change the
+Engine/Agent contract into a production execution contract. Trade UI wiring,
+API route wiring, app-runtime navigation, cookies/session handling, BankID
+automation, final KOP/SALJ, order submission, Supabase writes, and production
+readiness remain out of scope.
+
+The terminal-only Avanza order smoke script scaffold now exists for local-dev
+inspection of the order chain smoke runner. It is hard-gated and does not grant
+the Engine/Agent contract permission to submit orders, click final KOP/SALJ,
+wire Trade UI/API, handle cookies/session, automate BankID, or claim production
+readiness.
+
+## Local Smoke Result Capture
+
+The local smoke checklist/result capture model is documented in `docs/avanza-local-smoke-test-result-capture.md`. It records safe outcomes without storing sensitive data and does not change the Engine/Agent contract: no smoke tests are activated, no results are persisted, no Trade UI/API wiring is added, no app-runtime navigation is added, no cookies/session handling is added, BankID remains manual-action only, no order submission or final KOP/SALJ click is allowed, no Supabase write is added, and production readiness is still not claimed.
+
+## Passive Execution Readiness Preview
+
+The passive execution readiness preview is documented in `docs/avanza-passive-execution-readiness-preview.md`. It does not change the Engine/Agent contract into an execution contract: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness is added.
+
+## Settings Passive Execution Readiness Panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now documents the passive readiness panel in app Settings. It does not change the Engine/Agent contract: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness is added.
+## Passive Trade Readiness Metadata Boundary
+
+The Engine/Agent contract may expose passive recommendation/live-position readiness metadata for future read-only card visibility. The metadata is not an execution contract, does not activate execution, does not activate handoff or prepare actions, and keeps final KÖP/SÄLJ human-only.
+
+The Trade card execution readiness adapter may convert this metadata into read-only labels and badges for future passive card visibility. It does not activate execution.

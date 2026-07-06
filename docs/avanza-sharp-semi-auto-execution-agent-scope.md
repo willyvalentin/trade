@@ -179,6 +179,19 @@ L. Ture execution record/lifecycle update
 - `canStoreBrokerCredentialsInDb` false
 - `canSubmitOrder` false in semi-auto
 
+## Passive Trade Card Readiness Badge
+
+Trade UI now has a default-off, feature-flagged read-only badge path for
+passive recommendation/live-position execution readiness:
+`ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false`.
+
+With the default flag value, no badge renders in Trade UI. If explicitly enabled
+in code/dev, the badge can show recommendation BUY and live-position SELL/exit
+readiness metadata only. It does not start handoff, prepare orders, add a
+buy/sell CTA, call APIs, fetch, poll, run UI smoke tests, control a browser,
+access credentials, handle cookies/session, automate BankID, submit orders,
+click final KÖP/SÄLJ, write Supabase, or claim production readiness.
+
 ## Isolated Login Smoke Test Wrapper
 
 Isolated login smoke test planning now exists at
@@ -639,3 +652,48 @@ This still does not activate real navigation, document reading,
 PDF/download/read, OCR, real value extraction, reconciliation writes, Supabase
 writes, Trade UI wiring, or API route wiring. Exact cost/FX reconciliation
 remains modeled/mock-only.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The architecture checkpoint now lives in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`, with the fixture/model-only readiness map in `docs/avanza-execution-readiness-map.md`.
+
+Current architecture is mature at model/mock level, but it is not production ready, and real local-dev binding and Trade UI/API integration remain separate future gates. No real execution, real navigation, form fill, final KOP/SALJ click, order submission, settlement document reading, OCR, value extraction, reconciliation write, Trade UI execution wiring, API route execution wiring, Supabase write, or production readiness is added by the checkpoint.
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`. It can supply injected dependencies to a future local-dev order chain executor, but it is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state. It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.
+
+The Avanza order chain smoke test runner now exists in
+`lib/avanza-order-chain-smoke-test-runner.ts`. It is the order-side counterpart
+to the login smoke runner and remains local-dev, terminal-gated, and injected
+dependency only. It is disconnected from Trade UI/API and order submission,
+cannot click final KOP/SALJ, and keeps final human action required.
+## Local-Dev Execution Runbook
+
+The Avanza local-dev execution runbook now exists and is the operator guide
+before any real local-dev order smoke script or Trade UI/API integration. It
+keeps the Sharp Semi Auto agent scoped to guided, gated local-dev review and
+does not add real execution, app-runtime navigation, cookies/session export,
+BankID automation, final KOP/SALJ, order submission, Supabase writes, or
+production readiness.
+
+The terminal-only Avanza order smoke script scaffold now exists. It is
+hard-gated, CI-blocked, default-safe, and disconnected from Trade UI/API/order
+submission. It preserves the semi-auto boundary: Ture may prepare to
+review-ready, while the user must manually press final KOP/SALJ.
+
+## Local Smoke Result Capture
+
+The local smoke checklist/result capture model is documented in `docs/avanza-local-smoke-test-result-capture.md`. It lets operators record safe login/order-prep/settlement outcomes without storing sensitive data. It does not run smoke tests, persist results, wire Trade UI/API, navigate from app runtime, handle cookies/session, automate BankID, submit orders, click final KOP/SALJ, write Supabase, or expand the Sharp Semi Auto agent into production readiness.
+
+## Passive Execution Readiness Preview
+
+The passive execution readiness preview is documented in `docs/avanza-passive-execution-readiness-preview.md`. It gives operator visibility before active integration while preserving no active handoff, no prepare action, no buy/sell CTA, no API calls, no fetch/polling, no browser automation, no smoke test from UI, no credential access, no cookies/session, no BankID automation, no order submission, no final KOP/SALJ click, no Supabase write, and no production readiness.
+
+## Settings Passive Execution Readiness Panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now records that passive execution readiness is visible in app Settings. This does not expand the Sharp Semi Auto agent scope: no active handoff, prepare action, buy/sell CTA, API calls, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness is added.
+## Passive Recommendation/Live-Position Readiness Scope
+
+Recommendation/live-position execution readiness metadata is in scope only as passive model/dev-QA visibility. It prepares future read-only card display and does not permit active handoff, prepare actions, API calls, browser automation, smoke tests from UI, order submission, or final KÖP/SÄLJ clicks.
+
+The Trade card execution readiness adapter is also in scope only as a read-only adapter for future passive card visibility. It does not activate execution.

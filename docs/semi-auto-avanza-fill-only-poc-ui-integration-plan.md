@@ -215,6 +215,16 @@ inputs only. It remains unwired from Trade UI and cannot call the API route,
 localhost, bridge, Avanza/browser, fill, review, confirmation, submit, order, or
 Supabase paths.
 
+The Trade UI also now contains a feature-flagged, default-off read-only card
+badge path for passive execution readiness:
+`ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false`. With the default
+flag value, no readiness badge renders on recommendation or live-position cards.
+If explicitly enabled in code/dev, the badge displays passive metadata only. It
+does not add handoff, prepare, buy/sell CTA, browser control, API route calls,
+fetch, polling, UI smoke-test invocation, credential access, cookie/session
+handling, BankID automation, order submission, final KÖP/SÄLJ clicks, or
+Supabase writes.
+
 The fixture/harness visibility layer now includes
 `lib/avanza-trade-ui-prepare-intent-fixtures.ts`,
 `components/execution/AvanzaTradeUiPrepareIntentHarness.tsx`, and a fixture-only
@@ -4175,3 +4185,61 @@ visibility. It does not activate real Avanza navigation, document reading,
 PDF/download/read, OCR, real value extraction, reconciliation writes, Supabase
 writes, Trade UI wiring, or API route wiring. Exact cost/FX reconciliation
 remains modeled/mock-only.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The architecture checkpoint and readiness map now exist in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md` and `docs/avanza-execution-readiness-map.md`.
+
+The current chain is mature at model/mock level only and is not production ready. The next recommended path is real local-dev order/search page action binding, a local-dev order chain smoke test harness, settlement local-dev signal/document binding planning, passive Trade UI handoff preview integration, and only later a guarded active local bridge/API route review. The checkpoint adds no Trade UI execution wiring, no API route execution wiring, no Avanza navigation, no form fill, no final KOP/SALJ click, no order submission, no credential/session handling, no settlement document read/OCR/extraction, no reconciliation write, and no Supabase write.
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`. It can supply injected dependencies to a future local-dev order chain executor, but it is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state. It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.
+
+### Avanza order chain smoke test runner
+
+The Avanza order chain smoke test runner now exists in
+`lib/avanza-order-chain-smoke-test-runner.ts`, with fixtures in
+`lib/avanza-order-chain-smoke-test-runner-fixtures.ts` and a passive harness in
+`components/execution/AvanzaOrderChainSmokeTestRunnerHarness.tsx`.
+
+It is the order-side counterpart to the login smoke runner. It remains
+local-dev, terminal-gated, and injected dependency only, and it is rendered on
+the dev-only visual QA route as fixture/model-only visibility. It is
+disconnected from Trade UI/API and order submission, cannot click final
+KOP/SALJ, and keeps final human action required.
+
+### Avanza local-dev execution runbook
+
+The Avanza local-dev execution runbook now exists in
+`docs/avanza-local-dev-execution-runbook.md`, with model fixtures and a dev QA
+route harness. It is the operator guide before any real local-dev order smoke
+script or Trade UI/API integration. It summarizes login smoke and order-prep
+smoke review but adds no real execution, no app-runtime navigation, no
+cookies/session export, no BankID automation, no order submission, no final
+KOP/SALJ click, no Supabase write, and no production readiness claim.
+
+### Avanza terminal order smoke script scaffold
+
+`scripts/avanza-order-chain-smoke-test.local.ts` now exists as a terminal-only
+hard-gated scaffold. It is blocked in CI, requires explicit env opt-in, requires
+manual local confirmation, requires a separate real-run flag for explicit
+real-run mode, remains disconnected from Trade UI/API/order submission, and
+stops at review-ready/final human action.
+
+### Avanza passive execution readiness preview
+
+`docs/avanza-passive-execution-readiness-preview.md` now documents a passive
+Trade UI/readiness preview. It provides visibility before active integration and
+adds no active handoff, no prepare action, no buy/sell CTA, no browser
+automation, no API call, no fetch/polling, no smoke test from UI, no credential
+access, no cookies/session handling, no BankID automation, no order submission,
+no final KOP/SALJ click, no Supabase write, and no production readiness claim.
+
+### Avanza Settings passive execution readiness panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now documents the passive readiness panel rendered in app Settings beside the Avanza execution profile. The Settings surface remains non-executing and separate from Trade UI order flow: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness claim is added.
+## Passive Recommendation/Live-Position Readiness Metadata
+
+`lib/avanza-passive-trade-execution-readiness.ts` adds passive recommendation/live-position execution readiness metadata for future read-only UI visibility. It is fixture/model-only today and does not enable Trade UI execution, API route calls, browser automation, order submission, or final KÖP/SÄLJ clicks.
+
+`lib/avanza-trade-card-execution-readiness-adapter.ts` adds a card-level read-only adapter for future passive card visibility. It converts readiness metadata into display-safe badges and does not activate execution.

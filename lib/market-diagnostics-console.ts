@@ -11,6 +11,7 @@ import type { RealRecommendationOutputReadinessSummary } from "@/lib/real-recomm
 import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memory";
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
 import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
+import type { DailyLearningReviewSummary } from "@/lib/daily-learning-review";
 import type { RecommendationOutputEnrichmentSummary } from "@/lib/recommendation-output-enrichment";
 import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
@@ -437,6 +438,7 @@ export type MarketDiagnosticsConsoleInput = {
     strict_batch_filter_excluded_count?: number | null;
   } | null;
   outcome_learning?: RecommendationOutcomeLearningInsightsSummary | null;
+  daily_learning_review?: DailyLearningReviewSummary | null;
   entry_tuning_proposal?: EntryTuningProposal | null;
   recommendation_output_enrichment?: RecommendationOutputEnrichmentSummary | null;
   metadata_coverage?: {
@@ -549,6 +551,53 @@ function formatResearchExamples(
         .map(
           (example) =>
             `${example.ticker}:${example.reason} (${example.available_fields_summary})`,
+        )
+        .join(" | ")
+    : "none";
+}
+
+function rValue(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? `${value >= 0 ? "+" : ""}${value.toFixed(2)}R`
+    : "unknown";
+}
+
+function reviewTickerText(
+  tickers:
+    | Array<{
+        ticker: string;
+        outcome_count: number;
+        average_best_r: number | null;
+        average_worst_r: number | null;
+      }>
+    | null
+    | undefined,
+  metric: "best" | "worst",
+) {
+  const items = (tickers ?? []).slice(0, 5);
+
+  return items.length > 0
+    ? items
+        .map((item) => {
+          const value =
+            metric === "best" ? item.average_best_r : item.average_worst_r;
+
+          return `${item.ticker} ${rValue(value)} (${item.outcome_count})`;
+        })
+        .join(", ")
+    : "none";
+}
+
+function adjustmentText(
+  adjustments: DailyLearningReviewSummary["engine_adjustment_candidates"] | null | undefined,
+) {
+  const items = (adjustments ?? []).slice(0, 5);
+
+  return items.length > 0
+    ? items
+        .map(
+          (item) =>
+            `${item.candidate} (${item.confidence}): ${item.reason}`,
         )
         .join(" | ")
     : "none";
@@ -5754,6 +5803,173 @@ function buildSections(
         entry_type_trigger_summary: JSON.stringify(
           entryTypeTriggerSummary ?? null,
         ),
+      },
+    }),
+    section({
+      section_id: "daily_learning_review",
+      title: "Daily Learning Review",
+      severity:
+        input.daily_learning_review?.engine_adjustment_candidates.some(
+          (item) =>
+            item.candidate !== "insufficient_sample_size" &&
+            item.confidence !== "low",
+        ) === true
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Latest evaluated batch",
+          compact(
+            input.daily_learning_review?.latest_evaluated_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Outcomes evaluated today",
+          input.daily_learning_review?.evaluated_outcome_count ?? 0,
+        ),
+        lineValue(
+          "Visible/research-only",
+          `${input.daily_learning_review?.visible_evaluated_count ?? 0} / ${input.daily_learning_review?.research_only_evaluated_count ?? 0}`,
+        ),
+        lineValue(
+          "Latest batch visible/research-only",
+          `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0}`,
+        ),
+        lineValue(
+          "Entry triggered",
+          `${input.daily_learning_review?.metrics.entry_triggered_count ?? 0} / ${pctValue(input.daily_learning_review?.metrics.entry_triggered_rate)}`,
+        ),
+        lineValue(
+          "Entry not triggered",
+          `${input.daily_learning_review?.metrics.entry_not_triggered_count ?? 0} / ${pctValue(input.daily_learning_review?.metrics.entry_not_triggered_rate)}`,
+        ),
+        lineValue(
+          "Target/stop/neither",
+          `${input.daily_learning_review?.metrics.target_hit_count ?? 0}/${input.daily_learning_review?.metrics.stop_hit_count ?? 0}/${input.daily_learning_review?.metrics.neither_hit_count ?? 0}`,
+        ),
+        lineValue(
+          "Target/stop/neither rate",
+          `${pctValue(input.daily_learning_review?.metrics.target_hit_rate)} / ${pctValue(input.daily_learning_review?.metrics.stop_hit_rate)} / ${pctValue(input.daily_learning_review?.metrics.neither_hit_rate)}`,
+        ),
+        lineValue(
+          "Avg best/worst/terminal R",
+          `${rValue(input.daily_learning_review?.metrics.average_best_r)} / ${rValue(input.daily_learning_review?.metrics.average_worst_r)} / ${rValue(input.daily_learning_review?.metrics.average_terminal_r)}`,
+        ),
+        lineValue(
+          "Visible vs research-only",
+          compact(
+            input.daily_learning_review?.visible_vs_research_only_comparison
+              .summary,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Top tickers",
+          reviewTickerText(
+            input.daily_learning_review?.top_positive_tickers_by_avg_best_r,
+            "best",
+          ),
+        ),
+        lineValue(
+          "Weak tickers",
+          reviewTickerText(
+            input.daily_learning_review?.weakest_tickers_by_avg_worst_r,
+            "worst",
+          ),
+        ),
+        lineValue(
+          "Engine adjustment candidates",
+          adjustmentText(
+            input.daily_learning_review?.engine_adjustment_candidates,
+          ),
+        ),
+        lineValue(
+          "Sample confidence",
+          compact(input.daily_learning_review?.sample_size_label, "low"),
+        ),
+      ],
+      metrics: {
+        trading_day: input.daily_learning_review?.trading_day ?? null,
+        latest_evaluated_batch_fingerprint:
+          input.daily_learning_review?.latest_evaluated_batch_fingerprint ??
+          null,
+        latest_evaluated_batch_outcome_count:
+          input.daily_learning_review?.latest_evaluated_batch_outcome_count ??
+          null,
+        scan_windows: (
+          input.daily_learning_review?.scan_windows ?? []
+        ).join(","),
+        evaluated_outcome_count:
+          input.daily_learning_review?.evaluated_outcome_count ?? null,
+        visible_evaluated_count:
+          input.daily_learning_review?.visible_evaluated_count ?? null,
+        research_only_evaluated_count:
+          input.daily_learning_review?.research_only_evaluated_count ?? null,
+        unknown_visibility_evaluated_count:
+          input.daily_learning_review?.unknown_visibility_evaluated_count ??
+          null,
+        latest_batch_visible_evaluated_count:
+          input.daily_learning_review
+            ?.latest_batch_visible_evaluated_count ?? null,
+        latest_batch_research_only_evaluated_count:
+          input.daily_learning_review
+            ?.latest_batch_research_only_evaluated_count ?? null,
+        entry_triggered_count:
+          input.daily_learning_review?.metrics.entry_triggered_count ?? null,
+        entry_triggered_rate:
+          input.daily_learning_review?.metrics.entry_triggered_rate ?? null,
+        target_hit_count:
+          input.daily_learning_review?.metrics.target_hit_count ?? null,
+        target_hit_rate:
+          input.daily_learning_review?.metrics.target_hit_rate ?? null,
+        stop_hit_count:
+          input.daily_learning_review?.metrics.stop_hit_count ?? null,
+        stop_hit_rate:
+          input.daily_learning_review?.metrics.stop_hit_rate ?? null,
+        neither_hit_count:
+          input.daily_learning_review?.metrics.neither_hit_count ?? null,
+        neither_hit_rate:
+          input.daily_learning_review?.metrics.neither_hit_rate ?? null,
+        entry_not_triggered_count:
+          input.daily_learning_review?.metrics.entry_not_triggered_count ??
+          null,
+        entry_not_triggered_rate:
+          input.daily_learning_review?.metrics.entry_not_triggered_rate ??
+          null,
+        average_best_r:
+          input.daily_learning_review?.metrics.average_best_r ?? null,
+        average_worst_r:
+          input.daily_learning_review?.metrics.average_worst_r ?? null,
+        average_terminal_r:
+          input.daily_learning_review?.metrics.average_terminal_r ?? null,
+        visible_average_best_r:
+          input.daily_learning_review?.visible_metrics.average_best_r ?? null,
+        research_only_average_best_r:
+          input.daily_learning_review?.research_only_metrics.average_best_r ??
+          null,
+        visible_vs_research_only_comparison: JSON.stringify(
+          input.daily_learning_review
+            ?.visible_vs_research_only_comparison ?? null,
+        ),
+        top_positive_tickers_by_avg_best_r: JSON.stringify(
+          input.daily_learning_review?.top_positive_tickers_by_avg_best_r ??
+            [],
+        ),
+        weakest_tickers_by_avg_worst_r: JSON.stringify(
+          input.daily_learning_review?.weakest_tickers_by_avg_worst_r ?? [],
+        ),
+        group_breakdowns: JSON.stringify(
+          input.daily_learning_review?.group_breakdowns ?? [],
+        ),
+        engine_adjustment_candidates: JSON.stringify(
+          input.daily_learning_review?.engine_adjustment_candidates ?? [],
+        ),
+        sample_size_label:
+          input.daily_learning_review?.sample_size_label ?? null,
+        duplicate_outcome_rows_ignored_count:
+          input.daily_learning_review?.duplicate_outcome_rows_ignored_count ??
+          null,
       },
     }),
     section({

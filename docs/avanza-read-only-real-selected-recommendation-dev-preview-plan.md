@@ -217,6 +217,16 @@ default, and cannot call the disabled API route, localhost, bridge, fetch,
 polling, Avanza/browser, fill, review, confirmation, submit, order,
 credential/session handling, or Supabase writes.
 
+The Trade card execution readiness badge is now available through a separate
+default-off flag, `ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE`. This
+badge consumes passive recommendation/live-position readiness metadata only and
+does not enable the read-only selectedRecommendation preview flag. The
+selectedRecommendation preview flag remains `false`; no real selectedRecommendation
+state is read by this badge path, no previewState is derived from Trade UI state,
+and no handoff, order preparation, API/fetch/polling, browser automation, smoke
+test, credential/cookie/session handling, BankID automation, order submission,
+final KÖP/SÄLJ click, or Supabase write is added.
+
 The shell fixtures `lib/avanza-disabled-internal-prepare-button-shell-fixtures.ts`
 and isolated harness
 `components/execution/AvanzaDisabledInternalPrepareButtonShellHarness.tsx` are
@@ -2351,3 +2361,55 @@ settlement amount, reconciliation preview, and manual review. It still does
 not activate real navigation, document reading, PDF/download/read, OCR, real
 value extraction, reconciliation writes, Supabase writes, Trade UI wiring, or
 API route wiring. Exact cost/FX reconciliation remains modeled/mock-only.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The Sharp Semi Auto Execution architecture checkpoint now provides a fixture/model-only readiness map in `docs/avanza-execution-readiness-map.md`, with the full checkpoint in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`.
+
+Read-only selectedRecommendation preview work remains separate from execution readiness. The map confirms the architecture is not production ready, production readiness is not claimed, Trade UI/API execution wiring is not added, and the final KOP/SALJ boundary, credential/session boundary, BankID boundary, and settlement reconciliation boundary remain locked.
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`. It can supply injected dependencies to a future local-dev order chain executor, but it is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state. It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.
+
+## Avanza Order Chain Smoke Test Runner Boundary
+
+The Avanza order chain smoke test runner now exists in
+`lib/avanza-order-chain-smoke-test-runner.ts`. It is the order-side counterpart
+to the login smoke runner and remains local-dev, terminal-gated, and injected
+dependency only.
+
+Read-only selectedRecommendation preview work remains separate from the order
+smoke path. The runner is disconnected from Trade UI/API and order submission,
+cannot click final KOP/SALJ, and keeps final human action required.
+## Local-Dev Execution Runbook
+
+The Avanza local-dev execution runbook now exists as an operator guide before
+any real local-dev order smoke script or Trade UI/API integration. It does not
+connect selectedRecommendation preview to execution. The read-only preview path
+remains separate from app-runtime navigation, cookies/session handling, BankID
+automation, order submission, final KOP/SALJ, Supabase writes, and production
+readiness.
+
+The terminal-only Avanza order smoke script scaffold now exists but remains
+separate from selectedRecommendation preview. It is hard-gated, default-safe,
+disconnected from Trade UI/API/order submission, and stops at
+review-ready/final human action.
+
+## Passive Execution Readiness Preview
+
+`docs/avanza-passive-execution-readiness-preview.md` now documents a passive
+readiness preview that can show execution-readiness status without connecting
+selectedRecommendation preview to execution. It provides visibility before
+active integration and adds no active handoff, no prepare action, no buy/sell
+CTA, no API call, no fetch/polling, no browser automation, no smoke test from
+UI, no credential access, no order submission, no final KOP/SALJ click, no
+Supabase write, and no production readiness claim.
+
+## Settings Passive Execution Readiness Panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now documents the passive readiness panel in app Settings. It does not connect selectedRecommendation preview to execution and remains separate from Trade UI order flow: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness is added.
+## Passive Trade Execution Readiness Metadata
+
+Read-only selectedRecommendation planning can now reference passive trade execution readiness metadata. The metadata can describe recommendation BUY readiness and live-position SELL/exit readiness for future read-only display, but it does not read or render real Trade UI execution state and does not activate execution.
+
+The Trade card execution readiness adapter can later turn that passive metadata into read-only card labels and badges for future passive card visibility. It does not activate execution.

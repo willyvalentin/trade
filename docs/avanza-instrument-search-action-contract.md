@@ -74,3 +74,8 @@ The chain now has a mock execution layer after dry-run in
 The action contract can be inspected through simulated page-state flow only.
 This still does not activate real Avanza execution. Final human confirmation
 remains mandatory.
+## Local-Dev Order/Search Page Action Binding
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`.
+
+It can adapt injected Playwright-like methods for search input, search result waits, and search result selection. It is a dependency layer for a future local-dev order chain executor only. It is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.

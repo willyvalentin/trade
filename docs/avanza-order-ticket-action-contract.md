@@ -97,3 +97,14 @@ The chain now has a mock execution layer after dry-run in
 The mock layer simulates review-ready state and stops before final KÖP/SÄLJ.
 This still does not activate real Avanza execution. Final human confirmation
 remains mandatory.
+## Local-Dev Order/Search Page Action Binding
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`.
+
+It can adapt injected Playwright-like methods for BUY/SELL entry location, order field fills, order review waits, and redacted order review snapshots. It is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+## Local-Dev Instrument-To-Order Executor
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state.
+
+It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.

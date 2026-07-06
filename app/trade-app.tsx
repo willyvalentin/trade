@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   FormEvent,
   useEffect,
   useRef,
@@ -120,6 +121,9 @@ import {
   buildPreTradeRiskContext,
   type PreTradeRiskContextResult,
 } from "@/lib/pre-trade-risk-context";
+import {
+  buildAvanzaPassiveTradeExecutionReadiness,
+} from "@/lib/avanza-passive-trade-execution-readiness";
 import {
   buildTradeEligibility,
   type TradeEligibilityResult,
@@ -348,6 +352,9 @@ import {
   type MondayLiveTrialReviewClassification,
   type MondayLiveTrialReviewSummary,
 } from "@/lib/monday-live-trial-review";
+import {
+  buildDailyLearningReviewSummary,
+} from "@/lib/daily-learning-review";
 import {
   buildEntryTuningProposal,
   entryTuningProposalJson,
@@ -620,6 +627,9 @@ import {
 import {
   AvanzaReadOnlyReadinessBadge,
 } from "@/components/execution/AvanzaReadOnlyReadinessBadge";
+import {
+  AvanzaTradeCardExecutionReadinessBadge,
+} from "@/components/execution/AvanzaTradeCardExecutionReadinessBadge";
 import {
   AvanzaHandoffPackagePreviewCard,
 } from "@/components/execution/AvanzaHandoffPackagePreviewCard";
@@ -8263,6 +8273,74 @@ const avanzaSelectedRecommendationPreviewDevConfig =
   });
 
 const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;
+const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;
+
+function buildRecommendationTradeCardExecutionReadiness(
+  recommendation: Recommendation,
+  positionSizing: PositionSizing,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: recommendation.companyName,
+    intent: "entry_buy",
+    limitPrice: getRecommendationEntryFallback(recommendation) ?? undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    profileReady: false,
+    quantity: positionSizing.suggestedShares ?? undefined,
+    recommendationId: recommendation.id,
+    settlementModeled: true,
+    side: "buy",
+    source: "recommendation",
+    ticker: recommendation.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
+
+function buildLivePositionTradeCardExecutionReadiness(
+  position: ActivePosition,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: position.companyName,
+    intent: "exit_sell",
+    limitPrice:
+      position.target1Value ??
+      position.target2Value ??
+      position.stopLossValue ??
+      undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    positionId: position.id,
+    profileReady: false,
+    quantity:
+      position.executionMetadata?.remaining_shares ??
+      position.positionSizeValue ??
+      undefined,
+    recommendationId: position.recommendationId ?? undefined,
+    settlementModeled: true,
+    side: "sell",
+    source: "live_position",
+    ticker: position.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
 
 export function TradeApp({
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
@@ -13843,6 +13921,14 @@ export function TradeApp({
   });
   const mondayLiveTrialReviewSummaryJsonText =
     mondayLiveTrialReviewSummaryJson(mondayLiveTrialReviewSummary);
+  const dailyLearningReviewSummary = buildDailyLearningReviewSummary({
+    trading_day: dailySessionDate,
+    latest_batch_fingerprint: latestEvaluatedBatchFingerprint,
+    batches: liveStoredRecommendationBatches,
+    snapshots: liveStoredRecommendationSnapshots,
+    outcomes: storedRecommendationOutcomes,
+    now: currentTime,
+  });
   const entryTuningProposal = buildEntryTuningProposal({
     learning_insights: recommendationOutcomeLearningInsightsSummary,
     evaluated_batch_count: outcomeBatchGroups.filter(
@@ -14436,6 +14522,7 @@ export function TradeApp({
               : retainedReviewEntryTypeTriggerSummary,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
+      daily_learning_review: dailyLearningReviewSummary,
       entry_tuning_proposal: entryTuningProposal,
       recommendation_output_enrichment: recommendationOutputEnrichmentSummary,
       metadata_coverage: {
@@ -15856,37 +15943,56 @@ export function TradeApp({
                 calibrationGuardrails,
                 preTradeRiskContext,
               });
+              const positionSizing = calculatePositionSizing(
+                recommendation,
+                userSettings,
+              );
+              const tradeCardExecutionReadiness =
+                buildRecommendationTradeCardExecutionReadiness(
+                  recommendation,
+                  positionSizing,
+                );
 
               return (
-                <RecommendationCardContainer
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  calibrationGuardrails={calibrationGuardrails}
-                  preTradeRiskContext={preTradeRiskContext}
-                  tradeEligibility={tradeEligibility}
-                  decisionStack={decisionStack}
-                  freshness={freshness}
-                  addTradeGate={addTradeGate}
-                  keyReasons={keyReasons}
-                  positionSizing={calculatePositionSizing(
-                    recommendation,
-                    userSettings,
-                  )}
-                  isDemoRecommendation={isDemoRecommendation(recommendation)}
-                  isSaving={isSaving}
-                  isValidating={validatingRecommendationId === recommendation.id}
-                  onTakeTrade={openTradeModal}
-                  onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
-                  renderIdentity={(item) => (
-                    <CompanyIdentity
-                      ticker={item.ticker}
-                      companyName={item.companyName}
-                      logoUrl={logoUrlForCompanyIdentity(item.ticker, item.logoUrl)}
-                      size="live"
+                <Fragment key={recommendation.id}>
+                  <RecommendationCardContainer
+                    recommendation={recommendation}
+                    calibrationGuardrails={calibrationGuardrails}
+                    preTradeRiskContext={preTradeRiskContext}
+                    tradeEligibility={tradeEligibility}
+                    decisionStack={decisionStack}
+                    freshness={freshness}
+                    addTradeGate={addTradeGate}
+                    keyReasons={keyReasons}
+                    positionSizing={positionSizing}
+                    isDemoRecommendation={isDemoRecommendation(recommendation)}
+                    isSaving={isSaving}
+                    isValidating={validatingRecommendationId === recommendation.id}
+                    onTakeTrade={openTradeModal}
+                    onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
+                    renderIdentity={(item) => (
+                      <CompanyIdentity
+                        ticker={item.ticker}
+                        companyName={item.companyName}
+                        logoUrl={logoUrlForCompanyIdentity(
+                          item.ticker,
+                          item.logoUrl,
+                        )}
+                        size="live"
+                      />
+                    )}
+                    renderSourceBadges={(badges) => (
+                      <DataModePillRow badges={badges} />
+                    )}
+                  />
+                  {tradeCardExecutionReadiness ? (
+                    <AvanzaTradeCardExecutionReadinessBadge
+                      compact
+                      className="trade-card-execution-readiness-badge"
+                      readinessModel={tradeCardExecutionReadiness}
                     />
-                  )}
-                  renderSourceBadges={(badges) => <DataModePillRow badges={badges} />}
-                />
+                  ) : null}
+                </Fragment>
               );
             })}
           </RecommendationsTab>
@@ -31111,6 +31217,8 @@ function ActivePositionCard({
   const liveExecutionTargetPrice = position.target1Value ?? position.target2Value;
   const liveExecutionQuantity =
     position.executionMetadata?.remaining_shares ?? position.positionSizeValue;
+  const tradeCardExecutionReadiness =
+    buildLivePositionTradeCardExecutionReadiness(position);
   const {
     closeExecutionPreviewModal,
     executionPreviewModal,
@@ -31348,15 +31456,26 @@ function ActivePositionCard({
         <DataModePillRow badges={liveDayTradeDisplay.realityBadges.slice(0, 1)} />
       }
       statusSurface={
-        liveExecutionStatus?.visible ? (
-          <LivePositionExecutionStatusSurface
-            status={liveExecutionStatus}
-            footerAction={
-              <LivePositionHandoffControls
-                onViewHandoff={openExecutionPreviewModal}
+        tradeCardExecutionReadiness || liveExecutionStatus?.visible ? (
+          <div className="grid gap-3">
+            {tradeCardExecutionReadiness ? (
+              <AvanzaTradeCardExecutionReadinessBadge
+                compact
+                className="trade-card-execution-readiness-badge"
+                readinessModel={tradeCardExecutionReadiness}
               />
-            }
-          />
+            ) : null}
+            {liveExecutionStatus?.visible ? (
+              <LivePositionExecutionStatusSurface
+                status={liveExecutionStatus}
+                footerAction={
+                  <LivePositionHandoffControls
+                    onViewHandoff={openExecutionPreviewModal}
+                  />
+                }
+              />
+            ) : null}
+          </div>
         ) : null
       }
     />

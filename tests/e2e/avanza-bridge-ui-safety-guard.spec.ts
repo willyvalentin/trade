@@ -27,6 +27,19 @@ const uiFacingFiles = [
   "components/execution/AvanzaLocalBrowserAgentRuntimeHarness.tsx",
   "components/execution/AvanzaLocalPlaywrightBrowserAdapterHarness.tsx",
   "components/execution/AvanzaLocalPlaywrightPageActionBindingHarness.tsx",
+  "components/execution/AvanzaLocalPlaywrightOrderPageActionBindingHarness.tsx",
+  "components/execution/AvanzaInstrumentToOrderLocalDevExecutorHarness.tsx",
+  "components/execution/AvanzaOrderChainSmokeTestRunnerHarness.tsx",
+  "components/execution/AvanzaTerminalOrderSmokeScriptHarness.tsx",
+  "components/execution/AvanzaLocalDevExecutionRunbookHarness.tsx",
+  "components/execution/AvanzaLocalSmokeTestResultCaptureHarness.tsx",
+  "components/execution/AvanzaPassiveExecutionReadinessPreview.tsx",
+  "components/execution/AvanzaPassiveExecutionReadinessPreviewHarness.tsx",
+  "components/execution/AvanzaSettingsPassiveExecutionReadinessPanel.tsx",
+  "components/execution/AvanzaSettingsPassiveExecutionReadinessPanelHarness.tsx",
+  "components/execution/AvanzaPassiveTradeExecutionReadinessHarness.tsx",
+  "components/execution/AvanzaTradeCardExecutionReadinessBadge.tsx",
+  "components/execution/AvanzaTradeCardExecutionReadinessAdapterHarness.tsx",
   "components/execution/AvanzaPageStateDetectorHarness.tsx",
   "components/execution/AvanzaSanitizedPageSnapshotHarness.tsx",
   "components/execution/AvanzaRealWorldLoginSignalsHarness.tsx",
@@ -38,6 +51,7 @@ const uiFacingFiles = [
   "components/execution/AvanzaSettlementReconciliationMappingHarness.tsx",
   "components/execution/AvanzaSettlementReconciliationDryRunExecutorHarness.tsx",
   "components/execution/AvanzaSettlementReconciliationMockExecutorHarness.tsx",
+  "components/execution/AvanzaExecutionArchitectureReadinessMapHarness.tsx",
   "components/execution/AvanzaRealWorldInstrumentSearchSignalsHarness.tsx",
   "components/execution/AvanzaInstrumentSearchRouteContractHarness.tsx",
   "components/execution/AvanzaInstrumentSearchActionContractHarness.tsx",
@@ -69,6 +83,24 @@ const uiFacingFiles = [
   "lib/avanza-local-playwright-browser-adapter-fixtures.ts",
   "lib/avanza-local-playwright-page-action-binding.ts",
   "lib/avanza-local-playwright-page-action-binding-fixtures.ts",
+  "lib/avanza-local-playwright-order-page-action-binding.ts",
+  "lib/avanza-local-playwright-order-page-action-binding-fixtures.ts",
+  "lib/avanza-instrument-to-order-local-dev-executor.ts",
+  "lib/avanza-instrument-to-order-local-dev-executor-fixtures.ts",
+  "lib/avanza-order-chain-smoke-test-runner.ts",
+  "lib/avanza-order-chain-smoke-test-runner-fixtures.ts",
+  "lib/avanza-terminal-order-smoke-script-fixtures.ts",
+  "lib/avanza-local-dev-execution-runbook.ts",
+  "lib/avanza-local-dev-execution-runbook-fixtures.ts",
+  "lib/avanza-local-smoke-test-result-capture.ts",
+  "lib/avanza-local-smoke-test-result-capture-fixtures.ts",
+  "lib/avanza-passive-execution-readiness-preview.ts",
+  "lib/avanza-passive-execution-readiness-preview-fixtures.ts",
+  "lib/avanza-settings-passive-execution-readiness-fixtures.ts",
+  "lib/avanza-passive-trade-execution-readiness.ts",
+  "lib/avanza-passive-trade-execution-readiness-fixtures.ts",
+  "lib/avanza-trade-card-execution-readiness-adapter.ts",
+  "lib/avanza-trade-card-execution-readiness-adapter-fixtures.ts",
   "lib/avanza-page-state-detector.ts",
   "lib/avanza-page-state-detector-fixtures.ts",
   "lib/avanza-sanitized-page-snapshot.ts",
@@ -91,6 +123,8 @@ const uiFacingFiles = [
   "lib/avanza-settlement-reconciliation-dry-run-executor-fixtures.ts",
   "lib/avanza-settlement-reconciliation-mock-executor.ts",
   "lib/avanza-settlement-reconciliation-mock-executor-fixtures.ts",
+  "lib/avanza-execution-architecture-readiness-map.ts",
+  "lib/avanza-execution-architecture-readiness-map-fixtures.ts",
   "lib/avanza-real-world-instrument-search-signals.ts",
   "lib/avanza-real-world-instrument-search-signals-fixtures.ts",
   "lib/avanza-instrument-search-route-contract.ts",
@@ -135,6 +169,7 @@ const uiFacingFiles = [
   "lib/avanza-isolated-login-smoke-test-runner.ts",
   "lib/avanza-isolated-login-smoke-test-runner-fixtures.ts",
   "lib/avanza-terminal-login-smoke-script-fixtures.ts",
+  "scripts/avanza-order-chain-smoke-test.local.ts",
   "lib/avanza-dev-visible-preview-surface-fixtures.ts",
   "lib/avanza-read-only-selected-recommendation-derivation-decision-fixtures.ts",
   "lib/avanza-read-only-selected-recommendation-derivation-decision.ts",
@@ -240,6 +275,44 @@ test.describe("Avanza bridge UI safety guard", () => {
     expect(panelSource).toContain("No order can be placed from this panel");
     expect(panelSource).not.toMatch(/\/live-fill-only-runner\//);
     expect(panelSource).not.toMatch(/fetch\s*\(/);
+  });
+
+  test("Trade card execution readiness badge flag stays default-off and passive", () => {
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const flagIndex = tradeAppSource.indexOf(
+      "const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;",
+    );
+    const helperIndex = tradeAppSource.indexOf(
+      "function buildRecommendationTradeCardExecutionReadiness",
+    );
+    const endIndex = tradeAppSource.indexOf("export function TradeApp", helperIndex);
+
+    expect(flagIndex).toBeGreaterThanOrEqual(0);
+    expect(helperIndex).toBeGreaterThan(flagIndex);
+    expect(endIndex).toBeGreaterThan(helperIndex);
+    expect(tradeAppSource).toContain(
+      "const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;",
+    );
+
+    const passiveBadgeWiringSource = tradeAppSource.slice(helperIndex, endIndex);
+
+    expect(passiveBadgeWiringSource).toContain(
+      "if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE)",
+    );
+    expect(passiveBadgeWiringSource).toContain("return null;");
+    expect(passiveBadgeWiringSource).toContain("source: \"recommendation\"");
+    expect(passiveBadgeWiringSource).toContain("source: \"live_position\"");
+    expect(passiveBadgeWiringSource).not.toMatch(/\bfetch\s*\(/);
+    expect(passiveBadgeWiringSource).not.toMatch(/\/api\/|app\/api\//);
+    expect(passiveBadgeWiringSource).not.toMatch(/from\s+["']playwright["']/);
+    expect(passiveBadgeWiringSource).not.toMatch(/chromium\.launch|page\.goto/);
+    expect(passiveBadgeWiringSource).not.toMatch(/document\.cookie|cookies\(\)/i);
+    expect(passiveBadgeWiringSource).not.toMatch(/localStorage|sessionStorage/);
+    expect(passiveBadgeWiringSource).not.toMatch(/keychain/i);
+    expect(passiveBadgeWiringSource).not.toMatch(/supabase\.(from|insert|rpc)/i);
+    expect(passiveBadgeWiringSource).not.toMatch(
+      /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+    );
   });
 
   test("guard is documented in Avanza bridge data-layer plan", () => {

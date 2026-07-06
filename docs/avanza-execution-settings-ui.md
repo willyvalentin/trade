@@ -194,3 +194,29 @@ does not activate real navigation, document reading, PDF/download/read, OCR,
 real value extraction, reconciliation writes, Supabase writes, Trade UI
 wiring, or API route wiring. Exact cost/FX reconciliation remains
 modeled/mock-only.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The execution settings UI is now included in the fixture/model-only architecture readiness map documented in `docs/avanza-execution-readiness-map.md` and `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`.
+
+Settings remain passive and model-only, and the architecture is not production ready while real local-dev binding remains a separate future gate. The checkpoint adds no execution settings activation, no credential exposure, no real Avanza navigation, no form fill, no final KOP/SALJ click, no order submission, no Trade UI execution wiring, no API route execution wiring, and no production readiness claim.
+## Local-Dev Execution Runbook
+
+The Avanza local-dev execution runbook now exists and references Avanza Settings
+profile/readiness as a prerequisite. The Settings UI remains a safe scaffold and
+does not execute login smoke, order-prep smoke, Trade UI wiring, API route
+wiring, app-runtime navigation, cookies/session export, BankID automation, final
+KOP/SALJ, order submission, Supabase writes, or production readiness.
+
+## Passive Execution Readiness Preview
+
+`docs/avanza-passive-execution-readiness-preview.md` now documents a passive
+readiness preview that can display Ture Settings profile readiness alongside
+login, order-prep, and settlement readiness. It provides visibility before
+active integration and does not activate Settings controls, handoff, prepare
+actions, browser automation, API calls, fetch/polling, smoke tests from UI,
+credential access, cookies/session handling, BankID automation, order
+submission, final KOP/SALJ, Supabase writes, or production readiness.
+
+## Settings Passive Execution Readiness Panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now documents the passive readiness panel rendered in app Settings next to the Avanza execution profile. It remains non-executing and separate from Trade UI order flow: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness claim is added.

@@ -79,3 +79,16 @@ execution. This mock executor phase still does not activate post-trade
 navigation, PDF/download/read, OCR, value extraction, trade reconciliation
 writes, Trade UI wiring, API route wiring, cookie/session handling, BankID
 automation, or Supabase writes.
+## Sharp Semi Auto Execution Architecture Checkpoint
+
+The instrument-to-order mock executor is summarized in the Sharp Semi Auto Execution readiness map at `docs/avanza-execution-readiness-map.md`, with the full checkpoint in `docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md`.
+
+The pre-submit handoff chain is considered model/dry-run/mock mature, but it is not production ready and still needs real local-dev order/search page action binding and a local-dev order chain smoke test harness before any Trade UI or API route progression. The final KOP/SALJ click remains human-only, and no real form fill or order submission is added.
+
+The local-dev order/search page action binding now exists in `lib/avanza-local-playwright-order-page-action-binding.ts`. It can supply injected dependencies to a future local-dev order chain executor, but it is still not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+## Local-Dev Instrument-To-Order Executor
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state.
+
+It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ. Final human action remains required.
