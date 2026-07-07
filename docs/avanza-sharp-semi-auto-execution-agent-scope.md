@@ -744,3 +744,118 @@ keeping the UI visually simple and without adding active handoff, prepare
 actions, API calls, fetch/polling, browser automation now, credential access,
 cookies/session handling, BankID automation, order submission, final KOP/SALJ
 clicks, Supabase writes, or production readiness.
+
+## Headless Session Lifecycle Scope
+
+The headless execution session state machine is now part of the planning-only
+scope through `docs/avanza-headless-execution-session-state-machine.md`.
+Contract selector feeds plan builder, and plan builder now feeds session
+lifecycle without visual UI or execution. It models future session progress and
+terminal states only; agent final click is forbidden. It does not add active
+handoff, prepare actions, browser automation now, API calls, credential access,
+cookies/session handling, BankID automation, order submission, final KOP/SALJ
+clicks by agent, Supabase writes, or production readiness.
+
+## Headless Orchestration Scope
+
+The headless execution orchestration pipeline is now part of the planning-only
+scope through `docs/avanza-headless-execution-orchestration-pipeline.md`. It
+connects contract to selector to plan to session, and future agent session
+behavior is modeled without visual UI or active broker behavior. It remains
+under the surface and does not add visible Trade UI changes, active handoff,
+prepare actions, browser automation now, API calls, fetch/polling, credential
+access, cookies/session handling, BankID automation, order submission, final
+KOP/SALJ clicks by agent, Supabase writes, or production readiness.
+
+## Headless Architecture Checkpoint Scope
+
+The headless execution architecture checkpoint is now part of the planning-only
+scope through `docs/avanza-headless-execution-architecture-checkpoint.md`. It
+records the full under-surface agent brain loop: contract -> selector -> plan ->
+session -> orchestration. The checkpoint does not execute anything and does not
+open any activation gate. Local-dev bridge gate remains not open, Trade UI
+execution gate is locked, API route execution gate is locked, browser
+automation gate is locked, credential access gate is locked, cookies/session
+export is forbidden, BankID automation is forbidden, order submission is
+forbidden, final KOP/SALJ remains human-only, Supabase writes are locked,
+settlement writes are locked, and production readiness is blocked.
+
+## Local-Dev Bridge Contract Scope
+
+The local-dev bridge contract is now modeled in
+`docs/avanza-local-dev-bridge-contract.md`. It maps a ready headless
+orchestration report to a future terminal-only smoke request candidate, but the
+bridge gate remains closed. This is the next step before any actual bridge
+invocation and does not invoke smoke runners, import terminal scripts, run
+browser automation, call APIs, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KOP/SALJ, write Supabase, or change
+the minimal Trade UI.
+
+## Local-Dev Bridge Readiness Checkpoint Scope
+
+`docs/avanza-local-dev-bridge-readiness-checkpoint.md` now defines a checkpoint
+at the invocation boundary for the local-dev bridge stack. It confirms the
+under-surface layers are built and model-only simulation can reach the boundary,
+but future work must explicitly decide the next allowed design step. Runtime
+remains locked. The scope still forbids smoke runner invocation, terminal script
+invocation, browser automation, credential access, cookies/session export,
+BankID automation, order submission, final KOP/SALJ agent clicks, Supabase
+writes, Trade UI active handoff, API route activation, and production readiness.
+
+## Local-Dev Bridge Activation Checklist Scope
+
+`docs/avanza-local-dev-bridge-activation-checklist.md` now defines the manual
+review and approval gate model before disabled bridge runner design. Approval is
+limited to disabled design review; it does not approve model-only dry-run,
+real-run, browser automation, credential access, order submission, final
+KOP/SALJ clicks, or Supabase writes. Runtime remains locked and real-run
+remains forbidden.
+
+## Disabled Local-Dev Bridge Runner Scope
+
+`docs/avanza-disabled-local-dev-bridge-runner.md` now defines the disabled
+local-dev bridge runner skeleton. It is model/helper/docs/dev-QA only and
+hidden under the surface. It can consume the bridge contract and activation
+checklist as model inputs, but it cannot open the bridge gate, invoke smoke
+runners, import terminal scripts, start browser automation, access credentials,
+handle cookies/session, automate BankID, submit orders, click final KOP/SALJ,
+write Supabase, or change the minimal Trade UI.
+
+## Model-Only Local-Dev Bridge Dry Runner Scope
+
+`docs/avanza-model-only-local-dev-bridge-dry-runner.md` now defines the
+model-only dry-run layer. It simulates the bridge run to the invocation
+boundary but does not open runtime or open the bridge gate, invoke smoke
+runners, run terminal scripts, start browser automation, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KOP/SALJ, write Supabase, or change
+the minimal Trade UI.
+
+## Manual Local-Dev Invocation Approval Runbook
+
+`docs/avanza-manual-local-dev-invocation-approval-runbook.md` now gates any
+future invocation adapter design. It is a manual-review evidence model only,
+not runtime approval. Runtime remains locked.
+
+## Disabled Local-Dev Invocation Adapter Contract
+
+`docs/avanza-disabled-local-dev-invocation-adapter-contract.md` now defines the
+future adapter shape only. The Sharp Semi Auto scope remains under-surface and
+design-only here; runtime remains locked.
+
+## Disabled Invocation Adapter Payload Validator
+
+`docs/avanza-disabled-invocation-adapter-payload-validator.md` now validates
+disabled invocation adapter design-review payloads only. It rejects sensitive
+payload and runtime capabilities, and runtime remains locked.
+
+## Invocation Adapter Design Checkpoint
+
+`docs/avanza-invocation-adapter-design-checkpoint.md` now records the Sharp Semi
+Auto invocation adapter design checkpoint. It validates design review only,
+stays fixture/model-only, and runtime remains locked.
+
+## Sharp Semi Auto Execution Phase Checkpoint
+
+`docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md` now closes the
+current design phase as complete. Future work must pick a separate workstream,
+and runtime remains locked.

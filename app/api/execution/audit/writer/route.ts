@@ -14,6 +14,7 @@ import {
 const ROUTE_PATH = "/api/execution/audit/writer" as const;
 const ROUTE_CONTRACT_VERSION =
   "execution_record_audit_writer_route_boundary_v1" as const;
+const AUDIT_WRITER_ROUTE_HARD_DISABLED = true as const;
 
 type AuditWriterRouteValidationError = {
   code:
@@ -47,15 +48,20 @@ type AuditWriterRouteResponse = {
     authGatePassed: boolean;
     devGateRequired: true;
     devGatePassed: boolean;
-    routeCallAllowed: true;
+    hardDisabled: true;
+    routeCallAllowed: false;
     uiWiringAdded: false;
     browserClientInvocationAllowed: false;
     scheduledInvocationAllowed: false;
+    productionExecutionPersistenceBlocked: true;
+    supabaseExecutionRecordsWriteAllowed: false;
     productionWritePathApproved: false;
     liveSmokeInsertApproved: false;
     updateDeleteUpsertSelectAllowed: false;
     tradeStatsPnlMutationAllowed: false;
     externalOrderBrowserAllowed: false;
+    externalOrderSubmissionAllowed: false;
+    finalBuySellClickAllowed: false;
     autonomousModeAllowed: false;
   };
 };
@@ -82,15 +88,20 @@ function safety(input: {
     authGatePassed: input.authGatePassed,
     devGateRequired: true,
     devGatePassed: input.devGatePassed,
-    routeCallAllowed: true,
+    hardDisabled: AUDIT_WRITER_ROUTE_HARD_DISABLED,
+    routeCallAllowed: false,
     uiWiringAdded: false,
     browserClientInvocationAllowed: false,
     scheduledInvocationAllowed: false,
+    productionExecutionPersistenceBlocked: true,
+    supabaseExecutionRecordsWriteAllowed: false,
     productionWritePathApproved: false,
     liveSmokeInsertApproved: false,
     updateDeleteUpsertSelectAllowed: false,
     tradeStatsPnlMutationAllowed: false,
     externalOrderBrowserAllowed: false,
+    externalOrderSubmissionAllowed: false,
+    finalBuySellClickAllowed: false,
     autonomousModeAllowed: false,
   };
 }
@@ -239,6 +250,25 @@ export async function POST(request: Request) {
             code: "route_disabled",
             message:
               "Audit writer route boundary is disabled. No writer call occurred.",
+          },
+        ],
+      }),
+      403,
+    );
+  }
+
+  if (AUDIT_WRITER_ROUTE_HARD_DISABLED) {
+    return jsonResponse(
+      response({
+        status: "blocked",
+        receivedAt,
+        authGatePassed: false,
+        devGatePassed,
+        validationErrors: [
+          {
+            code: "route_disabled",
+            message:
+              "Audit writer route is hard-disabled for production execution persistence. No writer call occurred.",
           },
         ],
       }),

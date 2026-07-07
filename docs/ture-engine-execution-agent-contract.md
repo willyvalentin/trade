@@ -682,3 +682,122 @@ preparation, review stop, human-only final KOP/SALJ, and later settlement
 reconciliation without API calls, fetch/polling, browser automation now,
 credential access, cookies/session handling, BankID automation, order
 submission, final clicks, Supabase writes, or production-readiness claims.
+
+## Headless Session State Machine Boundary
+
+The Engine/Agent contract now includes
+`docs/avanza-headless-execution-session-state-machine.md` as a lifecycle-only
+model. The headless execution session state machine is lifecycle metadata only:
+contract selector feeds plan builder, and plan builder now feeds session
+lifecycle without visual UI or execution. The state machine can model
+plan-to-review progress, waiting for manual final confirmation, user final
+click observed, broker result capture pending, settlement reconciliation
+pending, and terminal states, but agent final click is forbidden and it cannot
+execute, call APIs, use browser automation now, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ by agent,
+write Supabase, or claim
+production readiness.
+
+## Headless Orchestration Pipeline Boundary
+
+The Engine/Agent contract now includes
+`docs/avanza-headless-execution-orchestration-pipeline.md` as an
+orchestration-only model. The headless execution orchestration pipeline
+connects contract to selector to plan to session, and future agent session
+behavior is modeled without visual UI or active broker behavior. It is
+agent-readable and UI-hidden, and it cannot start
+handoff, prepare orders now, call APIs, fetch, poll, run browser automation now,
+access credentials, handle cookies/session, automate BankID, submit orders,
+click final KOP/SALJ by agent, write Supabase, or claim production readiness.
+
+## Headless Architecture Checkpoint Contract
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` checkpoints the
+complete under-surface Engine/Agent loop: contract -> selector -> plan ->
+session -> orchestration. It is an activation gate map only and does not execute
+anything. Any future local-dev execution bridge or real browser run must pass
+through explicit gates first. The Trade UI execution gate, API route execution
+gate, browser automation gate, credential access gate, Supabase write gate, and
+settlement write gate remain locked; cookies/session export, BankID automation,
+order submission, and final KOP/SALJ clicks by the agent remain forbidden; and
+production readiness remains blocked.
+
+## Local-Dev Bridge Contract Boundary
+
+The Engine/Agent contract now includes
+`docs/avanza-local-dev-bridge-contract.md` as a modeled but locked bridge-contract model.
+It can translate a ready headless orchestration report into a future
+terminal-only smoke request candidate for manual review. It is the next modeled
+step before any actual bridge invocation, but it cannot invoke smoke runners,
+import terminal scripts, start browser automation, call APIs, access
+credentials, handle cookies/session, automate BankID, submit orders, click
+final KOP/SALJ, write Supabase, or claim production readiness.
+
+## Local-Dev Bridge Activation Checklist Boundary
+
+`docs/avanza-local-dev-bridge-activation-checklist.md` now records the approval
+gate between the bridge contract and any disabled bridge runner design. The
+Engine/Agent contract treats this as model/docs/dev-QA only: runtime remains
+locked, real-run is forbidden, and final confirmation stays human-only.
+
+## Disabled Local-Dev Bridge Runner Boundary
+
+`docs/avanza-disabled-local-dev-bridge-runner.md` now records the report-only
+disabled runner skeleton. The Engine/Agent contract can inspect bridge contract
+and activation checklist model inputs, but disabled runner design approval does
+not become runtime approval. Smoke runner invocation, terminal script
+invocation, browser automation, API calls, fetch/polling, credential access,
+cookies/session handling, BankID automation, order submission, final KOP/SALJ
+clicks by the agent, Supabase writes, and production readiness remain blocked.
+
+## Model-Only Local-Dev Bridge Dry Runner Boundary
+
+`docs/avanza-model-only-local-dev-bridge-dry-runner.md` now records the
+model-only dry-run runner. The Engine/Agent contract can simulate the path to
+the invocation boundary, but this is not runtime activation. Smoke runner
+invocation, terminal script invocation, browser automation, API calls,
+fetch/polling, credential access, cookies/session handling, BankID automation,
+order submission, final KOP/SALJ clicks by the agent, Supabase writes, and
+production readiness remain blocked.
+
+## Local-Dev Bridge Readiness Checkpoint Boundary
+
+`docs/avanza-local-dev-bridge-readiness-checkpoint.md` now records the
+invocation-boundary checkpoint for the local-dev bridge stack. The Engine/Agent
+contract can summarize built layers and simulated capabilities, but it cannot
+cross invocation boundary now. Future work must explicitly decide the next
+allowed design step. Runtime remains locked, including smoke runner invocation,
+terminal scripts, browser automation, API calls, fetch/polling, credentials,
+cookies/session, BankID automation, order submission, final KOP/SALJ agent
+clicks, Supabase writes, Trade UI active handoff, API route activation, and
+production readiness.
+
+## Manual Invocation Approval Runbook
+
+`docs/avanza-manual-local-dev-invocation-approval-runbook.md` now gates any
+future invocation adapter design. The Engine/Agent contract can use the runbook
+as design evidence only; runtime remains locked.
+
+## Disabled Invocation Adapter Contract
+
+`docs/avanza-disabled-local-dev-invocation-adapter-contract.md` now defines the
+future adapter shape only. The Engine/Agent contract may model target request
+shape and safe payload summary, but runtime remains locked.
+
+## Disabled Invocation Adapter Payload Validator
+
+`docs/avanza-disabled-invocation-adapter-payload-validator.md` now validates
+disabled invocation adapter design-review payloads only. It rejects sensitive
+payload and runtime capabilities, and runtime remains locked.
+
+## Invocation Adapter Design Checkpoint
+
+`docs/avanza-invocation-adapter-design-checkpoint.md` now records the Engine /
+Agent invocation adapter design checkpoint. It validates design review only, and
+runtime remains locked.
+
+## Sharp Semi Auto Execution Phase Checkpoint
+
+`docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md` now closes the
+current design phase as complete. Future work must pick a separate workstream,
+and runtime remains locked.

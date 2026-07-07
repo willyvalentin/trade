@@ -2451,3 +2451,123 @@ poll, does not start browser automation now, does not access credentials,
 does not handle cookies/session, does not automate BankID, does not submit
 orders, does not click final KOP/SALJ, and does not write Supabase execution
 records.
+
+## Headless Session Lifecycle Separation
+
+`docs/avanza-headless-execution-session-state-machine.md` remains downstream of
+the headless selector and plan-builder chain and separate from read-only
+selectedRecommendation preview wiring. The headless execution session state
+machine is lifecycle metadata only: contract selector feeds plan builder, and
+plan builder now feeds session lifecycle without visual UI or execution. The
+lifecycle model keeps agent final click forbidden, does not render real
+selectedRecommendation state, does not change default Trade UI, does not call
+APIs, does not fetch or poll, does not start browser automation now, does not
+access credentials, does not handle cookies/session, does not automate BankID,
+does not submit orders, does not click final KOP/SALJ by agent, and does not
+write Supabase execution records.
+
+`docs/avanza-headless-execution-orchestration-pipeline.md` remains downstream
+of the same headless chain and separate from read-only selectedRecommendation
+preview wiring. The headless execution orchestration pipeline connects contract
+to selector to plan to session, and future agent session behavior is modeled
+without visual UI or active broker behavior. It does not render real
+selectedRecommendation state,
+does not change default Trade UI, does not call APIs, does not fetch or poll,
+does not start browser automation now, does not access credentials, does not
+handle cookies/session, does not automate BankID, does not submit orders, does
+not click final KOP/SALJ by agent, and does not write Supabase execution
+records.
+
+## Headless Execution Architecture Checkpoint
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` is downstream of
+the read-only preview model and checkpoints the broader under-surface agent
+brain loop: contract -> selector -> plan -> session -> orchestration. It is a
+checkpoint and activation gate map only. It does not read or render real
+selectedRecommendation state, does not execute anything, does not open the
+local-dev bridge, does not call an API route, does not fetch or poll, does not
+run browser automation, does not access credentials, does not export
+cookies/session, does not automate BankID, does not submit orders, does not
+click final KOP/SALJ by agent, does not write Supabase or settlement records,
+and does not claim production readiness.
+
+## Local-Dev Bridge Contract
+
+`docs/avanza-local-dev-bridge-contract.md` remains downstream of read-only
+selectedRecommendation preview work. It maps a ready headless orchestration
+report to a future terminal-only smoke request candidate, but the bridge
+contract is modeled but locked. It is the next step before any actual bridge
+invocation and does not read or render real selectedRecommendation state from
+Trade UI, invoke smoke runners, import terminal scripts, start browser
+automation, call APIs, access credentials, handle cookies/session, automate
+BankID, submit orders, click final KOP/SALJ, or write Supabase.
+
+## Local-Dev Bridge Activation Checklist
+
+`docs/avanza-local-dev-bridge-activation-checklist.md` now sits after the
+local-dev bridge contract as a manual approval checklist for disabled bridge
+runner design. It does not read or render real selectedRecommendation state from
+Trade UI, does not approve model-only dry-run, runtime remains locked, and
+real-run remains forbidden.
+
+## Disabled Local-Dev Bridge Runner Skeleton
+
+`docs/avanza-disabled-local-dev-bridge-runner.md` now sits after the local-dev
+bridge contract and activation checklist as a report-only disabled runner
+skeleton. It does not read or render real selectedRecommendation state from
+Trade UI, does not approve model-only dry-run, does not open runtime, does not
+invoke smoke runners, does not import terminal scripts, does not run browser
+automation, does not access credentials, does not handle cookies/session, does
+not automate BankID, does not submit orders, does not click final KOP/SALJ, and
+does not write Supabase.
+
+## Model-Only Local-Dev Bridge Dry Runner
+
+`docs/avanza-model-only-local-dev-bridge-dry-runner.md` now sits after the
+disabled runner skeleton as a model-only dry-run layer. It does not read or
+render real selectedRecommendation state from Trade UI, simulates only to the
+invocation boundary, does not open runtime, does not invoke smoke runners, does
+not import terminal scripts, does not run browser automation, does not access credentials, does not handle
+cookies/session, does not automate BankID, does not submit orders, does not
+click final KOP/SALJ, and does not write Supabase.
+
+## Local-Dev Bridge Readiness Checkpoint
+
+`docs/avanza-local-dev-bridge-readiness-checkpoint.md` now records the
+invocation-boundary checkpoint for the local-dev bridge stack. It does not read
+or render real selectedRecommendation state from Trade UI. The bridge stack has
+a checkpoint at invocation boundary, future work must explicitly decide the next
+allowed design step, and runtime remains locked. Smoke runners, terminal
+scripts, browser automation, credentials, cookies/session, BankID automation,
+order submission, final KOP/SALJ agent clicks, Supabase writes, Trade UI active
+handoff, API route activation, and production readiness remain blocked.
+
+## Manual Invocation Approval Runbook
+
+`docs/avanza-manual-local-dev-invocation-approval-runbook.md` now gates any
+future invocation adapter design. The read-only selectedRecommendation preview
+path remains separate from runtime invocation, and runtime remains locked.
+
+## Disabled Invocation Adapter Contract
+
+`docs/avanza-disabled-local-dev-invocation-adapter-contract.md` now defines the
+future adapter shape only. The read-only selectedRecommendation preview path
+does not activate that adapter; runtime remains locked.
+
+## Disabled Invocation Adapter Payload Validator
+
+`docs/avanza-disabled-invocation-adapter-payload-validator.md` now validates
+disabled invocation adapter design-review payloads only. It rejects sensitive
+payload and runtime capabilities, and runtime remains locked.
+
+## Invocation Adapter Design Checkpoint
+
+`docs/avanza-invocation-adapter-design-checkpoint.md` now records the invocation
+adapter design checkpoint as separate from the read-only selectedRecommendation
+preview path. It validates design review only. Runtime remains locked.
+
+## Sharp Semi Auto Execution Phase Checkpoint
+
+`docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md` now closes the
+current design phase as complete. Future work must pick a separate workstream,
+and runtime remains locked.

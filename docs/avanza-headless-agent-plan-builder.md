@@ -62,3 +62,46 @@ The plan always remains:
 ## Not Production Ready
 
 This is not production ready. It is a planning layer for future agent consumption only. Ture UI remains minimal and visually simple while execution behavior stays under the surface.
+
+## Session State Machine Consumer
+
+`docs/avanza-headless-execution-session-state-machine.md` now records the next
+under-the-surface layer after the plan builder. The headless execution session
+state machine is lifecycle metadata only: contract selector feeds plan builder,
+and plan builder now feeds session lifecycle. The state machine models future
+session behavior without visual UI or execution: plan-to-review lifecycle,
+waiting for manual final confirmation, optional user final click observation,
+broker result capture pending, and settlement reconciliation pending. Agent
+final click is forbidden, and order submission, API calls, browser automation
+now, credential access, cookies/session handling, BankID automation, Supabase
+writes, and production-readiness claims remain forbidden.
+
+## Orchestration Pipeline Consumer
+
+`docs/avanza-headless-execution-orchestration-pipeline.md` now consumes this
+plan builder as part of the under-surface end-to-end chain. The orchestration
+pipeline is the headless execution orchestration pipeline. It connects contract
+to selector to plan to session, and future agent session behavior is modeled
+without visual UI or active broker behavior. It
+does not execute anything, does not start handoff, does not prepare orders now,
+does not call APIs, does not fetch or poll, does not access credentials, does
+not automate BankID, does not submit orders, does not click final KOP/SALJ, and
+does not write Supabase.
+
+## Architecture Checkpoint
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` now checkpoints the
+full under-surface agent brain loop: contract -> selector -> plan -> session ->
+orchestration. Next work must pass through activation gates before any
+local-dev execution bridge or real browser run is attempted. The checkpoint
+does not open any gate.
+
+## Local-Dev Bridge Contract
+
+`docs/avanza-local-dev-bridge-contract.md` now models the locked bridge
+contract downstream of plan/session/orchestration. It can describe a future
+terminal-only smoke request candidate from the headless plan and session
+summary, but it is modeled but locked before any actual bridge invocation and
+does not open the bridge gate, invoke smoke runners, start
+browser automation, call APIs, access credentials, submit orders, click final
+KOP/SALJ, or write Supabase.

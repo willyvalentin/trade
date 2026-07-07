@@ -136,3 +136,117 @@ confirmation, requires human final KOP/SALJ, and forbids active handoff,
 prepare actions, API calls, fetch/polling, browser automation now, credential
 access, cookies/session handling, BankID automation, order submission, final
 clicks, Supabase writes, and production-readiness claims.
+
+## Headless Execution Session State Machine
+
+`docs/avanza-headless-execution-session-state-machine.md` records the headless
+session lifecycle after plan creation. The headless execution session state
+machine is lifecycle metadata only: contract selector feeds plan builder, and
+plan builder now feeds session lifecycle without visual UI or execution. The
+session lifecycle is agent-readable but UI-hidden, reaches
+`waiting_for_manual_final_confirmation`, can model user final click observed,
+keeps agent final click forbidden, and models settlement reconciliation pending
+for the later avrakningsnota flow.
+
+## Headless Execution Orchestration Pipeline
+
+`docs/avanza-headless-execution-orchestration-pipeline.md` records the
+under-surface end-to-end orchestration layer. The headless execution
+orchestration pipeline connects contract to selector to plan to session, and
+future agent session behavior is modeled without visual UI or active broker
+behavior. It supports recommendation BUY orchestration, live-position SELL
+orchestration, exit priority, stop-loss priority, plan-ready session
+initialization, and next theoretical agent step reporting while keeping all
+execution gates locked.
+
+## Headless Execution Architecture Checkpoint
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` records the full
+under-surface agent brain loop: contract -> selector -> plan -> session ->
+orchestration. Next work must pass through activation gates before any
+local-dev execution bridge or real browser run is attempted. Local-dev bridge
+gate is not open, Trade UI execution gate is locked, API route execution gate is
+locked, browser automation gate is locked, credential access gate is locked,
+cookies/session export is forbidden, BankID automation is forbidden, order
+submission is forbidden, final KOP/SALJ remains human-only, Supabase writes are
+locked, settlement writes are locked, and production readiness is blocked.
+
+## Local-Dev Bridge Contract
+
+`docs/avanza-local-dev-bridge-contract.md` adds the next locked bridge-contract
+layer from headless orchestration report to future terminal-only smoke request
+candidate. It is modeled but locked, and it is the next step before any actual
+bridge invocation. It does not run smoke tests, import terminal scripts, start
+browser automation, call APIs, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KOP/SALJ, write Supabase, or claim
+production readiness.
+
+## Local-Dev Bridge Activation Checklist
+
+`docs/avanza-local-dev-bridge-activation-checklist.md` adds the readiness gate
+for disabled bridge runner design. It keeps bridge runtime locked, smoke runner
+invocation blocked, browser automation locked, credential access locked,
+cookies/session forbidden, BankID manual-only, final KOP/SALJ human-only, and
+Supabase writes locked. Runtime remains locked and real-run remains forbidden.
+
+## Disabled Local-Dev Bridge Runner Skeleton
+
+`docs/avanza-disabled-local-dev-bridge-runner.md` adds the next report-only
+readiness layer. Bridge contract plus activation checklist can produce a
+disabled runner report, but this is not runtime readiness. The runner skeleton
+cannot call APIs, fetch, poll, run terminal scripts, invoke smoke runners, start
+browser automation, access credentials, handle cookies/session, automate
+BankID, submit orders, click final KOP/SALJ, write Supabase, or claim
+production readiness.
+
+## Model-Only Local-Dev Bridge Dry Runner
+
+`docs/avanza-model-only-local-dev-bridge-dry-runner.md` adds the model-only
+dry-run layer after the disabled runner skeleton. It can simulate the path to
+the invocation boundary, including request summary preparation, but stops
+before smoke runner invocation. It does not open runtime, call APIs, fetch,
+poll, run terminal scripts, start browser automation, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, write
+Supabase, or claim production readiness.
+
+## Local-Dev Bridge Readiness Checkpoint
+
+`docs/avanza-local-dev-bridge-readiness-checkpoint.md` adds the checkpoint at
+the invocation boundary. The readiness map now records what under-surface bridge
+layers are built, what can be simulated, where execution stops, and which gates
+remain locked. Future work must explicitly decide the next allowed design step.
+Runtime remains locked: smoke runner invocation, terminal script invocation,
+browser automation, credential access, cookies/session, BankID automation,
+order submission, final KOP/SALJ agent clicks, Supabase writes, Trade UI active
+handoff, API route activation, real execution, and production readiness remain
+blocked.
+
+## Manual Invocation Approval Runbook
+
+`docs/avanza-manual-local-dev-invocation-approval-runbook.md` now gates any
+future invocation adapter design. The readiness map remains model-only; the
+runbook is manual-review evidence only and runtime remains locked.
+
+## Disabled Invocation Adapter Contract
+
+`docs/avanza-disabled-local-dev-invocation-adapter-contract.md` now defines the
+future adapter shape only. The readiness map can point to it as design-only
+contract work, while runtime remains locked.
+
+## Disabled Invocation Adapter Payload Validator
+
+`docs/avanza-disabled-invocation-adapter-payload-validator.md` now validates
+disabled invocation adapter design-review payloads only. It rejects sensitive
+payload and runtime capabilities, and runtime remains locked.
+
+## Invocation Adapter Design Checkpoint
+
+`docs/avanza-invocation-adapter-design-checkpoint.md` now records the adapter
+design checkpoint in the readiness map. The checkpoint validates design review
+only, and runtime remains locked.
+
+## Sharp Semi Auto Execution Phase Checkpoint
+
+`docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md` now closes the
+current design phase as complete. Future work must pick a separate workstream,
+and runtime remains locked.

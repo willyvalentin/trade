@@ -349,7 +349,7 @@ test("audit writer route blocks before writer call when dev gate fails", async (
   });
 });
 
-test("audit writer route blocks before writer call when auth gate fails", async () => {
+test("audit writer route hard-disabled boundary blocks before auth gate can run", async () => {
   const seenWriterInputs: unknown[] = [];
   const runtimeRoute = loadRouteModule({ seenWriterInputs });
   const result = await runtimeRoute.POST(
@@ -359,7 +359,7 @@ test("audit writer route blocks before writer call when auth gate fails", async 
     }),
   );
 
-  expect(result.init.status).toBe(401);
+  expect(result.init.status).toBe(403);
   expect(seenWriterInputs).toEqual([]);
   expect(result.body).toMatchObject({
     status: "blocked",
@@ -367,11 +367,13 @@ test("audit writer route blocks before writer call when auth gate fails", async 
     safety: {
       devGatePassed: true,
       authGatePassed: false,
+      hardDisabled: true,
+      routeCallAllowed: false,
     },
   });
 });
 
-test("audit writer route validates json and request shape before writer call", async () => {
+test("audit writer route hard-disabled boundary blocks before json or request shape validation", async () => {
   const seenWriterInputs: unknown[] = [];
   const runtimeRoute = loadRouteModule({ seenWriterInputs });
   const invalidJson = await runtimeRoute.POST(
@@ -390,14 +392,28 @@ test("audit writer route validates json and request shape before writer call", a
     }),
   );
 
-  expect(invalidJson.init.status).toBe(400);
-  expect(invalidShape.init.status).toBe(400);
+  expect(invalidJson.init.status).toBe(403);
+  expect(invalidShape.init.status).toBe(403);
   expect(seenWriterInputs).toEqual([]);
-  expect(invalidJson.body).toMatchObject({ status: "validation_failed" });
-  expect(invalidShape.body).toMatchObject({ status: "validation_failed" });
+  expect(invalidJson.body).toMatchObject({
+    status: "blocked",
+    writerResult: null,
+    safety: {
+      hardDisabled: true,
+      routeCallAllowed: false,
+    },
+  });
+  expect(invalidShape.body).toMatchObject({
+    status: "blocked",
+    writerResult: null,
+    safety: {
+      hardDisabled: true,
+      routeCallAllowed: false,
+    },
+  });
 });
 
-test("audit writer route validates route and writer contract metadata before writer call", async () => {
+test("audit writer route hard-disabled boundary blocks before route and writer contract validation", async () => {
   const invalidBodies = [
     {
       body: { ...validRouteBody, routeContractVersion: "wrong" },
@@ -427,30 +443,24 @@ test("audit writer route validates route and writer contract metadata before wri
       }),
     );
 
-    expect(result.init.status).toBe(400);
+    expect(result.init.status).toBe(403);
     expect(seenWriterInputs).toEqual([]);
     expect(result.body).toMatchObject({
-      status: "validation_failed",
+      status: "blocked",
       writerResult: null,
       safety: {
-        authGatePassed: true,
+        authGatePassed: false,
         devGatePassed: true,
+        hardDisabled: true,
+        routeCallAllowed: false,
         productionWritePathApproved: false,
         liveSmokeInsertApproved: false,
       },
     });
-    expect(
-      (result.body as { validationErrors: { fieldPath?: string }[] })
-        .validationErrors,
-    ).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ fieldPath: invalidBody.fieldPath }),
-      ]),
-    );
   }
 });
 
-test("audit writer route calls server-only writer after dev auth and shape gates pass", async () => {
+test("audit writer route hard-disabled boundary blocks valid fixture before writer call", async () => {
   const seenWriterInputs: unknown[] = [];
   const runtimeRoute = loadRouteModule({ seenWriterInputs });
   const result = await runtimeRoute.POST(
@@ -460,35 +470,69 @@ test("audit writer route calls server-only writer after dev auth and shape gates
     }),
   );
 
-  expect(result.init.status).toBe(201);
-  expect(seenWriterInputs).toEqual([validInput]);
+  expect(result.init.status).toBe(403);
+  expect(seenWriterInputs).toEqual([]);
   expect(result.body).toMatchObject({
     routeContractVersion,
     writerContractVersion,
     routePath: routeLiteral,
     method: "POST",
-    status: "accepted",
-    validationErrors: [],
-    writerResult: {
-      status: "success",
-      inserted: true,
-    },
+    status: "blocked",
+    writerResult: null,
     safety: {
       serverOnly: true,
       authGateRequired: true,
-      authGatePassed: true,
+      authGatePassed: false,
       devGateRequired: true,
       devGatePassed: true,
-      routeCallAllowed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
       uiWiringAdded: false,
       browserClientInvocationAllowed: false,
       scheduledInvocationAllowed: false,
+      productionExecutionPersistenceBlocked: true,
+      supabaseExecutionRecordsWriteAllowed: false,
       productionWritePathApproved: false,
       liveSmokeInsertApproved: false,
       updateDeleteUpsertSelectAllowed: false,
       tradeStatsPnlMutationAllowed: false,
       externalOrderBrowserAllowed: false,
+      externalOrderSubmissionAllowed: false,
+      finalBuySellClickAllowed: false,
       autonomousModeAllowed: false,
+    },
+  });
+});
+
+test("audit writer route hard-disabled boundary blocks before auth json parse or writer call", async () => {
+  const seenWriterInputs: unknown[] = [];
+  const runtimeRoute = loadRouteModule({ seenWriterInputs });
+  const blocked = await runtimeRoute.POST(
+    request({
+      body: validRouteBody,
+      cookie: "trade_auth=expected-token",
+    }),
+  );
+
+  expect(blocked.init.status).toBe(403);
+  expect(seenWriterInputs).toEqual([]);
+  expect(blocked.body).toMatchObject({
+    status: "blocked",
+    writerResult: null,
+    safety: {
+      serverOnly: true,
+      authGateRequired: true,
+      authGatePassed: false,
+      devGateRequired: true,
+      devGatePassed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
+      productionExecutionPersistenceBlocked: true,
+      supabaseExecutionRecordsWriteAllowed: false,
+      productionWritePathApproved: false,
+      liveSmokeInsertApproved: false,
+      externalOrderSubmissionAllowed: false,
+      finalBuySellClickAllowed: false,
     },
   });
 });

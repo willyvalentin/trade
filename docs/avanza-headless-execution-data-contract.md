@@ -145,3 +145,42 @@ builder turns a selected contract into a future agent preparation plan without
 changing the UI surface or activating execution. The plan remains
 agent-readable, UI-hidden, and under the surface; it stops before final
 confirmation and keeps final KOP/SALJ human-only.
+
+## Session Lifecycle Consumer
+
+`docs/avanza-headless-execution-session-state-machine.md` now consumes the
+headless plan-builder output as lifecycle metadata. The headless execution
+session state machine is lifecycle metadata only: contract selector feeds plan
+builder, and plan builder now feeds session lifecycle without visual UI or
+execution. The state machine models plan-to-review progress, manual final
+confirmation wait, user final-click observation, broker result capture pending,
+and settlement reconciliation pending while keeping agent final click forbidden
+and the agent unable to submit orders.
+
+## Orchestration Pipeline Consumer
+
+`docs/avanza-headless-execution-orchestration-pipeline.md` now orchestrates the
+under-surface chain from this data contract through selector, plan, and session.
+The headless execution orchestration pipeline connects contract to selector to
+plan to session, and future agent session behavior is modeled without visual UI
+or active broker behavior. The contract remains agent-readable, UI-hidden, and
+non-executing.
+
+## Architecture Checkpoint
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` now checkpoints the
+full under-surface agent brain loop: contract -> selector -> plan -> session ->
+orchestration. Next work must pass through activation gates before any
+local-dev execution bridge or real browser run is attempted. The checkpoint
+does not open any gate.
+
+## Local-Dev Bridge Contract
+
+`docs/avanza-local-dev-bridge-contract.md` now models the locked bridge
+contract downstream of the headless data contract chain. The headless contract
+summary can be carried into a future terminal-only smoke request candidate, but
+the local-dev bridge gate remains closed. No smoke runner invocation, terminal
+script import, browser automation, API route call, credential access,
+cookies/session handling, BankID automation, order submission, final KOP/SALJ
+click, or Supabase write is added.
+It is the next locked review step before any actual bridge invocation.

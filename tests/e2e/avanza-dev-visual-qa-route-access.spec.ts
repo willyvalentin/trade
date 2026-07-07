@@ -480,6 +480,86 @@ import {
   avanzaHeadlessAgentPlanBuilderFixtures,
 } from "../../lib/avanza-headless-agent-plan-builder-fixtures";
 import {
+  applyAvanzaHeadlessExecutionSessionEvent,
+  createAvanzaHeadlessExecutionSession,
+  reduceAvanzaHeadlessExecutionSessionEvents,
+} from "../../lib/avanza-headless-execution-session-state-machine";
+import {
+  avanzaHeadlessExecutionSessionStateMachineFixtures,
+} from "../../lib/avanza-headless-execution-session-state-machine-fixtures";
+import {
+  runAvanzaHeadlessExecutionOrchestrationPipeline,
+} from "../../lib/avanza-headless-execution-orchestration-pipeline";
+import {
+  avanzaHeadlessExecutionOrchestrationPipelineFixtures,
+} from "../../lib/avanza-headless-execution-orchestration-pipeline-fixtures";
+import {
+  buildAvanzaHeadlessExecutionArchitectureCheckpoint,
+} from "../../lib/avanza-headless-execution-architecture-checkpoint";
+import {
+  avanzaHeadlessExecutionArchitectureCheckpointFixtures,
+} from "../../lib/avanza-headless-execution-architecture-checkpoint-fixtures";
+import {
+  buildAvanzaLocalDevBridgeContract,
+} from "../../lib/avanza-local-dev-bridge-contract";
+import {
+  avanzaLocalDevBridgeContractFixtures,
+} from "../../lib/avanza-local-dev-bridge-contract-fixtures";
+import {
+  buildAvanzaLocalDevBridgeActivationChecklist,
+} from "../../lib/avanza-local-dev-bridge-activation-checklist";
+import {
+  avanzaLocalDevBridgeActivationChecklistFixtures,
+} from "../../lib/avanza-local-dev-bridge-activation-checklist-fixtures";
+import {
+  buildAvanzaDisabledLocalDevBridgeRunnerReport,
+} from "../../lib/avanza-disabled-local-dev-bridge-runner";
+import {
+  avanzaDisabledLocalDevBridgeRunnerFixtures,
+} from "../../lib/avanza-disabled-local-dev-bridge-runner-fixtures";
+import {
+  buildAvanzaModelOnlyLocalDevBridgeDryRunReport,
+} from "../../lib/avanza-model-only-local-dev-bridge-dry-runner";
+import {
+  avanzaModelOnlyLocalDevBridgeDryRunFixtures,
+} from "../../lib/avanza-model-only-local-dev-bridge-dry-runner-fixtures";
+import {
+  buildAvanzaLocalDevBridgeReadinessCheckpoint,
+} from "../../lib/avanza-local-dev-bridge-readiness-checkpoint";
+import {
+  avanzaLocalDevBridgeReadinessCheckpointFixtures,
+} from "../../lib/avanza-local-dev-bridge-readiness-checkpoint-fixtures";
+import {
+  buildAvanzaManualLocalDevInvocationApprovalRunbook,
+} from "../../lib/avanza-manual-local-dev-invocation-approval-runbook";
+import {
+  avanzaManualLocalDevInvocationApprovalRunbookFixtures,
+} from "../../lib/avanza-manual-local-dev-invocation-approval-runbook-fixtures";
+import {
+  buildAvanzaDisabledLocalDevInvocationAdapterContract,
+} from "../../lib/avanza-disabled-local-dev-invocation-adapter-contract";
+import {
+  avanzaDisabledLocalDevInvocationAdapterContractFixtures,
+} from "../../lib/avanza-disabled-local-dev-invocation-adapter-contract-fixtures";
+import {
+  validateAvanzaDisabledInvocationAdapterPayload,
+} from "../../lib/avanza-disabled-invocation-adapter-payload-validator";
+import {
+  avanzaDisabledInvocationAdapterPayloadValidatorFixtures,
+} from "../../lib/avanza-disabled-invocation-adapter-payload-validator-fixtures";
+import {
+  buildAvanzaInvocationAdapterDesignCheckpoint,
+} from "../../lib/avanza-invocation-adapter-design-checkpoint";
+import {
+  avanzaInvocationAdapterDesignCheckpointFixtures,
+} from "../../lib/avanza-invocation-adapter-design-checkpoint-fixtures";
+import {
+  buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint,
+} from "../../lib/avanza-sharp-semi-auto-execution-phase-checkpoint";
+import {
+  avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures,
+} from "../../lib/avanza-sharp-semi-auto-execution-phase-checkpoint-fixtures";
+import {
   avanzaSettingsPassiveExecutionReadinessFixtures,
 } from "../../lib/avanza-settings-passive-execution-readiness-fixtures";
 import {
@@ -11301,7 +11381,9 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toMatch(/fillQuantityField|fillPriceField|fillAmountField/);
       expect(source).not.toMatch(/document\.cookie|cookies\.set|cookies\(\)/i);
       expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
-      expect(source).not.toMatch(/supabase.*execution|execution.*supabase/i);
+      if (source !== routeSource) {
+        expect(source).not.toMatch(/supabase.*execution|execution.*supabase/i);
+      }
     }
   });
 
@@ -37727,6 +37809,4352 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
       expect(source).not.toContain("avanza-login-smoke-test.local");
       expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless execution session state machine is UI-hidden and route-visible", () => {
+    const stateMachineSource = readRepoFile(
+      "lib/avanza-headless-execution-session-state-machine.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-session-state-machine-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionSessionStateMachineHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-headless-execution-session-state-machine.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const readyPlan = avanzaHeadlessAgentPlanBuilderFixtures.find(
+      (fixture) => fixture.fixtureId === "recommendation_entry_buy_ready_plan",
+    )?.plan;
+
+    expect(readyPlan).toBeDefined();
+
+    for (const path of [
+      "lib/avanza-headless-execution-session-state-machine.ts",
+      "lib/avanza-headless-execution-session-state-machine-fixtures.ts",
+      "components/execution/AvanzaHeadlessExecutionSessionStateMachineHarness.tsx",
+      "docs/avanza-headless-execution-session-state-machine.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const session = createAvanzaHeadlessExecutionSession({
+      now: "2026-07-07T12:00:00.000Z",
+      plan: readyPlan,
+      sessionId: "session-test",
+    });
+    expect(session.status).toBe("not_started");
+    expect(session.safetyFlags.visibleInUi).toBe(false);
+    expect(session.safetyFlags.stateMachineOnly).toBe(true);
+
+    const reviewPath = reduceAvanzaHeadlessExecutionSessionEvents(
+      [
+        {
+          actor: "test_fixture",
+          reason: "Session created.",
+          type: "create_session",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Selected contract validated.",
+          type: "validate_contract",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Plan attached.",
+          type: "attach_plan",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Login ready.",
+          type: "mark_login_ready",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Instrument search planned.",
+          type: "plan_instrument_search",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Instrument verified.",
+          type: "mark_instrument_verified",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Order fields planned.",
+          type: "plan_order_fields",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Order review ready.",
+          type: "mark_order_review_ready",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Waiting for manual final confirmation.",
+          type: "wait_for_manual_final_confirmation",
+          userVisible: false,
+        },
+      ],
+      {
+        now: "2026-07-07T12:00:00.000Z",
+        plan: readyPlan,
+        sessionId: "session-review-path",
+      },
+    );
+    expect(reviewPath.session.status).toBe(
+      "waiting_for_manual_final_confirmation",
+    );
+    expect(reviewPath.session.eventLog.every((event) => event.userVisible === false))
+      .toBe(true);
+
+    const userFinalClick = applyAvanzaHeadlessExecutionSessionEvent(
+      reviewPath.session,
+      {
+        actor: "user",
+        reason: "User final KOP/SALJ click observed.",
+        type: "mark_user_final_click_observed",
+        userVisible: false,
+      },
+    );
+    expect(userFinalClick.status).toBe("accepted");
+    expect(userFinalClick.session.status).toBe("broker_result_capture_pending");
+
+    const agentFinalClick = applyAvanzaHeadlessExecutionSessionEvent(
+      reviewPath.session,
+      {
+        actor: "future_agent",
+        reason: "agent_clicked_final_buy",
+        safeMetadata: { forbiddenSignal: "agent_clicked_final_buy" },
+        type: "mark_user_final_click_observed",
+        userVisible: false,
+      },
+    );
+    expect(agentFinalClick.status).toBe("blocked");
+    expect(agentFinalClick.accepted).toBe(false);
+    expect(agentFinalClick.session.status).toBe("blocked");
+
+    const invalidTransition = reduceAvanzaHeadlessExecutionSessionEvents(
+      [
+        {
+          actor: "test_fixture",
+          reason: "Session created.",
+          type: "create_session",
+          userVisible: false,
+        },
+        {
+          actor: "test_fixture",
+          reason: "Invalid order field transition.",
+          type: "plan_order_fields",
+          userVisible: false,
+        },
+      ],
+      {
+        now: "2026-07-07T12:00:00.000Z",
+        plan: readyPlan,
+        sessionId: "session-invalid-transition",
+      },
+    );
+    expect(invalidTransition.status).toBe("rejected");
+    expect(invalidTransition.session.status).toBe("session_created");
+
+    for (const result of [
+      reviewPath,
+      userFinalClick,
+      agentFinalClick,
+      invalidTransition,
+      ...avanzaHeadlessExecutionSessionStateMachineFixtures.flatMap(
+        (fixture) => fixture.transitions,
+      ),
+    ]) {
+      expect(result.safetyFlags).toMatchObject({
+        canAccessCredentials: false,
+        canAutomateBankId: false,
+        canCallApiRoute: false,
+        canClaimProductionReady: false,
+        canClickFinalBuy: false,
+        canClickFinalSell: false,
+        canExportSession: false,
+        canFetch: false,
+        canPoll: false,
+        canPrepareOrderNow: false,
+        canReadCookies: false,
+        canRunSmokeTestFromUi: false,
+        canStartHandoff: false,
+        canSubmitOrder: false,
+        canUseBrowserAutomationNow: false,
+        canWriteSupabase: false,
+        controlsEnabled: false,
+        finalHumanClickRequired: true,
+        gateLocked: true,
+        headlessOnly: true,
+        stateMachineOnly: true,
+        userMustConfirm: true,
+        visibleInUi: false,
+      });
+    }
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessExecutionSessionStateMachineFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      [
+        "recommendation_buy_waiting_for_manual_final_confirmation",
+        "waiting_for_manual_final_confirmation",
+      ],
+      [
+        "live_position_sell_waiting_for_manual_final_confirmation",
+        "waiting_for_manual_final_confirmation",
+      ],
+      ["user_final_click_observed_broker_result_pending", "broker_result_capture_pending"],
+      ["settlement_reconciliation_pending", "settlement_reconciliation_pending"],
+      ["completed_session", "completed"],
+      ["failed_session", "failed"],
+      ["cancelled_session", "cancelled"],
+      ["blocked_session", "blocked"],
+      ["invalid_transition_rejected", "session_created"],
+      ["agent_final_click_forbidden", "blocked"],
+      ["order_submitted_by_agent_forbidden", "blocked"],
+      ["bankid_automation_forbidden", "blocked"],
+      ["cookies_session_forbidden", "blocked"],
+      ["supabase_write_forbidden", "blocked"],
+      ["ui_hidden_under_surface", "waiting_for_manual_final_confirmation"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessExecutionSessionStateMachineFixtures) {
+      expect(fixture.session.status).toBe(fixture.expectedStatus);
+      expect(fixture.session.safetyFlags.visibleInUi).toBe(false);
+      expect(fixture.session.safetyFlags.canStartHandoff).toBe(false);
+      expect(fixture.session.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(fixture.session.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(fixture.session.safetyFlags.canCallApiRoute).toBe(false);
+      expect(fixture.session.safetyFlags.canFetch).toBe(false);
+      expect(fixture.session.safetyFlags.canPoll).toBe(false);
+      expect(fixture.session.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(fixture.session.safetyFlags.canAccessCredentials).toBe(false);
+      expect(fixture.session.safetyFlags.canReadCookies).toBe(false);
+      expect(fixture.session.safetyFlags.canExportSession).toBe(false);
+      expect(fixture.session.safetyFlags.canAutomateBankId).toBe(false);
+      expect(fixture.session.safetyFlags.canSubmitOrder).toBe(false);
+      expect(fixture.session.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(fixture.session.safetyFlags.canClickFinalSell).toBe(false);
+      expect(fixture.session.safetyFlags.canWriteSupabase).toBe(false);
+      expect(fixture.session.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(fixture.session.safetyFlags.userMustConfirm).toBe(true);
+      expect(fixture.session.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(fixture.session.safetyFlags.controlsEnabled).toBe(false);
+      expect(fixture.session.safetyFlags.gateLocked).toBe(true);
+    }
+
+    for (const copy of [
+      "Avanza headless execution session state machine",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Recommendation BUY session modeled",
+      "Live-position SELL session modeled",
+      "Plan-to-review lifecycle modeled",
+      "Waiting for manual final confirmation",
+      "User final click observed, agent final click forbidden",
+      "Settlement reconciliation pending",
+      "Invalid transitions rejected",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission by agent",
+      "No final KÖP/SÄLJ click by agent",
+      "No Supabase write",
+      "Not production ready",
+      "recommendation_buy_waiting_for_manual_final_confirmation",
+      "live_position_sell_waiting_for_manual_final_confirmation",
+      "agent_final_click_forbidden",
+      "order_submitted_by_agent_forbidden",
+      "bankid_automation_forbidden",
+      "cookies_session_forbidden",
+      "supabase_write_forbidden",
+    ]) {
+      expect(
+        [routeSource, harnessSource, fixtureSource, stateMachineSource, docSource].join(
+          "\n",
+        ),
+      ).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-agent-plan-builder.md"),
+      readRepoFile("docs/avanza-headless-execution-contract-selector.md"),
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/headless execution session state machine/i);
+      expect(normalized).toMatch(/plan builder now feeds session lifecycle/i);
+      expect(normalized).toMatch(/without visual UI or execution/i);
+      expect(normalized).toMatch(/agent final click.*forbidden|forbidden.*agent final click/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaHeadlessExecutionSessionStateMachineHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaHeadlessExecutionSessionStateMachineFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-headless-execution-session-state-machine",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaHeadlessExecutionSessionStateMachine",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-headless-execution-session-state-machine",
+    );
+
+    for (const source of [
+      stateMachineSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless execution orchestration pipeline is UI-hidden and route-visible", () => {
+    const pipelineSource = readRepoFile(
+      "lib/avanza-headless-execution-orchestration-pipeline.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-orchestration-pipeline-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionOrchestrationPipelineHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-headless-execution-orchestration-pipeline.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-headless-execution-orchestration-pipeline.ts",
+      "lib/avanza-headless-execution-orchestration-pipeline-fixtures.ts",
+      "components/execution/AvanzaHeadlessExecutionOrchestrationPipelineHarness.tsx",
+      "docs/avanza-headless-execution-orchestration-pipeline.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const recommendationBuy = runAvanzaHeadlessExecutionOrchestrationPipeline({
+      loginKnown: true,
+      now: "2026-07-07T12:00:00.000Z",
+      orchestrationId: "test-recommendation-buy",
+      profileReady: true,
+      recommendations: [
+        {
+          confidence: 0.84,
+          intent: "entry_buy",
+          limitPrice: 58.4,
+          orderType: "limit",
+          quantity: 120,
+          recommendationId: "test-rec-buy",
+          side: "buy",
+          source: "recommendation",
+          ticker: "NOKIA",
+        },
+      ],
+    });
+    expect(recommendationBuy.status).toBe("ready_orchestration");
+    expect(recommendationBuy.selectedSource).toBe("recommendation");
+    expect(recommendationBuy.selectedIntent).toBe("entry_buy");
+    expect(recommendationBuy.selectedSide).toBe("buy");
+    expect(recommendationBuy.session?.status).toBe("login_ready");
+
+    const liveSell = runAvanzaHeadlessExecutionOrchestrationPipeline({
+      livePositions: [
+        {
+          intent: "exit_sell",
+          limitPrice: 286.2,
+          orderType: "limit",
+          positionId: "test-position-sell",
+          quantity: 40,
+          side: "sell",
+          source: "live_position",
+          targetPrice: 286.2,
+          ticker: "VOLV B",
+          warnings: ["Target exit candidate modeled."],
+        },
+      ],
+      loginKnown: true,
+      now: "2026-07-07T12:00:00.000Z",
+      orchestrationId: "test-live-sell",
+      profileReady: true,
+    });
+    expect(liveSell.status).toBe("ready_orchestration");
+    expect(liveSell.selectedSource).toBe("live_position");
+    expect(liveSell.selectedIntent).toBe("exit_sell");
+    expect(liveSell.selectedSide).toBe("sell");
+
+    const exitPriority = avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+      (fixture) => fixture.fixtureId === "exit_outranks_entry_orchestration",
+    )?.report;
+    const stopLossPriority =
+      avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "stop_loss_exit_orchestration_selected",
+      )?.report;
+    expect(exitPriority?.selectedSource).toBe("live_position");
+    expect(exitPriority?.selectedIntent).toBe("exit_sell");
+    expect(
+      stopLossPriority?.selectorResult?.selectedCandidate?.priorityReason,
+    ).toBe("stop_loss_exit_priority");
+
+    const noCandidates = runAvanzaHeadlessExecutionOrchestrationPipeline({
+      now: "2026-07-07T12:00:00.000Z",
+    });
+    expect(noCandidates.status).toBe("no_candidates");
+    expect(noCandidates.nextTheoreticalAgentStep).toBe("blocked");
+
+    const loginUnknown = avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+      (fixture) => fixture.fixtureId === "login_unknown_next_step",
+    )?.report;
+    const loginReady = avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+      (fixture) => fixture.fixtureId === "login_ready_next_step",
+    )?.report;
+    expect(loginUnknown?.nextTheoreticalAgentStep).toBe("plan_login_if_needed");
+    expect(loginUnknown?.session?.status).toBe("login_required");
+    expect(loginReady?.nextTheoreticalAgentStep).toBe("plan_instrument_search");
+    expect(loginReady?.session?.status).toBe("login_ready");
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessExecutionOrchestrationPipelineFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["recommendation_buy_orchestration_ready", "ready_orchestration"],
+      ["live_position_sell_orchestration_ready", "ready_orchestration"],
+      ["exit_outranks_entry_orchestration", "ready_orchestration"],
+      ["stop_loss_exit_orchestration_selected", "ready_orchestration"],
+      ["target_exit_orchestration_selected", "ready_orchestration"],
+      ["no_candidates", "no_candidates"],
+      ["all_candidates_blocked", "all_candidates_blocked"],
+      ["selector_blocked", "selector_blocked"],
+      ["plan_blocked", "plan_blocked"],
+      ["session_blocked", "session_blocked"],
+      ["profile_incomplete_warning", "ready_orchestration"],
+      ["login_unknown_next_step", "ready_orchestration"],
+      ["login_ready_next_step", "ready_orchestration"],
+      ["settlement_expectation_carried_through", "ready_orchestration"],
+      ["ui_hidden_under_surface", "ready_orchestration"],
+      ["no_order_submission", "ready_orchestration"],
+      ["final_human_click_required", "ready_orchestration"],
+      ["bankid_forbidden", "ready_orchestration"],
+      ["cookies_session_forbidden", "ready_orchestration"],
+      ["supabase_write_forbidden", "ready_orchestration"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessExecutionOrchestrationPipelineFixtures) {
+      expect(fixture.report.status).toBe(fixture.expectedStatus);
+      expect(fixture.report.safetyFlags).toMatchObject({
+        canAccessCredentials: false,
+        canAutomateBankId: false,
+        canCallApiRoute: false,
+        canClaimProductionReady: false,
+        canClickFinalBuy: false,
+        canClickFinalSell: false,
+        canExportSession: false,
+        canFetch: false,
+        canPoll: false,
+        canPrepareOrderNow: false,
+        canReadCookies: false,
+        canRunSmokeTestFromUi: false,
+        canStartHandoff: false,
+        canSubmitOrder: false,
+        canUseBrowserAutomationNow: false,
+        canWriteSupabase: false,
+        controlsEnabled: false,
+        finalHumanClickRequired: true,
+        gateLocked: true,
+        headlessOnly: true,
+        orchestrationOnly: true,
+        userMustConfirm: true,
+        visibleInUi: false,
+      });
+    }
+
+    for (const copy of [
+      "Avanza headless execution orchestration pipeline",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Contract-to-selector-to-plan-to-session modeled",
+      "Recommendation BUY orchestration modeled",
+      "Live-position SELL orchestration modeled",
+      "Exit priority modeled",
+      "Stop-loss priority modeled",
+      "Session initialized to plan-ready",
+      "Next theoretical agent step modeled",
+      "Final KÖP/SÄLJ human-only",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No cookies/session",
+      "No BankID automation",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "recommendation_buy_orchestration_ready",
+      "live_position_sell_orchestration_ready",
+      "exit_outranks_entry_orchestration",
+      "stop_loss_exit_orchestration_selected",
+      "no_candidates",
+      "all_candidates_blocked",
+      "plan_blocked",
+      "session_blocked",
+      "nextTheoreticalAgentStep",
+    ]) {
+      expect(
+        [routeSource, harnessSource, fixtureSource, pipelineSource, docSource].join(
+          "\n",
+        ),
+      ).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-execution-session-state-machine.md"),
+      readRepoFile("docs/avanza-headless-agent-plan-builder.md"),
+      readRepoFile("docs/avanza-headless-execution-contract-selector.md"),
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/headless execution orchestration pipeline/i);
+      expect(normalized).toMatch(/connects contract to selector to plan to session/i);
+      expect(normalized).toMatch(
+        /without visual UI or active broker behavior|without execution|does not execute/i,
+      );
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaHeadlessExecutionOrchestrationPipelineHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaHeadlessExecutionOrchestrationPipelineFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-headless-execution-orchestration-pipeline",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaHeadlessExecutionOrchestrationPipeline",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-headless-execution-orchestration-pipeline",
+    );
+
+    for (const source of [pipelineSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("app/trade-app");
+      expect(source).not.toContain("app/api/dev/avanza/fill-only/stub/route");
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza headless execution architecture checkpoint maps activation gates without execution", () => {
+    const checkpointSource = readRepoFile(
+      "lib/avanza-headless-execution-architecture-checkpoint.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-headless-execution-architecture-checkpoint-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaHeadlessExecutionArchitectureCheckpointHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-headless-execution-architecture-checkpoint.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-headless-execution-architecture-checkpoint.ts",
+      "lib/avanza-headless-execution-architecture-checkpoint-fixtures.ts",
+      "components/execution/AvanzaHeadlessExecutionArchitectureCheckpointHarness.tsx",
+      "docs/avanza-headless-execution-architecture-checkpoint.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const checkpoint = buildAvanzaHeadlessExecutionArchitectureCheckpoint({
+      checkpointId: "test-headless-architecture-checkpoint",
+      now: "2026-07-07T12:00:00.000Z",
+    });
+    expect(checkpoint.status).toBe("ready_for_review");
+    expect(checkpoint.summary).toContain(
+      "contract -> selector -> plan -> session -> orchestration",
+    );
+    expect(checkpoint.nextRecommendedAction).toContain("activation gates");
+    expect(checkpoint.safetyFlags).toMatchObject({
+      canAccessCredentials: false,
+      canAutomateBankId: false,
+      canCallApiRoute: false,
+      canClaimProductionReady: false,
+      canClickFinalBuy: false,
+      canClickFinalSell: false,
+      canExecute: false,
+      canExportSession: false,
+      canFetch: false,
+      canPoll: false,
+      canPrepareOrderNow: false,
+      canReadCookies: false,
+      canRunSmokeTestFromUi: false,
+      canStartHandoff: false,
+      canSubmitOrder: false,
+      canUseBrowserAutomationNow: false,
+      canWriteSupabase: false,
+      checkpointOnly: true,
+      controlsEnabled: false,
+      finalHumanClickRequired: true,
+      gateLocked: true,
+      headlessOnly: true,
+      userMustConfirm: true,
+      visibleInUi: false,
+    });
+
+    const layerStateMap = new Map(
+      checkpoint.layers.map((layer) => [layer.layer, layer.status]),
+    );
+    for (const [layer, expectedState] of [
+      ["headless_contract", "ready"],
+      ["contract_selector", "ready"],
+      ["agent_plan_builder", "ready"],
+      ["session_state_machine", "ready"],
+      ["orchestration_pipeline", "ready"],
+      ["login_smoke_scaffold", "local_dev_only"],
+      ["order_smoke_scaffold", "local_dev_only"],
+      ["local_dev_order_executor", "modeled"],
+      ["settlement_reconciliation", "fixture_only"],
+      ["settings_passive_readiness", "ready"],
+      ["trade_card_visual_readiness", "fixture_only"],
+      ["safety_guard", "ready"],
+    ] as const) {
+      expect(layerStateMap.get(layer)).toBe(expectedState);
+    }
+
+    const gateStatusMap = new Map(
+      checkpoint.activationGates.map((gate) => [gate.gateId, gate.status]),
+    );
+    for (const [gate, expectedStatus] of [
+      ["ui_simplicity_gate", "locked"],
+      ["trade_ui_execution_gate", "locked"],
+      ["api_route_execution_gate", "locked"],
+      ["local_dev_bridge_gate", "ready_for_manual_review"],
+      ["browser_automation_gate", "locked"],
+      ["credential_access_gate", "locked"],
+      ["cookie_session_gate", "forbidden"],
+      ["bankid_gate", "forbidden"],
+      ["order_submit_gate", "forbidden"],
+      ["final_kop_salj_gate", "forbidden"],
+      ["supabase_execution_write_gate", "locked"],
+      ["settlement_reconciliation_write_gate", "locked"],
+      ["production_readiness_gate", "forbidden"],
+    ] as const) {
+      expect(gateStatusMap.get(gate)).toBe(expectedStatus);
+    }
+
+    const fixtureStatusMap = new Map(
+      avanzaHeadlessExecutionArchitectureCheckpointFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["full_headless_architecture_ready_for_review", "ready_for_review"],
+      ["ready_for_local_dev_bridge_design", "ready_for_local_dev_bridge_design"],
+      ["blocked_for_real_execution", "blocked_for_real_execution"],
+      ["blocked_for_production", "blocked_for_production"],
+      ["ui_simplicity_gate_locked", "ready_for_review"],
+      ["trade_ui_execution_gate_locked", "ready_for_review"],
+      ["api_route_execution_gate_locked", "ready_for_review"],
+      [
+        "local_dev_bridge_gate_ready_for_manual_review",
+        "ready_for_review",
+      ],
+      ["browser_automation_gate_locked", "ready_for_review"],
+      ["credential_access_gate_locked", "ready_for_review"],
+      ["cookies_session_forbidden", "ready_for_review"],
+      ["bankid_automation_forbidden", "ready_for_review"],
+      ["order_submit_forbidden", "ready_for_review"],
+      ["final_kop_salj_human_only", "ready_for_review"],
+      ["supabase_write_locked", "ready_for_review"],
+      ["settlement_write_locked", "ready_for_review"],
+      ["production_readiness_blocked", "blocked_for_production"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaHeadlessExecutionArchitectureCheckpointFixtures) {
+      expect(fixture.checkpoint.status).toBe(fixture.expectedStatus);
+      expect(fixture.checkpoint.safetyFlags.canExecute).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.visibleInUi).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canCallApiRoute).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canFetch).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canPoll).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canUseBrowserAutomationNow).toBe(
+        false,
+      );
+      expect(fixture.checkpoint.safetyFlags.canAccessCredentials).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canSubmitOrder).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.canWriteSupabase).toBe(false);
+      expect(fixture.checkpoint.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      checkpointSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza headless execution architecture checkpoint",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Complete headless chain reviewed",
+      "Contract layer ready",
+      "Selector layer ready",
+      "Plan builder layer ready",
+      "Session state machine ready",
+      "Orchestration pipeline ready",
+      "Local-dev bridge gate not open",
+      "Browser automation gate locked",
+      "Trade UI execution gate locked",
+      "API route execution gate locked",
+      "Final KÖP/SÄLJ human-only",
+      "Order submission forbidden",
+      "BankID automation forbidden",
+      "Cookies/session forbidden",
+      "Supabase writes locked",
+      "Production readiness blocked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "full_headless_architecture_ready_for_review",
+      "ready_for_local_dev_bridge_design",
+      "blocked_for_real_execution",
+      "blocked_for_production",
+      "production_readiness_blocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
+      readRepoFile("docs/avanza-headless-execution-session-state-machine.md"),
+      readRepoFile("docs/avanza-headless-agent-plan-builder.md"),
+      readRepoFile("docs/avanza-headless-execution-contract-selector.md"),
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(
+        /headless[- ]execution[- ]architecture[- ]checkpoint/i,
+      );
+      expect(normalized).toMatch(
+        /under-surface agent brain loop|under-surface Engine\/Agent loop|full under-surface chain/i,
+      );
+      expect(normalized).toMatch(
+        /contract -> selector -> plan -> session -> orchestration/i,
+      );
+      expect(normalized).toMatch(/activation gate/i);
+      expect(normalized).toMatch(
+        /local-dev execution bridge|local-dev bridge|real browser run/i,
+      );
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaHeadlessExecutionArchitectureCheckpointHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaHeadlessExecutionArchitectureCheckpointFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-headless-execution-architecture-checkpoint",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaHeadlessExecutionArchitectureCheckpoint",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-headless-execution-architecture-checkpoint",
+    );
+
+    for (const source of [checkpointSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza local-dev bridge contract maps orchestration to smoke request candidates without opening gates", () => {
+    const contractSource = readRepoFile("lib/avanza-local-dev-bridge-contract.ts");
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-dev-bridge-contract-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalDevBridgeContractHarness.tsx",
+    );
+    const docSource = readRepoFile("docs/avanza-local-dev-bridge-contract.md");
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const readyBuyReport = avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+      (fixture) => fixture.fixtureId === "recommendation_buy_orchestration_ready",
+    )?.report;
+    const notReadyReport = avanzaHeadlessExecutionOrchestrationPipelineFixtures.find(
+      (fixture) => fixture.fixtureId === "no_candidates",
+    )?.report;
+
+    for (const path of [
+      "lib/avanza-local-dev-bridge-contract.ts",
+      "lib/avanza-local-dev-bridge-contract-fixtures.ts",
+      "components/execution/AvanzaLocalDevBridgeContractHarness.tsx",
+      "docs/avanza-local-dev-bridge-contract.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const missing = buildAvanzaLocalDevBridgeContract();
+    expect(missing.status).toBe("blocked_missing_orchestration");
+    expect(missing.requestCandidate).toBeUndefined();
+
+    const notReady = buildAvanzaLocalDevBridgeContract({
+      localDevOnly: true,
+      orchestrationReport: notReadyReport,
+      requestKind: "order_chain_smoke",
+    });
+    expect(notReady.status).toBe("blocked_orchestration_not_ready");
+    expect(notReady.requestCandidate).toBeUndefined();
+
+    const gateLocked = buildAvanzaLocalDevBridgeContract({
+      localDevOnly: false,
+      orchestrationReport: readyBuyReport,
+      requestKind: "order_chain_smoke",
+    });
+    expect(gateLocked.status).toBe("blocked_gate_locked");
+
+    const draft = buildAvanzaLocalDevBridgeContract({
+      bridgeContractId: "test-local-dev-bridge",
+      localDevOnly: true,
+      now: "2026-07-07T12:00:00.000Z",
+      orchestrationReport: readyBuyReport,
+      requestKind: "combined_login_then_order",
+    });
+    expect(draft.status).toBe("draft_ready");
+    expect(draft.requestKind).toBe("combined_login_then_order");
+    expect(draft.requestCandidate?.kind).toBe("combined_login_then_order");
+    expect(draft.requestCandidate?.canUseOrchestrationReport).toBe(true);
+    expect(draft.requestCandidate?.canUseSelectedContractSummary).toBe(true);
+    expect(draft.requestCandidate?.canUsePlanSummary).toBe(true);
+    expect(draft.requestCandidate?.canUseSessionSummary).toBe(true);
+    expect(draft.requestCandidate?.canInvokeSmokeRunnerNow).toBe(false);
+    expect(draft.requestCandidate?.canUseBrowserAutomationNow).toBe(false);
+    expect(draft.requestCandidate?.canSubmitOrder).toBe(false);
+    expect(draft.requestCandidate?.canClickFinalBuy).toBe(false);
+    expect(draft.requestCandidate?.canClickFinalSell).toBe(false);
+    expect(draft.safetyFlags).toMatchObject({
+      bridgeContractOnly: true,
+      canAccessCredentials: false,
+      canAutomateBankId: false,
+      canCallApiRoute: false,
+      canClaimProductionReady: false,
+      canClickFinalBuy: false,
+      canClickFinalSell: false,
+      canExportSession: false,
+      canFetch: false,
+      canInvokeSmokeRunnerNow: false,
+      canOpenLocalDevBridgeGate: false,
+      canPoll: false,
+      canPrepareOrderNow: false,
+      canReadCookies: false,
+      canRunSmokeTestFromUi: false,
+      canRunTerminalScriptNow: false,
+      canStartHandoff: false,
+      canSubmitOrder: false,
+      canUseBrowserAutomationNow: false,
+      canWriteSupabase: false,
+      controlsEnabled: false,
+      finalHumanClickRequired: true,
+      gateLocked: true,
+      headlessOnly: true,
+      userMustConfirm: true,
+      visibleInUi: false,
+    });
+
+    const gateStatusMap = new Map(
+      draft.activationGates.map((gate) => [gate.gateId, gate.status]),
+    );
+    for (const [gateId, expectedStatus] of [
+      ["local_dev_only_gate", "modeled_only"],
+      ["explicit_operator_approval_gate", "explicitly_required"],
+      ["env_opt_in_gate", "explicitly_required"],
+      ["manual_terminal_confirmation_gate", "explicitly_required"],
+      ["separate_real_run_flag_gate", "explicitly_required"],
+      ["browser_automation_gate", "locked"],
+      ["credential_provider_gate", "locked"],
+      ["cookie_session_forbidden_gate", "forbidden"],
+      ["bankid_forbidden_gate", "forbidden"],
+      ["order_submit_forbidden_gate", "forbidden"],
+      ["final_kop_salj_human_only_gate", "forbidden"],
+      ["supabase_write_locked_gate", "locked"],
+    ] as const) {
+      expect(gateStatusMap.get(gateId)).toBe(expectedStatus);
+    }
+
+    const fixtureStatusMap = new Map(
+      avanzaLocalDevBridgeContractFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["draft_ready_recommendation_buy_orchestration", "draft_ready"],
+      ["draft_ready_live_position_sell_orchestration", "draft_ready"],
+      ["blocked_missing_orchestration", "blocked_missing_orchestration"],
+      ["blocked_orchestration_not_ready", "blocked_orchestration_not_ready"],
+      ["blocked_local_dev_bridge_gate_locked", "blocked_gate_locked"],
+      ["combined_login_then_order_request_candidate", "draft_ready"],
+      ["login_smoke_request_candidate", "draft_ready"],
+      ["order_chain_smoke_request_candidate", "draft_ready"],
+      ["env_opt_in_missing", "draft_ready"],
+      ["manual_terminal_confirmation_missing", "draft_ready"],
+      ["real_run_flag_missing", "draft_ready"],
+      ["browser_automation_gate_locked", "draft_ready"],
+      ["credential_gate_locked", "draft_ready"],
+      ["cookies_session_forbidden", "draft_ready"],
+      ["bankid_automation_forbidden", "draft_ready"],
+      ["order_submit_forbidden", "draft_ready"],
+      ["final_kop_salj_human_only", "draft_ready"],
+      ["supabase_write_locked", "draft_ready"],
+      ["no_smoke_runner_invocation", "draft_ready"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLocalDevBridgeContractFixtures) {
+      expect(fixture.contract.status).toBe(fixture.expectedStatus);
+      expect(fixture.contract.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(fixture.contract.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(fixture.contract.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(fixture.contract.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(fixture.contract.safetyFlags.canCallApiRoute).toBe(false);
+      expect(fixture.contract.safetyFlags.canFetch).toBe(false);
+      expect(fixture.contract.safetyFlags.canPoll).toBe(false);
+      expect(fixture.contract.safetyFlags.canAccessCredentials).toBe(false);
+      expect(fixture.contract.safetyFlags.canReadCookies).toBe(false);
+      expect(fixture.contract.safetyFlags.canExportSession).toBe(false);
+      expect(fixture.contract.safetyFlags.canAutomateBankId).toBe(false);
+      expect(fixture.contract.safetyFlags.canSubmitOrder).toBe(false);
+      expect(fixture.contract.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(fixture.contract.safetyFlags.canClickFinalSell).toBe(false);
+      expect(fixture.contract.safetyFlags.canWriteSupabase).toBe(false);
+      expect(fixture.contract.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(fixture.contract.safetyFlags.userMustConfirm).toBe(true);
+      expect(fixture.contract.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(fixture.contract.safetyFlags.controlsEnabled).toBe(false);
+      expect(fixture.contract.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      contractSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza local-dev bridge contract",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Orchestration-to-smoke request candidate modeled",
+      "Local-dev bridge gate not open",
+      "Terminal-only future path",
+      "Env opt-in required",
+      "Manual terminal confirmation required",
+      "Separate real-run flag required",
+      "Smoke runner invocation blocked",
+      "Browser automation gate locked",
+      "Credential access gate locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "draft_ready_recommendation_buy_orchestration",
+      "draft_ready_live_position_sell_orchestration",
+      "blocked_missing_orchestration",
+      "blocked_local_dev_bridge_gate_locked",
+      "combined_login_then_order_request_candidate",
+      "env_opt_in_missing",
+      "manual_terminal_confirmation_missing",
+      "real_run_flag_missing",
+      "no_smoke_runner_invocation",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
+      readRepoFile("docs/avanza-headless-execution-session-state-machine.md"),
+      readRepoFile("docs/avanza-headless-agent-plan-builder.md"),
+      readRepoFile("docs/avanza-headless-execution-contract-selector.md"),
+      readRepoFile("docs/avanza-headless-execution-data-contract.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/local-dev bridge contract/i);
+      expect(normalized).toMatch(/modeled but locked|bridge gate remains closed/i);
+      expect(normalized).toMatch(/actual bridge invocation/i);
+    }
+
+    expect(routeSource).toContain("AvanzaLocalDevBridgeContractHarness");
+    expect(routeSource).toContain("avanzaLocalDevBridgeContractFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain("avanza-local-dev-bridge-contract");
+    expect(tradeAppSource).not.toContain("AvanzaLocalDevBridgeContract");
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain("avanza-local-dev-bridge-contract");
+
+    for (const source of [contractSource, fixtureSource, harnessSource, docSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza local-dev bridge activation checklist gates disabled runner design without opening runtime", () => {
+    const checklistSource = readRepoFile(
+      "lib/avanza-local-dev-bridge-activation-checklist.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-dev-bridge-activation-checklist-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalDevBridgeActivationChecklistHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-local-dev-bridge-activation-checklist.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const readyBridgeContract = avanzaLocalDevBridgeContractFixtures.find(
+      (fixture) => fixture.fixtureId === "draft_ready_recommendation_buy_orchestration",
+    )?.contract;
+    const readyArchitectureCheckpoint =
+      avanzaHeadlessExecutionArchitectureCheckpointFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "full_headless_architecture_ready_for_review",
+      )?.checkpoint;
+    const realExecutionBlockedArchitectureCheckpoint =
+      avanzaHeadlessExecutionArchitectureCheckpointFixtures.find(
+        (fixture) => fixture.fixtureId === "blocked_for_real_execution",
+      )?.checkpoint;
+
+    for (const path of [
+      "lib/avanza-local-dev-bridge-activation-checklist.ts",
+      "lib/avanza-local-dev-bridge-activation-checklist-fixtures.ts",
+      "components/execution/AvanzaLocalDevBridgeActivationChecklistHarness.tsx",
+      "docs/avanza-local-dev-bridge-activation-checklist.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const missing = buildAvanzaLocalDevBridgeActivationChecklist();
+    expect(missing.status).toBe("blocked_missing_prerequisites");
+    expect(missing.readyForDisabledRunnerDesign).toBe(false);
+    expect(missing.readyForModelOnlyDryRun).toBe(false);
+    expect(missing.readyForRealRun).toBe(false);
+
+    const manualReview = buildAvanzaLocalDevBridgeActivationChecklist({
+      architectureCheckpoint: readyArchitectureCheckpoint,
+      bridgeContract: readyBridgeContract,
+      envOptInDocumented: true,
+      manualTerminalConfirmationDocumented: true,
+      realRunFlagDocumented: true,
+    });
+    expect(manualReview.status).toBe("ready_for_manual_review");
+    expect(manualReview.approvalLevel).toBe("manual_review_only");
+    expect(manualReview.readyForDisabledRunnerDesign).toBe(false);
+
+    const approved = buildAvanzaLocalDevBridgeActivationChecklist({
+      architectureCheckpoint: readyArchitectureCheckpoint,
+      bankIdPolicyReviewed: true,
+      bridgeContract: readyBridgeContract,
+      cookieSessionPolicyReviewed: true,
+      credentialProviderReviewed: true,
+      disabledRunnerDesignRequested: true,
+      envOptInDocumented: true,
+      finalClickPolicyReviewed: true,
+      manualTerminalConfirmationDocumented: true,
+      operatorReviewed: true,
+      orderSubmitPolicyReviewed: true,
+      realRunFlagDocumented: true,
+      safetyReviewed: true,
+      supabaseWritePolicyReviewed: true,
+    });
+    expect(approved.status).toBe("approved_for_disabled_runner_design");
+    expect(approved.approvalLevel).toBe("approved_for_disabled_runner_design");
+    expect(approved.readyForDisabledRunnerDesign).toBe(true);
+    expect(approved.readyForModelOnlyDryRun).toBe(false);
+    expect(approved.readyForRealRun).toBe(false);
+    expect(approved.safetyFlags.canApproveDisabledRunnerDesign).toBe(true);
+
+    const blockedReal = buildAvanzaLocalDevBridgeActivationChecklist({
+      architectureCheckpoint: realExecutionBlockedArchitectureCheckpoint,
+      bridgeContract: readyBridgeContract,
+      disabledRunnerDesignRequested: true,
+      operatorReviewed: true,
+      safetyReviewed: true,
+    });
+    expect(blockedReal.status).toBe("blocked_for_real_execution");
+    expect(blockedReal.approvalLevel).toBe("real_run_forbidden");
+    expect(blockedReal.readyForRealRun).toBe(false);
+
+    const expectedFixtureStatuses = new Map([
+      ["ready_for_manual_review", "ready_for_manual_review"],
+      [
+        "approved_for_disabled_runner_design",
+        "approved_for_disabled_runner_design",
+      ],
+      ["blocked_missing_operator_review", "ready_for_manual_review"],
+      ["blocked_missing_safety_review", "ready_for_manual_review"],
+      [
+        "blocked_missing_credential_provider_review",
+        "ready_for_manual_review",
+      ],
+      ["blocked_missing_bankid_policy_review", "ready_for_manual_review"],
+      ["blocked_missing_final_click_policy_review", "ready_for_manual_review"],
+      ["blocked_missing_order_submit_policy_review", "ready_for_manual_review"],
+      ["blocked_missing_supabase_write_policy_review", "ready_for_manual_review"],
+      ["blocked_for_real_execution", "blocked_for_real_execution"],
+      ["real_run_forbidden", "blocked_for_real_execution"],
+      [
+        "model_only_dry_run_not_yet_approved",
+        "ready_for_manual_review",
+      ],
+      ["bridge_gate_still_locked", "ready_for_manual_review"],
+      ["smoke_runner_invocation_blocked", "ready_for_manual_review"],
+      ["terminal_only_future_path_confirmed", "ready_for_manual_review"],
+      ["ui_simplicity_protected", "ready_for_manual_review"],
+      ["production_readiness_blocked", "forbidden"],
+    ] as const);
+    const fixtureStatusMap = new Map(
+      avanzaLocalDevBridgeActivationChecklistFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of expectedFixtureStatuses) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLocalDevBridgeActivationChecklistFixtures) {
+      const { checklist } = fixture;
+      const isApprovedDesignFixture =
+        fixture.fixtureId === "approved_for_disabled_runner_design";
+
+      expect(checklist.status).toBe(fixture.expectedStatus);
+      expect(checklist.readyForDisabledRunnerDesign).toBe(
+        isApprovedDesignFixture,
+      );
+      expect(checklist.readyForModelOnlyDryRun).toBe(false);
+      expect(checklist.readyForRealRun).toBe(false);
+      expect(checklist.safetyFlags.canApproveDisabledRunnerDesign).toBe(
+        isApprovedDesignFixture,
+      );
+      expect(checklist.safetyFlags.visibleInUi).toBe(false);
+      expect(checklist.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(checklist.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(checklist.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(checklist.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(checklist.safetyFlags.canStartHandoff).toBe(false);
+      expect(checklist.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(checklist.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(checklist.safetyFlags.canCallApiRoute).toBe(false);
+      expect(checklist.safetyFlags.canFetch).toBe(false);
+      expect(checklist.safetyFlags.canPoll).toBe(false);
+      expect(checklist.safetyFlags.canAccessCredentials).toBe(false);
+      expect(checklist.safetyFlags.canReadCookies).toBe(false);
+      expect(checklist.safetyFlags.canExportSession).toBe(false);
+      expect(checklist.safetyFlags.canAutomateBankId).toBe(false);
+      expect(checklist.safetyFlags.canSubmitOrder).toBe(false);
+      expect(checklist.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(checklist.safetyFlags.canClickFinalSell).toBe(false);
+      expect(checklist.safetyFlags.canWriteSupabase).toBe(false);
+      expect(checklist.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(checklist.safetyFlags.userMustConfirm).toBe(true);
+      expect(checklist.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(checklist.safetyFlags.controlsEnabled).toBe(false);
+      expect(checklist.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      checklistSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza local-dev bridge activation checklist",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Manual review required",
+      "Disabled runner design approval modeled",
+      "Bridge gate still locked",
+      "Smoke runner invocation blocked",
+      "Terminal-only future path",
+      "Env opt-in required",
+      "Manual terminal confirmation required",
+      "Separate real-run flag required",
+      "Browser automation gate locked",
+      "Credential access gate locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route execution locked",
+      "UI simplicity protected",
+      "Production readiness blocked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "ready_for_manual_review",
+      "approved_for_disabled_runner_design",
+      "blocked_missing_safety_review",
+      "blocked_missing_credential_provider_review",
+      "real_run_forbidden",
+      "bridge_gate_still_locked",
+      "smoke_runner_invocation_blocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/local-dev bridge activation checklist/i);
+      expect(normalized).toMatch(/disabled bridge runner design/i);
+      expect(normalized).toMatch(/runtime remains locked|does not open runtime/i);
+      expect(normalized).toMatch(/real-run remains forbidden|real-run is forbidden/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaLocalDevBridgeActivationChecklistHarness",
+    );
+    expect(routeSource).toContain("avanzaLocalDevBridgeActivationChecklistFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-local-dev-bridge-activation-checklist",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaLocalDevBridgeActivationChecklist",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-local-dev-bridge-activation-checklist",
+    );
+
+    for (const source of [
+      checklistSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza disabled local-dev bridge runner skeleton stays report-only and locked", () => {
+    const runnerSource = readRepoFile(
+      "lib/avanza-disabled-local-dev-bridge-runner.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-disabled-local-dev-bridge-runner-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaDisabledLocalDevBridgeRunnerHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-disabled-local-dev-bridge-runner.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+    const readyBridgeContract = avanzaLocalDevBridgeContractFixtures.find(
+      (fixture) => fixture.fixtureId === "draft_ready_recommendation_buy_orchestration",
+    )?.contract;
+    const approvedChecklist = avanzaLocalDevBridgeActivationChecklistFixtures.find(
+      (fixture) => fixture.fixtureId === "approved_for_disabled_runner_design",
+    )?.checklist;
+    const manualReviewChecklist =
+      avanzaLocalDevBridgeActivationChecklistFixtures.find(
+        (fixture) => fixture.fixtureId === "ready_for_manual_review",
+      )?.checklist;
+
+    for (const path of [
+      "lib/avanza-disabled-local-dev-bridge-runner.ts",
+      "lib/avanza-disabled-local-dev-bridge-runner-fixtures.ts",
+      "components/execution/AvanzaDisabledLocalDevBridgeRunnerHarness.tsx",
+      "docs/avanza-disabled-local-dev-bridge-runner.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const missingBridge = buildAvanzaDisabledLocalDevBridgeRunnerReport({
+      activationChecklist: approvedChecklist,
+      explicitRunnerDesignApprovalPresent: true,
+    });
+    expect(missingBridge.status).toBe("blocked_missing_bridge_contract");
+    expect(missingBridge.safetyFlags.runnerSkeletonOnly).toBe(true);
+    expect(missingBridge.safetyFlags.disabledOnly).toBe(true);
+
+    const missingChecklist = buildAvanzaDisabledLocalDevBridgeRunnerReport({
+      bridgeContract: readyBridgeContract,
+    });
+    expect(missingChecklist.status).toBe("blocked_missing_activation_checklist");
+
+    const checklistNotApproved = buildAvanzaDisabledLocalDevBridgeRunnerReport({
+      activationChecklist: manualReviewChecklist,
+      bridgeContract: readyBridgeContract,
+      explicitRunnerDesignApprovalPresent: true,
+    });
+    expect(checklistNotApproved.status).toBe(
+      "blocked_checklist_not_approved",
+    );
+
+    const readyReport = buildAvanzaDisabledLocalDevBridgeRunnerReport({
+      activationChecklist: approvedChecklist,
+      bridgeContract: readyBridgeContract,
+      envOptInPresent: true,
+      explicitRunnerDesignApprovalPresent: true,
+      manualTerminalConfirmationPresent: true,
+      mode: "report_only",
+      realRunFlagPresent: true,
+    });
+    expect(readyReport.status).toBe("ready_disabled_report");
+    expect(readyReport.mode).toBe("report_only");
+    expect(readyReport.bridgeContractId).toBe(
+      readyBridgeContract?.bridgeContractId,
+    );
+    expect(readyReport.checklistId).toBe(approvedChecklist?.checklistId);
+    expect(readyReport.disabledSteps.length).toBeGreaterThanOrEqual(12);
+    expect(
+      readyReport.disabledSteps.some(
+        (step) =>
+          step.stepId === "invoke_login_smoke_runner" &&
+          step.status === "forbidden" &&
+          step.currentlyCalls === false,
+      ),
+    ).toBe(true);
+    expect(
+      readyReport.disabledSteps.some(
+        (step) =>
+          step.stepId === "invoke_order_smoke_runner" &&
+          step.status === "forbidden" &&
+          step.currentlyCalls === false,
+      ),
+    ).toBe(true);
+
+    const expectedFixtureStatuses = new Map([
+      ["disabled_by_default", "blocked_missing_bridge_contract"],
+      ["blocked_missing_bridge_contract", "blocked_missing_bridge_contract"],
+      [
+        "blocked_missing_activation_checklist",
+        "blocked_missing_activation_checklist",
+      ],
+      ["blocked_checklist_not_approved", "blocked_checklist_not_approved"],
+      ["ready_disabled_report", "ready_disabled_report"],
+      ["bridge_gate_locked", "blocked_bridge_gate_locked"],
+      ["smoke_invocation_forbidden", "blocked_smoke_invocation_forbidden"],
+      ["terminal_script_invocation_forbidden", "blocked_bridge_gate_locked"],
+      ["browser_automation_forbidden", "ready_disabled_report"],
+      ["credential_access_forbidden", "ready_disabled_report"],
+      ["cookies_session_forbidden", "ready_disabled_report"],
+      ["bankid_automation_forbidden", "ready_disabled_report"],
+      ["order_submission_forbidden", "ready_disabled_report"],
+      ["final_kop_salj_human_only", "ready_disabled_report"],
+      ["supabase_write_forbidden", "ready_disabled_report"],
+      ["settlement_reconciliation_future_only", "ready_disabled_report"],
+      ["report_only_skeleton_valid", "ready_disabled_report"],
+    ] as const);
+    const fixtureStatusMap = new Map(
+      avanzaDisabledLocalDevBridgeRunnerFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of expectedFixtureStatuses) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaDisabledLocalDevBridgeRunnerFixtures) {
+      const { report } = fixture;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.safetyFlags.runnerSkeletonOnly).toBe(true);
+      expect(report.safetyFlags.disabledOnly).toBe(true);
+      expect(report.safetyFlags.headlessOnly).toBe(true);
+      expect(report.safetyFlags.visibleInUi).toBe(false);
+      expect(report.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(report.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(report.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(report.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(report.safetyFlags.canStartHandoff).toBe(false);
+      expect(report.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(report.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(report.safetyFlags.canCallApiRoute).toBe(false);
+      expect(report.safetyFlags.canFetch).toBe(false);
+      expect(report.safetyFlags.canPoll).toBe(false);
+      expect(report.safetyFlags.canAccessCredentials).toBe(false);
+      expect(report.safetyFlags.canReadCookies).toBe(false);
+      expect(report.safetyFlags.canExportSession).toBe(false);
+      expect(report.safetyFlags.canAutomateBankId).toBe(false);
+      expect(report.safetyFlags.canSubmitOrder).toBe(false);
+      expect(report.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(report.safetyFlags.canClickFinalSell).toBe(false);
+      expect(report.safetyFlags.canWriteSupabase).toBe(false);
+      expect(report.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(report.safetyFlags.userMustConfirm).toBe(true);
+      expect(report.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(report.safetyFlags.controlsEnabled).toBe(false);
+      expect(report.safetyFlags.gateLocked).toBe(true);
+      expect(
+        report.disabledSteps.every((step) => step.currentlyCalls === false),
+      ).toBe(true);
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      runnerSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza disabled local-dev bridge runner",
+      "Fixture/model only",
+      "Disabled skeleton only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Bridge contract accepted only as model input",
+      "Activation checklist required",
+      "Disabled runner design approval does not open runtime",
+      "Bridge gate still locked",
+      "Smoke runner invocation blocked",
+      "Terminal script invocation blocked",
+      "Browser automation gate locked",
+      "Credential access gate locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "disabled_by_default",
+      "blocked_missing_bridge_contract",
+      "blocked_missing_activation_checklist",
+      "blocked_checklist_not_approved",
+      "ready_disabled_report",
+      "smoke_invocation_forbidden",
+      "terminal_script_invocation_forbidden",
+      "browser_automation_forbidden",
+      "report_only_skeleton_valid",
+      "Settlement reconciliation future only",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-local-dev-bridge-activation-checklist.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/disabled local-dev bridge runner|disabled bridge runner skeleton/i);
+      expect(normalized).toMatch(/report-only|model-only/i);
+      expect(normalized).toMatch(/does not open runtime|runtime remains locked|bridge gate remains locked/i);
+    }
+
+    expect(routeSource).toContain("AvanzaDisabledLocalDevBridgeRunnerHarness");
+    expect(routeSource).toContain("avanzaDisabledLocalDevBridgeRunnerFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-disabled-local-dev-bridge-runner",
+    );
+    expect(tradeAppSource).not.toContain("AvanzaDisabledLocalDevBridgeRunner");
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(tradeAppSource).not.toContain(
+      "app/api/dev/avanza/fill-only/stub/route",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-disabled-local-dev-bridge-runner",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-disabled-local-dev-bridge-runner",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-disabled-local-dev-bridge-runner",
+    );
+
+    for (const source of [
+      runnerSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza model-only local-dev bridge dry runner simulates to invocation boundary only", () => {
+    const dryRunnerSource = readRepoFile(
+      "lib/avanza-model-only-local-dev-bridge-dry-runner.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-model-only-local-dev-bridge-dry-runner-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaModelOnlyLocalDevBridgeDryRunnerHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-model-only-local-dev-bridge-dry-runner.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+    const buyBridgeContract = avanzaLocalDevBridgeContractFixtures.find(
+      (fixture) => fixture.fixtureId === "draft_ready_recommendation_buy_orchestration",
+    )?.contract;
+    const approvedChecklist = avanzaLocalDevBridgeActivationChecklistFixtures.find(
+      (fixture) => fixture.fixtureId === "approved_for_disabled_runner_design",
+    )?.checklist;
+    const manualReviewChecklist =
+      avanzaLocalDevBridgeActivationChecklistFixtures.find(
+        (fixture) => fixture.fixtureId === "ready_for_manual_review",
+      )?.checklist;
+    const readyDisabledRunner = avanzaDisabledLocalDevBridgeRunnerFixtures.find(
+      (fixture) => fixture.fixtureId === "ready_disabled_report",
+    )?.report;
+
+    for (const path of [
+      "lib/avanza-model-only-local-dev-bridge-dry-runner.ts",
+      "lib/avanza-model-only-local-dev-bridge-dry-runner-fixtures.ts",
+      "components/execution/AvanzaModelOnlyLocalDevBridgeDryRunnerHarness.tsx",
+      "docs/avanza-model-only-local-dev-bridge-dry-runner.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const missingDisabledReport = buildAvanzaModelOnlyLocalDevBridgeDryRunReport({
+      activationChecklist: approvedChecklist,
+      bridgeContract: buyBridgeContract,
+    });
+    expect(missingDisabledReport.status).toBe(
+      "blocked_missing_disabled_runner_report",
+    );
+
+    const missingBridge = buildAvanzaModelOnlyLocalDevBridgeDryRunReport({
+      activationChecklist: approvedChecklist,
+      disabledRunnerReport: readyDisabledRunner,
+    });
+    expect(missingBridge.status).toBe("blocked_missing_bridge_contract");
+
+    const missingChecklist = buildAvanzaModelOnlyLocalDevBridgeDryRunReport({
+      bridgeContract: buyBridgeContract,
+      disabledRunnerReport: readyDisabledRunner,
+    });
+    expect(missingChecklist.status).toBe("blocked_missing_activation_checklist");
+
+    const checklistNotApproved =
+      buildAvanzaModelOnlyLocalDevBridgeDryRunReport({
+        activationChecklist: manualReviewChecklist,
+        bridgeContract: buyBridgeContract,
+        disabledRunnerReport: readyDisabledRunner,
+      });
+    expect(checklistNotApproved.status).toBe(
+      "blocked_checklist_not_approved_for_design",
+    );
+
+    const readyDryRun = buildAvanzaModelOnlyLocalDevBridgeDryRunReport({
+      activationChecklist: approvedChecklist,
+      bridgeContract: buyBridgeContract,
+      disabledRunnerReport: readyDisabledRunner,
+      mode: "model_only",
+      simulateOrderSmoke: true,
+    });
+    expect(readyDryRun.status).toBe("model_dry_run_ready");
+    expect(readyDryRun.mode).toBe("model_only");
+    expect(readyDryRun.stopReason).toBe(
+      "dry_run_completed_to_invocation_boundary",
+    );
+    expect(readyDryRun.simulatedOutcome).toEqual(
+      expect.arrayContaining([
+        "dry_run_completed_to_invocation_boundary",
+        "no_runtime_invocation",
+        "bridge_gate_still_locked",
+        "final_human_confirmation_preserved",
+      ]),
+    );
+    expect(
+      readyDryRun.simulatedSteps.some(
+        (step) =>
+          step.stepId === "prepare_smoke_runner_request_summary" &&
+          step.status === "simulated" &&
+          step.currentlyCalls === false,
+      ),
+    ).toBe(true);
+    expect(
+      readyDryRun.simulatedSteps.some(
+        (step) =>
+          step.stepId === "invoke_order_smoke_runner" &&
+          step.status === "forbidden" &&
+          step.currentlyCalls === false,
+      ),
+    ).toBe(true);
+
+    const expectedFixtureStatuses = new Map([
+      [
+        "model_only_dry_run_ready_recommendation_buy",
+        "model_dry_run_ready",
+      ],
+      [
+        "model_only_dry_run_ready_live_position_sell",
+        "model_dry_run_ready",
+      ],
+      ["combined_login_then_order_dry_run_simulation", "model_dry_run_ready"],
+      [
+        "login_smoke_simulation_stops_before_invocation",
+        "model_dry_run_ready",
+      ],
+      [
+        "order_smoke_simulation_stops_before_invocation",
+        "model_dry_run_ready",
+      ],
+      [
+        "blocked_missing_disabled_runner_report",
+        "blocked_missing_disabled_runner_report",
+      ],
+      ["blocked_missing_bridge_contract", "blocked_missing_bridge_contract"],
+      [
+        "blocked_missing_activation_checklist",
+        "blocked_missing_activation_checklist",
+      ],
+      [
+        "blocked_checklist_not_approved",
+        "blocked_checklist_not_approved_for_design",
+      ],
+      ["blocked_bridge_gate_locked", "blocked_bridge_gate_locked"],
+      ["smoke_invocation_forbidden", "blocked_smoke_invocation_forbidden"],
+      ["terminal_script_invocation_forbidden", "blocked_bridge_gate_locked"],
+      ["browser_automation_forbidden", "model_dry_run_ready"],
+      ["credential_access_forbidden", "model_dry_run_ready"],
+      ["cookies_session_forbidden", "model_dry_run_ready"],
+      ["bankid_automation_forbidden", "model_dry_run_ready"],
+      ["order_submission_forbidden", "model_dry_run_ready"],
+      ["final_kop_salj_human_only", "model_dry_run_ready"],
+      ["supabase_write_forbidden", "model_dry_run_ready"],
+      ["dry_run_completed_to_invocation_boundary", "model_dry_run_ready"],
+    ] as const);
+    const fixtureStatusMap = new Map(
+      avanzaModelOnlyLocalDevBridgeDryRunFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of expectedFixtureStatuses) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaModelOnlyLocalDevBridgeDryRunFixtures) {
+      const { report } = fixture;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.safetyFlags.dryRunOnly).toBe(true);
+      expect(report.safetyFlags.modelOnly).toBe(true);
+      expect(report.safetyFlags.headlessOnly).toBe(true);
+      expect(report.safetyFlags.visibleInUi).toBe(false);
+      expect(report.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(report.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(report.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(report.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(report.safetyFlags.canStartHandoff).toBe(false);
+      expect(report.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(report.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(report.safetyFlags.canCallApiRoute).toBe(false);
+      expect(report.safetyFlags.canFetch).toBe(false);
+      expect(report.safetyFlags.canPoll).toBe(false);
+      expect(report.safetyFlags.canAccessCredentials).toBe(false);
+      expect(report.safetyFlags.canReadCookies).toBe(false);
+      expect(report.safetyFlags.canExportSession).toBe(false);
+      expect(report.safetyFlags.canAutomateBankId).toBe(false);
+      expect(report.safetyFlags.canSubmitOrder).toBe(false);
+      expect(report.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(report.safetyFlags.canClickFinalSell).toBe(false);
+      expect(report.safetyFlags.canWriteSupabase).toBe(false);
+      expect(report.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(report.safetyFlags.userMustConfirm).toBe(true);
+      expect(report.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(report.safetyFlags.controlsEnabled).toBe(false);
+      expect(report.safetyFlags.gateLocked).toBe(true);
+      expect(
+        report.simulatedSteps.every((step) => step.currentlyCalls === false),
+      ).toBe(true);
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      dryRunnerSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza model-only local-dev bridge dry runner",
+      "Fixture/model only",
+      "Dry-run only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Simulates bridge run to invocation boundary",
+      "Bridge gate still locked",
+      "Smoke runner invocation blocked",
+      "Terminal script invocation blocked",
+      "Browser automation gate locked",
+      "Credential access gate locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "model_only_dry_run_ready_recommendation_buy",
+      "model_only_dry_run_ready_live_position_sell",
+      "combined_login_then_order_dry_run_simulation",
+      "blocked_missing_disabled_runner_report",
+      "blocked_checklist_not_approved",
+      "smoke_invocation_forbidden",
+      "terminal_script_invocation_forbidden",
+      "dry_run_completed_to_invocation_boundary",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-disabled-local-dev-bridge-runner.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-activation-checklist.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/model-only local-dev bridge dry runner|model-only dry-run layer/i);
+      expect(normalized).toMatch(/invocation boundary/i);
+      expect(normalized).toMatch(/not runtime activation|does not open runtime|runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain("AvanzaModelOnlyLocalDevBridgeDryRunnerHarness");
+    expect(routeSource).toContain("avanzaModelOnlyLocalDevBridgeDryRunFixtures");
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-model-only-local-dev-bridge-dry-runner",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaModelOnlyLocalDevBridgeDryRunner",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(apiRouteSource).not.toContain(
+      "avanza-model-only-local-dev-bridge-dry-runner",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-model-only-local-dev-bridge-dry-runner",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-model-only-local-dev-bridge-dry-runner",
+    );
+
+    for (const source of [
+      dryRunnerSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza local-dev bridge readiness checkpoint stops at invocation boundary", () => {
+    const checkpointSource = readRepoFile(
+      "lib/avanza-local-dev-bridge-readiness-checkpoint.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-local-dev-bridge-readiness-checkpoint-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaLocalDevBridgeReadinessCheckpointHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-local-dev-bridge-readiness-checkpoint.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+    const bridgeContract = avanzaLocalDevBridgeContractFixtures.find(
+      (fixture) => fixture.fixtureId === "draft_ready_recommendation_buy_orchestration",
+    )?.contract;
+    const activationChecklist = avanzaLocalDevBridgeActivationChecklistFixtures.find(
+      (fixture) => fixture.fixtureId === "approved_for_disabled_runner_design",
+    )?.checklist;
+    const disabledRunnerReport = avanzaDisabledLocalDevBridgeRunnerFixtures.find(
+      (fixture) => fixture.fixtureId === "ready_disabled_report",
+    )?.report;
+    const dryRunReport = avanzaModelOnlyLocalDevBridgeDryRunFixtures.find(
+      (fixture) => fixture.fixtureId === "dry_run_completed_to_invocation_boundary",
+    )?.report;
+    const architectureCheckpoint =
+      avanzaHeadlessExecutionArchitectureCheckpointFixtures.find(
+        (fixture) => fixture.fixtureId === "full_headless_architecture_ready_for_review",
+      )?.checkpoint;
+
+    for (const path of [
+      "lib/avanza-local-dev-bridge-readiness-checkpoint.ts",
+      "lib/avanza-local-dev-bridge-readiness-checkpoint-fixtures.ts",
+      "components/execution/AvanzaLocalDevBridgeReadinessCheckpointHarness.tsx",
+      "docs/avanza-local-dev-bridge-readiness-checkpoint.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const readyCheckpoint = buildAvanzaLocalDevBridgeReadinessCheckpoint({
+      activationChecklist,
+      architectureCheckpoint,
+      bridgeContract,
+      disabledRunnerReport,
+      dryRunReport,
+      operatorReviewed: true,
+      safetyReviewed: true,
+    });
+    expect(readyCheckpoint.status).toBe("ready_for_model_only_boundary_review");
+    expect(readyCheckpoint.invocationBoundary.status).toBe("reached_model_only");
+    expect(readyCheckpoint.invocationBoundary.canCrossNow).toBe(false);
+    expect(readyCheckpoint.invocationBoundary.stopReason).toBe(
+      "dry_run_completed_to_invocation_boundary",
+    );
+    expect(readyCheckpoint.summary).toMatch(/cannot cross/i);
+
+    const blockedAtBoundary = buildAvanzaLocalDevBridgeReadinessCheckpoint({
+      activationChecklist,
+      architectureCheckpoint,
+      bridgeContract,
+      disabledRunnerReport,
+      dryRunReport,
+    });
+    expect(blockedAtBoundary.status).toBe("blocked_at_invocation_boundary");
+    expect(blockedAtBoundary.blockedReasons).toContain(
+      "Cannot cross invocation boundary now.",
+    );
+
+    const expectedFixtureStatuses = new Map([
+      [
+        "ready_for_model_only_boundary_review",
+        "ready_for_model_only_boundary_review",
+      ],
+      ["blocked_at_invocation_boundary", "blocked_at_invocation_boundary"],
+      ["blocked_for_runtime_invocation", "blocked_for_runtime_invocation"],
+      ["blocked_for_real_execution", "blocked_for_real_execution"],
+      ["blocked_for_production", "blocked_for_production"],
+      ["bridge_contract_ready", "blocked_at_invocation_boundary"],
+      ["activation_checklist_ready", "blocked_at_invocation_boundary"],
+      ["disabled_runner_skeleton_ready", "blocked_at_invocation_boundary"],
+      ["model_only_dry_run_ready", "blocked_at_invocation_boundary"],
+      ["smoke_runner_invocation_blocked", "blocked_at_invocation_boundary"],
+      ["terminal_script_invocation_blocked", "blocked_at_invocation_boundary"],
+      ["browser_automation_locked", "blocked_at_invocation_boundary"],
+      ["credential_access_locked", "blocked_at_invocation_boundary"],
+      ["cookies_session_forbidden", "blocked_at_invocation_boundary"],
+      ["bankid_automation_forbidden", "blocked_at_invocation_boundary"],
+      ["order_submission_forbidden", "blocked_at_invocation_boundary"],
+      ["final_kop_salj_human_only", "blocked_at_invocation_boundary"],
+      ["supabase_write_locked", "blocked_at_invocation_boundary"],
+      ["trade_ui_active_handoff_forbidden", "blocked_at_invocation_boundary"],
+      ["api_route_activation_forbidden", "blocked_at_invocation_boundary"],
+      ["production_readiness_blocked", "blocked_for_production"],
+    ] as const);
+    const fixtureStatusMap = new Map(
+      avanzaLocalDevBridgeReadinessCheckpointFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of expectedFixtureStatuses) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaLocalDevBridgeReadinessCheckpointFixtures) {
+      const { checkpoint } = fixture;
+
+      expect(checkpoint.status).toBe(fixture.expectedStatus);
+      expect(checkpoint.safetyFlags.checkpointOnly).toBe(true);
+      expect(checkpoint.safetyFlags.headlessOnly).toBe(true);
+      expect(checkpoint.safetyFlags.visibleInUi).toBe(false);
+      expect(checkpoint.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(checkpoint.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(checkpoint.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(checkpoint.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(checkpoint.safetyFlags.canStartHandoff).toBe(false);
+      expect(checkpoint.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(checkpoint.safetyFlags.canCallApiRoute).toBe(false);
+      expect(checkpoint.safetyFlags.canFetch).toBe(false);
+      expect(checkpoint.safetyFlags.canPoll).toBe(false);
+      expect(checkpoint.safetyFlags.canAccessCredentials).toBe(false);
+      expect(checkpoint.safetyFlags.canReadCookies).toBe(false);
+      expect(checkpoint.safetyFlags.canExportSession).toBe(false);
+      expect(checkpoint.safetyFlags.canAutomateBankId).toBe(false);
+      expect(checkpoint.safetyFlags.canSubmitOrder).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalSell).toBe(false);
+      expect(checkpoint.safetyFlags.canWriteSupabase).toBe(false);
+      expect(checkpoint.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(checkpoint.safetyFlags.userMustConfirm).toBe(true);
+      expect(checkpoint.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(checkpoint.safetyFlags.controlsEnabled).toBe(false);
+      expect(checkpoint.safetyFlags.gateLocked).toBe(true);
+      expect(checkpoint.layers.every((layer) => !layer.invokesRuntimeBehavior)).toBe(
+        true,
+      );
+      expect(checkpoint.layers.every((layer) => !layer.visibleInUi)).toBe(true);
+      expect(checkpoint.invocationBoundary.canCrossNow).toBe(false);
+      expect(checkpoint.nextForbiddenSteps).toEqual(
+        expect.arrayContaining([
+          "real Avanza run",
+          "order submission",
+          "agent final click",
+          "cookie/session export",
+          "BankID automation",
+          "credential logging",
+          "Supabase execution write",
+          "Trade UI active handoff",
+          "API route activation",
+        ]),
+      );
+    }
+
+    const combinedSource = [
+      routeSource,
+      harnessSource,
+      fixtureSource,
+      checkpointSource,
+      docSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza local-dev bridge readiness checkpoint",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Invocation boundary reached model-only",
+      "Cannot cross invocation boundary now",
+      "Bridge contract ready",
+      "Activation checklist ready",
+      "Disabled runner skeleton ready",
+      "Model-only dry-run ready",
+      "Smoke runner invocation blocked",
+      "Terminal script invocation blocked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "Production readiness blocked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "ready_for_model_only_boundary_review",
+      "blocked_at_invocation_boundary",
+      "blocked_for_runtime_invocation",
+      "smoke_runner_invocation_blocked",
+      "terminal_script_invocation_blocked",
+      "canCrossInvocationBoundaryNow: false",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-model-only-local-dev-bridge-dry-runner.md"),
+      readRepoFile("docs/avanza-disabled-local-dev-bridge-runner.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-activation-checklist.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/bridge readiness checkpoint|checkpoint at invocation boundary/i);
+      expect(normalized).toMatch(/future work must explicitly decide the next allowed design step/i);
+      expect(normalized).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain("AvanzaLocalDevBridgeReadinessCheckpointHarness");
+    expect(routeSource).toContain(
+      "avanzaLocalDevBridgeReadinessCheckpointFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-local-dev-bridge-readiness-checkpoint",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaLocalDevBridgeReadinessCheckpoint",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(apiRouteSource).not.toContain(
+      "avanza-local-dev-bridge-readiness-checkpoint",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-local-dev-bridge-readiness-checkpoint",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-local-dev-bridge-readiness-checkpoint",
+    );
+
+    for (const source of [
+      checkpointSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+    ]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(/keychain|security\s+find-generic-password/i);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza manual local-dev invocation approval runbook gates design only", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-manual-local-dev-invocation-approval-runbook.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-manual-local-dev-invocation-approval-runbook-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaManualLocalDevInvocationApprovalRunbookHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-manual-local-dev-invocation-approval-runbook.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+    const bridgeReadinessCheckpoint =
+      avanzaLocalDevBridgeReadinessCheckpointFixtures.find(
+        (fixture) => fixture.fixtureId === "ready_for_model_only_boundary_review",
+      )?.checkpoint;
+    const modelOnlyDryRunReport =
+      avanzaModelOnlyLocalDevBridgeDryRunFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "dry_run_completed_to_invocation_boundary",
+      )?.report;
+    const disabledRunnerReport = avanzaDisabledLocalDevBridgeRunnerFixtures.find(
+      (fixture) => fixture.fixtureId === "ready_disabled_report",
+    )?.report;
+    const activationChecklist =
+      avanzaLocalDevBridgeActivationChecklistFixtures.find(
+        (fixture) => fixture.fixtureId === "approved_for_disabled_runner_design",
+      )?.checklist;
+
+    for (const path of [
+      "lib/avanza-manual-local-dev-invocation-approval-runbook.ts",
+      "lib/avanza-manual-local-dev-invocation-approval-runbook-fixtures.ts",
+      "components/execution/AvanzaManualLocalDevInvocationApprovalRunbookHarness.tsx",
+      "docs/avanza-manual-local-dev-invocation-approval-runbook.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const readyForManualReview =
+      buildAvanzaManualLocalDevInvocationApprovalRunbook({
+        activationChecklist,
+        bridgeReadinessCheckpoint,
+        disabledRunnerReport,
+        modelOnlyDryRunReport,
+      });
+    expect(readyForManualReview.status).toBe("ready_for_manual_review");
+    expect(readyForManualReview.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+    expect(readyForManualReview.safetyFlags.canCrossInvocationBoundaryNow).toBe(
+      false,
+    );
+
+    const approvedForDesign =
+      buildAvanzaManualLocalDevInvocationApprovalRunbook({
+        activationChecklist,
+        bridgeReadinessCheckpoint,
+        disabledRunnerReport,
+        evidenceReviewed: true,
+        invocationAdapterDesignRequested: true,
+        modelOnlyDryRunReport,
+        operatorReviewed: true,
+        safetyReviewed: true,
+      });
+    expect(approvedForDesign.status).toBe(
+      "approved_for_invocation_adapter_design",
+    );
+    expect(approvedForDesign.safetyFlags.canApproveInvocationAdapterDesign).toBe(
+      true,
+    );
+    expect(approvedForDesign.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+    expect(approvedForDesign.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+    expect(approvedForDesign.approvedNextDesignStep).toBe(
+      "disabled_invocation_adapter_design",
+    );
+
+    const runtimeRequested =
+      buildAvanzaManualLocalDevInvocationApprovalRunbook({
+        bridgeReadinessCheckpoint,
+        runtimeInvocationRequested: true,
+      });
+    expect(runtimeRequested.status).toBe("blocked_safety_risk");
+    expect(runtimeRequested.safetyFlags.canApproveInvocationAdapterDesign).toBe(
+      false,
+    );
+    const realRunRequested =
+      buildAvanzaManualLocalDevInvocationApprovalRunbook({
+        bridgeReadinessCheckpoint,
+        realRunRequested: true,
+      });
+    expect(realRunRequested.status).toBe("real_run_forbidden");
+    const productionRequested =
+      buildAvanzaManualLocalDevInvocationApprovalRunbook({
+        bridgeReadinessCheckpoint,
+        productionReadinessRequested: true,
+      });
+    expect(productionRequested.status).toBe("production_forbidden");
+
+    const fixtureStatusMap = new Map(
+      avanzaManualLocalDevInvocationApprovalRunbookFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["ready_for_manual_review", "ready_for_manual_review"],
+      [
+        "approved_for_disabled_invocation_adapter_design",
+        "approved_for_invocation_adapter_design",
+      ],
+      [
+        "approved_for_model_only_invocation_adapter_design",
+        "approved_for_invocation_adapter_design",
+      ],
+      ["blocked_missing_checkpoint", "blocked_missing_checkpoint"],
+      ["blocked_missing_evidence_review", "blocked_missing_evidence"],
+      ["blocked_missing_safety_review", "review_incomplete"],
+      ["runtime_invocation_requested_forbidden", "blocked_safety_risk"],
+      ["real_run_requested_forbidden", "real_run_forbidden"],
+      ["production_readiness_requested_forbidden", "production_forbidden"],
+      ["unredacted_evidence_forbidden", "blocked_safety_risk"],
+      ["bridge_boundary_confirmed", "ready_for_manual_review"],
+      ["smoke_invocation_remains_blocked", "ready_for_manual_review"],
+      ["terminal_script_invocation_remains_blocked", "ready_for_manual_review"],
+      ["browser_automation_locked", "ready_for_manual_review"],
+      ["credential_access_locked", "ready_for_manual_review"],
+      ["cookies_session_forbidden", "ready_for_manual_review"],
+      ["bankid_automation_forbidden", "ready_for_manual_review"],
+      ["order_submission_forbidden", "ready_for_manual_review"],
+      ["final_kop_salj_human_only", "ready_for_manual_review"],
+      ["supabase_writes_locked", "ready_for_manual_review"],
+      ["ui_simplicity_protected", "ready_for_manual_review"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaManualLocalDevInvocationApprovalRunbookFixtures) {
+      const { runbook } = fixture;
+
+      expect(runbook.status).toBe(fixture.expectedStatus);
+      expect(runbook.safetyFlags.runbookOnly).toBe(true);
+      expect(runbook.safetyFlags.approvalModelOnly).toBe(true);
+      expect(runbook.safetyFlags.headlessOnly).toBe(true);
+      expect(runbook.safetyFlags.visibleInUi).toBe(false);
+      expect(runbook.safetyFlags.canOpenLocalDevBridgeGate).toBe(false);
+      expect(runbook.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(runbook.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(runbook.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(runbook.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(runbook.safetyFlags.canStartHandoff).toBe(false);
+      expect(runbook.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(runbook.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(runbook.safetyFlags.canCallApiRoute).toBe(false);
+      expect(runbook.safetyFlags.canFetch).toBe(false);
+      expect(runbook.safetyFlags.canPoll).toBe(false);
+      expect(runbook.safetyFlags.canAccessCredentials).toBe(false);
+      expect(runbook.safetyFlags.canReadCookies).toBe(false);
+      expect(runbook.safetyFlags.canExportSession).toBe(false);
+      expect(runbook.safetyFlags.canAutomateBankId).toBe(false);
+      expect(runbook.safetyFlags.canSubmitOrder).toBe(false);
+      expect(runbook.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(runbook.safetyFlags.canClickFinalSell).toBe(false);
+      expect(runbook.safetyFlags.canWriteSupabase).toBe(false);
+      expect(runbook.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(runbook.safetyFlags.userMustConfirm).toBe(true);
+      expect(runbook.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(runbook.safetyFlags.controlsEnabled).toBe(false);
+      expect(runbook.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      modelSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+      routeSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza manual local-dev invocation approval runbook",
+      "Fixture/model only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Manual review required",
+      "Invocation boundary stop confirmed",
+      "Approval for design only modeled",
+      "Runtime invocation not approved",
+      "Real run forbidden",
+      "Production readiness forbidden",
+      "Smoke runner invocation blocked",
+      "Terminal script invocation blocked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "UI simplicity protected",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "ready_for_manual_review",
+      "approved_for_disabled_invocation_adapter_design",
+      "approved_for_model_only_invocation_adapter_design",
+      "runtime_invocation_requested_forbidden",
+      "real_run_requested_forbidden",
+      "production_readiness_requested_forbidden",
+      "unredacted_evidence_forbidden",
+      "canOpenLocalDevBridgeGate",
+      "canCrossInvocationBoundaryNow",
+      "canInvokeSmokeRunnerNow",
+      "canRunTerminalScriptNow",
+      "canUseBrowserAutomationNow",
+      "canStartHandoff",
+      "canPrepareOrderNow",
+      "canRunSmokeTestFromUi",
+      "canCallApiRoute",
+      "canFetch",
+      "canPoll",
+      "canAccessCredentials",
+      "canReadCookies",
+      "canExportSession",
+      "canAutomateBankId",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWriteSupabase",
+      "canClaimProductionReady",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
+      readRepoFile("docs/avanza-model-only-local-dev-bridge-dry-runner.md"),
+      readRepoFile("docs/avanza-disabled-local-dev-bridge-runner.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-activation-checklist.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      expect(normalizeWhitespace(doc)).toMatch(
+        /manual.*invocation.*approval.*runbook/i,
+      );
+      expect(normalizeWhitespace(doc)).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaManualLocalDevInvocationApprovalRunbookHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaManualLocalDevInvocationApprovalRunbookFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-manual-local-dev-invocation-approval-runbook",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaManualLocalDevInvocationApprovalRunbook",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(apiRouteSource).not.toContain(
+      "avanza-manual-local-dev-invocation-approval-runbook",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-manual-local-dev-invocation-approval-runbook",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-manual-local-dev-invocation-approval-runbook",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-manual-local-dev-invocation-approval-runbook",
+    );
+
+    for (const source of [modelSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza disabled local-dev invocation adapter contract defines shape only", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-disabled-local-dev-invocation-adapter-contract.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-disabled-local-dev-invocation-adapter-contract-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaDisabledLocalDevInvocationAdapterContractHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-disabled-local-dev-invocation-adapter-contract.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+    const approvalRunbook =
+      avanzaManualLocalDevInvocationApprovalRunbookFixtures.find(
+        (fixture) =>
+          fixture.fixtureId ===
+          "approved_for_disabled_invocation_adapter_design",
+      )?.runbook;
+    const bridgeReadinessCheckpoint =
+      avanzaLocalDevBridgeReadinessCheckpointFixtures.find(
+        (fixture) => fixture.fixtureId === "ready_for_model_only_boundary_review",
+      )?.checkpoint;
+    const modelOnlyDryRunReport =
+      avanzaModelOnlyLocalDevBridgeDryRunFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "dry_run_completed_to_invocation_boundary",
+      )?.report;
+
+    for (const path of [
+      "lib/avanza-disabled-local-dev-invocation-adapter-contract.ts",
+      "lib/avanza-disabled-local-dev-invocation-adapter-contract-fixtures.ts",
+      "components/execution/AvanzaDisabledLocalDevInvocationAdapterContractHarness.tsx",
+      "docs/avanza-disabled-local-dev-invocation-adapter-contract.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const readyContract =
+      buildAvanzaDisabledLocalDevInvocationAdapterContract({
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        designOnlyApprovalPresent: true,
+        modelOnlyDryRunReport,
+        target: "order_chain_smoke_runner",
+      });
+    expect(readyContract.status).toBe("disabled_contract_ready");
+    expect(readyContract.requestShape?.target).toBe("order_chain_smoke_runner");
+    expect(readyContract.requestShape?.canInvokeTargetNow).toBe(false);
+    expect(readyContract.requestShape?.canCarryCredentials).toBe(false);
+    expect(readyContract.requestShape?.canCarrySessionTokens).toBe(false);
+    expect(readyContract.requestShape?.forbiddenPayloadFields).toEqual(
+      expect.arrayContaining([
+        "raw_credentials",
+        "cookies",
+        "session_tokens",
+        "account_numbers",
+        "order_ids",
+        "bankid_artifacts",
+        "unredacted_screenshots",
+        "broker_confirmations_raw",
+      ]),
+    );
+
+    const missingApproval =
+      buildAvanzaDisabledLocalDevInvocationAdapterContract({
+        bridgeReadinessCheckpoint,
+        designOnlyApprovalPresent: true,
+        modelOnlyDryRunReport,
+      });
+    expect(missingApproval.status).toBe("blocked_missing_approval_runbook");
+    const designNotApproved =
+      buildAvanzaDisabledLocalDevInvocationAdapterContract({
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        designOnlyApprovalPresent: false,
+        modelOnlyDryRunReport,
+      });
+    expect(designNotApproved.status).toBe("blocked_design_not_approved");
+    const runtimeRequested =
+      buildAvanzaDisabledLocalDevInvocationAdapterContract({
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        designOnlyApprovalPresent: true,
+        modelOnlyDryRunReport,
+        runtimeApprovalPresent: true,
+      });
+    expect(runtimeRequested.status).toBe("blocked_runtime_not_approved");
+
+    const fixtureStatusMap = new Map(
+      avanzaDisabledLocalDevInvocationAdapterContractFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      [
+        "disabled_contract_ready_login_smoke_target",
+        "disabled_contract_ready",
+      ],
+      [
+        "disabled_contract_ready_order_chain_target",
+        "disabled_contract_ready",
+      ],
+      [
+        "disabled_contract_ready_combined_login_then_order_target",
+        "disabled_contract_ready",
+      ],
+      ["review_only_target", "disabled_contract_ready"],
+      ["blocked_missing_approval_runbook", "blocked_missing_approval_runbook"],
+      [
+        "blocked_missing_checkpoint",
+        "blocked_missing_bridge_readiness_checkpoint",
+      ],
+      ["blocked_missing_dry_run_report", "blocked_missing_dry_run_report"],
+      ["blocked_design_not_approved", "blocked_design_not_approved"],
+      ["runtime_approval_requested_forbidden", "blocked_runtime_not_approved"],
+      ["invocation_boundary_locked", "disabled_contract_ready"],
+      ["smoke_runner_invocation_locked", "disabled_contract_ready"],
+      ["terminal_script_invocation_locked", "disabled_contract_ready"],
+      ["browser_automation_locked", "disabled_contract_ready"],
+      ["credential_payload_forbidden", "disabled_contract_ready"],
+      ["cookies_session_payload_forbidden", "disabled_contract_ready"],
+      ["account_order_id_payload_forbidden", "disabled_contract_ready"],
+      ["bankid_automation_forbidden", "disabled_contract_ready"],
+      ["order_submission_forbidden", "disabled_contract_ready"],
+      ["final_kop_salj_human_only", "disabled_contract_ready"],
+      ["supabase_write_locked", "disabled_contract_ready"],
+      ["trade_ui_execution_locked", "disabled_contract_ready"],
+      ["api_route_activation_locked", "disabled_contract_ready"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaDisabledLocalDevInvocationAdapterContractFixtures) {
+      const { contract } = fixture;
+
+      expect(contract.status).toBe(fixture.expectedStatus);
+      expect(contract.safetyFlags.adapterContractOnly).toBe(true);
+      expect(contract.safetyFlags.disabledOnly).toBe(true);
+      expect(contract.safetyFlags.headlessOnly).toBe(true);
+      expect(contract.safetyFlags.visibleInUi).toBe(false);
+      expect(contract.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+      expect(contract.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(contract.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(contract.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(contract.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(contract.safetyFlags.canStartHandoff).toBe(false);
+      expect(contract.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(contract.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(contract.safetyFlags.canCallApiRoute).toBe(false);
+      expect(contract.safetyFlags.canFetch).toBe(false);
+      expect(contract.safetyFlags.canPoll).toBe(false);
+      expect(contract.safetyFlags.canAccessCredentials).toBe(false);
+      expect(contract.safetyFlags.canCarryCredentials).toBe(false);
+      expect(contract.safetyFlags.canReadCookies).toBe(false);
+      expect(contract.safetyFlags.canExportSession).toBe(false);
+      expect(contract.safetyFlags.canCarrySessionTokens).toBe(false);
+      expect(contract.safetyFlags.canAutomateBankId).toBe(false);
+      expect(contract.safetyFlags.canSubmitOrder).toBe(false);
+      expect(contract.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(contract.safetyFlags.canClickFinalSell).toBe(false);
+      expect(contract.safetyFlags.canWriteSupabase).toBe(false);
+      expect(contract.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(contract.safetyFlags.userMustConfirm).toBe(true);
+      expect(contract.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(contract.safetyFlags.controlsEnabled).toBe(false);
+      expect(contract.safetyFlags.gateLocked).toBe(true);
+      expect(contract.forbiddenPayload).toEqual(
+        expect.arrayContaining([
+          "raw_credentials",
+          "cookies",
+          "session_tokens",
+          "account_numbers",
+          "order_ids",
+        ]),
+      );
+      if (contract.requestShape) {
+        expect(contract.requestShape.canInvokeTargetNow).toBe(false);
+        expect(contract.requestShape.canCarryCredentials).toBe(false);
+        expect(contract.requestShape.canCarryCookies).toBe(false);
+        expect(contract.requestShape.canCarrySessionTokens).toBe(false);
+        expect(contract.requestShape.canCarryAccountNumbers).toBe(false);
+        expect(contract.requestShape.canCarryOrderIds).toBe(false);
+      }
+    }
+
+    const combinedSource = [
+      modelSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+      routeSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza disabled local-dev invocation adapter contract",
+      "Fixture/model only",
+      "Disabled contract only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Design-only approval modeled",
+      "Runtime invocation not approved",
+      "Invocation boundary locked",
+      "Target request shape modeled",
+      "Safe payload summary modeled",
+      "Sensitive payload forbidden",
+      "Smoke runner invocation locked",
+      "Terminal script invocation locked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "disabled_contract_ready_login_smoke_target",
+      "disabled_contract_ready_order_chain_target",
+      "disabled_contract_ready_combined_login_then_order_target",
+      "blocked_design_not_approved",
+      "runtime_approval_requested_forbidden",
+      "credential_payload_forbidden",
+      "cookies_session_payload_forbidden",
+      "account_order_id_payload_forbidden",
+      "canApproveRuntimeInvocation",
+      "canCrossInvocationBoundaryNow",
+      "canInvokeSmokeRunnerNow",
+      "canRunTerminalScriptNow",
+      "canUseBrowserAutomationNow",
+      "canStartHandoff",
+      "canPrepareOrderNow",
+      "canRunSmokeTestFromUi",
+      "canCallApiRoute",
+      "canFetch",
+      "canPoll",
+      "canAccessCredentials",
+      "canCarryCredentials",
+      "canReadCookies",
+      "canExportSession",
+      "canCarrySessionTokens",
+      "canAutomateBankId",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWriteSupabase",
+      "canClaimProductionReady",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-manual-local-dev-invocation-approval-runbook.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
+      readRepoFile("docs/avanza-model-only-local-dev-bridge-dry-runner.md"),
+      readRepoFile("docs/avanza-disabled-local-dev-bridge-runner.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-activation-checklist.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-contract.md"),
+      readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/disabled.*invocation.*adapter.*contract/i);
+      expect(normalized).toMatch(/future adapter shape|adapter shape/i);
+      expect(normalized).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaDisabledLocalDevInvocationAdapterContractHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaDisabledLocalDevInvocationAdapterContractFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-disabled-local-dev-invocation-adapter-contract",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaDisabledLocalDevInvocationAdapterContract",
+    );
+    expect(tradeAppSource).not.toContain("avanza-login-smoke-test.local");
+    expect(tradeAppSource).not.toContain("avanza-order-chain-smoke-test.local");
+    expect(apiRouteSource).not.toContain(
+      "avanza-disabled-local-dev-invocation-adapter-contract",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-disabled-local-dev-invocation-adapter-contract",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-disabled-local-dev-invocation-adapter-contract",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-disabled-local-dev-invocation-adapter-contract",
+    );
+
+    for (const source of [modelSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza disabled invocation adapter payload validator stays design-review only", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-disabled-invocation-adapter-payload-validator.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-disabled-invocation-adapter-payload-validator-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaDisabledInvocationAdapterPayloadValidatorHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-disabled-invocation-adapter-payload-validator.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-disabled-invocation-adapter-payload-validator.ts",
+      "lib/avanza-disabled-invocation-adapter-payload-validator-fixtures.ts",
+      "components/execution/AvanzaDisabledInvocationAdapterPayloadValidatorHarness.tsx",
+      "docs/avanza-disabled-invocation-adapter-payload-validator.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const adapterContract =
+      avanzaDisabledLocalDevInvocationAdapterContractFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "disabled_contract_ready_order_chain_target",
+      )?.contract;
+
+    const safePayload = {
+      bridgeContractId: "bridge-contract-summary",
+      canAccessCredentials: false,
+      canApproveRuntimeInvocation: false,
+      canCallApiRoute: false,
+      canCrossInvocationBoundaryNow: false,
+      canInvokeSmokeRunnerNow: false,
+      canInvokeTargetNow: false,
+      canRunTerminalScriptNow: false,
+      canSubmitOrder: false,
+      canUseBrowserAutomationNow: false,
+      canWriteSupabase: false,
+      checkpointId: "bridge-readiness-checkpoint-summary",
+      checklistOrRunbookId: "manual-runbook-summary",
+      dryRunId: "model-only-dry-run-summary",
+      localDevOnly: true,
+      modelOnlyDefault: true,
+      requestId: "disabled-adapter-payload-design-review",
+      requestKind: "design_review_payload",
+      safePayloadSummary: ["selected ticker", "side", "quantity"],
+      selectedLimitPrice: 123.45,
+      selectedQuantity: 10,
+      selectedSide: "buy",
+      selectedTicker: "SAFE",
+      target: "order_chain_smoke_runner",
+      terminalOnly: true,
+    };
+
+    const validReport = validateAvanzaDisabledInvocationAdapterPayload({
+      adapterContract,
+      payloadCandidate: safePayload,
+    });
+    expect(validReport.status).toBe("valid_for_design_review");
+    expect(validReport.invocationBoundaryStatus).toBe("locked");
+    expect(validReport.safetyFlags.validatorOnly).toBe(true);
+    expect(validReport.safetyFlags.designReviewOnly).toBe(true);
+    expect(validReport.safetyFlags.headlessOnly).toBe(true);
+    expect(validReport.safetyFlags.visibleInUi).toBe(false);
+    expect(validReport.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+    expect(validReport.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+    expect(validReport.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+    expect(validReport.safetyFlags.canRunTerminalScriptNow).toBe(false);
+    expect(validReport.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+    expect(validReport.safetyFlags.canCallApiRoute).toBe(false);
+    expect(validReport.safetyFlags.canFetch).toBe(false);
+    expect(validReport.safetyFlags.canPoll).toBe(false);
+    expect(validReport.safetyFlags.canAccessCredentials).toBe(false);
+    expect(validReport.safetyFlags.canSubmitOrder).toBe(false);
+    expect(validReport.safetyFlags.canClickFinalBuy).toBe(false);
+    expect(validReport.safetyFlags.canClickFinalSell).toBe(false);
+    expect(validReport.safetyFlags.canWriteSupabase).toBe(false);
+    expect(validReport.safetyFlags.controlsEnabled).toBe(false);
+    expect(validReport.safetyFlags.gateLocked).toBe(true);
+
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        payloadCandidate: safePayload,
+      }).status,
+    ).toBe("invalid_missing_adapter_contract");
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        adapterContract: adapterContract
+          ? { ...adapterContract, requestShape: undefined }
+          : undefined,
+        payloadCandidate: safePayload,
+      }).status,
+    ).toBe("invalid_missing_request_shape");
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        adapterContract,
+        payloadCandidate: { ...safePayload, safePayloadSummary: [] },
+      }).status,
+    ).toBe("invalid_missing_safe_payload");
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        adapterContract,
+        payloadCandidate: { ...safePayload, raw_credentials: "forbidden" },
+      }).status,
+    ).toBe("invalid_sensitive_payload_detected");
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        adapterContract,
+        payloadCandidate: { ...safePayload, canInvokeTargetNow: true },
+      }).status,
+    ).toBe("invalid_invocation_boundary_crossed");
+    expect(
+      validateAvanzaDisabledInvocationAdapterPayload({
+        adapterContract,
+        payloadCandidate: { ...safePayload, canInvokeSmokeRunnerNow: true },
+      }).status,
+    ).toBe("invalid_runtime_capability_detected");
+
+    const fixtureStatusMap = new Map(
+      avanzaDisabledInvocationAdapterPayloadValidatorFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["valid_payload_for_design_review", "valid_for_design_review"],
+      [
+        "invalid_missing_adapter_contract",
+        "invalid_missing_adapter_contract",
+      ],
+      ["invalid_missing_request_shape", "invalid_missing_request_shape"],
+      ["invalid_missing_safe_payload", "invalid_missing_safe_payload"],
+      ["raw_credentials_detected", "invalid_sensitive_payload_detected"],
+      ["cookies_detected", "invalid_sensitive_payload_detected"],
+      ["session_tokens_detected", "invalid_sensitive_payload_detected"],
+      ["account_numbers_detected", "invalid_sensitive_payload_detected"],
+      ["order_ids_detected", "invalid_sensitive_payload_detected"],
+      ["bankid_artifacts_detected", "invalid_sensitive_payload_detected"],
+      ["unredacted_screenshots_detected", "invalid_sensitive_payload_detected"],
+      [
+        "raw_broker_confirmations_detected",
+        "invalid_sensitive_payload_detected",
+      ],
+      ["api_route_reference_detected", "invalid_sensitive_payload_detected"],
+      ["smoke_script_reference_detected", "invalid_sensitive_payload_detected"],
+      ["browser_runtime_handle_detected", "invalid_sensitive_payload_detected"],
+      ["supabase_write_payload_detected", "invalid_sensitive_payload_detected"],
+      [
+        "can_invoke_target_now_true_blocked",
+        "invalid_invocation_boundary_crossed",
+      ],
+      [
+        "can_run_terminal_script_now_true_blocked",
+        "invalid_invocation_boundary_crossed",
+      ],
+      [
+        "can_use_browser_automation_now_true_blocked",
+        "invalid_invocation_boundary_crossed",
+      ],
+      ["runtime_capability_detected", "invalid_runtime_capability_detected"],
+      [
+        "invocation_boundary_crossed_blocked",
+        "invalid_invocation_boundary_crossed",
+      ],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaDisabledInvocationAdapterPayloadValidatorFixtures) {
+      const { report } = fixture;
+
+      expect(report.status).toBe(fixture.expectedStatus);
+      expect(report.safetyFlags.validatorOnly).toBe(true);
+      expect(report.safetyFlags.designReviewOnly).toBe(true);
+      expect(report.safetyFlags.headlessOnly).toBe(true);
+      expect(report.safetyFlags.visibleInUi).toBe(false);
+      expect(report.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+      expect(report.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(report.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(report.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(report.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(report.safetyFlags.canCallApiRoute).toBe(false);
+      expect(report.safetyFlags.canFetch).toBe(false);
+      expect(report.safetyFlags.canPoll).toBe(false);
+      expect(report.safetyFlags.canAccessCredentials).toBe(false);
+      expect(report.safetyFlags.canReadCookies).toBe(false);
+      expect(report.safetyFlags.canCarrySessionTokens).toBe(false);
+      expect(report.safetyFlags.canAutomateBankId).toBe(false);
+      expect(report.safetyFlags.canSubmitOrder).toBe(false);
+      expect(report.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(report.safetyFlags.canClickFinalSell).toBe(false);
+      expect(report.safetyFlags.canWriteSupabase).toBe(false);
+      expect(report.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(report.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(report.safetyFlags.controlsEnabled).toBe(false);
+      expect(report.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      modelSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+      routeSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza disabled invocation adapter payload validator",
+      "Fixture/model only",
+      "Design review only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Safe payload validation modeled",
+      "Sensitive payload forbidden",
+      "Runtime capability blocked",
+      "Invocation boundary locked",
+      "Smoke runner invocation locked",
+      "Terminal script invocation locked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "valid_payload_for_design_review",
+      "invalid_missing_adapter_contract",
+      "invalid_missing_request_shape",
+      "invalid_missing_safe_payload",
+      "invalid_sensitive_payload_detected",
+      "invalid_runtime_capability_detected",
+      "invalid_invocation_boundary_crossed",
+      "raw_credentials_detected",
+      "cookies_detected",
+      "session_tokens_detected",
+      "account_numbers_detected",
+      "order_ids_detected",
+      "bankid_artifacts_detected",
+      "unredacted_screenshots_detected",
+      "raw_broker_confirmations_detected",
+      "api_route_reference_detected",
+      "smoke_script_reference_detected",
+      "browser_runtime_handle_detected",
+      "supabase_write_payload_detected",
+      "canInvokeTargetNow",
+      "canInvokeSmokeRunnerNow",
+      "canRunTerminalScriptNow",
+      "canUseBrowserAutomationNow",
+      "canCrossInvocationBoundaryNow",
+      "canAccessCredentials",
+      "canSubmitOrder",
+      "canWriteSupabase",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-disabled-local-dev-invocation-adapter-contract.md"),
+      readRepoFile("docs/avanza-manual-local-dev-invocation-approval-runbook.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
+      readRepoFile("docs/avanza-model-only-local-dev-bridge-dry-runner.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/disabled.*payload.*validator/i);
+      expect(normalized).toMatch(/sensitive payload/i);
+      expect(normalized).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaDisabledInvocationAdapterPayloadValidatorHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaDisabledInvocationAdapterPayloadValidatorFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+
+    for (const protectedSource of [
+      tradeAppSource,
+      apiRouteSource,
+      passiveActionShellSource,
+      loginSmokeScriptSource,
+      orderSmokeScriptSource,
+    ]) {
+      expect(protectedSource).not.toContain(
+        "avanza-disabled-invocation-adapter-payload-validator",
+      );
+      expect(protectedSource).not.toContain(
+        "AvanzaDisabledInvocationAdapterPayloadValidator",
+      );
+    }
+
+    for (const source of [modelSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Avanza invocation adapter design checkpoint summarizes design stack only", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-invocation-adapter-design-checkpoint.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-invocation-adapter-design-checkpoint-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaInvocationAdapterDesignCheckpointHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-invocation-adapter-design-checkpoint.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-invocation-adapter-design-checkpoint.ts",
+      "lib/avanza-invocation-adapter-design-checkpoint-fixtures.ts",
+      "components/execution/AvanzaInvocationAdapterDesignCheckpointHarness.tsx",
+      "docs/avanza-invocation-adapter-design-checkpoint.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const approvalRunbook =
+      avanzaManualLocalDevInvocationApprovalRunbookFixtures.find(
+        (fixture) =>
+          fixture.fixtureId ===
+          "approved_for_disabled_invocation_adapter_design",
+      )?.runbook;
+    const bridgeReadinessCheckpoint =
+      avanzaLocalDevBridgeReadinessCheckpointFixtures.find(
+        (fixture) => fixture.fixtureId === "ready_for_model_only_boundary_review",
+      )?.checkpoint;
+    const adapterContract =
+      avanzaDisabledLocalDevInvocationAdapterContractFixtures.find(
+        (fixture) =>
+          fixture.fixtureId === "disabled_contract_ready_order_chain_target",
+      )?.contract;
+    const payloadValidationReport =
+      avanzaDisabledInvocationAdapterPayloadValidatorFixtures.find(
+        (fixture) => fixture.fixtureId === "valid_payload_for_design_review",
+      )?.report;
+    const invalidPayloadValidationReport =
+      avanzaDisabledInvocationAdapterPayloadValidatorFixtures.find(
+        (fixture) => fixture.fixtureId === "raw_credentials_detected",
+      )?.report;
+
+    const readyCheckpoint = buildAvanzaInvocationAdapterDesignCheckpoint({
+      adapterContract,
+      approvalRunbook,
+      bridgeReadinessCheckpoint,
+      designReviewed: true,
+      payloadReviewed: true,
+      payloadValidationReport,
+    });
+    expect(readyCheckpoint.status).toBe("ready_for_design_review");
+    expect(readyCheckpoint.readyForDesignReview).toBe(true);
+    expect(readyCheckpoint.readyForRuntime).toBe(false);
+    expect(readyCheckpoint.readyForRealRun).toBe(false);
+    expect(readyCheckpoint.readyForProduction).toBe(false);
+    expect(readyCheckpoint.nextAllowedDesignStep).toBe(
+      "disabled_adapter_shape_review",
+    );
+    expect(readyCheckpoint.nextForbiddenSteps).toEqual(
+      expect.arrayContaining([
+        "invoke_smoke_runner",
+        "import_terminal_script",
+        "start_browser_automation",
+        "access_credentials",
+        "read_cookies",
+        "export_session",
+        "automate_bankid",
+        "submit_order",
+        "click_final_buy",
+        "click_final_sell",
+        "write_supabase_execution",
+        "activate_trade_ui_execution",
+        "activate_api_route_execution",
+        "claim_production_ready",
+      ]),
+    );
+    expect(readyCheckpoint.safetyFlags.checkpointOnly).toBe(true);
+    expect(readyCheckpoint.safetyFlags.designReviewOnly).toBe(true);
+    expect(readyCheckpoint.safetyFlags.headlessOnly).toBe(true);
+    expect(readyCheckpoint.safetyFlags.visibleInUi).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canRunTerminalScriptNow).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canStartHandoff).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canPrepareOrderNow).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canCallApiRoute).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canFetch).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canPoll).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canAccessCredentials).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canCarryCredentials).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canReadCookies).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canExportSession).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canCarrySessionTokens).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canAutomateBankId).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canSubmitOrder).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canClickFinalBuy).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canClickFinalSell).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canWriteSupabase).toBe(false);
+    expect(readyCheckpoint.safetyFlags.canClaimProductionReady).toBe(false);
+    expect(readyCheckpoint.safetyFlags.userMustConfirm).toBe(true);
+    expect(readyCheckpoint.safetyFlags.finalHumanClickRequired).toBe(true);
+    expect(readyCheckpoint.safetyFlags.controlsEnabled).toBe(false);
+    expect(readyCheckpoint.safetyFlags.gateLocked).toBe(true);
+
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        payloadValidationReport,
+      }).status,
+    ).toBe("blocked_missing_adapter_contract");
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        adapterContract,
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+      }).status,
+    ).toBe("blocked_missing_payload_validator");
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        adapterContract,
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        payloadValidationReport: invalidPayloadValidationReport,
+      }).status,
+    ).toBe("blocked_payload_invalid");
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        adapterContract,
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        payloadValidationReport,
+        runtimeRequested: true,
+      }).status,
+    ).toBe("blocked_runtime_requested");
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        adapterContract,
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        payloadValidationReport,
+        realRunRequested: true,
+      }).status,
+    ).toBe("blocked_for_real_execution");
+    expect(
+      buildAvanzaInvocationAdapterDesignCheckpoint({
+        adapterContract,
+        approvalRunbook,
+        bridgeReadinessCheckpoint,
+        payloadValidationReport,
+        productionRequested: true,
+      }).status,
+    ).toBe("blocked_for_production");
+
+    const fixtureStatusMap = new Map(
+      avanzaInvocationAdapterDesignCheckpointFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["ready_for_design_review", "ready_for_design_review"],
+      [
+        "ready_for_disabled_adapter_review",
+        "ready_for_disabled_adapter_review",
+      ],
+      ["blocked_missing_adapter_contract", "blocked_missing_adapter_contract"],
+      ["blocked_missing_payload_validator", "blocked_missing_payload_validator"],
+      ["blocked_invalid_payload", "blocked_payload_invalid"],
+      ["blocked_runtime_requested", "blocked_runtime_requested"],
+      ["blocked_real_run_requested", "blocked_for_real_execution"],
+      ["blocked_production_requested", "blocked_for_production"],
+      ["safe_payload_shape_validated", "ready_for_design_review"],
+      ["sensitive_payload_rejected", "blocked_payload_invalid"],
+      ["invocation_boundary_locked", "blocked_invocation_boundary_locked"],
+      ["smoke_runner_invocation_locked", "ready_for_design_review"],
+      ["terminal_script_invocation_locked", "ready_for_design_review"],
+      ["browser_automation_locked", "ready_for_design_review"],
+      ["credential_access_locked", "ready_for_design_review"],
+      ["cookies_session_forbidden", "ready_for_design_review"],
+      ["bankid_automation_forbidden", "ready_for_design_review"],
+      ["order_submission_forbidden", "ready_for_design_review"],
+      ["final_kop_salj_human_only", "ready_for_design_review"],
+      ["supabase_writes_locked", "ready_for_design_review"],
+      ["trade_ui_execution_locked", "ready_for_design_review"],
+      ["api_route_activation_locked", "ready_for_design_review"],
+      ["production_readiness_blocked", "ready_for_design_review"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaInvocationAdapterDesignCheckpointFixtures) {
+      const { checkpoint } = fixture;
+
+      expect(checkpoint.status).toBe(fixture.expectedStatus);
+      expect(checkpoint.readyForRuntime).toBe(false);
+      expect(checkpoint.readyForRealRun).toBe(false);
+      expect(checkpoint.readyForProduction).toBe(false);
+      expect(checkpoint.safetyFlags.checkpointOnly).toBe(true);
+      expect(checkpoint.safetyFlags.designReviewOnly).toBe(true);
+      expect(checkpoint.safetyFlags.headlessOnly).toBe(true);
+      expect(checkpoint.safetyFlags.visibleInUi).toBe(false);
+      expect(checkpoint.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+      expect(checkpoint.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(checkpoint.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(checkpoint.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(checkpoint.safetyFlags.canStartHandoff).toBe(false);
+      expect(checkpoint.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(checkpoint.safetyFlags.canCallApiRoute).toBe(false);
+      expect(checkpoint.safetyFlags.canFetch).toBe(false);
+      expect(checkpoint.safetyFlags.canPoll).toBe(false);
+      expect(checkpoint.safetyFlags.canAccessCredentials).toBe(false);
+      expect(checkpoint.safetyFlags.canCarryCredentials).toBe(false);
+      expect(checkpoint.safetyFlags.canReadCookies).toBe(false);
+      expect(checkpoint.safetyFlags.canExportSession).toBe(false);
+      expect(checkpoint.safetyFlags.canCarrySessionTokens).toBe(false);
+      expect(checkpoint.safetyFlags.canAutomateBankId).toBe(false);
+      expect(checkpoint.safetyFlags.canSubmitOrder).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalSell).toBe(false);
+      expect(checkpoint.safetyFlags.canWriteSupabase).toBe(false);
+      expect(checkpoint.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(checkpoint.safetyFlags.userMustConfirm).toBe(true);
+      expect(checkpoint.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(checkpoint.safetyFlags.controlsEnabled).toBe(false);
+      expect(checkpoint.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      modelSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+      routeSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza invocation adapter design checkpoint",
+      "Fixture/model only",
+      "Design review only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Disabled adapter contract reviewed",
+      "Payload validator reviewed",
+      "Safe payload shape validated",
+      "Sensitive payload rejected",
+      "Runtime invocation not approved",
+      "Invocation boundary locked",
+      "Smoke runner invocation locked",
+      "Terminal script invocation locked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "Production readiness blocked",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "ready_for_design_review",
+      "blocked_missing_adapter_contract",
+      "blocked_missing_payload_validator",
+      "blocked_payload_invalid",
+      "blocked_runtime_requested",
+      "safe_payload_shape_validated",
+      "sensitive_payload_rejected",
+      "canApproveRuntimeInvocation",
+      "canCrossInvocationBoundaryNow",
+      "canInvokeSmokeRunnerNow",
+      "canRunTerminalScriptNow",
+      "canUseBrowserAutomationNow",
+      "canStartHandoff",
+      "canPrepareOrderNow",
+      "canRunSmokeTestFromUi",
+      "canCallApiRoute",
+      "canFetch",
+      "canPoll",
+      "canAccessCredentials",
+      "canCarryCredentials",
+      "canReadCookies",
+      "canExportSession",
+      "canCarrySessionTokens",
+      "canAutomateBankId",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWriteSupabase",
+      "canClaimProductionReady",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-disabled-invocation-adapter-payload-validator.md"),
+      readRepoFile("docs/avanza-disabled-local-dev-invocation-adapter-contract.md"),
+      readRepoFile("docs/avanza-manual-local-dev-invocation-approval-runbook.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/invocation adapter design checkpoint/i);
+      expect(normalized).toMatch(/design review only|validates design review/i);
+      expect(normalized).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaInvocationAdapterDesignCheckpointHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaInvocationAdapterDesignCheckpointFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-invocation-adapter-design-checkpoint",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaInvocationAdapterDesignCheckpoint",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-invocation-adapter-design-checkpoint",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-invocation-adapter-design-checkpoint",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-invocation-adapter-design-checkpoint",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-invocation-adapter-design-checkpoint",
+    );
+
+    for (const source of [modelSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
+      expect(source).not.toMatch(
+        /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
+      );
+      expect(source).not.toMatch(/clickFinal\s*\(|finalKop\s*\(|finalKöp\s*\(/i);
+    }
+  });
+
+  test("Sharp Semi Auto Execution phase checkpoint summarizes roadmap without opening runtime", () => {
+    const modelSource = readRepoFile(
+      "lib/avanza-sharp-semi-auto-execution-phase-checkpoint.ts",
+    );
+    const fixtureSource = readRepoFile(
+      "lib/avanza-sharp-semi-auto-execution-phase-checkpoint-fixtures.ts",
+    );
+    const harnessSource = readRepoFile(
+      "components/execution/AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness.tsx",
+    );
+    const docSource = readRepoFile(
+      "docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md",
+    );
+    const routeSource = readRepoFile("app/dev/avanza-visual-qa/page.tsx");
+    const tradeAppSource = readRepoFile("app/trade-app.tsx");
+    const apiRouteSource = readRepoFile(
+      "app/api/dev/avanza/fill-only/stub/route.ts",
+    );
+    const passiveActionShellSource = readRepoFile(
+      "components/execution/AvanzaPassiveDisabledActionShell.tsx",
+    );
+    const loginSmokeScriptSource = readRepoFile(
+      "scripts/avanza-login-smoke-test.local.ts",
+    );
+    const orderSmokeScriptSource = readRepoFile(
+      "scripts/avanza-order-chain-smoke-test.local.ts",
+    );
+
+    for (const path of [
+      "lib/avanza-sharp-semi-auto-execution-phase-checkpoint.ts",
+      "lib/avanza-sharp-semi-auto-execution-phase-checkpoint-fixtures.ts",
+      "components/execution/AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness.tsx",
+      "docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md",
+    ]) {
+      expect(existsSync(join(repoRoot, path)), `${path} should exist`).toBe(
+        true,
+      );
+      expect(readRepoFile(path).trim().length).toBeGreaterThan(0);
+    }
+
+    const phaseComplete = buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint();
+    expect(phaseComplete.status).toBe("phase_complete");
+    expect(phaseComplete.completedLayers.map((layer) => layer.layer)).toEqual(
+      expect.arrayContaining([
+        "headless_contract_chain",
+        "orchestration_pipeline",
+        "session_lifecycle",
+        "architecture_checkpoint",
+        "invocation_adapter_design_checkpoint",
+      ]),
+    );
+    expect(phaseComplete.modelOnlyLayers.map((layer) => layer.layer)).toEqual(
+      expect.arrayContaining([
+        "local_dev_bridge_contract",
+        "activation_checklist",
+        "disabled_bridge_runner",
+        "model_only_bridge_dry_run",
+        "invocation_boundary_checkpoint",
+        "manual_invocation_approval_runbook",
+        "disabled_invocation_adapter_contract",
+        "payload_validator",
+        "settlement",
+      ]),
+    );
+    expect(phaseComplete.lockedLayers.map((layer) => layer.layer)).toEqual(
+      expect.arrayContaining([
+        "smoke_scaffold",
+        "trade_ui",
+        "api_route",
+        "browser_automation",
+        "credential_access",
+        "production",
+      ]),
+    );
+    expect(phaseComplete.allowedNextWorkstreams).toEqual(
+      expect.arrayContaining([
+        "manual_local_dev_test_runbook",
+        "additional_model_only_validation",
+        "disabled_invocation_adapter_shape_review",
+        "model_only_adapter_validator_review",
+        "settlement_model_checkpoint",
+        "safety_audit",
+      ]),
+    );
+    expect(phaseComplete.forbiddenNextWorkstreams).toEqual(
+      expect.arrayContaining([
+        "runtime_invocation_forbidden",
+        "production_forbidden",
+      ]),
+    );
+    expect(phaseComplete.notRecommendedNextSteps).toEqual(
+      expect.arrayContaining([
+        "adding more visual Trade UI elements",
+        "wiring active handoff",
+        "invoking smoke scripts",
+        "using browser automation",
+        "storing credentials",
+        "reading cookies/session",
+      ]),
+    );
+
+    expect(
+      buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint({
+        roadmapReviewRequested: true,
+      }).status,
+    ).toBe("ready_for_roadmap_review");
+    expect(
+      buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint({
+        preferredNextWorkstream: "manual_local_dev_test_runbook",
+      }).status,
+    ).toBe("ready_for_manual_local_dev_test_planning");
+    expect(
+      buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint({
+        preferredNextWorkstream: "additional_model_only_validation",
+      }).status,
+    ).toBe("ready_for_additional_model_only_design");
+    expect(
+      buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint({
+        runtimeRequested: true,
+      }).status,
+    ).toBe("blocked_for_runtime");
+    expect(
+      buildAvanzaSharpSemiAutoExecutionPhaseCheckpoint({
+        productionRequested: true,
+      }).status,
+    ).toBe("blocked_for_production");
+
+    const fixtureStatusMap = new Map(
+      avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures.map((fixture) => [
+        fixture.fixtureId,
+        fixture.expectedStatus,
+      ]),
+    );
+    for (const [fixtureId, expectedStatus] of [
+      ["phase_complete", "phase_complete"],
+      ["ready_for_roadmap_review", "ready_for_roadmap_review"],
+      [
+        "ready_for_manual_local_dev_test_planning",
+        "ready_for_manual_local_dev_test_planning",
+      ],
+      [
+        "ready_for_additional_model_only_design",
+        "ready_for_additional_model_only_design",
+      ],
+      ["blocked_for_runtime", "blocked_for_runtime"],
+      ["blocked_for_production", "blocked_for_production"],
+      [
+        "manual_local_dev_test_runbook_allowed",
+        "ready_for_manual_local_dev_test_planning",
+      ],
+      [
+        "additional_model_only_validation_allowed",
+        "ready_for_additional_model_only_design",
+      ],
+      [
+        "settlement_model_checkpoint_allowed",
+        "ready_for_additional_model_only_design",
+      ],
+      ["safety_audit_allowed", "ready_for_additional_model_only_design"],
+      ["runtime_invocation_forbidden", "blocked_for_runtime"],
+      ["production_forbidden", "blocked_for_production"],
+      [
+        "visual_trade_ui_expansion_not_recommended",
+        "ready_for_roadmap_review",
+      ],
+      ["active_handoff_not_recommended", "ready_for_roadmap_review"],
+      ["smoke_runner_invocation_forbidden", "ready_for_roadmap_review"],
+      ["browser_automation_locked", "ready_for_roadmap_review"],
+      ["credential_access_locked", "ready_for_roadmap_review"],
+      ["cookies_session_forbidden", "ready_for_roadmap_review"],
+      ["final_kop_salj_human_only", "ready_for_roadmap_review"],
+    ] as const) {
+      expect(fixtureStatusMap.get(fixtureId)).toBe(expectedStatus);
+      expect(fixtureSource).toContain(fixtureId);
+    }
+
+    for (const fixture of avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures) {
+      const { checkpoint } = fixture;
+
+      expect(checkpoint.status).toBe(fixture.expectedStatus);
+      expect(checkpoint.safetyFlags.checkpointOnly).toBe(true);
+      expect(checkpoint.safetyFlags.roadmapOnly).toBe(true);
+      expect(checkpoint.safetyFlags.headlessOnly).toBe(true);
+      expect(checkpoint.safetyFlags.visibleInUi).toBe(false);
+      expect(checkpoint.safetyFlags.canApproveRuntimeInvocation).toBe(false);
+      expect(checkpoint.safetyFlags.canCrossInvocationBoundaryNow).toBe(false);
+      expect(checkpoint.safetyFlags.canInvokeSmokeRunnerNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunTerminalScriptNow).toBe(false);
+      expect(checkpoint.safetyFlags.canUseBrowserAutomationNow).toBe(false);
+      expect(checkpoint.safetyFlags.canStartHandoff).toBe(false);
+      expect(checkpoint.safetyFlags.canPrepareOrderNow).toBe(false);
+      expect(checkpoint.safetyFlags.canRunSmokeTestFromUi).toBe(false);
+      expect(checkpoint.safetyFlags.canCallApiRoute).toBe(false);
+      expect(checkpoint.safetyFlags.canFetch).toBe(false);
+      expect(checkpoint.safetyFlags.canPoll).toBe(false);
+      expect(checkpoint.safetyFlags.canAccessCredentials).toBe(false);
+      expect(checkpoint.safetyFlags.canCarryCredentials).toBe(false);
+      expect(checkpoint.safetyFlags.canReadCookies).toBe(false);
+      expect(checkpoint.safetyFlags.canExportSession).toBe(false);
+      expect(checkpoint.safetyFlags.canCarrySessionTokens).toBe(false);
+      expect(checkpoint.safetyFlags.canAutomateBankId).toBe(false);
+      expect(checkpoint.safetyFlags.canSubmitOrder).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalBuy).toBe(false);
+      expect(checkpoint.safetyFlags.canClickFinalSell).toBe(false);
+      expect(checkpoint.safetyFlags.canWriteSupabase).toBe(false);
+      expect(checkpoint.safetyFlags.canClaimProductionReady).toBe(false);
+      expect(checkpoint.safetyFlags.userMustConfirm).toBe(true);
+      expect(checkpoint.safetyFlags.finalHumanClickRequired).toBe(true);
+      expect(checkpoint.safetyFlags.controlsEnabled).toBe(false);
+      expect(checkpoint.safetyFlags.gateLocked).toBe(true);
+    }
+
+    const combinedSource = [
+      modelSource,
+      fixtureSource,
+      harnessSource,
+      docSource,
+      routeSource,
+    ].join("\n");
+    for (const copy of [
+      "Avanza Sharp Semi Auto Execution phase checkpoint",
+      "Fixture/model only",
+      "Roadmap only",
+      "Hidden under the surface",
+      "Agent-readable, UI-hidden",
+      "Phase complete",
+      "Headless chain complete",
+      "Orchestration complete",
+      "Invocation adapter design checkpointed",
+      "Runtime invocation not approved",
+      "Invocation boundary locked",
+      "Smoke runner invocation locked",
+      "Terminal script invocation locked",
+      "Browser automation locked",
+      "Credential access locked",
+      "Cookies/session forbidden",
+      "BankID automation forbidden",
+      "Order submission forbidden",
+      "Final KÖP/SÄLJ human-only",
+      "Supabase writes locked",
+      "Trade UI execution locked",
+      "API route activation locked",
+      "Production readiness blocked",
+      "UI remains visually simple",
+      "No visible Trade UI changes",
+      "No active handoff",
+      "No prepare action",
+      "No buy/sell CTA",
+      "No browser automation now",
+      "No API route call",
+      "No fetch/polling",
+      "No credential access now",
+      "No order submission",
+      "No final KÖP/SÄLJ click",
+      "No Supabase write",
+      "Not production ready",
+      "phase_complete",
+      "ready_for_roadmap_review",
+      "ready_for_manual_local_dev_test_planning",
+      "blocked_for_runtime",
+      "blocked_for_production",
+      "runtime_invocation_forbidden",
+      "visual_trade_ui_expansion_not_recommended",
+      "active_handoff_not_recommended",
+      "canApproveRuntimeInvocation",
+      "canCrossInvocationBoundaryNow",
+      "canInvokeSmokeRunnerNow",
+      "canRunTerminalScriptNow",
+      "canUseBrowserAutomationNow",
+      "canStartHandoff",
+      "canPrepareOrderNow",
+      "canRunSmokeTestFromUi",
+      "canCallApiRoute",
+      "canFetch",
+      "canPoll",
+      "canAccessCredentials",
+      "canCarryCredentials",
+      "canReadCookies",
+      "canExportSession",
+      "canCarrySessionTokens",
+      "canAutomateBankId",
+      "canSubmitOrder",
+      "canClickFinalBuy",
+      "canClickFinalSell",
+      "canWriteSupabase",
+      "canClaimProductionReady",
+      "userMustConfirm",
+      "finalHumanClickRequired",
+      "controlsEnabled",
+      "gateLocked",
+    ]) {
+      expect(combinedSource).toContain(copy);
+    }
+
+    for (const doc of [
+      docSource,
+      readRepoFile("docs/avanza-invocation-adapter-design-checkpoint.md"),
+      readRepoFile("docs/avanza-disabled-invocation-adapter-payload-validator.md"),
+      readRepoFile("docs/avanza-disabled-local-dev-invocation-adapter-contract.md"),
+      readRepoFile("docs/avanza-manual-local-dev-invocation-approval-runbook.md"),
+      readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
+      readRepoFile("docs/avanza-execution-readiness-map.md"),
+      readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
+      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
+      readRepoFile(
+        "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
+      ),
+    ]) {
+      const normalized = normalizeWhitespace(doc);
+
+      expect(normalized).toMatch(/sharp semi auto execution phase checkpoint/i);
+      expect(normalized).toMatch(/current design phase as complete/i);
+      expect(normalized).toMatch(/separate workstream/i);
+      expect(normalized).toMatch(/runtime remains locked/i);
+    }
+
+    expect(routeSource).toContain(
+      "AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness",
+    );
+    expect(routeSource).toContain(
+      "avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures",
+    );
+    expect(routeSource).not.toMatch(/href=["']\/dev\/avanza-visual-qa["']/);
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;/,
+    );
+    expect(tradeAppSource).toMatch(
+      /const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;/,
+    );
+    expect(tradeAppSource).not.toContain(
+      "avanza-sharp-semi-auto-execution-phase-checkpoint",
+    );
+    expect(tradeAppSource).not.toContain(
+      "AvanzaSharpSemiAutoExecutionPhaseCheckpoint",
+    );
+    expect(apiRouteSource).not.toContain(
+      "avanza-sharp-semi-auto-execution-phase-checkpoint",
+    );
+    expect(passiveActionShellSource).not.toContain(
+      "avanza-sharp-semi-auto-execution-phase-checkpoint",
+    );
+    expect(loginSmokeScriptSource).not.toContain(
+      "avanza-sharp-semi-auto-execution-phase-checkpoint",
+    );
+    expect(orderSmokeScriptSource).not.toContain(
+      "avanza-sharp-semi-auto-execution-phase-checkpoint",
+    );
+
+    for (const source of [modelSource, fixtureSource, harnessSource]) {
+      expect(source).not.toMatch(/from\s+["']playwright["']/);
+      expect(source).not.toMatch(/chromium\.launch|connectOverCDP|page\.goto/);
+      expect(source).not.toMatch(/\bfetch\s*\(/);
+      expect(source).not.toMatch(/process\.env/);
+      expect(source).not.toMatch(/execFile|spawn|child_process/);
+      expect(source).not.toMatch(/document\.cookie|cookies\(\)|cookies\.set/i);
+      expect(source).not.toMatch(/localStorage\s*[.\[]|sessionStorage\s*[.\[]/);
+      expect(source).not.toMatch(
+        /from ['"].*supabase|supabase\.(from|insert|rpc)/i,
+      );
+      expect(source).not.toMatch(/<button\b|onClick\s*=/);
+      expect(source).not.toContain("avanza-login-smoke-test.local");
+      expect(source).not.toContain("avanza-order-chain-smoke-test.local");
+      expect(source).not.toMatch(
+        /runAvanzaOrderChainSmokeTest|runAvanzaIsolatedLoginSmokeTest/i,
+      );
       expect(source).not.toMatch(
         /submitOrder\s*\(|placeOrder\s*\(|confirmOrder\s*\(|executeOrder\s*\(|sendOrder\s*\(/i,
       );

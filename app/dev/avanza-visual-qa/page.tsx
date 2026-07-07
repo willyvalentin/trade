@@ -123,6 +123,45 @@ import {
   AvanzaHeadlessAgentPlanBuilderHarness,
 } from "@/components/execution/AvanzaHeadlessAgentPlanBuilderHarness";
 import {
+  AvanzaHeadlessExecutionSessionStateMachineHarness,
+} from "@/components/execution/AvanzaHeadlessExecutionSessionStateMachineHarness";
+import {
+  AvanzaHeadlessExecutionOrchestrationPipelineHarness,
+} from "@/components/execution/AvanzaHeadlessExecutionOrchestrationPipelineHarness";
+import {
+  AvanzaHeadlessExecutionArchitectureCheckpointHarness,
+} from "@/components/execution/AvanzaHeadlessExecutionArchitectureCheckpointHarness";
+import {
+  AvanzaLocalDevBridgeContractHarness,
+} from "@/components/execution/AvanzaLocalDevBridgeContractHarness";
+import {
+  AvanzaLocalDevBridgeActivationChecklistHarness,
+} from "@/components/execution/AvanzaLocalDevBridgeActivationChecklistHarness";
+import {
+  AvanzaDisabledLocalDevBridgeRunnerHarness,
+} from "@/components/execution/AvanzaDisabledLocalDevBridgeRunnerHarness";
+import {
+  AvanzaModelOnlyLocalDevBridgeDryRunnerHarness,
+} from "@/components/execution/AvanzaModelOnlyLocalDevBridgeDryRunnerHarness";
+import {
+  AvanzaLocalDevBridgeReadinessCheckpointHarness,
+} from "@/components/execution/AvanzaLocalDevBridgeReadinessCheckpointHarness";
+import {
+  AvanzaManualLocalDevInvocationApprovalRunbookHarness,
+} from "@/components/execution/AvanzaManualLocalDevInvocationApprovalRunbookHarness";
+import {
+  AvanzaDisabledLocalDevInvocationAdapterContractHarness,
+} from "@/components/execution/AvanzaDisabledLocalDevInvocationAdapterContractHarness";
+import {
+  AvanzaDisabledInvocationAdapterPayloadValidatorHarness,
+} from "@/components/execution/AvanzaDisabledInvocationAdapterPayloadValidatorHarness";
+import {
+  AvanzaInvocationAdapterDesignCheckpointHarness,
+} from "@/components/execution/AvanzaInvocationAdapterDesignCheckpointHarness";
+import {
+  AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness,
+} from "@/components/execution/AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness";
+import {
   AvanzaPageStateDetectorHarness,
 } from "@/components/execution/AvanzaPageStateDetectorHarness";
 import {
@@ -338,6 +377,45 @@ import {
 import {
   avanzaHeadlessAgentPlanBuilderFixtures,
 } from "@/lib/avanza-headless-agent-plan-builder-fixtures";
+import {
+  avanzaHeadlessExecutionSessionStateMachineFixtures,
+} from "@/lib/avanza-headless-execution-session-state-machine-fixtures";
+import {
+  avanzaHeadlessExecutionOrchestrationPipelineFixtures,
+} from "@/lib/avanza-headless-execution-orchestration-pipeline-fixtures";
+import {
+  avanzaHeadlessExecutionArchitectureCheckpointFixtures,
+} from "@/lib/avanza-headless-execution-architecture-checkpoint-fixtures";
+import {
+  avanzaLocalDevBridgeContractFixtures,
+} from "@/lib/avanza-local-dev-bridge-contract-fixtures";
+import {
+  avanzaLocalDevBridgeActivationChecklistFixtures,
+} from "@/lib/avanza-local-dev-bridge-activation-checklist-fixtures";
+import {
+  avanzaDisabledLocalDevBridgeRunnerFixtures,
+} from "@/lib/avanza-disabled-local-dev-bridge-runner-fixtures";
+import {
+  avanzaModelOnlyLocalDevBridgeDryRunFixtures,
+} from "@/lib/avanza-model-only-local-dev-bridge-dry-runner-fixtures";
+import {
+  avanzaLocalDevBridgeReadinessCheckpointFixtures,
+} from "@/lib/avanza-local-dev-bridge-readiness-checkpoint-fixtures";
+import {
+  avanzaManualLocalDevInvocationApprovalRunbookFixtures,
+} from "@/lib/avanza-manual-local-dev-invocation-approval-runbook-fixtures";
+import {
+  avanzaDisabledLocalDevInvocationAdapterContractFixtures,
+} from "@/lib/avanza-disabled-local-dev-invocation-adapter-contract-fixtures";
+import {
+  avanzaDisabledInvocationAdapterPayloadValidatorFixtures,
+} from "@/lib/avanza-disabled-invocation-adapter-payload-validator-fixtures";
+import {
+  avanzaInvocationAdapterDesignCheckpointFixtures,
+} from "@/lib/avanza-invocation-adapter-design-checkpoint-fixtures";
+import {
+  avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures,
+} from "@/lib/avanza-sharp-semi-auto-execution-phase-checkpoint-fixtures";
 import {
   avanzaPageStateDetectorFixtures,
 } from "@/lib/avanza-page-state-detector-fixtures";
@@ -815,6 +893,214 @@ export default function AvanzaDevVisualQaPage() {
           </div>
           <AvanzaHeadlessAgentPlanBuilderHarness
             fixtures={avanzaHeadlessAgentPlanBuilderFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless execution session state machine
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Recommendation BUY session modeled. Live-position SELL session modeled. Plan-to-review lifecycle modeled. Waiting for manual final confirmation. User final click observed, agent final click forbidden. Settlement reconciliation pending. Invalid transitions rejected. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access. No cookies/session. No BankID automation. No order submission by agent. No final KÖP/SÄLJ click by agent. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessExecutionSessionStateMachineHarness
+            fixtures={avanzaHeadlessExecutionSessionStateMachineFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless execution orchestration pipeline
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Contract-to-selector-to-plan-to-session modeled. Recommendation BUY orchestration modeled. Live-position SELL orchestration modeled. Exit priority modeled. Stop-loss priority modeled. Session initialized to plan-ready. Next theoretical agent step modeled. Final KÖP/SÄLJ human-only. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access. No cookies/session. No BankID automation. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessExecutionOrchestrationPipelineHarness
+            fixtures={avanzaHeadlessExecutionOrchestrationPipelineFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza headless execution architecture checkpoint
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Complete headless chain reviewed. Contract layer ready. Selector layer ready. Plan builder layer ready. Session state machine ready. Orchestration pipeline ready. Local-dev bridge gate not open. Browser automation gate locked. Trade UI gate locked. API route gate locked. Final KÖP/SÄLJ human-only. Order submission forbidden. BankID automation forbidden. Cookies/session forbidden. Database writes locked. Production readiness blocked. UI remains visually simple. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access. No order submission. No final KÖP/SÄLJ click. No database write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaHeadlessExecutionArchitectureCheckpointHarness
+            fixtures={avanzaHeadlessExecutionArchitectureCheckpointFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local-dev bridge contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Orchestration-to-smoke request candidate modeled. Local-dev bridge gate not open. Terminal-only future path. Env opt-in required. Manual terminal confirmation required. Separate real-run flag required. Smoke runner invocation blocked. Browser automation gate locked. Credential access gate locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalDevBridgeContractHarness
+            fixtures={avanzaLocalDevBridgeContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local-dev bridge activation checklist
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Manual review required. Disabled runner design approval modeled. Bridge gate still locked. Smoke runner invocation blocked. Terminal-only future path. Env opt-in required. Manual terminal confirmation required. Separate real-run flag required. Browser automation gate locked. Credential access gate locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route execution locked. UI simplicity protected. Production readiness blocked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalDevBridgeActivationChecklistHarness
+            fixtures={avanzaLocalDevBridgeActivationChecklistFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza disabled local-dev bridge runner
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Disabled skeleton only. Hidden under the surface. Agent-readable, UI-hidden. Bridge contract accepted only as model input. Activation checklist required. Disabled runner design approval does not open runtime. Bridge gate still locked. Smoke runner invocation blocked. Terminal script invocation blocked. Browser automation gate locked. Credential access gate locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledLocalDevBridgeRunnerHarness
+            fixtures={avanzaDisabledLocalDevBridgeRunnerFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza model-only local-dev bridge dry runner
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Dry-run only. Hidden under the surface. Agent-readable, UI-hidden. Simulates bridge run to invocation boundary. Bridge gate still locked. Smoke runner invocation blocked. Terminal script invocation blocked. Browser automation gate locked. Credential access gate locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaModelOnlyLocalDevBridgeDryRunnerHarness
+            fixtures={avanzaModelOnlyLocalDevBridgeDryRunFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza local-dev bridge readiness checkpoint
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Invocation boundary reached model-only. Cannot cross invocation boundary now. Bridge contract ready. Activation checklist ready. Disabled runner skeleton ready. Model-only dry-run ready. Smoke runner invocation blocked. Terminal script invocation blocked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. Production readiness blocked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaLocalDevBridgeReadinessCheckpointHarness
+            fixtures={avanzaLocalDevBridgeReadinessCheckpointFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza manual local-dev invocation approval runbook
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Hidden under the surface. Agent-readable, UI-hidden. Manual review required. Invocation boundary stop confirmed. Approval for design only modeled. Runtime invocation not approved. Real run forbidden. Production readiness forbidden. Smoke runner invocation blocked. Terminal script invocation blocked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. UI simplicity protected. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaManualLocalDevInvocationApprovalRunbookHarness
+            fixtures={avanzaManualLocalDevInvocationApprovalRunbookFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza disabled local-dev invocation adapter contract
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Disabled contract only. Hidden under the surface. Agent-readable, UI-hidden. Design-only approval modeled. Runtime invocation not approved. Invocation boundary locked. Target request shape modeled. Safe payload summary modeled. Sensitive payload forbidden. Smoke runner invocation locked. Terminal script invocation locked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledLocalDevInvocationAdapterContractHarness
+            fixtures={avanzaDisabledLocalDevInvocationAdapterContractFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza disabled invocation adapter payload validator
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Design review only. Hidden under the surface. Agent-readable, UI-hidden. Safe payload validation modeled. Sensitive payload forbidden. Runtime capability blocked. Invocation boundary locked. Smoke runner invocation locked. Terminal script invocation locked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaDisabledInvocationAdapterPayloadValidatorHarness
+            fixtures={avanzaDisabledInvocationAdapterPayloadValidatorFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza invocation adapter design checkpoint
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Design review only. Hidden under the surface. Agent-readable, UI-hidden. Disabled adapter contract reviewed. Payload validator reviewed. Safe payload shape validated. Sensitive payload rejected. Runtime invocation not approved. Invocation boundary locked. Smoke runner invocation locked. Terminal script invocation locked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. Production readiness blocked. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaInvocationAdapterDesignCheckpointHarness
+            fixtures={avanzaInvocationAdapterDesignCheckpointFixtures}
+          />
+        </section>
+
+        <section className="grid gap-4 rounded-md border border-white/10 bg-white/[0.025] p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Avanza Sharp Semi Auto Execution phase checkpoint
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              {
+                "Fixture/model only. Roadmap only. Hidden under the surface. Agent-readable, UI-hidden. Phase complete. Headless chain complete. Orchestration complete. Invocation adapter design checkpointed. Runtime invocation not approved. Invocation boundary locked. Smoke runner invocation locked. Terminal script invocation locked. Browser automation locked. Credential access locked. Cookies/session forbidden. BankID automation forbidden. Order submission forbidden. Final KÖP/SÄLJ human-only. Supabase writes locked. Trade UI execution locked. API route activation locked. Production readiness blocked. UI remains visually simple. No visible Trade UI changes. No active handoff. No prepare action. No buy/sell CTA. No browser automation now. No API route call. No fetch/polling. No credential access now. No order submission. No final KÖP/SÄLJ click. No Supabase write. Not production ready."
+              }
+            </p>
+          </div>
+          <AvanzaSharpSemiAutoExecutionPhaseCheckpointHarness
+            fixtures={avanzaSharpSemiAutoExecutionPhaseCheckpointFixtures}
           />
         </section>
 
