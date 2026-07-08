@@ -28,6 +28,24 @@ import {
   type TureMarketRegimeLabel,
   type TureMarketRegimeSummary,
 } from "@/lib/market-regime-labeling";
+import {
+  buildConfidenceCalibrationSummary,
+  type TureConfidenceCalibrationSummary,
+} from "@/lib/confidence-calibration";
+import {
+  buildModelGovernanceSummary,
+  type TureModelGovernanceSummary,
+} from "@/lib/model-change-governance";
+import {
+  buildIntelligenceOverview,
+  type TureIntelligenceOverview,
+} from "@/lib/intelligence-overview";
+import {
+  buildTradeQualityDecomposition,
+  buildTradeQualityDecompositionSummary,
+  type TureTradeQualityDecomposition,
+  type TureTradeQualityDecompositionSummary,
+} from "@/lib/trade-quality-decomposition";
 
 export type DailyLearningReviewVisibility =
   | "visible"
@@ -174,6 +192,18 @@ export type DailyLearningReviewMarketRegimeSummary = {
   sample_confidence: TureMarketRegimeSummary["sample_confidence"];
 };
 
+export type DailyLearningReviewTradeQualityRow = {
+  ticker: string;
+  snapshot_identity: string;
+  batch_fingerprint: string | null;
+  setup_family: TureSetupFamily;
+  sector_group: TureSector;
+  market_regime_label: TureMarketRegimeLabel;
+  decomposition: TureTradeQualityDecomposition;
+  current_batch: boolean;
+  advisory_only: true;
+};
+
 export type DailyLearningReviewEngineAdjustment = {
   candidate: DailyLearningReviewAdjustmentCandidate;
   confidence: DailyLearningReviewConfidence;
@@ -228,6 +258,11 @@ export type DailyLearningReviewSummary = {
   ticker_profiles: TureTickerProfile[];
   ticker_profile_summary: TureTickerProfileSummary;
   market_regime: DailyLearningReviewMarketRegimeSummary;
+  trade_quality_decompositions: DailyLearningReviewTradeQualityRow[];
+  trade_quality_summary: TureTradeQualityDecompositionSummary;
+  confidence_calibration: TureConfidenceCalibrationSummary;
+  model_governance: TureModelGovernanceSummary;
+  intelligence_overview: TureIntelligenceOverview;
   engine_adjustment_candidates: DailyLearningReviewEngineAdjustment[];
   sample_size_label: DailyLearningReviewConfidence;
   duplicate_outcome_rows_ignored_count: number;
@@ -1202,6 +1237,266 @@ function buildDailyMarketRegimeSummary(input: {
   };
 }
 
+function firstNestedText(
+  payloads: Array<Record<string, unknown> | null>,
+  keys: string[],
+) {
+  for (const payload of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const key of keys) {
+        const value = textOrNull(item[key]);
+        if (value) return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+function firstNestedNumber(
+  payloads: Array<Record<string, unknown> | null>,
+  keys: string[],
+) {
+  for (const payload of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const key of keys) {
+        const value = finiteNumber(item[key]);
+        if (value !== null) return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+function firstNestedBoolean(
+  payloads: Array<Record<string, unknown> | null>,
+  keys: string[],
+) {
+  for (const payload of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const key of keys) {
+        if (typeof item[key] === "boolean") return item[key] as boolean;
+      }
+    }
+  }
+
+  return null;
+}
+
+function qualityTextContext(item: ReviewOutcome) {
+  const snapshotPayload = item.snapshot?.payload_json ?? null;
+  const outcomePayload = objectValue(item.outcome.payload_json);
+
+  return [
+    item.setup_type,
+    item.entry_type,
+    item.entry_trigger_semantics,
+    item.snapshot?.reason,
+    item.snapshot?.rationale,
+    item.snapshot?.catalyst,
+    item.snapshot?.primary_risk,
+    item.snapshot?.market_data_snapshot,
+    ...item.outcome.warnings,
+    ...item.outcome.blockers,
+    safeJsonSignal(snapshotPayload),
+    safeJsonSignal(outcomePayload),
+  ]
+    .filter((value): value is string => textOrNull(value) !== null)
+    .join(" ");
+}
+
+function metadataGapFlags(payloads: Array<Record<string, unknown> | null>) {
+  const flags = new Set<string>();
+
+  for (const payload of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const [key, value] of Object.entries(item)) {
+        if (
+          value === true &&
+          (key.startsWith("missing_") ||
+            key.endsWith("_missing") ||
+            key.includes("metadata_gap"))
+        ) {
+          flags.add(key);
+        }
+      }
+    }
+  }
+
+  return Array.from(flags);
+}
+
+function tierConfidenceFallback(tier: string) {
+  if (tier === "strong") return 85;
+  if (tier === "valid") return 70;
+  if (tier === "experimental") return 55;
+  return null;
+}
+
+function confidenceForReviewOutcome(item: ReviewOutcome) {
+  const snapshotPayload = item.snapshot?.payload_json ?? null;
+  const outcomePayload = objectValue(item.outcome.payload_json);
+  const payloads = [snapshotPayload, outcomePayload];
+  const explicit =
+    finiteNumber(item.snapshot?.confidence) ??
+    firstNestedNumber(payloads, [
+      "confidence",
+      "confidence_score",
+      "recommendation_confidence",
+      "confidence_pct",
+      "confidence_percent",
+    ]);
+
+  if (explicit !== null) {
+    return {
+      confidence: Math.max(0, Math.min(100, explicit)),
+      source: "explicit" as const,
+    };
+  }
+
+  const fallback = tierConfidenceFallback(item.tier);
+  if (fallback !== null) {
+    return {
+      confidence: fallback,
+      source: "tier_fallback" as const,
+    };
+  }
+
+  return {
+    confidence: null,
+    source: "missing" as const,
+  };
+}
+
+function confidenceCalibrationRows(input: {
+  rows: ReviewOutcome[];
+  tradeQualityRows: DailyLearningReviewTradeQualityRow[];
+  marketRegime: DailyLearningReviewMarketRegimeSummary;
+}) {
+  const qualityBySnapshot = new Map(
+    input.tradeQualityRows.map((item) => [
+      item.snapshot_identity,
+      item.decomposition.overall_quality_label,
+    ]),
+  );
+
+  return input.rows.map((item) => {
+    const confidence = confidenceForReviewOutcome(item);
+
+    return {
+      snapshot_identity: item.snapshot_identity,
+      confidence: confidence.confidence,
+      confidence_source: confidence.source,
+      visibility: item.visibility,
+      entry_triggered: item.outcome.entry_triggered,
+      entry_not_triggered: entryNotTriggered(item.outcome),
+      target_hit: targetHit(item.outcome),
+      stop_hit: stopHit(item.outcome),
+      best_r: item.outcome.best_r,
+      worst_r: item.outcome.worst_r,
+      terminal_r: terminalR(item.outcome),
+      setup_family: item.setup_label.setup_family,
+      sector: item.sector_profile.sector_group,
+      ticker: item.ticker,
+      regime:
+        explicitRegimeFromRows([item]) ??
+        input.marketRegime.latest_regime_label.regime_label,
+      quality_label: qualityBySnapshot.get(item.snapshot_identity) ?? "unknown",
+    };
+  });
+}
+
+function tradeQualityRows(input: {
+  rows: ReviewOutcome[];
+  latestRows: ReviewOutcome[];
+  tickerProfiles: TureTickerProfile[];
+  marketRegime: DailyLearningReviewMarketRegimeSummary;
+}): DailyLearningReviewTradeQualityRow[] {
+  const latestIdentities = new Set(
+    input.latestRows.map((item) => item.snapshot_identity),
+  );
+  const tickerProfilesByTicker = new Map(
+    input.tickerProfiles.map((profile) => [profile.ticker, profile]),
+  );
+  const regime = input.marketRegime.latest_regime_label;
+
+  return input.rows.map((item) => {
+    const snapshotPayload = item.snapshot?.payload_json ?? null;
+    const outcomePayload = objectValue(item.outcome.payload_json);
+    const payloads = [snapshotPayload, outcomePayload];
+    const tickerProfile = tickerProfilesByTicker.get(item.ticker) ?? null;
+    const textContext = qualityTextContext(item);
+    const decomposition = buildTradeQualityDecomposition({
+      ticker: item.ticker,
+      snapshot_identity: item.snapshot_identity,
+      side: item.outcome.side ?? item.snapshot?.side ?? null,
+      visibility: item.visibility,
+      tier: item.tier,
+      confidence: finiteNumber(item.snapshot?.confidence),
+      setup_family: item.setup_label.setup_family,
+      setup_confidence: item.setup_label.setup_confidence,
+      entry_type: item.entry_type,
+      entry_trigger_semantics: item.entry_trigger_semantics,
+      entry_triggered: item.outcome.entry_triggered,
+      entry_not_triggered: entryNotTriggered(item.outcome),
+      entry: finiteNumber(item.outcome.entry) ?? finiteNumber(item.snapshot?.entry),
+      entry_low: finiteNumber(item.snapshot?.entry_low),
+      entry_high: finiteNumber(item.snapshot?.entry_high),
+      stop: finiteNumber(item.outcome.stop) ?? finiteNumber(item.snapshot?.stop),
+      target: finiteNumber(item.outcome.target) ?? finiteNumber(item.snapshot?.target),
+      planned_risk_reward:
+        finiteNumber(item.snapshot?.planned_risk_reward) ??
+        firstNestedNumber(payloads, ["planned_risk_reward", "risk_reward_ratio"]),
+      plan_freshness_classification: firstNestedText(payloads, [
+        "classification",
+        "plan_freshness_classification",
+        "freshness_status",
+      ]),
+      volume_context: textContext,
+      trend_context: textContext,
+      sector_group: item.sector_profile.sector_group,
+      sector_mapping_source: item.sector_profile.mapping_source,
+      ticker_status: tickerProfile?.ticker_status ?? null,
+      ticker_confidence: tickerProfile?.ticker_confidence ?? null,
+      ticker_caution_flags: tickerProfile?.caution_flags ?? [],
+      market_regime_label: regime.regime_label,
+      market_regime_confidence: regime.regime_confidence,
+      market_regime_caution_flags: regime.caution_flags,
+      provider: item.outcome.provider ?? firstNestedText(payloads, ["provider"]),
+      source: item.outcome.source ?? firstNestedText(payloads, ["source"]),
+      data_timestamp: firstNestedText(payloads, [
+        "data_timestamp",
+        "provider_timestamp",
+        "reference_timestamp",
+      ]),
+      reference_timestamp: firstNestedText(payloads, ["reference_timestamp"]),
+      reference_price_present:
+        firstNestedBoolean(payloads, ["reference_price_present"]) ??
+        (firstNestedNumber(payloads, [
+          "reference_price",
+          "entry_type_reference_price",
+          "first_candle_close",
+        ]) !== null
+          ? true
+          : null),
+      metadata_gap_flags: metadataGapFlags(payloads),
+    });
+
+    return {
+      ticker: item.ticker,
+      snapshot_identity: item.snapshot_identity,
+      batch_fingerprint: item.batch_fingerprint,
+      setup_family: item.setup_label.setup_family,
+      sector_group: item.sector_profile.sector_group,
+      market_regime_label: regime.regime_label,
+      decomposition,
+      advisory_only: true,
+      current_batch: latestIdentities.has(item.snapshot_identity),
+    };
+  });
+}
+
 function comparisonSummary(input: {
   visible: DailyLearningReviewMetricSummary;
   research: DailyLearningReviewMetricSummary;
@@ -1508,6 +1803,55 @@ export function buildDailyLearningReviewSummary(
     tickerProfiles,
     engineAdjustments: engineAdjustmentCandidates,
   });
+  const tradeQualityDecompositions = tradeQualityRows({
+    rows: dayRows,
+    latestRows: latestBatchRows,
+    tickerProfiles,
+    marketRegime,
+  });
+  const tradeQualitySummary = buildTradeQualityDecompositionSummary(
+    tradeQualityDecompositions.map((row) => ({
+      decomposition: row.decomposition,
+      setup_family: row.setup_family,
+      sector_group: row.sector_group,
+      ticker: row.ticker,
+      market_regime_label: row.market_regime_label,
+      current_batch: row.current_batch,
+    })),
+  );
+  const confidenceCalibration = buildConfidenceCalibrationSummary(
+    confidenceCalibrationRows({
+      rows: dayRows,
+      tradeQualityRows: tradeQualityDecompositions,
+      marketRegime,
+    }),
+  );
+  const modelGovernance = buildModelGovernanceSummary();
+  const setupLabelingSummary = buildSetupLabelingSummary({
+    labels: dayRows.map((item) => ({
+      visibility: item.visibility,
+      label: item.setup_label,
+    })),
+    currentBatchLabels: latestBatchRows.map((item) => ({
+      visibility: item.visibility,
+      label: item.setup_label,
+    })),
+  });
+  const intelligenceOverview = buildIntelligenceOverview({
+    latest_batch_fingerprint: latestBatchFingerprint,
+    latest_evaluated_batch_fingerprint: latestBatchFingerprint,
+    outcome_count: metrics.outcome_count,
+    unique_snapshot_count: uniqueSnapshotCount(dayRows),
+    setup_labeling: setupLabelingSummary,
+    sector_industry_mapping: sectorIndustryMapping,
+    sector_group_breakdowns: sectorGroupBreakdowns(dayRows),
+    ticker_profile_summary: tickerProfileSummary,
+    market_regime: marketRegime,
+    trade_quality_summary: tradeQualitySummary,
+    confidence_calibration: confidenceCalibration,
+    model_governance: modelGovernance,
+    engine_adjustment_candidates: engineAdjustmentCandidates,
+  });
 
   return {
     summary_version: "1.0",
@@ -1567,20 +1911,16 @@ export function buildDailyLearningReviewSummary(
       ...groupSummary(dayRows, "window", (item) => item.window),
       ...groupSummary(dayRows, "tier", (item) => item.tier),
     ],
-    setup_labeling: buildSetupLabelingSummary({
-      labels: dayRows.map((item) => ({
-        visibility: item.visibility,
-        label: item.setup_label,
-      })),
-      currentBatchLabels: latestBatchRows.map((item) => ({
-        visibility: item.visibility,
-        label: item.setup_label,
-      })),
-    }),
+    setup_labeling: setupLabelingSummary,
     sector_industry_mapping: sectorIndustryMapping,
     ticker_profiles: tickerProfiles,
     ticker_profile_summary: tickerProfileSummary,
     market_regime: marketRegime,
+    trade_quality_decompositions: tradeQualityDecompositions,
+    trade_quality_summary: tradeQualitySummary,
+    confidence_calibration: confidenceCalibration,
+    model_governance: modelGovernance,
+    intelligence_overview: intelligenceOverview,
     engine_adjustment_candidates: engineAdjustmentCandidates,
     sample_size_label: confidence,
     duplicate_outcome_rows_ignored_count: review.duplicateCount,

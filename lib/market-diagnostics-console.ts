@@ -779,6 +779,144 @@ function regimeEvidenceText(
   ].join(", ");
 }
 
+function qualityMixText(
+  mix: Partial<Record<string, number>> | null | undefined,
+) {
+  const source = mix ?? {};
+  return `weak ${source.weak ?? 0}, fair ${source.fair ?? 0}, good ${source.good ?? 0}, strong ${source.strong ?? 0}, unknown ${source.unknown ?? 0}`;
+}
+
+function qualityGroupText(
+  groups:
+    | Array<{
+        key: string;
+        outcome_count: number;
+        average_quality_score: number | null;
+        average_quality_label: string;
+      }>
+    | null
+    | undefined,
+) {
+  const items = (groups ?? []).slice(0, 5);
+
+  return items.length > 0
+    ? items
+        .map((item) => {
+          const score =
+            typeof item.average_quality_score === "number"
+              ? `${item.average_quality_score.toFixed(0)}`
+              : "unknown";
+
+          return `${item.key} ${item.average_quality_label} ${score} (${item.outcome_count})`;
+        })
+        .join(" | ")
+    : "none";
+}
+
+function confidenceBucketMixText(
+  buckets:
+    | Array<{ bucket: string; outcome_count: number }>
+    | null
+    | undefined,
+) {
+  const items = (buckets ?? [])
+    .filter((item) => item.outcome_count > 0)
+    .map((item) => `${item.bucket} ${item.outcome_count}`);
+
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function confidenceBucketPerformanceText(
+  buckets:
+    | Array<{
+        bucket: string;
+        outcome_count: number;
+        avg_best_r: number | null;
+        avg_worst_r: number | null;
+        calibration_label: string;
+      }>
+    | null
+    | undefined,
+) {
+  const items = (buckets ?? [])
+    .filter((item) => item.outcome_count > 0)
+    .slice(0, 6);
+
+  return items.length > 0
+    ? items
+        .map(
+          (item) =>
+            `${item.bucket} ${rValue(item.avg_best_r)}/${rValue(item.avg_worst_r)} ${item.calibration_label}`,
+        )
+        .join(" | ")
+    : "none";
+}
+
+function confidenceMonotonicityText(
+  value: boolean | null | undefined,
+) {
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  return "inconclusive";
+}
+
+function governanceLayerText(values: string[] | null | undefined) {
+  const items = (values ?? []).slice(0, 10);
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function governanceChangeCountsText(
+  summary:
+    | {
+        active_count?: number;
+        advisory_only_count?: number;
+        shadow_testing_count?: number;
+        rejected_count?: number;
+        rolled_back_count?: number;
+      }
+    | null
+    | undefined,
+) {
+  return `${summary?.active_count ?? 0}/${summary?.advisory_only_count ?? 0}/${summary?.shadow_testing_count ?? 0}/${summary?.rejected_count ?? 0}/${summary?.rolled_back_count ?? 0}`;
+}
+
+function governancePromotionGatesText(values: string[] | null | undefined) {
+  const items = values ?? [];
+  if (items.length === 0) return "none";
+
+  return items
+    .map((item) => item.replace(/^minimum_/, "minimum ").replaceAll("_", " "))
+    .slice(0, 6)
+    .join(", ");
+}
+
+function intelligenceFocusText(values: string[] | null | undefined) {
+  const items = (values ?? []).slice(0, 8);
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function intelligenceLayerText(values: string[] | null | undefined) {
+  const items = (values ?? []).slice(0, 10);
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function intelligenceMixText(
+  mix: Record<string, number> | null | undefined,
+  limit = 5,
+) {
+  const items = Object.entries(mix ?? {})
+    .filter(([, count]) => count > 0)
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, limit)
+    .map(([key, count]) => `${key} ${count}`);
+
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function intelligenceYesNo(value: boolean | null | undefined) {
+  return value === true ? "yes" : "no";
+}
+
 function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
   const activeTrace = input.active_scan_trace;
   const outcome = input.outcome_evaluation;
@@ -6168,6 +6306,85 @@ function buildSections(
           ),
         ),
         lineValue(
+          "Trade quality mix",
+          qualityMixText(
+            input.daily_learning_review?.trade_quality_summary
+              .overall_quality_mix,
+          ),
+        ),
+        lineValue(
+          "Trade quality weakest components",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary
+              .most_common_weak_components,
+          ),
+        ),
+        lineValue(
+          "Trade quality strongest components",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary
+              .most_common_strong_components,
+          ),
+        ),
+        lineValue(
+          "Trade quality by setup",
+          qualityGroupText(
+            input.daily_learning_review?.trade_quality_summary
+              .quality_by_setup_family,
+          ),
+        ),
+        lineValue(
+          "Confidence buckets",
+          confidenceBucketMixText(
+            input.daily_learning_review?.confidence_calibration.buckets,
+          ),
+        ),
+        lineValue(
+          "Confidence monotonicity",
+          confidenceMonotonicityText(
+            input.daily_learning_review?.confidence_calibration
+              .monotonicity_check.higher_confidence_outperforms_lower,
+          ),
+        ),
+        lineValue(
+          "Model governance",
+          input.daily_learning_review?.model_governance.advisory_only === true
+            ? "advisory-only"
+            : "unknown",
+        ),
+        lineValue(
+          "Active intelligence versions",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .current_intelligence_layers,
+          ),
+        ),
+        lineValue(
+          "Promotion-ready changes",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .promotion_ready_changes,
+          ),
+        ),
+        lineValue(
+          "Changes needing more data",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .changes_needing_more_data,
+          ),
+        ),
+        lineValue(
+          "Automatic updates enabled",
+          input.daily_learning_review?.model_governance.safety
+            .automatic_model_updates_enabled
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Intelligence overview",
+          `active advisory layers ${input.daily_learning_review?.intelligence_overview.active_layers.length ?? 0} / sample confidence ${input.daily_learning_review?.intelligence_overview.data_readiness.sample_confidence ?? "low"} / recommended focus ${intelligenceFocusText(input.daily_learning_review?.intelligence_overview.recommended_learning_focus)}`,
+        ),
+        lineValue(
           "Top tickers",
           reviewTickerText(
             input.daily_learning_review?.top_positive_tickers_by_avg_best_r,
@@ -6309,6 +6526,21 @@ function buildSections(
         market_regime: JSON.stringify(
           input.daily_learning_review?.market_regime ?? null,
         ),
+        trade_quality_decompositions: JSON.stringify(
+          input.daily_learning_review?.trade_quality_decompositions ?? [],
+        ),
+        trade_quality_summary: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary ?? null,
+        ),
+        confidence_calibration: JSON.stringify(
+          input.daily_learning_review?.confidence_calibration ?? null,
+        ),
+        model_governance: JSON.stringify(
+          input.daily_learning_review?.model_governance ?? null,
+        ),
+        intelligence_overview: JSON.stringify(
+          input.daily_learning_review?.intelligence_overview ?? null,
+        ),
         group_breakdowns: JSON.stringify(
           input.daily_learning_review?.group_breakdowns ?? [],
         ),
@@ -6320,6 +6552,188 @@ function buildSections(
         duplicate_outcome_rows_ignored_count:
           input.daily_learning_review?.duplicate_outcome_rows_ignored_count ??
           null,
+      },
+    }),
+    section({
+      section_id: "intelligence_overview",
+      title: "Intelligence Overview",
+      severity:
+        (input.daily_learning_review?.intelligence_overview.caution_flags.length ??
+          0) > 0 ||
+        (input.daily_learning_review?.intelligence_overview.data_readiness
+          .sample_confidence ?? "low") === "low"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Active layers",
+          intelligenceLayerText(
+            input.daily_learning_review?.intelligence_overview.active_layers,
+          ),
+        ),
+        lineValue(
+          "Latest evaluated batch",
+          compact(
+            input.daily_learning_review?.intelligence_overview
+              .latest_evaluated_batch_fingerprint,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Outcomes analyzed",
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .outcome_count ?? 0,
+        ),
+        lineValue(
+          "Sample confidence",
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .sample_confidence ?? "low",
+        ),
+        lineValue(
+          "Latest market regime",
+          compact(
+            input.daily_learning_review?.intelligence_overview.latest_signals
+              .market_regime,
+            "unknown",
+          ),
+        ),
+        lineValue(
+          "Setup mix",
+          intelligenceMixText(
+            input.daily_learning_review?.intelligence_overview.latest_signals
+              .setup_mix,
+          ),
+        ),
+        lineValue(
+          "Sector mix",
+          intelligenceMixText(
+            input.daily_learning_review?.intelligence_overview.latest_signals
+              .sector_mix,
+          ),
+        ),
+        lineValue(
+          "Ticker profile status",
+          intelligenceMixText(
+            input.daily_learning_review?.intelligence_overview.latest_signals
+              .ticker_profile_status_mix,
+          ),
+        ),
+        lineValue(
+          "Trade quality mix",
+          intelligenceMixText(
+            input.daily_learning_review?.intelligence_overview.latest_signals
+              .trade_quality_mix,
+          ),
+        ),
+        lineValue(
+          "Confidence calibration",
+          input.daily_learning_review?.intelligence_overview.layer_status
+            .confidence_calibration?.summary ?? "unknown",
+        ),
+        lineValue(
+          "Model governance",
+          input.daily_learning_review?.intelligence_overview.layer_status
+            .model_governance?.summary ?? "unknown",
+        ),
+        lineValue(
+          "Primary learning signal",
+          compact(
+            input.daily_learning_review?.intelligence_overview
+              .primary_learning_signal,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Recommended focus",
+          intelligenceFocusText(
+            input.daily_learning_review?.intelligence_overview
+              .recommended_learning_focus,
+          ),
+        ),
+        lineValue(
+          "Enough for model change",
+          intelligenceYesNo(
+            input.daily_learning_review?.intelligence_overview.data_readiness
+              .enough_for_model_change,
+          ),
+        ),
+        lineValue(
+          "Live ranking changes enabled",
+          intelligenceYesNo(
+            input.daily_learning_review?.intelligence_overview.safety
+              .live_ranking_changes_enabled,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        active_layers: (
+          input.daily_learning_review?.intelligence_overview.active_layers ?? []
+        ).join(","),
+        inactive_layers: (
+          input.daily_learning_review?.intelligence_overview.inactive_layers ??
+          []
+        ).join(","),
+        latest_batch_fingerprint:
+          input.daily_learning_review?.intelligence_overview
+            .latest_batch_fingerprint ?? null,
+        latest_evaluated_batch_fingerprint:
+          input.daily_learning_review?.intelligence_overview
+            .latest_evaluated_batch_fingerprint ?? null,
+        outcome_count:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .outcome_count ?? null,
+        unique_snapshot_count:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .unique_snapshot_count ?? null,
+        sample_confidence:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .sample_confidence ?? null,
+        enough_for_observation:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .enough_for_observation ?? null,
+        enough_for_model_change:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .enough_for_model_change ?? null,
+        enough_for_live_ranking_change:
+          input.daily_learning_review?.intelligence_overview.data_readiness
+            .enough_for_live_ranking_change ?? false,
+        latest_signals: JSON.stringify(
+          input.daily_learning_review?.intelligence_overview.latest_signals ??
+            null,
+        ),
+        primary_learning_signal:
+          input.daily_learning_review?.intelligence_overview
+            .primary_learning_signal ?? null,
+        recommended_learning_focus: (
+          input.daily_learning_review?.intelligence_overview
+            .recommended_learning_focus ?? []
+        ).join(","),
+        recommended_next_action:
+          input.daily_learning_review?.intelligence_overview
+            .recommended_next_action ?? null,
+        automatic_model_updates_enabled:
+          input.daily_learning_review?.intelligence_overview.safety
+            .automatic_model_updates_enabled ?? false,
+        live_ranking_changes_enabled:
+          input.daily_learning_review?.intelligence_overview.safety
+            .live_ranking_changes_enabled ?? false,
+        broker_automation_enabled:
+          input.daily_learning_review?.intelligence_overview.safety
+            .broker_automation_enabled ?? false,
+        requires_manual_review:
+          input.daily_learning_review?.intelligence_overview.safety
+            .requires_manual_review ?? true,
+        reason_codes: (
+          input.daily_learning_review?.intelligence_overview.reason_codes ?? []
+        ).join(","),
+        caution_flags: (
+          input.daily_learning_review?.intelligence_overview.caution_flags ?? []
+        ).join(","),
+        metadata_gaps: (
+          input.daily_learning_review?.intelligence_overview.metadata_gaps ?? []
+        ).join(","),
       },
     }),
     section({
@@ -6752,6 +7166,408 @@ function buildSections(
         ),
         sample_confidence:
           input.daily_learning_review?.market_regime.sample_confidence ?? null,
+      },
+    }),
+    section({
+      section_id: "trade_quality_decomposition",
+      title: "Trade Quality Decomposition",
+      severity:
+        ((input.daily_learning_review?.trade_quality_summary.overall_quality_mix
+          .weak ?? 0) > 0 ||
+          (input.daily_learning_review?.trade_quality_summary
+            .low_confidence_quality_rows ?? 0) > 0) &&
+        (input.daily_learning_review?.trade_quality_summary
+          .current_batch_decomposed_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Current batch decomposed",
+          `${input.daily_learning_review?.trade_quality_summary.current_batch_decomposed_count ?? 0} / ${input.daily_learning_review?.trade_quality_summary.current_batch_total_count ?? 0}`,
+        ),
+        lineValue(
+          "Overall quality mix",
+          qualityMixText(
+            input.daily_learning_review?.trade_quality_summary
+              .overall_quality_mix,
+          ),
+        ),
+        lineValue(
+          "Weakest components",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary
+              .most_common_weak_components,
+          ),
+        ),
+        lineValue(
+          "Strongest components",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary
+              .most_common_strong_components,
+          ),
+        ),
+        lineValue(
+          "Metadata gaps",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary.metadata_gaps,
+          ),
+        ),
+        lineValue(
+          "Reason codes",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary.reason_codes,
+          ),
+        ),
+        lineValue(
+          "Caution flags",
+          setupGapText(
+            input.daily_learning_review?.trade_quality_summary.caution_flags,
+          ),
+        ),
+        lineValue(
+          "Quality by setup family",
+          qualityGroupText(
+            input.daily_learning_review?.trade_quality_summary
+              .quality_by_setup_family,
+          ),
+        ),
+        lineValue(
+          "Quality by sector",
+          qualityGroupText(
+            input.daily_learning_review?.trade_quality_summary.quality_by_sector,
+          ),
+        ),
+        lineValue(
+          "Quality by ticker",
+          qualityGroupText(
+            input.daily_learning_review?.trade_quality_summary.quality_by_ticker,
+          ),
+        ),
+        lineValue(
+          "Quality by regime",
+          qualityGroupText(
+            input.daily_learning_review?.trade_quality_summary
+              .quality_by_market_regime,
+          ),
+        ),
+        lineValue(
+          "Low-confidence quality rows",
+          input.daily_learning_review?.trade_quality_summary
+            .low_confidence_quality_rows ?? 0,
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        current_batch_decomposed_count:
+          input.daily_learning_review?.trade_quality_summary
+            .current_batch_decomposed_count ?? null,
+        current_batch_total_count:
+          input.daily_learning_review?.trade_quality_summary
+            .current_batch_total_count ?? null,
+        overall_quality_mix: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .overall_quality_mix ?? {},
+        ),
+        component_average_scores: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .component_average_scores ?? {},
+        ),
+        most_common_weak_components: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .most_common_weak_components ?? {},
+        ),
+        most_common_strong_components: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .most_common_strong_components ?? {},
+        ),
+        metadata_gaps: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary.metadata_gaps ??
+            {},
+        ),
+        reason_codes: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary.reason_codes ?? {},
+        ),
+        caution_flags: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary.caution_flags ??
+            {},
+        ),
+        quality_by_setup_family: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .quality_by_setup_family ?? [],
+        ),
+        quality_by_sector: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary.quality_by_sector ??
+            [],
+        ),
+        quality_by_ticker: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary.quality_by_ticker ??
+            [],
+        ),
+        quality_by_market_regime: JSON.stringify(
+          input.daily_learning_review?.trade_quality_summary
+            .quality_by_market_regime ?? [],
+        ),
+        low_confidence_quality_rows:
+          input.daily_learning_review?.trade_quality_summary
+            .low_confidence_quality_rows ?? null,
+      },
+    }),
+    section({
+      section_id: "confidence_calibration",
+      title: "Confidence Calibration",
+      severity:
+        (input.daily_learning_review?.confidence_calibration
+          .unknown_confidence_count ?? 0) > 0 ||
+        input.daily_learning_review?.confidence_calibration.monotonicity_check
+          .higher_confidence_outperforms_lower === false
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Buckets evaluated",
+          input.daily_learning_review?.confidence_calibration.buckets.filter(
+            (bucket) => bucket.outcome_count > 0,
+          ).length ?? 0,
+        ),
+        lineValue(
+          "Outcomes with confidence",
+          `${input.daily_learning_review?.confidence_calibration.outcomes_with_confidence_count ?? 0} / ${input.daily_learning_review?.confidence_calibration.total_outcome_count ?? 0}`,
+        ),
+        lineValue(
+          "Unknown confidence",
+          input.daily_learning_review?.confidence_calibration
+            .unknown_confidence_count ?? 0,
+        ),
+        lineValue(
+          "Bucket mix",
+          confidenceBucketMixText(
+            input.daily_learning_review?.confidence_calibration.buckets,
+          ),
+        ),
+        lineValue(
+          "Bucket performance",
+          confidenceBucketPerformanceText(
+            input.daily_learning_review?.confidence_calibration.buckets,
+          ),
+        ),
+        lineValue(
+          "Best buckets",
+          compactListText(
+            input.daily_learning_review?.confidence_calibration.top_buckets,
+          ),
+        ),
+        lineValue(
+          "Weak buckets",
+          compactListText(
+            input.daily_learning_review?.confidence_calibration.weak_buckets,
+          ),
+        ),
+        lineValue(
+          "Monotonicity",
+          confidenceMonotonicityText(
+            input.daily_learning_review?.confidence_calibration
+              .monotonicity_check.higher_confidence_outperforms_lower,
+          ),
+        ),
+        lineValue(
+          "Calibration warnings",
+          compactListText([
+            ...(input.daily_learning_review?.confidence_calibration
+              .monotonicity_check.caution_flags ?? []),
+            ...(input.daily_learning_review?.confidence_calibration
+              .metadata_gaps ?? []),
+          ]),
+        ),
+        lineValue(
+          "Sample confidence",
+          input.daily_learning_review?.confidence_calibration.sample_confidence ??
+            "low",
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        total_outcome_count:
+          input.daily_learning_review?.confidence_calibration
+            .total_outcome_count ?? null,
+        total_unique_snapshot_count:
+          input.daily_learning_review?.confidence_calibration
+            .total_unique_snapshot_count ?? null,
+        outcomes_with_confidence_count:
+          input.daily_learning_review?.confidence_calibration
+            .outcomes_with_confidence_count ?? null,
+        unknown_confidence_count:
+          input.daily_learning_review?.confidence_calibration
+            .unknown_confidence_count ?? null,
+        buckets: JSON.stringify(
+          input.daily_learning_review?.confidence_calibration.buckets ?? [],
+        ),
+        monotonicity_higher_confidence_outperforms_lower:
+          input.daily_learning_review?.confidence_calibration.monotonicity_check
+            .higher_confidence_outperforms_lower ?? null,
+        monotonicity_reason_codes: (
+          input.daily_learning_review?.confidence_calibration.monotonicity_check
+            .reason_codes ?? []
+        ).join(","),
+        monotonicity_caution_flags: (
+          input.daily_learning_review?.confidence_calibration.monotonicity_check
+            .caution_flags ?? []
+        ).join(","),
+        top_buckets: (
+          input.daily_learning_review?.confidence_calibration.top_buckets ?? []
+        ).join(","),
+        weak_buckets: (
+          input.daily_learning_review?.confidence_calibration.weak_buckets ?? []
+        ).join(","),
+        metadata_gaps: (
+          input.daily_learning_review?.confidence_calibration.metadata_gaps ?? []
+        ).join(","),
+        sample_confidence:
+          input.daily_learning_review?.confidence_calibration
+            .sample_confidence ?? null,
+      },
+    }),
+    section({
+      section_id: "model_change_governance",
+      title: "Model Change Governance",
+      severity:
+        input.daily_learning_review?.model_governance.safety
+          .automatic_model_updates_enabled ||
+        input.daily_learning_review?.model_governance.safety
+          .live_ranking_changes_enabled
+          ? "critical"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Automatic model updates",
+          input.daily_learning_review?.model_governance.safety
+            .automatic_model_updates_enabled
+            ? "enabled"
+            : "disabled",
+        ),
+        lineValue(
+          "Live ranking changes",
+          input.daily_learning_review?.model_governance.safety
+            .live_ranking_changes_enabled
+            ? "enabled"
+            : "disabled",
+        ),
+        lineValue(
+          "Current intelligence layers",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .current_intelligence_layers,
+          ),
+        ),
+        lineValue(
+          "Latest change",
+          compact(
+            input.daily_learning_review?.model_governance.latest_change?.id,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Active/advisory/shadow/rejected/rolled back",
+          governanceChangeCountsText(
+            input.daily_learning_review?.model_governance.summary,
+          ),
+        ),
+        lineValue(
+          "Promotion gates",
+          governancePromotionGatesText(
+            input.daily_learning_review?.model_governance.latest_change
+              ?.promotion_requirements,
+          ),
+        ),
+        lineValue(
+          "Promotion-ready changes",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .promotion_ready_changes,
+          ),
+        ),
+        lineValue(
+          "Changes needing more data",
+          governanceLayerText(
+            input.daily_learning_review?.model_governance
+              .changes_needing_more_data,
+          ),
+        ),
+        lineValue(
+          "Rollback required",
+          input.daily_learning_review?.model_governance.safety
+            .rollback_required_for_live_changes === true
+            ? "yes"
+            : "no",
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        current_engine_version:
+          input.daily_learning_review?.model_governance
+            .current_engine_version ?? null,
+        current_scoring_version:
+          input.daily_learning_review?.model_governance
+            .current_scoring_version ?? null,
+        current_confidence_version:
+          input.daily_learning_review?.model_governance
+            .current_confidence_version ?? null,
+        current_entry_model_version:
+          input.daily_learning_review?.model_governance
+            .current_entry_model_version ?? null,
+        current_target_stop_version:
+          input.daily_learning_review?.model_governance
+            .current_target_stop_version ?? null,
+        automatic_model_updates_enabled:
+          input.daily_learning_review?.model_governance.safety
+            .automatic_model_updates_enabled ?? false,
+        live_ranking_changes_enabled:
+          input.daily_learning_review?.model_governance.safety
+            .live_ranking_changes_enabled ?? false,
+        rollback_required_for_live_changes:
+          input.daily_learning_review?.model_governance.safety
+            .rollback_required_for_live_changes ?? true,
+        minimum_sample_size_required:
+          input.daily_learning_review?.model_governance.safety
+            .minimum_sample_size_required ?? null,
+        latest_change:
+          input.daily_learning_review?.model_governance.latest_change?.id ??
+          null,
+        current_intelligence_layers: (
+          input.daily_learning_review?.model_governance
+            .current_intelligence_layers ?? []
+        ).join(","),
+        promotion_ready_changes: (
+          input.daily_learning_review?.model_governance
+            .promotion_ready_changes ?? []
+        ).join(","),
+        changes_needing_more_data: (
+          input.daily_learning_review?.model_governance
+            .changes_needing_more_data ?? []
+        ).join(","),
+        changes_by_type: JSON.stringify(
+          input.daily_learning_review?.model_governance.summary
+            .changes_by_type ?? {},
+        ),
+        changes_by_status: JSON.stringify(
+          input.daily_learning_review?.model_governance.summary
+            .changes_by_status ?? {},
+        ),
+        records: JSON.stringify(
+          input.daily_learning_review?.model_governance.advisory_only_changes ??
+            [],
+        ),
+        reason_codes: (
+          input.daily_learning_review?.model_governance.reason_codes ?? []
+        ).join(","),
+        caution_flags: (
+          input.daily_learning_review?.model_governance.caution_flags ?? []
+        ).join(","),
+        metadata_gaps: (
+          input.daily_learning_review?.model_governance.metadata_gaps ?? []
+        ).join(","),
       },
     }),
     section({
