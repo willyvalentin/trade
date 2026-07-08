@@ -428,6 +428,44 @@ test("intelligence overview keeps model and live ranking changes disabled", () =
   expect(overview.safety.requires_manual_review).toBe(true);
 });
 
+test("intelligence overview keeps confidence layer active when confidence is unknown", () => {
+  const overview = buildIntelligenceOverview({
+    ...overviewInput(93),
+    confidence_calibration: {
+      advisory_only: true,
+      buckets: [{ bucket: "unknown", outcome_count: 93 }],
+      monotonicity_check: {
+        higher_confidence_outperforms_lower: null,
+        caution_flags: ["missing_confidence"],
+      },
+      sample_confidence: "medium",
+    },
+  });
+
+  expect(overview.active_layers).toContain("confidence_calibration");
+  expect(overview.latest_signals.confidence_bucket_mix.unknown).toBe(93);
+  expect(overview.recommended_learning_focus).toContain(
+    "collect_more_confidence_calibration_data",
+  );
+});
+
+test("daily learning review keeps all advisory layers active with outcome data", () => {
+  const summary = dailyReview();
+
+  expect(summary.intelligence_overview.active_layers).toEqual(
+    expect.arrayContaining([
+      "setup_labeling",
+      "daily_learning_review",
+      "sector_mapping",
+      "ticker_profiles",
+      "market_regime",
+      "trade_quality",
+      "confidence_calibration",
+      "model_governance",
+    ]),
+  );
+});
+
 test("intelligence overview recommends focus from weak signals", () => {
   const overview = buildIntelligenceOverview({
     ...overviewInput(12),

@@ -52,6 +52,27 @@ export type DailyLearningReviewVisibility =
   | "research_only"
   | "unknown_visibility";
 
+export type DailyLearningReviewVisibilityDetectionSource =
+  | "recommendation_metadata"
+  | "snapshot_payload"
+  | "outcome_payload"
+  | "learning_acceleration_flag"
+  | "inferred_research_only"
+  | "unknown";
+
+export type DailyLearningReviewVisibilityUnknownExample = {
+  ticker: string;
+  snapshot_fingerprint: string | null;
+  batch_fingerprint: string | null;
+  available_metadata_keys: string[];
+  reason: string;
+};
+
+export type DailyLearningReviewVisibilityDiagnostics = {
+  source_counts: Record<DailyLearningReviewVisibilityDetectionSource, number>;
+  unknown_examples: DailyLearningReviewVisibilityUnknownExample[];
+};
+
 export type DailyLearningReviewConfidence = "low" | "medium" | "high";
 
 export type DailyLearningReviewAdjustmentCandidate =
@@ -263,6 +284,7 @@ export type DailyLearningReviewSummary = {
   confidence_calibration: TureConfidenceCalibrationSummary;
   model_governance: TureModelGovernanceSummary;
   intelligence_overview: TureIntelligenceOverview;
+  visibility_diagnostics: DailyLearningReviewVisibilityDiagnostics;
   engine_adjustment_candidates: DailyLearningReviewEngineAdjustment[];
   sample_size_label: DailyLearningReviewConfidence;
   duplicate_outcome_rows_ignored_count: number;
@@ -282,6 +304,7 @@ type ReviewOutcome = {
   snapshot: RecommendationSnapshot | null;
   batch_fingerprint: string | null;
   visibility: DailyLearningReviewVisibility;
+  visibility_source: DailyLearningReviewVisibilityDetectionSource;
   snapshot_identity: string;
   ticker: string;
   window: string;
@@ -402,6 +425,20 @@ function payloadFlag(payload: Record<string, unknown> | null, key: string) {
   return payload?.[key] === true;
 }
 
+function metadataKeys(payloads: Array<Record<string, unknown> | null>) {
+  const keys = new Set<string>();
+
+  for (const payload of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const key of Object.keys(item)) {
+        keys.add(key);
+      }
+    }
+  }
+
+  return Array.from(keys).sort().slice(0, 30);
+}
+
 function nestedPayloads(
   payload: Record<string, unknown> | null,
   depth = 0,
@@ -424,58 +461,92 @@ function nestedPayloads(
 
 function visibilityFromOutcomePayload(
   payload: Record<string, unknown> | null,
-): DailyLearningReviewVisibility | null {
+): { visibility: DailyLearningReviewVisibility; source: DailyLearningReviewVisibilityDetectionSource } | null {
   const payloads = nestedPayloads(payload);
 
   for (const item of payloads) {
     const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+    const visibility = textOrNull(item.visibility)?.toLowerCase();
     const sourceMode = textOrNull(item.source_mode)?.toLowerCase();
     const dataMode = textOrNull(item.data_mode)?.toLowerCase();
     const learningScope = textOrNull(item.learning_scope)?.toLowerCase();
+    const learningMode = textOrNull(item.learning_acceleration_mode)?.toLowerCase();
 
     if (
       visibilityStatus === "research_only" ||
+      visibility === "research_only" ||
       sourceMode === "research_only" ||
       dataMode === "research_only" ||
       learningScope === "research_only" ||
+      learningMode === "research_only" ||
       payloadFlag(item, "learning_acceleration_sample") ||
       payloadFlag(item, "research_only") ||
+      payloadFlag(item, "is_research_only") ||
       payloadFlag(item, "not_live_signal") ||
       payloadFlag(item, "not_live_trade_signal")
     ) {
-      return "research_only";
+      return {
+        visibility: "research_only",
+        source: payloadFlag(item, "learning_acceleration_sample")
+          ? "learning_acceleration_flag"
+          : "outcome_payload",
+      };
     }
   }
 
   for (const item of payloads) {
     const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+    const visibility = textOrNull(item.visibility)?.toLowerCase();
 
     if (
       visibilityStatus === "visible" ||
+      visibility === "visible" ||
       item.is_visible === true ||
       item.visible_in_primary_recommendations === true
     ) {
-      return "visible";
+      return { visibility: "visible", source: "outcome_payload" };
     }
   }
 
   return null;
 }
 
-function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
-  const payload = snapshot.payload_json;
+function researchOnlyPayloadSource(payload: Record<string, unknown> | null) {
+  for (const item of nestedPayloads(payload)) {
+    const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+    const visibility = textOrNull(item.visibility)?.toLowerCase();
+    const sourceMode = textOrNull(item.source_mode)?.toLowerCase();
+    const dataMode = textOrNull(item.data_mode)?.toLowerCase();
+    const learningScope = textOrNull(item.learning_scope)?.toLowerCase();
+    const learningMode = textOrNull(item.learning_acceleration_mode)?.toLowerCase();
+    const hasLearningResearchMetadata =
+      learningScope === "research_only" ||
+      learningMode === "research_only" ||
+      payloadFlag(item, "learning_acceleration_sample") ||
+      payloadFlag(item, "research_only") ||
+      payloadFlag(item, "is_research_only");
 
-  return (
-    snapshot.source_mode === "research_only" ||
-    snapshot.data_mode === "research_only" ||
-    payload.visibility_status === "research_only" ||
-    payload.learning_acceleration_sample === true ||
-    payload.research_only === true ||
-    payload.not_live_signal === true ||
-    payload.not_live_trade_signal === true ||
-    payload.source_mode === "research_only" ||
-    payload.learning_scope === "research_only"
-  );
+    if (
+      visibilityStatus === "research_only" ||
+      visibility === "research_only" ||
+      sourceMode === "research_only" ||
+      dataMode === "research_only" ||
+      learningScope === "research_only" ||
+      learningMode === "research_only" ||
+      payloadFlag(item, "learning_acceleration_sample") ||
+      payloadFlag(item, "research_only") ||
+      payloadFlag(item, "is_research_only") ||
+      ((payloadFlag(item, "not_live_signal") ||
+        payloadFlag(item, "not_live_trade_signal")) &&
+        hasLearningResearchMetadata)
+    ) {
+      return payloadFlag(item, "learning_acceleration_sample")
+        ? "learning_acceleration_flag"
+        : "snapshot_payload";
+    }
+  }
+
+  return null;
 }
 
 function isHiddenOrArchivedSnapshot(snapshot: RecommendationSnapshot) {
@@ -498,14 +569,40 @@ function isHiddenOrArchivedSnapshot(snapshot: RecommendationSnapshot) {
 function visibilityFor(
   outcome: RecommendationOutcome,
   snapshot: RecommendationSnapshot | null,
-): DailyLearningReviewVisibility {
-  if (snapshot && isResearchOnlySnapshot(snapshot)) return "research_only";
-  if (snapshot && !isHiddenOrArchivedSnapshot(snapshot)) return "visible";
+): {
+  visibility: DailyLearningReviewVisibility;
+  source: DailyLearningReviewVisibilityDetectionSource;
+} {
+  const outcomePayload = objectValue(outcome.payload_json);
+  const outcomeVisibility = visibilityFromOutcomePayload(outcomePayload);
+  if (outcomeVisibility?.visibility === "research_only") return outcomeVisibility;
 
-  return (
-    visibilityFromOutcomePayload(objectValue(outcome.payload_json)) ??
-    (snapshot?.is_visible === true ? "visible" : "unknown_visibility")
-  );
+  if (snapshot) {
+    if (snapshot.source_mode === "research_only" || snapshot.data_mode === "research_only") {
+      return { visibility: "research_only", source: "recommendation_metadata" };
+    }
+
+    const snapshotSource = researchOnlyPayloadSource(snapshot.payload_json);
+    if (snapshotSource) {
+      return { visibility: "research_only", source: snapshotSource };
+    }
+  }
+
+  if (outcomeVisibility) return outcomeVisibility;
+
+  if (snapshot && !isHiddenOrArchivedSnapshot(snapshot)) {
+    return { visibility: "visible", source: "recommendation_metadata" };
+  }
+
+  if (
+    !snapshot &&
+    (outcome.recommendation_id === null || outcome.recommendation_id === undefined) &&
+    visibilityFromOutcomePayload(outcomePayload)?.visibility === "research_only"
+  ) {
+    return { visibility: "research_only", source: "inferred_research_only" };
+  }
+
+  return { visibility: "unknown_visibility", source: "unknown" };
 }
 
 function tierFromPayload(payload: Record<string, unknown> | null) {
@@ -1329,29 +1426,136 @@ function metadataGapFlags(payloads: Array<Record<string, unknown> | null>) {
 
 function tierConfidenceFallback(tier: string) {
   if (tier === "strong") return 85;
-  if (tier === "valid") return 70;
-  if (tier === "experimental") return 55;
+  if (tier === "valid") return 75;
+  if (tier === "experimental") return 65;
+  return null;
+}
+
+function parseConfidenceValue(value: unknown) {
+  let parsed: number | null = null;
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    parsed = value;
+  } else if (typeof value === "string" && value.trim().length > 0) {
+    const text = value.trim();
+    const percent = text.endsWith("%");
+    const numeric = Number(text.replace(/%$/, "").trim());
+    if (Number.isFinite(numeric)) {
+      parsed = percent ? numeric : numeric;
+    }
+  }
+
+  if (parsed === null) return null;
+  if (parsed >= 0 && parsed <= 1) return parsed * 100;
+  if (parsed >= 0 && parsed <= 100) return parsed;
+  return null;
+}
+
+const confidenceMetadataKeys = new Set([
+  "confidence",
+  "confidence_score",
+  "confidencescore",
+  "confidence_percent",
+  "confidencepercentage",
+  "confidence_pct",
+  "recommendation_confidence",
+  "recommendationconfidence",
+  "quality_confidence",
+  "qualityconfidence",
+  "card_confidence",
+  "cardconfidence",
+]);
+
+const confidenceScoreFallbackKeys = new Set([
+  "score",
+  "ranking_score",
+  "rankingscore",
+  "tier_score",
+  "tierscore",
+]);
+
+function normalizedMetadataKey(key: string) {
+  return key.replace(/[-\s]+/g, "_").toLowerCase();
+}
+
+function confidenceSourceForPayload(
+  payload: Record<string, unknown>,
+  defaultSource: string,
+) {
+  const keys = Object.keys(payload).map((key) => key.toLowerCase());
+  return keys.some((key) => key.includes("candidate"))
+    ? "candidate_metadata"
+    : defaultSource;
+}
+
+function findConfidenceInPayloads(
+  payloads: Array<{
+    payload: Record<string, unknown> | null;
+    source: string;
+  }>,
+  keys: Set<string>,
+) {
+  for (const { payload, source } of payloads) {
+    for (const item of nestedPayloads(payload)) {
+      for (const [key, value] of Object.entries(item)) {
+        if (!keys.has(normalizedMetadataKey(key))) continue;
+        const parsed = parseConfidenceValue(value);
+        if (parsed !== null) {
+          return {
+            confidence: Math.max(0, Math.min(100, parsed)),
+            source: confidenceSourceForPayload(item, source),
+          };
+        }
+      }
+    }
+  }
+
   return null;
 }
 
 function confidenceForReviewOutcome(item: ReviewOutcome) {
   const snapshotPayload = item.snapshot?.payload_json ?? null;
   const outcomePayload = objectValue(item.outcome.payload_json);
-  const payloads = [snapshotPayload, outcomePayload];
-  const explicit =
-    finiteNumber(item.snapshot?.confidence) ??
-    firstNestedNumber(payloads, [
-      "confidence",
-      "confidence_score",
-      "recommendation_confidence",
-      "confidence_pct",
-      "confidence_percent",
-    ]);
+  const payloads = [
+    { payload: snapshotPayload, source: "snapshot_payload" },
+    { payload: outcomePayload, source: "outcome_payload" },
+  ];
+  const qualityPayload = objectValue(item.snapshot?.quality_json);
+  const directConfidence =
+    parseConfidenceValue(item.snapshot?.confidence) ??
+    parseConfidenceValue(qualityPayload?.confidence);
+
+  if (directConfidence !== null) {
+    return {
+      confidence: Math.max(0, Math.min(100, directConfidence)),
+      source: "recommendation_metadata" as const,
+      source_category: "numeric" as const,
+      metadata_keys: metadataKeys([snapshotPayload, outcomePayload]),
+    };
+  }
+
+  const explicit = findConfidenceInPayloads(payloads, confidenceMetadataKeys);
 
   if (explicit !== null) {
     return {
-      confidence: Math.max(0, Math.min(100, explicit)),
-      source: "explicit" as const,
+      confidence: explicit.confidence,
+      source: explicit.source,
+      source_category: "numeric" as const,
+      metadata_keys: metadataKeys([snapshotPayload, outcomePayload]),
+    };
+  }
+
+  const scoreFallback =
+    parseConfidenceValue(item.snapshot?.score) ??
+    findConfidenceInPayloads(payloads, confidenceScoreFallbackKeys)?.confidence ??
+    null;
+
+  if (scoreFallback !== null) {
+    return {
+      confidence: Math.max(0, Math.min(100, scoreFallback)),
+      source: "recommendation_metadata" as const,
+      source_category: "numeric" as const,
+      metadata_keys: metadataKeys([snapshotPayload, outcomePayload]),
     };
   }
 
@@ -1360,12 +1564,16 @@ function confidenceForReviewOutcome(item: ReviewOutcome) {
     return {
       confidence: fallback,
       source: "tier_fallback" as const,
+      source_category: "tier_fallback" as const,
+      metadata_keys: metadataKeys([snapshotPayload, outcomePayload]),
     };
   }
 
   return {
     confidence: null,
-    source: "missing" as const,
+    source: "unknown" as const,
+    source_category: "unknown" as const,
+    metadata_keys: metadataKeys([snapshotPayload, outcomePayload]),
   };
 }
 
@@ -1388,6 +1596,8 @@ function confidenceCalibrationRows(input: {
       snapshot_identity: item.snapshot_identity,
       confidence: confidence.confidence,
       confidence_source: confidence.source,
+      confidence_source_category: confidence.source_category,
+      confidence_metadata_keys: confidence.metadata_keys,
       visibility: item.visibility,
       entry_triggered: item.outcome.entry_triggered,
       entry_not_triggered: entryNotTriggered(item.outcome),
@@ -1696,7 +1906,8 @@ function reviewRows(input: DailyLearningReviewInput) {
             : null);
         const outcomePayload = objectValue(outcome.payload_json);
         const snapshotPayload = snapshot?.payload_json ?? null;
-        const visibility = visibilityFor(outcome, snapshot);
+        const visibilityResolution = visibilityFor(outcome, snapshot);
+        const visibility = visibilityResolution.visibility;
         const window = normalizeWindow(windowFrom(outcome, snapshot));
         const tier = tierFromPayload(snapshotPayload ?? outcomePayload);
         const setupType = setupTypeFromPayload(snapshotPayload ?? outcomePayload);
@@ -1731,6 +1942,7 @@ function reviewRows(input: DailyLearningReviewInput) {
           snapshot,
           batch_fingerprint: outcomeBatchFingerprint(outcome, snapshot),
           visibility,
+          visibility_source: visibilityResolution.source,
           snapshot_identity:
             textOrNull(outcome.snapshot_fingerprint) ??
             textOrNull(snapshot?.snapshot_fingerprint) ??
@@ -1747,6 +1959,44 @@ function reviewRows(input: DailyLearningReviewInput) {
           sector_profile: sectorProfile,
         };
       }),
+  };
+}
+
+function visibilityDiagnostics(
+  items: ReviewOutcome[],
+): DailyLearningReviewVisibilityDiagnostics {
+  const sourceCounts: Record<DailyLearningReviewVisibilityDetectionSource, number> = {
+    recommendation_metadata: 0,
+    snapshot_payload: 0,
+    outcome_payload: 0,
+    learning_acceleration_flag: 0,
+    inferred_research_only: 0,
+    unknown: 0,
+  };
+
+  for (const item of items) {
+    sourceCounts[item.visibility_source] =
+      (sourceCounts[item.visibility_source] ?? 0) + 1;
+  }
+
+  return {
+    source_counts: sourceCounts,
+    unknown_examples: items
+      .filter((item) => item.visibility === "unknown_visibility")
+      .slice(0, 8)
+      .map((item) => ({
+        ticker: item.ticker,
+        snapshot_fingerprint:
+          item.snapshot?.snapshot_fingerprint ??
+          item.outcome.snapshot_fingerprint ??
+          null,
+        batch_fingerprint: item.batch_fingerprint,
+        available_metadata_keys: metadataKeys([
+          item.snapshot?.payload_json ?? null,
+          objectValue(item.outcome.payload_json),
+        ]),
+        reason: "no_explicit_visibility_or_research_metadata",
+      })),
   };
 }
 
@@ -1778,6 +2028,7 @@ export function buildDailyLearningReviewSummary(
   const unknownVisibilityRows = dayRows.filter(
     (item) => item.visibility === "unknown_visibility",
   );
+  const visibilityDiagnosticSummary = visibilityDiagnostics(dayRows);
   const metrics = metricsFor(dayRows);
   const visibleMetrics = metricsFor(visibleRows);
   const researchMetrics = metricsFor(researchRows);
@@ -1921,6 +2172,7 @@ export function buildDailyLearningReviewSummary(
     confidence_calibration: confidenceCalibration,
     model_governance: modelGovernance,
     intelligence_overview: intelligenceOverview,
+    visibility_diagnostics: visibilityDiagnosticSummary,
     engine_adjustment_candidates: engineAdjustmentCandidates,
     sample_size_label: confidence,
     duplicate_outcome_rows_ignored_count: review.duplicateCount,

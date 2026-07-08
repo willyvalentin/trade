@@ -15,6 +15,7 @@ import {
 const repoRoot = process.cwd();
 const writeServiceDraftPath = "lib/post-trade-write-service-draft.ts";
 const routePath = "app/api/post-trade/payload/validate/route.ts";
+const servicePlanPath = "lib/post-trade-persistence-service-plan.ts";
 const tradeUiPath = "app/trade-app.tsx";
 
 function readSource(path: string) {
@@ -283,12 +284,15 @@ test.describe("post-trade write service draft command builder", () => {
     expect(source).toContain('"no_remote_write"');
   });
 
-  test("write service draft is not wired into API route or Trade UI", () => {
+  test("write service draft is not wired into API route, service plan, or Trade UI", () => {
     const routeSource = readSource(routePath);
+    const servicePlanSource = readSource(servicePlanPath);
     const tradeUiSource = readSource(tradeUiPath);
 
     expect(routeSource).not.toContain("post-trade-write-service-draft");
     expect(routeSource).not.toContain("buildPostTradeWriteServiceDraftCommands");
+    expect(servicePlanSource).not.toContain("post-trade-write-service-draft");
+    expect(servicePlanSource).not.toContain("buildPostTradeWriteServiceDraftCommands");
     expect(tradeUiSource).not.toContain("post-trade-write-service-draft");
     expect(tradeUiSource).not.toContain("buildPostTradeWriteServiceDraftCommands");
   });

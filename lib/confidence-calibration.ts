@@ -20,6 +20,8 @@ export type TureConfidenceCalibrationInputRow = {
   snapshot_identity?: string | null;
   confidence?: number | null;
   confidence_source?: "explicit" | "tier_fallback" | "missing" | string | null;
+  confidence_source_category?: "numeric" | "tier_fallback" | "unknown" | string | null;
+  confidence_metadata_keys?: string[];
   visibility?: "visible" | "research_only" | "unknown_visibility" | string | null;
   entry_triggered?: boolean | null;
   entry_not_triggered?: boolean | null;
@@ -33,6 +35,13 @@ export type TureConfidenceCalibrationInputRow = {
   ticker?: string | null;
   regime?: string | null;
   quality_label?: string | null;
+};
+
+export type TureConfidenceUnknownExample = {
+  ticker: string;
+  snapshot_identity: string | null;
+  available_metadata_keys: string[];
+  reason: string;
 };
 
 export type TureConfidenceCalibrationBucketSummary = {
@@ -70,7 +79,11 @@ export type TureConfidenceCalibrationSummary = {
   total_outcome_count: number;
   total_unique_snapshot_count: number;
   outcomes_with_confidence_count: number;
+  outcomes_with_numeric_confidence_count: number;
+  outcomes_with_tier_fallback_confidence_count: number;
   unknown_confidence_count: number;
+  confidence_source_mix: Record<string, number>;
+  unknown_confidence_examples: TureConfidenceUnknownExample[];
   buckets: TureConfidenceCalibrationBucketSummary[];
   monotonicity_check: {
     higher_confidence_outperforms_lower: boolean | null;
@@ -281,6 +294,7 @@ export function buildConfidenceCalibrationSummary(
       increment(qualityMix, normalizeKey(row.quality_label));
       if (row.confidence_source === "tier_fallback") {
         reasonCodes.push("tier_confidence_fallback");
+        cautionFlags.push("confidence_from_tier_fallback");
       }
     }
 
@@ -357,6 +371,30 @@ export function buildConfidenceCalibrationSummary(
   const unknownConfidenceCount =
     byBucket.get("unknown")?.length ?? 0;
   const metadataGaps = unknownConfidenceCount > 0 ? ["missing_confidence"] : [];
+  const confidenceSourceMix: Record<string, number> = {};
+
+  for (const row of safeRows) {
+    increment(confidenceSourceMix, normalizeKey(row.confidence_source));
+  }
+
+  const numericConfidenceCount = safeRows.filter(
+    (row) =>
+      row.confidence !== null &&
+      row.confidence !== undefined &&
+      row.confidence_source !== "tier_fallback",
+  ).length;
+  const tierFallbackConfidenceCount = safeRows.filter(
+    (row) => row.confidence_source === "tier_fallback",
+  ).length;
+  const unknownConfidenceExamples = safeRows
+    .filter((row) => confidenceBucket(row.confidence) === "unknown")
+    .slice(0, 8)
+    .map((row) => ({
+      ticker: normalizeTicker(row.ticker),
+      snapshot_identity: row.snapshot_identity ?? null,
+      available_metadata_keys: row.confidence_metadata_keys ?? [],
+      reason: "missing_numeric_confidence_and_tier",
+    }));
 
   return {
     advisory_only: true,
@@ -365,7 +403,11 @@ export function buildConfidenceCalibrationSummary(
       safeRows.map((row) => row.snapshot_identity ?? `${normalizeTicker(row.ticker)}:unknown`),
     ).size,
     outcomes_with_confidence_count: safeRows.length - unknownConfidenceCount,
+    outcomes_with_numeric_confidence_count: numericConfidenceCount,
+    outcomes_with_tier_fallback_confidence_count: tierFallbackConfidenceCount,
     unknown_confidence_count: unknownConfidenceCount,
+    confidence_source_mix: confidenceSourceMix,
+    unknown_confidence_examples: unknownConfidenceExamples,
     buckets: labeledBuckets,
     monotonicity_check: monotonicityCheck,
     top_buckets: topBuckets,

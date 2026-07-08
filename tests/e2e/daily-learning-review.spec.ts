@@ -628,6 +628,84 @@ test("daily learning review sample confidence labels follow outcome count", () =
   expect(confidenceSummary(100).sample_size_label).toBe("high");
 });
 
+test("daily learning review detects production-style research-only visibility split", () => {
+  const visibleSnapshots = Array.from({ length: 16 }, (_, index) =>
+    snapshot(`VIS${index}`, {
+      snapshot_fingerprint: `snap-visible-${index}`,
+      recommendation_id: `rec-visible-${index}`,
+      payload_json: {
+        batch_fingerprint: "rec_batch_daily",
+        visibility_status: "visible",
+        day_trade_window_recommendation_target: { tier: "valid" },
+      },
+    }),
+  );
+  const researchSnapshots = Array.from({ length: 15 }, (_, index) =>
+    snapshot(`RES${index}`, {
+      snapshot_fingerprint: `snap-research-${index}`,
+      recommendation_id: null,
+      status: "hidden",
+      is_visible: false,
+      source_mode: "research_only",
+      data_mode: "research_only",
+      payload_json: {
+        batch_fingerprint: "rec_batch_daily",
+        learning_metadata: {
+          visibility_status: "research_only",
+          learning_acceleration_sample: true,
+          not_live_signal: true,
+          not_live_trade_signal: true,
+        },
+        day_trade_window_recommendation_target: { tier: "experimental" },
+      },
+    }),
+  );
+  const horizons = ["15m", "30m", "60m"] as const;
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_daily",
+    snapshots: [...visibleSnapshots, ...researchSnapshots],
+    outcomes: [
+      ...visibleSnapshots.flatMap((item) =>
+        horizons.map((horizon) =>
+          outcome(item.ticker ?? "VIS", {
+            id: `outcome-${item.snapshot_fingerprint}-${horizon}`,
+            horizon,
+            snapshot_fingerprint: item.snapshot_fingerprint,
+            recommendation_id: item.recommendation_id,
+          }),
+        ),
+      ),
+      ...researchSnapshots.flatMap((item) =>
+        horizons.map((horizon) =>
+          outcome(item.ticker ?? "RES", {
+            id: `outcome-${item.snapshot_fingerprint}-${horizon}`,
+            horizon,
+            snapshot_fingerprint: item.snapshot_fingerprint,
+            recommendation_id: null,
+            payload_json: {
+              learning_acceleration_sample: true,
+              visibility_status: "research_only",
+            },
+          }),
+        ),
+      ),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(summary.visible_evaluated_count).toBe(48);
+  expect(summary.research_only_evaluated_count).toBe(45);
+  expect(summary.unknown_visibility_evaluated_count).toBe(0);
+  expect(summary.visible_unique_snapshot_count).toBe(16);
+  expect(summary.research_only_unique_snapshot_count).toBe(15);
+  expect(summary.unknown_visibility_unique_snapshot_count).toBe(0);
+  expect(
+    summary.visibility_diagnostics.source_counts.learning_acceleration_flag,
+  ).toBe(45);
+  expect(summary.visibility_diagnostics.unknown_examples).toHaveLength(0);
+});
+
 test("daily learning review generates engine adjustment candidates", () => {
   const powerHourSnapshots = Array.from({ length: 5 }, (_, index) =>
     snapshot(`PH${index}`, {
@@ -681,6 +759,7 @@ test("market diagnostics renders daily learning review section", () => {
     "rec_batch_daily",
   );
   expect(section?.lines.join("\n")).toContain("Visible/research-only/unknown");
+  expect(section?.lines.join("\n")).toContain("Visibility detection sources");
   expect(section?.lines.join("\n")).toContain("Window groups");
   expect(section?.lines.join("\n")).toContain("Tier groups");
   expect(section?.lines.join("\n")).toContain("Sample confidence");

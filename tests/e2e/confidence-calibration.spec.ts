@@ -493,6 +493,7 @@ test("daily learning review includes confidence calibration and tier fallback", 
   const aapl = snapshot("AAPL", { confidence: 82 });
   const pltr = snapshot("PLTR", {
     confidence: null,
+    score: Number.NaN,
     source_mode: "research_only",
     data_mode: "research_only",
     payload_json: {
@@ -506,6 +507,7 @@ test("daily learning review includes confidence calibration and tier fallback", 
   });
   const missing = snapshot("NOPE", {
     confidence: null,
+    score: Number.NaN,
     payload_json: {
       batch_fingerprint: "rec_batch_confidence",
       visibility_status: "visible",
@@ -537,10 +539,80 @@ test("daily learning review includes confidence calibration and tier fallback", 
   expect(summary.confidence_calibration.advisory_only).toBe(true);
   expect(summary.confidence_calibration.total_outcome_count).toBe(3);
   expect(summary.confidence_calibration.outcomes_with_confidence_count).toBe(2);
-  expect(summary.confidence_calibration.unknown_confidence_count).toBe(1);
   expect(
-    summary.confidence_calibration.buckets.find((item) => item.bucket === "50_59")
+    summary.confidence_calibration.outcomes_with_numeric_confidence_count,
+  ).toBe(1);
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(1);
+  expect(summary.confidence_calibration.unknown_confidence_count).toBe(1);
+  expect(summary.confidence_calibration.confidence_source_mix.tier_fallback).toBe(
+    1,
+  );
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "60_69")
       ?.research_only_outcome_count,
+  ).toBe(1);
+});
+
+test("daily learning review extracts numeric confidence variants", () => {
+  const payloadConfidence = snapshot("AAPL", {
+    confidence: null,
+    score: null,
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      confidence_percent: "72%",
+      day_trade_window_recommendation_target: { tier: "valid" },
+    },
+  });
+  const outcomeConfidence = snapshot("MSFT", {
+    confidence: null,
+    score: null,
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      day_trade_window_recommendation_target: { tier: "valid" },
+    },
+  });
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_confidence",
+    snapshots: [payloadConfidence, outcomeConfidence],
+    outcomes: [
+      outcome("AAPL", {
+        snapshot_fingerprint: payloadConfidence.snapshot_fingerprint,
+        recommendation_id: payloadConfidence.recommendation_id,
+      }),
+      outcome("MSFT", {
+        snapshot_fingerprint: outcomeConfidence.snapshot_fingerprint,
+        recommendation_id: outcomeConfidence.recommendation_id,
+        payload_json: {
+          recommendation: {
+            confidenceScore: "0.82",
+          },
+        },
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(
+    summary.confidence_calibration.outcomes_with_numeric_confidence_count,
+  ).toBe(2);
+  expect(summary.confidence_calibration.confidence_source_mix.snapshot_payload).toBe(
+    1,
+  );
+  expect(summary.confidence_calibration.confidence_source_mix.outcome_payload).toBe(
+    1,
+  );
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "70_79")
+      ?.outcome_count,
+  ).toBe(1);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "80_89")
+      ?.outcome_count,
   ).toBe(1);
 });
 
@@ -571,6 +643,7 @@ test("market diagnostics renders confidence calibration section", () => {
   expect(section).toBeTruthy();
   expect(section?.lines.join("\n")).toContain("Advisory mode: yes");
   expect(section?.lines.join("\n")).toContain("Outcomes with confidence");
+  expect(section?.lines.join("\n")).toContain("Confidence source mix");
   expect(section?.lines.join("\n")).toContain("Bucket mix");
   expect(section?.lines.join("\n")).toContain("Monotonicity");
   expect(dailySection?.lines.join("\n")).toContain("Confidence buckets");

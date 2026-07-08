@@ -6147,6 +6147,12 @@ function buildSections(
           `${input.daily_learning_review?.visible_evaluated_count ?? 0} / ${input.daily_learning_review?.research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.unknown_visibility_evaluated_count ?? 0}`,
         ),
         lineValue(
+          "Visibility detection sources",
+          setupMixText(
+            input.daily_learning_review?.visibility_diagnostics.source_counts,
+          ),
+        ),
+        lineValue(
           "Latest batch visible/research-only/unknown",
           `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_unknown_visibility_evaluated_count ?? 0}`,
         ),
@@ -6552,6 +6558,14 @@ function buildSections(
         duplicate_outcome_rows_ignored_count:
           input.daily_learning_review?.duplicate_outcome_rows_ignored_count ??
           null,
+        visibility_detection_source_counts: JSON.stringify(
+          input.daily_learning_review?.visibility_diagnostics.source_counts ??
+            {},
+        ),
+        unknown_visibility_examples: JSON.stringify(
+          input.daily_learning_review?.visibility_diagnostics
+            .unknown_examples ?? [],
+        ),
       },
     }),
     section({
@@ -7336,9 +7350,20 @@ function buildSections(
           `${input.daily_learning_review?.confidence_calibration.outcomes_with_confidence_count ?? 0} / ${input.daily_learning_review?.confidence_calibration.total_outcome_count ?? 0}`,
         ),
         lineValue(
+          "Numeric/tier fallback confidence",
+          `${input.daily_learning_review?.confidence_calibration.outcomes_with_numeric_confidence_count ?? 0} / ${input.daily_learning_review?.confidence_calibration.outcomes_with_tier_fallback_confidence_count ?? 0}`,
+        ),
+        lineValue(
           "Unknown confidence",
           input.daily_learning_review?.confidence_calibration
             .unknown_confidence_count ?? 0,
+        ),
+        lineValue(
+          "Confidence source mix",
+          setupMixText(
+            input.daily_learning_review?.confidence_calibration
+              .confidence_source_mix,
+          ),
         ),
         lineValue(
           "Bucket mix",
@@ -7400,6 +7425,20 @@ function buildSections(
         unknown_confidence_count:
           input.daily_learning_review?.confidence_calibration
             .unknown_confidence_count ?? null,
+        outcomes_with_numeric_confidence_count:
+          input.daily_learning_review?.confidence_calibration
+            .outcomes_with_numeric_confidence_count ?? null,
+        outcomes_with_tier_fallback_confidence_count:
+          input.daily_learning_review?.confidence_calibration
+            .outcomes_with_tier_fallback_confidence_count ?? null,
+        confidence_source_mix: JSON.stringify(
+          input.daily_learning_review?.confidence_calibration
+            .confidence_source_mix ?? {},
+        ),
+        unknown_confidence_examples: JSON.stringify(
+          input.daily_learning_review?.confidence_calibration
+            .unknown_confidence_examples ?? [],
+        ),
         buckets: JSON.stringify(
           input.daily_learning_review?.confidence_calibration.buckets ?? [],
         ),
