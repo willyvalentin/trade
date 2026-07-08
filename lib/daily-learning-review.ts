@@ -30,6 +30,8 @@ import {
 } from "@/lib/market-regime-labeling";
 import {
   buildConfidenceCalibrationSummary,
+  bucketForConfidence,
+  type TureConfidenceBucket,
   type TureConfidenceCalibrationSummary,
 } from "@/lib/confidence-calibration";
 import {
@@ -46,6 +48,11 @@ import {
   type TureTradeQualityDecomposition,
   type TureTradeQualityDecompositionSummary,
 } from "@/lib/trade-quality-decomposition";
+import {
+  buildTickerUniverseReadiness,
+  type TickerUniverseReadinessDynamicMoversInput,
+  type TickerUniverseReadinessSummary,
+} from "@/lib/ticker-universe-readiness";
 
 export type DailyLearningReviewVisibility =
   | "visible"
@@ -360,6 +367,7 @@ export type DailyLearningReviewSummary = {
   confidence_calibration: TureConfidenceCalibrationSummary;
   model_governance: TureModelGovernanceSummary;
   intelligence_overview: TureIntelligenceOverview;
+  ticker_universe_readiness: TickerUniverseReadinessSummary;
   visibility_diagnostics: DailyLearningReviewVisibilityDiagnostics;
   snapshot_join_diagnostics: DailyLearningReviewSnapshotJoinDiagnostics;
   metadata_readback_diagnostics: DailyLearningReviewMetadataReadbackDiagnostics;
@@ -374,6 +382,8 @@ export type DailyLearningReviewInput = {
   batches?: RecommendationBatch[];
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
+  configured_static_universe_count?: number | null;
+  dynamic_movers?: TickerUniverseReadinessDynamicMoversInput;
   now?: Date | string | null;
 };
 
@@ -1854,6 +1864,24 @@ function confidenceCalibrationRows(input: {
   });
 }
 
+function confidenceBucketMixByTicker(
+  rows: ReturnType<typeof confidenceCalibrationRows>,
+) {
+  const mix: Record<string, Partial<Record<TureConfidenceBucket, number>>> = {};
+
+  for (const row of rows) {
+    const ticker = row.ticker?.trim().toUpperCase() ?? "";
+    if (ticker.length === 0 || ticker === "UNKNOWN") continue;
+
+    const bucket = bucketForConfidence(row.confidence);
+    const tickerMix = mix[ticker] ?? {};
+    tickerMix[bucket] = (tickerMix[bucket] ?? 0) + 1;
+    mix[ticker] = tickerMix;
+  }
+
+  return mix;
+}
+
 function tradeQualityRows(input: {
   rows: ReviewOutcome[];
   latestRows: ReviewOutcome[];
@@ -2687,13 +2715,25 @@ export function buildDailyLearningReviewSummary(
       current_batch: row.current_batch,
     })),
   );
-  const confidenceCalibration = buildConfidenceCalibrationSummary(
-    confidenceCalibrationRows({
-      rows: dayRows,
-      tradeQualityRows: tradeQualityDecompositions,
-      marketRegime,
-    }),
-  );
+  const calibrationRows = confidenceCalibrationRows({
+    rows: dayRows,
+    tradeQualityRows: tradeQualityDecompositions,
+    marketRegime,
+  });
+  const confidenceCalibration =
+    buildConfidenceCalibrationSummary(calibrationRows);
+  const tickerUniverseReadiness = buildTickerUniverseReadiness({
+    configured_static_universe_count:
+      input.configured_static_universe_count ?? null,
+    dynamic_movers: input.dynamic_movers ?? null,
+    observed_tickers: dayRows.map((item) => item.ticker),
+    evaluated_tickers: dayRows.map((item) => item.ticker),
+    visible_tickers: visibleRows.map((item) => item.ticker),
+    ticker_profiles: tickerProfiles,
+    ticker_profile_summary: tickerProfileSummary,
+    confidence_bucket_mix_by_ticker:
+      confidenceBucketMixByTicker(calibrationRows),
+  });
   const modelGovernance = buildModelGovernanceSummary();
   const setupLabelingSummary = buildSetupLabelingSummary({
     labels: dayRows.map((item) => ({
@@ -2789,6 +2829,7 @@ export function buildDailyLearningReviewSummary(
     confidence_calibration: confidenceCalibration,
     model_governance: modelGovernance,
     intelligence_overview: intelligenceOverview,
+    ticker_universe_readiness: tickerUniverseReadiness,
     visibility_diagnostics: visibilityDiagnosticSummary,
     snapshot_join_diagnostics: snapshotJoinDiagnosticSummary,
     metadata_readback_diagnostics: metadataReadbackDiagnosticSummary,

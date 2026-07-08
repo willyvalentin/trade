@@ -14142,6 +14142,9 @@ export function TradeApp({
     batches: liveStoredRecommendationBatches,
     snapshots: dailyLearningReviewSnapshots,
     outcomes: storedRecommendationOutcomes,
+    configured_static_universe_count:
+      scannerUniverseCoverageSummary.total_universe_size,
+    dynamic_movers: dynamicMarketMoversSummary,
     now: currentTime,
   });
   const entryTuningProposal = buildEntryTuningProposal({

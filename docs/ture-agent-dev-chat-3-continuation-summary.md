@@ -2582,3 +2582,108 @@ Safety remains locked:
 Decision:
 
 `post_trade_staging_mock_write_blocked_runtime_blocked`
+
+## 55. Action 458 Update
+
+Action 458 created the no-write blocker resolution plan for the stopped staging mock write attempt.
+
+- Checkpoint: `docs/post-trade-staging-mock-write-blocker-resolution-plan-no-write.md`
+- No `.env.local` secret values were read or printed.
+- No remote execution adapter was created.
+- No API write behavior was created.
+- Nothing was wired into Trade UI.
+- No staging write or test row insertion occurred.
+
+Documented blockers:
+
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` is missing by key-name-only evidence from Action 457
+- the reviewed implementation path still has no remote execution adapter and remains no-remote-write only
+
+Safe service-role key provisioning path:
+
+- user/operator adds `SUPABASE_STAGING_SERVICE_ROLE_KEY` server-side only
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key
+- no value printed, logged, committed, or documented
+- no production service-role key accepted
+- fail closed if missing, ambiguous, public-prefixed, or production-like
+
+Safe remote execution adapter path:
+
+- separate design gate, no write
+- separate implementation gate, no remote write
+- separate static/security review
+- separate staging mock write execution gate
+- adapter must be server-only, staging-only, idempotent, audit-writing, and limited to sanitized command objects
+
+Known unrelated worktree note:
+
+- `app/trade-app.tsx` had unrelated pre-existing edits from outside Action 457/458
+- Action 458 did not modify `app/trade-app.tsx`
+- the protected `app/trade-app.tsx` diff guard is not required to pass until those unrelated edits are resolved separately
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_staging_mock_write_blocker_resolution_plan_ready_no_write`
+
+## 56. Action 459 Update
+
+Action 459 verified the staging service-role environment key by key name only.
+
+- Checkpoint: `docs/post-trade-staging-service-role-key-presence-verification-no-secret.md`
+- Expected key: `SUPABASE_STAGING_SERVICE_ROLE_KEY`
+- `.env.local` was checked by key name only
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` is present
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key names are present
+- no service-role secret value was read, printed, stored, committed, or documented
+- local Supabase target remains `pdvzyuhykomwfqyyztru`
+- production target was not selected
+
+Resolved blocker:
+
+- the missing staging service-role key blocker from Action 457 is resolved by key-name-only evidence
+
+Remaining blocker:
+
+- no reviewed remote execution adapter exists
+- no write execution path was created
+- no API write behavior is active
+- Trade UI remains unwired
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no remote execution adapter creation or modification
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_staging_service_role_key_presence_verified_no_secret`

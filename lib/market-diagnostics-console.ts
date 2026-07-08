@@ -749,6 +749,27 @@ function compactListText(values: string[] | null | undefined) {
   return items.length > 0 ? items.join(", ") : "none";
 }
 
+function readinessSectorCoverageText(
+  coverage:
+    | DailyLearningReviewSummary["ticker_universe_readiness"]["sector_coverage"]
+    | null
+    | undefined,
+) {
+  if (!coverage) return "none";
+
+  const observed = coverage.sectors_observed
+    .slice(0, 6)
+    .map((item) => `${item.sector} ${item.count}`)
+    .join(", ");
+
+  return [
+    `observed ${observed || "none"}`,
+    `positive ${compactListText(coverage.sectors_with_positive_signal)}`,
+    `negative ${compactListText(coverage.sectors_with_negative_signal)}`,
+    `needs data ${compactListText(coverage.sectors_needing_more_data)}`,
+  ].join(" / ");
+}
+
 function regimeEvidenceText(
   evidence:
     | {
@@ -6233,6 +6254,10 @@ function buildSections(
           ),
         ),
         lineValue(
+          "Ticker universe readiness",
+          `observed ${input.daily_learning_review?.ticker_universe_readiness.universe_status.observed_today_count ?? 0} / core candidates ${input.daily_learning_review?.ticker_universe_readiness.ticker_classification.core_candidates.length ?? 0} / research-heavy ${input.daily_learning_review?.ticker_universe_readiness.ticker_classification.research_heavy_candidates.length ?? 0} / safe to change no`,
+        ),
+        lineValue(
           "Setup families",
           setupFamilyBreakdownText(
             input.daily_learning_review?.setup_family_breakdowns,
@@ -6643,6 +6668,9 @@ function buildSections(
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
+        ticker_universe_readiness: JSON.stringify(
+          input.daily_learning_review?.ticker_universe_readiness ?? null,
+        ),
         group_breakdowns: JSON.stringify(
           input.daily_learning_review?.group_breakdowns ?? [],
         ),
@@ -6844,6 +6872,195 @@ function buildSections(
         metadata_gaps: (
           input.daily_learning_review?.intelligence_overview.metadata_gaps ?? []
         ).join(","),
+      },
+    }),
+    section({
+      section_id: "ticker_universe_readiness",
+      title: "Ticker Universe Readiness",
+      severity:
+        input.daily_learning_review?.ticker_universe_readiness.summary
+          .sample_confidence === "low" ||
+        input.daily_learning_review?.ticker_universe_readiness.universe_status
+          .dynamic_movers_available === false
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Static universe count",
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .configured_static_universe_count ?? null,
+        ),
+        lineValue(
+          "Observed/evaluated tickers today",
+          `${input.daily_learning_review?.ticker_universe_readiness.universe_status.observed_today_count ?? 0} / ${input.daily_learning_review?.ticker_universe_readiness.universe_status.evaluated_today_count ?? 0}`,
+        ),
+        lineValue(
+          "Profiles built",
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .profile_count ?? 0,
+        ),
+        lineValue(
+          "Dynamic movers",
+          `${input.daily_learning_review?.ticker_universe_readiness.universe_status.dynamic_movers_enabled === true ? "enabled" : "disabled"} / ${input.daily_learning_review?.ticker_universe_readiness.universe_status.dynamic_movers_available === true ? "available" : "unavailable"}`,
+        ),
+        lineValue(
+          "Core candidates",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.core_candidates,
+          ),
+        ),
+        lineValue(
+          "Observed candidates",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.observed_candidates,
+          ),
+        ),
+        lineValue(
+          "Research-heavy candidates",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.research_heavy_candidates,
+          ),
+        ),
+        lineValue(
+          "Needs more data",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.needs_more_data,
+          ),
+        ),
+        lineValue(
+          "Possible deprioritization candidates",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.possible_deprioritization_candidates,
+          ),
+        ),
+        lineValue(
+          "Dynamic mover gap candidates",
+          tickerListText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .ticker_classification.dynamic_mover_gap_candidates,
+          ),
+        ),
+        lineValue(
+          "Sector coverage",
+          readinessSectorCoverageText(
+            input.daily_learning_review?.ticker_universe_readiness
+              .sector_coverage,
+          ),
+        ),
+        lineValue(
+          "Primary universe signal",
+          compact(
+            input.daily_learning_review?.ticker_universe_readiness.summary
+              .primary_universe_signal,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Recommended focus",
+          compactListText(
+            input.daily_learning_review?.ticker_universe_readiness.summary
+              .recommended_focus,
+          ),
+        ),
+        lineValue(
+          "Safe to change universe",
+          "no",
+        ),
+        lineValue(
+          "Scanner universe changed",
+          "no",
+        ),
+        lineValue("Live ranking changed", "no"),
+      ],
+      metrics: {
+        advisory_mode:
+          input.daily_learning_review?.ticker_universe_readiness.advisory_only ??
+          true,
+        configured_static_universe_count:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .configured_static_universe_count ?? null,
+        observed_today_count:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .observed_today_count ?? null,
+        evaluated_today_count:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .evaluated_today_count ?? null,
+        visible_today_count:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .visible_today_count ?? null,
+        profile_count:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .profile_count ?? null,
+        dynamic_movers_enabled:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .dynamic_movers_enabled ?? false,
+        dynamic_movers_available:
+          input.daily_learning_review?.ticker_universe_readiness.universe_status
+            .dynamic_movers_available ?? false,
+        core_candidates: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.core_candidates ?? []
+        ).join(","),
+        observed_candidates: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.observed_candidates ?? []
+        ).join(","),
+        research_heavy_candidates: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.research_heavy_candidates ?? []
+        ).join(","),
+        needs_more_data: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.needs_more_data ?? []
+        ).join(","),
+        possible_deprioritization_candidates: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.possible_deprioritization_candidates ?? []
+        ).join(","),
+        dynamic_mover_gap_candidates: (
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_classification.dynamic_mover_gap_candidates ?? []
+        ).join(","),
+        sector_coverage: JSON.stringify(
+          input.daily_learning_review?.ticker_universe_readiness
+            .sector_coverage ?? null,
+        ),
+        ticker_metrics: JSON.stringify(
+          input.daily_learning_review?.ticker_universe_readiness
+            .ticker_metrics ?? [],
+        ),
+        dynamic_movers_gap: JSON.stringify(
+          input.daily_learning_review?.ticker_universe_readiness
+            .dynamic_movers_gap ?? null,
+        ),
+        sample_confidence:
+          input.daily_learning_review?.ticker_universe_readiness.summary
+            .sample_confidence ?? null,
+        primary_universe_signal:
+          input.daily_learning_review?.ticker_universe_readiness.summary
+            .primary_universe_signal ?? null,
+        recommended_focus: (
+          input.daily_learning_review?.ticker_universe_readiness.summary
+            .recommended_focus ?? []
+        ).join(","),
+        safe_to_change_universe:
+          input.daily_learning_review?.ticker_universe_readiness.summary
+            .safe_to_change_universe ?? false,
+        scanner_universe_changed:
+          input.daily_learning_review?.ticker_universe_readiness.safety
+            .scanner_universe_changed ?? false,
+        live_ranking_changed:
+          input.daily_learning_review?.ticker_universe_readiness.safety
+            .live_ranking_changed ?? false,
+        requires_manual_review:
+          input.daily_learning_review?.ticker_universe_readiness.safety
+            .requires_manual_review ?? true,
       },
     }),
     section({
