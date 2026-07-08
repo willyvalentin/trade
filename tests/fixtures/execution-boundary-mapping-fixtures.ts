@@ -30,6 +30,18 @@ export type MockHeadlessSafetyInput = {
   redactedEvidenceOnly?: boolean;
 };
 
+export type MockHeadlessForbiddenCouplingInput = {
+  accountId?: string;
+  brokerOrderId?: string;
+  productionExecutionId?: string;
+  credential?: string;
+  session?: string;
+  cookie?: string;
+  finalKopAuthority?: boolean;
+  finalSaljAuthority?: boolean;
+  liveTradeMutationAuthority?: boolean;
+};
+
 export type MockHeadlessBuyExecutionInput = {
   sourceId: string;
   action: "BUY";
@@ -49,6 +61,7 @@ export type MockHeadlessBuyExecutionInput = {
   };
   authority?: MockHeadlessAuthorityInput;
   safety?: MockHeadlessSafetyInput;
+  forbiddenCoupling?: MockHeadlessForbiddenCouplingInput;
 };
 
 export type MockHeadlessSellExitInput = {
@@ -80,6 +93,7 @@ export type MockHeadlessSellExitInput = {
   riskSummary: MockBoundaryRiskSummary;
   authority?: MockHeadlessAuthorityInput;
   safety?: MockHeadlessSafetyInput;
+  forbiddenCoupling?: MockHeadlessForbiddenCouplingInput;
 };
 
 export const mockHeadlessBuyExecutionInputFixture: MockHeadlessBuyExecutionInput = {
@@ -187,6 +201,7 @@ export const mockHeadlessSellExitInputFixture: MockHeadlessSellExitInput = {
 function collectUnsafeSharedInputViolations(
   authority: MockHeadlessAuthorityInput | undefined,
   safety: MockHeadlessSafetyInput | undefined,
+  forbiddenCoupling: MockHeadlessForbiddenCouplingInput | undefined,
 ) {
   const violations: string[] = [];
 
@@ -220,23 +235,93 @@ function collectUnsafeSharedInputViolations(
   if (safety?.redactedEvidenceOnly === false) {
     violations.push("redactedEvidenceOnly input must not be false");
   }
+  if (forbiddenCoupling?.accountId) violations.push("accountId input is forbidden");
+  if (forbiddenCoupling?.brokerOrderId) {
+    violations.push("brokerOrderId input is forbidden");
+  }
+  if (forbiddenCoupling?.productionExecutionId) {
+    violations.push("productionExecutionId input is forbidden");
+  }
+  if (forbiddenCoupling?.credential) {
+    violations.push("credential-like input is forbidden");
+  }
+  if (forbiddenCoupling?.session) {
+    violations.push("session-like input is forbidden");
+  }
+  if (forbiddenCoupling?.cookie) {
+    violations.push("cookie-like input is forbidden");
+  }
+  if (forbiddenCoupling?.finalKopAuthority) {
+    violations.push("finalKopAuthority input is forbidden");
+  }
+  if (forbiddenCoupling?.finalSaljAuthority) {
+    violations.push("finalSaljAuthority input is forbidden");
+  }
+  if (forbiddenCoupling?.liveTradeMutationAuthority) {
+    violations.push("liveTradeMutationAuthority input is forbidden");
+  }
 
   return violations;
 }
 
+function hasSafeText(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hasPositiveNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function hasBuyRewardRiskShape(input: MockHeadlessBuyExecutionInput) {
+  return input.stop < input.entry && input.entry < input.target;
+}
+
+function hasSellExitPriceShape(input: MockHeadlessSellExitInput) {
+  return input.stop > 0 && input.referenceEntry > 0 && input.target > 0;
+}
+
+function isAllowedPlannedExitReason(value: unknown) {
+  return (
+    value === "target_review" ||
+    value === "stop_review" ||
+    value === "risk_reduction_review"
+  );
+}
+
 function assertNoUnsafeBuyInput(input: MockHeadlessBuyExecutionInput) {
-  const violations = collectUnsafeSharedInputViolations(input.authority, input.safety);
+  const violations = collectUnsafeSharedInputViolations(
+    input.authority,
+    input.safety,
+    input.forbiddenCoupling,
+  );
 
   if (input.action !== "BUY" || input.side !== "BUY") {
     violations.push("BUY mapping input must use BUY action and side");
   }
+  if (!hasSafeText(input.ticker)) violations.push("BUY ticker is required");
+  if (!hasSafeText(input.company)) violations.push("BUY company is required");
+  if (!hasPositiveNumber(input.quantity)) {
+    violations.push("BUY quantity must be positive");
+  }
+  if (!hasPositiveNumber(input.entry)) violations.push("BUY entry must be positive");
+  if (!hasPositiveNumber(input.stop)) violations.push("BUY stop must be positive");
+  if (!hasPositiveNumber(input.target)) violations.push("BUY target must be positive");
+  if (!hasBuyRewardRiskShape(input)) {
+    violations.push("BUY stop, entry, and target must form a valid reward/risk shape");
+  }
+  if (input.orderType !== "LIMIT") {
+    violations.push("BUY orderType must be LIMIT");
+  }
   if (input.authority?.finalBuyAuthority) {
     violations.push("finalBuyAuthority input must be false");
   }
-  if (input.planReference.ticker !== input.ticker) {
+  if (!input.planReference) {
+    violations.push("BUY planReference is required");
+  }
+  if (input.planReference?.ticker !== input.ticker) {
     violations.push("BUY planReference ticker must match input ticker");
   }
-  if (input.planReference.intent !== "entry_buy") {
+  if (input.planReference?.intent !== "entry_buy") {
     violations.push("BUY planReference intent must be entry_buy");
   }
 
@@ -246,10 +331,33 @@ function assertNoUnsafeBuyInput(input: MockHeadlessBuyExecutionInput) {
 }
 
 function assertNoUnsafeSellInput(input: MockHeadlessSellExitInput) {
-  const violations = collectUnsafeSharedInputViolations(input.authority, input.safety);
+  const violations = collectUnsafeSharedInputViolations(
+    input.authority,
+    input.safety,
+    input.forbiddenCoupling,
+  );
 
   if (input.action !== "SELL" || input.side !== "SELL") {
     violations.push("SELL mapping input must use SELL action and side");
+  }
+  if (!hasSafeText(input.ticker)) violations.push("SELL ticker is required");
+  if (!hasSafeText(input.company)) violations.push("SELL company is required");
+  if (!hasPositiveNumber(input.quantity)) {
+    violations.push("SELL quantity must be positive");
+  }
+  if (!hasPositiveNumber(input.referenceEntry)) {
+    violations.push("SELL referenceEntry must be positive");
+  }
+  if (!hasPositiveNumber(input.stop)) violations.push("SELL stop must be positive");
+  if (!hasPositiveNumber(input.target)) violations.push("SELL target must be positive");
+  if (!hasSellExitPriceShape(input)) {
+    violations.push("SELL referenceEntry, stop, and target must be positive");
+  }
+  if (input.orderType !== "LIMIT") {
+    violations.push("SELL orderType must be LIMIT");
+  }
+  if (!isAllowedPlannedExitReason(input.plannedExitReason)) {
+    violations.push("SELL plannedExitReason is invalid");
   }
   if (input.authority?.finalSellAuthority) {
     violations.push("finalSellAuthority input must be false");

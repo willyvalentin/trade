@@ -287,6 +287,13 @@ Alternate hardening task:
 
 `Task 368 - Agent plan to boundary mapping negative-case expansion`
 
+Task 369 follow-up:
+
+- Mapping negative cases were expanded for authority escalation, missing safety markers, BUY data consistency, SELL position/exit consistency, and forbidden coupling markers.
+- The expanded test coverage remains in `tests/e2e/execution-headless-to-mock-boundary-mapping.spec.ts`.
+- Helper hardening remains in `tests/fixtures/execution-boundary-mapping-fixtures.ts`.
+- The checkpoint is `docs/agent-plan-boundary-mapping-negative-case-expansion-checkpoint.md`.
+
 ## 16. Final Decision
 
 `headless_to_mock_boundary_mapping_assertions_complete_with_warnings`

@@ -123,12 +123,40 @@ test.describe("headless execution contract to mock boundary mapping", () => {
       ["orderSubmissionAuthority", { authority: { orderSubmissionAuthority: true } }],
       ["finalBuyAuthority", { authority: { finalBuyAuthority: true } }],
       ["brokerAuthority", { authority: { brokerAuthority: true } }],
+      ["accountBinding", { authority: { accountBinding: true } }],
+      ["liveOrderIntent", { authority: { liveOrderIntent: true } }],
       [
         "supabaseExecutionWriteAuthority",
         { authority: { supabaseExecutionWriteAuthority: true } },
       ],
+      ["humanFinalRequired", { authority: { humanFinalRequired: false } }],
+      ["noFinalClick", { safety: { noFinalClick: false } }],
       ["noSubmit", { safety: { noSubmit: false } }],
       ["stopAtReview", { safety: { stopAtReview: false } }],
+      ["noAvanza", { safety: { noAvanza: false } }],
+      ["noCredentials", { safety: { noCredentials: false } }],
+      ["noBankID", { safety: { noBankID: false } }],
+      ["noCookieSession", { safety: { noCookieSession: false } }],
+      ["redactedEvidenceOnly", { safety: { redactedEvidenceOnly: false } }],
+      ["side mismatch", { side: "SELL" as MockHeadlessBuyExecutionInput["side"] }],
+      ["action mismatch", { action: "SELL" as MockHeadlessBuyExecutionInput["action"] }],
+      ["missing ticker", { ticker: "" }],
+      ["zero quantity", { quantity: 0 }],
+      ["negative quantity", { quantity: -1 }],
+      ["invalid stop entry target", { stop: 102, entry: 101.25, target: 113.4 }],
+      ["missing planReference", { planReference: undefined }],
+      ["plan ticker mismatch", { planReference: { ...mockHeadlessBuyExecutionInputFixture.planReference, ticker: "OTHER" } }],
+      ["unsafe order type", { orderType: "MARKET" }],
+      ["account id coupling", { forbiddenCoupling: { accountId: "account-123" } }],
+      ["broker order id coupling", { forbiddenCoupling: { brokerOrderId: "broker-order-123" } }],
+      [
+        "production execution id coupling",
+        { forbiddenCoupling: { productionExecutionId: "execution-123" } },
+      ],
+      ["credential coupling", { forbiddenCoupling: { credential: "secret" } }],
+      ["session coupling", { forbiddenCoupling: { session: "session-token" } }],
+      ["cookie coupling", { forbiddenCoupling: { cookie: "cookie=value" } }],
+      ["final KOP authority marker", { forbiddenCoupling: { finalKopAuthority: true } }],
     ];
 
     for (const [label, override] of unsafeCases) {
@@ -157,6 +185,8 @@ test.describe("headless execution contract to mock boundary mapping", () => {
       ["orderSubmissionAuthority", { authority: { orderSubmissionAuthority: true } }],
       ["finalSellAuthority", { authority: { finalSellAuthority: true } }],
       ["brokerAuthority", { authority: { brokerAuthority: true } }],
+      ["accountBinding", { authority: { accountBinding: true } }],
+      ["liveOrderIntent", { authority: { liveOrderIntent: true } }],
       [
         "supabaseExecutionWriteAuthority",
         { authority: { supabaseExecutionWriteAuthority: true } },
@@ -165,7 +195,16 @@ test.describe("headless execution contract to mock boundary mapping", () => {
         "livePositionMutationAuthority",
         { authority: { livePositionMutationAuthority: true } },
       ],
+      ["humanFinalRequired", { authority: { humanFinalRequired: false } }],
+      ["noFinalClick", { safety: { noFinalClick: false } }],
+      ["noSubmit", { safety: { noSubmit: false } }],
+      ["stopAtReview", { safety: { stopAtReview: false } }],
       ["noLivePositionMutation", { safety: { noLivePositionMutation: false } }],
+      ["noAvanza", { safety: { noAvanza: false } }],
+      ["noCredentials", { safety: { noCredentials: false } }],
+      ["noBankID", { safety: { noBankID: false } }],
+      ["noCookieSession", { safety: { noCookieSession: false } }],
+      ["redactedEvidenceOnly", { safety: { redactedEvidenceOnly: false } }],
       [
         "position quantity mismatch",
         {
@@ -175,8 +214,68 @@ test.describe("headless execution contract to mock boundary mapping", () => {
           },
         },
       ],
+      [
+        "sell quantity greater than position quantity",
+        {
+          quantity: mockHeadlessSellExitInputFixture.quantity + 1,
+        },
+      ],
       ["missing positionReference", { positionReference: undefined }],
       ["missing planReference", { planReference: undefined }],
+      ["side mismatch", { side: "BUY" as MockHeadlessSellExitInput["side"] }],
+      ["action mismatch", { action: "BUY" as MockHeadlessSellExitInput["action"] }],
+      ["missing ticker", { ticker: "" }],
+      [
+        "missing planned exit reason",
+        { plannedExitReason: undefined as unknown as MockHeadlessSellExitInput["plannedExitReason"] },
+      ],
+      [
+        "invalid planned exit reason",
+        { plannedExitReason: "live_submit" as MockHeadlessSellExitInput["plannedExitReason"] },
+      ],
+      ["missing reference entry", { referenceEntry: 0 }],
+      [
+        "target mismatch",
+        {
+          planReference: {
+            ...mockHeadlessSellExitInputFixture.planReference!,
+            target: mockHeadlessSellExitInputFixture.target + 1,
+          },
+        },
+      ],
+      [
+        "stop mismatch",
+        {
+          planReference: {
+            ...mockHeadlessSellExitInputFixture.planReference!,
+            stop: mockHeadlessSellExitInputFixture.stop + 1,
+          },
+        },
+      ],
+      [
+        "planned exit reason mismatch",
+        {
+          planReference: {
+            ...mockHeadlessSellExitInputFixture.planReference!,
+            plannedExitReason: "stop_review",
+          },
+        },
+      ],
+      ["unsafe order type", { orderType: "MARKET" }],
+      ["real broker order id", { forbiddenCoupling: { brokerOrderId: "broker-order-123" } }],
+      ["real account id", { forbiddenCoupling: { accountId: "account-123" } }],
+      [
+        "production execution id",
+        { forbiddenCoupling: { productionExecutionId: "execution-123" } },
+      ],
+      ["credential-like field", { forbiddenCoupling: { credential: "secret" } }],
+      ["session-like field", { forbiddenCoupling: { session: "session-token" } }],
+      ["cookie-like field", { forbiddenCoupling: { cookie: "cookie=value" } }],
+      ["final SALJ authority marker", { forbiddenCoupling: { finalSaljAuthority: true } }],
+      [
+        "live trade mutation marker",
+        { forbiddenCoupling: { liveTradeMutationAuthority: true } },
+      ],
     ];
 
     for (const [label, override] of unsafeCases) {
