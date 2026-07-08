@@ -6157,6 +6157,18 @@ function buildSections(
           `inspected ${input.daily_learning_review?.metadata_readback_diagnostics.outcomes_inspected ?? 0} / matched snapshots ${input.daily_learning_review?.metadata_readback_diagnostics.matched_snapshots ?? 0} / matched recommendation rows ${input.daily_learning_review?.metadata_readback_diagnostics.matched_recommendation_rows ?? 0}`,
         ),
         lineValue(
+          "Intelligence metadata enrichment",
+          `snapshots ${input.daily_learning_review?.metadata_readback_diagnostics.snapshot_enrichment_success_count ?? 0}/${input.daily_learning_review?.metadata_readback_diagnostics.outcomes_inspected ?? 0} / recommendations ${input.daily_learning_review?.metadata_readback_diagnostics.recommendation_enrichment_success_count ?? 0}/${input.daily_learning_review?.metadata_readback_diagnostics.outcomes_inspected ?? 0} / research snapshots ${input.daily_learning_review?.metadata_readback_diagnostics.research_snapshot_enrichment_success_count ?? 0}`,
+        ),
+        lineValue(
+          "Visibility after enrichment",
+          `${input.daily_learning_review?.metadata_readback_diagnostics.visibility_after_enrichment.visible ?? 0} / ${input.daily_learning_review?.metadata_readback_diagnostics.visibility_after_enrichment.research_only ?? 0} / ${input.daily_learning_review?.metadata_readback_diagnostics.visibility_after_enrichment.unknown ?? 0}`,
+        ),
+        lineValue(
+          "Confidence after enrichment",
+          `numeric ${input.daily_learning_review?.metadata_readback_diagnostics.confidence_after_enrichment.numeric ?? 0} / tier ${input.daily_learning_review?.metadata_readback_diagnostics.confidence_after_enrichment.tier_fallback ?? 0} / unknown ${input.daily_learning_review?.metadata_readback_diagnostics.confidence_after_enrichment.unknown ?? 0}`,
+        ),
+        lineValue(
           "Snapshot join sources",
           setupMixText(
             input.daily_learning_review?.snapshot_join_diagnostics
@@ -6479,6 +6491,29 @@ function buildSections(
         metadata_readback_matched_recommendation_rows:
           input.daily_learning_review?.metadata_readback_diagnostics
             .matched_recommendation_rows ?? null,
+        metadata_enrichment_snapshot_success_count:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .snapshot_enrichment_success_count ?? null,
+        metadata_enrichment_recommendation_success_count:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .recommendation_enrichment_success_count ?? null,
+        metadata_enrichment_research_snapshot_success_count:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .research_snapshot_enrichment_success_count ?? null,
+        metadata_enrichment_missing_snapshot_count:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .missing_snapshot_enrichment_count ?? null,
+        metadata_enrichment_missing_recommendation_count:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .missing_recommendation_enrichment_count ?? null,
+        metadata_enrichment_visibility_after: JSON.stringify(
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .visibility_after_enrichment ?? null,
+        ),
+        metadata_enrichment_confidence_after: JSON.stringify(
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .confidence_after_enrichment ?? null,
+        ),
         snapshot_join_source_counts: JSON.stringify(
           input.daily_learning_review?.snapshot_join_diagnostics
             .join_source_counts ?? null,

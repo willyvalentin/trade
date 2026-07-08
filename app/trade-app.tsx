@@ -6278,6 +6278,13 @@ function isLiveRecommendationSnapshot(snapshot: RecommendationSnapshot) {
   );
 }
 
+function isIntelligenceEnrichmentSnapshot(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.source_mode !== "diagnostic" &&
+    snapshot.payload_json.diagnostic_mode !== true
+  );
+}
+
 function isLiveRecommendationBatch(batch: RecommendationBatch) {
   return (
     batch.batch_type !== "diagnostic" &&
@@ -6360,6 +6367,28 @@ function getSnapshotExplicitBatchFingerprints(snapshot: RecommendationSnapshot) 
   const fingerprints = [
     payload.batch_fingerprint,
     payload.recommendation_batch_fingerprint,
+    payload.research_batch_fingerprint,
+  ];
+
+  return Array.from(
+    new Set(
+      fingerprints
+        .filter(
+          (fingerprint): fingerprint is string =>
+            typeof fingerprint === "string" && fingerprint.trim().length > 0,
+        )
+        .map((fingerprint) => fingerprint.trim()),
+    ),
+  );
+}
+
+function getOutcomeScanRunFingerprints(outcome: RecommendationOutcome) {
+  const payload = outcome.payload_json;
+  const fingerprints = [
+    payload.scan_run_fingerprint,
+    payload.scan_run_id,
+    payload.run_fingerprint,
+    payload.runFingerprint,
   ];
 
   return Array.from(
@@ -9215,7 +9244,7 @@ export function TradeApp({
       if (loadedRecommendationOutcomesForReadback.length > 0) {
         const existingSnapshotFingerprints = new Set(
           loadedRecommendationSnapshotsForReadback
-            .filter(isLiveRecommendationSnapshot)
+            .filter(isIntelligenceEnrichmentSnapshot)
             .map((snapshot) => snapshot.snapshot_fingerprint),
         );
         const outcomeSnapshotFingerprints = Array.from(
@@ -9276,7 +9305,7 @@ export function TradeApp({
               .map(recommendationSnapshotFromPersistenceRow)
               .filter(
                 (snapshot): snapshot is RecommendationSnapshot =>
-                  snapshot !== null && isLiveRecommendationSnapshot(snapshot),
+                  snapshot !== null && isIntelligenceEnrichmentSnapshot(snapshot),
               );
 
             outcomeSnapshotBackfillCount = backfilledSnapshots.length;
@@ -9291,6 +9320,97 @@ export function TradeApp({
             );
             setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
             outcomeMatchingRecomputedAfterBackfill = true;
+          }
+        }
+
+        const existingScanRunSnapshotFingerprints = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .map((snapshot) => snapshot.snapshot_fingerprint),
+        );
+        const existingScanRunTickerKeys = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .flatMap((snapshot) =>
+              [snapshot.scan_run_id, snapshot.payload_json.scan_run_fingerprint]
+                .filter(
+                  (fingerprint): fingerprint is string =>
+                    typeof fingerprint === "string" &&
+                    fingerprint.trim().length > 0,
+                )
+                .map(
+                  (fingerprint) =>
+                    `${fingerprint.trim()}::${normalizeRecommendationTicker(snapshot.ticker) ?? "UNKNOWN"}`,
+                ),
+            ),
+        );
+        const missingOutcomeScanRunFingerprints = Array.from(
+          new Set(
+            loadedRecommendationOutcomesForReadback
+              .filter((outcome) => {
+                const ticker = normalizeRecommendationTicker(outcome.ticker);
+                if (ticker === null) return false;
+
+                return getOutcomeScanRunFingerprints(outcome).some(
+                  (fingerprint) =>
+                    !existingScanRunTickerKeys.has(`${fingerprint}::${ticker}`),
+                );
+              })
+              .flatMap(getOutcomeScanRunFingerprints),
+          ),
+        );
+
+        if (missingOutcomeScanRunFingerprints.length > 0) {
+          outcomeSnapshotBackfillAttempted = true;
+
+          const backfilledScanRunSnapshotsResult = await supabase
+            .from("recommendation_snapshots")
+            .select("*")
+            .in("scan_run_id", missingOutcomeScanRunFingerprints)
+            .limit(200);
+
+          if (backfilledScanRunSnapshotsResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledScanRunSnapshotsResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_snapshots",
+              operation: "select_outcome_scan_run_snapshot_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError(
+              "market_diagnostics",
+              backfilledScanRunSnapshotsResult.error,
+            );
+          } else {
+            const backfilledScanRunSnapshots = (
+              (backfilledScanRunSnapshotsResult.data ?? []) as Array<
+                Record<string, unknown>
+              >
+            )
+              .map(recommendationSnapshotFromPersistenceRow)
+              .filter(
+                (snapshot): snapshot is RecommendationSnapshot =>
+                  snapshot !== null &&
+                  isIntelligenceEnrichmentSnapshot(snapshot) &&
+                  !existingScanRunSnapshotFingerprints.has(
+                    snapshot.snapshot_fingerprint,
+                  ),
+              );
+
+            outcomeSnapshotBackfillCount += backfilledScanRunSnapshots.length;
+            loadedRecommendationSnapshotsForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledScanRunSnapshots,
+                  ...loadedRecommendationSnapshotsForReadback,
+                ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+              ).values(),
+            );
+            setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+            outcomeMatchingRecomputedAfterBackfill =
+              outcomeMatchingRecomputedAfterBackfill ||
+              backfilledScanRunSnapshots.length > 0;
           }
         }
 
@@ -11013,6 +11133,8 @@ export function TradeApp({
     dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
     storedRecommendationSnapshots.filter(isLiveRecommendationSnapshot);
+  const intelligenceEnrichmentRecommendationSnapshots =
+    storedRecommendationSnapshots.filter(isIntelligenceEnrichmentSnapshot);
   const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
     (scanRun) => !hasDiagnosticPayload(scanRun.payload_json),
   );
@@ -13925,7 +14047,7 @@ export function TradeApp({
     trading_day: dailySessionDate,
     latest_batch_fingerprint: latestEvaluatedBatchFingerprint,
     batches: liveStoredRecommendationBatches,
-    snapshots: liveStoredRecommendationSnapshots,
+    snapshots: intelligenceEnrichmentRecommendationSnapshots,
     outcomes: storedRecommendationOutcomes,
     now: currentTime,
   });

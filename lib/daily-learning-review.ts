@@ -124,6 +124,21 @@ export type DailyLearningReviewMetadataReadbackDiagnostics = {
   outcomes_inspected: number;
   matched_snapshots: number;
   matched_recommendation_rows: number;
+  snapshot_enrichment_success_count: number;
+  recommendation_enrichment_success_count: number;
+  research_snapshot_enrichment_success_count: number;
+  missing_snapshot_enrichment_count: number;
+  missing_recommendation_enrichment_count: number;
+  visibility_after_enrichment: {
+    visible: number;
+    research_only: number;
+    unknown: number;
+  };
+  confidence_after_enrichment: {
+    numeric: number;
+    tier_fallback: number;
+    unknown: number;
+  };
   visibility_source_mix: Record<DailyLearningReviewVisibilityDetectionSource, number>;
   confidence_source_mix: Record<string, number>;
   snapshot_join_source_mix: Record<DailyLearningReviewSnapshotJoinSource, number>;
@@ -2433,17 +2448,6 @@ function visibilitySourceCounts(
   return visibilityDiagnostics(items).source_counts;
 }
 
-function confidenceSourceCounts(items: ReviewOutcome[]) {
-  const counts: Record<string, number> = {};
-
-  for (const item of items) {
-    const confidence = confidenceForReviewOutcome(item);
-    counts[confidence.source] = (counts[confidence.source] ?? 0) + 1;
-  }
-
-  return counts;
-}
-
 function topLevelSnapshotKeys(snapshot: RecommendationSnapshot | null) {
   if (!snapshot) return [];
 
@@ -2458,6 +2462,16 @@ function metadataReadbackDiagnostics(
   items: ReviewOutcome[],
 ): DailyLearningReviewMetadataReadbackDiagnostics {
   const snapshotJoin = snapshotJoinDiagnostics(items);
+  const confidenceDecisions = items.map(confidenceForReviewOutcome);
+  const numericConfidenceCount = confidenceDecisions.filter(
+    (item) => item.source_category === "numeric",
+  ).length;
+  const tierFallbackConfidenceCount = confidenceDecisions.filter(
+    (item) => item.source_category === "tier_fallback",
+  ).length;
+  const unknownConfidenceCount = confidenceDecisions.filter(
+    (item) => item.source_category === "unknown",
+  ).length;
 
   return {
     outcomes_inspected: items.length,
@@ -2465,8 +2479,39 @@ function metadataReadbackDiagnostics(
     matched_recommendation_rows: items.filter(
       (item) => item.matched_recommendation_row,
     ).length,
+    snapshot_enrichment_success_count: snapshotJoin.outcomes_with_snapshot_join,
+    recommendation_enrichment_success_count: items.filter(
+      (item) => item.matched_recommendation_row,
+    ).length,
+    research_snapshot_enrichment_success_count: items.filter(
+      (item) => item.snapshot !== null && item.visibility === "research_only",
+    ).length,
+    missing_snapshot_enrichment_count: snapshotJoin.outcomes_without_snapshot_join,
+    missing_recommendation_enrichment_count: items.filter(
+      (item) =>
+        textOrNull(item.outcome.recommendation_id) !== null &&
+        !item.matched_recommendation_row,
+    ).length,
+    visibility_after_enrichment: {
+      visible: items.filter((item) => item.visibility === "visible").length,
+      research_only: items.filter((item) => item.visibility === "research_only")
+        .length,
+      unknown: items.filter((item) => item.visibility === "unknown_visibility")
+        .length,
+    },
+    confidence_after_enrichment: {
+      numeric: numericConfidenceCount,
+      tier_fallback: tierFallbackConfidenceCount,
+      unknown: unknownConfidenceCount,
+    },
     visibility_source_mix: visibilitySourceCounts(items),
-    confidence_source_mix: confidenceSourceCounts(items),
+    confidence_source_mix: confidenceDecisions.reduce<Record<string, number>>(
+      (counts, confidence) => {
+        counts[confidence.source] = (counts[confidence.source] ?? 0) + 1;
+        return counts;
+      },
+      {},
+    ),
     snapshot_join_source_mix: snapshotJoin.join_source_counts,
     inspection_examples: items.slice(0, 8).map((item) => {
       const confidence = confidenceForReviewOutcome(item);

@@ -847,6 +847,24 @@ test("daily learning review joins production-shaped intelligence metadata", () =
     summary.confidence_calibration.buckets.find((item) => item.bucket === "70_79")
       ?.outcome_count,
   ).toBe(48);
+  expect(
+    summary.metadata_readback_diagnostics.snapshot_enrichment_success_count,
+  ).toBe(93);
+  expect(
+    summary.metadata_readback_diagnostics
+      .research_snapshot_enrichment_success_count,
+  ).toBe(45);
+  expect(
+    summary.metadata_readback_diagnostics.confidence_after_enrichment
+      .tier_fallback,
+  ).toBe(93);
+  expect(
+    summary.metadata_readback_diagnostics.visibility_after_enrichment,
+  ).toEqual({
+    visible: 48,
+    research_only: 45,
+    unknown: 0,
+  });
 });
 
 test("daily learning review joins snapshots by snapshot id batch ticker and scan run ticker", () => {
@@ -1010,6 +1028,8 @@ test("market diagnostics renders daily learning review section", () => {
   expect(section?.lines.join("\n")).toContain("Visible/research-only/unknown");
   expect(section?.lines.join("\n")).toContain("Visibility detection sources");
   expect(section?.lines.join("\n")).toContain("Intelligence metadata readback");
+  expect(section?.lines.join("\n")).toContain("Intelligence metadata enrichment");
+  expect(section?.lines.join("\n")).toContain("Confidence after enrichment");
   expect(section?.lines.join("\n")).toContain("Snapshot join sources");
   expect(section?.lines.join("\n")).toContain("Window groups");
   expect(section?.lines.join("\n")).toContain("Tier groups");
