@@ -3,6 +3,7 @@ import type { DayTradeScanOrchestrationSummary } from "@/lib/day-trade-scan-orch
 import type { DailyRecommendationTradeTargetsSummary } from "@/lib/daily-recommendation-trade-targets";
 import type { DayTradeWindowRecommendationTargetSummary } from "@/lib/day-trade-window-recommendation-target";
 import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discovery";
+import { buildDynamicMoversReadiness } from "@/lib/dynamic-movers-readiness";
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
@@ -2708,6 +2709,34 @@ function buildSections(
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
+  const scannerUniverseAny = input.scanner_universe as unknown as {
+    selected_ticker_symbols?: string[] | null;
+    context_ticker_symbols?: string[] | null;
+    total_universe_size?: number | null;
+    selected_tickers?: number | string[] | null;
+  };
+  const scannerUniverseSymbols =
+    scannerUniverseAny.selected_ticker_symbols ??
+    (Array.isArray(scannerUniverseAny.selected_tickers)
+      ? scannerUniverseAny.selected_tickers
+      : []);
+  const dynamicMoversReadiness = buildDynamicMoversReadiness({
+    dynamic_movers: input.dynamic_movers ?? null,
+    dynamic_movers_discovery: dynamicMoversDiscovery,
+    ticker_universe_readiness:
+      input.daily_learning_review?.ticker_universe_readiness ?? null,
+    static_universe_count:
+      input.daily_learning_review?.ticker_universe_readiness.universe_status
+        .configured_static_universe_count ??
+      scannerUniverseAny.total_universe_size ??
+      (typeof scannerUniverseAny.selected_tickers === "number"
+        ? scannerUniverseAny.selected_tickers
+        : scannerUniverseSymbols.length),
+    static_universe_symbols: scannerUniverseSymbols,
+    visible_tickers:
+      input.daily_learning_review?.ticker_universe_readiness
+        .ticker_classification.core_candidates ?? [],
+  });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -3717,6 +3746,129 @@ function buildSections(
         top_dynamic_movers: JSON.stringify(
           dynamicMoversDiscovery?.top_dynamic_movers ?? [],
         ),
+      },
+    }),
+    section({
+      section_id: "dynamic_movers_readiness",
+      title: "Dynamic Movers Readiness",
+      severity:
+        dynamicMoversReadiness.readiness.intake_ready ||
+        dynamicMoversReadiness.readiness.safe_to_preview
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Provider enabled",
+          dynamicMoversReadiness.provider_status.enabled ? "yes" : "no",
+        ),
+        lineValue(
+          "Provider available",
+          dynamicMoversReadiness.provider_status.available ? "yes" : "no",
+        ),
+        lineValue(
+          "Provider attempted",
+          dynamicMoversReadiness.provider_status.attempted ? "yes" : "no",
+        ),
+        lineValue(
+          "Provider used",
+          dynamicMoversReadiness.provider_status.provider_used ?? "none",
+        ),
+        lineValue(
+          "Provider error type",
+          dynamicMoversReadiness.provider_status.provider_error_type ?? "none",
+        ),
+        lineValue(
+          "Returned/selected/stale-invalid",
+          `${dynamicMoversReadiness.provider_status.returned_count} / ${dynamicMoversReadiness.provider_status.selected_preview_count} / ${dynamicMoversReadiness.provider_status.stale_or_invalid_count}`,
+        ),
+        lineValue(
+          "Intake ready",
+          dynamicMoversReadiness.readiness.intake_ready ? "yes" : "no",
+        ),
+        lineValue(
+          "Safe to preview",
+          dynamicMoversReadiness.readiness.safe_to_preview ? "yes" : "no",
+        ),
+        lineValue(
+          "Safe to shadow compare",
+          dynamicMoversReadiness.readiness.safe_to_shadow_compare
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Safe to use for scanner", "no"),
+        lineValue("Safe to change universe", "no"),
+        lineValue(
+          "Required fields",
+          compactListText(dynamicMoversReadiness.expected_mover_shape.required_fields),
+        ),
+        lineValue(
+          "Missing provider/data gaps",
+          compactListText(dynamicMoversReadiness.metadata_gaps),
+        ),
+        lineValue(
+          "Static universe count",
+          dynamicMoversReadiness.static_universe_comparison.static_universe_count,
+        ),
+        lineValue(
+          "Research-heavy tickers",
+          tickerListText(
+            dynamicMoversReadiness.static_universe_comparison
+              .research_heavy_tickers,
+          ),
+        ),
+        lineValue(
+          "Dynamic gap candidates",
+          tickerListText(
+            dynamicMoversReadiness.static_universe_comparison
+              .dynamic_gap_candidates,
+          ),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(dynamicMoversReadiness.recommended_next_steps),
+        ),
+        lineValue("Scanner universe changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue("Provider fetch added", "no"),
+      ],
+      metrics: {
+        advisory_mode: dynamicMoversReadiness.advisory_only,
+        provider_enabled: dynamicMoversReadiness.provider_status.enabled,
+        provider_available: dynamicMoversReadiness.provider_status.available,
+        provider_attempted: dynamicMoversReadiness.provider_status.attempted,
+        provider_used:
+          dynamicMoversReadiness.provider_status.provider_used ?? null,
+        provider_error_type:
+          dynamicMoversReadiness.provider_status.provider_error_type ?? null,
+        returned_count: dynamicMoversReadiness.provider_status.returned_count,
+        selected_preview_count:
+          dynamicMoversReadiness.provider_status.selected_preview_count,
+        stale_or_invalid_count:
+          dynamicMoversReadiness.provider_status.stale_or_invalid_count,
+        intake_ready: dynamicMoversReadiness.readiness.intake_ready,
+        safe_to_preview: dynamicMoversReadiness.readiness.safe_to_preview,
+        safe_to_shadow_compare:
+          dynamicMoversReadiness.readiness.safe_to_shadow_compare,
+        safe_to_use_for_scanner: false,
+        safe_to_change_universe: false,
+        expected_mover_shape: JSON.stringify(
+          dynamicMoversReadiness.expected_mover_shape,
+        ),
+        current_gap_analysis: JSON.stringify(
+          dynamicMoversReadiness.current_gap_analysis,
+        ),
+        static_universe_comparison: JSON.stringify(
+          dynamicMoversReadiness.static_universe_comparison,
+        ),
+        recommended_next_steps:
+          dynamicMoversReadiness.recommended_next_steps.join(","),
+        scanner_universe_changed: false,
+        live_ranking_changed: false,
+        provider_fetch_added: false,
+        reason_codes: dynamicMoversReadiness.reason_codes.join(","),
+        caution_flags: dynamicMoversReadiness.caution_flags.join(","),
+        metadata_gaps: dynamicMoversReadiness.metadata_gaps.join(","),
       },
     }),
     section({
@@ -6665,6 +6817,7 @@ function buildSections(
         model_governance: JSON.stringify(
           input.daily_learning_review?.model_governance ?? null,
         ),
+        dynamic_movers_readiness: JSON.stringify(dynamicMoversReadiness),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -6773,6 +6926,10 @@ function buildSections(
           "Model governance",
           input.daily_learning_review?.intelligence_overview.layer_status
             .model_governance?.summary ?? "unknown",
+        ),
+        lineValue(
+          "Dynamic movers readiness",
+          `provider ${dynamicMoversReadiness.provider_status.available ? "available" : "unavailable"} / safe preview ${dynamicMoversReadiness.readiness.safe_to_preview ? "yes" : "no"} / scanner use no / next ${dynamicMoversReadiness.recommended_next_steps[0] ?? "none"}`,
         ),
         lineValue(
           "Primary learning signal",
