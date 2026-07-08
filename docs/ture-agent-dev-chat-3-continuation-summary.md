@@ -2252,3 +2252,131 @@ Safety remains locked:
 Decision:
 
 `post_trade_write_service_draft_static_security_review_ready_for_client_wiring_gate_no_remote_write`
+
+## 50. Action 453 Update
+
+Action 453 created the no-remote-write gate for a future wiring step between the post-trade write-service command draft and the real server-only staging Supabase client factory.
+
+- Gate checkpoint: `docs/post-trade-write-service-client-wiring-gate-no-remote-write.md`
+- No client wiring was implemented.
+- No write command was executed.
+- No DB/Supabase write occurred.
+- No API write behavior was created.
+- No runtime/UI path was activated.
+
+Future wiring may authorize only:
+
+- server-only module boundary
+- staging-only client factory reference
+- no production client usage
+- no client/UI exposure
+- no API route write behavior
+- write command objects prepared for future execution review
+- no remote execution
+- no staging data writes
+- no test row insertion
+
+Required future safety checks:
+
+- validator result must be valid
+- accepted payload must be present
+- dry-run plan must be ready
+- write command builder must return `ready_no_remote_write`
+- real client factory must fail closed on missing, ambiguous, public, non-staging, or production-like target state
+- no raw broker/browser payload
+- no credentials, cookies, sessions, tokens, BankID material, or service-role material
+- idempotency key required and aligned
+- audit command required
+- command record bodies sanitized and primitive-only
+- output must not include secrets
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no write command execution
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_write_service_client_wiring_gate_ready_no_remote_write`
+
+## 51. Action 454 Update
+
+Action 454 created the no-remote-write wiring draft between the post-trade write-service command builder and the real server-only staging Supabase client factory.
+
+- Wiring draft: `lib/post-trade-write-service-client-wiring-draft.ts`
+- Checkpoint: `docs/post-trade-write-service-client-wiring-draft-no-remote-write.md`
+- Static test: `tests/e2e/post-trade-write-service-client-wiring-draft-static.spec.ts`
+- No write command was executed.
+- No DB/Supabase write occurred.
+- No API write behavior was created.
+- No runtime/UI path was activated.
+
+Draft behavior:
+
+- marked server-only with `import "server-only"`
+- references staging factory target shape only
+- requires ready `ready_no_remote_write` write command result
+- requires at least one safe write command
+- requires command execution mode `dry_run_command_only`
+- requires `remoteExecution: false`
+- requires idempotency key alignment between command result, commands, and audit command
+- requires audit command
+- rejects invalid command results
+- rejects missing commands
+- rejects missing audit command
+- rejects unsafe flags
+- rejects idempotency mismatch
+- rejects production-like or non-staging target state
+- always returns execution-blocked metadata
+
+No-remote-write boundary:
+
+- no `@supabase/supabase-js`
+- no `createClient(...)`
+- no `getPostTradeStagingServiceClient(...)`
+- no `.from(...)`
+- no `.insert(...)`
+- no `.update(...)`
+- no `.delete(...)`
+- no `.upsert(...)`
+- no `.rpc(...)`
+- no `.storage`
+- no `process.env`
+- no `fetch(...)`
+- not wired into the API validation route
+- not wired into the write-service command builder
+- not wired into the service client factory
+- not wired into `app/trade-app.tsx`
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no write command execution
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_write_service_client_wiring_draft_ready_no_remote_write`

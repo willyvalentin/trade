@@ -73,6 +73,63 @@ export type DailyLearningReviewVisibilityDiagnostics = {
   unknown_examples: DailyLearningReviewVisibilityUnknownExample[];
 };
 
+export type DailyLearningReviewSnapshotJoinSource =
+  | "snapshot_fingerprint_exact"
+  | "snapshot_id_exact"
+  | "recommendation_id"
+  | "normalized_snapshot_fingerprint"
+  | "batch_ticker"
+  | "scan_run_ticker"
+  | "outcome_payload_only"
+  | "missing";
+
+export type DailyLearningReviewSnapshotJoinMissingExample = {
+  ticker: string;
+  outcome_id: string | null;
+  snapshot_fingerprint: string | null;
+  snapshot_id: string | null;
+  recommendation_id_present: boolean;
+  batch_fingerprint: string | null;
+  scan_run_fingerprint: string | null;
+  outcome_payload_keys: string[];
+  reason: string;
+};
+
+export type DailyLearningReviewSnapshotJoinDiagnostics = {
+  outcomes_with_snapshot_join: number;
+  outcomes_without_snapshot_join: number;
+  join_source_counts: Record<DailyLearningReviewSnapshotJoinSource, number>;
+  missing_join_examples: DailyLearningReviewSnapshotJoinMissingExample[];
+};
+
+export type DailyLearningReviewMetadataReadbackExample = {
+  outcome_id: string | null;
+  ticker: string;
+  batch_fingerprint: string | null;
+  snapshot_fingerprint: string | null;
+  recommendation_id_present: boolean;
+  matched_snapshot: boolean;
+  matched_recommendation_row: boolean;
+  visibility_decision: DailyLearningReviewVisibility;
+  visibility_decision_source: DailyLearningReviewVisibilityDetectionSource;
+  confidence_decision: number | null;
+  confidence_decision_source: string;
+  top_level_metadata_keys: string[];
+  nested_payload_keys: string[];
+  snapshot_metadata_keys: string[];
+  outcome_payload_keys: string[];
+};
+
+export type DailyLearningReviewMetadataReadbackDiagnostics = {
+  outcomes_inspected: number;
+  matched_snapshots: number;
+  matched_recommendation_rows: number;
+  visibility_source_mix: Record<DailyLearningReviewVisibilityDetectionSource, number>;
+  confidence_source_mix: Record<string, number>;
+  snapshot_join_source_mix: Record<DailyLearningReviewSnapshotJoinSource, number>;
+  inspection_examples: DailyLearningReviewMetadataReadbackExample[];
+};
+
 export type DailyLearningReviewConfidence = "low" | "medium" | "high";
 
 export type DailyLearningReviewAdjustmentCandidate =
@@ -285,6 +342,8 @@ export type DailyLearningReviewSummary = {
   model_governance: TureModelGovernanceSummary;
   intelligence_overview: TureIntelligenceOverview;
   visibility_diagnostics: DailyLearningReviewVisibilityDiagnostics;
+  snapshot_join_diagnostics: DailyLearningReviewSnapshotJoinDiagnostics;
+  metadata_readback_diagnostics: DailyLearningReviewMetadataReadbackDiagnostics;
   engine_adjustment_candidates: DailyLearningReviewEngineAdjustment[];
   sample_size_label: DailyLearningReviewConfidence;
   duplicate_outcome_rows_ignored_count: number;
@@ -302,6 +361,8 @@ export type DailyLearningReviewInput = {
 type ReviewOutcome = {
   outcome: RecommendationOutcome;
   snapshot: RecommendationSnapshot | null;
+  snapshot_join_source: DailyLearningReviewSnapshotJoinSource;
+  matched_recommendation_row: boolean;
   batch_fingerprint: string | null;
   visibility: DailyLearningReviewVisibility;
   visibility_source: DailyLearningReviewVisibilityDetectionSource;
@@ -374,6 +435,14 @@ function normalizeTicker(value: string | null | undefined) {
   return ticker.length > 0 ? ticker : "UNKNOWN";
 }
 
+function normalizeJoinKey(value: unknown) {
+  const text = textOrNull(typeof value === "string" ? value : null);
+  if (!text) return null;
+
+  const normalized = text.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return normalized.length > 0 ? normalized : null;
+}
+
 function rate(part: number, total: number) {
   return total > 0 ? (part / total) * 100 : null;
 }
@@ -395,19 +464,49 @@ function numberDelta(first: number | null, second: number | null) {
 function payloadBatchFingerprint(
   payload: Record<string, unknown> | null | undefined,
 ) {
-  return (
-    textOrNull(payload?.batch_fingerprint) ??
-    textOrNull(payload?.recommendation_batch_fingerprint) ??
-    textOrNull(payload?.batchFingerprint) ??
-    textOrNull(payload?.research_batch_fingerprint) ??
-    null
-  );
+  for (const item of nestedPayloads(payload ?? null)) {
+    const batch =
+      textOrNull(item.batch_fingerprint) ??
+      textOrNull(item.recommendation_batch_fingerprint) ??
+      textOrNull(item.batchFingerprint) ??
+      textOrNull(item.research_batch_fingerprint) ??
+      null;
+    if (batch) return batch;
+  }
+
+  return null;
+}
+
+function payloadScanRunFingerprint(
+  payload: Record<string, unknown> | null | undefined,
+) {
+  for (const item of nestedPayloads(payload ?? null)) {
+    const scanRun =
+      textOrNull(item.scan_run_fingerprint) ??
+      textOrNull(item.scan_run_id) ??
+      textOrNull(item.run_fingerprint) ??
+      textOrNull(item.runFingerprint) ??
+      null;
+    if (scanRun) return scanRun;
+  }
+
+  return null;
 }
 
 function snapshotBatchFingerprint(snapshot: RecommendationSnapshot | null) {
   if (!snapshot) return null;
 
   return payloadBatchFingerprint(snapshot.payload_json);
+}
+
+function snapshotScanRunFingerprint(snapshot: RecommendationSnapshot | null) {
+  if (!snapshot) return null;
+
+  return (
+    textOrNull(snapshot.scan_run_id) ??
+    payloadScanRunFingerprint(snapshot.payload_json) ??
+    null
+  );
 }
 
 function outcomeBatchFingerprint(
@@ -419,6 +518,23 @@ function outcomeBatchFingerprint(
     payloadBatchFingerprint(objectValue(outcome.payload_json)) ??
     null
   );
+}
+
+function outcomeScanRunFingerprint(
+  outcome: RecommendationOutcome,
+  snapshot: RecommendationSnapshot | null,
+) {
+  return (
+    snapshotScanRunFingerprint(snapshot) ??
+    payloadScanRunFingerprint(objectValue(outcome.payload_json)) ??
+    null
+  );
+}
+
+function indexKey(first: string | null, second: string | null) {
+  const firstKey = normalizeJoinKey(first);
+  const secondKey = normalizeJoinKey(second);
+  return firstKey && secondKey ? `${firstKey}:${secondKey}` : null;
 }
 
 function payloadFlag(payload: Record<string, unknown> | null, key: string) {
@@ -471,6 +587,12 @@ function visibilityFromOutcomePayload(
     const dataMode = textOrNull(item.data_mode)?.toLowerCase();
     const learningScope = textOrNull(item.learning_scope)?.toLowerCase();
     const learningMode = textOrNull(item.learning_acceleration_mode)?.toLowerCase();
+    const hasLearningResearchMetadata =
+      learningScope === "research_only" ||
+      learningMode === "research_only" ||
+      payloadFlag(item, "learning_acceleration_sample") ||
+      payloadFlag(item, "research_only") ||
+      payloadFlag(item, "is_research_only");
 
     if (
       visibilityStatus === "research_only" ||
@@ -482,8 +604,9 @@ function visibilityFromOutcomePayload(
       payloadFlag(item, "learning_acceleration_sample") ||
       payloadFlag(item, "research_only") ||
       payloadFlag(item, "is_research_only") ||
-      payloadFlag(item, "not_live_signal") ||
-      payloadFlag(item, "not_live_trade_signal")
+      ((payloadFlag(item, "not_live_signal") ||
+        payloadFlag(item, "not_live_trade_signal")) &&
+        hasLearningResearchMetadata)
     ) {
       return {
         visibility: "research_only",
@@ -566,6 +689,34 @@ function isHiddenOrArchivedSnapshot(snapshot: RecommendationSnapshot) {
   );
 }
 
+function visiblePayloadSource(payload: Record<string, unknown> | null) {
+  for (const item of nestedPayloads(payload)) {
+    const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+    const visibility = textOrNull(item.visibility)?.toLowerCase();
+    const sourceMode = textOrNull(item.source_mode)?.toLowerCase();
+    const dataMode = textOrNull(item.data_mode)?.toLowerCase();
+
+    if (
+      visibilityStatus === "visible" ||
+      visibilityStatus === "published" ||
+      visibilityStatus === "live" ||
+      visibilityStatus === "card" ||
+      visibility === "visible" ||
+      visibility === "published" ||
+      visibility === "live" ||
+      visibility === "card" ||
+      sourceMode === "official" ||
+      dataMode === "supabase" ||
+      item.is_visible === true ||
+      item.visible_in_primary_recommendations === true
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function visibilityFor(
   outcome: RecommendationOutcome,
   snapshot: RecommendationSnapshot | null,
@@ -574,8 +725,6 @@ function visibilityFor(
   source: DailyLearningReviewVisibilityDetectionSource;
 } {
   const outcomePayload = objectValue(outcome.payload_json);
-  const outcomeVisibility = visibilityFromOutcomePayload(outcomePayload);
-  if (outcomeVisibility?.visibility === "research_only") return outcomeVisibility;
 
   if (snapshot) {
     if (snapshot.source_mode === "research_only" || snapshot.data_mode === "research_only") {
@@ -586,8 +735,16 @@ function visibilityFor(
     if (snapshotSource) {
       return { visibility: "research_only", source: snapshotSource };
     }
+
+    if (
+      visiblePayloadSource(snapshot.payload_json) ||
+      (!isHiddenOrArchivedSnapshot(snapshot) && textOrNull(snapshot.recommendation_id))
+    ) {
+      return { visibility: "visible", source: "recommendation_metadata" };
+    }
   }
 
+  const outcomeVisibility = visibilityFromOutcomePayload(outcomePayload);
   if (outcomeVisibility) return outcomeVisibility;
 
   if (snapshot && !isHiddenOrArchivedSnapshot(snapshot)) {
@@ -600,6 +757,10 @@ function visibilityFor(
     visibilityFromOutcomePayload(outcomePayload)?.visibility === "research_only"
   ) {
     return { visibility: "research_only", source: "inferred_research_only" };
+  }
+
+  if (!snapshot && textOrNull(outcome.recommendation_id) !== null) {
+    return { visibility: "visible", source: "recommendation_metadata" };
   }
 
   return { visibility: "unknown_visibility", source: "unknown" };
@@ -624,6 +785,23 @@ function tierFromPayload(payload: Record<string, unknown> | null) {
 
   if (tier === "strong" || tier === "valid" || tier === "experimental") {
     return tier;
+  }
+
+  return "unknown";
+}
+
+function tierFromSnapshotAndPayload(
+  snapshot: RecommendationSnapshot | null,
+  ...payloads: Array<Record<string, unknown> | null>
+) {
+  for (const payload of payloads) {
+    const payloadTier = tierFromPayload(payload);
+    if (payloadTier !== "unknown") return payloadTier;
+  }
+
+  const rowTier = textOrNull(snapshot?.rating ?? snapshot?.label)?.toLowerCase();
+  if (rowTier === "strong" || rowTier === "valid" || rowTier === "experimental") {
+    return rowTier;
   }
 
   return "unknown";
@@ -1881,15 +2059,212 @@ function resolveLatestBatchFingerprint(input: DailyLearningReviewInput) {
   return latestBatch?.batch_fingerprint ?? null;
 }
 
+type SnapshotJoinIndexes = {
+  bySnapshotFingerprint: Map<string, RecommendationSnapshot>;
+  bySnapshotId: Map<string, RecommendationSnapshot>;
+  byRecommendationId: Map<string, RecommendationSnapshot>;
+  byNormalizedSnapshotFingerprint: Map<string, RecommendationSnapshot>;
+  byBatchTicker: Map<string, RecommendationSnapshot[]>;
+  byScanRunTicker: Map<string, RecommendationSnapshot[]>;
+};
+
+function addSnapshotToListIndex(
+  index: Map<string, RecommendationSnapshot[]>,
+  key: string | null,
+  snapshot: RecommendationSnapshot,
+) {
+  if (!key) return;
+  const existing = index.get(key) ?? [];
+  existing.push(snapshot);
+  index.set(key, existing);
+}
+
+function buildSnapshotJoinIndexes(
+  snapshots: RecommendationSnapshot[],
+): SnapshotJoinIndexes {
+  const indexes: SnapshotJoinIndexes = {
+    bySnapshotFingerprint: new Map(),
+    bySnapshotId: new Map(),
+    byRecommendationId: new Map(),
+    byNormalizedSnapshotFingerprint: new Map(),
+    byBatchTicker: new Map(),
+    byScanRunTicker: new Map(),
+  };
+
+  for (const snapshot of snapshots) {
+    indexes.bySnapshotFingerprint.set(snapshot.snapshot_fingerprint, snapshot);
+    indexes.bySnapshotId.set(snapshot.id, snapshot);
+
+    if (snapshot.recommendation_id !== null) {
+      indexes.byRecommendationId.set(snapshot.recommendation_id, snapshot);
+    }
+
+    const normalizedFingerprint = normalizeJoinKey(snapshot.snapshot_fingerprint);
+    if (normalizedFingerprint) {
+      indexes.byNormalizedSnapshotFingerprint.set(normalizedFingerprint, snapshot);
+    }
+
+    const normalizedId = normalizeJoinKey(snapshot.id);
+    if (normalizedId) {
+      indexes.byNormalizedSnapshotFingerprint.set(normalizedId, snapshot);
+    }
+
+    const ticker = normalizeTicker(snapshot.ticker);
+    addSnapshotToListIndex(
+      indexes.byBatchTicker,
+      indexKey(snapshotBatchFingerprint(snapshot), ticker),
+      snapshot,
+    );
+    addSnapshotToListIndex(
+      indexes.byScanRunTicker,
+      indexKey(snapshotScanRunFingerprint(snapshot), ticker),
+      snapshot,
+    );
+  }
+
+  return indexes;
+}
+
+function snapshotIsResearchOnly(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.source_mode === "research_only" ||
+    snapshot.data_mode === "research_only" ||
+    researchOnlyPayloadSource(snapshot.payload_json) !== null
+  );
+}
+
+function chooseFallbackSnapshot(
+  candidates: RecommendationSnapshot[] | undefined,
+  outcome: RecommendationOutcome,
+) {
+  if (!candidates || candidates.length === 0) return null;
+
+  const outcomeFingerprint = textOrNull(outcome.snapshot_fingerprint);
+  const normalizedOutcomeFingerprint = normalizeJoinKey(outcomeFingerprint);
+  const outcomeLooksResearch =
+    outcome.recommendation_id === null ||
+    (outcomeFingerprint?.toLowerCase().includes("research") ?? false) ||
+    visibilityFromOutcomePayload(objectValue(outcome.payload_json))?.visibility ===
+      "research_only";
+
+  const scored = candidates.map((snapshot, index) => {
+    let score = 0;
+    const normalizedSnapshotFingerprint = normalizeJoinKey(
+      snapshot.snapshot_fingerprint,
+    );
+
+    if (
+      normalizedOutcomeFingerprint &&
+      normalizedSnapshotFingerprint === normalizedOutcomeFingerprint
+    ) {
+      score += 100;
+    }
+
+    if (outcome.recommendation_id && snapshot.recommendation_id === outcome.recommendation_id) {
+      score += 50;
+    }
+
+    if (outcomeLooksResearch === snapshotIsResearchOnly(snapshot)) {
+      score += 20;
+    }
+
+    if (!isHiddenOrArchivedSnapshot(snapshot)) {
+      score += 5;
+    }
+
+    return { snapshot, score, index };
+  });
+
+  scored.sort((first, second) => second.score - first.score || first.index - second.index);
+  return scored[0]?.snapshot ?? null;
+}
+
+function outcomeHasUsablePayloadOnlyMetadata(outcome: RecommendationOutcome) {
+  const payload = objectValue(outcome.payload_json);
+  if (!payload) return false;
+
+  return (
+    visibilityFromOutcomePayload(payload) !== null ||
+    findConfidenceInPayloads([{ payload, source: "outcome_payload" }], confidenceMetadataKeys) !==
+      null ||
+    tierFromPayload(payload) !== "unknown"
+  );
+}
+
+function resolveSnapshotJoin(
+  outcome: RecommendationOutcome,
+  indexes: SnapshotJoinIndexes,
+): {
+  snapshot: RecommendationSnapshot | null;
+  source: DailyLearningReviewSnapshotJoinSource;
+} {
+  const snapshotFingerprint = textOrNull(outcome.snapshot_fingerprint);
+  if (snapshotFingerprint) {
+    const exact = indexes.bySnapshotFingerprint.get(snapshotFingerprint);
+    if (exact) return { snapshot: exact, source: "snapshot_fingerprint_exact" };
+  }
+
+  const snapshotId = textOrNull(outcome.snapshot_id);
+  if (snapshotId) {
+    const exact = indexes.bySnapshotId.get(snapshotId);
+    if (exact) return { snapshot: exact, source: "snapshot_id_exact" };
+  }
+
+  const recommendationId = textOrNull(outcome.recommendation_id);
+  if (recommendationId) {
+    const exact = indexes.byRecommendationId.get(recommendationId);
+    if (exact) return { snapshot: exact, source: "recommendation_id" };
+  }
+
+  const normalizedFingerprint =
+    normalizeJoinKey(snapshotFingerprint) ?? normalizeJoinKey(snapshotId);
+  if (normalizedFingerprint) {
+    const normalized = indexes.byNormalizedSnapshotFingerprint.get(
+      normalizedFingerprint,
+    );
+    if (normalized) {
+      return { snapshot: normalized, source: "normalized_snapshot_fingerprint" };
+    }
+  }
+
+  const ticker = normalizeTicker(outcome.ticker);
+  if (ticker !== "UNKNOWN") {
+    const batchTickerKey = indexKey(
+      payloadBatchFingerprint(objectValue(outcome.payload_json)),
+      ticker,
+    );
+    const batchTickerSnapshot = chooseFallbackSnapshot(
+      batchTickerKey ? indexes.byBatchTicker.get(batchTickerKey) : undefined,
+      outcome,
+    );
+    if (batchTickerSnapshot) {
+      return { snapshot: batchTickerSnapshot, source: "batch_ticker" };
+    }
+
+    const scanRunTickerKey = indexKey(
+      payloadScanRunFingerprint(objectValue(outcome.payload_json)),
+      ticker,
+    );
+    const scanRunTickerSnapshot = chooseFallbackSnapshot(
+      scanRunTickerKey
+        ? indexes.byScanRunTicker.get(scanRunTickerKey)
+        : undefined,
+      outcome,
+    );
+    if (scanRunTickerSnapshot) {
+      return { snapshot: scanRunTickerSnapshot, source: "scan_run_ticker" };
+    }
+  }
+
+  if (outcomeHasUsablePayloadOnlyMetadata(outcome)) {
+    return { snapshot: null, source: "outcome_payload_only" };
+  }
+
+  return { snapshot: null, source: "missing" };
+}
+
 function reviewRows(input: DailyLearningReviewInput) {
-  const snapshotsByFingerprint = new Map(
-    input.snapshots.map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
-  );
-  const snapshotsByRecommendationId = new Map(
-    input.snapshots
-      .filter((snapshot) => snapshot.recommendation_id !== null)
-      .map((snapshot) => [snapshot.recommendation_id as string, snapshot]),
-  );
+  const snapshotJoinIndexes = buildSnapshotJoinIndexes(input.snapshots);
   const deduped = dedupeReviewOutcomes(input.outcomes);
 
   return {
@@ -1897,19 +2272,18 @@ function reviewRows(input: DailyLearningReviewInput) {
     rows: deduped.outcomes
       .filter((outcome) => evaluatedStatuses.has(outcome.status))
       .map((outcome): ReviewOutcome => {
-        const snapshot =
-          (outcome.snapshot_fingerprint
-            ? snapshotsByFingerprint.get(outcome.snapshot_fingerprint) ?? null
-            : null) ??
-          (outcome.recommendation_id
-            ? snapshotsByRecommendationId.get(outcome.recommendation_id) ?? null
-            : null);
+        const snapshotJoin = resolveSnapshotJoin(outcome, snapshotJoinIndexes);
+        const snapshot = snapshotJoin.snapshot;
         const outcomePayload = objectValue(outcome.payload_json);
         const snapshotPayload = snapshot?.payload_json ?? null;
         const visibilityResolution = visibilityFor(outcome, snapshot);
         const visibility = visibilityResolution.visibility;
         const window = normalizeWindow(windowFrom(outcome, snapshot));
-        const tier = tierFromPayload(snapshotPayload ?? outcomePayload);
+        const tier = tierFromSnapshotAndPayload(
+          snapshot,
+          snapshotPayload,
+          outcomePayload,
+        );
         const setupType = setupTypeFromPayload(snapshotPayload ?? outcomePayload);
         const entryType = entryTypeFromPayload(snapshotPayload ?? outcomePayload);
         const entryTriggerSemantics = triggerSemanticsFromPayload(
@@ -1940,6 +2314,10 @@ function reviewRows(input: DailyLearningReviewInput) {
         return {
           outcome,
           snapshot,
+          snapshot_join_source: snapshotJoin.source,
+          matched_recommendation_row:
+            textOrNull(outcome.recommendation_id) !== null &&
+            snapshot?.recommendation_id === outcome.recommendation_id,
           batch_fingerprint: outcomeBatchFingerprint(outcome, snapshot),
           visibility,
           visibility_source: visibilityResolution.source,
@@ -2000,6 +2378,129 @@ function visibilityDiagnostics(
   };
 }
 
+function initialSnapshotJoinSourceCounts(): Record<
+  DailyLearningReviewSnapshotJoinSource,
+  number
+> {
+  return {
+    snapshot_fingerprint_exact: 0,
+    snapshot_id_exact: 0,
+    recommendation_id: 0,
+    normalized_snapshot_fingerprint: 0,
+    batch_ticker: 0,
+    scan_run_ticker: 0,
+    outcome_payload_only: 0,
+    missing: 0,
+  };
+}
+
+function snapshotJoinDiagnostics(
+  items: ReviewOutcome[],
+): DailyLearningReviewSnapshotJoinDiagnostics {
+  const joinSourceCounts = initialSnapshotJoinSourceCounts();
+
+  for (const item of items) {
+    joinSourceCounts[item.snapshot_join_source] =
+      (joinSourceCounts[item.snapshot_join_source] ?? 0) + 1;
+  }
+
+  return {
+    outcomes_with_snapshot_join: items.filter((item) => item.snapshot !== null)
+      .length,
+    outcomes_without_snapshot_join: items.filter((item) => item.snapshot === null)
+      .length,
+    join_source_counts: joinSourceCounts,
+    missing_join_examples: items
+      .filter((item) => item.snapshot_join_source === "missing")
+      .slice(0, 8)
+      .map((item) => ({
+        ticker: item.ticker,
+        outcome_id: textOrNull(item.outcome.id),
+        snapshot_fingerprint: item.outcome.snapshot_fingerprint,
+        snapshot_id: item.outcome.snapshot_id,
+        recommendation_id_present: textOrNull(item.outcome.recommendation_id) !== null,
+        batch_fingerprint: outcomeBatchFingerprint(item.outcome, null),
+        scan_run_fingerprint: outcomeScanRunFingerprint(item.outcome, null),
+        outcome_payload_keys: metadataKeys([objectValue(item.outcome.payload_json)]),
+        reason: "no_snapshot_or_recommendation_metadata_join",
+      })),
+  };
+}
+
+function visibilitySourceCounts(
+  items: ReviewOutcome[],
+): Record<DailyLearningReviewVisibilityDetectionSource, number> {
+  return visibilityDiagnostics(items).source_counts;
+}
+
+function confidenceSourceCounts(items: ReviewOutcome[]) {
+  const counts: Record<string, number> = {};
+
+  for (const item of items) {
+    const confidence = confidenceForReviewOutcome(item);
+    counts[confidence.source] = (counts[confidence.source] ?? 0) + 1;
+  }
+
+  return counts;
+}
+
+function topLevelSnapshotKeys(snapshot: RecommendationSnapshot | null) {
+  if (!snapshot) return [];
+
+  return Object.entries(snapshot)
+    .filter(([, value]) => value !== null && value !== undefined)
+    .map(([key]) => key)
+    .sort()
+    .slice(0, 30);
+}
+
+function metadataReadbackDiagnostics(
+  items: ReviewOutcome[],
+): DailyLearningReviewMetadataReadbackDiagnostics {
+  const snapshotJoin = snapshotJoinDiagnostics(items);
+
+  return {
+    outcomes_inspected: items.length,
+    matched_snapshots: snapshotJoin.outcomes_with_snapshot_join,
+    matched_recommendation_rows: items.filter(
+      (item) => item.matched_recommendation_row,
+    ).length,
+    visibility_source_mix: visibilitySourceCounts(items),
+    confidence_source_mix: confidenceSourceCounts(items),
+    snapshot_join_source_mix: snapshotJoin.join_source_counts,
+    inspection_examples: items.slice(0, 8).map((item) => {
+      const confidence = confidenceForReviewOutcome(item);
+      const outcomePayload = objectValue(item.outcome.payload_json);
+
+      return {
+        outcome_id: textOrNull(item.outcome.id),
+        ticker: item.ticker,
+        batch_fingerprint: item.batch_fingerprint,
+        snapshot_fingerprint:
+          item.snapshot?.snapshot_fingerprint ??
+          item.outcome.snapshot_fingerprint ??
+          null,
+        recommendation_id_present:
+          textOrNull(item.outcome.recommendation_id) !== null ||
+          textOrNull(item.snapshot?.recommendation_id) !== null,
+        matched_snapshot: item.snapshot !== null,
+        matched_recommendation_row: item.matched_recommendation_row,
+        visibility_decision: item.visibility,
+        visibility_decision_source: item.visibility_source,
+        confidence_decision: confidence.confidence,
+        confidence_decision_source: confidence.source,
+        top_level_metadata_keys: topLevelSnapshotKeys(item.snapshot),
+        nested_payload_keys: metadataKeys([
+          item.snapshot?.payload_json ?? null,
+          outcomePayload,
+        ]),
+        snapshot_metadata_keys: metadataKeys([item.snapshot?.payload_json ?? null]),
+        outcome_payload_keys: metadataKeys([outcomePayload]),
+      };
+    }),
+  };
+}
+
 export function buildDailyLearningReviewSummary(
   input: DailyLearningReviewInput,
 ): DailyLearningReviewSummary {
@@ -2029,6 +2530,8 @@ export function buildDailyLearningReviewSummary(
     (item) => item.visibility === "unknown_visibility",
   );
   const visibilityDiagnosticSummary = visibilityDiagnostics(dayRows);
+  const snapshotJoinDiagnosticSummary = snapshotJoinDiagnostics(dayRows);
+  const metadataReadbackDiagnosticSummary = metadataReadbackDiagnostics(dayRows);
   const metrics = metricsFor(dayRows);
   const visibleMetrics = metricsFor(visibleRows);
   const researchMetrics = metricsFor(researchRows);
@@ -2173,6 +2676,8 @@ export function buildDailyLearningReviewSummary(
     model_governance: modelGovernance,
     intelligence_overview: intelligenceOverview,
     visibility_diagnostics: visibilityDiagnosticSummary,
+    snapshot_join_diagnostics: snapshotJoinDiagnosticSummary,
+    metadata_readback_diagnostics: metadataReadbackDiagnosticSummary,
     engine_adjustment_candidates: engineAdjustmentCandidates,
     sample_size_label: confidence,
     duplicate_outcome_rows_ignored_count: review.duplicateCount,

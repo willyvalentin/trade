@@ -6153,6 +6153,24 @@ function buildSections(
           ),
         ),
         lineValue(
+          "Intelligence metadata readback",
+          `inspected ${input.daily_learning_review?.metadata_readback_diagnostics.outcomes_inspected ?? 0} / matched snapshots ${input.daily_learning_review?.metadata_readback_diagnostics.matched_snapshots ?? 0} / matched recommendation rows ${input.daily_learning_review?.metadata_readback_diagnostics.matched_recommendation_rows ?? 0}`,
+        ),
+        lineValue(
+          "Snapshot join sources",
+          setupMixText(
+            input.daily_learning_review?.snapshot_join_diagnostics
+              .join_source_counts,
+          ),
+        ),
+        lineValue(
+          "Confidence readback sources",
+          setupMixText(
+            input.daily_learning_review?.metadata_readback_diagnostics
+              .confidence_source_mix,
+          ),
+        ),
+        lineValue(
           "Latest batch visible/research-only/unknown",
           `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_unknown_visibility_evaluated_count ?? 0}`,
         ),
@@ -6452,6 +6470,27 @@ function buildSections(
         unknown_visibility_unique_snapshot_count:
           input.daily_learning_review
             ?.unknown_visibility_unique_snapshot_count ?? null,
+        metadata_readback_outcomes_inspected:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .outcomes_inspected ?? null,
+        metadata_readback_matched_snapshots:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .matched_snapshots ?? null,
+        metadata_readback_matched_recommendation_rows:
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .matched_recommendation_rows ?? null,
+        snapshot_join_source_counts: JSON.stringify(
+          input.daily_learning_review?.snapshot_join_diagnostics
+            .join_source_counts ?? null,
+        ),
+        snapshot_join_missing_examples: JSON.stringify(
+          input.daily_learning_review?.snapshot_join_diagnostics
+            .missing_join_examples ?? null,
+        ),
+        intelligence_metadata_readback_examples: JSON.stringify(
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .inspection_examples ?? null,
+        ),
         entry_triggered_count:
           input.daily_learning_review?.metrics.entry_triggered_count ?? null,
         entry_triggered_rate:

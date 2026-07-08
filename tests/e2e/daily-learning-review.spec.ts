@@ -701,9 +701,258 @@ test("daily learning review detects production-style research-only visibility sp
   expect(summary.research_only_unique_snapshot_count).toBe(15);
   expect(summary.unknown_visibility_unique_snapshot_count).toBe(0);
   expect(
-    summary.visibility_diagnostics.source_counts.learning_acceleration_flag,
-  ).toBe(45);
+    summary.visibility_diagnostics.source_counts.recommendation_metadata,
+  ).toBeGreaterThanOrEqual(45);
   expect(summary.visibility_diagnostics.unknown_examples).toHaveLength(0);
+});
+
+test("daily learning review does not classify visible rows as research-only from ambiguous outcome payload", () => {
+  const visibleSnapshot = snapshot("AAPL", {
+    confidence: "not_available",
+    score: "not_available",
+    payload_json: {
+      batch_fingerprint: "rec_batch_daily",
+      visibility_status: "visible",
+      day_trade_window_recommendation_target: { tier: "strong" },
+    },
+  });
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_daily",
+    snapshots: [visibleSnapshot],
+    outcomes: [
+      outcome("AAPL", {
+        snapshot_fingerprint: visibleSnapshot.snapshot_fingerprint,
+        recommendation_id: visibleSnapshot.recommendation_id,
+        payload_json: {
+          batch_fingerprint: "rec_batch_daily",
+          run_fingerprint: "rec_scan_run_daily_review",
+          not_live_signal: true,
+        },
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(summary.visible_evaluated_count).toBe(1);
+  expect(summary.research_only_evaluated_count).toBe(0);
+  expect(summary.unknown_visibility_evaluated_count).toBe(0);
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(1);
+  expect(summary.confidence_calibration.unknown_confidence_count).toBe(0);
+});
+
+test("daily learning review joins production-shaped intelligence metadata", () => {
+  const horizons = ["15m", "30m", "60m"] as const;
+  const visibleSnapshots = Array.from({ length: 16 }, (_, index) =>
+    snapshot(`VIS${index}`, {
+      snapshot_fingerprint: `snap_visible_prod_${index}`,
+      recommendation_id: `rec-visible-prod-${index}`,
+      confidence: "not_available",
+      score: "not_available",
+      payload_json: {
+        batch_fingerprint: "rec_batch_prod",
+        visibility_status: "visible",
+        day_trade_window_recommendation_target: { tier: "valid" },
+      },
+    }),
+  );
+  const researchSnapshots = Array.from({ length: 15 }, (_, index) =>
+    snapshot(`RES${index}`, {
+      snapshot_fingerprint: `snap_research_rec_scan_run_prod_res_${index}`,
+      recommendation_id: null,
+      scan_run_id: "rec_scan_run_prod",
+      status: "hidden",
+      is_visible: false,
+      source_mode: "research_only",
+      data_mode: "research_only",
+      confidence: "not_available",
+      score: "not_available",
+      payload_json: {
+        batch_fingerprint: "rec_batch_prod",
+        run_fingerprint: "rec_scan_run_prod",
+        learning_metadata: {
+          visibility_status: "research_only",
+          learning_acceleration_sample: true,
+          not_live_signal: true,
+          not_live_trade_signal: true,
+        },
+        day_trade_window_recommendation_target: { tier: "experimental" },
+      },
+    }),
+  );
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_prod",
+    snapshots: [...visibleSnapshots, ...researchSnapshots],
+    outcomes: [
+      ...visibleSnapshots.flatMap((item) =>
+        horizons.map((horizon) =>
+          outcome(item.ticker ?? "VIS", {
+            id: `outcome-${item.snapshot_fingerprint}-${horizon}`,
+            horizon,
+            snapshot_fingerprint: item.snapshot_fingerprint,
+            recommendation_id: item.recommendation_id,
+            payload_json: {
+              batch_fingerprint: "rec_batch_prod",
+              run_fingerprint: "rec_scan_run_prod",
+              not_live_signal: true,
+            },
+          }),
+        ),
+      ),
+      ...researchSnapshots.flatMap((item, index) =>
+        horizons.map((horizon) =>
+          outcome(item.ticker ?? "RES", {
+            id: `outcome-research-${index}-${horizon}`,
+            horizon,
+            snapshot_fingerprint: `snap-research-rec-scan-run-prod-res-${index}`,
+            snapshot_id: null,
+            recommendation_id: null,
+            payload_json: {
+              batch_fingerprint: "rec_batch_prod",
+              run_fingerprint: "rec_scan_run_prod",
+            },
+          }),
+        ),
+      ),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(summary.visible_evaluated_count).toBe(48);
+  expect(summary.research_only_evaluated_count).toBe(45);
+  expect(summary.unknown_visibility_evaluated_count).toBe(0);
+  expect(summary.visible_unique_snapshot_count).toBe(16);
+  expect(summary.research_only_unique_snapshot_count).toBe(15);
+  expect(summary.unknown_visibility_unique_snapshot_count).toBe(0);
+  expect(
+    summary.snapshot_join_diagnostics.join_source_counts
+      .snapshot_fingerprint_exact,
+  ).toBe(48);
+  expect(
+    summary.snapshot_join_diagnostics.join_source_counts
+      .normalized_snapshot_fingerprint,
+  ).toBe(45);
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(93);
+  expect(summary.confidence_calibration.unknown_confidence_count).toBe(0);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "60_69")
+      ?.outcome_count,
+  ).toBe(45);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "70_79")
+      ?.outcome_count,
+  ).toBe(48);
+});
+
+test("daily learning review joins snapshots by snapshot id batch ticker and scan run ticker", () => {
+  const snapshotIdMatch = snapshot("SID", {
+    id: "snapshot-row-id",
+    snapshot_fingerprint: "snap-id-source",
+    recommendation_id: null,
+    payload_json: {
+      batch_fingerprint: "rec_batch_join",
+      visibility_status: "visible",
+      day_trade_window_recommendation_target: { tier: "valid" },
+    },
+  });
+  const batchTickerMatch = snapshot("BTCH", {
+    snapshot_fingerprint: "snap-batch-source",
+    recommendation_id: null,
+    source_mode: "research_only",
+    data_mode: "research_only",
+    payload_json: {
+      batch_fingerprint: "rec_batch_join",
+      visibility_status: "research_only",
+      learning_acceleration_sample: true,
+      day_trade_window_recommendation_target: { tier: "experimental" },
+    },
+  });
+  const scanRunTickerMatch = snapshot("RUN", {
+    snapshot_fingerprint: "snap-run-source",
+    recommendation_id: null,
+    scan_run_id: "rec_scan_run_join",
+    source_mode: "research_only",
+    data_mode: "research_only",
+    payload_json: {
+      visibility_status: "research_only",
+      learning_acceleration_sample: true,
+      day_trade_window_recommendation_target: { tier: "experimental" },
+    },
+  });
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_join",
+    snapshots: [snapshotIdMatch, batchTickerMatch, scanRunTickerMatch],
+    outcomes: [
+      outcome("SID", {
+        id: "outcome-snapshot-id",
+        snapshot_id: "snapshot-row-id",
+        snapshot_fingerprint: null,
+        recommendation_id: null,
+      }),
+      outcome("BTCH", {
+        id: "outcome-batch-ticker",
+        snapshot_id: null,
+        snapshot_fingerprint: null,
+        recommendation_id: null,
+        payload_json: { batch_fingerprint: "rec_batch_join" },
+      }),
+      outcome("RUN", {
+        id: "outcome-scan-run-ticker",
+        snapshot_id: null,
+        snapshot_fingerprint: null,
+        recommendation_id: null,
+        payload_json: { run_fingerprint: "rec_scan_run_join" },
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(
+    summary.snapshot_join_diagnostics.join_source_counts.snapshot_id_exact,
+  ).toBe(1);
+  expect(summary.snapshot_join_diagnostics.join_source_counts.batch_ticker).toBe(
+    1,
+  );
+  expect(
+    summary.snapshot_join_diagnostics.join_source_counts.scan_run_ticker,
+  ).toBe(1);
+  expect(summary.visible_evaluated_count).toBe(1);
+  expect(summary.research_only_evaluated_count).toBe(2);
+  expect(summary.unknown_visibility_evaluated_count).toBe(0);
+});
+
+test("daily learning review records missing join diagnostics", () => {
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_missing",
+    snapshots: [],
+    outcomes: [
+      outcome("MISS", {
+        snapshot_id: "missing-snapshot-id",
+        snapshot_fingerprint: "missing-snapshot-fingerprint",
+        recommendation_id: null,
+        payload_json: {
+          batch_fingerprint: "rec_batch_missing",
+          run_fingerprint: "rec_scan_run_missing",
+        },
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(summary.snapshot_join_diagnostics.outcomes_with_snapshot_join).toBe(0);
+  expect(summary.snapshot_join_diagnostics.join_source_counts.missing).toBe(1);
+  expect(summary.snapshot_join_diagnostics.missing_join_examples[0]).toMatchObject({
+    ticker: "MISS",
+    batch_fingerprint: "rec_batch_missing",
+    scan_run_fingerprint: "rec_scan_run_missing",
+  });
 });
 
 test("daily learning review generates engine adjustment candidates", () => {
@@ -760,6 +1009,8 @@ test("market diagnostics renders daily learning review section", () => {
   );
   expect(section?.lines.join("\n")).toContain("Visible/research-only/unknown");
   expect(section?.lines.join("\n")).toContain("Visibility detection sources");
+  expect(section?.lines.join("\n")).toContain("Intelligence metadata readback");
+  expect(section?.lines.join("\n")).toContain("Snapshot join sources");
   expect(section?.lines.join("\n")).toContain("Window groups");
   expect(section?.lines.join("\n")).toContain("Tier groups");
   expect(section?.lines.join("\n")).toContain("Sample confidence");

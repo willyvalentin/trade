@@ -508,6 +508,7 @@ test("daily learning review includes confidence calibration and tier fallback", 
   const missing = snapshot("NOPE", {
     confidence: null,
     score: Number.NaN,
+    rating: "unknown",
     payload_json: {
       batch_fingerprint: "rec_batch_confidence",
       visibility_status: "visible",
