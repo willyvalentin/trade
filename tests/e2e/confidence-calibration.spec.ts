@@ -556,6 +556,225 @@ test("daily learning review includes confidence calibration and tier fallback", 
   ).toBe(1);
 });
 
+test("visible recommendation tiers use tier fallback confidence buckets", () => {
+  const strong = snapshot("STR", {
+    confidence: null,
+    score: Number.NaN,
+    rating: "unknown",
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      metadata: { recommendation_tier: "Strong" },
+    },
+  });
+  const valid = snapshot("VAL", {
+    confidence: null,
+    score: Number.NaN,
+    rating: "unknown",
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      visible_recommendation_row_metadata: {
+        source: "recommendation_row_metadata",
+        tier: "VALID",
+      },
+    },
+  });
+  const experimental = snapshot("EXP", {
+    confidence: null,
+    score: Number.NaN,
+    rating: "unknown",
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      recommendation: {
+        metadata: { publish_tier: "Experimental" },
+      },
+    },
+  });
+
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_confidence",
+    snapshots: [strong, valid, experimental],
+    outcomes: [
+      outcome("STR", {
+        snapshot_fingerprint: strong.snapshot_fingerprint,
+        recommendation_id: strong.recommendation_id,
+      }),
+      outcome("VAL", {
+        snapshot_fingerprint: valid.snapshot_fingerprint,
+        recommendation_id: valid.recommendation_id,
+      }),
+      outcome("EXP", {
+        snapshot_fingerprint: experimental.snapshot_fingerprint,
+        recommendation_id: experimental.recommendation_id,
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(3);
+  expect(summary.confidence_calibration.unknown_confidence_count).toBe(0);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "80_89")
+      ?.visible_outcome_count,
+  ).toBe(1);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "70_79")
+      ?.visible_outcome_count,
+  ).toBe(1);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "60_69")
+      ?.visible_outcome_count,
+  ).toBe(1);
+  expect(
+    summary.metadata_readback_diagnostics.visible_confidence_source_mix
+      .tier_fallback,
+  ).toBe(3);
+  expect(summary.tier_breakdowns.map((item) => item.key)).toEqual(
+    expect.arrayContaining(["strong", "valid", "experimental"]),
+  );
+});
+
+test("numeric visible confidence wins over tier fallback", () => {
+  const visible = snapshot("NUM", {
+    confidence: 91,
+    score: Number.NaN,
+    payload_json: {
+      batch_fingerprint: "rec_batch_confidence",
+      visibility_status: "visible",
+      metadata: { tier: "experimental" },
+    },
+  });
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_confidence",
+    snapshots: [visible],
+    outcomes: [
+      outcome("NUM", {
+        snapshot_fingerprint: visible.snapshot_fingerprint,
+        recommendation_id: visible.recommendation_id,
+      }),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(
+    summary.confidence_calibration.outcomes_with_numeric_confidence_count,
+  ).toBe(1);
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(0);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "90_100")
+      ?.visible_outcome_count,
+  ).toBe(1);
+});
+
+test("mixed visible tier fallback reduces unknown confidence", () => {
+  const researchSnapshots = Array.from({ length: 38 }, (_, index) =>
+    snapshot(`RES${index}`, {
+      snapshot_fingerprint: `snap-research-confidence-${index}`,
+      recommendation_id: null,
+      confidence: 65,
+      source_mode: "research_only",
+      data_mode: "research_only",
+      payload_json: {
+        batch_fingerprint: "rec_batch_confidence",
+        visibility_status: "research_only",
+        learning_acceleration_sample: true,
+      },
+    }),
+  );
+  const visibleSnapshots = [
+    ...Array.from({ length: 2 }, (_, index) =>
+      snapshot(`VAL${index}`, {
+        snapshot_fingerprint: `snap-visible-valid-${index}`,
+        confidence: null,
+        score: Number.NaN,
+        rating: "unknown",
+        payload_json: {
+          batch_fingerprint: "rec_batch_confidence",
+          visibility_status: "visible",
+          visible_recommendation_row_metadata: {
+            source: "recommendation_row_metadata",
+            tier: "valid",
+          },
+        },
+      }),
+    ),
+    ...Array.from({ length: 5 }, (_, index) =>
+      snapshot(`EXP${index}`, {
+        snapshot_fingerprint: `snap-visible-experimental-${index}`,
+        confidence: null,
+        score: Number.NaN,
+        rating: "unknown",
+        payload_json: {
+          batch_fingerprint: "rec_batch_confidence",
+          visibility_status: "visible",
+          visible_recommendation_row_metadata: {
+            source: "recommendation_row_metadata",
+            tier: "experimental",
+          },
+        },
+      }),
+    ),
+  ];
+  const horizons = ["15m", "30m", "60m"] as const;
+  const summary = buildDailyLearningReviewSummary({
+    trading_day: tradingDay,
+    latest_batch_fingerprint: "rec_batch_confidence",
+    snapshots: [...researchSnapshots, ...visibleSnapshots],
+    outcomes: [
+      ...researchSnapshots.map((item) =>
+        outcome(item.ticker ?? "RES", {
+          snapshot_fingerprint: item.snapshot_fingerprint,
+          recommendation_id: item.recommendation_id,
+        }),
+      ),
+      ...visibleSnapshots.flatMap((item) =>
+        horizons.map((horizon) =>
+          outcome(item.ticker ?? "VIS", {
+            id: `outcome-${item.snapshot_fingerprint}-${horizon}`,
+            horizon,
+            snapshot_fingerprint: item.snapshot_fingerprint,
+            recommendation_id: item.recommendation_id,
+          }),
+        ),
+      ),
+    ],
+    now: evaluatedAt,
+  });
+
+  expect(summary.confidence_calibration.total_outcome_count).toBe(59);
+  expect(
+    summary.confidence_calibration.outcomes_with_numeric_confidence_count,
+  ).toBe(38);
+  expect(
+    summary.confidence_calibration.outcomes_with_tier_fallback_confidence_count,
+  ).toBe(21);
+  expect(summary.confidence_calibration.unknown_confidence_count).toBe(0);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "70_79")
+      ?.visible_outcome_count,
+  ).toBe(6);
+  expect(
+    summary.confidence_calibration.buckets.find((item) => item.bucket === "60_69")
+      ?.visible_outcome_count,
+  ).toBe(15);
+  expect(
+    summary.metadata_readback_diagnostics.research_only_confidence_source_mix
+      .recommendation_metadata,
+  ).toBe(38);
+  expect(
+    summary.metadata_readback_diagnostics.visible_confidence_source_mix
+      .tier_fallback,
+  ).toBe(21);
+});
+
 test("daily learning review extracts numeric confidence variants", () => {
   const payloadConfidence = snapshot("AAPL", {
     confidence: null,

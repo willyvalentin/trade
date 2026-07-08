@@ -3197,6 +3197,84 @@ function tierFromSnapshotPayload(
   );
 }
 
+function enrichSnapshotWithVisibleRecommendationMetadata(
+  snapshot: RecommendationSnapshot,
+  recommendation: Recommendation | null | undefined,
+): RecommendationSnapshot {
+  if (!recommendation) {
+    return snapshot;
+  }
+
+  const recommendationTier = recommendation.recommendationTier ?? null;
+  const confidenceScore = recommendation.confidenceScore;
+  const payload = snapshot.payload_json;
+  const existingMetadata =
+    typeof payload.metadata === "object" &&
+    payload.metadata !== null &&
+    !Array.isArray(payload.metadata)
+      ? (payload.metadata as Record<string, unknown>)
+      : {};
+  const existingRecommendation =
+    typeof payload.recommendation === "object" &&
+    payload.recommendation !== null &&
+    !Array.isArray(payload.recommendation)
+      ? (payload.recommendation as Record<string, unknown>)
+      : {};
+  const existingRecommendationMetadata =
+    typeof existingRecommendation.metadata === "object" &&
+    existingRecommendation.metadata !== null &&
+    !Array.isArray(existingRecommendation.metadata)
+      ? (existingRecommendation.metadata as Record<string, unknown>)
+      : {};
+  const visibleRecommendationRowMetadata = {
+    source: "recommendation_row_metadata",
+    tier: recommendationTier,
+    recommendation_tier: recommendationTier,
+    confidence_score: confidenceScore,
+    confidence_label: recommendation.confidenceLabel,
+    confidence: recommendation.confidence,
+  };
+
+  return {
+    ...snapshot,
+    confidence:
+      snapshot.confidence ?? (confidenceScore !== null ? confidenceScore : null),
+    score: snapshot.score ?? (confidenceScore !== null ? confidenceScore : null),
+    payload_json: {
+      ...payload,
+      visible_recommendation_tier:
+        payload.visible_recommendation_tier ?? recommendationTier,
+      recommendation_tier: payload.recommendation_tier ?? recommendationTier,
+      tier: payload.tier ?? recommendationTier,
+      confidence_score: payload.confidence_score ?? confidenceScore,
+      metadata: {
+        ...existingMetadata,
+        tier: existingMetadata.tier ?? recommendationTier,
+        recommendation_tier:
+          existingMetadata.recommendation_tier ?? recommendationTier,
+        rating: existingMetadata.rating ?? recommendationTier,
+      },
+      recommendation: {
+        ...existingRecommendation,
+        tier: existingRecommendation.tier ?? recommendationTier,
+        recommendation_tier:
+          existingRecommendation.recommendation_tier ?? recommendationTier,
+        confidence_score:
+          existingRecommendation.confidence_score ?? confidenceScore,
+        metadata: {
+          ...existingRecommendationMetadata,
+          tier: existingRecommendationMetadata.tier ?? recommendationTier,
+          recommendation_tier:
+            existingRecommendationMetadata.recommendation_tier ??
+            recommendationTier,
+          rating: existingRecommendationMetadata.rating ?? recommendationTier,
+        },
+      },
+      visible_recommendation_row_metadata: visibleRecommendationRowMetadata,
+    },
+  };
+}
+
 function planPriceFreshnessFromSnapshotPayload(
   snapshot: RecommendationSnapshot | null | undefined,
 ): PlanPriceFreshnessDiagnostics | null {
@@ -14043,11 +14121,26 @@ export function TradeApp({
   });
   const mondayLiveTrialReviewSummaryJsonText =
     mondayLiveTrialReviewSummaryJson(mondayLiveTrialReviewSummary);
+  const visibleRecommendationMetadataById = new Map(
+    primaryRecommendationReadbackSource.map((recommendation) => [
+      recommendation.id,
+      recommendation,
+    ]),
+  );
+  const dailyLearningReviewSnapshots =
+    intelligenceEnrichmentRecommendationSnapshots.map((snapshot) =>
+      enrichSnapshotWithVisibleRecommendationMetadata(
+        snapshot,
+        snapshot.recommendation_id === null
+          ? null
+          : visibleRecommendationMetadataById.get(snapshot.recommendation_id),
+      ),
+    );
   const dailyLearningReviewSummary = buildDailyLearningReviewSummary({
     trading_day: dailySessionDate,
     latest_batch_fingerprint: latestEvaluatedBatchFingerprint,
     batches: liveStoredRecommendationBatches,
-    snapshots: intelligenceEnrichmentRecommendationSnapshots,
+    snapshots: dailyLearningReviewSnapshots,
     outcomes: storedRecommendationOutcomes,
     now: currentTime,
   });

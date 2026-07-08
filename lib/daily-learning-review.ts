@@ -110,6 +110,8 @@ export type DailyLearningReviewMetadataReadbackExample = {
   recommendation_id_present: boolean;
   matched_snapshot: boolean;
   matched_recommendation_row: boolean;
+  visible_tier_decision: string;
+  tier_decision_source: string;
   visibility_decision: DailyLearningReviewVisibility;
   visibility_decision_source: DailyLearningReviewVisibilityDetectionSource;
   confidence_decision: number | null;
@@ -141,6 +143,8 @@ export type DailyLearningReviewMetadataReadbackDiagnostics = {
   };
   visibility_source_mix: Record<DailyLearningReviewVisibilityDetectionSource, number>;
   confidence_source_mix: Record<string, number>;
+  visible_confidence_source_mix: Record<string, number>;
+  research_only_confidence_source_mix: Record<string, number>;
   snapshot_join_source_mix: Record<DailyLearningReviewSnapshotJoinSource, number>;
   inspection_examples: DailyLearningReviewMetadataReadbackExample[];
 };
@@ -385,6 +389,7 @@ type ReviewOutcome = {
   ticker: string;
   window: string;
   tier: string;
+  tier_source: string;
   setup_type: string;
   entry_type: string;
   entry_trigger_semantics: string;
@@ -781,45 +786,84 @@ function visibilityFor(
   return { visibility: "unknown_visibility", source: "unknown" };
 }
 
-function tierFromPayload(payload: Record<string, unknown> | null) {
-  const target = objectValue(payload?.day_trade_window_recommendation_target);
-  const recommendation = objectValue(payload?.recommendation);
-  const contract = objectValue(payload?.openai_reality_contract);
-  const metadata = objectValue(payload?.metadata);
-  const tier = textOrNull(
-    target?.tier ??
-      target?.recommendation_tier ??
-      recommendation?.tier ??
-      recommendation?.recommendation_tier ??
-      contract?.tier ??
-      contract?.recommendation_tier ??
-      metadata?.tier ??
-      metadata?.recommendation_tier ??
-      payload?.tier,
-  )?.toLowerCase();
+const tierMetadataKeys = new Set([
+  "tier",
+  "learning_tier",
+  "learningtier",
+  "recommendation_tier",
+  "recommendationtier",
+  "quality_tier",
+  "qualitytier",
+  "rating",
+  "label",
+  "card_tier",
+  "cardtier",
+  "publish_tier",
+  "publishtier",
+  "visible_recommendation_tier",
+  "visiblerecommendationtier",
+]);
+
+function normalizeTierValue(value: unknown) {
+  const tier = textOrNull(typeof value === "string" ? value : null)?.toLowerCase();
 
   if (tier === "strong" || tier === "valid" || tier === "experimental") {
     return tier;
   }
 
-  return "unknown";
+  return null;
+}
+
+function tierFromPayloadWithSource(
+  payload: Record<string, unknown> | null,
+  source: string,
+) {
+  for (const item of nestedPayloads(payload)) {
+    for (const [key, value] of Object.entries(item)) {
+      if (!tierMetadataKeys.has(normalizedMetadataKey(key))) continue;
+      const tier = normalizeTierValue(value);
+      if (tier) {
+        return {
+          tier,
+          source:
+            normalizedMetadataKey(key).includes("visible_recommendation") ||
+            objectValue(item)?.source === "recommendation_row_metadata"
+              ? "recommendation_metadata"
+              : source,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function tierFromPayload(payload: Record<string, unknown> | null) {
+  return tierFromPayloadWithSource(payload, "payload")?.tier ?? "unknown";
 }
 
 function tierFromSnapshotAndPayload(
   snapshot: RecommendationSnapshot | null,
   ...payloads: Array<Record<string, unknown> | null>
 ) {
-  for (const payload of payloads) {
-    const payloadTier = tierFromPayload(payload);
-    if (payloadTier !== "unknown") return payloadTier;
+  const [snapshotPayload, outcomePayload] = payloads;
+  const snapshotTier = tierFromPayloadWithSource(snapshotPayload ?? null, "snapshot_payload");
+  if (snapshotTier) return snapshotTier;
+
+  const outcomeTier = tierFromPayloadWithSource(outcomePayload ?? null, "outcome_payload");
+  if (outcomeTier) return outcomeTier;
+
+  for (const payload of payloads.slice(2)) {
+    const payloadTier = tierFromPayloadWithSource(payload, "payload");
+    if (payloadTier) return payloadTier;
   }
 
-  const rowTier = textOrNull(snapshot?.rating ?? snapshot?.label)?.toLowerCase();
-  if (rowTier === "strong" || rowTier === "valid" || rowTier === "experimental") {
-    return rowTier;
+  const rowTier = normalizeTierValue(snapshot?.rating) ?? normalizeTierValue(snapshot?.label);
+  if (rowTier) {
+    return { tier: rowTier, source: "recommendation_metadata" };
   }
 
-  return "unknown";
+  return { tier: "unknown", source: "unknown" };
 }
 
 function setupTypeFromPayload(payload: Record<string, unknown> | null) {
@@ -2294,11 +2338,12 @@ function reviewRows(input: DailyLearningReviewInput) {
         const visibilityResolution = visibilityFor(outcome, snapshot);
         const visibility = visibilityResolution.visibility;
         const window = normalizeWindow(windowFrom(outcome, snapshot));
-        const tier = tierFromSnapshotAndPayload(
+        const tierDecision = tierFromSnapshotAndPayload(
           snapshot,
           snapshotPayload,
           outcomePayload,
         );
+        const tier = tierDecision.tier;
         const setupType = setupTypeFromPayload(snapshotPayload ?? outcomePayload);
         const entryType = entryTypeFromPayload(snapshotPayload ?? outcomePayload);
         const entryTriggerSemantics = triggerSemanticsFromPayload(
@@ -2345,6 +2390,7 @@ function reviewRows(input: DailyLearningReviewInput) {
           ticker,
           window,
           tier,
+          tier_source: tierDecision.source,
           setup_type: setupType,
           entry_type: entryType,
           entry_trigger_semantics: entryTriggerSemantics,
@@ -2463,6 +2509,9 @@ function metadataReadbackDiagnostics(
 ): DailyLearningReviewMetadataReadbackDiagnostics {
   const snapshotJoin = snapshotJoinDiagnostics(items);
   const confidenceDecisions = items.map(confidenceForReviewOutcome);
+  const confidenceDecisionByIdentity = new Map(
+    items.map((item, index) => [item.snapshot_identity, confidenceDecisions[index]]),
+  );
   const numericConfidenceCount = confidenceDecisions.filter(
     (item) => item.source_category === "numeric",
   ).length;
@@ -2512,6 +2561,24 @@ function metadataReadbackDiagnostics(
       },
       {},
     ),
+    visible_confidence_source_mix: items
+      .filter((item) => item.visibility === "visible")
+      .reduce<Record<string, number>>((counts, item) => {
+        const source =
+          confidenceDecisionByIdentity.get(item.snapshot_identity)?.source ??
+          "unknown";
+        counts[source] = (counts[source] ?? 0) + 1;
+        return counts;
+      }, {}),
+    research_only_confidence_source_mix: items
+      .filter((item) => item.visibility === "research_only")
+      .reduce<Record<string, number>>((counts, item) => {
+        const source =
+          confidenceDecisionByIdentity.get(item.snapshot_identity)?.source ??
+          "unknown";
+        counts[source] = (counts[source] ?? 0) + 1;
+        return counts;
+      }, {}),
     snapshot_join_source_mix: snapshotJoin.join_source_counts,
     inspection_examples: items.slice(0, 8).map((item) => {
       const confidence = confidenceForReviewOutcome(item);
@@ -2530,6 +2597,8 @@ function metadataReadbackDiagnostics(
           textOrNull(item.snapshot?.recommendation_id) !== null,
         matched_snapshot: item.snapshot !== null,
         matched_recommendation_row: item.matched_recommendation_row,
+        visible_tier_decision: item.tier,
+        tier_decision_source: item.tier_source,
         visibility_decision: item.visibility,
         visibility_decision_source: item.visibility_source,
         confidence_decision: confidence.confidence,

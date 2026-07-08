@@ -1031,6 +1031,8 @@ test("market diagnostics renders daily learning review section", () => {
   expect(section?.lines.join("\n")).toContain("Intelligence metadata enrichment");
   expect(section?.lines.join("\n")).toContain("Confidence after enrichment");
   expect(section?.lines.join("\n")).toContain("Snapshot join sources");
+  expect(section?.lines.join("\n")).toContain("Visible confidence sources");
+  expect(section?.lines.join("\n")).toContain("Research-only confidence sources");
   expect(section?.lines.join("\n")).toContain("Window groups");
   expect(section?.lines.join("\n")).toContain("Tier groups");
   expect(section?.lines.join("\n")).toContain("Sample confidence");

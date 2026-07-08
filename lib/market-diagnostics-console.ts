@@ -6183,6 +6183,20 @@ function buildSections(
           ),
         ),
         lineValue(
+          "Visible confidence sources",
+          setupMixText(
+            input.daily_learning_review?.metadata_readback_diagnostics
+              .visible_confidence_source_mix,
+          ),
+        ),
+        lineValue(
+          "Research-only confidence sources",
+          setupMixText(
+            input.daily_learning_review?.metadata_readback_diagnostics
+              .research_only_confidence_source_mix,
+          ),
+        ),
+        lineValue(
           "Latest batch visible/research-only/unknown",
           `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_unknown_visibility_evaluated_count ?? 0}`,
         ),
@@ -6513,6 +6527,14 @@ function buildSections(
         metadata_enrichment_confidence_after: JSON.stringify(
           input.daily_learning_review?.metadata_readback_diagnostics
             .confidence_after_enrichment ?? null,
+        ),
+        metadata_enrichment_visible_confidence_source_mix: JSON.stringify(
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .visible_confidence_source_mix ?? null,
+        ),
+        metadata_enrichment_research_only_confidence_source_mix: JSON.stringify(
+          input.daily_learning_review?.metadata_readback_diagnostics
+            .research_only_confidence_source_mix ?? null,
         ),
         snapshot_join_source_counts: JSON.stringify(
           input.daily_learning_review?.snapshot_join_diagnostics
