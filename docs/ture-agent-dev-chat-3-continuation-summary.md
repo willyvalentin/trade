@@ -155,6 +155,30 @@ The latest recurring focused baseline is:
 - No DB connection occurred.
 - Static tests exist and pass.
 - Non-production apply approval checklist exists: `docs/post-trade-supabase-non-production-apply-approval-checklist-no-apply.md`.
+- Non-production apply gate preflight exists: `docs/post-trade-supabase-non-production-apply-gate-preflight-no-apply.md`.
+- Non-production apply dry-run command plan exists: `docs/post-trade-supabase-non-production-apply-dry-run-command-plan-no-apply.md`.
+- Non-production apply final user approval packet exists: `docs/post-trade-supabase-non-production-apply-final-user-approval-packet-no-apply.md`.
+- Non-production apply Go/No-Go decision checkpoint exists: `docs/post-trade-supabase-non-production-apply-go-no-go-decision-no-apply.md`.
+- Non-production migration apply execution result is blocked before Supabase command because no explicit isolated non-production target/project reference was provided: `docs/post-trade-supabase-non-production-migration-apply-execution-result-blocked.md`.
+- Non-production target identification gate exists and defines the required non-secret target declaration before any retry: `docs/post-trade-supabase-non-production-target-identification-gate-no-apply.md`.
+- Non-production target declaration capture is incomplete and apply remains blocked: `docs/post-trade-supabase-non-production-target-declaration-capture-blocked.md`.
+- Non-production target declaration retry is captured for `ture-staging` / `pdvzyuhykomwfqyyztru` and ready for a separate apply retry: `docs/post-trade-supabase-non-production-target-declaration-retry-captured.md`.
+- Non-production migration apply retry is blocked before any DB/apply command because local Supabase link metadata points to a different project ref than `pdvzyuhykomwfqyyztru`: `docs/post-trade-supabase-non-production-migration-apply-retry-execution-result-blocked.md`.
+- Supabase CLI target relink plan exists for future no-apply correction to `pdvzyuhykomwfqyyztru`: `docs/post-trade-supabase-cli-target-relink-plan-no-apply.md`.
+- Supabase CLI target relink succeeded with local metadata now pointing to `ture-staging` / `pdvzyuhykomwfqyyztru`, with no migration apply: `docs/post-trade-supabase-cli-target-relink-execution-result-no-apply.md`.
+- Non-production migration apply retry after relink is blocked before any apply command because linked migration history shows all local migrations pending, not only the intended post-trade migration: `docs/post-trade-supabase-non-production-migration-apply-retry-after-relink-result-blocked.md`.
+- Staging migration history alignment plan exists and recommends clean full-chain staging initialization only if `ture-staging` is empty/disposable; otherwise recreate clean staging: `docs/post-trade-supabase-staging-migration-history-alignment-plan-no-apply.md`.
+- Full-chain staging initialization approval packet exists for future `ture-staging` initialization only, with no apply performed: `docs/post-trade-supabase-staging-full-chain-initialization-approval-packet-no-apply.md`.
+- Full-chain staging initialization execution failed on the first migration because `public.positions` is missing in `ture-staging`; no repair/reset/retry was attempted: `docs/post-trade-supabase-staging-full-chain-initialization-execution-result-failed.md`.
+- Staging baseline schema gap analysis shows the local migration chain is not complete from an empty DB because the first migration assumes pre-existing `public.positions`: `docs/post-trade-supabase-staging-baseline-schema-gap-analysis-no-apply.md`.
+- Baseline schema reconstruction planning shows local evidence can identify the legacy baseline surface but is insufficient to safely draft authoritative DDL without a separate schema-only baseline gate: `docs/post-trade-supabase-baseline-schema-reconstruction-plan-no-apply.md`.
+- Production schema-only baseline dump gate exists for a future no-data schema inspection/dump approval; no production connection or dump was run: `docs/post-trade-supabase-production-schema-only-baseline-dump-gate-no-data.md`.
+- Production schema-only baseline dump approval is captured for future baseline reconstruction only; no production connection or dump was run: `docs/post-trade-supabase-production-schema-only-baseline-dump-approval-captured-no-data.md`.
+- Production schema-only baseline dump execution is blocked before any production connection because the production target and secret-safe schema-only command path were not explicitly proven for the execution action: `docs/post-trade-supabase-production-schema-only-baseline-dump-execution-result-blocked-no-data.md`.
+- Production schema-only dump target and command path gate exists with paste-ready target declaration and future execution approval wording; no production connection or dump was run: `docs/post-trade-supabase-production-schema-only-dump-target-command-path-gate-no-data.md`.
+- Production schema-only dump target declaration is captured for `Trade` / `ekdyopdrrkphlrsilyoo`; no production connection or dump was run: `docs/post-trade-supabase-production-schema-only-dump-target-declaration-captured-no-data.md`.
+- Production schema-only baseline dump retry attempted the approved schema-only/no-data command against `Trade` / `ekdyopdrrkphlrsilyoo`, but failed because Docker was not running; local CLI metadata was restored to `ture-staging` / `pdvzyuhykomwfqyyztru`, and no usable schema artifact was produced: `docs/post-trade-supabase-production-schema-only-baseline-dump-retry-execution-result-failed-no-data.md`.
+- Production schema-only dump Docker readiness gate exists for a future retry; Docker must be running and the retry must happen in a separate action: `docs/post-trade-supabase-production-schema-only-dump-docker-readiness-gate-no-data.md`.
 - Future non-production apply requires explicit user approval.
 - Production apply remains blocked.
 
@@ -343,3 +367,1365 @@ Do not run:
 ## 15. Final Decision
 
 `ture_agent_dev_chat_3_continuation_summary_complete`
+
+## 16. Action 419 Update
+
+Action 419 completed the approved production schema-only/no-data dump retry with Docker running.
+
+- Production target used only for schema-only inspection: `Trade` / `ekdyopdrrkphlrsilyoo`
+- Staging target restored afterward: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Local review artifact: `tmp/supabase-schema-review/trade-production-public-schema-only-20260708.sql`
+- Artifact status: schema-only review artifact, 51506 bytes, under `tmp/`, not intended for commit
+- Strict row/export marker scan found no `postgres://`, `postgresql://`, `INSERT INTO`, `COPY public`, or `COPY ... FROM stdin` matches
+- Baseline DDL is now available locally for a future staging baseline migration draft under a separate gate
+
+Safety remains locked:
+
+- no data dump
+- no row export
+- no production mutation
+- no staging mutation
+- no migration apply
+- no migration repair
+- no DB write
+- no Supabase write
+- no runtime/API/UI activation
+- no Trade UI execution
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_production_schema_only_dump_retry_with_docker_succeeded_no_data`
+
+## 17. Action 420 Update
+
+Action 420 reviewed the local production schema-only/no-data artifact and extracted the baseline DDL scope for future staging reconstruction.
+
+- Reviewed artifact: `tmp/supabase-schema-review/trade-production-public-schema-only-20260708.sql`
+- Artifact remains local-only under `tmp/` and is not approved for commit.
+- Strict no-data scan again found no `postgres://`, `postgresql://`, `INSERT INTO`, `COPY public`, or `COPY ... FROM stdin` matches.
+- The only broad sensitive-word hit was a schema comment warning not to store secrets or raw broker/browser artifacts.
+- No functions or triggers were identified in the artifact.
+- Baseline draft evidence is sufficient for legacy baseline objects: `positions`, `position_updates`, `recommendations`, `user_settings`, `scanner_cache`, `scheduled_scan_runs`, `market_calendar_cache`, and `market_regime_snapshots`.
+- Later migration-owned objects must stay out of the baseline draft.
+
+Safety remains locked:
+
+- no production connection
+- no staging schema/data command
+- no data dump
+- no row export
+- no migration apply or repair
+- no DB/Supabase write
+- no raw schema artifact commit
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_schema_artifact_review_baseline_ddl_extraction_ready_for_baseline_draft`
+
+## 18. Action 421 Update
+
+Action 421 created a source-controlled staging baseline migration draft without applying it.
+
+- New draft migration: `supabase/migrations/20260519000000_create_legacy_baseline_schema_draft.sql`
+- Ordered before: `supabase/migrations/20260520000000_add_execution_metadata_to_positions.sql`
+- New static test: `tests/e2e/post-trade-supabase-baseline-migration-draft-static.spec.ts`
+- New checkpoint: `docs/post-trade-supabase-staging-baseline-migration-draft-no-apply.md`
+
+Included baseline objects:
+
+- `recommendations`
+- `positions`
+- `position_updates`
+- `user_settings`
+- `scanner_cache`
+- `scheduled_scan_runs`
+- `market_calendar_cache`
+- `market_regime_snapshots`
+
+Excluded later migration-owned objects:
+
+- recommendation snapshot/outcome/scan/batch tables
+- execution audit/record/agent/lifecycle tables
+- scheduled scan attempts
+- symbol metadata
+- post-trade persistence tables
+
+Safety remains locked:
+
+- no production connection
+- no staging schema/data command
+- no migration apply or repair
+- no DB/Supabase write
+- no raw schema artifact commit
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_baseline_migration_draft_ready_no_apply`
+
+## 19. Action 422 Update
+
+Action 422 statically reviewed the staging baseline migration draft before any initialization retry.
+
+- Reviewed draft: `supabase/migrations/20260519000000_create_legacy_baseline_schema_draft.sql`
+- Next migration: `supabase/migrations/20260520000000_add_execution_metadata_to_positions.sql`
+- Review checkpoint: `docs/post-trade-supabase-staging-baseline-migration-draft-static-review-no-apply.md`
+- Static review result: pass
+- Existing static test coverage was sufficient; no test change was needed.
+
+Confirmed:
+
+- baseline draft is ordered before `20260520000000`
+- `public.positions` exists before the existing `alter table public.positions` migration runs
+- required legacy baseline tables are included
+- later migration-owned tables are excluded
+- constraints, indexes, RLS, policies, and grants are source-evidenced from the reviewed schema-only artifact
+- no triggers or functions were included
+- no production data, rows, `INSERT INTO`, `COPY` data, connection strings, or secrets were present
+
+Safety remains locked:
+
+- no production connection
+- no staging schema/data command
+- no migration apply or repair
+- no DB/Supabase write
+- no raw schema artifact commit
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_baseline_migration_draft_static_review_ready_for_initialization_retry_no_apply`
+
+## 20. Action 423 Update
+
+Action 423 applied the approved full local migration chain to the isolated non-production staging project.
+
+- Target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Apply command: `supabase db push --linked`
+- Result: full chain applied successfully
+- Migration history: all local versions matched remote versions after apply
+- Checkpoint: `docs/post-trade-supabase-staging-full-chain-initialization-retry-with-baseline-result.md`
+
+Applied chain:
+
+- `20260519000000_create_legacy_baseline_schema_draft.sql`
+- `20260520000000_add_execution_metadata_to_positions.sql`
+- `20260528000000_create_recommendation_snapshots.sql`
+- `20260528001000_create_recommendation_outcomes.sql`
+- `20260528002000_create_recommendation_scan_runs.sql`
+- `20260528003000_create_recommendation_batches.sql`
+- `20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql`
+- `20260610000000_execution_audit_foundation.sql`
+- `20260614000000_create_execution_records.sql`
+- `20260615000000_create_execution_record_audit_events.sql`
+- `20260615001000_enable_rls_execution_record_audit_events.sql`
+- `20260625000000_create_scheduled_scan_attempts.sql`
+- `20260702000000_create_symbol_metadata.sql`
+- `20260708000000_post_trade_persistence_schema_draft.sql`
+
+Verification:
+
+- `supabase migration list --linked` showed all local migrations aligned with remote staging.
+- `supabase gen types typescript --linked --schema public` confirmed the expected baseline and post-trade tables exist.
+- Docker-based schema-only dump verification hung twice and was interrupted; the resulting staging schema artifact was zero bytes and not used as evidence.
+
+Safety remains locked:
+
+- no production connection
+- no production apply
+- no runtime/API/UI activation
+- no Trade UI execution
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no real trade/broker data insertion
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_full_chain_initialization_retry_with_baseline_succeeded_runtime_blocked`
+
+## 21. Action 424 Update
+
+Action 424 performed read-only post-initialization verification of the isolated non-production staging schema.
+
+- Target confirmed: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Migration history command: `supabase migration list --linked`
+- Table verification command: `supabase gen types typescript --linked --schema public`
+- Checkpoint: `docs/post-trade-supabase-staging-post-initialization-schema-rls-verification-checkpoint.md`
+
+Verified:
+
+- all local migration versions are aligned with remote staging versions
+- generated staging types include expected baseline tables
+- generated staging types include expected post-trade persistence tables
+- source-controlled migrations and static tests cover RLS/policy/grant expectations where possible
+
+Warning:
+
+- Direct remote schema-dump inspection of RLS/policy/grant DDL remains limited because the Docker-based dump path hung twice in Action 423 and produced a zero-byte ignored artifact.
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair in this action
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no real trade/broker data insertion
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_post_initialization_schema_rls_verification_ready_with_warnings_runtime_blocked`
+
+## 22. Action 425 Update
+
+Action 425 created a no-write plan for closing or tracking the remaining staging RLS/policy/grant verification warning.
+
+- Target remains: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-supabase-staging-rls-policy-verification-gap-plan-no-write.md`
+- Warning tracked: direct remote schema-dump inspection of RLS/policy/grant DDL remains unavailable because the Docker-based schema-only dump path hung twice in Action 423 and produced a zero-byte ignored artifact.
+
+Already verified:
+
+- staging migration history is aligned
+- generated staging types include expected baseline and post-trade tables
+- source-controlled migrations and static tests cover intended RLS/policy/grant structure where possible
+
+Still unverified:
+
+- direct live staging catalog confirmation of RLS status, policies, and grants
+
+Safe future alternatives:
+
+- read-only Postgres catalog introspection under a separate approval gate
+- Supabase dashboard manual read-only inspection
+- explicit known-limitation acceptance under a separate gate
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_rls_policy_verification_gap_plan_ready_no_write`
+
+## 23. Action 426 Update
+
+Action 426 created the approval gate for a future read-only staging RLS/policy/grant catalog verification.
+
+- Target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-supabase-staging-read-only-rls-catalog-verification-approval-gate.md`
+- No catalog introspection was run.
+
+Future approval would authorize only:
+
+- read-only staging system catalog metadata inspection
+- RLS enabled state checks
+- policy checks
+- grant/privilege checks where possible
+- generated types as supporting evidence
+
+Future approval would not authorize:
+
+- staging data writes
+- test row insertion
+- migration apply or repair
+- API/runtime/UI activation
+- Trade UI execution
+- production connection
+- Avanza/browser automation
+- credential/session/BankID handling
+- order behavior
+- settlement retrieval
+- live trade or live position mutation
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_read_only_rls_catalog_verification_approval_gate_ready_no_write`
+
+## 24. Action 427 Update
+
+Action 427 ran the approved read-only staging catalog verification for RLS, policy, and grant metadata.
+
+- Target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-supabase-staging-read-only-rls-catalog-verification-result.md`
+- Command shape: `supabase db query --linked --file tmp/action-427-staging-rls-catalog-readonly.sql --output json`
+- Catalog sources: `pg_class`, `pg_namespace`, `pg_policies`, and `information_schema.role_table_grants`
+- No application table rows were read.
+
+Verified:
+
+- all expected baseline, execution, and post-trade persistence tables exist
+- RLS enabled state matches source-controlled migration evidence
+- legacy baseline policy names/counts match source-controlled migration evidence
+- `execution_record_audit_events` has RLS enabled and zero policies, matching migration evidence
+- post-trade persistence tables have RLS enabled and zero policies, matching the future-gated policy design
+
+Warning:
+
+- live grant metadata is broad for `anon`, `authenticated`, and `service_role` across inspected tables, including post-trade persistence tables
+- RLS with no policies remains deny-by-default for post-trade client access, but the broad grant posture must be explicitly resolved or accepted before any future Supabase real write path, API activation, or Trade UI execution gate
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no application row reads
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_read_only_rls_catalog_verification_ready_with_warnings_runtime_blocked`
+
+## 25. Action 428 Update
+
+Action 428 created the no-write gate for resolving the broad staging grant posture warning from Action 427.
+
+- Target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-supabase-staging-grant-posture-resolution-gate-no-write.md`
+- No grant changes were made.
+
+Warning tracked:
+
+- live grant metadata is broad for `anon`, `authenticated`, and `service_role`
+- broad grants include post-trade persistence tables
+
+Current effective safety posture:
+
+- post-trade persistence tables have RLS enabled
+- post-trade persistence tables have zero policies
+- RLS with no applicable policies remains deny-by-default for client access
+- broad grants still deserve resolution before any write-path readiness gate
+
+Resolution options documented:
+
+- accept the warning as a temporary staging-only limitation under a separate explicit gate
+- create a future grant-hardening migration draft with no apply
+- run further read-only catalog analysis if grant details are ambiguous
+
+Recommended next option:
+
+- create a future source-controlled grant-hardening migration draft with no apply
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no grant changes
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_grant_posture_hardening_recommended_no_write`
+
+## 26. Action 429 Update
+
+Action 429 created a source-controlled no-apply grant-hardening migration draft.
+
+- Target context: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Migration draft: `supabase/migrations/20260708001000_harden_post_trade_execution_grants_draft.sql`
+- Checkpoint: `docs/post-trade-supabase-staging-grant-hardening-migration-draft-no-apply.md`
+- Static test: `tests/e2e/post-trade-supabase-grant-hardening-migration-draft-static.spec.ts`
+- No migration was applied.
+- No remote grant changes were made.
+
+Draft scope:
+
+- post-trade persistence tables
+- `execution_record_audit_events`
+- grant hardening only
+- no data writes
+- no RLS weakening
+- no permissive policies
+- no runtime/API/UI write-path activation
+
+Least-privilege posture:
+
+- revoke all table privileges from `anon`
+- revoke all table privileges from `authenticated`
+- preserve `service_role` table capability for future gated server-side flows only
+- leave RLS/policy design separately gated
+
+Excluded:
+
+- legacy baseline tables
+- recommendation snapshot/outcome/scan/batch tables
+- execution foundation run/progress tables
+- scheduled scan attempts
+- symbol metadata
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no remote grant changes
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_staging_grant_hardening_migration_draft_ready_no_apply`
+
+## 27. Action 430 Update
+
+Action 430 statically reviewed the grant-hardening migration draft before any staging apply gate.
+
+- Migration draft: `supabase/migrations/20260708001000_harden_post_trade_execution_grants_draft.sql`
+- Review checkpoint: `docs/post-trade-supabase-grant-hardening-migration-draft-static-review-no-apply.md`
+- Static test: `tests/e2e/post-trade-supabase-grant-hardening-migration-draft-static.spec.ts`
+- No migration was applied.
+- No remote grant changes were made.
+
+Review result:
+
+- migration is ordered after `20260708000000_post_trade_persistence_schema_draft.sql`
+- migration is not before baseline or core schema migrations
+- target scope is limited to post-trade persistence tables plus `execution_record_audit_events`
+- legacy/baseline and unrelated tables are excluded
+- `anon` and `authenticated` table privileges are revoked on intended tables
+- `service_role` capability is preserved for future gated server-side flows
+- RLS is not disabled or weakened
+- no permissive policies or client-access policies are added
+- no data rows, `INSERT INTO`, `COPY` data, runtime writes, or obvious secrets are present
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no remote grant changes
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_grant_hardening_migration_draft_static_review_ready_for_staging_apply_gate_no_apply`
+
+## 28. Action 431 Update
+
+Action 431 created the no-apply approval gate for a future staging apply of the reviewed grant-hardening migration.
+
+- Staging target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Approval gate: `docs/post-trade-supabase-grant-hardening-staging-apply-approval-gate-no-apply.md`
+- Reviewed migration: `supabase/migrations/20260708001000_harden_post_trade_execution_grants_draft.sql`
+- No migration was applied.
+- No remote grant changes were made.
+
+Future approval would authorize only:
+
+- applying the grant-hardening migration to isolated non-production staging
+- remote grant hardening only
+- post-apply read-only catalog verification
+
+Future approval would not authorize:
+
+- production connection/apply/write
+- unrelated migration apply
+- data writes or test rows
+- migration repair/reset/marking
+- API/runtime/UI activation
+- Trade UI execution
+- Avanza/browser automation
+- credential/session/BankID handling
+- order behavior
+- settlement retrieval
+- live trade or live position mutation
+
+Future pre-apply checks:
+
+- local Supabase target must be exactly `pdvzyuhykomwfqyyztru`
+- target name should be `ture-staging`
+- production must not be selected
+- migration history must show only the grant-hardening migration pending, if applicable
+- command/result must not print secrets
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no remote grant changes
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_grant_hardening_staging_apply_approval_gate_ready_no_apply`
+
+## 29. Action 432 Update
+
+Action 432 applied the approved grant-hardening migration to isolated non-production staging and verified the live grant posture.
+
+- Target: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Applied migration: `supabase/migrations/20260708001000_harden_post_trade_execution_grants_draft.sql`
+- Apply command: `supabase db push --linked`
+- Result checkpoint: `docs/post-trade-supabase-grant-hardening-staging-apply-execution-result.md`
+
+Pre-apply checks:
+
+- local target was confirmed as `pdvzyuhykomwfqyyztru`
+- linked project metadata confirmed `ture-staging`
+- migration history showed only `20260708001000` pending remotely
+- production was not selected
+
+Apply result:
+
+- CLI applied `20260708001000_harden_post_trade_execution_grants_draft.sql`
+- migration history is aligned after apply
+
+Read-only post-apply catalog verification:
+
+- intended post-trade persistence tables exist
+- `execution_record_audit_events` exists
+- RLS remains enabled on intended tables
+- policy count remains zero
+- no permissive policies were introduced
+- broad `anon` grants are no longer present on intended tables
+- broad `authenticated` grants are no longer present on intended tables
+- `service_role` capability remains
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging application data write
+- no application row reads
+- no test row insertion
+- no migration repair or marking
+- no DB reset
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_grant_hardening_staging_apply_succeeded_runtime_blocked`
+
+## 30. Action 433 Update
+
+Action 433 created the no-write readiness gate for future post-trade Supabase write-path implementation.
+
+- Staging target context: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-supabase-write-path-readiness-gate-no-write.md`
+- No API routes were created.
+- No service implementation was added.
+- No Supabase data writes occurred.
+
+Completed staging infrastructure chain summarized:
+
+- legacy baseline migration exists
+- full-chain staging initialization succeeded
+- schema/type verification completed
+- read-only RLS/policy catalog verification completed
+- grant-hardening migration applied to staging
+- post-apply grant verification completed
+
+Future write-path constraints:
+
+- server-side only
+- service-role/server-owned only
+- allowlisted payload validation only
+- no raw broker payload persistence
+- no secrets/cookies/session/BankID storage
+- no client-side direct writes
+
+Required future gates before implementation:
+
+- API route design no-write
+- payload validation implementation
+- server-side write service draft
+- service-role and secret-handling review
+- staging-only mock write test gate
+- rollback/audit strategy
+- runtime/API activation gate
+- production gate separately blocked
+
+Still forbidden:
+
+- production writes
+- client direct writes
+- runtime/API/UI activation
+- Trade UI execution
+- Avanza/browser automation
+- order submission
+- settlement retrieval
+- live trade mutation
+- live position mutation
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair in this action
+- no DB/Supabase write
+- no API route creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_write_path_readiness_gate_ready_no_write`
+
+## 31. Action 434 Update
+
+Action 434 created the no-write design checkpoint for the future post-trade Supabase API/write-path architecture.
+
+- Staging target context: `ture-staging` / `pdvzyuhykomwfqyyztru`
+- Checkpoint: `docs/post-trade-api-route-design-no-write.md`
+- No API routes were created.
+- No service implementation was added.
+- No Supabase data writes occurred.
+
+Future route surface, conceptual only:
+
+- server-side only
+- service-role/server-owned only
+- staging-first
+- fail-closed by default
+- no client direct writes
+- isolated from Trade UI execution, browser automation, and Avanza runtime paths
+
+Allowed future payload categories:
+
+- allowlisted post-trade execution record fields
+- settlement review summary fields
+- cost breakdown fields
+- deviation review fields
+- manual review status fields
+- redacted broker confirmation evidence metadata
+- redacted artifact reference identifiers
+- staged learning candidate metadata that cannot update learning automatically
+
+Rejected payload categories:
+
+- raw Avanza/browser state
+- raw broker payloads
+- credentials, cookies, sessions, auth tokens, service keys, and BankID artifacts
+- unredacted broker documents, PDFs, screenshots, HTML, page text, or browser artifacts
+- arbitrary JSON blobs outside the allowlist
+- live order, final-click, live trade mutation, or live position mutation authority
+
+Required future gates before implementation:
+
+- API route stub no-write
+- payload validator implementation
+- server-side write service draft, staging-only and disabled
+- service-role and secret-handling review
+- mock write test gate
+- staging write execution gate
+- post-write rollback and audit verification
+- runtime/API activation gate
+- production gate separately blocked
+
+Still forbidden:
+
+- production writes
+- client direct writes
+- runtime/API/UI activation
+- Trade UI execution
+- Avanza/browser automation
+- order submission
+- settlement retrieval
+- live trade mutation
+- live position mutation
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no API route creation
+- no service implementation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_api_route_design_ready_no_write`
+
+## 32. Action 435 Update
+
+Action 435 implemented isolated post-trade persistence payload validation logic and tests.
+
+- Validator module: `lib/post-trade-payload-validator.ts`
+- Focused test: `tests/e2e/post-trade-payload-validator.spec.ts`
+- Checkpoint: `docs/post-trade-payload-validator-implementation-no-write.md`
+- No API routes were created.
+- No Supabase write service was created.
+- No Supabase data writes occurred.
+
+Validator scope:
+
+- pure validation helper/types only
+- allowlisted post-trade persistence fields only
+- required review/extraction/idempotency identifiers
+- category-specific required field validation
+- redacted broker confirmation metadata validation
+- execution intent/result alignment where intent/result fields are present
+- structured validation result with `valid`, `acceptedPayload`, `rejectedFields`, `reasons`, and `safetyFlags`
+
+Rejected payload categories:
+
+- unknown top-level fields
+- arbitrary nested JSON/blob values
+- raw broker payloads
+- raw Avanza/browser state
+- credentials, cookies, sessions, tokens, service keys, and BankID artifacts
+- unredacted broker documents, settlement notes, PDFs, screenshots, HTML, page text, or browser artifacts
+- order/final-click/runtime/API/UI/live-mutation authority fields
+
+Test coverage:
+
+- valid allowlisted payload
+- unknown top-level field rejection
+- raw broker payload rejection
+- credential/session/BankID rejection
+- arbitrary JSON rejection
+- intent/result mismatch rejection
+- idempotency/identifier missing rejection
+- redacted broker confirmation metadata acceptance
+- source isolation from routes, Supabase clients, runtime writes, scripts, and browser automation
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no API route creation
+- no service implementation
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_payload_validator_implementation_ready_no_write`
+
+## 33. Action 436 Update
+
+Action 436 performed the static/security review of the isolated post-trade payload validator before any API route stub or write service.
+
+- Reviewed validator: `lib/post-trade-payload-validator.ts`
+- Reviewed test: `tests/e2e/post-trade-payload-validator.spec.ts`
+- Security review checkpoint: `docs/post-trade-payload-validator-security-review-no-write.md`
+- No API routes were created.
+- No Supabase write service was created.
+- No Supabase data writes occurred.
+
+Review result:
+
+- strict top-level allowlist passes
+- nested object/array payload behavior passes after explicit test extension
+- raw broker/browser state rejection passes
+- credential/cookie/session/token rejection passes
+- BankID artifact rejection passes
+- unredacted broker document rejection passes
+- arbitrary JSON blob rejection passes
+- intent/result alignment passes
+- idempotency and required identifier checks pass
+- structured safety flags are present
+
+Test coverage now includes:
+
+- valid allowlisted payload
+- unknown top-level field rejection
+- raw broker payload rejection
+- raw Avanza/browser state rejection
+- credential/session/BankID rejection
+- unredacted broker document rejection
+- arbitrary JSON rejection
+- nested object and array rejection on allowlisted fields
+- intent/result mismatch rejection
+- idempotency/identifier missing rejection
+- redacted broker confirmation metadata acceptance
+- source isolation from routes, Supabase clients, runtime writes, scripts, and browser automation
+
+Isolation confirmed:
+
+- validator does not import a Supabase client
+- validator does not write data
+- validator does not create an API route
+- no post-trade payload validator API route exists
+- no post-trade service-role write service exists
+- existing `app/api/execution/...` routes are pre-existing execution/audit surfaces and unrelated to this validator
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no API route creation
+- no service implementation
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_payload_validator_security_review_ready_for_api_stub_no_write`
+
+## 34. Action 437 Update
+
+Action 437 created the no-write post-trade payload validation API route stub.
+
+- Route: `app/api/post-trade/payload/validate/route.ts`
+- Route path: `/api/post-trade/payload/validate`
+- Test: `tests/e2e/post-trade-api-route-stub.spec.ts`
+- Checkpoint: `docs/post-trade-api-route-stub-no-write.md`
+- Validator used: `lib/post-trade-payload-validator.ts`
+
+Route behavior:
+
+- parses JSON
+- calls `validatePostTradePersistencePayload`
+- returns validation status
+- returns rejected fields, reasons, and safety flags
+- returns validation-only safety metadata
+
+No-write boundary:
+
+- no Supabase client import
+- no service-role usage
+- no write service import
+- no write service call
+- no `insert`, `upsert`, `update`, or `delete`
+- no `supabase.` call
+- no persistence of `acceptedPayload`
+- no raw rejected payload echo
+- no Trade UI or runtime write-path activation
+
+Test coverage:
+
+- valid payload returns validation success
+- invalid payload returns validation failure
+- raw broker payload is rejected
+- credential/session/BankID payload is rejected
+- route does not import Supabase client or write services
+- response does not expose secrets or raw rejected payload values
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_api_route_stub_ready_no_write`
+
+## 35. Action 438 Update
+
+Action 438 performed the static/security review of the no-write post-trade API validation route stub before any service-layer or write-path work.
+
+- Route: `app/api/post-trade/payload/validate/route.ts`
+- Route test: `tests/e2e/post-trade-api-route-stub.spec.ts`
+- Validator: `lib/post-trade-payload-validator.ts`
+- Checkpoint: `docs/post-trade-api-route-stub-static-security-review-no-write.md`
+
+Review result:
+
+- no Supabase client import
+- no service-role usage
+- no write service import or call
+- no DB/Supabase write call
+- no `acceptedPayload` returned
+- no raw rejected payload values echoed
+- malformed JSON returns a sanitized validation failure
+- route exposes only `POST`
+- route is not wired into `app/trade-app.tsx`
+- runtime/API/UI write paths remain blocked
+
+Test coverage was extended for:
+
+- malformed JSON sanitized failure
+- POST-only route export
+- Trade UI non-wiring
+- source-wide no Supabase/write-service/service-role fragments
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_api_route_stub_static_security_review_ready_for_service_layer_no_write`
+
+## 36. Action 439 Update
+
+Action 439 created the no-write post-trade service-layer draft.
+
+- Service planning module: `lib/post-trade-persistence-service-plan.ts`
+- Service planning test: `tests/e2e/post-trade-persistence-service-plan.spec.ts`
+- Checkpoint: `docs/post-trade-service-layer-draft-no-write.md`
+- Validator dependency: `lib/post-trade-payload-validator.ts`
+- No API route write behavior was created.
+- No Supabase write service was created.
+- No Supabase data writes occurred.
+
+Service draft behavior:
+
+- accepts only a post-trade validation result
+- plans only from a valid result with an accepted payload
+- rejects invalid validation results
+- rejects missing accepted payloads
+- rejects raw unvalidated payloads
+- rejects accepted payload wrappers containing raw broker/browser, credential/session/BankID, token, unredacted document, order authority, or live mutation fields
+- rejects unsafe validation safety flags
+
+Dry-run plan output:
+
+- target tables
+- intended operations marked `dry_run_planned_insert`
+- operation mode marked `no_write_plan_only`
+- idempotency key
+- duplicate prevention key when present
+- audit event plan for `execution_record_audit_events`
+- safety flags proving no database connection, no database write, no Supabase client import, no service-role usage, no runtime activation, no Trade UI execution, and no live trade/position mutation
+
+Modeled target tables:
+
+- `execution_settlement_reviews`
+- `execution_confirmation_evidence`
+- `execution_cost_breakdowns`
+- `execution_deviation_reviews`
+- `execution_learning_candidates`
+- `execution_redacted_artifacts`
+- `execution_record_audit_events`
+
+Test coverage:
+
+- valid accepted payload produces dry-run plan
+- invalid validation result is rejected
+- missing accepted payload is rejected
+- raw unvalidated payload is rejected
+- unsafe accepted payload wrapper is rejected
+- source imports no Supabase client, service-role helper, API route, Trade UI, or write service
+- source contains no write-call fragments
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no API write behavior
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_service_layer_draft_ready_no_write`
+
+## 37. Action 440 Update
+
+Action 440 performed the static/security review of the no-write post-trade persistence service-layer draft before any API/service wiring or write gate.
+
+- Service planning module: `lib/post-trade-persistence-service-plan.ts`
+- Service planning test: `tests/e2e/post-trade-persistence-service-plan.spec.ts`
+- Review checkpoint: `docs/post-trade-service-layer-static-security-review-no-write.md`
+- No API route write behavior was created.
+- No Supabase write service was created.
+- No Supabase data writes occurred.
+
+Review result:
+
+- accepts only validator result shape
+- plans only from `valid: true` with accepted payload
+- rejects invalid validation results
+- rejects missing accepted payloads
+- rejects raw/unvalidated payloads
+- rejects forged accepted payload wrappers containing forbidden raw broker/browser, credential/session/BankID, token, unredacted document, order authority, or live mutation fields
+- rejects unsafe validation safety flags
+- produces dry-run target table plans and `no_write_plan_only` operations
+- includes idempotency key and duplicate-prevention key when present
+- includes an audit event plan for `execution_record_audit_events` with `wouldWrite: false`
+- imports no Supabase client
+- uses no service-role authority
+- contains no DB/Supabase write-call fragments
+- is not wired into the API validation route
+- is not wired into `app/trade-app.tsx`
+
+Test coverage was extended for:
+
+- category-specific dry-run target table mapping
+- unsafe safety flag rejection
+- API route non-wiring
+- Trade UI non-wiring
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no API write behavior
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_service_layer_static_security_review_ready_for_route_wiring_no_write`
+
+## 38. Action 441 Update
+
+Action 441 wired the no-write post-trade API validation route to the no-write service-plan module.
+
+- Route: `app/api/post-trade/payload/validate/route.ts`
+- Service planning module: `lib/post-trade-persistence-service-plan.ts`
+- Route test: `tests/e2e/post-trade-api-route-stub.spec.ts`
+- Service planning test: `tests/e2e/post-trade-persistence-service-plan.spec.ts`
+- Checkpoint: `docs/post-trade-api-route-service-plan-wiring-no-write.md`
+- No API write behavior was created.
+- No Supabase write service was created.
+- No Supabase data writes occurred.
+
+Route behavior:
+
+- validates payload with `validatePostTradePersistencePayload`
+- calls `buildPostTradePersistenceDryRunPlan` only after validation succeeds
+- returns sanitized dry-run plan metadata under `persistencePlan`
+- returns `persistencePlan: null` for invalid or malformed payloads
+- does not return `acceptedPayload`
+- does not echo raw rejected payload values
+
+Sanitized dry-run plan metadata:
+
+- `status: dry_run_only`
+- `mode: no_write`
+- target tables
+- planned operations marked `dry_run_planned_insert`
+- operation mode marked `no_write_plan_only`
+- idempotency key
+- duplicate prevention key when present
+- audit event plan summary with `wouldWrite: false`
+- service-plan safety flags
+
+Test coverage:
+
+- valid payload returns sanitized dry-run plan
+- invalid payload does not return a dry-run plan
+- raw broker/credential/session/BankID rejection returns no dry-run plan
+- malformed JSON returns no dry-run plan
+- response does not expose accepted payload
+- response does not expose raw rejected payload values
+- route imports no Supabase client
+- route uses no service-role authority
+- route has no write-service or DB/Supabase write fragments
+- service plan is wired only into the API validation route
+- Trade UI remains unwired
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_api_route_service_plan_wiring_ready_no_write`
+
+## 39. Action 442 Update
+
+Action 442 performed the static/security review of the no-write API route to service-plan wiring.
+
+- Route: `app/api/post-trade/payload/validate/route.ts`
+- Route test: `tests/e2e/post-trade-api-route-stub.spec.ts`
+- Service planning module: `lib/post-trade-persistence-service-plan.ts`
+- Service planning test: `tests/e2e/post-trade-persistence-service-plan.spec.ts`
+- Review checkpoint: `docs/post-trade-api-route-service-plan-wiring-static-security-review-no-write.md`
+- No real write service was created.
+- No API write behavior was created.
+- No Supabase data writes occurred.
+
+Review result:
+
+- route validates with `validatePostTradePersistencePayload`
+- route calls `buildPostTradePersistenceDryRunPlan` only after `validation.valid` is true
+- invalid payloads return `persistencePlan: null`
+- malformed JSON returns `persistencePlan: null`
+- valid payloads return sanitized dry-run metadata only
+- response does not return `acceptedPayload`
+- response does not echo raw rejected payload values
+- persistence plan is explicitly `dry_run_only` / `no_write`
+- route imports no Supabase client
+- route uses no service-role authority
+- route has no write-service fragments
+- route has no DB/Supabase write-call fragments
+- route remains unwired from Trade UI
+
+Test coverage was extended for:
+
+- static proof that validation happens before service-plan building
+- static proof that `buildPostTradePersistenceDryRunPlan` is only used behind `validation.valid ? ... : null`
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_api_route_service_plan_wiring_static_security_review_ready_for_write_service_gate_no_write`
+
+## 40. Action 443 Update
+
+Action 443 created the no-write gate for a future service-role post-trade persistence write service.
+
+- Gate checkpoint: `docs/post-trade-service-role-write-service-gate-no-write.md`
+- No write service was created.
+- No Supabase client was imported.
+- No service-role authority was used in code.
+- No DB/Supabase write occurred.
+- No API write behavior was created.
+
+Future write service may eventually do only:
+
+- server-side only
+- staging-first only
+- service-role/server-owned only after a separate safety gate
+- accept only validator-approved payloads
+- require ready dry-run service-plan output before write
+- persist only allowlisted post-trade/execution records
+- persist audit event metadata
+- enforce idempotency
+
+Still forbidden:
+
+- production writes
+- client direct writes
+- raw broker/browser payload persistence
+- credentials/cookies/session/BankID storage
+- unredacted broker documents
+- arbitrary JSON blobs
+- API/UI runtime activation
+- Trade UI execution
+- Avanza/browser automation
+- order submission
+- settlement retrieval
+- live trade mutation
+- live position mutation
+
+Required future gates:
+
+- service-role environment variable safety gate
+- service-role secret-handling and logging review
+- service write implementation draft with no remote write
+- static/security review
+- staging mock write approval gate
+- staging write execution gate
+- post-write read-only verification gate
+- rollback/audit strategy gate
+- production gate separately blocked
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration apply or repair
+- no DB/Supabase write
+- no Supabase client import
+- no service-role usage
+- no service-role write service creation
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_service_role_write_service_gate_ready_no_write`

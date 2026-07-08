@@ -8,9 +8,53 @@ import { buildMarketDiagnosticsConsoleSummary } from "../../lib/market-diagnosti
 import type { MarketDiagnosticsConsoleInput } from "../../lib/market-diagnostics-console";
 import type { RecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "../../lib/recommendation-snapshot";
+import {
+  buildTickerProfileForTicker,
+  buildTickerProfiles,
+  buildTickerProfileSummary,
+  type TureTickerProfileInputOutcome,
+} from "../../lib/ticker-profile";
 
 const tradingDay = "2026-07-06";
 const evaluatedAt = "2026-07-06T15:00:00.000Z";
+
+function profileOutcome(
+  ticker: string | null,
+  overrides: Partial<TureTickerProfileInputOutcome> = {},
+): TureTickerProfileInputOutcome {
+  return {
+    ticker,
+    snapshot_identity: overrides.snapshot_identity ?? `snap-${ticker ?? "unknown"}`,
+    visibility: overrides.visibility ?? "visible",
+    entry_triggered: overrides.entry_triggered ?? true,
+    entry_not_triggered: overrides.entry_not_triggered ?? false,
+    target_hit: overrides.target_hit ?? false,
+    stop_hit: overrides.stop_hit ?? false,
+    best_r: "best_r" in overrides ? (overrides.best_r ?? null) : 0.4,
+    worst_r: "worst_r" in overrides ? (overrides.worst_r ?? null) : -0.1,
+    terminal_r:
+      "terminal_r" in overrides ? (overrides.terminal_r ?? null) : 0.1,
+    setup_family:
+      "setup_family" in overrides
+        ? (overrides.setup_family ?? null)
+        : "momentum_breakout",
+    window: "window" in overrides ? (overrides.window ?? null) : "midday",
+    tier: "tier" in overrides ? (overrides.tier ?? null) : "valid",
+  };
+}
+
+function repeatedOutcomes(
+  ticker: string,
+  count: number,
+  overrides: Partial<TureTickerProfileInputOutcome> = {},
+) {
+  return Array.from({ length: count }, (_, index) =>
+    profileOutcome(ticker, {
+      ...overrides,
+      snapshot_identity: `snap-${ticker}-${index}`,
+    }),
+  );
+}
 
 function snapshot(
   ticker: string,
@@ -28,7 +72,7 @@ function snapshot(
       "recommendation_id" in overrides
         ? (overrides.recommendation_id ?? null)
         : `rec-${ticker}`,
-    scan_run_id: overrides.scan_run_id ?? "rec_scan_run_daily_review",
+    scan_run_id: overrides.scan_run_id ?? "rec_scan_run_ticker_profile",
     ticker: overrides.ticker ?? ticker,
     company_name: overrides.company_name ?? null,
     recommended_at: overrides.recommended_at ?? "2026-07-06T14:30:00.000Z",
@@ -74,13 +118,9 @@ function snapshot(
     empty_state_json: overrides.empty_state_json ?? null,
     quality_json: overrides.quality_json ?? null,
     payload_json: overrides.payload_json ?? {
-      batch_fingerprint: "rec_batch_daily",
+      batch_fingerprint: "rec_batch_ticker_profile",
       visibility_status: researchOnly ? "research_only" : "visible",
-      setup_type: "momentum",
-      entry_type_metadata: {
-        entry_type: "pullback_limit",
-        trigger_semantics: "touch_entry",
-      },
+      setup_type: "momentum breakout",
       day_trade_window_recommendation_target: { tier: "valid" },
     },
     was_taken: overrides.was_taken ?? false,
@@ -127,7 +167,7 @@ function outcome(
       overrides.best_price_after_recommendation ?? 101,
     worst_price_after_recommendation:
       overrides.worst_price_after_recommendation ?? 99,
-    best_r: "best_r" in overrides ? (overrides.best_r ?? null) : 0.2,
+    best_r: "best_r" in overrides ? (overrides.best_r ?? null) : 0.4,
     worst_r: "worst_r" in overrides ? (overrides.worst_r ?? null) : -0.1,
     eod_price: overrides.eod_price ?? null,
     eod_r: overrides.eod_r ?? null,
@@ -147,30 +187,6 @@ function outcome(
     created_at: overrides.created_at ?? evaluatedAt,
     updated_at: overrides.updated_at ?? evaluatedAt,
   };
-}
-
-function confidenceSummary(count: number): DailyLearningReviewSummary {
-  const snapshots = Array.from({ length: count }, (_, index) =>
-    snapshot(`T${index}`, {
-      snapshot_fingerprint: `snap-confidence-${index}`,
-      recommendation_id: `rec-confidence-${index}`,
-    }),
-  );
-  const outcomes = snapshots.map((item, index) =>
-    outcome(item.ticker ?? `T${index}`, {
-      id: `outcome-confidence-${index}`,
-      snapshot_fingerprint: item.snapshot_fingerprint,
-      recommendation_id: item.recommendation_id,
-    }),
-  );
-
-  return buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots,
-    outcomes,
-    now: evaluatedAt,
-  });
 }
 
 function baseDiagnosticsInput(
@@ -203,7 +219,7 @@ function baseDiagnosticsInput(
         batches_available: true,
         snapshots_available: true,
       },
-      scanner_readiness: { selected_ticker_count: 6 },
+      scanner_readiness: { selected_ticker_count: 2 },
       outcome_readiness: {
         route_available: true,
         evaluated_recommendations: dailyLearningReview.evaluated_outcome_count,
@@ -266,7 +282,7 @@ function baseDiagnosticsInput(
     },
     scanner_universe: {
       warnings: [],
-      selected_tickers: ["AAPL", "MSFT"],
+      selected_tickers: ["AAPL", "PLTR"],
     },
     scanner_output_qa: {
       overall_status: "healthy",
@@ -279,7 +295,7 @@ function baseDiagnosticsInput(
         recommendation_rows_with_provider_source: 2,
         explicit_gap_count: 0,
         missing_metadata_fields: [],
-        qa_checked_source_path: "daily_learning_review_test",
+        qa_checked_source_path: "ticker_profile_test",
         metadata_missing_at_stage: null,
       },
     },
@@ -296,8 +312,8 @@ function baseDiagnosticsInput(
     batch_memory: {
       warnings: [],
       latest_batch: {
-        batch_fingerprint: "rec_batch_daily",
-        scan_run_fingerprint: "rec_scan_run_daily",
+        batch_fingerprint: "rec_batch_ticker_profile",
+        scan_run_fingerprint: "rec_scan_run_ticker_profile",
       },
       persistence_status: "ok",
       persistence_mode: "persisted",
@@ -344,344 +360,246 @@ function baseDiagnosticsInput(
   } as unknown as MarketDiagnosticsConsoleInput;
 }
 
-test("daily learning review summarizes visible-only outcomes", () => {
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [snapshot("AAPL"), snapshot("MSFT")],
-    outcomes: [
-      outcome("AAPL", {
-        status: "target_hit",
-        target_hit: true,
-        best_r: 1.2,
-        current_r: 0.9,
-      }),
-      outcome("MSFT", {
-        status: "stop_hit",
-        stop_hit: true,
-        best_r: 0.1,
-        worst_r: -1,
-        current_r: -1,
-      }),
-    ],
-    now: evaluatedAt,
+test("ticker profile builds visible outcome profile", () => {
+  const profile = buildTickerProfileForTicker({
+    ticker: "AAPL",
+    outcomes: [profileOutcome("AAPL", { target_hit: true, best_r: 1.2 })],
   });
 
-  expect(summary.evaluated_outcome_count).toBe(2);
-  expect(summary.visible_evaluated_count).toBe(2);
-  expect(summary.research_only_evaluated_count).toBe(0);
-  expect(summary.unknown_visibility_evaluated_count).toBe(0);
-  expect(summary.visible_unique_snapshot_count).toBe(2);
-  expect(summary.research_only_unique_snapshot_count).toBe(0);
-  expect(summary.metrics.target_hit_count).toBe(1);
-  expect(summary.metrics.stop_hit_count).toBe(1);
-  expect(summary.metrics.average_terminal_r).toBeCloseTo(-0.05);
+  expect(profile.ticker).toBe("AAPL");
+  expect(profile.visible_outcome_count).toBe(1);
+  expect(profile.research_only_outcome_count).toBe(0);
+  expect(profile.target_hit_count).toBe(1);
+  expect(profile.sector_group).toBe("technology");
+  expect(profile.reason_codes).toContain("has_visible_outcomes");
+  expect(profile.advisory_only).toBe(true);
 });
 
-test("daily learning review summarizes research-only outcomes without recommendation ids", () => {
-  const researchSnapshot = snapshot("PLTR", {
-    recommendation_id: null,
+test("ticker profile builds research-only and mixed profiles", () => {
+  const profiles = buildTickerProfiles({
+    outcomes: [
+      profileOutcome("PLTR", {
+        visibility: "research_only",
+        setup_family: "vwap_pullback",
+      }),
+      profileOutcome("AMD", { visibility: "visible" }),
+      profileOutcome("AMD", {
+        visibility: "research_only",
+        snapshot_identity: "snap-AMD-research",
+      }),
+    ],
+  });
+  const pltr = profiles.find((item) => item.ticker === "PLTR");
+  const amd = profiles.find((item) => item.ticker === "AMD");
+
+  expect(pltr?.research_only_outcome_count).toBe(1);
+  expect(pltr?.reason_codes).toContain("has_research_only_outcomes");
+  expect(amd?.visible_outcome_count).toBe(1);
+  expect(amd?.research_only_outcome_count).toBe(1);
+});
+
+test("ticker profile handles unknown ticker and missing R metrics", () => {
+  const profile = buildTickerProfileForTicker({
+    ticker: null,
+    outcomes: [
+      profileOutcome(null, {
+        ticker: null,
+        best_r: null,
+        worst_r: null,
+        terminal_r: null,
+        setup_family: null,
+      }),
+    ],
+  });
+
+  expect(profile.ticker).toBe("UNKNOWN");
+  expect(profile.ticker_status).toBe("unknown");
+  expect(profile.avg_best_r).toBeNull();
+  expect(profile.avg_worst_r).toBeNull();
+  expect(profile.caution_flags).toContain("unknown_sector_mapping");
+  expect(profile.caution_flags).toContain("unknown_setup_mix");
+});
+
+test("ticker profile enriches sector, setup, window, and tier mixes", () => {
+  const profile = buildTickerProfileForTicker({
+    ticker: "NVDA",
+    outcomes: [
+      profileOutcome("NVDA", {
+        setup_family: "momentum_breakout",
+        window: "morning",
+        tier: "strong",
+      }),
+      profileOutcome("NVDA", {
+        snapshot_identity: "snap-NVDA-2",
+        setup_family: "vwap_pullback",
+        window: "power_hour",
+        tier: "experimental",
+      }),
+    ],
+  });
+
+  expect(profile.industry).toBe("semiconductors");
+  expect(profile.setup_family_mix.momentum_breakout).toBe(1);
+  expect(profile.setup_family_mix.vwap_pullback).toBe(1);
+  expect(profile.window_mix.morning).toBe(1);
+  expect(profile.tier_mix.experimental).toBe(1);
+  expect(profile.best_setup_families[0]?.setup_family).toBe("momentum_breakout");
+});
+
+test("ticker profile confidence and status thresholds are conservative", () => {
+  const fresh = buildTickerProfileForTicker({
+    ticker: "AAPL",
+    outcomes: repeatedOutcomes("AAPL", 4),
+  });
+  const observed = buildTickerProfileForTicker({
+    ticker: "AAPL",
+    outcomes: repeatedOutcomes("AAPL", 30, {
+      best_r: 0.35,
+      worst_r: -0.2,
+    }),
+  });
+  const trusted = buildTickerProfileForTicker({
+    ticker: "AAPL",
+    outcomes: repeatedOutcomes("AAPL", 100, {
+      best_r: 0.6,
+      worst_r: -0.2,
+      entry_triggered: true,
+    }),
+  });
+
+  expect(fresh.ticker_status).toBe("new");
+  expect(fresh.sample_confidence).toBe("low");
+  expect(observed.ticker_status).toBe("observed");
+  expect(observed.sample_confidence).toBe("medium");
+  expect(observed.ticker_confidence).toBe("medium");
+  expect(trusted.ticker_status).toBe("trusted");
+  expect(trusted.sample_confidence).toBe("high");
+  expect(trusted.ticker_confidence).toBe("high");
+});
+
+test("ticker profile flags weak follow-through and deprioritizes only with enough data", () => {
+  const weak = buildTickerProfileForTicker({
+    ticker: "SMCI",
+    outcomes: repeatedOutcomes("SMCI", 30, {
+      best_r: 0.05,
+      worst_r: -0.9,
+      stop_hit: true,
+    }),
+  });
+  const earlyWeak = buildTickerProfileForTicker({
+    ticker: "SMCI",
+    outcomes: repeatedOutcomes("SMCI", 3, {
+      best_r: 0.05,
+      worst_r: -0.9,
+    }),
+  });
+
+  expect(weak.ticker_status).toBe("deprioritized");
+  expect(weak.caution_flags).toContain("weak_follow_through");
+  expect(weak.caution_flags).toContain("high_stop_hit_rate");
+  expect(earlyWeak.ticker_status).toBe("new");
+  expect(earlyWeak.caution_flags).toContain("insufficient_outcome_history");
+});
+
+test("ticker profile summary counts statuses and caution flags", () => {
+  const profiles = buildTickerProfiles({
+    outcomes: [
+      ...repeatedOutcomes("AAPL", 4),
+      ...repeatedOutcomes("PLTR", 5, {
+        visibility: "research_only",
+        best_r: 0.7,
+      }),
+      ...repeatedOutcomes("MSTR", 30, {
+        best_r: 0.05,
+        worst_r: -0.9,
+        stop_hit: true,
+      }),
+    ],
+  });
+  const summary = buildTickerProfileSummary(profiles);
+
+  expect(summary.advisory_mode).toBe(true);
+  expect(summary.profiles_built_count).toBe(3);
+  expect(summary.new_count).toBe(1);
+  expect(summary.observed_count).toBe(1);
+  expect(summary.deprioritized_count).toBe(1);
+  expect(summary.top_caution_flags.insufficient_outcome_history).toBe(2);
+  expect(summary.tickers_needing_more_data).toContain("AAPL");
+});
+
+test("daily learning review includes ticker profiles", () => {
+  const visibleAapl = snapshot("AAPL");
+  const researchPltr = snapshot("PLTR", {
     source_mode: "research_only",
     data_mode: "research_only",
     payload_json: {
-      batch_fingerprint: "rec_batch_daily",
+      batch_fingerprint: "rec_batch_ticker_profile",
       visibility_status: "research_only",
       learning_acceleration_sample: true,
-      source_window: "midday",
+      setup_type: "VWAP reclaim pullback",
     },
   });
   const summary = buildDailyLearningReviewSummary({
     trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [researchSnapshot],
+    latest_batch_fingerprint: "rec_batch_ticker_profile",
+    snapshots: [visibleAapl, researchPltr],
     outcomes: [
+      outcome("AAPL", {
+        snapshot_fingerprint: visibleAapl.snapshot_fingerprint,
+        recommendation_id: visibleAapl.recommendation_id,
+      }),
       outcome("PLTR", {
-        recommendation_id: null,
-        snapshot_fingerprint: researchSnapshot.snapshot_fingerprint,
+        snapshot_fingerprint: researchPltr.snapshot_fingerprint,
+        recommendation_id: researchPltr.recommendation_id,
         best_r: 0.8,
       }),
     ],
     now: evaluatedAt,
   });
 
-  expect(summary.visible_evaluated_count).toBe(0);
-  expect(summary.research_only_evaluated_count).toBe(1);
-  expect(summary.unknown_visibility_evaluated_count).toBe(0);
-  expect(summary.latest_batch_research_only_evaluated_count).toBe(1);
-  expect(summary.research_only_unique_snapshot_count).toBe(1);
-  expect(summary.scan_windows).toContain("midday");
-});
-
-test("daily learning review detects research-only from outcome payload without snapshot", () => {
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [],
-    outcomes: [
-      outcome("SMCI", {
-        recommendation_id: null,
-        snapshot_fingerprint: "research-only-no-snapshot",
-        payload_json: {
-          batch_fingerprint: "rec_batch_daily",
-          recommendation_snapshot: {
-            visibility_status: "research_only",
-            learning_acceleration_sample: true,
-            not_live_trade_signal: true,
-          },
-        },
-      }),
-    ],
-    now: evaluatedAt,
-  });
-
-  expect(summary.visible_evaluated_count).toBe(0);
-  expect(summary.research_only_evaluated_count).toBe(1);
-  expect(summary.latest_batch_research_only_evaluated_count).toBe(1);
-  expect(summary.research_only_unique_snapshot_count).toBe(1);
-});
-
-test("daily learning review compares mixed visible and research-only samples", () => {
-  const visibleSnapshots = ["AAPL", "MSFT", "NVDA"].map((ticker) =>
-    snapshot(ticker),
-  );
-  const researchSnapshots = ["PLTR", "DIS", "DKNG"].map((ticker) =>
-    snapshot(ticker, {
-      source_mode: "research_only",
-      data_mode: "research_only",
-      payload_json: {
-        batch_fingerprint: "rec_batch_daily",
-        visibility_status: "research_only",
-        learning_acceleration_sample: true,
-      },
-    }),
-  );
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [...visibleSnapshots, ...researchSnapshots],
-    outcomes: [
-      ...visibleSnapshots.map((item) =>
-        outcome(item.ticker ?? "VISIBLE", {
-          snapshot_fingerprint: item.snapshot_fingerprint,
-          recommendation_id: item.recommendation_id,
-          best_r: 0.1,
-        }),
-      ),
-      ...researchSnapshots.map((item) =>
-        outcome(item.ticker ?? "RESEARCH", {
-          snapshot_fingerprint: item.snapshot_fingerprint,
-          recommendation_id: item.recommendation_id,
-          best_r: 0.8,
-        }),
-      ),
-    ],
-    now: evaluatedAt,
-  });
-
-  expect(summary.visible_evaluated_count).toBe(3);
-  expect(summary.research_only_evaluated_count).toBe(3);
-  expect(summary.unknown_visibility_evaluated_count).toBe(0);
-  expect(summary.visible_unique_snapshot_count).toBe(3);
-  expect(summary.research_only_unique_snapshot_count).toBe(3);
+  expect(summary.ticker_profiles).toHaveLength(2);
+  expect(summary.ticker_profile_summary.profiles_built_count).toBe(2);
+  expect(summary.ticker_profile_summary.new_count).toBe(2);
   expect(
-    summary.visible_vs_research_only_comparison
-      .average_best_r_delta_research_minus_visible,
-  ).toBeCloseTo(0.7);
-  expect(summary.engine_adjustment_candidates.map((item) => item.candidate)).toContain(
-    "research_outperforming_visible",
-  );
+    summary.ticker_profiles.find((item) => item.ticker === "PLTR")
+      ?.research_only_outcome_count,
+  ).toBe(1);
 });
 
-test("daily learning review handles missing metadata without crashing", () => {
+test("market diagnostics renders ticker profiles section", () => {
+  const visibleAapl = snapshot("AAPL");
   const summary = buildDailyLearningReviewSummary({
     trading_day: tradingDay,
-    latest_batch_fingerprint: null,
-    snapshots: [],
-    outcomes: [
-      outcome("UNKNOWN", {
-        ticker: null,
-        snapshot_fingerprint: null,
-        recommendation_id: null,
-        payload_json: {},
-        best_r: null,
-        worst_r: null,
-      }),
-    ],
-    now: evaluatedAt,
-  });
-
-  expect(summary.evaluated_outcome_count).toBe(1);
-  expect(summary.unknown_visibility_evaluated_count).toBe(1);
-  expect(summary.unknown_visibility_unique_snapshot_count).toBe(1);
-  expect(summary.top_positive_tickers_by_avg_best_r).toEqual([]);
-  expect(summary.group_breakdowns.some((group) => group.key === "unknown")).toBe(
-    true,
-  );
-});
-
-test("daily learning review dedupes duplicate outcome rows by snapshot and horizon", () => {
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [snapshot("AAPL")],
+    latest_batch_fingerprint: "rec_batch_ticker_profile",
+    snapshots: [visibleAapl],
     outcomes: [
       outcome("AAPL", {
-        id: "stale-incomplete",
-        status: "incomplete",
-        data_completeness: "partial",
-        best_r: 0.1,
-      }),
-      outcome("AAPL", {
-        id: "complete-row",
-        status: "target_hit",
-        data_completeness: "complete",
-        target_hit: true,
-        best_r: 1,
-        updated_at: "2026-07-06T15:05:00.000Z",
-      }),
-    ],
-    now: evaluatedAt,
-  });
-
-  expect(summary.evaluated_outcome_count).toBe(1);
-  expect(summary.duplicate_outcome_rows_ignored_count).toBe(1);
-  expect(summary.visible_unique_snapshot_count).toBe(1);
-  expect(summary.metrics.target_hit_count).toBe(1);
-  expect(summary.metrics.average_best_r).toBe(1);
-});
-
-test("daily learning review groups by setup family ticker window and tier", () => {
-  const visibleMomentum = snapshot("AAPL", {
-    window: "morning",
-    rating: "valid",
-    payload_json: {
-      batch_fingerprint: "rec_batch_daily",
-      visibility_status: "visible",
-      setup_type: "momentum breakout",
-      day_trade_window_recommendation_target: { tier: "valid" },
-    },
-  });
-  const researchVwap = snapshot("PLTR", {
-    source_mode: "research_only",
-    data_mode: "research_only",
-    window: "power_hour",
-    payload_json: {
-      batch_fingerprint: "rec_batch_daily",
-      visibility_status: "research_only",
-      learning_acceleration_sample: true,
-      setup_type: "VWAP reclaim pullback",
-      day_trade_window_recommendation_target: { tier: "experimental" },
-    },
-  });
-  const unknown = outcome("MYST", {
-    ticker: "MYST",
-    snapshot_fingerprint: "snap-mystery",
-    recommendation_id: null,
-    payload_json: {
-      batch_fingerprint: "rec_batch_daily",
-      scan_window: "midday",
-    },
-  });
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [visibleMomentum, researchVwap],
-    outcomes: [
-      outcome("AAPL", {
-        snapshot_fingerprint: visibleMomentum.snapshot_fingerprint,
-        recommendation_id: visibleMomentum.recommendation_id,
-        best_r: 0.7,
-      }),
-      outcome("PLTR", {
-        snapshot_fingerprint: researchVwap.snapshot_fingerprint,
-        recommendation_id: researchVwap.recommendation_id,
+        snapshot_fingerprint: visibleAapl.snapshot_fingerprint,
+        recommendation_id: visibleAapl.recommendation_id,
         best_r: 0.9,
       }),
-      unknown,
     ],
-    now: evaluatedAt,
-  });
-
-  expect(summary.latest_batch_visible_evaluated_count).toBe(1);
-  expect(summary.latest_batch_research_only_evaluated_count).toBe(1);
-  expect(summary.latest_batch_unknown_visibility_evaluated_count).toBe(1);
-  expect(summary.setup_family_breakdowns.map((item) => item.setup_family)).toEqual(
-    expect.arrayContaining(["momentum_breakout", "vwap_pullback", "unknown"]),
-  );
-  expect(
-    summary.ticker_breakdowns.find((item) => item.key === "PLTR")
-      ?.research_only_count,
-  ).toBe(1);
-  expect(
-    summary.window_breakdowns.find((item) => item.key === "power_hour")
-      ?.research_only_count,
-  ).toBe(1);
-  expect(
-    summary.tier_breakdowns.find((item) => item.key === "experimental")
-      ?.research_only_count,
-  ).toBe(1);
-});
-
-test("daily learning review sample confidence labels follow outcome count", () => {
-  expect(confidenceSummary(29).sample_size_label).toBe("low");
-  expect(confidenceSummary(30).sample_size_label).toBe("medium");
-  expect(confidenceSummary(100).sample_size_label).toBe("high");
-});
-
-test("daily learning review generates engine adjustment candidates", () => {
-  const powerHourSnapshots = Array.from({ length: 5 }, (_, index) =>
-    snapshot(`PH${index}`, {
-      snapshot_fingerprint: `snap-power-${index}`,
-      recommendation_id: `rec-power-${index}`,
-      window: "power_hour",
-    }),
-  );
-  const summary = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: powerHourSnapshots,
-    outcomes: powerHourSnapshots.map((item, index) =>
-      outcome(item.ticker ?? `PH${index}`, {
-        snapshot_fingerprint: item.snapshot_fingerprint,
-        recommendation_id: item.recommendation_id,
-        status: "entry_not_triggered",
-        entry_triggered: false,
-        best_r: 0.65,
-        worst_r: -0.05,
-      }),
-    ),
-    now: evaluatedAt,
-  });
-  const candidates = summary.engine_adjustment_candidates.map(
-    (item) => item.candidate,
-  );
-
-  expect(candidates).toContain("insufficient_sample_size");
-  expect(candidates).toContain("target_too_far");
-  expect(candidates).toContain("entry_not_triggering");
-});
-
-test("market diagnostics renders daily learning review section", () => {
-  const dailyReview = buildDailyLearningReviewSummary({
-    trading_day: tradingDay,
-    latest_batch_fingerprint: "rec_batch_daily",
-    snapshots: [snapshot("AAPL")],
-    outcomes: [outcome("AAPL", { best_r: 0.7 })],
     now: evaluatedAt,
   });
   const diagnostics = buildMarketDiagnosticsConsoleSummary(
-    baseDiagnosticsInput(dailyReview),
+    baseDiagnosticsInput(summary),
   );
   const section = diagnostics.sections.find(
+    (item) => item.section_id === "ticker_profiles",
+  );
+  const dailySection = diagnostics.sections.find(
     (item) => item.section_id === "daily_learning_review",
   );
 
   expect(section).toBeTruthy();
-  expect(section?.metrics.latest_evaluated_batch_fingerprint).toBe(
-    "rec_batch_daily",
+  expect(section?.lines.join("\n")).toContain("Advisory mode: yes");
+  expect(section?.lines.join("\n")).toContain("Profiles built: 1");
+  expect(section?.lines.join("\n")).toContain(
+    "Sample confidence low/medium/high: 1/0/0",
   );
-  expect(section?.lines.join("\n")).toContain("Visible/research-only/unknown");
-  expect(section?.lines.join("\n")).toContain("Window groups");
-  expect(section?.lines.join("\n")).toContain("Tier groups");
-  expect(section?.lines.join("\n")).toContain("Sample confidence");
+  expect(section?.lines.join("\n")).toContain("Top caution flags");
+  expect(dailySection?.lines.join("\n")).toContain("Ticker profiles built");
+  expect(dailySection?.lines.join("\n")).toContain(
+    "Top ticker profiles by avg best R",
+  );
 });

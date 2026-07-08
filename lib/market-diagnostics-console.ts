@@ -603,6 +603,182 @@ function adjustmentText(
     : "none";
 }
 
+function setupMixText(
+  mix: Partial<Record<string, number>> | null | undefined,
+) {
+  const entries = Object.entries(mix ?? {})
+    .filter(([, value]) => typeof value === "number" && value > 0)
+    .sort((first, second) => Number(second[1]) - Number(first[1]))
+    .slice(0, 6);
+
+  return entries.length > 0
+    ? entries.map(([family, value]) => `${family} ${value}`).join(", ")
+    : "none";
+}
+
+function setupGapText(gaps: Record<string, number> | null | undefined) {
+  const entries = Object.entries(gaps ?? {})
+    .filter(([, value]) => value > 0)
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 6);
+
+  return entries.length > 0
+    ? entries.map(([gap, value]) => `${gap}:${value}`).join(", ")
+    : "none";
+}
+
+function setupFamilyBreakdownText(
+  items: DailyLearningReviewSummary["setup_family_breakdowns"] | null | undefined,
+) {
+  const summaries = (items ?? []).slice(0, 5);
+
+  return summaries.length > 0
+    ? summaries
+        .map(
+          (item) =>
+            `${item.setup_family} ${item.outcome_count} v/r/u=${item.visible_count}/${item.research_only_count}/${item.unknown_visibility_count} (${item.sample_confidence}) best=${rValue(item.average_best_r)} worst=${rValue(item.average_worst_r)}`,
+        )
+        .join(" | ")
+    : "none";
+}
+
+function dimensionBreakdownText(
+  items:
+    | Array<{
+        key: string;
+        outcome_count: number;
+        visible_count: number;
+        research_only_count: number;
+        unknown_visibility_count: number;
+        average_best_r: number | null;
+        average_worst_r: number | null;
+        sample_confidence?: string | null;
+      }>
+    | null
+    | undefined,
+) {
+  const summaries = (items ?? []).slice(0, 5);
+
+  return summaries.length > 0
+    ? summaries
+        .map(
+          (item) =>
+            `${item.key} ${item.outcome_count} v/r/u=${item.visible_count}/${item.research_only_count}/${item.unknown_visibility_count} best=${rValue(item.average_best_r)} worst=${rValue(item.average_worst_r)}`,
+        )
+        .join(" | ")
+    : "none";
+}
+
+function sectorGroupBreakdownText(
+  items: DailyLearningReviewSummary["sector_group_breakdowns"] | null | undefined,
+) {
+  const summaries = (items ?? []).slice(0, 5);
+
+  return summaries.length > 0
+    ? summaries
+        .map(
+          (item) =>
+            `${item.sector_group} ${item.outcome_count} v/r/u=${item.visible_count}/${item.research_only_count}/${item.unknown_visibility_count} (${item.sample_confidence}) best=${rValue(item.average_best_r)} worst=${rValue(item.average_worst_r)}`,
+        )
+        .join(" | ")
+    : "none";
+}
+
+function sectorRankText(
+  items:
+    | Array<{
+        sector_group: string;
+        outcome_count: number;
+        average_best_r: number | null;
+        average_worst_r: number | null;
+        sample_confidence?: string | null;
+      }>
+    | null
+    | undefined,
+  metric: "best" | "worst",
+) {
+  const summaries = (items ?? []).slice(0, 5);
+
+  return summaries.length > 0
+    ? summaries
+        .map((item) => {
+          const value =
+            metric === "best" ? item.average_best_r : item.average_worst_r;
+
+          return `${item.sector_group} ${rValue(value)} (${item.outcome_count}, ${item.sample_confidence ?? "low"})`;
+        })
+        .join(", ")
+    : "none";
+}
+
+function tickerProfileRankText(
+  profiles:
+    | Array<{
+        ticker: string;
+        outcome_count: number;
+        avg_best_r: number | null;
+        avg_worst_r: number | null;
+        sample_confidence?: string | null;
+      }>
+    | null
+    | undefined,
+  metric: "best" | "worst",
+) {
+  const items = (profiles ?? []).slice(0, 5);
+
+  return items.length > 0
+    ? items
+        .map((item) => {
+          const value = metric === "best" ? item.avg_best_r : item.avg_worst_r;
+
+          return `${item.ticker} ${rValue(value)} (${item.outcome_count}, ${item.sample_confidence ?? "low"})`;
+        })
+        .join(", ")
+    : "none";
+}
+
+function tickerListText(tickers: string[] | null | undefined) {
+  const items = (tickers ?? []).slice(0, 10);
+
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function compactListText(values: string[] | null | undefined) {
+  const items = (values ?? []).filter((value) => value.trim().length > 0).slice(0, 8);
+
+  return items.length > 0 ? items.join(", ") : "none";
+}
+
+function regimeEvidenceText(
+  evidence:
+    | {
+        negative_momentum_count?: number;
+        positive_momentum_count?: number;
+        choppy_structure_count?: number;
+        strong_trend_count?: number;
+        stale_data_count?: number;
+        strong_candidate_count?: number;
+        valid_candidate_count?: number;
+        experimental_candidate_count?: number;
+        no_trade_candidate_count?: number;
+        volatility_signal?: string | null;
+      }
+    | null
+    | undefined,
+) {
+  if (!evidence) return "none";
+
+  return [
+    `neg=${evidence.negative_momentum_count ?? 0}`,
+    `pos=${evidence.positive_momentum_count ?? 0}`,
+    `chop=${evidence.choppy_structure_count ?? 0}`,
+    `trend=${evidence.strong_trend_count ?? 0}`,
+    `stale=${evidence.stale_data_count ?? 0}`,
+    `strong/valid/experimental=${evidence.strong_candidate_count ?? 0}/${evidence.valid_candidate_count ?? 0}/${evidence.experimental_candidate_count ?? 0}`,
+    `vol=${evidence.volatility_signal ?? "unknown"}`,
+  ].join(", ");
+}
+
 function providerPlanProfileMetrics(input: MarketDiagnosticsConsoleInput) {
   const activeTrace = input.active_scan_trace;
   const outcome = input.outcome_evaluation;
@@ -5829,12 +6005,16 @@ function buildSections(
           input.daily_learning_review?.evaluated_outcome_count ?? 0,
         ),
         lineValue(
-          "Visible/research-only",
-          `${input.daily_learning_review?.visible_evaluated_count ?? 0} / ${input.daily_learning_review?.research_only_evaluated_count ?? 0}`,
+          "Visible/research-only/unknown",
+          `${input.daily_learning_review?.visible_evaluated_count ?? 0} / ${input.daily_learning_review?.research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.unknown_visibility_evaluated_count ?? 0}`,
         ),
         lineValue(
-          "Latest batch visible/research-only",
-          `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0}`,
+          "Latest batch visible/research-only/unknown",
+          `${input.daily_learning_review?.latest_batch_visible_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_research_only_evaluated_count ?? 0} / ${input.daily_learning_review?.latest_batch_unknown_visibility_evaluated_count ?? 0}`,
+        ),
+        lineValue(
+          "Unique snapshots visible/research-only/unknown",
+          `${input.daily_learning_review?.visible_unique_snapshot_count ?? 0} / ${input.daily_learning_review?.research_only_unique_snapshot_count ?? 0} / ${input.daily_learning_review?.unknown_visibility_unique_snapshot_count ?? 0}`,
         ),
         lineValue(
           "Entry triggered",
@@ -5862,6 +6042,129 @@ function buildSections(
             input.daily_learning_review?.visible_vs_research_only_comparison
               .summary,
             "none",
+          ),
+        ),
+        lineValue(
+          "Setup families",
+          setupFamilyBreakdownText(
+            input.daily_learning_review?.setup_family_breakdowns,
+          ),
+        ),
+        lineValue(
+          "Ticker groups",
+          dimensionBreakdownText(input.daily_learning_review?.ticker_breakdowns),
+        ),
+        lineValue(
+          "Window groups",
+          dimensionBreakdownText(input.daily_learning_review?.window_breakdowns),
+        ),
+        lineValue(
+          "Tier groups",
+          dimensionBreakdownText(input.daily_learning_review?.tier_breakdowns),
+        ),
+        lineValue(
+          "Sector groups",
+          sectorGroupBreakdownText(
+            input.daily_learning_review?.sector_group_breakdowns,
+          ),
+        ),
+        lineValue(
+          "Top sectors by avg best R",
+          sectorRankText(
+            input.daily_learning_review?.top_sectors_by_avg_best_r,
+            "best",
+          ),
+        ),
+        lineValue(
+          "Weak sectors by avg worst R",
+          sectorRankText(
+            input.daily_learning_review?.weakest_sectors_by_avg_worst_r,
+            "worst",
+          ),
+        ),
+        lineValue(
+          "Sector sample confidence",
+          sectorGroupBreakdownText(
+            input.daily_learning_review?.sector_group_breakdowns,
+          ),
+        ),
+        lineValue(
+          "Ticker profiles built",
+          input.daily_learning_review?.ticker_profile_summary
+            .profiles_built_count ?? 0,
+        ),
+        lineValue(
+          "Ticker profile status new/observed/trusted/deprioritized",
+          `${input.daily_learning_review?.ticker_profile_summary.new_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.observed_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.trusted_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.deprioritized_count ?? 0}`,
+        ),
+        lineValue(
+          "Top ticker profiles by avg best R",
+          tickerProfileRankText(
+            input.daily_learning_review?.ticker_profile_summary
+              .top_profiles_by_avg_best_r,
+            "best",
+          ),
+        ),
+        lineValue(
+          "Weak ticker profiles by avg worst R",
+          tickerProfileRankText(
+            input.daily_learning_review?.ticker_profile_summary
+              .weak_profiles_by_avg_worst_r,
+            "worst",
+          ),
+        ),
+        lineValue(
+          "Tickers needing more data",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_needing_more_data,
+          ),
+        ),
+        lineValue(
+          "Tickers high entry-not-triggering",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_high_entry_not_triggering,
+          ),
+        ),
+        lineValue(
+          "Tickers weak follow-through",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_weak_follow_through,
+          ),
+        ),
+        lineValue(
+          "Latest market regime",
+          `${input.daily_learning_review?.market_regime.latest_evaluated_batch_regime_label ?? "unknown"} / ${input.daily_learning_review?.market_regime.latest_evaluated_batch_regime_confidence ?? "low"}`,
+        ),
+        lineValue(
+          "Regime x setup family",
+          setupMixText(
+            input.daily_learning_review?.market_regime
+              .setup_family_mix_by_regime[
+              input.daily_learning_review?.market_regime
+                .latest_evaluated_batch_regime_label ?? "unknown"
+            ],
+          ),
+        ),
+        lineValue(
+          "Regime x sector",
+          setupMixText(
+            input.daily_learning_review?.market_regime.sector_mix_by_regime[
+              input.daily_learning_review?.market_regime
+                .latest_evaluated_batch_regime_label ?? "unknown"
+            ],
+          ),
+        ),
+        lineValue(
+          "Regime x ticker status",
+          setupMixText(
+            input.daily_learning_review?.market_regime
+              .ticker_profile_status_mix_by_regime[
+              input.daily_learning_review?.market_regime
+                .latest_evaluated_batch_regime_label ?? "unknown"
+            ],
           ),
         ),
         lineValue(
@@ -5915,6 +6218,17 @@ function buildSections(
         latest_batch_research_only_evaluated_count:
           input.daily_learning_review
             ?.latest_batch_research_only_evaluated_count ?? null,
+        latest_batch_unknown_visibility_evaluated_count:
+          input.daily_learning_review
+            ?.latest_batch_unknown_visibility_evaluated_count ?? null,
+        visible_unique_snapshot_count:
+          input.daily_learning_review?.visible_unique_snapshot_count ?? null,
+        research_only_unique_snapshot_count:
+          input.daily_learning_review?.research_only_unique_snapshot_count ??
+          null,
+        unknown_visibility_unique_snapshot_count:
+          input.daily_learning_review
+            ?.unknown_visibility_unique_snapshot_count ?? null,
         entry_triggered_count:
           input.daily_learning_review?.metrics.entry_triggered_count ?? null,
         entry_triggered_rate:
@@ -5959,6 +6273,42 @@ function buildSections(
         weakest_tickers_by_avg_worst_r: JSON.stringify(
           input.daily_learning_review?.weakest_tickers_by_avg_worst_r ?? [],
         ),
+        setup_family_breakdowns: JSON.stringify(
+          input.daily_learning_review?.setup_family_breakdowns ?? [],
+        ),
+        ticker_breakdowns: JSON.stringify(
+          input.daily_learning_review?.ticker_breakdowns ?? [],
+        ),
+        window_breakdowns: JSON.stringify(
+          input.daily_learning_review?.window_breakdowns ?? [],
+        ),
+        tier_breakdowns: JSON.stringify(
+          input.daily_learning_review?.tier_breakdowns ?? [],
+        ),
+        sector_group_breakdowns: JSON.stringify(
+          input.daily_learning_review?.sector_group_breakdowns ?? [],
+        ),
+        industry_breakdowns: JSON.stringify(
+          input.daily_learning_review?.industry_breakdowns ?? [],
+        ),
+        top_sectors_by_avg_best_r: JSON.stringify(
+          input.daily_learning_review?.top_sectors_by_avg_best_r ?? [],
+        ),
+        weakest_sectors_by_avg_worst_r: JSON.stringify(
+          input.daily_learning_review?.weakest_sectors_by_avg_worst_r ?? [],
+        ),
+        sector_industry_mapping: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping ?? null,
+        ),
+        ticker_profiles: JSON.stringify(
+          input.daily_learning_review?.ticker_profiles ?? [],
+        ),
+        ticker_profile_summary: JSON.stringify(
+          input.daily_learning_review?.ticker_profile_summary ?? null,
+        ),
+        market_regime: JSON.stringify(
+          input.daily_learning_review?.market_regime ?? null,
+        ),
         group_breakdowns: JSON.stringify(
           input.daily_learning_review?.group_breakdowns ?? [],
         ),
@@ -5970,6 +6320,438 @@ function buildSections(
         duplicate_outcome_rows_ignored_count:
           input.daily_learning_review?.duplicate_outcome_rows_ignored_count ??
           null,
+      },
+    }),
+    section({
+      section_id: "setup_labeling",
+      title: "Setup Labeling",
+      severity:
+        (input.daily_learning_review?.setup_labeling
+          .unknown_setup_label_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Current batch labeled",
+          `${input.daily_learning_review?.setup_labeling.current_batch_labeled_count ?? 0} / ${input.daily_learning_review?.setup_labeling.current_batch_total_count ?? 0}`,
+        ),
+        lineValue(
+          "Unknown setup labels",
+          input.daily_learning_review?.setup_labeling
+            .unknown_setup_label_count ?? 0,
+        ),
+        lineValue(
+          "Setup mix",
+          setupMixText(input.daily_learning_review?.setup_labeling.setup_mix),
+        ),
+        lineValue(
+          "Visible setup mix",
+          setupMixText(
+            input.daily_learning_review?.setup_labeling.visible_setup_mix,
+          ),
+        ),
+        lineValue(
+          "Research-only setup mix",
+          setupMixText(
+            input.daily_learning_review?.setup_labeling
+              .research_only_setup_mix,
+          ),
+        ),
+        lineValue(
+          "Low-confidence labels",
+          input.daily_learning_review?.setup_labeling
+            .low_confidence_label_count ?? 0,
+        ),
+        lineValue(
+          "Top setup label gaps",
+          setupGapText(
+            input.daily_learning_review?.setup_labeling.top_setup_label_gaps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        current_batch_labeled_count:
+          input.daily_learning_review?.setup_labeling
+            .current_batch_labeled_count ?? null,
+        current_batch_total_count:
+          input.daily_learning_review?.setup_labeling
+            .current_batch_total_count ?? null,
+        known_setup_label_count:
+          input.daily_learning_review?.setup_labeling.known_setup_label_count ??
+          null,
+        unknown_setup_label_count:
+          input.daily_learning_review?.setup_labeling
+            .unknown_setup_label_count ?? null,
+        setup_mix: JSON.stringify(
+          input.daily_learning_review?.setup_labeling.setup_mix ?? {},
+        ),
+        visible_setup_mix: JSON.stringify(
+          input.daily_learning_review?.setup_labeling.visible_setup_mix ?? {},
+        ),
+        research_only_setup_mix: JSON.stringify(
+          input.daily_learning_review?.setup_labeling.research_only_setup_mix ??
+            {},
+        ),
+        low_confidence_label_count:
+          input.daily_learning_review?.setup_labeling
+            .low_confidence_label_count ?? null,
+        top_setup_label_gaps: JSON.stringify(
+          input.daily_learning_review?.setup_labeling.top_setup_label_gaps ??
+            {},
+        ),
+      },
+    }),
+    section({
+      section_id: "sector_industry_mapping",
+      title: "Sector / Industry Mapping",
+      severity:
+        (input.daily_learning_review?.sector_industry_mapping
+          .unknown_ticker_mapping_count ?? 0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Current batch mapped",
+          `${input.daily_learning_review?.sector_industry_mapping.current_batch_mapped_count ?? 0} / ${input.daily_learning_review?.sector_industry_mapping.current_batch_total_count ?? 0}`,
+        ),
+        lineValue(
+          "Unknown ticker mappings",
+          input.daily_learning_review?.sector_industry_mapping
+            .unknown_ticker_mapping_count ?? 0,
+        ),
+        lineValue(
+          "Sector mix",
+          setupMixText(
+            input.daily_learning_review?.sector_industry_mapping.sector_mix,
+          ),
+        ),
+        lineValue(
+          "Industry mix",
+          setupMixText(
+            input.daily_learning_review?.sector_industry_mapping.industry_mix,
+          ),
+        ),
+        lineValue(
+          "Visible sector mix",
+          setupMixText(
+            input.daily_learning_review?.sector_industry_mapping
+              .visible_sector_mix,
+          ),
+        ),
+        lineValue(
+          "Research-only sector mix",
+          setupMixText(
+            input.daily_learning_review?.sector_industry_mapping
+              .research_only_sector_mix,
+          ),
+        ),
+        lineValue(
+          "Low-confidence mappings",
+          input.daily_learning_review?.sector_industry_mapping
+            .low_confidence_mapping_count ?? 0,
+        ),
+        lineValue(
+          "Top sector mapping gaps",
+          setupGapText(
+            input.daily_learning_review?.sector_industry_mapping
+              .top_sector_mapping_gaps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        current_batch_mapped_count:
+          input.daily_learning_review?.sector_industry_mapping
+            .current_batch_mapped_count ?? null,
+        current_batch_total_count:
+          input.daily_learning_review?.sector_industry_mapping
+            .current_batch_total_count ?? null,
+        unknown_ticker_mapping_count:
+          input.daily_learning_review?.sector_industry_mapping
+            .unknown_ticker_mapping_count ?? null,
+        sector_mix: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping.sector_mix ??
+            {},
+        ),
+        industry_mix: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping.industry_mix ??
+            {},
+        ),
+        visible_sector_mix: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping
+            .visible_sector_mix ?? {},
+        ),
+        research_only_sector_mix: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping
+            .research_only_sector_mix ?? {},
+        ),
+        low_confidence_mapping_count:
+          input.daily_learning_review?.sector_industry_mapping
+            .low_confidence_mapping_count ?? null,
+        top_sector_mapping_gaps: JSON.stringify(
+          input.daily_learning_review?.sector_industry_mapping
+            .top_sector_mapping_gaps ?? {},
+        ),
+      },
+    }),
+    section({
+      section_id: "ticker_profiles",
+      title: "Ticker Profiles",
+      severity:
+        (input.daily_learning_review?.ticker_profile_summary
+          .deprioritized_count ?? 0) > 0 ||
+        (input.daily_learning_review?.ticker_profile_summary.unknown_count ??
+          0) > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Profiles built",
+          input.daily_learning_review?.ticker_profile_summary
+            .profiles_built_count ?? 0,
+        ),
+        lineValue(
+          "New/observed/trusted/deprioritized/unknown",
+          `${input.daily_learning_review?.ticker_profile_summary.new_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.observed_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.trusted_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.deprioritized_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.unknown_count ?? 0}`,
+        ),
+        lineValue(
+          "Sample confidence low/medium/high",
+          `${input.daily_learning_review?.ticker_profile_summary.sample_confidence_low_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.sample_confidence_medium_count ?? 0}/${input.daily_learning_review?.ticker_profile_summary.sample_confidence_high_count ?? 0}`,
+        ),
+        lineValue(
+          "Top profiles",
+          tickerProfileRankText(
+            input.daily_learning_review?.ticker_profile_summary
+              .top_profiles_by_avg_best_r,
+            "best",
+          ),
+        ),
+        lineValue(
+          "Weak profiles",
+          tickerProfileRankText(
+            input.daily_learning_review?.ticker_profile_summary
+              .weak_profiles_by_avg_worst_r,
+            "worst",
+          ),
+        ),
+        lineValue(
+          "Tickers needing more data",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_needing_more_data,
+          ),
+        ),
+        lineValue(
+          "High entry-not-triggering",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_high_entry_not_triggering,
+          ),
+        ),
+        lineValue(
+          "Weak follow-through",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .tickers_weak_follow_through,
+          ),
+        ),
+        lineValue(
+          "Top caution flags",
+          setupGapText(
+            input.daily_learning_review?.ticker_profile_summary
+              .top_caution_flags,
+          ),
+        ),
+        lineValue(
+          "Unknown ticker profiles",
+          tickerListText(
+            input.daily_learning_review?.ticker_profile_summary
+              .unknown_ticker_profiles,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        profiles_built_count:
+          input.daily_learning_review?.ticker_profile_summary
+            .profiles_built_count ?? null,
+        new_count:
+          input.daily_learning_review?.ticker_profile_summary.new_count ?? null,
+        observed_count:
+          input.daily_learning_review?.ticker_profile_summary.observed_count ??
+          null,
+        trusted_count:
+          input.daily_learning_review?.ticker_profile_summary.trusted_count ??
+          null,
+        deprioritized_count:
+          input.daily_learning_review?.ticker_profile_summary
+            .deprioritized_count ?? null,
+        unknown_count:
+          input.daily_learning_review?.ticker_profile_summary.unknown_count ??
+          null,
+        sample_confidence_low_count:
+          input.daily_learning_review?.ticker_profile_summary
+            .sample_confidence_low_count ?? null,
+        sample_confidence_medium_count:
+          input.daily_learning_review?.ticker_profile_summary
+            .sample_confidence_medium_count ?? null,
+        sample_confidence_high_count:
+          input.daily_learning_review?.ticker_profile_summary
+            .sample_confidence_high_count ?? null,
+        top_profiles_by_avg_best_r: JSON.stringify(
+          input.daily_learning_review?.ticker_profile_summary
+            .top_profiles_by_avg_best_r ?? [],
+        ),
+        weak_profiles_by_avg_worst_r: JSON.stringify(
+          input.daily_learning_review?.ticker_profile_summary
+            .weak_profiles_by_avg_worst_r ?? [],
+        ),
+        tickers_needing_more_data: (
+          input.daily_learning_review?.ticker_profile_summary
+            .tickers_needing_more_data ?? []
+        ).join(","),
+        tickers_high_entry_not_triggering: (
+          input.daily_learning_review?.ticker_profile_summary
+            .tickers_high_entry_not_triggering ?? []
+        ).join(","),
+        tickers_weak_follow_through: (
+          input.daily_learning_review?.ticker_profile_summary
+            .tickers_weak_follow_through ?? []
+        ).join(","),
+        top_caution_flags: JSON.stringify(
+          input.daily_learning_review?.ticker_profile_summary
+            .top_caution_flags ?? {},
+        ),
+        unknown_ticker_profiles: (
+          input.daily_learning_review?.ticker_profile_summary
+            .unknown_ticker_profiles ?? []
+        ).join(","),
+      },
+    }),
+    section({
+      section_id: "market_regime_labeling",
+      title: "Market Regime Labeling",
+      severity:
+        (input.daily_learning_review?.market_regime.latest_regime_label
+          .regime_label === "risk_off" ||
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .regime_label === "choppy") &&
+        input.daily_learning_review?.market_regime.latest_regime_label
+          .regime_confidence !== "low"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Latest regime",
+          `${input.daily_learning_review?.market_regime.latest_regime_label.regime_label ?? "unknown"} / confidence ${input.daily_learning_review?.market_regime.latest_regime_label.regime_confidence ?? "low"}`,
+        ),
+        lineValue(
+          "Reason codes",
+          compactListText(
+            input.daily_learning_review?.market_regime.latest_regime_label
+              .reason_codes,
+          ),
+        ),
+        lineValue(
+          "Caution flags",
+          compactListText(
+            input.daily_learning_review?.market_regime.latest_regime_label
+              .caution_flags,
+          ),
+        ),
+        lineValue(
+          "Sector concentration",
+          setupMixText(
+            input.daily_learning_review?.market_regime.latest_regime_label
+              .evidence.sector_concentration,
+          ),
+        ),
+        lineValue(
+          "Setup mix",
+          setupMixText(
+            input.daily_learning_review?.market_regime
+              .setup_family_mix_by_regime[
+              input.daily_learning_review?.market_regime
+                .latest_evaluated_batch_regime_label ?? "unknown"
+            ],
+          ),
+        ),
+        lineValue(
+          "Ticker status mix",
+          setupMixText(
+            input.daily_learning_review?.market_regime
+              .ticker_profile_status_mix_by_regime[
+              input.daily_learning_review?.market_regime
+                .latest_evaluated_batch_regime_label ?? "unknown"
+            ],
+          ),
+        ),
+        lineValue(
+          "Evidence",
+          regimeEvidenceText(
+            input.daily_learning_review?.market_regime.latest_regime_label
+              .evidence,
+          ),
+        ),
+        lineValue(
+          "Metadata gaps",
+          compactListText(
+            input.daily_learning_review?.market_regime.latest_regime_label
+              .metadata_gaps,
+          ),
+        ),
+        lineValue(
+          "Sample confidence",
+          input.daily_learning_review?.market_regime.sample_confidence ?? "low",
+        ),
+        lineValue("Next", "collect more regime-labeled outcomes"),
+      ],
+      metrics: {
+        advisory_mode: true,
+        latest_regime_label:
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .regime_label ?? null,
+        latest_regime_confidence:
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .regime_confidence ?? null,
+        reason_codes: (
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .reason_codes ?? []
+        ).join(","),
+        caution_flags: (
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .caution_flags ?? []
+        ).join(","),
+        metadata_gaps: (
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .metadata_gaps ?? []
+        ).join(","),
+        evidence: JSON.stringify(
+          input.daily_learning_review?.market_regime.latest_regime_label
+            .evidence ?? {},
+        ),
+        outcomes_by_regime: JSON.stringify(
+          input.daily_learning_review?.market_regime.outcomes_by_regime ?? {},
+        ),
+        setup_family_mix_by_regime: JSON.stringify(
+          input.daily_learning_review?.market_regime
+            .setup_family_mix_by_regime ?? {},
+        ),
+        sector_mix_by_regime: JSON.stringify(
+          input.daily_learning_review?.market_regime.sector_mix_by_regime ??
+            {},
+        ),
+        ticker_profile_status_mix_by_regime: JSON.stringify(
+          input.daily_learning_review?.market_regime
+            .ticker_profile_status_mix_by_regime ?? {},
+        ),
+        sample_confidence:
+          input.daily_learning_review?.market_regime.sample_confidence ?? null,
       },
     }),
     section({

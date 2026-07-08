@@ -4,11 +4,35 @@ import type {
   RecommendationOutcomeStatus,
 } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  buildSetupLabel,
+  buildSetupLabelingSummary,
+  type SetupLabelingSummary,
+  type TureSetupFamily,
+  type TureSetupLabel,
+} from "@/lib/setup-labeling";
+import {
+  buildSectorIndustryLabel,
+  type TureIndustry,
+  type TureSector,
+  type TureTickerSectorProfile,
+} from "@/lib/sector-industry-mapping";
+import {
+  buildTickerProfiles,
+  buildTickerProfileSummary,
+  type TureTickerProfile,
+  type TureTickerProfileSummary,
+} from "@/lib/ticker-profile";
+import {
+  buildMarketRegimeLabel,
+  type TureMarketRegimeLabel,
+  type TureMarketRegimeSummary,
+} from "@/lib/market-regime-labeling";
 
 export type DailyLearningReviewVisibility =
   | "visible"
   | "research_only"
-  | "unknown";
+  | "unknown_visibility";
 
 export type DailyLearningReviewConfidence = "low" | "medium" | "high";
 
@@ -47,8 +71,107 @@ export type DailyLearningReviewTickerSummary = {
 };
 
 export type DailyLearningReviewGroupSummary = DailyLearningReviewMetricSummary & {
-  group_type: "setup_type" | "entry_type" | "entry_trigger_semantics" | "window" | "tier";
+  group_type:
+    | "setup_family"
+    | "setup_type"
+    | "entry_type"
+    | "entry_trigger_semantics"
+    | "window"
+    | "tier";
   key: string;
+};
+
+export type DailyLearningReviewSetupFamilySummary =
+  DailyLearningReviewMetricSummary & {
+    setup_family: TureSetupFamily;
+    unique_snapshot_count: number;
+    visible_count: number;
+    research_only_count: number;
+    unknown_visibility_count: number;
+    sample_confidence: DailyLearningReviewConfidence;
+    advisory_only: true;
+  };
+
+export type DailyLearningReviewDimensionSummary =
+  DailyLearningReviewMetricSummary & {
+    key: string;
+    unique_snapshot_count: number;
+    visible_count: number;
+    research_only_count: number;
+    unknown_visibility_count: number;
+    sample_confidence: DailyLearningReviewConfidence;
+    top_setup_families: Array<{ setup_family: TureSetupFamily; count: number }>;
+  };
+
+export type DailyLearningReviewTierSummary = Omit<
+  DailyLearningReviewDimensionSummary,
+  "top_setup_families"
+>;
+
+export type DailyLearningReviewSectorGroupSummary =
+  DailyLearningReviewMetricSummary & {
+    sector_group: TureSector;
+    sector: TureSector;
+    unique_snapshot_count: number;
+    visible_count: number;
+    research_only_count: number;
+    unknown_visibility_count: number;
+    setup_family_mix: Partial<Record<TureSetupFamily, number>>;
+    ticker_mix: Record<string, number>;
+    sample_confidence: DailyLearningReviewConfidence;
+    advisory_only: true;
+  };
+
+export type DailyLearningReviewIndustrySummary =
+  DailyLearningReviewMetricSummary & {
+    industry: TureIndustry;
+    unique_snapshot_count: number;
+    visible_count: number;
+    research_only_count: number;
+    unknown_visibility_count: number;
+    setup_family_mix: Partial<Record<TureSetupFamily, number>>;
+    ticker_mix: Record<string, number>;
+    sector_group_mix: Partial<Record<TureSector, number>>;
+    sample_confidence: DailyLearningReviewConfidence;
+    advisory_only: true;
+  };
+
+export type DailyLearningReviewSectorTickerSummary = {
+  sector_group: TureSector;
+  outcome_count: number;
+  average_best_r: number | null;
+  average_worst_r: number | null;
+  sample_confidence: DailyLearningReviewConfidence;
+};
+
+export type SectorIndustryMappingSummary = {
+  advisory_mode: true;
+  current_batch_mapped_count: number;
+  current_batch_total_count: number;
+  unknown_ticker_mapping_count: number;
+  sector_mix: Partial<Record<TureSector, number>>;
+  industry_mix: Partial<Record<TureIndustry, number>>;
+  visible_sector_mix: Partial<Record<TureSector, number>>;
+  research_only_sector_mix: Partial<Record<TureSector, number>>;
+  low_confidence_mapping_count: number;
+  top_sector_mapping_gaps: Record<string, number>;
+};
+
+export type DailyLearningReviewMarketRegimeSummary = {
+  advisory_mode: true;
+  latest_regime_label: TureMarketRegimeSummary;
+  latest_evaluated_batch_regime_label: TureMarketRegimeLabel;
+  latest_evaluated_batch_regime_confidence: TureMarketRegimeSummary["regime_confidence"];
+  outcomes_by_regime: Partial<Record<TureMarketRegimeLabel, number>>;
+  setup_family_mix_by_regime: Partial<
+    Record<TureMarketRegimeLabel, Partial<Record<TureSetupFamily, number>>>
+  >;
+  sector_mix_by_regime: Partial<Record<TureMarketRegimeLabel, Partial<Record<TureSector, number>>>>;
+  ticker_profile_status_mix_by_regime: Partial<Record<TureMarketRegimeLabel, Record<string, number>>>;
+  engine_adjustment_candidates_by_regime: Partial<
+    Record<TureMarketRegimeLabel, DailyLearningReviewAdjustmentCandidate[]>
+  >;
+  sample_confidence: TureMarketRegimeSummary["sample_confidence"];
 };
 
 export type DailyLearningReviewEngineAdjustment = {
@@ -71,6 +194,10 @@ export type DailyLearningReviewSummary = {
   unknown_visibility_evaluated_count: number;
   latest_batch_visible_evaluated_count: number;
   latest_batch_research_only_evaluated_count: number;
+  latest_batch_unknown_visibility_evaluated_count: number;
+  visible_unique_snapshot_count: number;
+  research_only_unique_snapshot_count: number;
+  unknown_visibility_unique_snapshot_count: number;
   metrics: DailyLearningReviewMetricSummary;
   visible_metrics: DailyLearningReviewMetricSummary;
   research_only_metrics: DailyLearningReviewMetricSummary;
@@ -87,7 +214,20 @@ export type DailyLearningReviewSummary = {
   };
   top_positive_tickers_by_avg_best_r: DailyLearningReviewTickerSummary[];
   weakest_tickers_by_avg_worst_r: DailyLearningReviewTickerSummary[];
+  setup_family_breakdowns: DailyLearningReviewSetupFamilySummary[];
+  ticker_breakdowns: DailyLearningReviewDimensionSummary[];
+  window_breakdowns: DailyLearningReviewDimensionSummary[];
+  tier_breakdowns: DailyLearningReviewTierSummary[];
+  sector_group_breakdowns: DailyLearningReviewSectorGroupSummary[];
+  industry_breakdowns: DailyLearningReviewIndustrySummary[];
+  top_sectors_by_avg_best_r: DailyLearningReviewSectorTickerSummary[];
+  weakest_sectors_by_avg_worst_r: DailyLearningReviewSectorTickerSummary[];
   group_breakdowns: DailyLearningReviewGroupSummary[];
+  setup_labeling: SetupLabelingSummary;
+  sector_industry_mapping: SectorIndustryMappingSummary;
+  ticker_profiles: TureTickerProfile[];
+  ticker_profile_summary: TureTickerProfileSummary;
+  market_regime: DailyLearningReviewMarketRegimeSummary;
   engine_adjustment_candidates: DailyLearningReviewEngineAdjustment[];
   sample_size_label: DailyLearningReviewConfidence;
   duplicate_outcome_rows_ignored_count: number;
@@ -107,12 +247,15 @@ type ReviewOutcome = {
   snapshot: RecommendationSnapshot | null;
   batch_fingerprint: string | null;
   visibility: DailyLearningReviewVisibility;
+  snapshot_identity: string;
   ticker: string;
   window: string;
   tier: string;
   setup_type: string;
   entry_type: string;
   entry_trigger_semantics: string;
+  setup_label: TureSetupLabel;
+  sector_profile: TureTickerSectorProfile;
 };
 
 const evaluatedStatuses = new Set<RecommendationOutcomeStatus>([
@@ -224,26 +367,61 @@ function payloadFlag(payload: Record<string, unknown> | null, key: string) {
   return payload?.[key] === true;
 }
 
+function nestedPayloads(
+  payload: Record<string, unknown> | null,
+  depth = 0,
+): Record<string, unknown>[] {
+  if (!payload || depth > 3) return [];
+
+  return [
+    payload,
+    ...Object.values(payload).flatMap((value) => {
+      if (Array.isArray(value)) {
+        return value.flatMap((item) =>
+          objectValue(item) ? nestedPayloads(objectValue(item), depth + 1) : [],
+        );
+      }
+      const nested = objectValue(value);
+      return nested ? nestedPayloads(nested, depth + 1) : [];
+    }),
+  ];
+}
+
 function visibilityFromOutcomePayload(
   payload: Record<string, unknown> | null,
 ): DailyLearningReviewVisibility | null {
-  const visibilityStatus = textOrNull(payload?.visibility_status)?.toLowerCase();
-  const sourceMode = textOrNull(payload?.source_mode)?.toLowerCase();
-  const learningScope = textOrNull(payload?.learning_scope)?.toLowerCase();
+  const payloads = nestedPayloads(payload);
 
-  if (
-    visibilityStatus === "research_only" ||
-    sourceMode === "research_only" ||
-    learningScope === "research_only" ||
-    payloadFlag(payload, "learning_acceleration_sample") ||
-    payloadFlag(payload, "research_only") ||
-    payloadFlag(payload, "not_live_signal")
-  ) {
-    return "research_only";
+  for (const item of payloads) {
+    const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+    const sourceMode = textOrNull(item.source_mode)?.toLowerCase();
+    const dataMode = textOrNull(item.data_mode)?.toLowerCase();
+    const learningScope = textOrNull(item.learning_scope)?.toLowerCase();
+
+    if (
+      visibilityStatus === "research_only" ||
+      sourceMode === "research_only" ||
+      dataMode === "research_only" ||
+      learningScope === "research_only" ||
+      payloadFlag(item, "learning_acceleration_sample") ||
+      payloadFlag(item, "research_only") ||
+      payloadFlag(item, "not_live_signal") ||
+      payloadFlag(item, "not_live_trade_signal")
+    ) {
+      return "research_only";
+    }
   }
 
-  if (visibilityStatus === "visible" || payload?.is_visible === true) {
-    return "visible";
+  for (const item of payloads) {
+    const visibilityStatus = textOrNull(item.visibility_status)?.toLowerCase();
+
+    if (
+      visibilityStatus === "visible" ||
+      item.is_visible === true ||
+      item.visible_in_primary_recommendations === true
+    ) {
+      return "visible";
+    }
   }
 
   return null;
@@ -258,6 +436,8 @@ function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
     payload.visibility_status === "research_only" ||
     payload.learning_acceleration_sample === true ||
     payload.research_only === true ||
+    payload.not_live_signal === true ||
+    payload.not_live_trade_signal === true ||
     payload.source_mode === "research_only" ||
     payload.learning_scope === "research_only"
   );
@@ -289,7 +469,7 @@ function visibilityFor(
 
   return (
     visibilityFromOutcomePayload(objectValue(outcome.payload_json)) ??
-    (snapshot?.is_visible === true ? "visible" : "unknown")
+    (snapshot?.is_visible === true ? "visible" : "unknown_visibility")
   );
 }
 
@@ -368,8 +548,115 @@ function windowFrom(
     textOrNull(snapshotPayload?.scan_window) ??
     textOrNull(outcomePayload?.source_window) ??
     textOrNull(outcomePayload?.scan_window) ??
-    "unknown"
+    "unknown_window"
   );
+}
+
+function normalizeWindow(value: string) {
+  const text = value.trim().toLowerCase();
+  if (text === "morning" || text === "midday" || text === "power_hour") {
+    return text;
+  }
+  if (text === "power hour") return "power_hour";
+  return "unknown_window";
+}
+
+function snapshotIdentity(item: ReviewOutcome) {
+  return item.snapshot_identity;
+}
+
+function uniqueSnapshotCount(items: ReviewOutcome[]) {
+  return new Set(items.map(snapshotIdentity)).size;
+}
+
+function visibilitySplit(items: ReviewOutcome[]) {
+  return {
+    visible_count: items.filter((item) => item.visibility === "visible").length,
+    research_only_count: items.filter(
+      (item) => item.visibility === "research_only",
+    ).length,
+    unknown_visibility_count: items.filter(
+      (item) => item.visibility === "unknown_visibility",
+    ).length,
+  };
+}
+
+function topSetupFamilies(items: ReviewOutcome[]) {
+  const counts = new Map<TureSetupFamily, number>();
+
+  for (const item of items) {
+    counts.set(
+      item.setup_label.setup_family,
+      (counts.get(item.setup_label.setup_family) ?? 0) + 1,
+    );
+  }
+
+  return Array.from(counts.entries())
+    .map(([setup_family, count]) => ({ setup_family, count }))
+    .sort((first, second) => second.count - first.count)
+    .slice(0, 3);
+}
+
+function incrementRecord<T extends string>(
+  record: Partial<Record<T, number>>,
+  key: T,
+  amount = 1,
+) {
+  record[key] = (record[key] ?? 0) + amount;
+}
+
+function setupFamilyMix(items: ReviewOutcome[]) {
+  const mix: Partial<Record<TureSetupFamily, number>> = {};
+
+  for (const item of items) {
+    incrementRecord(mix, item.setup_label.setup_family);
+  }
+
+  return mix;
+}
+
+function tickerMix(items: ReviewOutcome[]) {
+  const mix: Record<string, number> = {};
+
+  for (const item of items) {
+    mix[item.ticker] = (mix[item.ticker] ?? 0) + 1;
+  }
+
+  return mix;
+}
+
+function sectorMix(items: ReviewOutcome[]) {
+  const mix: Partial<Record<TureSector, number>> = {};
+
+  for (const item of items) {
+    incrementRecord(mix, item.sector_profile.sector_group);
+  }
+
+  return mix;
+}
+
+function industryMix(items: ReviewOutcome[]) {
+  const mix: Partial<Record<TureIndustry, number>> = {};
+
+  for (const item of items) {
+    incrementRecord(mix, item.sector_profile.industry);
+  }
+
+  return mix;
+}
+
+function mappingGapCounts(items: ReviewOutcome[]) {
+  const counts: Record<string, number> = {};
+
+  for (const item of items) {
+    for (const reason of item.sector_profile.reason_codes) {
+      if (reason === "unknown_ticker_sector_mapping") {
+        counts[reason] = (counts[reason] ?? 0) + 1;
+      }
+    }
+  }
+
+  return counts;
 }
 
 function terminalR(outcome: RecommendationOutcome) {
@@ -578,6 +865,343 @@ function groupSummary(
     .sort((first, second) => second.outcome_count - first.outcome_count);
 }
 
+function setupFamilyBreakdowns(
+  items: ReviewOutcome[],
+): DailyLearningReviewSetupFamilySummary[] {
+  const groups = new Map<TureSetupFamily, ReviewOutcome[]>();
+
+  for (const item of items) {
+    const family = item.setup_label.setup_family;
+    const current = groups.get(family) ?? [];
+    current.push(item);
+    groups.set(family, current);
+  }
+
+  return Array.from(groups.entries())
+    .map(([setupFamily, group]) => {
+      const split = visibilitySplit(group);
+
+      return {
+        setup_family: setupFamily,
+        unique_snapshot_count: uniqueSnapshotCount(group),
+        ...split,
+        sample_confidence: sampleConfidence(group.length),
+        advisory_only: true as const,
+        ...metricsFor(group),
+      };
+    })
+    .sort((first, second) => second.outcome_count - first.outcome_count);
+}
+
+function dimensionBreakdowns(
+  items: ReviewOutcome[],
+  keySelector: (item: ReviewOutcome) => string,
+): DailyLearningReviewDimensionSummary[] {
+  const groups = new Map<string, ReviewOutcome[]>();
+
+  for (const item of items) {
+    const key = textOrNull(keySelector(item)) ?? "unknown";
+    const current = groups.get(key) ?? [];
+    current.push(item);
+    groups.set(key, current);
+  }
+
+  return Array.from(groups.entries())
+    .map(([key, group]) => {
+      const split = visibilitySplit(group);
+
+      return {
+        key,
+        unique_snapshot_count: uniqueSnapshotCount(group),
+        ...split,
+        sample_confidence: sampleConfidence(group.length),
+        top_setup_families: topSetupFamilies(group),
+        ...metricsFor(group),
+      };
+    })
+    .sort((first, second) => second.outcome_count - first.outcome_count);
+}
+
+function tierBreakdowns(
+  items: ReviewOutcome[],
+): DailyLearningReviewTierSummary[] {
+  return dimensionBreakdowns(items, (item) => item.tier).map(
+    (item) => ({
+      key: item.key,
+      unique_snapshot_count: item.unique_snapshot_count,
+      visible_count: item.visible_count,
+      research_only_count: item.research_only_count,
+      unknown_visibility_count: item.unknown_visibility_count,
+      sample_confidence: item.sample_confidence,
+      outcome_count: item.outcome_count,
+      entry_triggered_count: item.entry_triggered_count,
+      entry_triggered_rate: item.entry_triggered_rate,
+      target_hit_count: item.target_hit_count,
+      target_hit_rate: item.target_hit_rate,
+      stop_hit_count: item.stop_hit_count,
+      stop_hit_rate: item.stop_hit_rate,
+      neither_hit_count: item.neither_hit_count,
+      neither_hit_rate: item.neither_hit_rate,
+      entry_not_triggered_count: item.entry_not_triggered_count,
+      entry_not_triggered_rate: item.entry_not_triggered_rate,
+      average_best_r: item.average_best_r,
+      average_worst_r: item.average_worst_r,
+      average_terminal_r: item.average_terminal_r,
+    }),
+  );
+}
+
+function sectorGroupBreakdowns(
+  items: ReviewOutcome[],
+): DailyLearningReviewSectorGroupSummary[] {
+  const groups = new Map<TureSector, ReviewOutcome[]>();
+
+  for (const item of items) {
+    const sectorGroup = item.sector_profile.sector_group;
+    const current = groups.get(sectorGroup) ?? [];
+    current.push(item);
+    groups.set(sectorGroup, current);
+  }
+
+  return Array.from(groups.entries())
+    .map(([sectorGroup, group]) => {
+      const split = visibilitySplit(group);
+
+      return {
+        sector_group: sectorGroup,
+        sector: sectorGroup,
+        unique_snapshot_count: uniqueSnapshotCount(group),
+        ...split,
+        setup_family_mix: setupFamilyMix(group),
+        ticker_mix: tickerMix(group),
+        sample_confidence: sampleConfidence(group.length),
+        advisory_only: true as const,
+        ...metricsFor(group),
+      };
+    })
+    .sort((first, second) => second.outcome_count - first.outcome_count);
+}
+
+function industryBreakdowns(
+  items: ReviewOutcome[],
+): DailyLearningReviewIndustrySummary[] {
+  const groups = new Map<TureIndustry, ReviewOutcome[]>();
+
+  for (const item of items) {
+    const industry = item.sector_profile.industry;
+    const current = groups.get(industry) ?? [];
+    current.push(item);
+    groups.set(industry, current);
+  }
+
+  return Array.from(groups.entries())
+    .map(([industry, group]) => {
+      const split = visibilitySplit(group);
+
+      return {
+        industry,
+        unique_snapshot_count: uniqueSnapshotCount(group),
+        ...split,
+        setup_family_mix: setupFamilyMix(group),
+        ticker_mix: tickerMix(group),
+        sector_group_mix: sectorMix(group),
+        sample_confidence: sampleConfidence(group.length),
+        advisory_only: true as const,
+        ...metricsFor(group),
+      };
+    })
+    .sort((first, second) => second.outcome_count - first.outcome_count);
+}
+
+function sectorTickerSummaries(
+  items: ReviewOutcome[],
+  sortBy: "best" | "worst",
+): DailyLearningReviewSectorTickerSummary[] {
+  const groups = new Map<TureSector, ReviewOutcome[]>();
+
+  for (const item of items) {
+    const key = item.sector_profile.sector_group;
+    const current = groups.get(key) ?? [];
+    current.push(item);
+    groups.set(key, current);
+  }
+
+  return Array.from(groups.entries())
+    .map(([sectorGroup, group]) => ({
+      sector_group: sectorGroup,
+      outcome_count: group.length,
+      average_best_r: average(group.map((item) => item.outcome.best_r)),
+      average_worst_r: average(group.map((item) => item.outcome.worst_r)),
+      sample_confidence: sampleConfidence(group.length),
+    }))
+    .filter((item) =>
+      sortBy === "best"
+        ? item.average_best_r !== null
+        : item.average_worst_r !== null,
+    )
+    .sort((first, second) =>
+      sortBy === "best"
+        ? (second.average_best_r ?? Number.NEGATIVE_INFINITY) -
+          (first.average_best_r ?? Number.NEGATIVE_INFINITY)
+        : (first.average_worst_r ?? Number.POSITIVE_INFINITY) -
+          (second.average_worst_r ?? Number.POSITIVE_INFINITY),
+    )
+    .slice(0, 5);
+}
+
+function buildSectorIndustryMappingSummary(input: {
+  dayRows: ReviewOutcome[];
+  latestBatchRows: ReviewOutcome[];
+}): SectorIndustryMappingSummary {
+  const currentBatchMappedCount = input.latestBatchRows.filter(
+    (item) => item.sector_profile.mapping_source !== "unknown",
+  ).length;
+
+  return {
+    advisory_mode: true,
+    current_batch_mapped_count: currentBatchMappedCount,
+    current_batch_total_count: input.latestBatchRows.length,
+    unknown_ticker_mapping_count: input.dayRows.filter(
+      (item) => item.sector_profile.mapping_source === "unknown",
+    ).length,
+    sector_mix: sectorMix(input.dayRows),
+    industry_mix: industryMix(input.dayRows),
+    visible_sector_mix: sectorMix(
+      input.dayRows.filter((item) => item.visibility === "visible"),
+    ),
+    research_only_sector_mix: sectorMix(
+      input.dayRows.filter((item) => item.visibility === "research_only"),
+    ),
+    low_confidence_mapping_count: input.dayRows.filter(
+      (item) => item.sector_profile.mapping_confidence === "low",
+    ).length,
+    top_sector_mapping_gaps: mappingGapCounts(input.dayRows),
+  };
+}
+
+function tickerProfileOutcomes(items: ReviewOutcome[]) {
+  return items.map((item) => ({
+    ticker: item.ticker,
+    snapshot_identity: item.snapshot_identity,
+    visibility: item.visibility,
+    entry_triggered: item.outcome.entry_triggered,
+    entry_not_triggered: entryNotTriggered(item.outcome),
+    target_hit: targetHit(item.outcome),
+    stop_hit: stopHit(item.outcome),
+    best_r: item.outcome.best_r,
+    worst_r: item.outcome.worst_r,
+    terminal_r: terminalR(item.outcome),
+    setup_family: item.setup_label.setup_family,
+    window: item.window,
+    tier: item.tier,
+  }));
+}
+
+function safeJsonSignal(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "";
+  }
+}
+
+function marketRegimeTextSignals(items: ReviewOutcome[]) {
+  return items.flatMap((item) => {
+    const snapshotPayload = item.snapshot?.payload_json ?? null;
+    const outcomePayload = objectValue(item.outcome.payload_json);
+
+    return [
+      item.window,
+      item.tier,
+      item.setup_label.setup_family,
+      item.sector_profile.sector_group,
+      item.snapshot?.reason,
+      item.snapshot?.rationale,
+      item.snapshot?.catalyst,
+      item.snapshot?.primary_risk,
+      ...item.outcome.warnings,
+      ...item.outcome.blockers,
+      safeJsonSignal(snapshotPayload),
+      safeJsonSignal(outcomePayload),
+    ].filter((value): value is string => textOrNull(value) !== null);
+  });
+}
+
+function explicitRegimeFromRows(items: ReviewOutcome[]) {
+  for (const item of items) {
+    const payloads = [
+      ...(item.snapshot?.payload_json ? nestedPayloads(item.snapshot.payload_json) : []),
+      ...nestedPayloads(objectValue(item.outcome.payload_json)),
+    ];
+
+    for (const payload of payloads) {
+      const regime =
+        textOrNull(payload.regime) ??
+        textOrNull(payload.market_regime) ??
+        textOrNull(payload.marketRegime);
+
+      if (regime) return regime;
+    }
+  }
+
+  return null;
+}
+
+function countByTier(items: ReviewOutcome[], tier: string) {
+  return items.filter((item) => item.tier === tier).length;
+}
+
+function tickerProfileStatusMix(profiles: TureTickerProfile[]) {
+  const mix: Record<string, number> = {};
+
+  for (const profile of profiles) {
+    mix[profile.ticker_status] = (mix[profile.ticker_status] ?? 0) + 1;
+  }
+
+  return mix;
+}
+
+function buildDailyMarketRegimeSummary(input: {
+  rows: ReviewOutcome[];
+  latestRows: ReviewOutcome[];
+  tickerProfiles: TureTickerProfile[];
+  engineAdjustments: DailyLearningReviewEngineAdjustment[];
+}): DailyLearningReviewMarketRegimeSummary {
+  const sourceRows = input.latestRows.length > 0 ? input.latestRows : input.rows;
+  const label = buildMarketRegimeLabel({
+    explicit_regime: explicitRegimeFromRows(sourceRows),
+    text_signals: marketRegimeTextSignals(sourceRows),
+    sector_mix: sectorMix(sourceRows),
+    setup_family_mix: setupFamilyMix(sourceRows),
+    ticker_profile_status_mix: tickerProfileStatusMix(input.tickerProfiles),
+    strong_candidate_count: countByTier(sourceRows, "strong"),
+    valid_candidate_count: countByTier(sourceRows, "valid"),
+    experimental_candidate_count: countByTier(sourceRows, "experimental"),
+    no_trade_candidate_count: sourceRows.filter((item) =>
+      item.outcome.status === "expired" || item.outcome.status === "unknown",
+    ).length,
+    outcome_count: sourceRows.length,
+  });
+  const regime = label.regime_label;
+
+  return {
+    advisory_mode: true,
+    latest_regime_label: label,
+    latest_evaluated_batch_regime_label: regime,
+    latest_evaluated_batch_regime_confidence: label.regime_confidence,
+    outcomes_by_regime: { [regime]: sourceRows.length },
+    setup_family_mix_by_regime: { [regime]: setupFamilyMix(sourceRows) },
+    sector_mix_by_regime: { [regime]: sectorMix(sourceRows) },
+    ticker_profile_status_mix_by_regime: {
+      [regime]: tickerProfileStatusMix(input.tickerProfiles),
+    },
+    engine_adjustment_candidates_by_regime: {
+      [regime]: input.engineAdjustments.map((item) => item.candidate),
+    },
+    sample_confidence: label.sample_confidence,
+  };
+}
+
 function comparisonSummary(input: {
   visible: DailyLearningReviewMetricSummary;
   research: DailyLearningReviewMetricSummary;
@@ -777,20 +1401,55 @@ function reviewRows(input: DailyLearningReviewInput) {
             : null);
         const outcomePayload = objectValue(outcome.payload_json);
         const snapshotPayload = snapshot?.payload_json ?? null;
+        const visibility = visibilityFor(outcome, snapshot);
+        const window = normalizeWindow(windowFrom(outcome, snapshot));
+        const tier = tierFromPayload(snapshotPayload ?? outcomePayload);
+        const setupType = setupTypeFromPayload(snapshotPayload ?? outcomePayload);
+        const entryType = entryTypeFromPayload(snapshotPayload ?? outcomePayload);
+        const entryTriggerSemantics = triggerSemanticsFromPayload(
+          snapshotPayload ?? outcomePayload,
+        );
+        const setupLabel = buildSetupLabel({
+          ticker: outcome.ticker ?? snapshot?.ticker ?? null,
+          window,
+          tier,
+          visibility,
+          setup_type: setupType,
+          entry_type: entryType,
+          entry_trigger_semantics: entryTriggerSemantics,
+          reason_text: [
+            snapshot?.reason,
+            snapshot?.rationale,
+            snapshot?.catalyst,
+            snapshot?.primary_risk,
+            outcome.warnings.join(" "),
+          ]
+            .filter((value): value is string => textOrNull(value) !== null)
+            .join(" "),
+          payloads: [snapshotPayload, outcomePayload],
+        });
+        const ticker = normalizeTicker(outcome.ticker ?? snapshot?.ticker ?? null);
+        const sectorProfile = buildSectorIndustryLabel({ ticker });
 
         return {
           outcome,
           snapshot,
           batch_fingerprint: outcomeBatchFingerprint(outcome, snapshot),
-          visibility: visibilityFor(outcome, snapshot),
-          ticker: normalizeTicker(outcome.ticker ?? snapshot?.ticker ?? null),
-          window: windowFrom(outcome, snapshot),
-          tier: tierFromPayload(snapshotPayload ?? outcomePayload),
-          setup_type: setupTypeFromPayload(snapshotPayload ?? outcomePayload),
-          entry_type: entryTypeFromPayload(snapshotPayload ?? outcomePayload),
-          entry_trigger_semantics: triggerSemanticsFromPayload(
-            snapshotPayload ?? outcomePayload,
-          ),
+          visibility,
+          snapshot_identity:
+            textOrNull(outcome.snapshot_fingerprint) ??
+            textOrNull(snapshot?.snapshot_fingerprint) ??
+            textOrNull(outcome.recommendation_id) ??
+            textOrNull(snapshot?.recommendation_id) ??
+            `${normalizeTicker(outcome.ticker ?? snapshot?.ticker ?? null)}:${outcome.horizon}`,
+          ticker,
+          window,
+          tier,
+          setup_type: setupType,
+          entry_type: entryType,
+          entry_trigger_semantics: entryTriggerSemantics,
+          setup_label: setupLabel,
+          sector_profile: sectorProfile,
         };
       }),
   };
@@ -821,10 +1480,34 @@ export function buildDailyLearningReviewSummary(
   const researchRows = dayRows.filter(
     (item) => item.visibility === "research_only",
   );
+  const unknownVisibilityRows = dayRows.filter(
+    (item) => item.visibility === "unknown_visibility",
+  );
   const metrics = metricsFor(dayRows);
   const visibleMetrics = metricsFor(visibleRows);
   const researchMetrics = metricsFor(researchRows);
   const confidence = sampleConfidence(metrics.outcome_count);
+  const sectorIndustryMapping = buildSectorIndustryMappingSummary({
+    dayRows,
+    latestBatchRows,
+  });
+  const tickerProfiles = buildTickerProfiles({
+    outcomes: tickerProfileOutcomes(dayRows),
+  });
+  const tickerProfileSummary = buildTickerProfileSummary(tickerProfiles);
+  const engineAdjustmentCandidates = engineAdjustments({
+    items: dayRows,
+    metrics,
+    visibleMetrics,
+    researchMetrics,
+    confidence,
+  });
+  const marketRegime = buildDailyMarketRegimeSummary({
+    rows: dayRows,
+    latestRows: latestBatchRows,
+    tickerProfiles,
+    engineAdjustments: engineAdjustmentCandidates,
+  });
 
   return {
     summary_version: "1.0",
@@ -837,15 +1520,20 @@ export function buildDailyLearningReviewSummary(
     evaluated_outcome_count: metrics.outcome_count,
     visible_evaluated_count: visibleRows.length,
     research_only_evaluated_count: researchRows.length,
-    unknown_visibility_evaluated_count: dayRows.filter(
-      (item) => item.visibility === "unknown",
-    ).length,
+    unknown_visibility_evaluated_count: unknownVisibilityRows.length,
     latest_batch_visible_evaluated_count: latestBatchRows.filter(
       (item) => item.visibility === "visible",
     ).length,
     latest_batch_research_only_evaluated_count: latestBatchRows.filter(
       (item) => item.visibility === "research_only",
     ).length,
+    latest_batch_unknown_visibility_evaluated_count: latestBatchRows.filter(
+      (item) => item.visibility === "unknown_visibility",
+    ).length,
+    visible_unique_snapshot_count: uniqueSnapshotCount(visibleRows),
+    research_only_unique_snapshot_count: uniqueSnapshotCount(researchRows),
+    unknown_visibility_unique_snapshot_count:
+      uniqueSnapshotCount(unknownVisibilityRows),
     metrics,
     visible_metrics: visibleMetrics,
     research_only_metrics: researchMetrics,
@@ -855,7 +1543,20 @@ export function buildDailyLearningReviewSummary(
     }),
     top_positive_tickers_by_avg_best_r: tickerSummaries(dayRows, "best"),
     weakest_tickers_by_avg_worst_r: tickerSummaries(dayRows, "worst"),
+    setup_family_breakdowns: setupFamilyBreakdowns(dayRows),
+    ticker_breakdowns: dimensionBreakdowns(dayRows, (item) => item.ticker),
+    window_breakdowns: dimensionBreakdowns(dayRows, (item) => item.window),
+    tier_breakdowns: tierBreakdowns(dayRows),
+    sector_group_breakdowns: sectorGroupBreakdowns(dayRows),
+    industry_breakdowns: industryBreakdowns(dayRows),
+    top_sectors_by_avg_best_r: sectorTickerSummaries(dayRows, "best"),
+    weakest_sectors_by_avg_worst_r: sectorTickerSummaries(dayRows, "worst"),
     group_breakdowns: [
+      ...groupSummary(
+        dayRows,
+        "setup_family",
+        (item) => item.setup_label.setup_family,
+      ),
       ...groupSummary(dayRows, "setup_type", (item) => item.setup_type),
       ...groupSummary(dayRows, "entry_type", (item) => item.entry_type),
       ...groupSummary(
@@ -866,13 +1567,21 @@ export function buildDailyLearningReviewSummary(
       ...groupSummary(dayRows, "window", (item) => item.window),
       ...groupSummary(dayRows, "tier", (item) => item.tier),
     ],
-    engine_adjustment_candidates: engineAdjustments({
-      items: dayRows,
-      metrics,
-      visibleMetrics,
-      researchMetrics,
-      confidence,
+    setup_labeling: buildSetupLabelingSummary({
+      labels: dayRows.map((item) => ({
+        visibility: item.visibility,
+        label: item.setup_label,
+      })),
+      currentBatchLabels: latestBatchRows.map((item) => ({
+        visibility: item.visibility,
+        label: item.setup_label,
+      })),
     }),
+    sector_industry_mapping: sectorIndustryMapping,
+    ticker_profiles: tickerProfiles,
+    ticker_profile_summary: tickerProfileSummary,
+    market_regime: marketRegime,
+    engine_adjustment_candidates: engineAdjustmentCandidates,
     sample_size_label: confidence,
     duplicate_outcome_rows_ignored_count: review.duplicateCount,
   };
