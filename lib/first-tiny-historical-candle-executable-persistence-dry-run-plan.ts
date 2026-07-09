@@ -1,12 +1,19 @@
 import {
+  buildFirstTinyCorrectedOhlcvPayloadStaticCapture,
+  firstTinyCorrectedOhlcvPayloadStaticCaptureMarker,
+} from "@/lib/first-tiny-historical-candle-corrected-ohlcv-payload-static-capture";
+import {
   buildFirstTinyCorrectedPayloadRefetchResultVerification,
   firstTinyCorrectedPayloadRefetchResultVerificationMarker,
-  type FirstTinyCorrectedFilteredPayloadReviewRow,
   type FirstTinyCorrectedPayloadRefetchResultVerificationSummary,
 } from "@/lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
 
 export const firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker =
   "first_tiny_historical_candle_executable_persistence_dry_run_planned";
+export const firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion =
+  "v2_static_ohlcv_payload";
+export const firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification =
+  "corrected_first_tiny_ohlcv_payload_static_captured";
 
 export type FirstTinyExecutableCandlePersistenceReadbackStatus =
   | "available"
@@ -57,9 +64,12 @@ export type FirstTinyHistoricalCandleExecutablePersistenceDryRunPlanInput = {
 export type FirstTinyHistoricalCandleExecutablePersistenceDryRunPlanSummary = {
   plan_status: "planned";
   plan_marker: typeof firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker;
+  plan_version: typeof firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion;
   plan_mode: "dry_run_only";
   dry_run_only: true;
-  source_verification: typeof firstTinyCorrectedPayloadRefetchResultVerificationMarker;
+  source_verification: typeof firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification;
+  source_capture_marker: typeof firstTinyCorrectedOhlcvPayloadStaticCaptureMarker;
+  source_artifact: "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json";
   source_verification_status: "verified_ready_for_executable_candle_persistence_plan";
   source_execution_status: "corrected_payload_refetch_completed_no_persist";
   source_strategy: "full_day_fetch_then_filter_locally";
@@ -84,6 +94,8 @@ export type FirstTinyHistoricalCandleExecutablePersistenceDryRunPlanSummary = {
     expected_candle_rows: 73;
     candidate_candle_rows: number;
     timestamp_metadata_valid_rows: number;
+    timestamp_valid_rows: number;
+    candle_write_valid_rows: number;
     valid_candle_rows: number;
     invalid_candle_rows: number;
     ohlcv_valid_rows: number;
@@ -118,6 +130,7 @@ export type FirstTinyHistoricalCandleExecutablePersistenceDryRunPlanSummary = {
     existing_keys_checked: number;
     existing_rows_detected: number;
     exact_insert_update_skip_split_available: boolean;
+    warning: "exact_insert_update_skip_split_requires_readback" | null;
   };
   upsert_plan: {
     planned_inserts: number;
@@ -140,7 +153,7 @@ export type FirstTinyHistoricalCandleExecutablePersistenceDryRunPlanSummary = {
     live_ranking_changed: false;
   };
   recommended_next_steps: [
-    "review_executable_candle_persistence_plan",
+    "review_executable_candle_persistence_plan_v2",
     "require_separate_candle_persistence_approval_signal",
     "keep_replay_and_scanner_effects_disabled",
   ];
@@ -191,30 +204,6 @@ function persistenceKey(
     row.timestamp,
     row.adjusted ? "adjusted_true" : "adjusted_false",
   ].join(":");
-}
-
-function fromReviewRow(
-  row: FirstTinyCorrectedFilteredPayloadReviewRow,
-): FirstTinyExecutableCandleRow {
-  return {
-    provider: row.provider,
-    ticker: row.ticker,
-    interval: row.interval,
-    timestamp: row.timestamp,
-    open: row.open,
-    high: row.high,
-    low: row.low,
-    close: row.close,
-    volume: row.volume,
-    adjusted: row.adjusted,
-    trading_day: row.trading_day,
-    session: row.session,
-    timezone: row.timezone,
-    fetch_run_id: row.fetch_run_id,
-    source_verification: firstTinyCorrectedPayloadRefetchResultVerificationMarker,
-    source_strategy: "full_day_fetch_then_filter_locally",
-    ohlcv_values_recorded_in_artifact: row.ohlcv_values_recorded_in_artifact,
-  };
 }
 
 function fiveMinuteSpacingValid(rows: FirstTinyExecutableCandleRow[]) {
@@ -328,9 +317,10 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
   const source =
     input.source_verification ??
     buildFirstTinyCorrectedPayloadRefetchResultVerification();
+  const staticOhlcvCapture = buildFirstTinyCorrectedOhlcvPayloadStaticCapture();
   const candidateRows =
     input.candidate_rows ??
-    source.payload_artifact.review_rows.map(fromReviewRow);
+    staticOhlcvCapture.rows;
   const cacheReadbackStatus = input.cache_readback_status ?? "unavailable";
   const existingKeys = new Set(input.existing_candle_keys ?? []);
   const updateKeys = new Set(input.existing_candle_keys_requiring_update ?? []);
@@ -392,7 +382,7 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
   const warnings: string[] = ["dry_run_only_no_candle_write"];
 
   if (cacheReadbackStatus === "unavailable") {
-    warnings.push("cache_readback_unavailable_insert_update_skip_split_estimated");
+    warnings.push("exact_insert_update_skip_split_requires_readback");
   }
   if (validRows === 0 && candidateRows.length > 0) {
     warnings.push("executable_ohlcv_payload_not_available_in_static_artifact");
@@ -401,9 +391,14 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
   return {
     plan_status: "planned",
     plan_marker: firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker,
+    plan_version: firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion,
     plan_mode: "dry_run_only",
     dry_run_only: true,
-    source_verification: firstTinyCorrectedPayloadRefetchResultVerificationMarker,
+    source_verification:
+      firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification,
+    source_capture_marker: firstTinyCorrectedOhlcvPayloadStaticCaptureMarker,
+    source_artifact:
+      "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
     source_verification_status: source.verification_status,
     source_execution_status: source.execution_status,
     source_strategy: source.strategy_id,
@@ -428,6 +423,8 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
       expected_candle_rows: 73,
       candidate_candle_rows: candidateRows.length,
       timestamp_metadata_valid_rows: timestampMetadataValidRows,
+      timestamp_valid_rows: timestampMetadataValidRows,
+      candle_write_valid_rows: validRows,
       valid_candle_rows: validRows,
       invalid_candle_rows: candidateRows.length - validRows,
       ohlcv_valid_rows: ohlcvValidRows,
@@ -499,6 +496,10 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
             ).length
           : 0,
       exact_insert_update_skip_split_available: cacheReadbackStatus === "available",
+      warning:
+        cacheReadbackStatus === "available"
+          ? null
+          : "exact_insert_update_skip_split_requires_readback",
     },
     upsert_plan: {
       planned_inserts: plannedInserts,
@@ -521,7 +522,7 @@ export function buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan(
       live_ranking_changed: false,
     },
     recommended_next_steps: [
-      "review_executable_candle_persistence_plan",
+      "review_executable_candle_persistence_plan_v2",
       "require_separate_candle_persistence_approval_signal",
       "keep_replay_and_scanner_effects_disabled",
     ],

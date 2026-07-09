@@ -6,6 +6,8 @@ import { buildDailyLearningReviewSummary } from "../../lib/daily-learning-review
 import {
   buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan,
   firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker,
+  firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion,
+  firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification,
   type FirstTinyExecutableCandleRow,
 } from "../../lib/first-tiny-historical-candle-executable-persistence-dry-run-plan";
 import { firstTinyCorrectedPayloadRefetchResultVerificationMarker } from "../../lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
@@ -20,7 +22,7 @@ import {
 
 const runbookPath = join(
   process.cwd(),
-  "docs/first-tiny-historical-candle-executable-persistence-dry-run-plan.md",
+  "docs/first-tiny-historical-candle-executable-persistence-dry-run-plan-v2.md",
 );
 const evaluatedAt = "2026-07-09T18:30:00.000Z";
 const firstTimestamp = "2026-07-08T13:45:00.000Z";
@@ -277,26 +279,35 @@ function baseDiagnosticsInput(): MarketDiagnosticsConsoleInput {
   } as unknown as MarketDiagnosticsConsoleInput;
 }
 
-test("runbook documents executable dry-run plan and no-write guarantees", () => {
+test("runbook documents executable v2 dry-run plan and no-write guarantees", () => {
   const runbook = readRunbook();
 
   expect(runbook).toContain(
-    "Executable First Tiny Candle Persistence Dry-Run Plan",
+    "Executable First Tiny Candle Persistence Dry-Run Plan v2",
   );
   expect(runbook).toContain(
     firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker,
   );
-  expect(runbook).toContain(firstTinyCorrectedPayloadRefetchResultVerificationMarker);
+  expect(runbook).toContain(
+    firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion,
+  );
+  expect(runbook).toContain(
+    firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification,
+  );
+  expect(runbook).toContain(
+    "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
+  );
   expect(runbook).toContain("historical_candles");
   expect(runbook).toContain("provider, ticker, interval, timestamp, adjusted");
   expect(runbook).toContain(fetchRunId);
   expect(runbook).toContain("expected candle rows: `73`");
   expect(runbook).toContain("candidate candle rows: `73`");
-  expect(runbook).toContain("timestamp metadata valid rows: `73`");
-  expect(runbook).toContain("valid candle rows: `0`");
-  expect(runbook).toContain("OHLCV missing rows: `73`");
-  expect(runbook).toContain("planned invalid rejections: `73`");
-  expect(runbook).toContain("does not invent them");
+  expect(runbook).toContain("timestamp-valid rows: `73`");
+  expect(runbook).toContain("candle-write-valid rows: `73`");
+  expect(runbook).toContain("invalid candle rows: `0`");
+  expect(runbook).toContain("planned inserts: `73`");
+  expect(runbook).toContain("planned rejections: `0`");
+  expect(runbook).toContain("does not invent, round, normalize, or mutate");
   expect(runbook).toContain("candles persisted: `false`");
   expect(runbook).toContain("raw response persisted: `false`");
   expect(runbook).toContain("fetch run persisted: `false`");
@@ -305,16 +316,22 @@ test("runbook documents executable dry-run plan and no-write guarantees", () => 
   expect(runbook).not.toContain("apikey");
 });
 
-test("default plan uses Action 290 rows and rejects missing OHLCV without writes", () => {
+test("default plan uses Action 292 static OHLCV rows for 73 dry-run inserts without writes", () => {
   const plan = buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan();
 
   expect(plan.plan_status).toBe("planned");
   expect(plan.plan_marker).toBe(
     firstTinyHistoricalCandleExecutablePersistenceDryRunPlanMarker,
   );
+  expect(plan.plan_version).toBe(
+    firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion,
+  );
   expect(plan.dry_run_only).toBe(true);
   expect(plan.source_verification).toBe(
-    firstTinyCorrectedPayloadRefetchResultVerificationMarker,
+    firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification,
+  );
+  expect(plan.source_artifact).toBe(
+    "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
   );
   expect(plan.target_table).toBe("historical_candles");
   expect(plan.fetch_run.fetch_run_id).toBe(fetchRunId);
@@ -322,25 +339,27 @@ test("default plan uses Action 290 rows and rejects missing OHLCV without writes
   expect(plan.payload_summary.expected_candle_rows).toBe(73);
   expect(plan.payload_summary.candidate_candle_rows).toBe(73);
   expect(plan.payload_summary.timestamp_metadata_valid_rows).toBe(73);
-  expect(plan.payload_summary.valid_candle_rows).toBe(0);
-  expect(plan.payload_summary.invalid_candle_rows).toBe(73);
-  expect(plan.payload_summary.ohlcv_valid_rows).toBe(0);
-  expect(plan.payload_summary.ohlcv_missing_rows).toBe(73);
+  expect(plan.payload_summary.timestamp_valid_rows).toBe(73);
+  expect(plan.payload_summary.candle_write_valid_rows).toBe(73);
+  expect(plan.payload_summary.valid_candle_rows).toBe(73);
+  expect(plan.payload_summary.invalid_candle_rows).toBe(0);
+  expect(plan.payload_summary.ohlcv_valid_rows).toBe(73);
+  expect(plan.payload_summary.ohlcv_missing_rows).toBe(0);
   expect(plan.payload_summary.first_timestamp).toBe(firstTimestamp);
   expect(plan.payload_summary.last_timestamp).toBe(lastTimestamp);
   expect(plan.payload_summary.five_minute_spacing_valid).toBe(true);
   expect(plan.payload_summary.window_matches_intended).toBe(true);
-  expect(plan.upsert_plan.planned_inserts).toBe(0);
+  expect(plan.validation.finite_ohlcv_rows).toBe(73);
+  expect(plan.validation.ohlc_geometry_valid_rows).toBe(73);
+  expect(plan.validation.non_negative_volume_rows).toBe(73);
+  expect(plan.upsert_plan.planned_inserts).toBe(73);
   expect(plan.upsert_plan.planned_updates).toBe(0);
   expect(plan.upsert_plan.planned_skips).toBe(0);
-  expect(plan.upsert_plan.planned_invalid_rejections).toBe(73);
-  expect(plan.validation.rejection_reason_counts.missing_or_invalid_open).toBe(
-    73,
+  expect(plan.upsert_plan.planned_invalid_rejections).toBe(0);
+  expect(plan.validation.rejection_reason_counts).toEqual({});
+  expect(plan.cache_readback.warning).toBe(
+    "exact_insert_update_skip_split_requires_readback",
   );
-  expect(
-    plan.validation.rejection_reason_counts
-      .ohlcv_values_not_recorded_in_source_artifact,
-  ).toBe(73);
   expect(plan.safety.candle_write_allowed_now).toBe(false);
   expect(plan.safety.candles_persisted).toBe(false);
   expect(plan.safety.raw_response_persisted).toBe(false);
@@ -436,29 +455,35 @@ test("diagnostics render dry-run plan and do not call provider or write paths", 
     );
     expect(section?.lines).toContain("Status: planned / dry-run only");
     expect(section?.lines).toContain(
-      `Source verification: ${firstTinyCorrectedPayloadRefetchResultVerificationMarker}`,
+      `Plan version: ${firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion}`,
+    );
+    expect(section?.lines).toContain(
+      `Source verification: ${firstTinyHistoricalCandleExecutablePersistenceDryRunSourceVerification}`,
     );
     expect(section?.lines).toContain("Target table: historical_candles");
     expect(section?.lines).toContain(`Fetch run id: ${fetchRunId}`);
     expect(section?.lines).toContain("Ticker: AAPL");
     expect(section?.lines).toContain("Interval: 5min");
     expect(section?.lines).toContain("Trading day: 2026-07-08");
-    expect(section?.lines).toContain("Executable payload available: no");
+    expect(section?.lines).toContain("Executable payload available: yes");
     expect(section?.lines).toContain("Candidate candle rows: 73");
-    expect(section?.lines).toContain("Timestamp metadata valid rows: 73");
-    expect(section?.lines).toContain("Valid candle rows: 0");
-    expect(section?.lines).toContain("Invalid candle rows: 73");
-    expect(section?.lines).toContain("OHLCV valid rows: 0");
-    expect(section?.lines).toContain("OHLCV missing rows: 73");
+    expect(section?.lines).toContain("Timestamp-valid rows: 73");
+    expect(section?.lines).toContain("Candle-write-valid rows: 73");
+    expect(section?.lines).toContain("Invalid candle rows: 0");
+    expect(section?.lines).toContain("OHLCV valid rows: 73");
+    expect(section?.lines).toContain("OHLCV missing rows: 0");
     expect(section?.lines).toContain(`First timestamp: ${firstTimestamp}`);
     expect(section?.lines).toContain(`Last timestamp: ${lastTimestamp}`);
     expect(section?.lines).toContain("5min spacing valid: yes");
     expect(section?.lines).toContain("Window matches intended: yes");
     expect(section?.lines).toContain("Cache readback status: unavailable");
-    expect(section?.lines).toContain("Planned inserts: 0");
+    expect(section?.lines).toContain(
+      "Cache readback warning: exact_insert_update_skip_split_requires_readback",
+    );
+    expect(section?.lines).toContain("Planned inserts: 73");
     expect(section?.lines).toContain("Planned updates: 0");
     expect(section?.lines).toContain("Planned skips: 0");
-    expect(section?.lines).toContain("Planned rejections: 73");
+    expect(section?.lines).toContain("Planned rejections: 0");
     expect(section?.lines).toContain(
       "Conflict target: provider, ticker, interval, timestamp, adjusted",
     );
@@ -471,13 +496,17 @@ test("diagnostics render dry-run plan and do not call provider or write paths", 
     expect(section?.lines).toContain("Live ranking changed: no");
     expect(section?.lines).toContain("Requires separate operator approval: yes");
     expect(section?.metrics.dry_run_only).toBe(true);
+    expect(section?.metrics.plan_version).toBe(
+      firstTinyHistoricalCandleExecutablePersistenceDryRunPlanVersion,
+    );
     expect(section?.metrics.target_table).toBe("historical_candles");
     expect(section?.metrics.expected_candle_rows).toBe(73);
     expect(section?.metrics.candidate_candle_rows).toBe(73);
-    expect(section?.metrics.valid_candle_rows).toBe(0);
-    expect(section?.metrics.invalid_candle_rows).toBe(73);
-    expect(section?.metrics.planned_inserts).toBe(0);
-    expect(section?.metrics.planned_invalid_rejections).toBe(73);
+    expect(section?.metrics.candle_write_valid_rows).toBe(73);
+    expect(section?.metrics.valid_candle_rows).toBe(73);
+    expect(section?.metrics.invalid_candle_rows).toBe(0);
+    expect(section?.metrics.planned_inserts).toBe(73);
+    expect(section?.metrics.planned_invalid_rejections).toBe(0);
     expect(section?.metrics.candle_write_allowed_now).toBe(false);
     expect(section?.metrics.candles_persisted).toBe(false);
     expect(section?.metrics.raw_response_persisted).toBe(false);
@@ -489,7 +518,7 @@ test("diagnostics render dry-run plan and do not call provider or write paths", 
       "require_separate_candle_persistence_approval_signal",
     );
     expect(intelligence?.lines).toContain(
-      "Executable first tiny candle persistence plan: dry-run / 0 valid / write no",
+      "Executable first tiny candle persistence plan: dry-run v2 / 73 write-valid / write no",
     );
     expect(diagnostics.copy_payloads.json.content).toContain(
       "first_tiny_historical_candle_executable_persistence_dry_run_plan",

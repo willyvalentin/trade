@@ -34,6 +34,9 @@ import { buildFirstTinyHistoricalCandlePayloadRefetchExecuteReadiness } from "@/
 import { buildFirstTinyHistoricalCandlePayloadRefetchPlan } from "@/lib/first-tiny-historical-candle-payload-refetch-plan";
 import { buildFirstTinyCandlePayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-payload-refetch-result-verification";
 import { buildFirstTinyCandlePayloadWindowSanityReview } from "@/lib/first-tiny-historical-candle-payload-window-sanity-review";
+import { buildFirstTinyCandlePersistenceApproval } from "@/lib/first-tiny-historical-candle-persistence-approval";
+import { buildFirstTinyCandlePersistenceExecuteReadiness } from "@/lib/first-tiny-historical-candle-persistence-execute";
+import { buildFirstTinyCorrectedOhlcvPayloadStaticCapture } from "@/lib/first-tiny-historical-candle-corrected-ohlcv-payload-static-capture";
 import { buildFirstTinyCorrectedPayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
 import { buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan } from "@/lib/first-tiny-historical-candle-executable-persistence-dry-run-plan";
 import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
@@ -2989,9 +2992,22 @@ function buildSections(
     });
   const firstTinyCorrectedPayloadRefetchResultVerification =
     buildFirstTinyCorrectedPayloadRefetchResultVerification();
+  const firstTinyCorrectedOhlcvPayloadStaticCapture =
+    buildFirstTinyCorrectedOhlcvPayloadStaticCapture();
   const firstTinyExecutableCandlePersistenceDryRunPlan =
     buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan({
       source_verification: firstTinyCorrectedPayloadRefetchResultVerification,
+    });
+  const firstTinyCandlePersistenceApproval =
+    buildFirstTinyCandlePersistenceApproval({
+      static_ohlcv_capture: firstTinyCorrectedOhlcvPayloadStaticCapture,
+      dry_run_plan: firstTinyExecutableCandlePersistenceDryRunPlan,
+    });
+  const firstTinyCandlePersistenceExecute =
+    buildFirstTinyCandlePersistenceExecuteReadiness({
+      static_ohlcv_capture: firstTinyCorrectedOhlcvPayloadStaticCapture,
+      dry_run_plan: firstTinyExecutableCandlePersistenceDryRunPlan,
+      approval: firstTinyCandlePersistenceApproval,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -9953,6 +9969,208 @@ function buildSections(
     }),
     section({
       section_id:
+        "corrected_first_tiny_historical_candle_ohlcv_payload_static_capture",
+      title: "Corrected First Tiny OHLCV Payload Static Capture",
+      severity:
+        firstTinyCorrectedOhlcvPayloadStaticCapture
+          .ready_for_executable_persistence_dry_run
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue(
+          "Capture status",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.capture_status,
+        ),
+        lineValue("Source", firstTinyCorrectedOhlcvPayloadStaticCapture.source),
+        lineValue("Ticker", firstTinyCorrectedOhlcvPayloadStaticCapture.ticker),
+        lineValue(
+          "Interval",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.trading_day,
+        ),
+        lineValue(
+          "Fetch run id",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.fetch_run_id,
+        ),
+        lineValue(
+          "Row count",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.row_count,
+        ),
+        lineValue(
+          "First timestamp",
+          compact(
+            firstTinyCorrectedOhlcvPayloadStaticCapture.first_timestamp,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Last timestamp",
+          compact(
+            firstTinyCorrectedOhlcvPayloadStaticCapture.last_timestamp,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Row count matches",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.row_count_matches
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "5min spacing valid",
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .timestamps_are_5min_spaced
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "OHLCV values present",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.ohlcv_values_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "OHLCV values valid",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.ohlcv_values_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "High/low geometry valid",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.high_low_geometry_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Volume values valid",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.volume_values_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Candle write ready",
+          firstTinyCorrectedOhlcvPayloadStaticCapture.candle_write_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready for executable persistence dry-run",
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .ready_for_executable_persistence_dry_run
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyCorrectedOhlcvPayloadStaticCapture
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        capture_marker:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.capture_marker,
+        capture_status:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.capture_status,
+        source: firstTinyCorrectedOhlcvPayloadStaticCapture.source,
+        source_verification:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.source_verification,
+        provider: firstTinyCorrectedOhlcvPayloadStaticCapture.provider,
+        ticker: firstTinyCorrectedOhlcvPayloadStaticCapture.ticker,
+        interval: firstTinyCorrectedOhlcvPayloadStaticCapture.interval,
+        trading_day: firstTinyCorrectedOhlcvPayloadStaticCapture.trading_day,
+        fetch_run_id: firstTinyCorrectedOhlcvPayloadStaticCapture.fetch_run_id,
+        row_count: firstTinyCorrectedOhlcvPayloadStaticCapture.row_count,
+        expected_row_count:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.expected_row_count,
+        first_timestamp:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.first_timestamp,
+        last_timestamp:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.last_timestamp,
+        row_count_matches:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.row_count_matches,
+        timestamps_are_5min_spaced:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .timestamps_are_5min_spaced,
+        duplicate_timestamps:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.duplicate_timestamps,
+        out_of_order_candles:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.out_of_order_candles,
+        ohlcv_values_present:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.ohlcv_values_present,
+        ohlcv_values_valid:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.ohlcv_values_valid,
+        high_low_geometry_valid:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.high_low_geometry_valid,
+        volume_values_valid:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.volume_values_valid,
+        adjusted_false_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .adjusted_false_for_all_rows,
+        provider_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .provider_valid_for_all_rows,
+        ticker_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .ticker_valid_for_all_rows,
+        interval_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .interval_valid_for_all_rows,
+        timestamp_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .timestamp_valid_for_all_rows,
+        trading_day_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .trading_day_valid_for_all_rows,
+        session_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .session_valid_for_all_rows,
+        timezone_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .timezone_valid_for_all_rows,
+        fetch_run_id_valid_for_all_rows:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .fetch_run_id_valid_for_all_rows,
+        invalid_row_count:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.invalid_row_count,
+        candle_write_ready:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.candle_write_ready,
+        ready_for_executable_persistence_dry_run:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .ready_for_executable_persistence_dry_run,
+        candles_persisted:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.candles_persisted,
+        raw_response_persisted:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          firstTinyCorrectedOhlcvPayloadStaticCapture
+            .synthetic_outcomes_persisted,
+        replay_executed:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.replay_executed,
+        scanner_behavior_changed:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.live_ranking_changed,
+        recommended_next_steps:
+          firstTinyCorrectedOhlcvPayloadStaticCapture.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id:
         "first_tiny_historical_candle_executable_persistence_dry_run_plan",
       title: "Executable First Tiny Candle Persistence Dry-Run Plan",
       severity:
@@ -9964,6 +10182,10 @@ function buildSections(
           : "warning",
       lines: [
         lineValue("Status", "planned / dry-run only"),
+        lineValue(
+          "Plan version",
+          firstTinyExecutableCandlePersistenceDryRunPlan.plan_version,
+        ),
         lineValue(
           "Source verification",
           firstTinyExecutableCandlePersistenceDryRunPlan.source_verification,
@@ -10002,14 +10224,14 @@ function buildSections(
             .candidate_candle_rows,
         ),
         lineValue(
-          "Timestamp metadata valid rows",
+          "Timestamp-valid rows",
           firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
-            .timestamp_metadata_valid_rows,
+            .timestamp_valid_rows,
         ),
         lineValue(
-          "Valid candle rows",
+          "Candle-write-valid rows",
           firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
-            .valid_candle_rows,
+            .candle_write_valid_rows,
         ),
         lineValue(
           "Invalid candle rows",
@@ -10059,6 +10281,14 @@ function buildSections(
         lineValue(
           "Cache readback status",
           firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback.status,
+        ),
+        lineValue(
+          "Cache readback warning",
+          compact(
+            firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback
+              .warning,
+            "none",
+          ),
         ),
         lineValue(
           "Planned inserts",
@@ -10128,10 +10358,16 @@ function buildSections(
           firstTinyExecutableCandlePersistenceDryRunPlan.plan_marker,
         plan_status:
           firstTinyExecutableCandlePersistenceDryRunPlan.plan_status,
+        plan_version:
+          firstTinyExecutableCandlePersistenceDryRunPlan.plan_version,
         dry_run_only:
           firstTinyExecutableCandlePersistenceDryRunPlan.dry_run_only,
         source_verification:
           firstTinyExecutableCandlePersistenceDryRunPlan.source_verification,
+        source_capture_marker:
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_capture_marker,
+        source_artifact:
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_artifact,
         source_verification_status:
           firstTinyExecutableCandlePersistenceDryRunPlan
             .source_verification_status,
@@ -10177,6 +10413,12 @@ function buildSections(
         timestamp_metadata_valid_rows:
           firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
             .timestamp_metadata_valid_rows,
+        timestamp_valid_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .timestamp_valid_rows,
+        candle_write_valid_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .candle_write_valid_rows,
         valid_candle_rows:
           firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
             .valid_candle_rows,
@@ -10209,6 +10451,8 @@ function buildSections(
         exact_insert_update_skip_split_available:
           firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback
             .exact_insert_update_skip_split_available,
+        cache_readback_warning:
+          firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback.warning,
         planned_inserts:
           firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
             .planned_inserts,
@@ -10263,6 +10507,349 @@ function buildSections(
           ),
         warnings:
           firstTinyExecutableCandlePersistenceDryRunPlan.warnings.join(","),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_candle_persistence_approval",
+      title: "First Tiny Candle Persistence Approval",
+      severity:
+        firstTinyCandlePersistenceApproval.approval_status === "invalid"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Approval status",
+          firstTinyCandlePersistenceApproval.approval_status,
+        ),
+        lineValue(
+          "Signal active",
+          firstTinyCandlePersistenceApproval.signal.signal_active
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Expected ticker",
+          firstTinyCandlePersistenceApproval.expected_contract.expected_ticker,
+        ),
+        lineValue(
+          "Expected interval",
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_interval,
+        ),
+        lineValue(
+          "Expected trading day",
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_trading_day,
+        ),
+        lineValue(
+          "Expected fetch run id",
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_fetch_run_id,
+        ),
+        lineValue(
+          "Expected max rows",
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_max_rows,
+        ),
+        lineValue(
+          "Expected inserts",
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_inserts,
+        ),
+        lineValue(
+          "Plan version",
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.plan_version,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .source_verification,
+        ),
+        lineValue(
+          "Candle-write-valid rows",
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .candle_write_valid_rows,
+        ),
+        lineValue(
+          "Planned inserts",
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.planned_inserts,
+        ),
+        lineValue(
+          "Planned rejections",
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .planned_invalid_rejections,
+        ),
+        lineValue("Raw response persistence allowed", "no"),
+        lineValue("Replay allowed", "no"),
+        lineValue("Scanner effect allowed", "no"),
+        lineValue("Candle write allowed now", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Ready to accept future signal",
+          firstTinyCandlePersistenceApproval.readiness
+            .ready_to_accept_future_signal
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to propose candle persistence write",
+          firstTinyCandlePersistenceApproval.readiness
+            .ready_to_propose_candle_persistence_write
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyCandlePersistenceApproval.blockers),
+        ),
+        lineValue(
+          "Warnings",
+          compactListText(firstTinyCandlePersistenceApproval.warnings),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyCandlePersistenceApproval.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_only: firstTinyCandlePersistenceApproval.advisory_only,
+        approval_gate_only:
+          firstTinyCandlePersistenceApproval.approval_gate_only,
+        approval_status:
+          firstTinyCandlePersistenceApproval.approval_status,
+        signal_active:
+          firstTinyCandlePersistenceApproval.signal.signal_active,
+        source_present:
+          firstTinyCandlePersistenceApproval.signal.source_present,
+        source_type: firstTinyCandlePersistenceApproval.signal.source_type,
+        operator_label_present:
+          firstTinyCandlePersistenceApproval.signal.operator_label_present,
+        approval_reference_present:
+          firstTinyCandlePersistenceApproval.signal.approval_reference_present,
+        expected_ticker:
+          firstTinyCandlePersistenceApproval.expected_contract.expected_ticker,
+        expected_interval:
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_interval,
+        expected_trading_day:
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_trading_day,
+        expected_fetch_run_id:
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_fetch_run_id,
+        expected_max_rows:
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_max_rows,
+        expected_inserts:
+          firstTinyCandlePersistenceApproval.expected_contract
+            .expected_inserts,
+        plan_version:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.plan_version,
+        source_verification:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .source_verification,
+        target_table:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.target_table,
+        candle_write_valid_rows:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .candle_write_valid_rows,
+        planned_inserts:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.planned_inserts,
+        planned_updates:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.planned_updates,
+        planned_skips:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot.planned_skips,
+        planned_invalid_rejections:
+          firstTinyCandlePersistenceApproval.dry_run_snapshot
+            .planned_invalid_rejections,
+        approved_valid:
+          firstTinyCandlePersistenceApproval.validation.approved_valid,
+        ticker_valid:
+          firstTinyCandlePersistenceApproval.validation.ticker_valid,
+        interval_valid:
+          firstTinyCandlePersistenceApproval.validation.interval_valid,
+        trading_day_valid:
+          firstTinyCandlePersistenceApproval.validation.trading_day_valid,
+        fetch_run_id_valid:
+          firstTinyCandlePersistenceApproval.validation.fetch_run_id_valid,
+        max_rows_valid:
+          firstTinyCandlePersistenceApproval.validation.max_rows_valid,
+        expected_inserts_valid:
+          firstTinyCandlePersistenceApproval.validation.expected_inserts_valid,
+        raw_response_persist_scope_valid:
+          firstTinyCandlePersistenceApproval.validation
+            .raw_response_persist_scope_valid,
+        replay_scope_valid:
+          firstTinyCandlePersistenceApproval.validation.replay_scope_valid,
+        scanner_effect_scope_valid:
+          firstTinyCandlePersistenceApproval.validation
+            .scanner_effect_scope_valid,
+        static_ohlcv_capture_ready:
+          firstTinyCandlePersistenceApproval.validation
+            .static_ohlcv_capture_ready,
+        source_verification_valid:
+          firstTinyCandlePersistenceApproval.validation
+            .source_verification_valid,
+        plan_version_valid:
+          firstTinyCandlePersistenceApproval.validation.plan_version_valid,
+        dry_run_plan_ready:
+          firstTinyCandlePersistenceApproval.validation.dry_run_plan_ready,
+        candle_write_allowed_now:
+          firstTinyCandlePersistenceApproval.readiness
+            .candle_write_allowed_now,
+        candles_persisted:
+          firstTinyCandlePersistenceApproval.readiness.candles_persisted,
+        raw_response_persisted:
+          firstTinyCandlePersistenceApproval.readiness.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyCandlePersistenceApproval.readiness.fetch_run_persisted,
+        replay_executed:
+          firstTinyCandlePersistenceApproval.readiness.replay_executed,
+        scanner_behavior_changed:
+          firstTinyCandlePersistenceApproval.readiness
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyCandlePersistenceApproval.readiness.live_ranking_changed,
+        ready_to_accept_future_signal:
+          firstTinyCandlePersistenceApproval.readiness
+            .ready_to_accept_future_signal,
+        ready_to_propose_candle_persistence_write:
+          firstTinyCandlePersistenceApproval.readiness
+            .ready_to_propose_candle_persistence_write,
+        blockers: firstTinyCandlePersistenceApproval.blockers.join(","),
+        warnings: firstTinyCandlePersistenceApproval.warnings.join(","),
+        recommended_next_steps:
+          firstTinyCandlePersistenceApproval.recommended_next_steps.join(","),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_candle_persistence_execute",
+      title: "First Tiny Candle Persistence Execute",
+      severity:
+        firstTinyCandlePersistenceExecute.execution_status === "blocked" ||
+        firstTinyCandlePersistenceExecute.execution_status === "failed"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Status", firstTinyCandlePersistenceExecute.execution_status),
+        lineValue("Target table", firstTinyCandlePersistenceExecute.target_table),
+        lineValue("Plan version", firstTinyCandlePersistenceExecute.plan_version),
+        lineValue(
+          "Source verification",
+          firstTinyCandlePersistenceExecute.source_verification,
+        ),
+        lineValue("Ticker", firstTinyCandlePersistenceExecute.ticker),
+        lineValue("Interval", firstTinyCandlePersistenceExecute.interval),
+        lineValue(
+          "Trading day",
+          firstTinyCandlePersistenceExecute.trading_day,
+        ),
+        lineValue(
+          "Fetch run id",
+          firstTinyCandlePersistenceExecute.fetch_run_id,
+        ),
+        lineValue(
+          "Expected rows",
+          firstTinyCandlePersistenceExecute.expected_rows,
+        ),
+        lineValue(
+          "Inserted rows",
+          `${firstTinyCandlePersistenceExecute.candle_rows_inserted}/${firstTinyCandlePersistenceExecute.expected_rows}`,
+        ),
+        lineValue(
+          "Updated rows",
+          `${firstTinyCandlePersistenceExecute.candle_rows_updated}/${firstTinyCandlePersistenceExecute.expected_rows}`,
+        ),
+        lineValue(
+          "Skipped rows",
+          `${firstTinyCandlePersistenceExecute.candle_rows_skipped}/${firstTinyCandlePersistenceExecute.expected_rows}`,
+        ),
+        lineValue(
+          "Rejected rows",
+          firstTinyCandlePersistenceExecute.candle_rows_rejected,
+        ),
+        lineValue(
+          "Readback verified",
+          firstTinyCandlePersistenceExecute.readback_verified ? "yes" : "no",
+        ),
+        lineValue(
+          "Candles persisted",
+          firstTinyCandlePersistenceExecute.candles_persisted ? "yes" : "no",
+        ),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyCandlePersistenceExecute.blockers),
+        ),
+        lineValue(
+          "Warnings",
+          compactListText(firstTinyCandlePersistenceExecute.warnings),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyCandlePersistenceExecute.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        route_build_marker:
+          firstTinyCandlePersistenceExecute.route_build_marker,
+        execution_status:
+          firstTinyCandlePersistenceExecute.execution_status,
+        approval_status: firstTinyCandlePersistenceExecute.approval_status,
+        target_table: firstTinyCandlePersistenceExecute.target_table,
+        source_verification:
+          firstTinyCandlePersistenceExecute.source_verification,
+        plan_version: firstTinyCandlePersistenceExecute.plan_version,
+        provider: firstTinyCandlePersistenceExecute.provider,
+        ticker: firstTinyCandlePersistenceExecute.ticker,
+        interval: firstTinyCandlePersistenceExecute.interval,
+        trading_day: firstTinyCandlePersistenceExecute.trading_day,
+        fetch_run_id: firstTinyCandlePersistenceExecute.fetch_run_id,
+        expected_rows: firstTinyCandlePersistenceExecute.expected_rows,
+        attempted_rows: firstTinyCandlePersistenceExecute.attempted_rows,
+        candle_rows_inserted:
+          firstTinyCandlePersistenceExecute.candle_rows_inserted,
+        candle_rows_updated:
+          firstTinyCandlePersistenceExecute.candle_rows_updated,
+        candle_rows_skipped:
+          firstTinyCandlePersistenceExecute.candle_rows_skipped,
+        candle_rows_rejected:
+          firstTinyCandlePersistenceExecute.candle_rows_rejected,
+        readback_verified:
+          firstTinyCandlePersistenceExecute.readback_verified,
+        duplicate_prevented:
+          firstTinyCandlePersistenceExecute.duplicate_prevented,
+        candles_persisted:
+          firstTinyCandlePersistenceExecute.candles_persisted,
+        raw_response_persisted:
+          firstTinyCandlePersistenceExecute.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyCandlePersistenceExecute.fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          firstTinyCandlePersistenceExecute.synthetic_outcomes_persisted,
+        replay_executed: firstTinyCandlePersistenceExecute.replay_executed,
+        scanner_behavior_changed:
+          firstTinyCandlePersistenceExecute.scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyCandlePersistenceExecute.live_ranking_changed,
+        provider_call_executed:
+          firstTinyCandlePersistenceExecute.provider_call_executed,
+        blockers: firstTinyCandlePersistenceExecute.blockers.join(","),
+        warnings: firstTinyCandlePersistenceExecute.warnings.join(","),
+        recommended_next_steps:
+          firstTinyCandlePersistenceExecute.recommended_next_steps.join(","),
       },
     }),
     section({
@@ -13296,8 +13883,14 @@ function buildSections(
           JSON.stringify(firstTinyCorrectedPayloadRefetchExecute),
         corrected_first_tiny_historical_candle_payload_refetch_result_verification:
           JSON.stringify(firstTinyCorrectedPayloadRefetchResultVerification),
+        corrected_first_tiny_historical_candle_ohlcv_payload_static_capture:
+          JSON.stringify(firstTinyCorrectedOhlcvPayloadStaticCapture),
         first_tiny_historical_candle_executable_persistence_dry_run_plan:
           JSON.stringify(firstTinyExecutableCandlePersistenceDryRunPlan),
+        first_tiny_historical_candle_persistence_approval:
+          JSON.stringify(firstTinyCandlePersistenceApproval),
+        first_tiny_historical_candle_persistence_execute:
+          JSON.stringify(firstTinyCandlePersistenceExecute),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -13536,8 +14129,20 @@ function buildSections(
           `${firstTinyCorrectedPayloadRefetchResultVerification.verification_status === "verified_ready_for_executable_candle_persistence_plan" ? "verified" : firstTinyCorrectedPayloadRefetchResultVerification.verification_status} / ${firstTinyCorrectedPayloadRefetchResultVerification.valid_filtered_candles} valid / window match ${firstTinyCorrectedPayloadRefetchResultVerification.filtered_window_matches_intended ? "yes" : "no"} / persistence dry-run next`,
         ),
         lineValue(
+          "Corrected first tiny OHLCV payload",
+          `static captured / ${firstTinyCorrectedOhlcvPayloadStaticCapture.invalid_row_count === 0 ? firstTinyCorrectedOhlcvPayloadStaticCapture.row_count : firstTinyCorrectedOhlcvPayloadStaticCapture.row_count - firstTinyCorrectedOhlcvPayloadStaticCapture.invalid_row_count} valid / persistence dry-run next`,
+        ),
+        lineValue(
           "Executable first tiny candle persistence plan",
-          `dry-run / ${firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary.valid_candle_rows} valid / write no`,
+          `dry-run v2 / ${firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary.candle_write_valid_rows} write-valid / write no`,
+        ),
+        lineValue(
+          "First tiny candle persistence approval",
+          `${firstTinyCandlePersistenceApproval.approval_status} / execute no / write no`,
+        ),
+        lineValue(
+          "First tiny candle persistence execute",
+          `${firstTinyCandlePersistenceExecute.execution_status} / persisted ${firstTinyCandlePersistenceExecute.candles_persisted ? "yes" : "no"} / replay no`,
         ),
         lineValue(
           "Primary learning signal",
