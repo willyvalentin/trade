@@ -42,6 +42,7 @@ import { buildFirstTinyCorrectedOhlcvPayloadStaticCapture } from "@/lib/first-ti
 import { buildFirstTinyCorrectedPayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
 import { buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan } from "@/lib/first-tiny-historical-candle-executable-persistence-dry-run-plan";
 import { buildFirstTinyHistoricalReplayDryRunApproval } from "@/lib/first-tiny-historical-replay-dry-run-approval";
+import { buildFirstTinyHistoricalReplayDryRunExecuteReadiness } from "@/lib/first-tiny-historical-replay-dry-run-execute";
 import { buildFirstTinyHistoricalReplayDryRunPlan } from "@/lib/first-tiny-historical-replay-dry-run-plan";
 import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
 import { buildFirstTinyFetchRunAuditWriteExecuteReadiness } from "@/lib/first-tiny-historical-fetch-run-audit-write-execute";
@@ -3024,6 +3025,11 @@ function buildSections(
   const firstTinyHistoricalReplayDryRunApproval =
     buildFirstTinyHistoricalReplayDryRunApproval({
       replay_plan: firstTinyHistoricalReplayDryRunPlan,
+    });
+  const firstTinyHistoricalReplayDryRunExecute =
+    buildFirstTinyHistoricalReplayDryRunExecuteReadiness({
+      replay_plan: firstTinyHistoricalReplayDryRunPlan,
+      approval: firstTinyHistoricalReplayDryRunApproval,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -11498,6 +11504,150 @@ function buildSections(
       },
     }),
     section({
+      section_id: "first_tiny_historical_replay_dry_run_execute",
+      title: "First Tiny Replay Dry-Run Execute",
+      severity:
+        firstTinyHistoricalReplayDryRunExecute.execution_status === "failed" ||
+        firstTinyHistoricalReplayDryRunExecute.execution_status === "blocked"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Status",
+          firstTinyHistoricalReplayDryRunExecute.execution_status,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinyHistoricalReplayDryRunExecute.source_verification,
+        ),
+        lineValue(
+          "Source table",
+          firstTinyHistoricalReplayDryRunExecute.source_table,
+        ),
+        lineValue("Ticker", firstTinyHistoricalReplayDryRunExecute.ticker),
+        lineValue("Interval", firstTinyHistoricalReplayDryRunExecute.interval),
+        lineValue(
+          "Trading day",
+          firstTinyHistoricalReplayDryRunExecute.trading_day,
+        ),
+        lineValue(
+          "Fetch run id",
+          firstTinyHistoricalReplayDryRunExecute.fetch_run_id,
+        ),
+        lineValue(
+          "Candles read",
+          `${firstTinyHistoricalReplayDryRunExecute.candles_read}/${firstTinyHistoricalReplayDryRunExecute.expected_candle_rows}`,
+        ),
+        lineValue(
+          "Candles verified",
+          `${firstTinyHistoricalReplayDryRunExecute.candles_verified}/${firstTinyHistoricalReplayDryRunExecute.expected_candle_rows}`,
+        ),
+        lineValue(
+          "Signal package available",
+          firstTinyHistoricalReplayDryRunExecute.signal_package_available
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety passed",
+          firstTinyHistoricalReplayDryRunExecute.lookahead_safety_passed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Replay executed",
+          firstTinyHistoricalReplayDryRunExecute.replay_executed
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalReplayDryRunExecute.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        route_build_marker:
+          firstTinyHistoricalReplayDryRunExecute.route_build_marker,
+        execution_status:
+          firstTinyHistoricalReplayDryRunExecute.execution_status,
+        approval_status:
+          firstTinyHistoricalReplayDryRunExecute.approval_status,
+        source_verification:
+          firstTinyHistoricalReplayDryRunExecute.source_verification,
+        source_table: firstTinyHistoricalReplayDryRunExecute.source_table,
+        provider: firstTinyHistoricalReplayDryRunExecute.provider,
+        ticker: firstTinyHistoricalReplayDryRunExecute.ticker,
+        interval: firstTinyHistoricalReplayDryRunExecute.interval,
+        trading_day: firstTinyHistoricalReplayDryRunExecute.trading_day,
+        fetch_run_id: firstTinyHistoricalReplayDryRunExecute.fetch_run_id,
+        expected_candle_rows:
+          firstTinyHistoricalReplayDryRunExecute.expected_candle_rows,
+        candles_read: firstTinyHistoricalReplayDryRunExecute.candles_read,
+        candles_verified:
+          firstTinyHistoricalReplayDryRunExecute.candles_verified,
+        signal_package_available:
+          firstTinyHistoricalReplayDryRunExecute.signal_package_available,
+        lookahead_safety_passed:
+          firstTinyHistoricalReplayDryRunExecute.lookahead_safety_passed,
+        replay_executed:
+          firstTinyHistoricalReplayDryRunExecute.replay_executed,
+        counterfactual_result_available:
+          firstTinyHistoricalReplayDryRunExecute
+            .counterfactual_result_available,
+        synthetic_outcomes_persisted:
+          firstTinyHistoricalReplayDryRunExecute
+            .synthetic_outcomes_persisted,
+        scanner_behavior_changed:
+          firstTinyHistoricalReplayDryRunExecute.scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyHistoricalReplayDryRunExecute.live_ranking_changed,
+        provider_call_executed:
+          firstTinyHistoricalReplayDryRunExecute.provider_call_executed,
+        candles_persisted:
+          firstTinyHistoricalReplayDryRunExecute.candles_persisted,
+        raw_response_persisted:
+          firstTinyHistoricalReplayDryRunExecute.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyHistoricalReplayDryRunExecute.fetch_run_persisted,
+        recommendation_rows_mutated:
+          firstTinyHistoricalReplayDryRunExecute.recommendation_rows_mutated,
+        scanner_universe_changed:
+          firstTinyHistoricalReplayDryRunExecute.scanner_universe_changed,
+        thresholds_changed:
+          firstTinyHistoricalReplayDryRunExecute.thresholds_changed,
+        outcome_evaluation_persistence_changed:
+          firstTinyHistoricalReplayDryRunExecute
+            .outcome_evaluation_persistence_changed,
+        learning_acceleration_changed:
+          firstTinyHistoricalReplayDryRunExecute.learning_acceleration_changed,
+        add_trade_affected:
+          firstTinyHistoricalReplayDryRunExecute.add_trade_affected,
+        broker_execution_affected:
+          firstTinyHistoricalReplayDryRunExecute.broker_execution_affected,
+        risk_changed: firstTinyHistoricalReplayDryRunExecute.risk_changed,
+        replay_allowed_now:
+          firstTinyHistoricalReplayDryRunExecute.replay_allowed_now,
+        synthetic_outcome_persistence_allowed_now:
+          firstTinyHistoricalReplayDryRunExecute
+            .synthetic_outcome_persistence_allowed_now,
+        scanner_use_allowed_now:
+          firstTinyHistoricalReplayDryRunExecute.scanner_use_allowed_now,
+        ranking_change_allowed_now:
+          firstTinyHistoricalReplayDryRunExecute.ranking_change_allowed_now,
+        blockers: firstTinyHistoricalReplayDryRunExecute.blockers.join(","),
+        warnings: firstTinyHistoricalReplayDryRunExecute.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalReplayDryRunExecute.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -14546,6 +14696,9 @@ function buildSections(
         first_tiny_historical_replay_dry_run_approval: JSON.stringify(
           firstTinyHistoricalReplayDryRunApproval,
         ),
+        first_tiny_historical_replay_dry_run_execute: JSON.stringify(
+          firstTinyHistoricalReplayDryRunExecute,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -14814,6 +14967,10 @@ function buildSections(
         lineValue(
           "First tiny replay approval",
           `${firstTinyHistoricalReplayDryRunApproval.approval_status} / replay no / scanner no / ranking no`,
+        ),
+        lineValue(
+          "First tiny replay execute",
+          `${firstTinyHistoricalReplayDryRunExecute.execution_status} / replay ${firstTinyHistoricalReplayDryRunExecute.replay_executed ? "yes" : "no"} / synthetic no / scanner no`,
         ),
         lineValue(
           "Primary learning signal",

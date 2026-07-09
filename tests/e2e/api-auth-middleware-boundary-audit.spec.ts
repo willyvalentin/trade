@@ -8,6 +8,7 @@ import { GET as firstTinyFetchPingGET } from "../../app/api/historical-backfill/
 import { GET as firstTinyPayloadRefetchPingGET } from "../../app/api/historical-backfill/first-tiny-candle-payload-refetch/ping/route";
 import { GET as firstTinyCandlePersistencePingGET } from "../../app/api/historical-backfill/first-tiny-candle-persistence/ping/route";
 import { GET as firstTinyCandlePersistenceReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-candle-persistence-readback/ping/route";
+import { GET as firstTinyReplayDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-dry-run/ping/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
 import { proxy } from "../../proxy";
 
@@ -223,6 +224,29 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
         path: "/api/historical-backfill/first-tiny-candle-persistence-readback/ping",
       }),
   );
+  const firstTinyReplayDryRunResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-dry-run",
+        method: "POST",
+      }),
+  );
+  const firstTinyReplayDryRunSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-dry-run/",
+        method: "POST",
+      }),
+  );
+  const firstTinyReplayDryRunPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-dry-run/ping",
+      }),
+  );
 
   expect(environmentResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
@@ -237,6 +261,9 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
   expect(firstTinyCandlePersistenceReadbackResponse.status).not.toBe(401);
   expect(firstTinyCandlePersistenceReadbackSlashResponse.status).not.toBe(401);
   expect(firstTinyCandlePersistenceReadbackPingResponse.status).not.toBe(401);
+  expect(firstTinyReplayDryRunResponse.status).not.toBe(401);
+  expect(firstTinyReplayDryRunSlashResponse.status).not.toBe(401);
+  expect(firstTinyReplayDryRunPingResponse.status).not.toBe(401);
 });
 
 test("first tiny ping endpoint is reachable without auth and safe", async () => {
@@ -245,11 +272,13 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const candlePersistenceResponse = await firstTinyCandlePersistencePingGET();
   const candlePersistenceReadbackResponse =
     await firstTinyCandlePersistenceReadbackPingGET();
+  const replayDryRunResponse = await firstTinyReplayDryRunPingGET();
   const body = await response.json();
   const payloadRefetchBody = await payloadRefetchResponse.json();
   const candlePersistenceBody = await candlePersistenceResponse.json();
   const candlePersistenceReadbackBody =
     await candlePersistenceReadbackResponse.json();
+  const replayDryRunBody = await replayDryRunResponse.json();
 
   expect(response.status).toBe(200);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
@@ -299,6 +328,18 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   expect(candlePersistenceReadbackBody.fetch_run_persisted).toBe(false);
   expect(candlePersistenceReadbackBody.replay_executed).toBe(false);
   expect(candlePersistenceReadbackBody.scanner_behavior_changed).toBe(false);
+  expect(replayDryRunResponse.status).toBe(200);
+  expect(replayDryRunResponse.headers.get("Cache-Control")).toBe("no-store");
+  expect(replayDryRunBody.ok).toBe(true);
+  expect(replayDryRunBody.route_ping).toBe(true);
+  expect(replayDryRunBody.provider_call_executed).toBe(false);
+  expect(replayDryRunBody.candles_persisted).toBe(false);
+  expect(replayDryRunBody.raw_response_persisted).toBe(false);
+  expect(replayDryRunBody.fetch_run_persisted).toBe(false);
+  expect(replayDryRunBody.synthetic_outcomes_persisted).toBe(false);
+  expect(replayDryRunBody.replay_executed).toBe(false);
+  expect(replayDryRunBody.scanner_behavior_changed).toBe(false);
+  expect(replayDryRunBody.live_ranking_changed).toBe(false);
 });
 
 test("environment audit and ping routes are reachable and no-store", async () => {
