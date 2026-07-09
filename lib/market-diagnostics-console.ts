@@ -18,6 +18,7 @@ import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill
 import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
 import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
 import { buildFirstTinyHistoricalFetchApproval } from "@/lib/first-tiny-historical-fetch-approval";
+import { buildFirstTinyHistoricalFetchOperatorApproval } from "@/lib/first-tiny-historical-fetch-operator-approval";
 import { buildFirstTinyHistoricalFetchRequestPreview } from "@/lib/first-tiny-historical-fetch-request-preview";
 import { buildHistoricalCandlePersistencePlan } from "@/lib/historical-candle-persistence-plan";
 import { buildHistoricalCandleCacheReadiness } from "@/lib/historical-candle-cache";
@@ -2882,6 +2883,12 @@ function buildSections(
     buildFirstTinyHistoricalFetchRequestPreview({
       approval: firstTinyHistoricalFetchApproval,
       twelve_data_historical_fetch_contract: twelveDataHistoricalFetchContract,
+    });
+  const firstTinyHistoricalFetchOperatorApproval =
+    buildFirstTinyHistoricalFetchOperatorApproval({
+      approval: firstTinyHistoricalFetchApproval,
+      request_preview: firstTinyHistoricalFetchRequestPreview,
+      execution_readiness: historicalBackfillExecutionReadiness,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -5855,6 +5862,185 @@ function buildSections(
           firstTinyHistoricalFetchRequestPreview.warnings.join(","),
         recommended_next_steps:
           firstTinyHistoricalFetchRequestPreview.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_fetch_operator_approval",
+      title: "First Tiny Historical Fetch Operator Approval",
+      severity:
+        firstTinyHistoricalFetchOperatorApproval.approval_record_status ===
+        "blocked"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Approval record only", "yes"),
+        lineValue(
+          "Approval record status",
+          firstTinyHistoricalFetchOperatorApproval.approval_record_status,
+        ),
+        lineValue(
+          "Approval source",
+          firstTinyHistoricalFetchOperatorApproval.approval_source.source_type,
+        ),
+        lineValue(
+          "Source present",
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .source_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Production safe",
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .production_safe
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Operator label",
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .operator_label,
+        ),
+        lineValue(
+          "Approval reference",
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .approval_reference,
+        ),
+        lineValue(
+          "Scope",
+          `Twelve Data / ${firstTinyHistoricalFetchOperatorApproval.approval_scope.endpoint} / ${firstTinyHistoricalFetchOperatorApproval.approval_scope.ticker} / ${firstTinyHistoricalFetchOperatorApproval.approval_scope.interval} / ${firstTinyHistoricalFetchOperatorApproval.approval_scope.request_count_limit} request / ${firstTinyHistoricalFetchOperatorApproval.approval_scope.estimated_credit_limit} credit`,
+        ),
+        lineValue("Cache lookup required", "yes"),
+        lineValue("Fetch-run audit required", "yes"),
+        lineValue("Persist allowed", "no"),
+        lineValue("Replay allowed", "no"),
+        lineValue("Scanner effect allowed", "no"),
+        lineValue(
+          "Schema readback ok",
+          firstTinyHistoricalFetchOperatorApproval.prerequisites
+            .schema_readback_ok
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Execution readiness ready_for_manual_review",
+          firstTinyHistoricalFetchOperatorApproval.prerequisites
+            .execution_readiness_ready_for_manual_review
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Approval gate pending manual review",
+          firstTinyHistoricalFetchOperatorApproval.prerequisites
+            .approval_gate_pending_manual_review
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Request preview ready",
+          firstTinyHistoricalFetchOperatorApproval.prerequisites
+            .request_preview_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready for operator decision",
+          firstTinyHistoricalFetchOperatorApproval.readiness
+            .ready_for_operator_decision
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to call provider now", "no"),
+        lineValue("Ready to persist candles now", "no"),
+        lineValue("Ready to create fetch-run now", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Provider call executed", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchOperatorApproval.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchOperatorApproval.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        approval_record_only: true,
+        approval_record_status:
+          firstTinyHistoricalFetchOperatorApproval.approval_record_status,
+        approval_source: JSON.stringify(
+          firstTinyHistoricalFetchOperatorApproval.approval_source,
+        ),
+        approval_scope: JSON.stringify(
+          firstTinyHistoricalFetchOperatorApproval.approval_scope,
+        ),
+        prerequisites: JSON.stringify(
+          firstTinyHistoricalFetchOperatorApproval.prerequisites,
+        ),
+        readiness: JSON.stringify(
+          firstTinyHistoricalFetchOperatorApproval.readiness,
+        ),
+        source_type:
+          firstTinyHistoricalFetchOperatorApproval.approval_source.source_type,
+        source_present:
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .source_present,
+        production_safe:
+          firstTinyHistoricalFetchOperatorApproval.approval_source
+            .production_safe,
+        ticker:
+          firstTinyHistoricalFetchOperatorApproval.approval_scope.ticker,
+        interval:
+          firstTinyHistoricalFetchOperatorApproval.approval_scope.interval,
+        request_count_limit:
+          firstTinyHistoricalFetchOperatorApproval.approval_scope
+            .request_count_limit,
+        estimated_credit_limit:
+          firstTinyHistoricalFetchOperatorApproval.approval_scope
+            .estimated_credit_limit,
+        persist_allowed: false,
+        replay_allowed: false,
+        scanner_effect_allowed: false,
+        ready_for_operator_decision:
+          firstTinyHistoricalFetchOperatorApproval.readiness
+            .ready_for_operator_decision,
+        ready_to_enable_future_fetch: false,
+        ready_to_call_provider_now: false,
+        ready_to_persist_candles_now: false,
+        ready_to_create_fetch_run_now: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        provider_call_executed: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers:
+          firstTinyHistoricalFetchOperatorApproval.blockers.join(","),
+        warnings:
+          firstTinyHistoricalFetchOperatorApproval.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchOperatorApproval.recommended_next_steps.join(
             ",",
           ),
       },
@@ -8842,6 +9028,9 @@ function buildSections(
         first_tiny_historical_fetch_request_preview: JSON.stringify(
           firstTinyHistoricalFetchRequestPreview,
         ),
+        first_tiny_historical_fetch_operator_approval: JSON.stringify(
+          firstTinyHistoricalFetchOperatorApproval,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -9002,6 +9191,10 @@ function buildSections(
         lineValue(
           "First tiny fetch preview",
           `${firstTinyHistoricalFetchRequestPreview.preview_status} / ${firstTinyHistoricalFetchRequestPreview.request_preview.ticker} / ${firstTinyHistoricalFetchRequestPreview.request_preview.request_count} request / provider call no / persist no`,
+        ),
+        lineValue(
+          "First tiny fetch operator approval",
+          `${firstTinyHistoricalFetchOperatorApproval.approval_record_status} / provider call no / persist no`,
         ),
         lineValue(
           "Primary learning signal",
