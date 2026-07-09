@@ -9,6 +9,7 @@ import { GET as firstTinyPayloadRefetchPingGET } from "../../app/api/historical-
 import { GET as firstTinyCandlePersistencePingGET } from "../../app/api/historical-backfill/first-tiny-candle-persistence/ping/route";
 import { GET as firstTinyCandlePersistenceReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-candle-persistence-readback/ping/route";
 import { GET as firstTinyReplayDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-dry-run/ping/route";
+import { GET as firstTinyReplayWithSignalPackageDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping/route";
 import { GET as firstTinySignalPackageDiscoveryReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
 import { proxy } from "../../proxy";
@@ -271,6 +272,29 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
         path: "/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping",
       }),
   );
+  const firstTinyReplayWithSignalPackageDryRunResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run",
+        method: "POST",
+      }),
+  );
+  const firstTinyReplayWithSignalPackageDryRunSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/",
+        method: "POST",
+      }),
+  );
+  const firstTinyReplayWithSignalPackageDryRunPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping",
+      }),
+  );
 
   expect(environmentResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
@@ -295,6 +319,13 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
   expect(firstTinySignalPackageDiscoveryReadbackPingResponse.status).not.toBe(
     401,
   );
+  expect(firstTinyReplayWithSignalPackageDryRunResponse.status).not.toBe(401);
+  expect(firstTinyReplayWithSignalPackageDryRunSlashResponse.status).not.toBe(
+    401,
+  );
+  expect(firstTinyReplayWithSignalPackageDryRunPingResponse.status).not.toBe(
+    401,
+  );
 });
 
 test("first tiny ping endpoint is reachable without auth and safe", async () => {
@@ -304,6 +335,8 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const candlePersistenceReadbackResponse =
     await firstTinyCandlePersistenceReadbackPingGET();
   const replayDryRunResponse = await firstTinyReplayDryRunPingGET();
+  const replayWithSignalPackageDryRunResponse =
+    await firstTinyReplayWithSignalPackageDryRunPingGET();
   const signalPackageDiscoveryReadbackResponse =
     await firstTinySignalPackageDiscoveryReadbackPingGET();
   const body = await response.json();
@@ -312,6 +345,8 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const candlePersistenceReadbackBody =
     await candlePersistenceReadbackResponse.json();
   const replayDryRunBody = await replayDryRunResponse.json();
+  const replayWithSignalPackageDryRunBody =
+    await replayWithSignalPackageDryRunResponse.json();
   const signalPackageDiscoveryReadbackBody =
     await signalPackageDiscoveryReadbackResponse.json();
 
@@ -375,6 +410,25 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   expect(replayDryRunBody.replay_executed).toBe(false);
   expect(replayDryRunBody.scanner_behavior_changed).toBe(false);
   expect(replayDryRunBody.live_ranking_changed).toBe(false);
+  expect(replayWithSignalPackageDryRunResponse.status).toBe(200);
+  expect(
+    replayWithSignalPackageDryRunResponse.headers.get("Cache-Control"),
+  ).toBe("no-store");
+  expect(replayWithSignalPackageDryRunBody.ok).toBe(true);
+  expect(replayWithSignalPackageDryRunBody.route_ping).toBe(true);
+  expect(replayWithSignalPackageDryRunBody.provider_call_executed).toBe(false);
+  expect(replayWithSignalPackageDryRunBody.synthetic_outcomes_persisted).toBe(
+    false,
+  );
+  expect(replayWithSignalPackageDryRunBody.replay_executed).toBe(false);
+  expect(replayWithSignalPackageDryRunBody.scanner_behavior_changed).toBe(
+    false,
+  );
+  expect(replayWithSignalPackageDryRunBody.live_ranking_changed).toBe(false);
+  expect(replayWithSignalPackageDryRunBody.recommendation_rows_mutated).toBe(
+    false,
+  );
+  expect(replayWithSignalPackageDryRunBody.supabase_write_executed).toBe(false);
   expect(signalPackageDiscoveryReadbackResponse.status).toBe(200);
   expect(signalPackageDiscoveryReadbackResponse.headers.get("Cache-Control")).toBe(
     "no-store",
