@@ -36,6 +36,7 @@ import { buildFirstTinyCandlePayloadRefetchResultVerification } from "@/lib/firs
 import { buildFirstTinyCandlePayloadWindowSanityReview } from "@/lib/first-tiny-historical-candle-payload-window-sanity-review";
 import { buildFirstTinyCandlePersistenceApproval } from "@/lib/first-tiny-historical-candle-persistence-approval";
 import { buildFirstTinyCandlePersistenceExecuteReadiness } from "@/lib/first-tiny-historical-candle-persistence-execute";
+import { buildFirstTinyCandlePersistenceReadbackVerificationReadiness } from "@/lib/first-tiny-historical-candle-persistence-readback-verification";
 import { buildFirstTinyCorrectedOhlcvPayloadStaticCapture } from "@/lib/first-tiny-historical-candle-corrected-ohlcv-payload-static-capture";
 import { buildFirstTinyCorrectedPayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
 import { buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan } from "@/lib/first-tiny-historical-candle-executable-persistence-dry-run-plan";
@@ -3009,6 +3010,8 @@ function buildSections(
       dry_run_plan: firstTinyExecutableCandlePersistenceDryRunPlan,
       approval: firstTinyCandlePersistenceApproval,
     });
+  const firstTinyCandlePersistenceReadbackVerification =
+    buildFirstTinyCandlePersistenceReadbackVerificationReadiness();
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -10853,6 +10856,155 @@ function buildSections(
       },
     }),
     section({
+      section_id:
+        "first_tiny_historical_candle_persistence_readback_verification",
+      title: "First Tiny Candle Persistence Readback Verification",
+      severity:
+        firstTinyCandlePersistenceReadbackVerification.verification_status ===
+        "failed"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Status",
+          firstTinyCandlePersistenceReadbackVerification.verification_status,
+        ),
+        lineValue(
+          "Target table",
+          firstTinyCandlePersistenceReadbackVerification.target_table,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinyCandlePersistenceReadbackVerification.source_verification,
+        ),
+        lineValue("Ticker", firstTinyCandlePersistenceReadbackVerification.ticker),
+        lineValue(
+          "Interval",
+          firstTinyCandlePersistenceReadbackVerification.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyCandlePersistenceReadbackVerification.trading_day,
+        ),
+        lineValue(
+          "Fetch run id",
+          firstTinyCandlePersistenceReadbackVerification.fetch_run_id,
+        ),
+        lineValue(
+          "Expected rows",
+          firstTinyCandlePersistenceReadbackVerification.expected_rows,
+        ),
+        lineValue(
+          "Readback rows",
+          `${firstTinyCandlePersistenceReadbackVerification.readback_rows}/${firstTinyCandlePersistenceReadbackVerification.expected_rows}`,
+        ),
+        lineValue(
+          "Matched rows",
+          `${firstTinyCandlePersistenceReadbackVerification.matched_rows}/${firstTinyCandlePersistenceReadbackVerification.expected_rows}`,
+        ),
+        lineValue(
+          "Missing rows",
+          firstTinyCandlePersistenceReadbackVerification.missing_rows,
+        ),
+        lineValue(
+          "Mismatched rows",
+          firstTinyCandlePersistenceReadbackVerification.mismatched_rows,
+        ),
+        lineValue(
+          "Unexpected rows",
+          firstTinyCandlePersistenceReadbackVerification.unexpected_rows,
+        ),
+        lineValue(
+          "Readback verified",
+          firstTinyCandlePersistenceReadbackVerification.readback_verified
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Candles persisted",
+          firstTinyCandlePersistenceReadbackVerification.candles_persisted
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted by this action", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyCandlePersistenceReadbackVerification
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        route_build_marker:
+          firstTinyCandlePersistenceReadbackVerification.route_build_marker,
+        verification_status:
+          firstTinyCandlePersistenceReadbackVerification.verification_status,
+        target_table:
+          firstTinyCandlePersistenceReadbackVerification.target_table,
+        source_verification:
+          firstTinyCandlePersistenceReadbackVerification.source_verification,
+        provider: firstTinyCandlePersistenceReadbackVerification.provider,
+        ticker: firstTinyCandlePersistenceReadbackVerification.ticker,
+        interval: firstTinyCandlePersistenceReadbackVerification.interval,
+        trading_day:
+          firstTinyCandlePersistenceReadbackVerification.trading_day,
+        fetch_run_id:
+          firstTinyCandlePersistenceReadbackVerification.fetch_run_id,
+        expected_rows:
+          firstTinyCandlePersistenceReadbackVerification.expected_rows,
+        readback_rows:
+          firstTinyCandlePersistenceReadbackVerification.readback_rows,
+        matched_rows:
+          firstTinyCandlePersistenceReadbackVerification.matched_rows,
+        missing_rows:
+          firstTinyCandlePersistenceReadbackVerification.missing_rows,
+        unexpected_rows:
+          firstTinyCandlePersistenceReadbackVerification.unexpected_rows,
+        mismatched_rows:
+          firstTinyCandlePersistenceReadbackVerification.mismatched_rows,
+        duplicate_timestamps:
+          firstTinyCandlePersistenceReadbackVerification.duplicate_timestamps,
+        out_of_order_rows:
+          firstTinyCandlePersistenceReadbackVerification.out_of_order_rows,
+        first_timestamp:
+          firstTinyCandlePersistenceReadbackVerification.first_timestamp,
+        last_timestamp:
+          firstTinyCandlePersistenceReadbackVerification.last_timestamp,
+        timestamps_5min_spaced:
+          firstTinyCandlePersistenceReadbackVerification
+            .timestamps_5min_spaced,
+        readback_verified:
+          firstTinyCandlePersistenceReadbackVerification.readback_verified,
+        candles_persisted:
+          firstTinyCandlePersistenceReadbackVerification.candles_persisted,
+        raw_response_persisted:
+          firstTinyCandlePersistenceReadbackVerification
+            .raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyCandlePersistenceReadbackVerification.fetch_run_persisted,
+        replay_executed:
+          firstTinyCandlePersistenceReadbackVerification.replay_executed,
+        scanner_behavior_changed:
+          firstTinyCandlePersistenceReadbackVerification
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyCandlePersistenceReadbackVerification.live_ranking_changed,
+        blockers:
+          firstTinyCandlePersistenceReadbackVerification.blockers.join(","),
+        warnings:
+          firstTinyCandlePersistenceReadbackVerification.warnings.join(","),
+        recommended_next_steps:
+          firstTinyCandlePersistenceReadbackVerification.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -13891,6 +14043,8 @@ function buildSections(
           JSON.stringify(firstTinyCandlePersistenceApproval),
         first_tiny_historical_candle_persistence_execute:
           JSON.stringify(firstTinyCandlePersistenceExecute),
+        first_tiny_historical_candle_persistence_readback_verification:
+          JSON.stringify(firstTinyCandlePersistenceReadbackVerification),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -14143,6 +14297,10 @@ function buildSections(
         lineValue(
           "First tiny candle persistence execute",
           `${firstTinyCandlePersistenceExecute.execution_status} / persisted ${firstTinyCandlePersistenceExecute.candles_persisted ? "yes" : "no"} / replay no`,
+        ),
+        lineValue(
+          "First tiny candle persistence readback",
+          `${firstTinyCandlePersistenceReadbackVerification.verification_status} / verified ${firstTinyCandlePersistenceReadbackVerification.readback_verified ? "yes" : "no"} / write no`,
         ),
         lineValue(
           "Primary learning signal",

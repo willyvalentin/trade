@@ -1,0 +1,30 @@
+import { NextResponse } from "next/server";
+
+import { firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker } from "@/lib/first-tiny-historical-candle-persistence-readback-verification";
+
+export const dynamic = "force-dynamic";
+
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+};
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      route_ping: true,
+      route_build_marker:
+        firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+      provider_call_executed: false,
+      provider_call_attempted: false,
+      candles_persisted: false,
+      raw_response_persisted: false,
+      fetch_run_persisted: false,
+      synthetic_outcomes_persisted: false,
+      replay_executed: false,
+      scanner_behavior_changed: false,
+      live_ranking_changed: false,
+    },
+    { headers: noStoreHeaders },
+  );
+}
