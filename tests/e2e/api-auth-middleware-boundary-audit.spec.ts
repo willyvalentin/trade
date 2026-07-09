@@ -1,0 +1,265 @@
+import { expect, test } from "@playwright/test";
+import { NextRequest } from "next/server";
+
+import { GET as environmentAuditGET } from "../../app/api/environment-boundary-audit/route";
+import { GET as environmentAuditPingGET } from "../../app/api/environment-boundary-audit/ping/route";
+import { POST as firstTinyFetchPOST } from "../../app/api/historical-backfill/first-tiny-fetch/route";
+import { GET as firstTinyFetchPingGET } from "../../app/api/historical-backfill/first-tiny-fetch/ping/route";
+import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
+import { proxy } from "../../proxy";
+
+async function proxyRequest(input: {
+  path: string;
+  method?: string;
+  header?: string | null;
+}) {
+  const headers = new Headers();
+  if (input.header !== undefined && input.header !== null) {
+    headers.set("x-automation-secret", input.header);
+  }
+
+  return proxy(
+    new NextRequest(`http://localhost${input.path}`, {
+      method: input.method ?? "GET",
+      headers,
+    }),
+  );
+}
+
+async function firstTinyPost(input: {
+  secret?: string | null;
+  body?: unknown;
+}) {
+  const headers = new Headers({ "content-type": "application/json" });
+  if (input.secret !== undefined && input.secret !== null) {
+    headers.set("x-automation-secret", input.secret);
+  }
+
+  return firstTinyFetchPOST(
+    new Request("http://localhost/api/historical-backfill/first-tiny-fetch", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(input.body ?? {}),
+    }),
+  );
+}
+
+async function withEnv<T>(
+  env: Record<string, string | undefined>,
+  callback: () => Promise<T>,
+) {
+  const keys = [
+    "TRADE_APP_PASSWORD",
+    "AUTOMATION_SECRET",
+    "TWELVE_DATA_API_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  ];
+  const previous = Object.fromEntries(
+    keys.map((key) => [key, process.env[key]]),
+  );
+
+  for (const key of keys) {
+    if (env[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = env[key];
+    }
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const key of keys) {
+      if (previous[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = previous[key];
+      }
+    }
+  }
+}
+
+test("proxy unauthorized API response includes safe boundary marker", async () => {
+  const response = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () => proxyRequest({ path: "/api/symbol-metadata", method: "GET" }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(401);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(body.error).toBe("Unauthorized");
+  expect(body.auth_boundary).toBe("middleware");
+  expect(body.auth_boundary_marker).toBe(
+    "action_276_api_auth_middleware_boundary_audit",
+  );
+  expect(body.path).toBe("/api/symbol-metadata");
+  expect(body.method).toBe("GET");
+  expect(body.header_present).toBe(false);
+  expect(body.server_secret_present).toBe(true);
+  expect(body.diagnostics_safe).toBe(true);
+  expect(JSON.stringify(body)).not.toContain("trade-password");
+});
+
+test("proxy unauthorized reports automation header presence without values", async () => {
+  const secret = "x".repeat(64);
+  const response = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/symbol-metadata",
+        method: "POST",
+        header: secret,
+      }),
+  );
+  const body = await response.json();
+  const serialized = JSON.stringify(body);
+
+  expect(response.status).toBe(401);
+  expect(body.auth_boundary).toBe("middleware");
+  expect(body.header_present).toBe(true);
+  expect(serialized).not.toContain(secret);
+  expect(serialized).not.toContain("trade-password");
+});
+
+test("safe diagnostic routes are not blocked by proxy", async () => {
+  const environmentResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () => proxyRequest({ path: "/api/environment-boundary-audit" }),
+  );
+  const firstTinyResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-fetch",
+        method: "POST",
+      }),
+  );
+  const firstTinyPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-fetch/ping",
+      }),
+  );
+
+  expect(environmentResponse.status).not.toBe(401);
+  expect(firstTinyResponse.status).not.toBe(401);
+  expect(firstTinyPingResponse.status).not.toBe(401);
+});
+
+test("first tiny ping endpoint is reachable without auth and safe", async () => {
+  const response = await firstTinyFetchPingGET();
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(body.ok).toBe(true);
+  expect(body.route_ping).toBe(true);
+  expect(body.route_version).toBe("first_tiny_fetch_ping_v1");
+  expect(body.route_build_marker).toBe(firstTinyFetchRouteExpectedMarker);
+  expect(body.provider_call_executed).toBe(false);
+  expect(body.candles_persisted).toBe(false);
+  expect(body.fetch_run_persisted).toBe(false);
+  expect(body.raw_response_persisted).toBe(false);
+  expect(body.synthetic_outcomes_persisted).toBe(false);
+  expect(body.replay_executed).toBe(false);
+  expect(body.scanner_behavior_changed).toBe(false);
+  expect(body.live_ranking_changed).toBe(false);
+});
+
+test("environment audit and ping routes are reachable and no-store", async () => {
+  const audit = await withEnv(
+    {
+      NEXT_PUBLIC_SUPABASE_URL: "https://ekdyopdrrkphlrsilyoo.supabase.co",
+      AUTOMATION_SECRET: "a".repeat(64),
+      TWELVE_DATA_API_KEY: "twelve-data-secret",
+      SUPABASE_SERVICE_ROLE_KEY: "service-role-secret",
+    },
+    () => environmentAuditGET(),
+  );
+  const ping = await environmentAuditPingGET();
+  const auditBody = await audit.json();
+  const pingBody = await ping.json();
+  const serialized = JSON.stringify(auditBody);
+
+  expect(audit.status).toBe(200);
+  expect(audit.headers.get("Cache-Control")).toBe("no-store");
+  expect(auditBody.ok).toBe(true);
+  expect(auditBody.audit.safety.provider_call_executed).toBe(false);
+  expect(auditBody.audit.safety.candles_persisted).toBe(false);
+  expect(auditBody.audit.safety.fetch_run_persisted).toBe(false);
+  expect(auditBody.audit.safety.replay_executed).toBe(false);
+  expect(auditBody.audit.safety.scanner_behavior_changed).toBe(false);
+  expect(serialized).not.toContain("twelve-data-secret");
+  expect(serialized).not.toContain("service-role-secret");
+  expect(ping.status).toBe(200);
+  expect(ping.headers.get("Cache-Control")).toBe("no-store");
+  expect(pingBody.route_version).toBe("environment_boundary_audit_ping_v1");
+  expect(pingBody.raw_response_persisted).toBe(false);
+  expect(pingBody.synthetic_outcomes_persisted).toBe(false);
+  expect(pingBody.live_ranking_changed).toBe(false);
+});
+
+test("first tiny route-handler unauthorized includes boundary marker", async () => {
+  const response = await withEnv(
+    { AUTOMATION_SECRET: "a".repeat(64) },
+    () => firstTinyPost({ body: { execute_provider_call: true } }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(401);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(body.error).toBe("Unauthorized.");
+  expect(body.auth_boundary).toBe("route_handler");
+  expect(body.auth_boundary_marker).toBe(firstTinyFetchRouteExpectedMarker);
+  expect(body.auth_diagnostics.header_present).toBe(false);
+  expect(body.provider_call_executed).toBe(false);
+  expect(body.candles_persisted).toBe(false);
+  expect(body.fetch_run_persisted).toBe(false);
+  expect(body.replay_executed).toBe(false);
+  expect(body.scanner_behavior_changed).toBe(false);
+});
+
+test("auth_check_only stays no-provider no-persist", async () => {
+  const secret = "b".repeat(64);
+  const response = await withEnv(
+    { AUTOMATION_SECRET: secret },
+    () => firstTinyPost({ secret, body: { auth_check_only: true } }),
+  );
+  const body = await response.json();
+  const serialized = JSON.stringify(body);
+
+  expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(body.ok).toBe(true);
+  expect(body.auth_check_only).toBe(true);
+  expect(body.route_build_marker).toBe(firstTinyFetchRouteExpectedMarker);
+  expect(body.provider_call_executed).toBe(false);
+  expect(body.candles_persisted).toBe(false);
+  expect(body.fetch_run_persisted).toBe(false);
+  expect(body.replay_executed).toBe(false);
+  expect(body.scanner_behavior_changed).toBe(false);
+  expect(body.live_ranking_changed).toBe(false);
+  expect(serialized).not.toContain(secret);
+});
+
+test("normal route validation remains protected after auth", async () => {
+  const secret = "c".repeat(64);
+  const response = await withEnv(
+    { AUTOMATION_SECRET: secret },
+    () => firstTinyPost({ secret, body: {} }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(400);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(body.error).toBe("execute_provider_call_true_required");
+  expect(body.provider_call_executed).toBe(false);
+  expect(body.candles_persisted).toBe(false);
+  expect(body.fetch_run_persisted).toBe(false);
+  expect(body.replay_executed).toBe(false);
+  expect(body.scanner_behavior_changed).toBe(false);
+  expect(body.live_ranking_changed).toBe(false);
+});

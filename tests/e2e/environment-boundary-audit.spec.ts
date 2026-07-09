@@ -88,10 +88,10 @@ test("runbook includes production audit and first tiny route ping commands", () 
 
   expect(runbook).toContain("Production/Staging Environment Boundary Audit");
   expect(runbook).toContain(
-    'curl -s "https://trade.valentinlabs.com/api/environment-boundary-audit"',
+    'curl -i -s "https://trade.valentinlabs.com/api/environment-boundary-audit"',
   );
   expect(runbook).toContain(
-    "https://trade.valentinlabs.com/api/historical-backfill/first-tiny-fetch",
+    "https://trade.valentinlabs.com/api/historical-backfill/first-tiny-fetch/ping",
   );
   expect(runbook).toContain("--data '{\"route_ping\":true}'");
   expect(runbook).toContain(expectedProductionSupabaseRef);

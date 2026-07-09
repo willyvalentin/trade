@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const TRADE_AUTH_COOKIE = "trade_auth";
+const AUTH_BOUNDARY_MARKER =
+  "action_276_api_auth_middleware_boundary_audit";
+
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+};
 
 async function getTradeAuthToken(password: string) {
   const data = new TextEncoder().encode(`trade-auth:${password}`);
@@ -18,13 +24,29 @@ function isPublicPath(pathname: string) {
     pathname === "/api/auth/logout" ||
     pathname === "/api/automation/run-scan" ||
     pathname === "/api/diagnostics/run-scan" ||
-    pathname === "/api/recommendations/evaluate-outcomes"
+    pathname === "/api/recommendations/evaluate-outcomes" ||
+    pathname === "/api/environment-boundary-audit" ||
+    pathname === "/api/environment-boundary-audit/ping" ||
+    pathname === "/api/historical-backfill/first-tiny-fetch" ||
+    pathname === "/api/historical-backfill/first-tiny-fetch/ping"
   );
 }
 
 function unauthorized(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        auth_boundary: "middleware",
+        auth_boundary_marker: AUTH_BOUNDARY_MARKER,
+        path: request.nextUrl.pathname,
+        method: request.method,
+        header_present: request.headers.has("x-automation-secret"),
+        server_secret_present: Boolean(process.env.TRADE_APP_PASSWORD),
+        diagnostics_safe: true,
+      },
+      { status: 401, headers: noStoreHeaders },
+    );
   }
 
   return NextResponse.redirect(new URL("/login", request.url));

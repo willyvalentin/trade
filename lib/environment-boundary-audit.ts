@@ -2,7 +2,7 @@ export const environmentBoundaryAuditRouteMarker =
   "action_275_environment_boundary_audit";
 
 export const firstTinyFetchRouteExpectedMarker =
-  "action_275_environment_boundary_audit";
+  "action_276_api_auth_middleware_boundary_audit";
 
 export const expectedProductionSupabaseRef = "ekdyopdrrkphlrsilyoo";
 export const knownStagingSupabaseRef = "pdvzyuhykomwfqyyztru";

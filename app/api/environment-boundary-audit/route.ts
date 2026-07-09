@@ -7,12 +7,19 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+};
+
 function response() {
-  return NextResponse.json({
-    ok: true,
-    route_marker: environmentBoundaryAuditRouteMarker,
-    audit: buildEnvironmentBoundaryAudit(),
-  });
+  return NextResponse.json(
+    {
+      ok: true,
+      route_marker: environmentBoundaryAuditRouteMarker,
+      audit: buildEnvironmentBoundaryAudit(),
+    },
+    { headers: noStoreHeaders },
+  );
 }
 
 export async function GET() {

@@ -57,6 +57,14 @@ const noEffectResponse = {
   live_ranking_changed: false,
 } as const;
 
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+};
+
+function jsonNoStore(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, { status, headers: noStoreHeaders });
+}
+
 async function parseBody(request: Request): Promise<FirstTinyFetchRouteBody> {
   try {
     const text = await request.text();
@@ -87,7 +95,7 @@ export async function POST(request: Request) {
   const body = await parseBody(request);
 
   if (body.route_ping === true) {
-    return NextResponse.json({
+    return jsonNoStore({
       ok: true,
       route_ping: true,
       route_version: firstTinyFetchRouteExpectedMarker,
@@ -104,42 +112,45 @@ export async function POST(request: Request) {
   const authenticated = authDiagnostics.header_matches;
 
   if (!authenticated) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         error: "Unauthorized.",
+        auth_boundary: "route_handler",
+        auth_boundary_marker: firstTinyFetchRouteExpectedMarker,
         auth_diagnostics: authDiagnostics,
         ...noEffectResponse,
       },
-      { status: 401 },
+      401,
     );
   }
 
   if (body.auth_check_only === true) {
-    return NextResponse.json({
+    return jsonNoStore({
       ok: true,
       auth_check_only: true,
+      route_build_marker: firstTinyFetchRouteExpectedMarker,
       auth_diagnostics: authDiagnostics,
       ...noEffectResponse,
     });
   }
 
   if (body.execute_provider_call !== true) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         error: "execute_provider_call_true_required",
         ...noEffectResponse,
       },
-      { status: 400 },
+      400,
     );
   }
 
   if (hasArbitraryScopeOverride(body)) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         error: "arbitrary_scope_override_rejected",
         ...noEffectResponse,
       },
-      { status: 400 },
+      400,
     );
   }
 
@@ -147,5 +158,5 @@ export async function POST(request: Request) {
     execute_provider_call: true,
   });
 
-  return NextResponse.json(result);
+  return jsonNoStore(result as unknown as Record<string, unknown>);
 }
