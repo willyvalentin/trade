@@ -27,6 +27,12 @@ function isPublicPath(pathname: string) {
     pathname === "/api/recommendations/evaluate-outcomes" ||
     pathname === "/api/environment-boundary-audit" ||
     pathname === "/api/environment-boundary-audit/ping" ||
+    pathname === "/api/route-publication-diagnostic" ||
+    pathname === "/api/route-publication-diagnostic/" ||
+    pathname === "/api/hb307c" ||
+    pathname === "/api/hb307c/" ||
+    pathname === "/api/hb307c/ping" ||
+    pathname === "/api/hb307c/ping/" ||
     pathname === "/api/historical-backfill/first-tiny-fetch" ||
     pathname === "/api/historical-backfill/first-tiny-fetch/ping" ||
     pathname === "/api/historical-backfill/first-tiny-fetch-run-audit-write" ||

@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 import { GET as environmentAuditGET } from "../../app/api/environment-boundary-audit/route";
 import { GET as environmentAuditPingGET } from "../../app/api/environment-boundary-audit/ping/route";
+import { GET as hb307cPingGET } from "../../app/api/hb307c/ping/route";
 import { POST as firstTinyFetchPOST } from "../../app/api/historical-backfill/first-tiny-fetch/route";
 import { GET as firstTinyFetchPingGET } from "../../app/api/historical-backfill/first-tiny-fetch/ping/route";
 import { GET as firstTinyPayloadRefetchPingGET } from "../../app/api/historical-backfill/first-tiny-candle-payload-refetch/ping/route";
@@ -12,6 +13,7 @@ import { GET as firstTinyReplayDryRunPingGET } from "../../app/api/historical-ba
 import { GET as firstTinyReplayWithSignalPackageDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping/route";
 import { GET as firstTinySignalReplayDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-signal-replay-dry-run/ping/route";
 import { GET as firstTinySignalPackageDiscoveryReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping/route";
+import { GET as routePublicationDiagnosticGET } from "../../app/api/route-publication-diagnostic/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
 import { proxy } from "../../proxy";
 
@@ -141,6 +143,50 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
       proxyRequest({
         path: "/api/historical-backfill/first-tiny-fetch",
         method: "POST",
+      }),
+  );
+  const hb307cResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/hb307c",
+        method: "POST",
+      }),
+  );
+  const hb307cSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/hb307c/",
+        method: "POST",
+      }),
+  );
+  const hb307cPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/hb307c/ping",
+      }),
+  );
+  const hb307cPingSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/hb307c/ping/",
+      }),
+  );
+  const routePublicationDiagnosticResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/route-publication-diagnostic",
+      }),
+  );
+  const routePublicationDiagnosticSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/route-publication-diagnostic/",
       }),
   );
   const firstTinyPingResponse = await withEnv(
@@ -335,6 +381,12 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
   );
 
   expect(environmentResponse.status).not.toBe(401);
+  expect(hb307cResponse.status).not.toBe(401);
+  expect(hb307cSlashResponse.status).not.toBe(401);
+  expect(hb307cPingResponse.status).not.toBe(401);
+  expect(hb307cPingSlashResponse.status).not.toBe(401);
+  expect(routePublicationDiagnosticResponse.status).not.toBe(401);
+  expect(routePublicationDiagnosticSlashResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
   expect(firstTinyPingResponse.status).not.toBe(401);
   expect(firstTinyAuditWriteResponse.status).not.toBe(401);
@@ -380,6 +432,9 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const candlePersistenceReadbackResponse =
     await firstTinyCandlePersistenceReadbackPingGET();
   const replayDryRunResponse = await firstTinyReplayDryRunPingGET();
+  const hb307cPingResponse = await hb307cPingGET();
+  const routePublicationDiagnosticResponse =
+    await routePublicationDiagnosticGET();
   const replayWithSignalPackageDryRunResponse =
     await firstTinyReplayWithSignalPackageDryRunPingGET();
   const signalReplayDryRunResponse =
@@ -392,6 +447,9 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const candlePersistenceReadbackBody =
     await candlePersistenceReadbackResponse.json();
   const replayDryRunBody = await replayDryRunResponse.json();
+  const hb307cPingBody = await hb307cPingResponse.json();
+  const routePublicationDiagnosticBody =
+    await routePublicationDiagnosticResponse.json();
   const replayWithSignalPackageDryRunBody =
     await replayWithSignalPackageDryRunResponse.json();
   const signalReplayDryRunBody = await signalReplayDryRunResponse.json();
@@ -458,6 +516,33 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   expect(replayDryRunBody.replay_executed).toBe(false);
   expect(replayDryRunBody.scanner_behavior_changed).toBe(false);
   expect(replayDryRunBody.live_ranking_changed).toBe(false);
+  expect(hb307cPingResponse.status).toBe(200);
+  expect(hb307cPingResponse.headers.get("Cache-Control")).toBe("no-store");
+  expect(hb307cPingBody.ok).toBe(true);
+  expect(hb307cPingBody.route_ping).toBe(true);
+  expect(hb307cPingBody.provider_call_executed).toBe(false);
+  expect(hb307cPingBody.provider_call_attempted).toBe(false);
+  expect(hb307cPingBody.synthetic_outcomes_persisted).toBe(false);
+  expect(hb307cPingBody.replay_executed).toBe(false);
+  expect(hb307cPingBody.scanner_behavior_changed).toBe(false);
+  expect(hb307cPingBody.live_ranking_changed).toBe(false);
+  expect(hb307cPingBody.recommendation_rows_mutated).toBe(false);
+  expect(hb307cPingBody.supabase_write_executed).toBe(false);
+  expect(routePublicationDiagnosticResponse.status).toBe(200);
+  expect(
+    routePublicationDiagnosticResponse.headers.get("Cache-Control"),
+  ).toBe("no-store");
+  expect(routePublicationDiagnosticBody.ok).toBe(true);
+  expect(routePublicationDiagnosticBody.route_publication_diagnostic).toBe(true);
+  expect(routePublicationDiagnosticBody.provider_call_executed).toBe(false);
+  expect(routePublicationDiagnosticBody.synthetic_outcomes_persisted).toBe(
+    false,
+  );
+  expect(routePublicationDiagnosticBody.replay_executed).toBe(false);
+  expect(routePublicationDiagnosticBody.scanner_behavior_changed).toBe(false);
+  expect(routePublicationDiagnosticBody.live_ranking_changed).toBe(false);
+  expect(routePublicationDiagnosticBody.recommendation_rows_mutated).toBe(false);
+  expect(routePublicationDiagnosticBody.supabase_write_executed).toBe(false);
   expect(replayWithSignalPackageDryRunResponse.status).toBe(200);
   expect(
     replayWithSignalPackageDryRunResponse.headers.get("Cache-Control"),
