@@ -29,7 +29,13 @@ function isPublicPath(pathname: string) {
     pathname === "/api/environment-boundary-audit/ping" ||
     pathname === "/api/historical-backfill/first-tiny-fetch" ||
     pathname === "/api/historical-backfill/first-tiny-fetch/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch-run-audit-write"
+    pathname === "/api/historical-backfill/first-tiny-fetch-run-audit-write" ||
+    pathname ===
+      "/api/historical-backfill/first-tiny-candle-payload-refetch" ||
+    pathname ===
+      "/api/historical-backfill/first-tiny-candle-payload-refetch/" ||
+    pathname ===
+      "/api/historical-backfill/first-tiny-candle-payload-refetch/ping"
   );
 }
 

@@ -5,6 +5,7 @@ import { GET as environmentAuditGET } from "../../app/api/environment-boundary-a
 import { GET as environmentAuditPingGET } from "../../app/api/environment-boundary-audit/ping/route";
 import { POST as firstTinyFetchPOST } from "../../app/api/historical-backfill/first-tiny-fetch/route";
 import { GET as firstTinyFetchPingGET } from "../../app/api/historical-backfill/first-tiny-fetch/ping/route";
+import { GET as firstTinyPayloadRefetchPingGET } from "../../app/api/historical-backfill/first-tiny-candle-payload-refetch/ping/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
 import { proxy } from "../../proxy";
 
@@ -151,16 +152,44 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
         method: "POST",
       }),
   );
+  const firstTinyPayloadRefetchResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-candle-payload-refetch",
+        method: "POST",
+      }),
+  );
+  const firstTinyPayloadRefetchSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-candle-payload-refetch/",
+        method: "POST",
+      }),
+  );
+  const firstTinyPayloadRefetchPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-candle-payload-refetch/ping",
+      }),
+  );
 
   expect(environmentResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
   expect(firstTinyPingResponse.status).not.toBe(401);
   expect(firstTinyAuditWriteResponse.status).not.toBe(401);
+  expect(firstTinyPayloadRefetchResponse.status).not.toBe(401);
+  expect(firstTinyPayloadRefetchSlashResponse.status).not.toBe(401);
+  expect(firstTinyPayloadRefetchPingResponse.status).not.toBe(401);
 });
 
 test("first tiny ping endpoint is reachable without auth and safe", async () => {
   const response = await firstTinyFetchPingGET();
+  const payloadRefetchResponse = await firstTinyPayloadRefetchPingGET();
   const body = await response.json();
+  const payloadRefetchBody = await payloadRefetchResponse.json();
 
   expect(response.status).toBe(200);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
@@ -176,6 +205,16 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   expect(body.replay_executed).toBe(false);
   expect(body.scanner_behavior_changed).toBe(false);
   expect(body.live_ranking_changed).toBe(false);
+  expect(payloadRefetchResponse.status).toBe(200);
+  expect(payloadRefetchResponse.headers.get("Cache-Control")).toBe("no-store");
+  expect(payloadRefetchBody.ok).toBe(true);
+  expect(payloadRefetchBody.route_ping).toBe(true);
+  expect(payloadRefetchBody.provider_call_executed).toBe(false);
+  expect(payloadRefetchBody.candles_persisted).toBe(false);
+  expect(payloadRefetchBody.raw_response_persisted).toBe(false);
+  expect(payloadRefetchBody.fetch_run_persisted).toBe(false);
+  expect(payloadRefetchBody.replay_executed).toBe(false);
+  expect(payloadRefetchBody.scanner_behavior_changed).toBe(false);
 });
 
 test("environment audit and ping routes are reachable and no-store", async () => {
