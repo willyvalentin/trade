@@ -61,19 +61,22 @@ function verifiedStorageReadiness() {
   });
 }
 
-function oneTickerFetchPlan() {
+function oneTickerFetchPlan(ticker = "COIN") {
   return buildHistoricalBackfillFetchPlan({
-    visible_recent_tickers: ["COIN"],
-    static_universe_tickers: ["COIN"],
+    visible_recent_tickers: [ticker],
+    static_universe_tickers: [ticker],
     history_days_requested: 1,
     max_selected_tickers: 1,
     migration_applied: true,
   });
 }
 
-function verifiedChain() {
+function verifiedChain(input: {
+  ticker?: string;
+  provider_env_present?: boolean | "unknown";
+} = {}) {
   const storage = verifiedStorageReadiness();
-  const fetchPlan = oneTickerFetchPlan();
+  const fetchPlan = oneTickerFetchPlan(input.ticker ?? "COIN");
   const pipeline = buildHistoricalBackfillDryRunPipeline({
     fetch_plan: fetchPlan,
     storage_readiness: storage,
@@ -83,7 +86,7 @@ function verifiedChain() {
     storage_readiness: storage,
     fetch_plan: fetchPlan,
     dry_run_pipeline: pipeline,
-    provider_env_present: true,
+    provider_env_present: input.provider_env_present ?? true,
   });
   const approval = buildFirstTinyHistoricalFetchApproval({
     storage_readiness: storage,
@@ -400,6 +403,34 @@ test("all ready layers make the final preflight proposal-ready only", () => {
   );
   expect(preflight.readiness.ready_to_execute_now).toBe(false);
   expect(preflight.readiness.ready_to_call_provider_now).toBe(false);
+});
+
+test("provider env unknown does not block future-action proposal preflight", () => {
+  const chain = verifiedChain({
+    ticker: "AAPL",
+    provider_env_present: "unknown",
+  });
+  const preflight = buildFirstTinyHistoricalFetchFinalPreflight({
+    storage_readiness: chain.storage,
+    execution_readiness: chain.execution,
+    approval: chain.approval,
+    request_preview: chain.requestPreview,
+    operator_approval: chain.operatorApproval,
+    execution_plan: chain.executionPlan,
+    approval_signal_readiness: chain.signalReadiness,
+  });
+
+  expect(preflight.preflight_status).toBe(
+    "ready_to_propose_first_provider_call_action",
+  );
+  expect(preflight.blockers).toEqual([]);
+  expect(preflight.preflight_checks.provider_env_present).toBe("unknown");
+  expect(preflight.request_scope.ticker).toBe("AAPL");
+  expect(preflight.request_scope.request_count).toBe(1);
+  expect(preflight.request_scope.estimated_credits).toBe(1);
+  expect(preflight.readiness.ready_to_execute_now).toBe(false);
+  expect(preflight.readiness.ready_to_call_provider_now).toBe(false);
+  expect(preflight.safety.provider_call_executed).toBe(false);
 });
 
 test("runtime effects and safety remain disabled", () => {

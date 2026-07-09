@@ -53,19 +53,22 @@ function verifiedStorageReadiness() {
   });
 }
 
-function oneTickerFetchPlan() {
+function oneTickerFetchPlan(ticker = "COIN") {
   return buildHistoricalBackfillFetchPlan({
-    visible_recent_tickers: ["COIN"],
-    static_universe_tickers: ["COIN"],
+    visible_recent_tickers: [ticker],
+    static_universe_tickers: [ticker],
     history_days_requested: 1,
     max_selected_tickers: 1,
     migration_applied: true,
   });
 }
 
-function verifiedApprovalAndContract() {
+function verifiedApprovalAndContract(input: {
+  ticker?: string;
+  provider_env_present?: boolean | "unknown";
+} = {}) {
   const storage = verifiedStorageReadiness();
-  const fetchPlan = oneTickerFetchPlan();
+  const fetchPlan = oneTickerFetchPlan(input.ticker ?? "COIN");
   const pipeline = buildHistoricalBackfillDryRunPipeline({
     fetch_plan: fetchPlan,
     storage_readiness: storage,
@@ -75,7 +78,7 @@ function verifiedApprovalAndContract() {
     storage_readiness: storage,
     fetch_plan: fetchPlan,
     dry_run_pipeline: pipeline,
-    provider_env_present: true,
+    provider_env_present: input.provider_env_present ?? true,
   });
   const approval = buildFirstTinyHistoricalFetchApproval({
     storage_readiness: storage,
@@ -335,6 +338,27 @@ test("pending manual review creates ready request preview", () => {
   expect(preview.provider_parameters_preview.apikey_included).toBe(false);
   expect(preview.provider_parameters_preview.start_date).toBeTruthy();
   expect(preview.provider_parameters_preview.end_date).toBeTruthy();
+});
+
+test("pending manual review previews current selected ticker without provider env certainty", () => {
+  const { approval, contract } = verifiedApprovalAndContract({
+    ticker: "AAPL",
+    provider_env_present: "unknown",
+  });
+  const preview = buildFirstTinyHistoricalFetchRequestPreview({
+    approval,
+    twelve_data_historical_fetch_contract: contract,
+  });
+
+  expect(approval.approval_status).toBe("pending_manual_review");
+  expect(approval.readiness.ready_for_manual_review).toBe(true);
+  expect(approval.prerequisites.provider_env_present).toBe("unknown");
+  expect(preview.preview_status).toBe("ready");
+  expect(preview.request_preview.ticker).toBe("AAPL");
+  expect(preview.request_preview.request_count).toBe(1);
+  expect(preview.request_preview.estimated_credits).toBe(1);
+  expect(preview.readiness.ready_to_call_provider_now).toBe(false);
+  expect(preview.safety.provider_call_executed).toBe(false);
 });
 
 test("runtime effects remain disabled", () => {

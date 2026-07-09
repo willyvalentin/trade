@@ -143,9 +143,7 @@ export function buildFirstTinyHistoricalFetchApproval(
 
   const approvalStatus: FirstTinyHistoricalFetchApprovalStatus =
     blockers.length > 0 ? "blocked" : "pending_manual_review";
-  const readyForManualReview =
-    approvalStatus === "pending_manual_review" &&
-    providerEnvPresent === true;
+  const readyForManualReview = approvalStatus === "pending_manual_review";
 
   return {
     advisory_only: true,

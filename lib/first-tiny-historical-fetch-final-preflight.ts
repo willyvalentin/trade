@@ -216,9 +216,6 @@ export function buildFirstTinyHistoricalFetchFinalPreflight(
   if (!preflightChecks.schema_readback_ok) {
     pushUnique(blockers, "schema_readback_not_verified");
   }
-  if (preflightChecks.provider_env_present !== true) {
-    pushUnique(blockers, "provider_env_not_verified");
-  }
   if (!preflightChecks.budget_policy_present) {
     pushUnique(blockers, "budget_policy_missing");
   }

@@ -377,7 +377,7 @@ export function buildFirstTinyHistoricalFetchProviderDryExecute(
   if (!preflight.schema_readback_ok) {
     pushUnique(blockers, "schema_readback_not_verified");
   }
-  if (providerEnvPresent !== true) {
+  if (validSignal && providerEnvPresent !== true) {
     pushUnique(blockers, "provider_env_not_verified");
   }
   if (!preflight.budget_policy_present) {

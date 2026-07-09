@@ -205,7 +205,7 @@ function approvedEnv() {
     TURE_FIRST_TINY_HISTORICAL_FETCH_APPROVED: "true",
     TURE_FIRST_TINY_HISTORICAL_FETCH_OPERATOR_LABEL: "operator",
     TURE_FIRST_TINY_HISTORICAL_FETCH_APPROVAL_REFERENCE: "approval-ref-1",
-    TURE_FIRST_TINY_HISTORICAL_FETCH_TICKER: "COIN",
+    TURE_FIRST_TINY_HISTORICAL_FETCH_TICKER: "AAPL",
     TURE_FIRST_TINY_HISTORICAL_FETCH_MAX_REQUESTS: "1",
     TURE_FIRST_TINY_HISTORICAL_FETCH_ESTIMATED_CREDITS: "1",
     TURE_FIRST_TINY_HISTORICAL_FETCH_PERSIST_ALLOWED: "false",
@@ -503,14 +503,14 @@ test("approved attempt scope mismatch blocks provider call", async () => {
     execute_provider_call: true,
     env: {
       ...approvedEnv(),
-      TURE_FIRST_TINY_HISTORICAL_FETCH_TICKER: "AAPL",
+      TURE_FIRST_TINY_HISTORICAL_FETCH_TICKER: "COIN",
     },
     storage_detection: storageDetection(),
   });
 
   expect(result.execution_status).toBe("blocked");
   expect(result.blockers).toContain("approval_signal_not_valid_for_execution");
-  expect(result.request_scope.ticker).toBe("COIN");
+  expect(result.request_scope.ticker).toBe("AAPL");
   expect(result.provider_result.call_attempted).toBe(false);
 });
 
@@ -556,7 +556,7 @@ test("approved attempt cache miss performs one mocked no-persist provider call",
     storage_detection: storageDetection(),
     cache_lookup: (scope) => {
       expect(scope.provider).toBe("twelve_data");
-      expect(scope.ticker).toBe("COIN");
+      expect(scope.ticker).toBe("AAPL");
       expect(scope.request_count).toBe(1);
       return { available: true, hit: false };
     },
@@ -564,7 +564,7 @@ test("approved attempt cache miss performs one mocked no-persist provider call",
       providerCalls += 1;
       expect(scope.provider).toBe("twelve_data");
       expect(scope.endpoint).toBe("time_series");
-      expect(scope.ticker).toBe("COIN");
+      expect(scope.ticker).toBe("AAPL");
       expect(scope.interval).toBe("5min");
       expect(scope.request_count).toBe(1);
       expect(scope.estimated_credits).toBe(1);

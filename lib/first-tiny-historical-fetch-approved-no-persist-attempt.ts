@@ -22,6 +22,7 @@ import {
   historicalCandleStorageReadbackToDetection,
   readHistoricalCandleStorageSchema,
 } from "@/lib/historical-candle-storage-readback";
+import { scannerUniverseTickers } from "@/lib/scanner-universe";
 import { buildTwelveDataHistoricalFetchContract } from "@/lib/twelve-data-historical-fetch-contract";
 
 type HistoricalCandleStorageDetection = ReturnType<
@@ -61,7 +62,14 @@ export type FirstTinyHistoricalFetchApprovedNoPersistAttemptSummary =
     };
   };
 
-const previewTicker = "COIN";
+function defaultFirstTinyTicker() {
+  const ticker = scannerUniverseTickers.find(
+    (item) => item.enabled && item.tradable,
+  )?.ticker;
+  const normalized = normalizeText(ticker)?.toUpperCase();
+
+  return normalized ?? "AAPL";
+}
 
 function normalizeText(value: string | null | undefined) {
   const text = value?.trim() ?? "";
@@ -188,6 +196,7 @@ export async function executeFirstTinyHistoricalFetchApprovedNoPersistAttempt(
   const storageReadiness = buildHistoricalCandleStorageReadiness({
     migration_detection: storageDetection,
   });
+  const previewTicker = defaultFirstTinyTicker();
   const fetchPlan = buildHistoricalBackfillFetchPlan({
     visible_recent_tickers: [previewTicker],
     static_universe_tickers: [previewTicker],
