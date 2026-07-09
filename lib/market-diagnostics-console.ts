@@ -17,6 +17,7 @@ import type { DailyLearningReviewSummary } from "@/lib/daily-learning-review";
 import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill-dry-run-pipeline";
 import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
 import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
+import { buildFirstTinyHistoricalFetchApproval } from "@/lib/first-tiny-historical-fetch-approval";
 import { buildHistoricalCandlePersistencePlan } from "@/lib/historical-candle-persistence-plan";
 import { buildHistoricalCandleCacheReadiness } from "@/lib/historical-candle-cache";
 import { buildHistoricalCandleStorageReadiness } from "@/lib/historical-candle-storage-readiness";
@@ -2871,6 +2872,11 @@ function buildSections(
       dry_run_pipeline: historicalBackfillDryRunPipeline,
       provider_env_present: historicalProviderEnvPresentSignal(input),
     });
+  const firstTinyHistoricalFetchApproval =
+    buildFirstTinyHistoricalFetchApproval({
+      storage_readiness: historicalCandleStorageReadiness,
+      execution_readiness: historicalBackfillExecutionReadiness,
+    });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -5523,6 +5529,152 @@ function buildSections(
           historicalBackfillExecutionReadiness.caution_flags.join(","),
         metadata_gaps:
           historicalBackfillExecutionReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_fetch_approval",
+      title: "First Tiny Historical Fetch Approval",
+      severity:
+        firstTinyHistoricalFetchApproval.approval_status === "blocked"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Approval required", "yes"),
+        lineValue(
+          "Approval status",
+          firstTinyHistoricalFetchApproval.approval_status,
+        ),
+        lineValue("First fetch enabled", "no"),
+        lineValue("Dry run only", "yes"),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Max tickers",
+          firstTinyHistoricalFetchApproval.candidate_plan.max_tickers,
+        ),
+        lineValue(
+          "Max trading days",
+          firstTinyHistoricalFetchApproval.candidate_plan.max_trading_days,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchApproval.candidate_plan.interval,
+        ),
+        lineValue(
+          "Selected ticker",
+          tickerListText(
+            firstTinyHistoricalFetchApproval.candidate_plan.selected_tickers,
+          ),
+        ),
+        lineValue(
+          "Request count limit",
+          firstTinyHistoricalFetchApproval.candidate_plan.request_count_limit,
+        ),
+        lineValue(
+          "Estimated credit limit",
+          firstTinyHistoricalFetchApproval.candidate_plan.estimated_credit_limit,
+        ),
+        lineValue(
+          "Schema readback ok",
+          firstTinyHistoricalFetchApproval.prerequisites.schema_readback_ok
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Migration verified",
+          firstTinyHistoricalFetchApproval.prerequisites.migration_verified
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider env present",
+          yesNoUnknown(
+            firstTinyHistoricalFetchApproval.prerequisites
+              .provider_env_present,
+          ),
+        ),
+        lineValue(
+          "Budget policy present",
+          firstTinyHistoricalFetchApproval.prerequisites.budget_policy_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety present",
+          firstTinyHistoricalFetchApproval.prerequisites.lookahead_safety_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Manual approval gate passed", "no"),
+        lineValue("Ready to call provider now", "no"),
+        lineValue("Ready to persist candles now", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchApproval.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchApproval.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: firstTinyHistoricalFetchApproval.advisory_only,
+        approval_required:
+          firstTinyHistoricalFetchApproval.approval_required,
+        approval_status:
+          firstTinyHistoricalFetchApproval.approval_status,
+        approval_source:
+          firstTinyHistoricalFetchApproval.approval_source,
+        first_fetch_enabled: false,
+        dry_run_only: true,
+        candidate_plan: JSON.stringify(
+          firstTinyHistoricalFetchApproval.candidate_plan,
+        ),
+        prerequisites: JSON.stringify(
+          firstTinyHistoricalFetchApproval.prerequisites,
+        ),
+        schema_readback_ok:
+          firstTinyHistoricalFetchApproval.prerequisites.schema_readback_ok,
+        migration_verified:
+          firstTinyHistoricalFetchApproval.prerequisites.migration_verified,
+        provider_env_present:
+          firstTinyHistoricalFetchApproval.prerequisites.provider_env_present,
+        budget_policy_present:
+          firstTinyHistoricalFetchApproval.prerequisites.budget_policy_present,
+        lookahead_safety_present:
+          firstTinyHistoricalFetchApproval.prerequisites.lookahead_safety_present,
+        manual_approval_gate_passed: false,
+        readiness: JSON.stringify(firstTinyHistoricalFetchApproval.readiness),
+        ready_to_enable_future_fetch: false,
+        ready_to_call_provider_now: false,
+        ready_to_persist_candles_now: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers: firstTinyHistoricalFetchApproval.blockers.join(","),
+        warnings: firstTinyHistoricalFetchApproval.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchApproval.recommended_next_steps.join(","),
       },
     }),
     section({
@@ -8502,6 +8654,9 @@ function buildSections(
         historical_backfill_execution_readiness: JSON.stringify(
           historicalBackfillExecutionReadiness,
         ),
+        first_tiny_historical_fetch_approval: JSON.stringify(
+          firstTinyHistoricalFetchApproval,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -8654,6 +8809,10 @@ function buildSections(
         lineValue(
           "Historical backfill execution readiness",
           `${historicalBackfillExecutionReadiness.readiness_status} / migration ${yesNoUnknown(historicalBackfillExecutionReadiness.prerequisites.migration_applied)} / first fetch disabled / provider call no`,
+        ),
+        lineValue(
+          "First tiny historical fetch approval",
+          `${firstTinyHistoricalFetchApproval.approval_status} / enabled no / provider call no / persist no`,
         ),
         lineValue(
           "Primary learning signal",
