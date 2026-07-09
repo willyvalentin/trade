@@ -1,5 +1,27 @@
 # Historical Candle Storage Migration Verification
 
+## Action 261 Status
+
+Local verification confirmed the migration file exists and creates only the
+historical candle storage schema. The current Supabase CLI link is not the
+production app target:
+
+- App Supabase ref from `NEXT_PUBLIC_SUPABASE_URL`: `ekdyopdrrkphlrsilyoo`
+- Current local Supabase CLI linked ref: `pdvzyuhykomwfqyyztru`
+- Current linked project name: `ture-staging`
+
+Because the linked CLI target does not match the production diagnostics target,
+do not apply the migration from this worktree until the operator intentionally
+relinks or runs the commands from an approved production Supabase context.
+Diagnostics should remain `unknown` for production until production schema
+readback verifies the tables, constraints, indexes, and RLS posture.
+
+Read-only status checked against the currently linked staging target showed
+`20260709000000_create_historical_candle_storage.sql` as pending there. No
+`db push`, remote SQL apply, candle fetch, candle persistence, fetch-run
+persistence, synthetic outcome persistence, replay, scanner change, ranking
+change, broker/execution change, or `.env.local` change was performed.
+
 This runbook covers the manual verification path for the historical candle
 storage migration:
 
@@ -43,13 +65,31 @@ Before applying:
 - Confirm a rollback plan exists for dropping the two tables if the migration
   was applied to the wrong environment before data is written.
 
-Example status/apply commands, to run manually from an approved shell:
+Example status/apply commands, to run manually from an approved shell after
+confirming the target project ref. For production diagnostics, the expected
+project ref is `ekdyopdrrkphlrsilyoo`.
 
 ```bash
-supabase migration list
-supabase db push
-supabase migration list
+supabase link --project-ref ekdyopdrrkphlrsilyoo
+supabase migration list --linked
+supabase db push --linked --dry-run
 ```
+
+Only continue if the dry run shows the sole intended pending migration:
+
+- `20260709000000_create_historical_candle_storage.sql`
+
+Then apply and re-check migration history:
+
+```bash
+supabase db push --linked
+supabase migration list --linked
+```
+
+If the dry run shows unrelated pending migrations, stop. Do not run a broad
+`db push`; either align migration history first or apply this migration through
+an approved scoped SQL editor session using the exact SQL in
+`supabase/migrations/20260709000000_create_historical_candle_storage.sql`.
 
 Do not paste secrets into terminals or docs. Use the project’s established
 Supabase authentication flow.

@@ -8370,6 +8370,22 @@ function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
 type TradeAppProps = {
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
   learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
+  historicalCandleStorageDetection?: {
+    historical_candles_table_detected?: boolean | null;
+    historical_candle_fetch_runs_table_detected?: boolean | null;
+    expected_unique_key_detected?: boolean | null;
+    expected_indexes_detected?: boolean | null;
+    rls_enabled_detected?: boolean | null;
+    client_write_policies_detected?: boolean | null;
+    client_read_policies_detected?: boolean | null;
+    schema_readback_attempted?: boolean | null;
+    schema_readback_status?: "ok" | "partial" | "blocked" | "unavailable" | null;
+    schema_readback_missing_items?: string[] | null;
+    schema_readback_warnings?: string[] | null;
+    detection_source?: string | null;
+    checked_at?: string | null;
+    error_message?: string | null;
+  } | null;
 };
 
 const avanzaSelectedRecommendationPreviewDevConfig =
@@ -8453,6 +8469,7 @@ export function TradeApp({
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
     avanzaSelectedRecommendationPreviewDevConfig,
   learningAccelerationServerConfig = null,
+  historicalCandleStorageDetection = null,
 }: TradeAppProps = {}) {
   const { activeTab, setActiveTab } = useTradeAppNavigationState();
   const { selectedStatisticsRange, setSelectedStatisticsRange } =
@@ -14403,6 +14420,7 @@ export function TradeApp({
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
+      historical_candle_storage_detection: historicalCandleStorageDetection,
       ui_refresh: {
         active_tab: activeTab,
         islands: Object.fromEntries(

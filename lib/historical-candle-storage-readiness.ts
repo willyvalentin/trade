@@ -10,6 +10,10 @@ export type HistoricalCandleStorageReadinessInput = {
     rls_enabled_detected?: boolean | null;
     client_write_policies_detected?: boolean | null;
     client_read_policies_detected?: boolean | null;
+    schema_readback_attempted?: boolean | null;
+    schema_readback_status?: "ok" | "partial" | "blocked" | "unavailable" | null;
+    schema_readback_missing_items?: string[] | null;
+    schema_readback_warnings?: string[] | null;
     detection_source?: string | null;
     checked_at?: string | null;
     error_message?: string | null;
@@ -71,6 +75,10 @@ export type HistoricalCandleStorageReadinessSummary = {
     client_read_policies_detected: HistoricalCandleStorageVerificationStatus;
     client_writes_allowed: HistoricalCandleStorageVerificationStatus;
     client_reads_allowed: HistoricalCandleStorageVerificationStatus;
+    schema_readback_attempted: boolean;
+    schema_readback_status: "ok" | "partial" | "blocked" | "unavailable";
+    schema_readback_missing_items: string[];
+    schema_readback_warnings: string[];
     service_role_internal_access_expected: true;
     detection_source: string;
     checked_at: string | null;
@@ -234,6 +242,14 @@ export function buildHistoricalCandleStorageReadiness(
     input.migration_detection?.detection_source?.trim() || "not_checked";
   const detectionError =
     input.migration_detection?.error_message?.trim() || null;
+  const schemaReadbackAttempted =
+    input.migration_detection?.schema_readback_attempted === true;
+  const schemaReadbackStatus =
+    input.migration_detection?.schema_readback_status ?? "unavailable";
+  const schemaReadbackMissingItems =
+    input.migration_detection?.schema_readback_missing_items ?? [];
+  const schemaReadbackWarnings =
+    input.migration_detection?.schema_readback_warnings ?? [];
   const metadataGaps: string[] = [];
   const cautionFlags = [
     "provider_fetch_not_enabled",
@@ -247,6 +263,24 @@ export function buildHistoricalCandleStorageReadiness(
   }
   if (detectionSource === "not_checked") {
     metadataGaps.push("migration_detection_not_checked");
+  }
+  if (!schemaReadbackAttempted) {
+    metadataGaps.push("schema_readback_not_attempted");
+  }
+  if (schemaReadbackStatus === "blocked") {
+    cautionFlags.push("schema_readback_blocked");
+  }
+  if (schemaReadbackStatus === "unavailable") {
+    cautionFlags.push("schema_readback_unavailable");
+  }
+  if (schemaReadbackStatus === "partial") {
+    cautionFlags.push("schema_readback_partial");
+  }
+  for (const missingItem of schemaReadbackMissingItems) {
+    reasonCodes.push(`schema_readback_missing_${missingItem}`);
+  }
+  for (const warning of schemaReadbackWarnings) {
+    if (warning.trim()) cautionFlags.push(warning.trim());
   }
   if (historicalCandlesDetected !== "yes") {
     reasonCodes.push("historical_candles_table_not_detected");
@@ -329,10 +363,14 @@ export function buildHistoricalCandleStorageReadiness(
       expected_indexes_detected: indexesDetected,
       rls_enabled_detected: rlsEnabledDetected,
       client_write_policies_detected: clientWritePoliciesDetected,
-      client_read_policies_detected: clientReadPoliciesDetected,
-      client_writes_allowed: clientWritesAllowed,
-      client_reads_allowed: clientReadsAllowed,
-      service_role_internal_access_expected: true,
+        client_read_policies_detected: clientReadPoliciesDetected,
+        client_writes_allowed: clientWritesAllowed,
+        client_reads_allowed: clientReadsAllowed,
+        schema_readback_attempted: schemaReadbackAttempted,
+        schema_readback_status: schemaReadbackStatus,
+        schema_readback_missing_items: schemaReadbackMissingItems,
+        schema_readback_warnings: schemaReadbackWarnings,
+        service_role_internal_access_expected: true,
       detection_source: detectionSource,
       checked_at: input.migration_detection?.checked_at?.trim() || null,
       error_message: detectionError,

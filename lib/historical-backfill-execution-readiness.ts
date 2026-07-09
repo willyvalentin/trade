@@ -30,6 +30,11 @@ export type HistoricalBackfillExecutionReadinessSummary = {
     historical_candles_table_detected: HistoricalBackfillExecutionReadinessSignal;
     historical_candle_fetch_runs_table_detected:
       HistoricalBackfillExecutionReadinessSignal;
+    unique_key_detected: HistoricalBackfillExecutionReadinessSignal;
+    indexes_detected: HistoricalBackfillExecutionReadinessSignal;
+    rls_enabled: HistoricalBackfillExecutionReadinessSignal;
+    client_writes_allowed: HistoricalBackfillExecutionReadinessSignal;
+    client_reads_allowed: HistoricalBackfillExecutionReadinessSignal;
     dry_run_pipeline_ready: boolean;
     request_contract_ready: boolean;
     response_parser_ready: boolean;
@@ -131,6 +136,21 @@ export function buildHistoricalBackfillExecutionReadiness(
   const fetchRunsTableDetected = signalFromStorage(
     storage?.migration_readiness.historical_candle_fetch_runs_table_detected,
   );
+  const uniqueKeyDetected = signalFromStorage(
+    storage?.migration_readiness.expected_unique_key_detected,
+  );
+  const indexesDetected = signalFromStorage(
+    storage?.migration_readiness.expected_indexes_detected,
+  );
+  const rlsEnabled = signalFromStorage(
+    storage?.migration_readiness.rls_enabled_detected,
+  );
+  const clientWritesAllowed = signalFromStorage(
+    storage?.migration_readiness.client_writes_allowed,
+  );
+  const clientReadsAllowed = signalFromStorage(
+    storage?.migration_readiness.client_reads_allowed,
+  );
   const dryRunPipelineReady = pipeline?.pipeline_status === "ready";
   const requestContractReady =
     (pipeline?.request_contract_summary.requests_planned ?? 0) > 0 &&
@@ -163,7 +183,12 @@ export function buildHistoricalBackfillExecutionReadiness(
     migrationFileExists !== true ||
     migrationApplied !== true ||
     historicalCandlesTableDetected !== true ||
-    fetchRunsTableDetected !== true
+    fetchRunsTableDetected !== true ||
+    uniqueKeyDetected !== true ||
+    indexesDetected !== true ||
+    rlsEnabled !== true ||
+    clientWritesAllowed !== false ||
+    clientReadsAllowed !== false
   ) {
     pushUnique(blockers, "apply_or_verify_historical_candle_storage_migration");
     pushUnique(reasonCodes, "historical_candle_storage_migration_not_verified");
@@ -182,6 +207,21 @@ export function buildHistoricalBackfillExecutionReadiness(
       metadataGaps,
       "historical_candle_fetch_runs_table_detection_unknown",
     );
+  }
+  if (uniqueKeyDetected === "unknown") {
+    pushUnique(metadataGaps, "historical_candles_unique_key_detection_unknown");
+  }
+  if (indexesDetected === "unknown") {
+    pushUnique(metadataGaps, "historical_candle_indexes_detection_unknown");
+  }
+  if (rlsEnabled === "unknown") {
+    pushUnique(metadataGaps, "historical_candle_rls_detection_unknown");
+  }
+  if (clientWritesAllowed === "unknown") {
+    pushUnique(metadataGaps, "client_write_policy_detection_unknown");
+  }
+  if (clientReadsAllowed === "unknown") {
+    pushUnique(metadataGaps, "client_read_policy_detection_unknown");
   }
   if (!pipeline) {
     pushUnique(blockers, "historical_backfill_dry_run_pipeline_missing");
@@ -216,7 +256,12 @@ export function buildHistoricalBackfillExecutionReadiness(
     migrationFileExists === true &&
     migrationApplied === true &&
     historicalCandlesTableDetected === true &&
-    fetchRunsTableDetected === true;
+    fetchRunsTableDetected === true &&
+    uniqueKeyDetected === true &&
+    indexesDetected === true &&
+    rlsEnabled === true &&
+    clientWritesAllowed === false &&
+    clientReadsAllowed === false;
   const providerGatePassed = providerEnvPresent === true;
   const dryRunGatePassed =
     dryRunPipelineReady &&
@@ -239,7 +284,7 @@ export function buildHistoricalBackfillExecutionReadiness(
   } else if (!providerGatePassed) {
     readinessStatus = "ready_for_manual_review";
   } else {
-    readinessStatus = "ready_for_first_tiny_fetch_later";
+    readinessStatus = "ready_for_manual_review";
   }
 
   const tickers = selectedTickers(input);
@@ -252,6 +297,11 @@ export function buildHistoricalBackfillExecutionReadiness(
       migration_applied: migrationApplied,
       historical_candles_table_detected: historicalCandlesTableDetected,
       historical_candle_fetch_runs_table_detected: fetchRunsTableDetected,
+      unique_key_detected: uniqueKeyDetected,
+      indexes_detected: indexesDetected,
+      rls_enabled: rlsEnabled,
+      client_writes_allowed: clientWritesAllowed,
+      client_reads_allowed: clientReadsAllowed,
       dry_run_pipeline_ready: dryRunPipelineReady,
       request_contract_ready: requestContractReady,
       response_parser_ready: responseParserReady,
@@ -312,4 +362,3 @@ export function buildHistoricalBackfillExecutionReadiness(
     metadata_gaps: metadataGaps,
   };
 }
-

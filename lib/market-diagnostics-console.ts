@@ -130,6 +130,10 @@ export type MarketDiagnosticsConsoleInput = {
     rls_enabled_detected?: boolean | null;
     client_write_policies_detected?: boolean | null;
     client_read_policies_detected?: boolean | null;
+    schema_readback_attempted?: boolean | null;
+    schema_readback_status?: "ok" | "partial" | "blocked" | "unavailable" | null;
+    schema_readback_missing_items?: string[] | null;
+    schema_readback_warnings?: string[] | null;
     detection_source?: string | null;
     checked_at?: string | null;
     error_message?: string | null;
@@ -4384,6 +4388,18 @@ function buildSections(
             : "unknown",
         ),
         lineValue(
+          "Schema readback attempted",
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_attempted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Schema readback status",
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_status,
+        ),
+        lineValue(
           "Migration applied",
           historicalCandleStorageReadiness.migration_readiness
             .migration_applied,
@@ -4540,6 +4556,18 @@ function buildSections(
         migration_file_present:
           historicalCandleStorageReadiness.migration_readiness
             .migration_file_present,
+        schema_readback_attempted:
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_attempted,
+        schema_readback_status:
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_status,
+        schema_readback_missing_items:
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_missing_items.join(","),
+        schema_readback_warnings:
+          historicalCandleStorageReadiness.migration_readiness
+            .schema_readback_warnings.join(","),
         migration_applied:
           historicalCandleStorageReadiness.migration_readiness
             .migration_applied,
@@ -8601,7 +8629,7 @@ function buildSections(
         ),
         lineValue(
           "Historical candle storage",
-          `schema planned / migration ${historicalCandleStorageReadiness.migration_readiness.migration_applied} / fetch no / persist no`,
+          `${historicalCandleStorageReadiness.migration_readiness.schema_readback_status === "ok" || historicalCandleStorageReadiness.migration_readiness.migration_applied === "yes" ? "schema verified" : "schema planned"} / migration ${historicalCandleStorageReadiness.migration_readiness.migration_applied} / fetch no / persist no`,
         ),
         lineValue(
           "Historical backfill planner",

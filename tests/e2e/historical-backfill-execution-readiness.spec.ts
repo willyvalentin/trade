@@ -326,14 +326,14 @@ test("provider env missing blocks first tiny fetch readiness", () => {
   );
 });
 
-test("provider present can reach future tiny fetch readiness while still disabled", () => {
+test("provider present reaches manual review while first fetch stays disabled", () => {
   const readiness = buildHistoricalBackfillExecutionReadiness({
     storage_readiness: storageReadinessApplied(),
     dry_run_pipeline: readyPipeline(),
     provider_env_present: true,
   });
 
-  expect(readiness.readiness_status).toBe("ready_for_first_tiny_fetch_later");
+  expect(readiness.readiness_status).toBe("ready_for_manual_review");
   expect(readiness.readiness_gates.provider_gate_passed).toBe(true);
   expect(readiness.readiness_gates.manual_approval_gate_passed).toBe(false);
   expect(readiness.first_fetch_candidate_plan.enabled).toBe(false);
@@ -374,7 +374,7 @@ test("diagnostics section prints expected safety lines", () => {
   expect(section).toBeTruthy();
   expect(section?.lines).toContain("Advisory mode: yes");
   expect(section?.lines).toContain(
-    "Readiness status: ready_for_first_tiny_fetch_later",
+    "Readiness status: ready_for_manual_review",
   );
   expect(section?.lines).toContain("Migration applied: yes");
   expect(section?.lines).toContain(
@@ -410,9 +410,8 @@ test("diagnostics section prints expected safety lines", () => {
   expect(
     intelligence?.lines.some((line) =>
       line.startsWith(
-        "Historical backfill execution readiness: ready_for_first_tiny_fetch_later",
+        "Historical backfill execution readiness: ready_for_manual_review",
       ),
     ),
   ).toBe(true);
 });
-

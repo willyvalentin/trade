@@ -385,6 +385,8 @@ test("diagnostics section prints expected safety lines", () => {
   );
   expect(section?.lines).toContain("Candle contract version: v1");
   expect(section?.lines).toContain("Migration file exists: yes");
+  expect(section?.lines).toContain("Schema readback attempted: no");
+  expect(section?.lines).toContain("Schema readback status: unavailable");
   expect(section?.lines).toContain("Migration applied: unknown");
   expect(section?.lines).toContain(
     "historical_candles table detected: unknown",
@@ -464,7 +466,7 @@ test("diagnostics can render applied table detection while keeping fetch and per
   expect(
     intelligence?.lines.some((line) =>
       line.startsWith(
-        "Historical candle storage: schema planned / migration yes",
+        "Historical candle storage: schema verified / migration yes",
       ),
     ),
   ).toBe(true);

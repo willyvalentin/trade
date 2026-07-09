@@ -153,6 +153,8 @@ test.describe("post-trade remote execution adapter no-remote-write static checks
     expect(source).toContain("staging_target_required");
     expect(source).toContain("idempotency_key_required");
     expect(source).toContain("unsafe_payload_fragment");
+    expect(source).toContain("test_scoped_idempotency_alignment_required");
+    expect(source).toContain('idempotencyKey.startsWith("post_trade:test:")');
   });
 
   test("adapter contains raw and sensitive key rejection coverage", () => {
@@ -243,8 +245,11 @@ test.describe("post-trade remote execution adapter no-remote-write static checks
     const source = readSource(adapterPath);
 
     expect(source).toContain("buildPostTradeOneShotExecutionUnblockResult");
+    expect(source).toContain('status: "eligible_no_write"');
+    expect(source).toContain("readyForNextAction: true");
     expect(source).toContain("oneShotGateEligible");
     expect(source).toContain("executionStillRequiresNextAction");
+    expect(source).toContain("executionStillRequiresNextAction: true");
     expect(source).toContain('executionStatus: "not_executed"');
     expect(source).toContain("remoteExecution: false");
     expect(source).toContain("noSupabaseWriteMethodCall: true");
