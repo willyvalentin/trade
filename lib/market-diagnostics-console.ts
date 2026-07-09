@@ -4,6 +4,7 @@ import type { DailyRecommendationTradeTargetsSummary } from "@/lib/daily-recomme
 import type { DayTradeWindowRecommendationTargetSummary } from "@/lib/day-trade-window-recommendation-target";
 import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discovery";
 import { buildDynamicMoversReadiness } from "@/lib/dynamic-movers-readiness";
+import { buildDynamicMoversShadowAudit } from "@/lib/dynamic-movers-shadow-fixture";
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
@@ -13,6 +14,15 @@ import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memo
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
 import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
 import type { DailyLearningReviewSummary } from "@/lib/daily-learning-review";
+import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill-dry-run-pipeline";
+import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
+import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
+import { buildHistoricalCandlePersistencePlan } from "@/lib/historical-candle-persistence-plan";
+import { buildHistoricalCandleCacheReadiness } from "@/lib/historical-candle-cache";
+import { buildHistoricalCandleStorageReadiness } from "@/lib/historical-candle-storage-readiness";
+import { buildHistoricalLearningBackfillReadiness } from "@/lib/historical-learning-backfill-readiness";
+import { buildTwelveDataHistoricalFetchContract } from "@/lib/twelve-data-historical-fetch-contract";
+import { buildTwelveDataHistoricalResponseParserReadiness } from "@/lib/twelve-data-historical-response-parser";
 import type { RecommendationOutputEnrichmentSummary } from "@/lib/recommendation-output-enrichment";
 import type { RecommendationOutcomeLearningInsightsSummary } from "@/lib/recommendation-outcome-learning-insights";
 import type { RecommendationPerformanceStatistics } from "@/lib/recommendation-performance-statistics";
@@ -112,6 +122,18 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
+  historical_candle_storage_detection?: {
+    historical_candles_table_detected?: boolean | null;
+    historical_candle_fetch_runs_table_detected?: boolean | null;
+    expected_unique_key_detected?: boolean | null;
+    expected_indexes_detected?: boolean | null;
+    rls_enabled_detected?: boolean | null;
+    client_write_policies_detected?: boolean | null;
+    client_read_policies_detected?: boolean | null;
+    detection_source?: string | null;
+    checked_at?: string | null;
+    error_message?: string | null;
+  } | null;
   scan_readback?: {
     market_closed_readback_mode?: boolean | null;
     latest_trading_day_with_official_batch?: string | null;
@@ -2029,6 +2051,42 @@ function lineValue(label: string, value: string | number | boolean | null) {
   return `${label}: ${value === null ? "unknown" : String(value)}`;
 }
 
+function yesNoUnknown(value: boolean | "unknown" | null | undefined) {
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  return "unknown";
+}
+
+function historicalProviderEnvPresentSignal(
+  input: MarketDiagnosticsConsoleInput,
+): boolean | "unknown" {
+  const status = String(
+    input.live_market_trial_readiness.provider_env_readiness
+      ?.server_secret_status ?? "",
+  )
+    .trim()
+    .toLowerCase();
+
+  if (
+    status.includes("available") ||
+    status.includes("configured") ||
+    status.includes("present")
+  ) {
+    return true;
+  }
+
+  if (
+    status.includes("missing") ||
+    status.includes("unavailable") ||
+    status.includes("not_configured") ||
+    status.includes("absent")
+  ) {
+    return false;
+  }
+
+  return "unknown";
+}
+
 function topReasonText(reasons: Record<string, number> | null | undefined) {
   const entries = Object.entries(reasons ?? {})
     .filter(([, value]) => value > 0)
@@ -2737,6 +2795,78 @@ function buildSections(
       input.daily_learning_review?.ticker_universe_readiness
         .ticker_classification.core_candidates ?? [],
   });
+  const dynamicMoversShadowAudit = buildDynamicMoversShadowAudit({
+    ticker_universe_readiness:
+      input.daily_learning_review?.ticker_universe_readiness ?? null,
+    static_universe_count:
+      dynamicMoversReadiness.static_universe_comparison.static_universe_count,
+    static_universe_symbols: scannerUniverseSymbols,
+    research_heavy_tickers:
+      input.daily_learning_review?.ticker_universe_readiness
+        .ticker_classification.research_heavy_candidates ?? [],
+    visible_tickers: scannerUniverseSymbols,
+    observed_tickers:
+      input.daily_learning_review?.ticker_universe_readiness.ticker_metrics.map(
+        (metric) => metric.ticker,
+      ) ?? [],
+    now: input.market_session.evaluated_at,
+  });
+  const historicalBackfillReadiness =
+    buildHistoricalLearningBackfillReadiness({
+      provider_plan_profile: input.provider_plan_profile ?? null,
+      provider_budget_guard: input.provider_budget_guard,
+      ticker_universe_readiness:
+        input.daily_learning_review?.ticker_universe_readiness ?? null,
+    });
+  const historicalCandleCacheReadiness =
+    buildHistoricalCandleCacheReadiness();
+  const historicalCandleStorageReadiness =
+    buildHistoricalCandleStorageReadiness({
+      migration_detection: input.historical_candle_storage_detection ?? null,
+    });
+  const historicalBackfillFetchPlan = buildHistoricalBackfillFetchPlan({
+    provider_plan_profile: input.provider_plan_profile ?? null,
+    provider_budget_guard: input.provider_budget_guard,
+    ticker_universe_readiness:
+      input.daily_learning_review?.ticker_universe_readiness ?? null,
+    ticker_profiles: input.daily_learning_review?.ticker_profiles ?? null,
+    ticker_profile_summary:
+      input.daily_learning_review?.ticker_profile_summary ?? null,
+    visible_recent_tickers: scannerUniverseSymbols,
+    static_universe_tickers: scannerUniverseSymbols,
+    migration_applied:
+      historicalCandleStorageReadiness.migration_readiness.migration_applied,
+  });
+  const twelveDataHistoricalFetchContract =
+    buildTwelveDataHistoricalFetchContract({
+      historical_backfill_fetch_plan: historicalBackfillFetchPlan,
+      now: input.market_session.evaluated_at,
+    });
+  const twelveDataHistoricalResponseParser =
+    buildTwelveDataHistoricalResponseParserReadiness();
+  const historicalCandlePersistencePlan =
+    buildHistoricalCandlePersistencePlan({
+      candles: twelveDataHistoricalResponseParser.candles,
+      storage_readiness: historicalCandleStorageReadiness,
+      fetch_run_metadata: {
+        provider_credits_estimated:
+          twelveDataHistoricalFetchContract.budget_policy
+          .estimated_provider_credits,
+      },
+    });
+  const historicalBackfillDryRunPipeline =
+    buildHistoricalBackfillDryRunPipeline({
+      fetch_plan: historicalBackfillFetchPlan,
+      storage_readiness: historicalCandleStorageReadiness,
+      now: input.market_session.evaluated_at,
+    });
+  const historicalBackfillExecutionReadiness =
+    buildHistoricalBackfillExecutionReadiness({
+      storage_readiness: historicalCandleStorageReadiness,
+      fetch_plan: historicalBackfillFetchPlan,
+      dry_run_pipeline: historicalBackfillDryRunPipeline,
+      provider_env_present: historicalProviderEnvPresentSignal(input),
+    });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -3869,6 +3999,1502 @@ function buildSections(
         reason_codes: dynamicMoversReadiness.reason_codes.join(","),
         caution_flags: dynamicMoversReadiness.caution_flags.join(","),
         metadata_gaps: dynamicMoversReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "dynamic_movers_shadow_contract",
+      title: "Dynamic Movers Shadow Contract",
+      severity:
+        dynamicMoversShadowAudit.shadow_readiness.safe_to_shadow_compare
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Mock mode", "yes"),
+        lineValue("Provider fetch added", "no"),
+        lineValue(
+          "Fixture movers",
+          `${dynamicMoversShadowAudit.fixture_summary.total_movers} / ${dynamicMoversShadowAudit.fixture_summary.valid_movers} / ${dynamicMoversShadowAudit.fixture_summary.preview_only_movers} / ${dynamicMoversShadowAudit.fixture_summary.invalid_movers} / ${dynamicMoversShadowAudit.fixture_summary.stale_movers}`,
+        ),
+        lineValue(
+          "Required fields checked",
+          compactListText(
+            dynamicMoversShadowAudit.contract_validation.required_fields,
+          ),
+        ),
+        lineValue(
+          "Missing field counts",
+          setupMixText(
+            dynamicMoversShadowAudit.contract_validation.missing_field_counts,
+          ),
+        ),
+        lineValue(
+          "Static universe overlap",
+          tickerListText(
+            dynamicMoversShadowAudit.static_universe_comparison
+              .movers_inside_static_universe,
+          ),
+        ),
+        lineValue(
+          "Outside static universe",
+          tickerListText(
+            dynamicMoversShadowAudit.static_universe_comparison
+              .movers_outside_static_universe,
+          ),
+        ),
+        lineValue(
+          "Research-heavy overlap",
+          tickerListText(
+            dynamicMoversShadowAudit.static_universe_comparison
+              .overlap_with_research_heavy,
+          ),
+        ),
+        lineValue(
+          "Safe to preview",
+          dynamicMoversShadowAudit.shadow_readiness.safe_to_preview
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Safe to shadow compare",
+          dynamicMoversShadowAudit.shadow_readiness.safe_to_shadow_compare
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Safe to use for scanner", "no"),
+        lineValue("Safe to change universe", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(dynamicMoversShadowAudit.recommended_next_steps),
+        ),
+        lineValue("Scanner universe changed", "no"),
+        lineValue("Live ranking changed", "no"),
+      ],
+      metrics: {
+        advisory_mode: dynamicMoversShadowAudit.advisory_only,
+        mock_mode: dynamicMoversShadowAudit.mock_mode,
+        provider_fetch_added: false,
+        total_movers: dynamicMoversShadowAudit.fixture_summary.total_movers,
+        valid_movers: dynamicMoversShadowAudit.fixture_summary.valid_movers,
+        preview_only_movers:
+          dynamicMoversShadowAudit.fixture_summary.preview_only_movers,
+        invalid_movers: dynamicMoversShadowAudit.fixture_summary.invalid_movers,
+        stale_movers: dynamicMoversShadowAudit.fixture_summary.stale_movers,
+        missing_required_field_count:
+          dynamicMoversShadowAudit.fixture_summary.missing_required_field_count,
+        required_fields: dynamicMoversShadowAudit.contract_validation.required_fields.join(","),
+        optional_fields: dynamicMoversShadowAudit.contract_validation.optional_fields.join(","),
+        missing_field_counts: JSON.stringify(
+          dynamicMoversShadowAudit.contract_validation.missing_field_counts,
+        ),
+        invalid_examples: JSON.stringify(
+          dynamicMoversShadowAudit.contract_validation.invalid_examples,
+        ),
+        stale_examples: JSON.stringify(
+          dynamicMoversShadowAudit.contract_validation.stale_examples,
+        ),
+        static_universe_comparison: JSON.stringify(
+          dynamicMoversShadowAudit.static_universe_comparison,
+        ),
+        safe_to_preview:
+          dynamicMoversShadowAudit.shadow_readiness.safe_to_preview,
+        safe_to_shadow_compare:
+          dynamicMoversShadowAudit.shadow_readiness.safe_to_shadow_compare,
+        safe_to_use_for_scanner: false,
+        safe_to_change_universe: false,
+        readiness_label:
+          dynamicMoversShadowAudit.shadow_readiness.readiness_label,
+        recommended_next_steps:
+          dynamicMoversShadowAudit.recommended_next_steps.join(","),
+        scanner_universe_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          dynamicMoversShadowAudit.safety.requires_manual_review,
+        reason_codes: dynamicMoversShadowAudit.reason_codes.join(","),
+        caution_flags: dynamicMoversShadowAudit.caution_flags.join(","),
+        metadata_gaps: dynamicMoversShadowAudit.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_learning_backfill_readiness",
+      title: "Historical Learning Backfill Readiness",
+      severity:
+        historicalBackfillReadiness.metadata_gaps.length > 0 ? "warning" : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Provider",
+          historicalBackfillReadiness.provider_capacity.provider,
+        ),
+        lineValue(
+          "Plan profile",
+          historicalBackfillReadiness.provider_capacity.plan_profile ??
+            "unknown",
+        ),
+        lineValue(
+          "Estimated headroom",
+          historicalBackfillReadiness.provider_capacity
+            .estimated_available_headroom,
+        ),
+        lineValue(
+          "Safe background budget",
+          historicalBackfillReadiness.provider_capacity
+            .safe_background_budget_per_minute,
+        ),
+        lineValue(
+          "Preferred interval",
+          historicalBackfillReadiness.backfill_scope.preferred_interval,
+        ),
+        lineValue(
+          "Initial history days",
+          `${historicalBackfillReadiness.backfill_scope.recommended_history_days_initial}-${historicalBackfillReadiness.backfill_scope.max_history_days_initial}`,
+        ),
+        lineValue(
+          "Sample origins",
+          Object.entries(historicalBackfillReadiness.sample_types)
+            .filter(([, enabled]) => enabled)
+            .map(([origin]) => origin)
+            .join(", "),
+        ),
+        lineValue(
+          "Lookahead safety",
+          historicalBackfillReadiness.lookahead_safety.required
+            ? "required"
+            : "not required",
+        ),
+        lineValue("Nightly historical backfill", "planned / not active"),
+        lineValue("Intraday shadow sampling", "planned / not active"),
+        lineValue("Ticker memory refresh", "planned / not active"),
+        lineValue("Local indicator computation", "planned / not active"),
+        lineValue("Ready to fetch historical data", "no"),
+        lineValue("Ready to persist synthetic outcomes", "no"),
+        lineValue("Safe to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(historicalBackfillReadiness.recommended_next_steps),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalBackfillReadiness.advisory_only,
+        provider: historicalBackfillReadiness.provider_capacity.provider,
+        plan_profile:
+          historicalBackfillReadiness.provider_capacity.plan_profile ?? null,
+        credits_per_minute_limit:
+          historicalBackfillReadiness.provider_capacity.credits_per_minute_limit,
+        current_usage_observed:
+          historicalBackfillReadiness.provider_capacity.current_usage_observed,
+        estimated_available_headroom:
+          historicalBackfillReadiness.provider_capacity
+            .estimated_available_headroom,
+        safe_background_budget_per_minute:
+          historicalBackfillReadiness.provider_capacity
+            .safe_background_budget_per_minute,
+        supported_intervals:
+          historicalBackfillReadiness.backfill_scope.supported_intervals.join(","),
+        preferred_interval:
+          historicalBackfillReadiness.backfill_scope.preferred_interval,
+        supported_windows:
+          historicalBackfillReadiness.backfill_scope.supported_windows.join(","),
+        recommended_history_days_initial:
+          historicalBackfillReadiness.backfill_scope
+            .recommended_history_days_initial,
+        max_history_days_initial:
+          historicalBackfillReadiness.backfill_scope.max_history_days_initial,
+        preferred_ticker_sources:
+          historicalBackfillReadiness.backfill_scope.preferred_ticker_sources.join(","),
+        sample_types: JSON.stringify(historicalBackfillReadiness.sample_types),
+        lookahead_safety: JSON.stringify(
+          historicalBackfillReadiness.lookahead_safety,
+        ),
+        proposed_jobs: JSON.stringify(historicalBackfillReadiness.proposed_jobs),
+        storage_readiness: JSON.stringify(
+          historicalBackfillReadiness.storage_readiness,
+        ),
+        budget_policy: JSON.stringify(
+          historicalBackfillReadiness.budget_policy,
+        ),
+        ready_to_plan: historicalBackfillReadiness.readiness.ready_to_plan,
+        ready_to_fetch_historical_data: false,
+        ready_to_persist_synthetic_outcomes: false,
+        safe_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalBackfillReadiness.safety.requires_manual_review,
+        recommended_next_steps:
+          historicalBackfillReadiness.recommended_next_steps.join(","),
+        reason_codes: historicalBackfillReadiness.reason_codes.join(","),
+        caution_flags: historicalBackfillReadiness.caution_flags.join(","),
+        metadata_gaps: historicalBackfillReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_candle_cache",
+      title: "Historical Candle Cache",
+      severity:
+        historicalCandleCacheReadiness.validation.invalid_candles > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Preferred interval",
+          historicalCandleCacheReadiness.cache_contract.preferred_interval,
+        ),
+        lineValue(
+          "Cache key fields",
+          compactListText(
+            historicalCandleCacheReadiness.cache_contract.cache_key_fields,
+          ),
+        ),
+        lineValue(
+          "Candle contract",
+          compactListText(
+            historicalCandleCacheReadiness.cache_contract
+              .candle_required_fields,
+          ),
+        ),
+        lineValue(
+          "Storage table proposed",
+          historicalCandleCacheReadiness.storage_plan.suggested_table_name,
+        ),
+        lineValue(
+          "Reuse before fetch",
+          historicalCandleCacheReadiness.storage_plan.reuse_before_fetch
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Dedupe required",
+          historicalCandleCacheReadiness.storage_plan.dedupe_required
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety",
+          historicalCandleCacheReadiness.lookahead_safety
+            .signal_generation_must_filter_to_cutoff
+            ? "signal generation must filter to analysis cutoff"
+            : "unknown",
+        ),
+        lineValue(
+          "Ready to define storage",
+          historicalCandleCacheReadiness.readiness.ready_to_define_storage
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to fetch historical data", "no"),
+        lineValue("Ready to use for backfill", "no"),
+        lineValue("Ready to use for scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(historicalCandleCacheReadiness.recommended_next_steps),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalCandleCacheReadiness.advisory_only,
+        provider: historicalCandleCacheReadiness.cache_contract.provider,
+        supported_intervals:
+          historicalCandleCacheReadiness.cache_contract.supported_intervals.join(","),
+        preferred_interval:
+          historicalCandleCacheReadiness.cache_contract.preferred_interval,
+        cache_key_fields:
+          historicalCandleCacheReadiness.cache_contract.cache_key_fields.join(","),
+        candle_required_fields:
+          historicalCandleCacheReadiness.cache_contract.candle_required_fields.join(","),
+        candle_optional_fields:
+          historicalCandleCacheReadiness.cache_contract.candle_optional_fields.join(","),
+        candles_inspected:
+          historicalCandleCacheReadiness.validation.candles_inspected,
+        valid_candles: historicalCandleCacheReadiness.validation.valid_candles,
+        invalid_candles:
+          historicalCandleCacheReadiness.validation.invalid_candles,
+        stale_or_out_of_order:
+          historicalCandleCacheReadiness.validation.stale_or_out_of_order,
+        missing_field_counts: JSON.stringify(
+          historicalCandleCacheReadiness.validation.missing_field_counts,
+        ),
+        invalid_examples: JSON.stringify(
+          historicalCandleCacheReadiness.validation.invalid_examples,
+        ),
+        storage_plan: JSON.stringify(historicalCandleCacheReadiness.storage_plan),
+        lookahead_safety: JSON.stringify(
+          historicalCandleCacheReadiness.lookahead_safety,
+        ),
+        ready_to_define_storage:
+          historicalCandleCacheReadiness.readiness.ready_to_define_storage,
+        ready_to_fetch_historical_data: false,
+        ready_to_use_for_backfill: false,
+        ready_to_use_for_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalCandleCacheReadiness.safety.requires_manual_review,
+        recommended_next_steps:
+          historicalCandleCacheReadiness.recommended_next_steps.join(","),
+        reason_codes: historicalCandleCacheReadiness.reason_codes.join(","),
+        caution_flags: historicalCandleCacheReadiness.caution_flags.join(","),
+        metadata_gaps: historicalCandleCacheReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_candle_storage_readiness",
+      title: "Historical Candle Storage Readiness",
+      severity:
+        historicalCandleStorageReadiness.metadata_gaps.length > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Proposed table",
+          historicalCandleStorageReadiness.proposed_schema.primary_table,
+        ),
+        lineValue(
+          "Proposed fetch-runs table",
+          historicalCandleStorageReadiness.proposed_schema.fetch_runs_table,
+        ),
+        lineValue(
+          "Candle contract version",
+          historicalCandleStorageReadiness.proposed_schema
+            .candle_contract_version,
+        ),
+        lineValue(
+          "Migration file exists",
+          historicalCandleStorageReadiness.migration_readiness
+            .migration_file_present
+            ? "yes"
+            : "unknown",
+        ),
+        lineValue(
+          "Migration applied",
+          historicalCandleStorageReadiness.migration_readiness
+            .migration_applied,
+        ),
+        lineValue(
+          "historical_candles table detected",
+          historicalCandleStorageReadiness.migration_readiness
+            .historical_candles_table_detected,
+        ),
+        lineValue(
+          "historical_candle_fetch_runs table detected",
+          historicalCandleStorageReadiness.migration_readiness
+            .historical_candle_fetch_runs_table_detected,
+        ),
+        lineValue(
+          "Unique key detected",
+          historicalCandleStorageReadiness.migration_readiness
+            .expected_unique_key_detected,
+        ),
+        lineValue(
+          "Indexes detected",
+          historicalCandleStorageReadiness.migration_readiness
+            .expected_indexes_detected,
+        ),
+        lineValue(
+          "RLS enabled",
+          historicalCandleStorageReadiness.migration_readiness
+            .rls_enabled_detected,
+        ),
+        lineValue(
+          "Client writes allowed",
+          historicalCandleStorageReadiness.migration_readiness
+            .client_writes_allowed,
+        ),
+        lineValue(
+          "Client reads allowed",
+          historicalCandleStorageReadiness.migration_readiness
+            .client_reads_allowed,
+        ),
+        lineValue(
+          "Unique key",
+          compactListText(
+            historicalCandleStorageReadiness.historical_candles_table
+              .proposed_unique_key,
+          ),
+        ),
+        lineValue(
+          "Proposed indexes",
+          compactListText(
+            historicalCandleStorageReadiness.historical_candles_table
+              .proposed_indexes,
+          ),
+        ),
+        lineValue(
+          "Dedupe required",
+          historicalCandleStorageReadiness.historical_candles_table
+            .dedupe_required
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Reuse before fetch",
+          historicalCandleStorageReadiness.historical_candles_table
+            .reuse_before_fetch
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "TTL policy required",
+          historicalCandleStorageReadiness.retention_policy
+            .ttl_policy_required
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety",
+          historicalCandleStorageReadiness.lookahead_safety
+            .replay_signal_generation_must_filter_to_analysis_cutoff
+            ? "replay must filter to analysis cutoff"
+            : "unknown",
+        ),
+        lineValue(
+          "Ready to write migration",
+          historicalCandleStorageReadiness.migration_readiness
+            .ready_to_write_migration
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to apply migration",
+          historicalCandleStorageReadiness.migration_readiness
+            .ready_to_apply_migration
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to fetch historical data", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to use for backfill", "no"),
+        lineValue("Ready to use for scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            historicalCandleStorageReadiness.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalCandleStorageReadiness.advisory_only,
+        proposed_schema: JSON.stringify(
+          historicalCandleStorageReadiness.proposed_schema,
+        ),
+        primary_table:
+          historicalCandleStorageReadiness.proposed_schema.primary_table,
+        fetch_runs_table:
+          historicalCandleStorageReadiness.proposed_schema.fetch_runs_table,
+        provider: historicalCandleStorageReadiness.proposed_schema.provider,
+        candle_contract_version:
+          historicalCandleStorageReadiness.proposed_schema
+            .candle_contract_version,
+        historical_candles_required_columns:
+          historicalCandleStorageReadiness.historical_candles_table.required_columns.join(","),
+        historical_candles_optional_columns:
+          historicalCandleStorageReadiness.historical_candles_table.optional_columns.join(","),
+        unique_key:
+          historicalCandleStorageReadiness.historical_candles_table.proposed_unique_key.join(","),
+        proposed_indexes:
+          historicalCandleStorageReadiness.historical_candles_table.proposed_indexes.join(","),
+        dedupe_required: true,
+        reuse_before_fetch: true,
+        fetch_runs_required_columns:
+          historicalCandleStorageReadiness.historical_candle_fetch_runs_table.required_columns.join(","),
+        fetch_runs_indexes:
+          historicalCandleStorageReadiness.historical_candle_fetch_runs_table.proposed_indexes.join(","),
+        fetch_runs_purpose:
+          historicalCandleStorageReadiness.historical_candle_fetch_runs_table
+            .purpose,
+        retention_policy: JSON.stringify(
+          historicalCandleStorageReadiness.retention_policy,
+        ),
+        rls_and_access: JSON.stringify(
+          historicalCandleStorageReadiness.rls_and_access,
+        ),
+        lookahead_safety: JSON.stringify(
+          historicalCandleStorageReadiness.lookahead_safety,
+        ),
+        ready_to_write_migration:
+          historicalCandleStorageReadiness.migration_readiness
+            .ready_to_write_migration,
+        migration_file_present:
+          historicalCandleStorageReadiness.migration_readiness
+            .migration_file_present,
+        migration_applied:
+          historicalCandleStorageReadiness.migration_readiness
+            .migration_applied,
+        historical_candles_table_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .historical_candles_table_detected,
+        historical_candle_fetch_runs_table_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .historical_candle_fetch_runs_table_detected,
+        expected_unique_key_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .expected_unique_key_detected,
+        expected_indexes_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .expected_indexes_detected,
+        rls_enabled_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .rls_enabled_detected,
+        client_write_policies_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .client_write_policies_detected,
+        client_read_policies_detected:
+          historicalCandleStorageReadiness.migration_readiness
+            .client_read_policies_detected,
+        client_writes_allowed:
+          historicalCandleStorageReadiness.migration_readiness
+            .client_writes_allowed,
+        client_reads_allowed:
+          historicalCandleStorageReadiness.migration_readiness
+            .client_reads_allowed,
+        service_role_internal_access_expected:
+          historicalCandleStorageReadiness.migration_readiness
+            .service_role_internal_access_expected,
+        detection_source:
+          historicalCandleStorageReadiness.migration_readiness.detection_source,
+        detection_checked_at:
+          historicalCandleStorageReadiness.migration_readiness.checked_at,
+        detection_error_message:
+          historicalCandleStorageReadiness.migration_readiness.error_message,
+        ready_to_apply_migration:
+          historicalCandleStorageReadiness.migration_readiness
+            .ready_to_apply_migration,
+        ready_to_fetch_historical_data: false,
+        ready_to_persist_candles: false,
+        ready_to_use_for_backfill: false,
+        ready_to_use_for_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalCandleStorageReadiness.safety.requires_manual_review,
+        recommended_next_steps:
+          historicalCandleStorageReadiness.recommended_next_steps.join(","),
+        reason_codes: historicalCandleStorageReadiness.reason_codes.join(","),
+        caution_flags: historicalCandleStorageReadiness.caution_flags.join(","),
+        metadata_gaps: historicalCandleStorageReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_backfill_fetch_planner",
+      title: "Historical Backfill Fetch Planner",
+      severity:
+        historicalBackfillFetchPlan.metadata_gaps.length > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Dry run only", "yes"),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Preferred interval",
+          historicalBackfillFetchPlan.plan_context.preferred_interval,
+        ),
+        lineValue(
+          "History days planned",
+          historicalBackfillFetchPlan.plan_context.history_days_planned,
+        ),
+        lineValue(
+          "Selected tickers",
+          tickerListText(
+            historicalBackfillFetchPlan.ticker_selection.selected_tickers,
+          ),
+        ),
+        lineValue(
+          "Ticker source mix",
+          setupMixText(historicalBackfillFetchPlan.plan_context.ticker_source_mix),
+        ),
+        lineValue(
+          "Planned requests",
+          historicalBackfillFetchPlan.request_plan.total_planned_requests,
+        ),
+        lineValue(
+          "Estimated credits",
+          historicalBackfillFetchPlan.request_plan.estimated_provider_credits ??
+            "unknown",
+        ),
+        lineValue("Background priority", "low"),
+        lineValue(
+          "Budget policy",
+          "background low priority",
+        ),
+        lineValue(
+          "Pause near scan windows",
+          historicalBackfillFetchPlan.budget_policy.pause_near_scan_windows
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Pause on provider warnings",
+          historicalBackfillFetchPlan.budget_policy.pause_on_provider_warnings
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Migration applied",
+          historicalBackfillFetchPlan.readiness.migration_applied,
+        ),
+        lineValue("Ready to fetch historical data", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Safe to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(historicalBackfillFetchPlan.recommended_next_steps),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalBackfillFetchPlan.advisory_only,
+        dry_run_only: historicalBackfillFetchPlan.dry_run_only,
+        provider: historicalBackfillFetchPlan.plan_context.provider,
+        plan_profile: historicalBackfillFetchPlan.plan_context.plan_profile,
+        preferred_interval:
+          historicalBackfillFetchPlan.plan_context.preferred_interval,
+        history_days_requested:
+          historicalBackfillFetchPlan.plan_context.history_days_requested,
+        history_days_planned:
+          historicalBackfillFetchPlan.plan_context.history_days_planned,
+        windows: historicalBackfillFetchPlan.plan_context.windows.join(","),
+        ticker_source_mix: JSON.stringify(
+          historicalBackfillFetchPlan.plan_context.ticker_source_mix,
+        ),
+        candidate_tickers: historicalBackfillFetchPlan.ticker_selection.candidate_tickers.join(","),
+        selected_tickers: historicalBackfillFetchPlan.ticker_selection.selected_tickers.join(","),
+        skipped_tickers: JSON.stringify(
+          historicalBackfillFetchPlan.ticker_selection.skipped_tickers,
+        ),
+        source_counts: JSON.stringify(
+          historicalBackfillFetchPlan.ticker_selection.source_counts,
+        ),
+        total_planned_requests:
+          historicalBackfillFetchPlan.request_plan.total_planned_requests,
+        estimated_provider_credits:
+          historicalBackfillFetchPlan.request_plan.estimated_provider_credits,
+        estimated_candles:
+          historicalBackfillFetchPlan.request_plan.estimated_candles,
+        grouped_by_day: JSON.stringify(
+          historicalBackfillFetchPlan.request_plan.grouped_by_day,
+        ),
+        grouped_by_ticker: JSON.stringify(
+          historicalBackfillFetchPlan.request_plan.grouped_by_ticker,
+        ),
+        grouped_by_window: JSON.stringify(
+          historicalBackfillFetchPlan.request_plan.grouped_by_window,
+        ),
+        budget_policy: JSON.stringify(historicalBackfillFetchPlan.budget_policy),
+        max_background_requests_per_minute:
+          historicalBackfillFetchPlan.budget_policy
+            .max_background_requests_per_minute,
+        pause_near_scan_windows: true,
+        pause_on_provider_warnings: true,
+        pause_when_market_open_if_needed: true,
+        lookahead_safety: JSON.stringify(
+          historicalBackfillFetchPlan.lookahead_safety,
+        ),
+        migration_required: true,
+        migration_applied: historicalBackfillFetchPlan.readiness.migration_applied,
+        ready_to_fetch_historical_data: false,
+        ready_to_persist_candles: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        safe_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalBackfillFetchPlan.safety.requires_manual_review,
+        recommended_next_steps:
+          historicalBackfillFetchPlan.recommended_next_steps.join(","),
+        reason_codes: historicalBackfillFetchPlan.reason_codes.join(","),
+        caution_flags: historicalBackfillFetchPlan.caution_flags.join(","),
+        metadata_gaps: historicalBackfillFetchPlan.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "twelve_data_historical_fetch_contract",
+      title: "Twelve Data Historical Fetch Contract",
+      severity:
+        twelveDataHistoricalFetchContract.request_validation.invalid_requests > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Dry run only", "yes"),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Preferred endpoint",
+          twelveDataHistoricalFetchContract.provider_contract
+            .preferred_endpoint,
+        ),
+        lineValue("Earliest timestamp check", "planned"),
+        lineValue(
+          "Preferred interval",
+          twelveDataHistoricalFetchContract.provider_contract
+            .preferred_interval,
+        ),
+        lineValue(
+          "Requests planned",
+          twelveDataHistoricalFetchContract.request_validation.requests_planned,
+        ),
+        lineValue(
+          "Valid/invalid requests",
+          `${twelveDataHistoricalFetchContract.request_validation.valid_requests} / ${twelveDataHistoricalFetchContract.request_validation.invalid_requests}`,
+        ),
+        lineValue(
+          "Grouped by ticker/day/window",
+          `${Object.keys(twelveDataHistoricalFetchContract.request_plan.grouped_by_ticker).length} / ${Object.keys(twelveDataHistoricalFetchContract.request_plan.grouped_by_day).length} / ${setupMixText(twelveDataHistoricalFetchContract.request_plan.grouped_by_window)}`,
+        ),
+        lineValue("Cache reuse before fetch", "yes"),
+        lineValue("Fetch-run audit required", "yes"),
+        lineValue(
+          "Ready to build requests",
+          twelveDataHistoricalFetchContract.readiness.ready_to_build_requests
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to call provider", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to run backfill", "no"),
+        lineValue("Safe to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            twelveDataHistoricalFetchContract.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: twelveDataHistoricalFetchContract.advisory_only,
+        dry_run_only: twelveDataHistoricalFetchContract.dry_run_only,
+        provider:
+          twelveDataHistoricalFetchContract.provider_contract.provider,
+        supported_endpoints:
+          twelveDataHistoricalFetchContract.provider_contract.supported_endpoints.join(","),
+        preferred_endpoint:
+          twelveDataHistoricalFetchContract.provider_contract
+            .preferred_endpoint,
+        earliest_timestamp_check_supported: true,
+        preferred_interval:
+          twelveDataHistoricalFetchContract.provider_contract
+            .preferred_interval,
+        timezone:
+          twelveDataHistoricalFetchContract.provider_contract.timezone,
+        adjusted_default:
+          twelveDataHistoricalFetchContract.provider_contract.adjusted_default,
+        endpoint_strategy: JSON.stringify(
+          twelveDataHistoricalFetchContract.endpoint_strategy,
+        ),
+        requests_planned:
+          twelveDataHistoricalFetchContract.request_validation.requests_planned,
+        valid_requests:
+          twelveDataHistoricalFetchContract.request_validation.valid_requests,
+        invalid_requests:
+          twelveDataHistoricalFetchContract.request_validation.invalid_requests,
+        missing_field_counts: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_validation
+            .missing_field_counts,
+        ),
+        invalid_examples: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_validation.invalid_examples,
+        ),
+        planned_requests: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_plan.planned_requests,
+        ),
+        grouped_by_ticker: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_plan.grouped_by_ticker,
+        ),
+        grouped_by_day: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_plan.grouped_by_day,
+        ),
+        grouped_by_window: JSON.stringify(
+          twelveDataHistoricalFetchContract.request_plan.grouped_by_window,
+        ),
+        cache_policy: JSON.stringify(
+          twelveDataHistoricalFetchContract.cache_policy,
+        ),
+        budget_policy: JSON.stringify(
+          twelveDataHistoricalFetchContract.budget_policy,
+        ),
+        estimated_provider_credits:
+          twelveDataHistoricalFetchContract.budget_policy
+            .estimated_provider_credits,
+        max_background_requests_per_minute:
+          twelveDataHistoricalFetchContract.budget_policy
+            .max_background_requests_per_minute,
+        pause_near_scan_windows: true,
+        pause_on_provider_warnings: true,
+        live_scan_priority: "highest",
+        outcome_evaluation_priority: "high",
+        background_priority: "low",
+        ready_to_build_requests:
+          twelveDataHistoricalFetchContract.readiness.ready_to_build_requests,
+        ready_to_call_provider: false,
+        ready_to_persist_candles: false,
+        ready_to_run_backfill: false,
+        safe_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          twelveDataHistoricalFetchContract.safety.requires_manual_review,
+        recommended_next_steps:
+          twelveDataHistoricalFetchContract.recommended_next_steps.join(","),
+        reason_codes:
+          twelveDataHistoricalFetchContract.reason_codes.join(","),
+        caution_flags:
+          twelveDataHistoricalFetchContract.caution_flags.join(","),
+        metadata_gaps:
+          twelveDataHistoricalFetchContract.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "twelve_data_historical_response_parser",
+      title: "Twelve Data Historical Response Parser",
+      severity:
+        twelveDataHistoricalResponseParser.validation.invalid_candles_count > 0 ||
+        twelveDataHistoricalResponseParser.parse_status === "error"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Mock mode", "yes"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue(
+          "Parse status",
+          twelveDataHistoricalResponseParser.parse_status,
+        ),
+        lineValue(
+          "Raw/normalized/valid/invalid candles",
+          `${twelveDataHistoricalResponseParser.validation.raw_candles_count} / ${twelveDataHistoricalResponseParser.validation.normalized_candles_count} / ${twelveDataHistoricalResponseParser.validation.valid_candles_count} / ${twelveDataHistoricalResponseParser.validation.invalid_candles_count}`,
+        ),
+        lineValue(
+          "Duplicate timestamps",
+          twelveDataHistoricalResponseParser.validation
+            .duplicate_timestamp_count,
+        ),
+        lineValue(
+          "Out-of-order candles",
+          twelveDataHistoricalResponseParser.validation.out_of_order_count,
+        ),
+        lineValue(
+          "Cache key mapped",
+          twelveDataHistoricalResponseParser.cache_mapping.cache_key
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to parse mock response",
+          twelveDataHistoricalResponseParser.readiness
+            .ready_to_parse_mock_response
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to parse provider response", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to run backfill", "no"),
+        lineValue("Safe to affect scanner", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            twelveDataHistoricalResponseParser.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: twelveDataHistoricalResponseParser.advisory_only,
+        mock_mode: twelveDataHistoricalResponseParser.mock_only,
+        parse_status: twelveDataHistoricalResponseParser.parse_status,
+        provider_status:
+          twelveDataHistoricalResponseParser.provider_status,
+        provider_error_code:
+          twelveDataHistoricalResponseParser.provider_error_code,
+        provider_error_message:
+          twelveDataHistoricalResponseParser.provider_error_message,
+        meta: JSON.stringify(twelveDataHistoricalResponseParser.meta),
+        candles: JSON.stringify(twelveDataHistoricalResponseParser.candles),
+        raw_candles_count:
+          twelveDataHistoricalResponseParser.validation.raw_candles_count,
+        normalized_candles_count:
+          twelveDataHistoricalResponseParser.validation
+            .normalized_candles_count,
+        valid_candles_count:
+          twelveDataHistoricalResponseParser.validation.valid_candles_count,
+        invalid_candles_count:
+          twelveDataHistoricalResponseParser.validation.invalid_candles_count,
+        duplicate_timestamp_count:
+          twelveDataHistoricalResponseParser.validation
+            .duplicate_timestamp_count,
+        out_of_order_count:
+          twelveDataHistoricalResponseParser.validation.out_of_order_count,
+        missing_field_counts: JSON.stringify(
+          twelveDataHistoricalResponseParser.validation.missing_field_counts,
+        ),
+        invalid_examples: JSON.stringify(
+          twelveDataHistoricalResponseParser.validation.invalid_examples,
+        ),
+        cache_mapping: JSON.stringify(
+          twelveDataHistoricalResponseParser.cache_mapping,
+        ),
+        cache_key_mapped: Boolean(
+          twelveDataHistoricalResponseParser.cache_mapping.cache_key,
+        ),
+        ready_to_parse_mock_response:
+          twelveDataHistoricalResponseParser.readiness
+            .ready_to_parse_mock_response,
+        ready_to_parse_provider_response: false,
+        ready_to_persist_candles: false,
+        ready_to_run_backfill: false,
+        safe_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          twelveDataHistoricalResponseParser.safety.requires_manual_review,
+        recommended_next_steps:
+          twelveDataHistoricalResponseParser.recommended_next_steps.join(","),
+        reason_codes:
+          twelveDataHistoricalResponseParser.reason_codes.join(","),
+        caution_flags:
+          twelveDataHistoricalResponseParser.caution_flags.join(","),
+        metadata_gaps:
+          twelveDataHistoricalResponseParser.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_candle_persistence_plan",
+      title: "Historical Candle Persistence Plan",
+      severity:
+        historicalCandlePersistencePlan.input_summary.invalid_candles > 0
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Dry run only", "yes"),
+        lineValue(
+          "Target table",
+          historicalCandlePersistencePlan.persistence_context.target_table,
+        ),
+        lineValue(
+          "Fetch runs table",
+          historicalCandlePersistencePlan.persistence_context.fetch_runs_table,
+        ),
+        lineValue(
+          "Migration applied",
+          historicalCandlePersistencePlan.persistence_context.migration_applied,
+        ),
+        lineValue(
+          "Table detected",
+          historicalCandlePersistencePlan.persistence_context.table_detected,
+        ),
+        lineValue(
+          "Candles received/valid/invalid",
+          `${historicalCandlePersistencePlan.input_summary.candles_received} / ${historicalCandlePersistencePlan.input_summary.valid_candles} / ${historicalCandlePersistencePlan.input_summary.invalid_candles}`,
+        ),
+        lineValue(
+          "Planned inserts/updates/skips/rejections",
+          `${historicalCandlePersistencePlan.upsert_plan.planned_inserts} / ${historicalCandlePersistencePlan.upsert_plan.planned_updates} / ${historicalCandlePersistencePlan.upsert_plan.planned_skips} / ${historicalCandlePersistencePlan.upsert_plan.planned_invalid_rejections}`,
+        ),
+        lineValue(
+          "Cache hits/misses",
+          `${historicalCandlePersistencePlan.cache_analysis.cache_hits} / ${historicalCandlePersistencePlan.cache_analysis.cache_misses}`,
+        ),
+        lineValue(
+          "Conflict target",
+          historicalCandlePersistencePlan.upsert_plan.conflict_target.join(", "),
+        ),
+        lineValue("Fetch-run audit", "dry-run only"),
+        lineValue(
+          "Ready to plan upsert",
+          historicalCandlePersistencePlan.readiness.ready_to_plan_upsert
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run backfill", "no"),
+        lineValue("Ready to use for scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(historicalCandlePersistencePlan.recommended_next_steps),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalCandlePersistencePlan.advisory_only,
+        dry_run_only: historicalCandlePersistencePlan.dry_run_only,
+        persistence_context: JSON.stringify(
+          historicalCandlePersistencePlan.persistence_context,
+        ),
+        target_table:
+          historicalCandlePersistencePlan.persistence_context.target_table,
+        fetch_runs_table:
+          historicalCandlePersistencePlan.persistence_context.fetch_runs_table,
+        provider: historicalCandlePersistencePlan.persistence_context.provider,
+        migration_applied:
+          historicalCandlePersistencePlan.persistence_context.migration_applied,
+        table_detected:
+          historicalCandlePersistencePlan.persistence_context.table_detected,
+        candles_received:
+          historicalCandlePersistencePlan.input_summary.candles_received,
+        valid_candles:
+          historicalCandlePersistencePlan.input_summary.valid_candles,
+        invalid_candles:
+          historicalCandlePersistencePlan.input_summary.invalid_candles,
+        duplicate_input_candles:
+          historicalCandlePersistencePlan.input_summary
+            .duplicate_input_candles,
+        unique_cache_keys:
+          historicalCandlePersistencePlan.input_summary.unique_cache_keys,
+        upsert_plan: JSON.stringify(historicalCandlePersistencePlan.upsert_plan),
+        planned_inserts:
+          historicalCandlePersistencePlan.upsert_plan.planned_inserts,
+        planned_updates:
+          historicalCandlePersistencePlan.upsert_plan.planned_updates,
+        planned_skips:
+          historicalCandlePersistencePlan.upsert_plan.planned_skips,
+        planned_invalid_rejections:
+          historicalCandlePersistencePlan.upsert_plan
+            .planned_invalid_rejections,
+        planned_duplicates_deduped:
+          historicalCandlePersistencePlan.upsert_plan
+            .planned_duplicates_deduped,
+        conflict_target:
+          historicalCandlePersistencePlan.upsert_plan.conflict_target.join(","),
+        cache_analysis: JSON.stringify(
+          historicalCandlePersistencePlan.cache_analysis,
+        ),
+        cache_hits: historicalCandlePersistencePlan.cache_analysis.cache_hits,
+        cache_misses: historicalCandlePersistencePlan.cache_analysis.cache_misses,
+        existing_cache_keys_checked:
+          historicalCandlePersistencePlan.cache_analysis
+            .existing_cache_keys_checked,
+        missing_cache_key_count:
+          historicalCandlePersistencePlan.cache_analysis
+            .missing_cache_key_count,
+        fetch_run_audit_plan: JSON.stringify(
+          historicalCandlePersistencePlan.fetch_run_audit_plan,
+        ),
+        fetch_run_persisted: false,
+        validation_mapping: JSON.stringify(
+          historicalCandlePersistencePlan.validation_mapping,
+        ),
+        ready_to_plan_upsert:
+          historicalCandlePersistencePlan.readiness.ready_to_plan_upsert,
+        ready_to_write_fetch_run: false,
+        ready_to_persist_candles: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_backfill: false,
+        ready_to_use_for_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalCandlePersistencePlan.safety.requires_manual_review,
+        recommended_next_steps:
+          historicalCandlePersistencePlan.recommended_next_steps.join(","),
+        reason_codes: historicalCandlePersistencePlan.reason_codes.join(","),
+        caution_flags: historicalCandlePersistencePlan.caution_flags.join(","),
+        metadata_gaps: historicalCandlePersistencePlan.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_backfill_dry_run_pipeline",
+      title: "Historical Backfill Dry Run Pipeline",
+      severity:
+        historicalBackfillDryRunPipeline.pipeline_status === "blocked"
+          ? "critical"
+          : historicalBackfillDryRunPipeline.pipeline_status === "partial"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Dry run only", "yes"),
+        lineValue("Mock only", "yes"),
+        lineValue(
+          "Pipeline status",
+          historicalBackfillDryRunPipeline.pipeline_status,
+        ),
+        lineValue(
+          "Steps",
+          `fetch plan ${historicalBackfillDryRunPipeline.pipeline_steps.fetch_plan_built ? "yes" : "no"} / requests ${historicalBackfillDryRunPipeline.pipeline_steps.request_plan_built ? "yes" : "no"} / parser ${historicalBackfillDryRunPipeline.pipeline_steps.mock_responses_parsed ? "yes" : "no"} / persistence plan ${historicalBackfillDryRunPipeline.pipeline_steps.persistence_plan_built ? "yes" : "no"}`,
+        ),
+        lineValue(
+          "Selected tickers",
+          tickerListText(
+            historicalBackfillDryRunPipeline.fetch_plan_summary
+              .selected_tickers,
+          ),
+        ),
+        lineValue(
+          "History days planned",
+          historicalBackfillDryRunPipeline.fetch_plan_summary
+            .history_days_planned,
+        ),
+        lineValue(
+          "Requests planned/valid/invalid",
+          `${historicalBackfillDryRunPipeline.request_contract_summary.requests_planned} / ${historicalBackfillDryRunPipeline.request_contract_summary.valid_requests} / ${historicalBackfillDryRunPipeline.request_contract_summary.invalid_requests}`,
+        ),
+        lineValue(
+          "Mock responses used",
+          historicalBackfillDryRunPipeline.parser_summary.mock_responses_used,
+        ),
+        lineValue(
+          "Raw/normalized/valid/invalid candles",
+          `${historicalBackfillDryRunPipeline.parser_summary.raw_candles} / ${historicalBackfillDryRunPipeline.parser_summary.normalized_candles} / ${historicalBackfillDryRunPipeline.parser_summary.valid_candles} / ${historicalBackfillDryRunPipeline.parser_summary.invalid_candles}`,
+        ),
+        lineValue(
+          "Planned inserts/updates/skips/rejections",
+          `${historicalBackfillDryRunPipeline.persistence_summary.planned_inserts} / ${historicalBackfillDryRunPipeline.persistence_summary.planned_updates} / ${historicalBackfillDryRunPipeline.persistence_summary.planned_skips} / ${historicalBackfillDryRunPipeline.persistence_summary.planned_invalid_rejections}`,
+        ),
+        lineValue(
+          "Cache hits/misses",
+          `${historicalBackfillDryRunPipeline.persistence_summary.cache_hits} / ${historicalBackfillDryRunPipeline.persistence_summary.cache_misses}`,
+        ),
+        lineValue("Ready to call provider", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            historicalBackfillDryRunPipeline.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalBackfillDryRunPipeline.advisory_only,
+        dry_run_only: historicalBackfillDryRunPipeline.dry_run_only,
+        mock_only: historicalBackfillDryRunPipeline.mock_only,
+        pipeline_status:
+          historicalBackfillDryRunPipeline.pipeline_status,
+        pipeline_steps: JSON.stringify(
+          historicalBackfillDryRunPipeline.pipeline_steps,
+        ),
+        fetch_plan_summary: JSON.stringify(
+          historicalBackfillDryRunPipeline.fetch_plan_summary,
+        ),
+        request_contract_summary: JSON.stringify(
+          historicalBackfillDryRunPipeline.request_contract_summary,
+        ),
+        parser_summary: JSON.stringify(
+          historicalBackfillDryRunPipeline.parser_summary,
+        ),
+        persistence_summary: JSON.stringify(
+          historicalBackfillDryRunPipeline.persistence_summary,
+        ),
+        selected_tickers:
+          historicalBackfillDryRunPipeline.fetch_plan_summary.selected_tickers.join(","),
+        history_days_planned:
+          historicalBackfillDryRunPipeline.fetch_plan_summary
+            .history_days_planned,
+        requests_planned:
+          historicalBackfillDryRunPipeline.request_contract_summary
+            .requests_planned,
+        valid_requests:
+          historicalBackfillDryRunPipeline.request_contract_summary
+            .valid_requests,
+        invalid_requests:
+          historicalBackfillDryRunPipeline.request_contract_summary
+            .invalid_requests,
+        mock_responses_used:
+          historicalBackfillDryRunPipeline.parser_summary.mock_responses_used,
+        normalized_candles:
+          historicalBackfillDryRunPipeline.parser_summary.normalized_candles,
+        valid_candles:
+          historicalBackfillDryRunPipeline.parser_summary.valid_candles,
+        invalid_candles:
+          historicalBackfillDryRunPipeline.parser_summary.invalid_candles,
+        planned_inserts:
+          historicalBackfillDryRunPipeline.persistence_summary.planned_inserts,
+        planned_updates:
+          historicalBackfillDryRunPipeline.persistence_summary.planned_updates,
+        planned_skips:
+          historicalBackfillDryRunPipeline.persistence_summary.planned_skips,
+        planned_invalid_rejections:
+          historicalBackfillDryRunPipeline.persistence_summary
+            .planned_invalid_rejections,
+        cache_hits:
+          historicalBackfillDryRunPipeline.persistence_summary.cache_hits,
+        cache_misses:
+          historicalBackfillDryRunPipeline.persistence_summary.cache_misses,
+        readiness: JSON.stringify(historicalBackfillDryRunPipeline.readiness),
+        ready_to_run_mock_pipeline:
+          historicalBackfillDryRunPipeline.readiness
+            .ready_to_run_mock_pipeline,
+        ready_to_call_provider: false,
+        ready_to_persist_candles: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_manual_review:
+          historicalBackfillDryRunPipeline.safety.requires_manual_review,
+        blockers: historicalBackfillDryRunPipeline.blockers.join(","),
+        recommended_next_steps:
+          historicalBackfillDryRunPipeline.recommended_next_steps.join(","),
+        reason_codes: historicalBackfillDryRunPipeline.reason_codes.join(","),
+        caution_flags: historicalBackfillDryRunPipeline.caution_flags.join(","),
+        metadata_gaps: historicalBackfillDryRunPipeline.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "historical_backfill_execution_readiness",
+      title: "Historical Backfill Execution Readiness",
+      severity:
+        historicalBackfillExecutionReadiness.readiness_status === "blocked"
+          ? "critical"
+          : historicalBackfillExecutionReadiness.readiness_status ===
+                "not_ready" ||
+              historicalBackfillExecutionReadiness.readiness_status ===
+                "ready_for_manual_review"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue(
+          "Readiness status",
+          historicalBackfillExecutionReadiness.readiness_status,
+        ),
+        lineValue(
+          "Migration applied",
+          yesNoUnknown(
+            historicalBackfillExecutionReadiness.prerequisites
+              .migration_applied,
+          ),
+        ),
+        lineValue(
+          "historical_candles table detected",
+          yesNoUnknown(
+            historicalBackfillExecutionReadiness.prerequisites
+              .historical_candles_table_detected,
+          ),
+        ),
+        lineValue(
+          "historical_candle_fetch_runs table detected",
+          yesNoUnknown(
+            historicalBackfillExecutionReadiness.prerequisites
+              .historical_candle_fetch_runs_table_detected,
+          ),
+        ),
+        lineValue(
+          "Dry-run pipeline ready",
+          historicalBackfillExecutionReadiness.prerequisites
+            .dry_run_pipeline_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Request contract ready",
+          historicalBackfillExecutionReadiness.prerequisites
+            .request_contract_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Response parser ready",
+          historicalBackfillExecutionReadiness.prerequisites
+            .response_parser_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Persistence plan ready",
+          historicalBackfillExecutionReadiness.prerequisites
+            .persistence_plan_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider env present",
+          yesNoUnknown(
+            historicalBackfillExecutionReadiness.prerequisites
+              .provider_env_present,
+          ),
+        ),
+        lineValue(
+          "Budget policy present",
+          historicalBackfillExecutionReadiness.prerequisites
+            .provider_budget_policy_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety present",
+          historicalBackfillExecutionReadiness.prerequisites
+            .lookahead_safety_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Manual approval required", "yes"),
+        lineValue("Manual approval gate passed", "no"),
+        lineValue(
+          "First tiny fetch candidate",
+          `disabled / dry-run only / tickers ${tickerListText(historicalBackfillExecutionReadiness.first_fetch_candidate_plan.selected_candidate_tickers)} / days ${historicalBackfillExecutionReadiness.first_fetch_candidate_plan.max_trading_days} / interval ${historicalBackfillExecutionReadiness.first_fetch_candidate_plan.interval}`,
+        ),
+        lineValue("Ready to call provider", "no"),
+        lineValue("Ready to persist candles", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(historicalBackfillExecutionReadiness.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            historicalBackfillExecutionReadiness.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: historicalBackfillExecutionReadiness.advisory_only,
+        readiness_status:
+          historicalBackfillExecutionReadiness.readiness_status,
+        prerequisites: JSON.stringify(
+          historicalBackfillExecutionReadiness.prerequisites,
+        ),
+        readiness_gates: JSON.stringify(
+          historicalBackfillExecutionReadiness.readiness_gates,
+        ),
+        first_fetch_candidate_plan: JSON.stringify(
+          historicalBackfillExecutionReadiness.first_fetch_candidate_plan,
+        ),
+        migration_applied:
+          historicalBackfillExecutionReadiness.prerequisites
+            .migration_applied,
+        historical_candles_table_detected:
+          historicalBackfillExecutionReadiness.prerequisites
+            .historical_candles_table_detected,
+        historical_candle_fetch_runs_table_detected:
+          historicalBackfillExecutionReadiness.prerequisites
+            .historical_candle_fetch_runs_table_detected,
+        dry_run_pipeline_ready:
+          historicalBackfillExecutionReadiness.prerequisites
+            .dry_run_pipeline_ready,
+        request_contract_ready:
+          historicalBackfillExecutionReadiness.prerequisites
+            .request_contract_ready,
+        response_parser_ready:
+          historicalBackfillExecutionReadiness.prerequisites
+            .response_parser_ready,
+        persistence_plan_ready:
+          historicalBackfillExecutionReadiness.prerequisites
+            .persistence_plan_ready,
+        provider_env_present:
+          historicalBackfillExecutionReadiness.prerequisites
+            .provider_env_present,
+        provider_budget_policy_present:
+          historicalBackfillExecutionReadiness.prerequisites
+            .provider_budget_policy_present,
+        lookahead_safety_present:
+          historicalBackfillExecutionReadiness.prerequisites
+            .lookahead_safety_present,
+        manual_approval_required: true,
+        manual_approval_gate_passed: false,
+        ready_to_call_provider: false,
+        ready_to_persist_candles: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers: historicalBackfillExecutionReadiness.blockers.join(","),
+        warnings: historicalBackfillExecutionReadiness.warnings.join(","),
+        recommended_next_steps:
+          historicalBackfillExecutionReadiness.recommended_next_steps.join(","),
+        reason_codes:
+          historicalBackfillExecutionReadiness.reason_codes.join(","),
+        caution_flags:
+          historicalBackfillExecutionReadiness.caution_flags.join(","),
+        metadata_gaps:
+          historicalBackfillExecutionReadiness.metadata_gaps.join(","),
       },
     }),
     section({
@@ -6818,6 +8444,36 @@ function buildSections(
           input.daily_learning_review?.model_governance ?? null,
         ),
         dynamic_movers_readiness: JSON.stringify(dynamicMoversReadiness),
+        dynamic_movers_shadow_contract: JSON.stringify(
+          dynamicMoversShadowAudit,
+        ),
+        historical_learning_backfill_readiness: JSON.stringify(
+          historicalBackfillReadiness,
+        ),
+        historical_candle_cache: JSON.stringify(
+          historicalCandleCacheReadiness,
+        ),
+        historical_candle_storage_readiness: JSON.stringify(
+          historicalCandleStorageReadiness,
+        ),
+        historical_backfill_fetch_planner: JSON.stringify(
+          historicalBackfillFetchPlan,
+        ),
+        twelve_data_historical_fetch_contract: JSON.stringify(
+          twelveDataHistoricalFetchContract,
+        ),
+        twelve_data_historical_response_parser: JSON.stringify(
+          twelveDataHistoricalResponseParser,
+        ),
+        historical_candle_persistence_plan: JSON.stringify(
+          historicalCandlePersistencePlan,
+        ),
+        historical_backfill_dry_run_pipeline: JSON.stringify(
+          historicalBackfillDryRunPipeline,
+        ),
+        historical_backfill_execution_readiness: JSON.stringify(
+          historicalBackfillExecutionReadiness,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -6930,6 +8586,46 @@ function buildSections(
         lineValue(
           "Dynamic movers readiness",
           `provider ${dynamicMoversReadiness.provider_status.available ? "available" : "unavailable"} / safe preview ${dynamicMoversReadiness.readiness.safe_to_preview ? "yes" : "no"} / scanner use no / next ${dynamicMoversReadiness.recommended_next_steps[0] ?? "none"}`,
+        ),
+        lineValue(
+          "Dynamic movers shadow contract",
+          `mock ${dynamicMoversShadowAudit.fixture_summary.total_movers} / valid ${dynamicMoversShadowAudit.fixture_summary.valid_movers} / shadow compare ${dynamicMoversShadowAudit.shadow_readiness.safe_to_shadow_compare ? "yes" : "no"} / scanner use no`,
+        ),
+        lineValue(
+          "Historical backfill readiness",
+          "planned / fetch no / synthetic persist no / scanner effect no",
+        ),
+        lineValue(
+          "Historical candle cache",
+          "planned / fetch no / persist no / scanner use no",
+        ),
+        lineValue(
+          "Historical candle storage",
+          `schema planned / migration ${historicalCandleStorageReadiness.migration_readiness.migration_applied} / fetch no / persist no`,
+        ),
+        lineValue(
+          "Historical backfill planner",
+          `dry-run / ${historicalBackfillFetchPlan.plan_context.history_days_planned} days / ${historicalBackfillFetchPlan.ticker_selection.selected_tickers.length} tickers / fetch no / persist no`,
+        ),
+        lineValue(
+          "Twelve Data historical contract",
+          `dry-run / requests planned ${twelveDataHistoricalFetchContract.request_validation.requests_planned} / provider call no / persist no`,
+        ),
+        lineValue(
+          "Twelve Data response parser",
+          `mock / parse ready ${twelveDataHistoricalResponseParser.readiness.ready_to_parse_mock_response ? "yes" : "no"} / provider response no / persist no`,
+        ),
+        lineValue(
+          "Historical candle persistence",
+          `dry-run / inserts planned ${historicalCandlePersistencePlan.upsert_plan.planned_inserts} / persist no / scanner no`,
+        ),
+        lineValue(
+          "Historical backfill dry-run",
+          `${historicalBackfillDryRunPipeline.pipeline_status} / requests ${historicalBackfillDryRunPipeline.request_contract_summary.requests_planned} / normalized candles ${historicalBackfillDryRunPipeline.parser_summary.normalized_candles} / persist no / scanner no`,
+        ),
+        lineValue(
+          "Historical backfill execution readiness",
+          `${historicalBackfillExecutionReadiness.readiness_status} / migration ${yesNoUnknown(historicalBackfillExecutionReadiness.prerequisites.migration_applied)} / first fetch disabled / provider call no`,
         ),
         lineValue(
           "Primary learning signal",
