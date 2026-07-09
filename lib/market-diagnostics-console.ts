@@ -34,6 +34,8 @@ import { buildFirstTinyHistoricalCandlePayloadRefetchExecuteReadiness } from "@/
 import { buildFirstTinyHistoricalCandlePayloadRefetchPlan } from "@/lib/first-tiny-historical-candle-payload-refetch-plan";
 import { buildFirstTinyCandlePayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-payload-refetch-result-verification";
 import { buildFirstTinyCandlePayloadWindowSanityReview } from "@/lib/first-tiny-historical-candle-payload-window-sanity-review";
+import { buildFirstTinyCorrectedPayloadRefetchResultVerification } from "@/lib/first-tiny-historical-candle-corrected-payload-refetch-result-verification";
+import { buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan } from "@/lib/first-tiny-historical-candle-executable-persistence-dry-run-plan";
 import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
 import { buildFirstTinyFetchRunAuditWriteExecuteReadiness } from "@/lib/first-tiny-historical-fetch-run-audit-write-execute";
 import { buildFirstTinyHistoricalFetchRunAuditWritePlan } from "@/lib/first-tiny-historical-fetch-run-audit-write-plan";
@@ -2984,6 +2986,12 @@ function buildSections(
     buildFirstTinyCorrectedPayloadRefetchExecuteReadiness({
       corrected_plan: firstTinyCorrectedCandlePayloadRefetchPlan,
       approval: firstTinyCorrectedPayloadRefetchApproval,
+    });
+  const firstTinyCorrectedPayloadRefetchResultVerification =
+    buildFirstTinyCorrectedPayloadRefetchResultVerification();
+  const firstTinyExecutableCandlePersistenceDryRunPlan =
+    buildFirstTinyHistoricalCandleExecutablePersistenceDryRunPlan({
+      source_verification: firstTinyCorrectedPayloadRefetchResultVerification,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -9588,6 +9596,676 @@ function buildSections(
       },
     }),
     section({
+      section_id:
+        "corrected_first_tiny_historical_candle_payload_refetch_result_verification",
+      title: "Corrected First Tiny Candle Payload Refetch Result Verification",
+      severity:
+        firstTinyCorrectedPayloadRefetchResultVerification
+          .approval_lock_warning.warning !== null
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue(
+          "Verification status",
+          firstTinyCorrectedPayloadRefetchResultVerification.verification_status,
+        ),
+        lineValue(
+          "Execution status",
+          firstTinyCorrectedPayloadRefetchResultVerification.execution_status,
+        ),
+        lineValue(
+          "Strategy",
+          firstTinyCorrectedPayloadRefetchResultVerification.strategy_id,
+        ),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Endpoint",
+          firstTinyCorrectedPayloadRefetchResultVerification.endpoint,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyCorrectedPayloadRefetchResultVerification.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyCorrectedPayloadRefetchResultVerification.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyCorrectedPayloadRefetchResultVerification.trading_day,
+        ),
+        lineValue(
+          "Existing fetch run id",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .existing_fetch_run_id,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyCorrectedPayloadRefetchResultVerification.request_count,
+        ),
+        lineValue(
+          "Estimated credits",
+          firstTinyCorrectedPayloadRefetchResultVerification.estimated_credits,
+        ),
+        lineValue(
+          "Provider call executed",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .provider_call_executed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider call succeeded",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .provider_call_succeeded
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Intended NY window",
+          firstTinyCorrectedPayloadRefetchResultVerification.intended_ny_window,
+        ),
+        lineValue(
+          "Intended UTC window",
+          `${firstTinyCorrectedPayloadRefetchResultVerification.intended_utc_start} -> ${firstTinyCorrectedPayloadRefetchResultVerification.intended_utc_end}`,
+        ),
+        lineValue(
+          "Accepted end inclusive",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .accepted_window_end_inclusive
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Raw candles",
+          firstTinyCorrectedPayloadRefetchResultVerification.raw_candles,
+        ),
+        lineValue(
+          "Normalized candles",
+          firstTinyCorrectedPayloadRefetchResultVerification.normalized_candles,
+        ),
+        lineValue(
+          "Filtered candles",
+          firstTinyCorrectedPayloadRefetchResultVerification.filtered_candles,
+        ),
+        lineValue(
+          "Valid filtered candles",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .valid_filtered_candles,
+        ),
+        lineValue(
+          "Invalid filtered candles",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .invalid_filtered_candles,
+        ),
+        lineValue(
+          "Duplicate timestamps",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .duplicate_timestamps,
+        ),
+        lineValue(
+          "Out-of-order candles",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .out_of_order_candles,
+        ),
+        lineValue(
+          "Filtered first timestamp",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_first_timestamp,
+        ),
+        lineValue(
+          "Filtered last timestamp",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_last_timestamp,
+        ),
+        lineValue(
+          "Filtered window matches intended",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_window_matches_intended
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "5min spacing valid",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .five_minute_spacing_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Corrected payload sanity",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .corrected_payload_sanity_status,
+        ),
+        lineValue(
+          "Payload response only",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .normalized_payload_response_only
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Static payload rows",
+          firstTinyCorrectedPayloadRefetchResultVerification.payload_artifact
+            .payload_row_count,
+        ),
+        lineValue(
+          "OHLCV values invented",
+          firstTinyCorrectedPayloadRefetchResultVerification.payload_artifact
+            .ohlcv_values_not_invented
+            ? "no"
+            : "yes",
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Ready for executable candle persistence dry-run",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .ready_for_executable_candle_persistence_dry_run
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Candle write ready",
+          firstTinyCorrectedPayloadRefetchResultVerification.candle_write_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Executable candle persistence plan ready",
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .executable_candle_persistence_plan_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Approval lock warning",
+          compact(
+            firstTinyCorrectedPayloadRefetchResultVerification
+              .approval_lock_warning.warning,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyCorrectedPayloadRefetchResultVerification
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        verification_marker:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .verification_marker,
+        route_build_marker:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .route_build_marker,
+        verification_status:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .verification_status,
+        execution_status:
+          firstTinyCorrectedPayloadRefetchResultVerification.execution_status,
+        strategy_id:
+          firstTinyCorrectedPayloadRefetchResultVerification.strategy_id,
+        provider: firstTinyCorrectedPayloadRefetchResultVerification.provider,
+        endpoint: firstTinyCorrectedPayloadRefetchResultVerification.endpoint,
+        ticker: firstTinyCorrectedPayloadRefetchResultVerification.ticker,
+        interval: firstTinyCorrectedPayloadRefetchResultVerification.interval,
+        trading_day:
+          firstTinyCorrectedPayloadRefetchResultVerification.trading_day,
+        existing_fetch_run_id:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .existing_fetch_run_id,
+        request_count:
+          firstTinyCorrectedPayloadRefetchResultVerification.request_count,
+        estimated_credits:
+          firstTinyCorrectedPayloadRefetchResultVerification.estimated_credits,
+        intended_ny_window:
+          firstTinyCorrectedPayloadRefetchResultVerification.intended_ny_window,
+        intended_utc_start:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .intended_utc_start,
+        intended_utc_end:
+          firstTinyCorrectedPayloadRefetchResultVerification.intended_utc_end,
+        accepted_window_end_inclusive:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .accepted_window_end_inclusive,
+        expected_filtered_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .expected_filtered_candles,
+        provider_call_executed:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .provider_call_executed,
+        provider_call_succeeded:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .provider_call_succeeded,
+        raw_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification.raw_candles,
+        normalized_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification.normalized_candles,
+        filtered_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification.filtered_candles,
+        valid_filtered_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .valid_filtered_candles,
+        invalid_filtered_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .invalid_filtered_candles,
+        duplicate_timestamps:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .duplicate_timestamps,
+        out_of_order_candles:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .out_of_order_candles,
+        filtered_first_timestamp:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_first_timestamp,
+        filtered_last_timestamp:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_last_timestamp,
+        filtered_window_matches_intended:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .filtered_window_matches_intended,
+        five_minute_spacing_valid:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .five_minute_spacing_valid,
+        all_rows_ticker_aapl:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .all_rows_ticker_aapl,
+        all_rows_interval_5min:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .all_rows_interval_5min,
+        all_rows_adjusted_false:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .all_rows_adjusted_false,
+        all_rows_trading_day_2026_07_08:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .all_rows_trading_day_2026_07_08,
+        all_rows_fetch_run_id_matches:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .all_rows_fetch_run_id_matches,
+        corrected_payload_sanity_status:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .corrected_payload_sanity_status,
+        ready_for_executable_candle_persistence_dry_run:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .ready_for_executable_candle_persistence_dry_run,
+        ready_for_next_dry_run_plan:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .ready_for_next_dry_run_plan,
+        normalized_payload_available:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .normalized_payload_available,
+        normalized_payload_response_only:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .normalized_payload_response_only,
+        payload_row_count:
+          firstTinyCorrectedPayloadRefetchResultVerification.payload_artifact
+            .payload_row_count,
+        ohlcv_values_recorded_in_artifact:
+          firstTinyCorrectedPayloadRefetchResultVerification.payload_artifact
+            .ohlcv_values_recorded_in_artifact,
+        ohlcv_values_not_invented:
+          firstTinyCorrectedPayloadRefetchResultVerification.payload_artifact
+            .ohlcv_values_not_invented,
+        approval_signal_still_enabled:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .approval_lock_warning.approval_signal_still_enabled,
+        approval_lock_warning:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .approval_lock_warning.warning,
+        candles_persisted:
+          firstTinyCorrectedPayloadRefetchResultVerification.candles_persisted,
+        raw_response_persisted:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .synthetic_outcomes_persisted,
+        replay_executed:
+          firstTinyCorrectedPayloadRefetchResultVerification.replay_executed,
+        scanner_behavior_changed:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .live_ranking_changed,
+        candle_write_ready:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .candle_write_ready,
+        executable_candle_persistence_plan_ready:
+          firstTinyCorrectedPayloadRefetchResultVerification
+            .executable_candle_persistence_plan_ready,
+        recommended_next_steps:
+          firstTinyCorrectedPayloadRefetchResultVerification.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id:
+        "first_tiny_historical_candle_executable_persistence_dry_run_plan",
+      title: "Executable First Tiny Candle Persistence Dry-Run Plan",
+      severity:
+        firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+          .valid_candle_rows ===
+        firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+          .expected_candle_rows
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue("Status", "planned / dry-run only"),
+        lineValue(
+          "Source verification",
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_verification,
+        ),
+        lineValue(
+          "Target table",
+          firstTinyExecutableCandlePersistenceDryRunPlan.target_table,
+        ),
+        lineValue(
+          "Fetch run id",
+          firstTinyExecutableCandlePersistenceDryRunPlan.fetch_run.fetch_run_id,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope
+            .trading_day,
+        ),
+        lineValue(
+          "Executable payload available",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .executable_payload_available
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Candidate candle rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .candidate_candle_rows,
+        ),
+        lineValue(
+          "Timestamp metadata valid rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .timestamp_metadata_valid_rows,
+        ),
+        lineValue(
+          "Valid candle rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .valid_candle_rows,
+        ),
+        lineValue(
+          "Invalid candle rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .invalid_candle_rows,
+        ),
+        lineValue(
+          "OHLCV valid rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .ohlcv_valid_rows,
+        ),
+        lineValue(
+          "OHLCV missing rows",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .ohlcv_missing_rows,
+        ),
+        lineValue(
+          "First timestamp",
+          compact(
+            firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+              .first_timestamp,
+            "none",
+          ),
+        ),
+        lineValue(
+          "Last timestamp",
+          compact(
+            firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+              .last_timestamp,
+            "none",
+          ),
+        ),
+        lineValue(
+          "5min spacing valid",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .five_minute_spacing_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Window matches intended",
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .window_matches_intended
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Cache readback status",
+          firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback.status,
+        ),
+        lineValue(
+          "Planned inserts",
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_inserts,
+        ),
+        lineValue(
+          "Planned updates",
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_updates,
+        ),
+        lineValue(
+          "Planned skips",
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_skips,
+        ),
+        lineValue(
+          "Planned rejections",
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_invalid_rejections,
+        ),
+        lineValue(
+          "Conflict target",
+          firstTinyExecutableCandlePersistenceDryRunPlan.conflict_target.join(
+            ", ",
+          ),
+        ),
+        lineValue(
+          "Candle write allowed now",
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .candle_write_allowed_now
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Requires separate operator approval",
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .requires_separate_operator_approval
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Top rejection reasons",
+          Object.entries(
+            firstTinyExecutableCandlePersistenceDryRunPlan.validation
+              .rejection_reason_counts,
+          )
+            .map(([reason, count]) => `${reason}:${count}`)
+            .join(", ") || "none",
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyExecutableCandlePersistenceDryRunPlan
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        plan_marker:
+          firstTinyExecutableCandlePersistenceDryRunPlan.plan_marker,
+        plan_status:
+          firstTinyExecutableCandlePersistenceDryRunPlan.plan_status,
+        dry_run_only:
+          firstTinyExecutableCandlePersistenceDryRunPlan.dry_run_only,
+        source_verification:
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_verification,
+        source_verification_status:
+          firstTinyExecutableCandlePersistenceDryRunPlan
+            .source_verification_status,
+        source_execution_status:
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_execution_status,
+        source_strategy:
+          firstTinyExecutableCandlePersistenceDryRunPlan.source_strategy,
+        target_table:
+          firstTinyExecutableCandlePersistenceDryRunPlan.target_table,
+        conflict_target:
+          firstTinyExecutableCandlePersistenceDryRunPlan.conflict_target.join(
+            ",",
+          ),
+        fetch_run_id:
+          firstTinyExecutableCandlePersistenceDryRunPlan.fetch_run.fetch_run_id,
+        provider:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.provider,
+        ticker:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.ticker,
+        interval:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.interval,
+        trading_day:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope
+            .trading_day,
+        session:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.session,
+        timezone:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.timezone,
+        adjusted:
+          firstTinyExecutableCandlePersistenceDryRunPlan.request_scope.adjusted,
+        executable_payload_available:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .executable_payload_available,
+        source_payload_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .source_payload_rows,
+        expected_candle_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .expected_candle_rows,
+        candidate_candle_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .candidate_candle_rows,
+        timestamp_metadata_valid_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .timestamp_metadata_valid_rows,
+        valid_candle_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .valid_candle_rows,
+        invalid_candle_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .invalid_candle_rows,
+        ohlcv_valid_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .ohlcv_valid_rows,
+        ohlcv_missing_rows:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .ohlcv_missing_rows,
+        ohlcv_values_not_invented:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .ohlcv_values_not_invented,
+        first_timestamp:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .first_timestamp,
+        last_timestamp:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .last_timestamp,
+        five_minute_spacing_valid:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .five_minute_spacing_valid,
+        window_matches_intended:
+          firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary
+            .window_matches_intended,
+        cache_readback_status:
+          firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback.status,
+        exact_insert_update_skip_split_available:
+          firstTinyExecutableCandlePersistenceDryRunPlan.cache_readback
+            .exact_insert_update_skip_split_available,
+        planned_inserts:
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_inserts,
+        planned_updates:
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_updates,
+        planned_skips:
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_skips,
+        planned_invalid_rejections:
+          firstTinyExecutableCandlePersistenceDryRunPlan.upsert_plan
+            .planned_invalid_rejections,
+        rejection_reason_counts: JSON.stringify(
+          firstTinyExecutableCandlePersistenceDryRunPlan.validation
+            .rejection_reason_counts,
+        ),
+        candle_write_allowed_now:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .candle_write_allowed_now,
+        requires_separate_operator_approval:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .requires_separate_operator_approval,
+        provider_fetch_added:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .provider_fetch_added,
+        historical_fetch_added:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .historical_fetch_added,
+        candles_persisted:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .candles_persisted,
+        raw_response_persisted:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .synthetic_outcomes_persisted,
+        replay_executed:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety.replay_executed,
+        scanner_behavior_changed:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyExecutableCandlePersistenceDryRunPlan.safety
+            .live_ranking_changed,
+        recommended_next_steps:
+          firstTinyExecutableCandlePersistenceDryRunPlan.recommended_next_steps.join(
+            ",",
+          ),
+        warnings:
+          firstTinyExecutableCandlePersistenceDryRunPlan.warnings.join(","),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -12616,6 +13294,10 @@ function buildSections(
           JSON.stringify(firstTinyCorrectedPayloadRefetchApproval),
         corrected_first_tiny_historical_candle_payload_refetch_execute:
           JSON.stringify(firstTinyCorrectedPayloadRefetchExecute),
+        corrected_first_tiny_historical_candle_payload_refetch_result_verification:
+          JSON.stringify(firstTinyCorrectedPayloadRefetchResultVerification),
+        first_tiny_historical_candle_executable_persistence_dry_run_plan:
+          JSON.stringify(firstTinyExecutableCandlePersistenceDryRunPlan),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -12848,6 +13530,14 @@ function buildSections(
         lineValue(
           "Corrected first tiny payload refetch execute",
           `${firstTinyCorrectedPayloadRefetchExecute.execution_status} / provider call ${firstTinyCorrectedPayloadRefetchExecute.provider_call_executed ? "yes" : "no"} / payload ${firstTinyCorrectedPayloadRefetchExecute.normalized_payload_available ? "yes" : "no"} / persist no`,
+        ),
+        lineValue(
+          "Corrected first tiny payload result",
+          `${firstTinyCorrectedPayloadRefetchResultVerification.verification_status === "verified_ready_for_executable_candle_persistence_plan" ? "verified" : firstTinyCorrectedPayloadRefetchResultVerification.verification_status} / ${firstTinyCorrectedPayloadRefetchResultVerification.valid_filtered_candles} valid / window match ${firstTinyCorrectedPayloadRefetchResultVerification.filtered_window_matches_intended ? "yes" : "no"} / persistence dry-run next`,
+        ),
+        lineValue(
+          "Executable first tiny candle persistence plan",
+          `dry-run / ${firstTinyExecutableCandlePersistenceDryRunPlan.payload_summary.valid_candle_rows} valid / write no`,
         ),
         lineValue(
           "Primary learning signal",
