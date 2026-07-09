@@ -143,10 +143,19 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
         path: "/api/historical-backfill/first-tiny-fetch/ping",
       }),
   );
+  const firstTinyAuditWriteResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-fetch-run-audit-write",
+        method: "POST",
+      }),
+  );
 
   expect(environmentResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
   expect(firstTinyPingResponse.status).not.toBe(401);
+  expect(firstTinyAuditWriteResponse.status).not.toBe(401);
 });
 
 test("first tiny ping endpoint is reachable without auth and safe", async () => {

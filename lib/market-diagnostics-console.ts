@@ -22,9 +22,13 @@ import { buildFirstTinyHistoricalFetchApproval } from "@/lib/first-tiny-historic
 import { buildFirstTinyHistoricalFetchApprovalSignalReadiness } from "@/lib/first-tiny-historical-fetch-approval-signal-readiness";
 import { buildFirstTinyHistoricalFetchExecutionPlan } from "@/lib/first-tiny-historical-fetch-execution-plan";
 import { buildFirstTinyHistoricalFetchFinalPreflight } from "@/lib/first-tiny-historical-fetch-final-preflight";
+import { buildFirstTinyHistoricalFetchNoPersistResultVerification } from "@/lib/first-tiny-historical-fetch-no-persist-result-verification";
 import { buildFirstTinyHistoricalFetchOperatorApproval } from "@/lib/first-tiny-historical-fetch-operator-approval";
 import { buildFirstTinyHistoricalFetchProviderDryExecute } from "@/lib/first-tiny-historical-fetch-provider-dry-execute";
 import { buildFirstTinyHistoricalFetchRequestPreview } from "@/lib/first-tiny-historical-fetch-request-preview";
+import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
+import { buildFirstTinyFetchRunAuditWriteExecuteReadiness } from "@/lib/first-tiny-historical-fetch-run-audit-write-execute";
+import { buildFirstTinyHistoricalFetchRunAuditWritePlan } from "@/lib/first-tiny-historical-fetch-run-audit-write-plan";
 import { buildHistoricalCandlePersistencePlan } from "@/lib/historical-candle-persistence-plan";
 import { buildHistoricalCandleCacheReadiness } from "@/lib/historical-candle-cache";
 import { buildHistoricalCandleStorageReadiness } from "@/lib/historical-candle-storage-readiness";
@@ -2924,6 +2928,20 @@ function buildSections(
       request_preview: firstTinyHistoricalFetchRequestPreview,
       execution_plan: firstTinyHistoricalFetchExecutionPlan,
       storage_readiness: historicalCandleStorageReadiness,
+    });
+  const firstTinyHistoricalFetchNoPersistVerification =
+    buildFirstTinyHistoricalFetchNoPersistResultVerification();
+  const firstTinyHistoricalFetchRunAuditWritePlan =
+    buildFirstTinyHistoricalFetchRunAuditWritePlan({
+      migration_detection: input.historical_candle_storage_detection ?? null,
+    });
+  const firstTinyFetchRunAuditWriteApproval =
+    buildFirstTinyFetchRunAuditWriteApproval({
+      audit_write_plan: firstTinyHistoricalFetchRunAuditWritePlan,
+    });
+  const firstTinyFetchRunAuditWriteExecute =
+    buildFirstTinyFetchRunAuditWriteExecuteReadiness({
+      audit_write_plan: firstTinyHistoricalFetchRunAuditWritePlan,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -7065,6 +7083,720 @@ function buildSections(
       },
     }),
     section({
+      section_id:
+        "first_tiny_historical_fetch_no_persist_result_verification",
+      title: "First Tiny Historical Fetch No-Persist Verification",
+      severity: "warning",
+      lines: [
+        lineValue(
+          "Verification status",
+          firstTinyHistoricalFetchNoPersistVerification.verification_status,
+        ),
+        lineValue(
+          "Latest manual result",
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .execution_status,
+        ),
+        lineValue(
+          "Manual result timestamp",
+          firstTinyHistoricalFetchNoPersistVerification
+            .manual_result_timestamp ?? "not recorded",
+        ),
+        lineValue(
+          "Provider call executed",
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .provider_call_executed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider call succeeded",
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .call_succeeded
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .trading_day,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .request_count,
+        ),
+        lineValue(
+          "Estimated credits",
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .estimated_credits,
+        ),
+        lineValue(
+          "Cache lookup attempted",
+          firstTinyHistoricalFetchNoPersistVerification.cache_result
+            .cache_lookup_attempted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Cache hit",
+          firstTinyHistoricalFetchNoPersistVerification.cache_result.cache_hit
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Raw/normalized/valid/invalid candles",
+          `${firstTinyHistoricalFetchNoPersistVerification.parser_result.raw_candles}/${firstTinyHistoricalFetchNoPersistVerification.parser_result.normalized_candles}/${firstTinyHistoricalFetchNoPersistVerification.parser_result.valid_candles}/${firstTinyHistoricalFetchNoPersistVerification.parser_result.invalid_candles}`,
+        ),
+        lineValue(
+          "Planned inserts/updates/skips/rejections",
+          `${firstTinyHistoricalFetchNoPersistVerification.persistence_plan.planned_inserts}/${firstTinyHistoricalFetchNoPersistVerification.persistence_plan.planned_updates}/${firstTinyHistoricalFetchNoPersistVerification.persistence_plan.planned_skips}/${firstTinyHistoricalFetchNoPersistVerification.persistence_plan.planned_invalid_rejections}`,
+        ),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Approval lock warning",
+          "disable_first_tiny_fetch_approval_signal_after_successful_no_persist_test",
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchNoPersistVerification
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        read_only_static_verification: true,
+        verification_status:
+          firstTinyHistoricalFetchNoPersistVerification.verification_status,
+        verification_marker:
+          firstTinyHistoricalFetchNoPersistVerification.verification_marker,
+        latest_manual_result:
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .execution_status,
+        route_used: firstTinyHistoricalFetchNoPersistVerification.route_used,
+        manual_result_timestamp:
+          firstTinyHistoricalFetchNoPersistVerification
+            .manual_result_timestamp,
+        approval_signal_status:
+          firstTinyHistoricalFetchNoPersistVerification.approval_context
+            .approval_signal_status,
+        signal_active:
+          firstTinyHistoricalFetchNoPersistVerification.approval_context
+            .signal_active,
+        signal_valid_for_execution:
+          firstTinyHistoricalFetchNoPersistVerification.approval_context
+            .signal_valid_for_execution,
+        operator_label:
+          firstTinyHistoricalFetchNoPersistVerification.approval_context
+            .operator_label,
+        approval_reference:
+          firstTinyHistoricalFetchNoPersistVerification.approval_context
+            .approval_reference,
+        provider:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.provider,
+        endpoint:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.endpoint,
+        ticker:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.ticker,
+        interval:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope.interval,
+        trading_day:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .trading_day,
+        request_count:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .request_count,
+        estimated_credits:
+          firstTinyHistoricalFetchNoPersistVerification.request_scope
+            .estimated_credits,
+        cache_lookup_attempted:
+          firstTinyHistoricalFetchNoPersistVerification.cache_result
+            .cache_lookup_attempted,
+        cache_hit:
+          firstTinyHistoricalFetchNoPersistVerification.cache_result.cache_hit,
+        provider_call_executed:
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .provider_call_executed,
+        provider_call_succeeded:
+          firstTinyHistoricalFetchNoPersistVerification.provider_result
+            .call_succeeded,
+        raw_candles:
+          firstTinyHistoricalFetchNoPersistVerification.parser_result
+            .raw_candles,
+        normalized_candles:
+          firstTinyHistoricalFetchNoPersistVerification.parser_result
+            .normalized_candles,
+        valid_candles:
+          firstTinyHistoricalFetchNoPersistVerification.parser_result
+            .valid_candles,
+        invalid_candles:
+          firstTinyHistoricalFetchNoPersistVerification.parser_result
+            .invalid_candles,
+        planned_inserts:
+          firstTinyHistoricalFetchNoPersistVerification.persistence_plan
+            .planned_inserts,
+        planned_updates:
+          firstTinyHistoricalFetchNoPersistVerification.persistence_plan
+            .planned_updates,
+        planned_skips:
+          firstTinyHistoricalFetchNoPersistVerification.persistence_plan
+            .planned_skips,
+        planned_invalid_rejections:
+          firstTinyHistoricalFetchNoPersistVerification.persistence_plan
+            .planned_invalid_rejections,
+        raw_response_persisted: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        no_persistence_enforced: true,
+        recommended_next_steps:
+          firstTinyHistoricalFetchNoPersistVerification.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_fetch_run_audit_write_plan",
+      title: "First Tiny Fetch-Run Audit Write Plan",
+      severity: "warning",
+      lines: [
+        lineValue(
+          "Status",
+          `${firstTinyHistoricalFetchRunAuditWritePlan.status} / ${firstTinyHistoricalFetchRunAuditWritePlan.plan_mode.replaceAll("_", " ")}`,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinyHistoricalFetchRunAuditWritePlan.source_verification,
+        ),
+        lineValue(
+          "Target table",
+          firstTinyHistoricalFetchRunAuditWritePlan.target_table,
+        ),
+        lineValue(
+          "Table detected",
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .table_detected,
+        ),
+        lineValue(
+          "RLS enabled",
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .rls_enabled,
+        ),
+        lineValue(
+          "Service-role-only path expected",
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .service_role_only_path_expected
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Client writes allowed",
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .client_writes_allowed,
+        ),
+        lineValue(
+          "Write allowed now",
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .fetch_run_write_allowed_now
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Fetch run persisted", "no"),
+        lineValue(
+          "Ticker",
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .trading_day,
+        ),
+        lineValue(
+          "Planned audit rows",
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .planned_audit_rows,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .request_count,
+        ),
+        lineValue(
+          "Valid candles from source result",
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .valid_candles,
+        ),
+        lineValue(
+          "Candle rows to persist",
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .candle_rows_to_persist,
+        ),
+        lineValue(
+          "Raw response to persist",
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .raw_response_to_persist
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Replay to run", "no"),
+        lineValue("Scanner effect", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Requires separate operator approval",
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .requires_separate_operator_approval
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Future approval active now",
+          firstTinyHistoricalFetchRunAuditWritePlan.future_approval_contract
+            .active_now
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Future env contract",
+          compactListText(
+            firstTinyHistoricalFetchRunAuditWritePlan.future_approval_contract
+              .env_names,
+          ),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchRunAuditWritePlan.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        dry_run_only:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate.dry_run_only,
+        status: firstTinyHistoricalFetchRunAuditWritePlan.status,
+        plan_mode: firstTinyHistoricalFetchRunAuditWritePlan.plan_mode,
+        source_verification:
+          firstTinyHistoricalFetchRunAuditWritePlan.source_verification,
+        target_table: firstTinyHistoricalFetchRunAuditWritePlan.target_table,
+        table_detected:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .table_detected,
+        rls_enabled:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .rls_enabled,
+        service_role_only_path_expected:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .service_role_only_path_expected,
+        client_writes_allowed:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .client_writes_allowed,
+        schema_readback_attempted:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .schema_readback_attempted,
+        schema_readback_status:
+          firstTinyHistoricalFetchRunAuditWritePlan.table_readiness
+            .schema_readback_status,
+        fetch_run_write_allowed_now:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .fetch_run_write_allowed_now,
+        fetch_run_persisted: false,
+        candles_persisted: false,
+        raw_response_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_separate_operator_approval:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .requires_separate_operator_approval,
+        planned_audit_rows:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .planned_audit_rows,
+        candle_rows_to_persist:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .candle_rows_to_persist,
+        raw_response_to_persist:
+          firstTinyHistoricalFetchRunAuditWritePlan.write_gate
+            .raw_response_to_persist,
+        provider:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .provider,
+        endpoint:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .endpoint,
+        ticker:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .ticker,
+        interval:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .interval,
+        trading_day:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .trading_day,
+        request_count:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .request_count,
+        estimated_credits:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .estimated_credits,
+        call_attempted:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .call_attempted,
+        call_succeeded:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .call_succeeded,
+        http_status:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .http_status,
+        parse_status:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .parse_status,
+        raw_candles:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .raw_candles,
+        normalized_candles:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .normalized_candles,
+        valid_candles:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .valid_candles,
+        invalid_candles:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .invalid_candles,
+        planned_inserts:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .planned_inserts,
+        planned_updates:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .planned_updates,
+        planned_skips:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .planned_skips,
+        planned_invalid_rejections:
+          firstTinyHistoricalFetchRunAuditWritePlan.planned_audit_record
+            .planned_invalid_rejections,
+        future_approval_active_now:
+          firstTinyHistoricalFetchRunAuditWritePlan.future_approval_contract
+            .active_now,
+        future_approval_env_names:
+          firstTinyHistoricalFetchRunAuditWritePlan.future_approval_contract
+            .env_names.join(","),
+        future_approval_validation_rules:
+          firstTinyHistoricalFetchRunAuditWritePlan.future_approval_contract
+            .validation_rules.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchRunAuditWritePlan.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_fetch_run_audit_write_approval",
+      title: "First Tiny Fetch-Run Audit Write Approval",
+      severity:
+        firstTinyFetchRunAuditWriteApproval.approval_status === "invalid"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Approval status",
+          firstTinyFetchRunAuditWriteApproval.approval_status,
+        ),
+        lineValue(
+          "Signal active",
+          firstTinyFetchRunAuditWriteApproval.signal.signal_active
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Source verification ready",
+          firstTinyFetchRunAuditWriteApproval.validation
+            .source_verification_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Audit write plan ready",
+          firstTinyFetchRunAuditWriteApproval.validation
+            .audit_write_plan_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Expected ticker",
+          firstTinyFetchRunAuditWriteApproval.expected_contract
+            .expected_ticker,
+        ),
+        lineValue(
+          "Expected max rows",
+          firstTinyFetchRunAuditWriteApproval.expected_contract
+            .expected_max_rows,
+        ),
+        lineValue(
+          "Candle persist allowed",
+          firstTinyFetchRunAuditWriteApproval.signal
+            .candle_persist_allowed === true
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Replay allowed",
+          firstTinyFetchRunAuditWriteApproval.signal.replay_allowed === true
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Scanner effect allowed",
+          firstTinyFetchRunAuditWriteApproval.signal
+            .scanner_effect_allowed === true
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Write allowed now", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Ready to accept future signal",
+          firstTinyFetchRunAuditWriteApproval.readiness
+            .ready_to_accept_future_signal
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to propose audit write action",
+          firstTinyFetchRunAuditWriteApproval.readiness
+            .ready_to_propose_audit_write_action
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyFetchRunAuditWriteApproval.blockers),
+        ),
+        lineValue(
+          "Warnings",
+          compactListText(firstTinyFetchRunAuditWriteApproval.warnings),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyFetchRunAuditWriteApproval.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_only: true,
+        approval_gate_only: true,
+        approval_status:
+          firstTinyFetchRunAuditWriteApproval.approval_status,
+        signal_active:
+          firstTinyFetchRunAuditWriteApproval.signal.signal_active,
+        source_present:
+          firstTinyFetchRunAuditWriteApproval.signal.source_present,
+        source_type: firstTinyFetchRunAuditWriteApproval.signal.source_type,
+        operator_label_present:
+          firstTinyFetchRunAuditWriteApproval.signal.operator_label_present,
+        approval_reference_present:
+          firstTinyFetchRunAuditWriteApproval.signal
+            .approval_reference_present,
+        source_verification_ready:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .source_verification_ready,
+        audit_write_plan_ready:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .audit_write_plan_ready,
+        expected_ticker:
+          firstTinyFetchRunAuditWriteApproval.expected_contract
+            .expected_ticker,
+        expected_max_rows:
+          firstTinyFetchRunAuditWriteApproval.expected_contract
+            .expected_max_rows,
+        approved_valid:
+          firstTinyFetchRunAuditWriteApproval.validation.approved_valid,
+        ticker_valid:
+          firstTinyFetchRunAuditWriteApproval.validation.ticker_valid,
+        max_rows_valid:
+          firstTinyFetchRunAuditWriteApproval.validation.max_rows_valid,
+        candle_persist_scope_valid:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .candle_persist_scope_valid,
+        replay_scope_valid:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .replay_scope_valid,
+        scanner_effect_scope_valid:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .scanner_effect_scope_valid,
+        planned_audit_rows_valid:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .planned_audit_rows_valid,
+        raw_response_persistence_blocked:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .raw_response_persistence_blocked,
+        candle_persistence_blocked:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .candle_persistence_blocked,
+        replay_scanner_ranking_effects_blocked:
+          firstTinyFetchRunAuditWriteApproval.validation
+            .replay_scanner_ranking_effects_blocked,
+        ready_to_accept_future_signal:
+          firstTinyFetchRunAuditWriteApproval.readiness
+            .ready_to_accept_future_signal,
+        ready_to_propose_audit_write_action:
+          firstTinyFetchRunAuditWriteApproval.readiness
+            .ready_to_propose_audit_write_action,
+        write_allowed_now: false,
+        fetch_run_persisted: false,
+        candles_persisted: false,
+        raw_response_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers: firstTinyFetchRunAuditWriteApproval.blockers.join(","),
+        warnings: firstTinyFetchRunAuditWriteApproval.warnings.join(","),
+        recommended_next_steps:
+          firstTinyFetchRunAuditWriteApproval.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_fetch_run_audit_write_execute",
+      title: "First Tiny Fetch-Run Audit Write Execute",
+      severity:
+        firstTinyFetchRunAuditWriteExecute.execution_status === "blocked" ||
+        firstTinyFetchRunAuditWriteExecute.execution_status === "failed"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Status", firstTinyFetchRunAuditWriteExecute.execution_status),
+        lineValue("Target table", firstTinyFetchRunAuditWriteExecute.target_table),
+        lineValue("Planned rows", firstTinyFetchRunAuditWriteExecute.planned_rows),
+        lineValue(
+          "Inserted rows",
+          firstTinyFetchRunAuditWriteExecute.audit_rows_inserted,
+        ),
+        lineValue(
+          "Readback verified",
+          firstTinyFetchRunAuditWriteExecute.readback_verified ? "yes" : "no",
+        ),
+        lineValue("Ticker", firstTinyFetchRunAuditWriteExecute.ticker),
+        lineValue("Interval", firstTinyFetchRunAuditWriteExecute.interval),
+        lineValue(
+          "Trading day",
+          firstTinyFetchRunAuditWriteExecute.trading_day,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinyFetchRunAuditWriteExecute.source_verification,
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Raw response persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue(
+          "Max one row enforced",
+          firstTinyFetchRunAuditWriteExecute.max_one_row_enforced
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "No candle persistence enforced",
+          firstTinyFetchRunAuditWriteExecute.no_candle_persistence_enforced
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Duplicate prevented",
+          firstTinyFetchRunAuditWriteExecute.duplicate_prevented
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyFetchRunAuditWriteExecute.blockers),
+        ),
+        lineValue(
+          "Warnings",
+          compactListText(firstTinyFetchRunAuditWriteExecute.warnings),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyFetchRunAuditWriteExecute.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        diagnostics_only_no_write: true,
+        execution_status:
+          firstTinyFetchRunAuditWriteExecute.execution_status,
+        target_table: firstTinyFetchRunAuditWriteExecute.target_table,
+        planned_rows: firstTinyFetchRunAuditWriteExecute.planned_rows,
+        audit_rows_inserted:
+          firstTinyFetchRunAuditWriteExecute.audit_rows_inserted,
+        readback_verified:
+          firstTinyFetchRunAuditWriteExecute.readback_verified,
+        duplicate_prevented:
+          firstTinyFetchRunAuditWriteExecute.duplicate_prevented,
+        approval_status:
+          firstTinyFetchRunAuditWriteExecute.approval_status,
+        fetch_run_persisted: false,
+        candles_persisted: false,
+        raw_response_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        max_one_row_enforced:
+          firstTinyFetchRunAuditWriteExecute.max_one_row_enforced,
+        no_candle_persistence_enforced:
+          firstTinyFetchRunAuditWriteExecute.no_candle_persistence_enforced,
+        ticker: firstTinyFetchRunAuditWriteExecute.ticker,
+        interval: firstTinyFetchRunAuditWriteExecute.interval,
+        trading_day: firstTinyFetchRunAuditWriteExecute.trading_day,
+        request_count: firstTinyFetchRunAuditWriteExecute.request_count,
+        valid_candles: firstTinyFetchRunAuditWriteExecute.valid_candles,
+        source_verification:
+          firstTinyFetchRunAuditWriteExecute.source_verification,
+        blockers: firstTinyFetchRunAuditWriteExecute.blockers.join(","),
+        warnings: firstTinyFetchRunAuditWriteExecute.warnings.join(","),
+        recommended_next_steps:
+          firstTinyFetchRunAuditWriteExecute.recommended_next_steps.join(","),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -10062,6 +10794,17 @@ function buildSections(
         first_tiny_historical_fetch_provider_dry_execute: JSON.stringify(
           firstTinyHistoricalFetchProviderDryExecute,
         ),
+        first_tiny_historical_fetch_no_persist_result_verification:
+          JSON.stringify(firstTinyHistoricalFetchNoPersistVerification),
+        first_tiny_fetch_run_audit_write_plan: JSON.stringify(
+          firstTinyHistoricalFetchRunAuditWritePlan,
+        ),
+        first_tiny_fetch_run_audit_write_approval: JSON.stringify(
+          firstTinyFetchRunAuditWriteApproval,
+        ),
+        first_tiny_fetch_run_audit_write_execute: JSON.stringify(
+          firstTinyFetchRunAuditWriteExecute,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -10242,6 +10985,22 @@ function buildSections(
         lineValue(
           "First tiny provider dry execute",
           `${firstTinyHistoricalFetchProviderDryExecute.execution_status} / call ${firstTinyHistoricalFetchProviderDryExecute.provider_call_executed ? "yes" : "no"} / persist no / scanner no`,
+        ),
+        lineValue(
+          "First tiny no-persist verification",
+          `${firstTinyHistoricalFetchNoPersistVerification.verification_status} / ${firstTinyHistoricalFetchNoPersistVerification.request_scope.ticker} ${firstTinyHistoricalFetchNoPersistVerification.request_scope.interval} / candles ${firstTinyHistoricalFetchNoPersistVerification.parser_result.valid_candles} / persist no`,
+        ),
+        lineValue(
+          "First tiny fetch-run audit write plan",
+          `${firstTinyHistoricalFetchRunAuditWritePlan.status} / rows ${firstTinyHistoricalFetchRunAuditWritePlan.write_gate.planned_audit_rows} / write no / candles no`,
+        ),
+        lineValue(
+          "First tiny fetch-run audit approval",
+          `${firstTinyFetchRunAuditWriteApproval.approval_status} / ready ${firstTinyFetchRunAuditWriteApproval.readiness.ready_to_accept_future_signal ? "yes" : "no"} / write no`,
+        ),
+        lineValue(
+          "First tiny fetch-run audit execute",
+          `${firstTinyFetchRunAuditWriteExecute.execution_status} / inserted ${firstTinyFetchRunAuditWriteExecute.audit_rows_inserted} / candles no / scanner no`,
         ),
         lineValue(
           "Primary learning signal",
