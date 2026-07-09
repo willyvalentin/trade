@@ -3852,3 +3852,358 @@ Safety remains locked:
 Decision:
 
 `post_trade_one_shot_execution_unblock_static_security_review_ready_for_final_mock_write_attempt`
+
+## 77. Action 480 Update
+
+Action 480 attempted the final one staging mock write precondition gate and stopped before any write.
+
+- Checkpoint: `docs/post-trade-one-staging-mock-write-with-prerequisite-and-audit-blocked.md`
+- Expected approved staging target: `ture-staging / pdvzyuhykomwfqyyztru`
+- Observed local Supabase target metadata: `ekdyopdrrkphlrsilyoo`
+- Result: blocked before write because the local Supabase target metadata did not match the approved staging project ref.
+
+Key-name-only environment check:
+
+- `SUPABASE_STAGING_URL` key is present
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` key is present
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key name is present
+- no URL value or secret value was printed, logged, stored, or documented
+
+No relink was performed in this action.
+No direct SQL/manual dashboard workaround was used.
+
+Execution did not proceed to:
+
+- prerequisite row creation
+- dependent audit event creation
+- post-write verification
+- any DB/Supabase write
+
+Required future step:
+
+- restore or verify local Supabase target metadata as exactly `pdvzyuhykomwfqyyztru` before retrying the one-shot staging mock write attempt.
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_one_staging_mock_write_with_prerequisite_and_audit_blocked_runtime_blocked`
+
+## 80. Action 483 Update
+
+Action 483 resolved the unrelated TypeScript blocker in `lib/first-tiny-historical-fetch-final-preflight.ts` so post-trade work could return to a clean TypeScript baseline.
+
+- Scope was TypeScript blocker triage only.
+- No post-trade write execution function was implemented.
+- No adapter execution behavior changed.
+- No Supabase write, test row insertion, migration action, API write behavior, Trade UI/runtime activation, or Avanza/browser automation occurred.
+
+Decision:
+
+`first_tiny_historical_fetch_tsc_blocker_resolved_no_write`
+
+## 81. Action 484 Update
+
+Action 484 designed the source-controlled staging insert function needed before retrying the isolated mock write.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-design-no-write.md`
+- The design requires a server-only, staging-only, one-shot function.
+- The future function must perform the execution record prerequisite insert before the dependent audit insert.
+- The design keeps API/UI/runtime write paths blocked and production separately blocked.
+- No implementation, write execution, Supabase write, test row insertion, migration action, or adapter execution behavior change occurred.
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_design_ready_no_write`
+
+## 82. Action 485 Update
+
+Action 485 implemented the source-controlled staging insert function planner without executing any writes.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-implementation-no-execution.md`
+- New implementation: `lib/post-trade-staging-insert-function.ts`
+- New static test: `tests/e2e/post-trade-staging-insert-function-static.spec.ts`
+- The planner is server-only, staging-only, one-shot only, and no-execution by default.
+- It models exactly two future insert steps:
+  - `public.execution_records`
+  - `public.execution_record_audit_events`
+- The audit step depends on the reviewed `mock_execution_record_insert_result` placeholder/reference strategy.
+- It requires validated payload, ready dry-run plan, sanitized write commands, prerequisite command result, audit command, and aligned test-scoped idempotency.
+- It rejects production-like targets, unsafe flags, raw broker/browser payloads, credentials/cookies/session/BankID material, unredacted broker documents, arbitrary JSON/blob values, and settlement/order/live mutation authority.
+- The module does not import Supabase, does not instantiate a Supabase client, does not call insert/update/upsert/delete/rpc/storage, and is not wired into API routes or Trade UI.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_implementation_ready_no_execution`
+
+## 80. Action 483 Update
+
+Action 483 triaged the unrelated TypeScript blocker previously reported in `lib/first-tiny-historical-fetch-final-preflight.ts`.
+
+- Scope was TypeScript blocker triage only.
+- No post-trade execution function was implemented.
+- No adapter execution behavior was changed.
+- No DB/Supabase write occurred.
+- No env values were read, printed, logged, stored, or documented.
+
+Triage result:
+
+- `./node_modules/.bin/tsc --noEmit` passed on the current workspace state.
+- The previously reported `explicit_separate_action_required` literal-type mismatch is no longer present in `lib/first-tiny-historical-fetch-final-preflight.ts`.
+- No code change was required for this blocker in Action 483.
+
+Post-trade blocker remains:
+
+- no source-controlled reviewed execution function exists yet for the two required staging inserts:
+  - `public.execution_records`
+  - `public.execution_record_audit_events`
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`first_tiny_historical_fetch_tsc_blocker_resolved_no_write`
+
+## 81. Action 484 Update
+
+Action 484 designed the missing source-controlled staging insert function for the final isolated mock write flow.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-design-no-write.md`
+- No implementation was added.
+- No write was executed.
+- No adapter execution behavior was changed.
+- No API/UI/runtime path was activated.
+
+Future function scope:
+
+- server-only
+- staging-only
+- one-shot only
+- exactly one `public.execution_records` insert
+- exactly one dependent `public.execution_record_audit_events` insert
+- no other table writes
+
+Required execution order for future implementation:
+
+1. Re-check target is exactly `pdvzyuhykomwfqyyztru`.
+2. Re-check staging env key presence server-side without printing values.
+3. Re-check no `NEXT_PUBLIC` service-role key exists.
+4. Re-check one-shot eligibility.
+5. Insert exactly one sanitized mock `execution_records` row.
+6. Capture the returned `execution_records.id`.
+7. Insert exactly one dependent `execution_record_audit_events` row using that ID.
+8. Stop.
+
+Allowed future operations:
+
+- one insert into `execution_records` with returned ID
+- one insert into `execution_record_audit_events` using that returned ID
+- minimal readback/select-return verification for the two intended rows
+
+Forbidden future operations without separate gates:
+
+- update/delete/upsert/RPC/storage
+- broad queries or broad scans
+- direct SQL/manual dashboard writes
+- migration actions
+- blind retry
+- production writes
+- API/UI/runtime activation
+
+Future gates:
+
+- source-controlled staging insert function implementation no execution
+- source-controlled staging insert function static/security review
+- final one-shot staging mock write retry
+- post-write verification and cleanup/reconciliation gate
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_design_ready_no_write`
+
+## 78. Action 481 Update
+
+Action 481 relinked local Supabase CLI/project metadata back to the approved staging target.
+
+- Checkpoint: `docs/post-trade-supabase-cli-relinked-to-approved-staging-target-no-write.md`
+- Approved staging target: `ture-staging / pdvzyuhykomwfqyyztru`
+- Before relink, local target metadata was `ekdyopdrrkphlrsilyoo`.
+- Relink command: `supabase link --project-ref pdvzyuhykomwfqyyztru`.
+- The first sandboxed relink attempt failed because the Supabase CLI could not write its local telemetry file under the user home directory.
+- The same narrow relink command was rerun with approval and succeeded.
+- After relink, local target metadata is exactly `pdvzyuhykomwfqyyztru`.
+- Production target `ekdyopdrrkphlrsilyoo` is not selected after relink.
+
+Key-name-only environment check:
+
+- `SUPABASE_STAGING_URL` key is present
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` key is present
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key name is present
+- no URL value or secret value was printed, logged, stored, or documented
+
+Not performed:
+
+- no `supabase db push`
+- no migration apply/up/reset/repair
+- no SQL mutation
+- no staging mock write
+- no write command execution
+- no API write behavior
+- no Trade UI/runtime activation
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_supabase_cli_relinked_to_approved_staging_target_no_write`
+
+## 79. Action 482 Update
+
+Action 482 retried the final isolated staging mock write precondition gate after local Supabase metadata was relinked to staging and stopped before any write.
+
+- Checkpoint: `docs/post-trade-one-staging-mock-write-with-prerequisite-and-audit-retry-blocked.md`
+- Approved staging target: `ture-staging / pdvzyuhykomwfqyyztru`
+- Verified local Supabase target metadata: `pdvzyuhykomwfqyyztru`
+- Production target `ekdyopdrrkphlrsilyoo` is not selected locally.
+
+Key-name-only environment check:
+
+- `SUPABASE_STAGING_URL` key is present
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` key is present
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key name is present
+- no URL value or secret value was printed, logged, stored, or documented
+
+Blocking condition:
+
+- the reviewed one-shot execution-unblock mechanism still only exposes `eligible_no_write`
+- it still returns `remoteExecution: false`
+- it still returns `executionStatus: not_executed`
+- it still returns `executionStillRequiresNextAction: true`
+- there is no reviewed source-controlled execution function that performs the two required staging inserts
+
+No bypass path was used:
+
+- no direct SQL/manual dashboard write
+- no ad hoc Supabase client insert
+- no migration action
+- no broad/repeated write
+- no blind retry
+- no API route write behavior
+- no Trade UI/runtime write path
+
+Required future gate:
+
+- implement and statically/security review a narrowly scoped source-controlled execution function before retrying the final mock write.
+
+Validation notes:
+
+- focused post-trade/static suite passed
+- `git diff --check` passed
+- quiet `.env.local` diff guard passed
+- `find docs -type f -size 0` passed
+- `npm run lint` exited successfully with one unrelated warning in `lib/market-diagnostics-console.ts`
+- `./node_modules/.bin/tsc --noEmit` is currently blocked by an unrelated issue in `lib/first-tiny-historical-fetch-final-preflight.ts`
+- this action did not modify the unrelated TypeScript blocker
+
+Safety remains locked:
+
+- no production connection
+- no production state touch
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_one_staging_mock_write_with_prerequisite_and_audit_blocked_runtime_blocked`

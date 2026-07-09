@@ -18,7 +18,11 @@ import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill
 import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
 import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
 import { buildFirstTinyHistoricalFetchApproval } from "@/lib/first-tiny-historical-fetch-approval";
+import { buildFirstTinyHistoricalFetchApprovalSignalReadiness } from "@/lib/first-tiny-historical-fetch-approval-signal-readiness";
+import { buildFirstTinyHistoricalFetchExecutionPlan } from "@/lib/first-tiny-historical-fetch-execution-plan";
+import { buildFirstTinyHistoricalFetchFinalPreflight } from "@/lib/first-tiny-historical-fetch-final-preflight";
 import { buildFirstTinyHistoricalFetchOperatorApproval } from "@/lib/first-tiny-historical-fetch-operator-approval";
+import { buildFirstTinyHistoricalFetchProviderDryExecute } from "@/lib/first-tiny-historical-fetch-provider-dry-execute";
 import { buildFirstTinyHistoricalFetchRequestPreview } from "@/lib/first-tiny-historical-fetch-request-preview";
 import { buildHistoricalCandlePersistencePlan } from "@/lib/historical-candle-persistence-plan";
 import { buildHistoricalCandleCacheReadiness } from "@/lib/historical-candle-cache";
@@ -2889,6 +2893,35 @@ function buildSections(
       approval: firstTinyHistoricalFetchApproval,
       request_preview: firstTinyHistoricalFetchRequestPreview,
       execution_readiness: historicalBackfillExecutionReadiness,
+    });
+  const firstTinyHistoricalFetchExecutionPlan =
+    buildFirstTinyHistoricalFetchExecutionPlan({
+      operator_approval: firstTinyHistoricalFetchOperatorApproval,
+      request_preview: firstTinyHistoricalFetchRequestPreview,
+    });
+  const firstTinyHistoricalFetchApprovalSignalReadiness =
+    buildFirstTinyHistoricalFetchApprovalSignalReadiness({
+      operator_approval: firstTinyHistoricalFetchOperatorApproval,
+      request_preview: firstTinyHistoricalFetchRequestPreview,
+      execution_plan: firstTinyHistoricalFetchExecutionPlan,
+    });
+  const firstTinyHistoricalFetchFinalPreflight =
+    buildFirstTinyHistoricalFetchFinalPreflight({
+      storage_readiness: historicalCandleStorageReadiness,
+      execution_readiness: historicalBackfillExecutionReadiness,
+      approval: firstTinyHistoricalFetchApproval,
+      request_preview: firstTinyHistoricalFetchRequestPreview,
+      operator_approval: firstTinyHistoricalFetchOperatorApproval,
+      execution_plan: firstTinyHistoricalFetchExecutionPlan,
+      approval_signal_readiness: firstTinyHistoricalFetchApprovalSignalReadiness,
+    });
+  const firstTinyHistoricalFetchProviderDryExecute =
+    buildFirstTinyHistoricalFetchProviderDryExecute({
+      final_preflight: firstTinyHistoricalFetchFinalPreflight,
+      approval_signal_readiness: firstTinyHistoricalFetchApprovalSignalReadiness,
+      request_preview: firstTinyHistoricalFetchRequestPreview,
+      execution_plan: firstTinyHistoricalFetchExecutionPlan,
+      storage_readiness: historicalCandleStorageReadiness,
     });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
@@ -6046,6 +6079,807 @@ function buildSections(
       },
     }),
     section({
+      section_id: "first_tiny_historical_fetch_execution_plan",
+      title: "First Tiny Historical Fetch Execution Plan",
+      severity:
+        firstTinyHistoricalFetchExecutionPlan.execution_plan_status ===
+        "ready_for_future_approval"
+          ? "info"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Execution plan only", "yes"),
+        lineValue(
+          "Execution plan status",
+          firstTinyHistoricalFetchExecutionPlan.execution_plan_status,
+        ),
+        lineValue(
+          "Operator approval status",
+          firstTinyHistoricalFetchExecutionPlan.execution_context
+            .operator_approval_status,
+        ),
+        lineValue(
+          "Request preview status",
+          firstTinyHistoricalFetchExecutionPlan.execution_context
+            .request_preview_status,
+        ),
+        lineValue("First fetch enabled", "no"),
+        lineValue("Dry run only", "yes"),
+        lineValue("Provider call allowed now", "no"),
+        lineValue("Persistence allowed now", "no"),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Endpoint",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.endpoint,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.trading_day,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.request_count,
+        ),
+        lineValue(
+          "Estimated credits",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.estimated_credits,
+        ),
+        lineValue(
+          "Cache key",
+          firstTinyHistoricalFetchExecutionPlan.request_scope.cache_key,
+        ),
+        lineValue("Cache lookup required", "yes"),
+        lineValue("Fetch-run audit required", "yes"),
+        ...firstTinyHistoricalFetchExecutionPlan.planned_steps.map((step) =>
+          lineValue(
+            `Planned step ${step.order}`,
+            `${step.step_id} / ${step.status.replaceAll("_", " ")} / executes now no`,
+          ),
+        ),
+        lineValue(
+          "Ready to review execution plan",
+          firstTinyHistoricalFetchExecutionPlan.readiness
+            .ready_to_review_execution_plan
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to execute now", "no"),
+        lineValue("Ready to call provider now", "no"),
+        lineValue("Ready to persist candles now", "no"),
+        lineValue("Ready to create fetch-run now", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Provider call executed", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchExecutionPlan.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchExecutionPlan.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        execution_plan_only: true,
+        execution_plan_status:
+          firstTinyHistoricalFetchExecutionPlan.execution_plan_status,
+        execution_context: JSON.stringify(
+          firstTinyHistoricalFetchExecutionPlan.execution_context,
+        ),
+        planned_steps: JSON.stringify(
+          firstTinyHistoricalFetchExecutionPlan.planned_steps,
+        ),
+        request_scope: JSON.stringify(
+          firstTinyHistoricalFetchExecutionPlan.request_scope,
+        ),
+        execution_limits: JSON.stringify(
+          firstTinyHistoricalFetchExecutionPlan.execution_limits,
+        ),
+        operator_approval_status:
+          firstTinyHistoricalFetchExecutionPlan.execution_context
+            .operator_approval_status,
+        request_preview_status:
+          firstTinyHistoricalFetchExecutionPlan.execution_context
+            .request_preview_status,
+        first_fetch_enabled: false,
+        dry_run_only: true,
+        provider_call_allowed_now: false,
+        persistence_allowed_now: false,
+        ticker: firstTinyHistoricalFetchExecutionPlan.request_scope.ticker,
+        interval: firstTinyHistoricalFetchExecutionPlan.request_scope.interval,
+        trading_day:
+          firstTinyHistoricalFetchExecutionPlan.request_scope.trading_day,
+        request_count:
+          firstTinyHistoricalFetchExecutionPlan.request_scope.request_count,
+        estimated_credits:
+          firstTinyHistoricalFetchExecutionPlan.request_scope.estimated_credits,
+        cache_key: firstTinyHistoricalFetchExecutionPlan.request_scope.cache_key,
+        ready_to_review_execution_plan:
+          firstTinyHistoricalFetchExecutionPlan.readiness
+            .ready_to_review_execution_plan,
+        ready_to_execute_now: false,
+        ready_to_call_provider_now: false,
+        ready_to_persist_candles_now: false,
+        ready_to_create_fetch_run_now: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        provider_call_executed: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers: firstTinyHistoricalFetchExecutionPlan.blockers.join(","),
+        warnings: firstTinyHistoricalFetchExecutionPlan.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchExecutionPlan.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_fetch_approval_signal_readiness",
+      title: "First Tiny Historical Fetch Approval Signal Readiness",
+      severity:
+        firstTinyHistoricalFetchApprovalSignalReadiness.approval_signal_status ===
+          "invalid" ||
+        firstTinyHistoricalFetchApprovalSignalReadiness.approval_signal_status ===
+          "blocked"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Approval signal readiness only", "yes"),
+        lineValue(
+          "Approval signal status",
+          firstTinyHistoricalFetchApprovalSignalReadiness.approval_signal_status,
+        ),
+        lineValue(
+          "Supported signal sources",
+          firstTinyHistoricalFetchApprovalSignalReadiness.supported_signal_sources.join(
+            ", ",
+          ),
+        ),
+        lineValue(
+          "Source type",
+          firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal
+            .source_type,
+        ),
+        lineValue(
+          "Source present",
+          firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal
+            .source_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Signal active", "no"),
+        lineValue("Expected provider", "Twelve Data"),
+        lineValue(
+          "Expected ticker",
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_ticker,
+        ),
+        lineValue(
+          "Expected interval",
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_interval,
+        ),
+        lineValue(
+          "Expected max requests",
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_max_requests,
+        ),
+        lineValue(
+          "Expected estimated credits",
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_max_estimated_credits,
+        ),
+        lineValue("Expected persist allowed", "no"),
+        lineValue("Expected replay allowed", "no"),
+        lineValue("Expected scanner effect allowed", "no"),
+        lineValue(
+          "Operator approval record ready",
+          firstTinyHistoricalFetchApprovalSignalReadiness.prerequisites
+            .operator_approval_record_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Request preview ready",
+          firstTinyHistoricalFetchApprovalSignalReadiness.prerequisites
+            .request_preview_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Execution plan ready for future approval",
+          firstTinyHistoricalFetchApprovalSignalReadiness.prerequisites
+            .execution_plan_ready_for_future_approval
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Schema readback ok",
+          firstTinyHistoricalFetchApprovalSignalReadiness.prerequisites
+            .schema_readback_ok
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Signal shape valid",
+          firstTinyHistoricalFetchApprovalSignalReadiness.validation
+            .signal_shape_valid
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Scope matches preview",
+          yesNoUnknown(
+            firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal
+              .scope_matches_preview,
+          ),
+        ),
+        lineValue(
+          "Ready to review signal contract",
+          firstTinyHistoricalFetchApprovalSignalReadiness.readiness
+            .ready_to_review_signal_contract
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to accept future signal",
+          firstTinyHistoricalFetchApprovalSignalReadiness.readiness
+            .ready_to_accept_future_signal
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to enable future fetch", "no"),
+        lineValue("Ready to execute now", "no"),
+        lineValue("Ready to call provider now", "no"),
+        lineValue("Ready to persist candles now", "no"),
+        lineValue("Ready to create fetch-run now", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Provider call executed", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchApprovalSignalReadiness.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchApprovalSignalReadiness
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        approval_signal_readiness_only: true,
+        approval_signal_status:
+          firstTinyHistoricalFetchApprovalSignalReadiness.approval_signal_status,
+        supported_signal_sources:
+          firstTinyHistoricalFetchApprovalSignalReadiness.supported_signal_sources.join(
+            ",",
+          ),
+        expected_signal_contract: JSON.stringify(
+          firstTinyHistoricalFetchApprovalSignalReadiness.expected_signal_contract,
+        ),
+        detected_signal: JSON.stringify(
+          firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal,
+        ),
+        validation: JSON.stringify(
+          firstTinyHistoricalFetchApprovalSignalReadiness.validation,
+        ),
+        prerequisites: JSON.stringify(
+          firstTinyHistoricalFetchApprovalSignalReadiness.prerequisites,
+        ),
+        source_type:
+          firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal
+            .source_type,
+        source_present:
+          firstTinyHistoricalFetchApprovalSignalReadiness.detected_signal
+            .source_present,
+        signal_active: false,
+        expected_ticker:
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_ticker,
+        expected_interval:
+          firstTinyHistoricalFetchApprovalSignalReadiness
+            .expected_signal_contract.expected_interval,
+        expected_max_requests: 1,
+        expected_max_estimated_credits: 1,
+        expected_persist_allowed: false,
+        expected_replay_allowed: false,
+        expected_scanner_effect_allowed: false,
+        ready_to_review_signal_contract:
+          firstTinyHistoricalFetchApprovalSignalReadiness.readiness
+            .ready_to_review_signal_contract,
+        ready_to_accept_future_signal:
+          firstTinyHistoricalFetchApprovalSignalReadiness.readiness
+            .ready_to_accept_future_signal,
+        ready_to_enable_future_fetch: false,
+        ready_to_execute_now: false,
+        ready_to_call_provider_now: false,
+        ready_to_persist_candles_now: false,
+        ready_to_create_fetch_run_now: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        provider_call_executed: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        blockers:
+          firstTinyHistoricalFetchApprovalSignalReadiness.blockers.join(","),
+        warnings:
+          firstTinyHistoricalFetchApprovalSignalReadiness.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchApprovalSignalReadiness.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_fetch_final_preflight",
+      title: "First Tiny Historical Fetch Final Preflight",
+      severity:
+        firstTinyHistoricalFetchFinalPreflight.preflight_status ===
+        "ready_to_propose_first_provider_call_action"
+          ? "warning"
+          : "critical",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Final preflight only", "yes"),
+        lineValue(
+          "Preflight status",
+          firstTinyHistoricalFetchFinalPreflight.preflight_status,
+        ),
+        lineValue(
+          "Storage verified",
+          firstTinyHistoricalFetchFinalPreflight.chain_status.storage_verified
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Execution readiness ready for manual review",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .execution_readiness_ready_for_manual_review
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Approval gate pending manual review",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .approval_gate_pending_manual_review
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Request preview ready",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .request_preview_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Operator approval ready for decision",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .operator_approval_ready_for_decision
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Execution plan ready for future approval",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .execution_plan_ready_for_future_approval
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Approval signal contract ready",
+          firstTinyHistoricalFetchFinalPreflight.chain_status
+            .approval_signal_contract_ready
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Endpoint",
+          firstTinyHistoricalFetchFinalPreflight.request_scope.endpoint,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyHistoricalFetchFinalPreflight.request_scope.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchFinalPreflight.request_scope.interval,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyHistoricalFetchFinalPreflight.request_scope.request_count,
+        ),
+        lineValue(
+          "Estimated credits",
+          firstTinyHistoricalFetchFinalPreflight.request_scope
+            .estimated_credits,
+        ),
+        lineValue("Cache lookup required", "yes"),
+        lineValue("Fetch-run audit required", "yes"),
+        lineValue("Persist allowed", "no"),
+        lineValue("Replay allowed", "no"),
+        lineValue("Scanner effect allowed", "no"),
+        lineValue(
+          "Provider env present",
+          yesNoUnknown(
+            firstTinyHistoricalFetchFinalPreflight.preflight_checks
+              .provider_env_present,
+          ),
+        ),
+        lineValue(
+          "Budget policy present",
+          firstTinyHistoricalFetchFinalPreflight.preflight_checks
+            .budget_policy_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Lookahead safety present",
+          firstTinyHistoricalFetchFinalPreflight.preflight_checks
+            .lookahead_safety_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Pause near scan windows",
+          firstTinyHistoricalFetchFinalPreflight.preflight_checks
+            .pause_near_scan_windows
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Pause on provider warnings",
+          firstTinyHistoricalFetchFinalPreflight.preflight_checks
+            .pause_on_provider_warnings
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Explicit separate action required", "yes"),
+        lineValue(
+          "Ready to review final preflight",
+          firstTinyHistoricalFetchFinalPreflight.readiness
+            .ready_to_review_final_preflight
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to propose first provider-call action",
+          firstTinyHistoricalFetchFinalPreflight.readiness
+            .ready_to_propose_first_provider_call_action
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Ready to execute now", "no"),
+        lineValue("Ready to call provider now", "no"),
+        lineValue("Ready to persist candles now", "no"),
+        lineValue("Ready to create fetch-run now", "no"),
+        lineValue("Ready to create synthetic outcomes", "no"),
+        lineValue("Ready to run replay", "no"),
+        lineValue("Ready to affect scanner", "no"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Historical fetch added", "no"),
+        lineValue("Provider call executed", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchFinalPreflight.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchFinalPreflight.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        final_preflight_only: true,
+        preflight_status:
+          firstTinyHistoricalFetchFinalPreflight.preflight_status,
+        chain_status: JSON.stringify(
+          firstTinyHistoricalFetchFinalPreflight.chain_status,
+        ),
+        request_scope: JSON.stringify(
+          firstTinyHistoricalFetchFinalPreflight.request_scope,
+        ),
+        preflight_checks: JSON.stringify(
+          firstTinyHistoricalFetchFinalPreflight.preflight_checks,
+        ),
+        provider: firstTinyHistoricalFetchFinalPreflight.request_scope.provider,
+        endpoint: firstTinyHistoricalFetchFinalPreflight.request_scope.endpoint,
+        ticker: firstTinyHistoricalFetchFinalPreflight.request_scope.ticker,
+        interval: firstTinyHistoricalFetchFinalPreflight.request_scope.interval,
+        request_count:
+          firstTinyHistoricalFetchFinalPreflight.request_scope.request_count,
+        estimated_credits:
+          firstTinyHistoricalFetchFinalPreflight.request_scope
+            .estimated_credits,
+        ready_to_review_final_preflight:
+          firstTinyHistoricalFetchFinalPreflight.readiness
+            .ready_to_review_final_preflight,
+        ready_to_propose_first_provider_call_action:
+          firstTinyHistoricalFetchFinalPreflight.readiness
+            .ready_to_propose_first_provider_call_action,
+        ready_to_execute_now: false,
+        ready_to_call_provider_now: false,
+        ready_to_persist_candles_now: false,
+        ready_to_create_fetch_run_now: false,
+        ready_to_create_synthetic_outcomes: false,
+        ready_to_run_replay: false,
+        ready_to_affect_scanner: false,
+        provider_fetch_added: false,
+        historical_fetch_added: false,
+        provider_call_executed: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        requires_separate_action_for_provider_call: true,
+        blockers: firstTinyHistoricalFetchFinalPreflight.blockers.join(","),
+        warnings: firstTinyHistoricalFetchFinalPreflight.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchFinalPreflight.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_historical_fetch_provider_dry_execute",
+      title: "First Tiny Historical Fetch Provider Dry Execute",
+      severity:
+        firstTinyHistoricalFetchProviderDryExecute.execution_status ===
+          "provider_call_failed_no_persist" ||
+        firstTinyHistoricalFetchProviderDryExecute.execution_status === "blocked"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue("Dry execute only", "yes"),
+        lineValue("Provider call capable", "yes"),
+        lineValue(
+          "Execution status",
+          firstTinyHistoricalFetchProviderDryExecute.execution_status,
+        ),
+        lineValue(
+          "Approval signal valid for execution",
+          firstTinyHistoricalFetchProviderDryExecute.approval_context
+            .signal_valid_for_execution
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Signal active",
+          firstTinyHistoricalFetchProviderDryExecute.approval_context
+            .signal_active
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Operator label",
+          firstTinyHistoricalFetchProviderDryExecute.approval_context
+            .operator_label ?? "none",
+        ),
+        lineValue(
+          "Approval reference",
+          firstTinyHistoricalFetchProviderDryExecute.approval_context
+            .approval_reference ?? "none",
+        ),
+        lineValue("Provider", "Twelve Data"),
+        lineValue(
+          "Endpoint",
+          firstTinyHistoricalFetchProviderDryExecute.request_scope.endpoint,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinyHistoricalFetchProviderDryExecute.request_scope.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinyHistoricalFetchProviderDryExecute.request_scope.interval,
+        ),
+        lineValue(
+          "Request count",
+          firstTinyHistoricalFetchProviderDryExecute.request_scope
+            .request_count,
+        ),
+        lineValue(
+          "Estimated credits",
+          firstTinyHistoricalFetchProviderDryExecute.request_scope
+            .estimated_credits,
+        ),
+        lineValue(
+          "Cache lookup attempted",
+          firstTinyHistoricalFetchProviderDryExecute.cache_preflight
+            .cache_lookup_attempted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Cache hit",
+          yesNoUnknown(
+            firstTinyHistoricalFetchProviderDryExecute.cache_preflight
+              .cache_hit,
+          ),
+        ),
+        lineValue(
+          "Provider skipped due cache hit",
+          firstTinyHistoricalFetchProviderDryExecute.cache_preflight
+            .provider_skipped_due_cache_hit
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider call attempted",
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .call_attempted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider call succeeded",
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .call_succeeded
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Provider error type",
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .provider_error_type ?? "none",
+        ),
+        lineValue(
+          "Raw response received",
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .raw_response_received
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Raw response persisted", "no"),
+        lineValue(
+          "Parse attempted",
+          firstTinyHistoricalFetchProviderDryExecute.parser_result
+            .parse_attempted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Parse status",
+          firstTinyHistoricalFetchProviderDryExecute.parser_result.parse_status,
+        ),
+        lineValue(
+          "Raw/normalized/valid/invalid candles",
+          `${firstTinyHistoricalFetchProviderDryExecute.parser_result.raw_candles}/${firstTinyHistoricalFetchProviderDryExecute.parser_result.normalized_candles}/${firstTinyHistoricalFetchProviderDryExecute.parser_result.valid_candles}/${firstTinyHistoricalFetchProviderDryExecute.parser_result.invalid_candles}`,
+        ),
+        lineValue(
+          "Planned inserts/updates/skips/rejections",
+          `${firstTinyHistoricalFetchProviderDryExecute.persistence_plan.planned_inserts}/${firstTinyHistoricalFetchProviderDryExecute.persistence_plan.planned_updates}/${firstTinyHistoricalFetchProviderDryExecute.persistence_plan.planned_skips}/${firstTinyHistoricalFetchProviderDryExecute.persistence_plan.planned_invalid_rejections}`,
+        ),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue("Max one request enforced", "yes"),
+        lineValue("Max one ticker enforced", "yes"),
+        lineValue("No persistence enforced", "yes"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinyHistoricalFetchProviderDryExecute.blockers),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyHistoricalFetchProviderDryExecute.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        dry_execute_only: true,
+        provider_call_capable: true,
+        execution_status:
+          firstTinyHistoricalFetchProviderDryExecute.execution_status,
+        approval_context: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.approval_context,
+        ),
+        request_scope: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.request_scope,
+        ),
+        preflight: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.preflight,
+        ),
+        cache_preflight: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.cache_preflight,
+        ),
+        provider_result: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.provider_result,
+        ),
+        parser_result: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.parser_result,
+        ),
+        persistence_plan: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute.persistence_plan,
+        ),
+        provider_call_executed:
+          firstTinyHistoricalFetchProviderDryExecute.provider_call_executed,
+        provider_call_attempted:
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .call_attempted,
+        provider_call_succeeded:
+          firstTinyHistoricalFetchProviderDryExecute.provider_result
+            .call_succeeded,
+        raw_response_persisted: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        synthetic_outcomes_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        max_one_request_enforced: true,
+        max_one_ticker_enforced: true,
+        no_persistence_enforced: true,
+        api_key_included_in_diagnostics: false,
+        blockers: firstTinyHistoricalFetchProviderDryExecute.blockers.join(","),
+        warnings: firstTinyHistoricalFetchProviderDryExecute.warnings.join(","),
+        recommended_next_steps:
+          firstTinyHistoricalFetchProviderDryExecute.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -9031,6 +9865,18 @@ function buildSections(
         first_tiny_historical_fetch_operator_approval: JSON.stringify(
           firstTinyHistoricalFetchOperatorApproval,
         ),
+        first_tiny_historical_fetch_execution_plan: JSON.stringify(
+          firstTinyHistoricalFetchExecutionPlan,
+        ),
+        first_tiny_historical_fetch_approval_signal_readiness: JSON.stringify(
+          firstTinyHistoricalFetchApprovalSignalReadiness,
+        ),
+        first_tiny_historical_fetch_final_preflight: JSON.stringify(
+          firstTinyHistoricalFetchFinalPreflight,
+        ),
+        first_tiny_historical_fetch_provider_dry_execute: JSON.stringify(
+          firstTinyHistoricalFetchProviderDryExecute,
+        ),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -9195,6 +10041,22 @@ function buildSections(
         lineValue(
           "First tiny fetch operator approval",
           `${firstTinyHistoricalFetchOperatorApproval.approval_record_status} / provider call no / persist no`,
+        ),
+        lineValue(
+          "First tiny fetch execution plan",
+          `${firstTinyHistoricalFetchExecutionPlan.execution_plan_status} / execute no / provider call no / persist no`,
+        ),
+        lineValue(
+          "First tiny fetch approval signal",
+          `${firstTinyHistoricalFetchApprovalSignalReadiness.approval_signal_status} / accept future signal ${firstTinyHistoricalFetchApprovalSignalReadiness.readiness.ready_to_accept_future_signal ? "yes" : "no"} / execute no / provider call no`,
+        ),
+        lineValue(
+          "First tiny fetch final preflight",
+          `${firstTinyHistoricalFetchFinalPreflight.preflight_status} / execute no / provider call no / persist no`,
+        ),
+        lineValue(
+          "First tiny provider dry execute",
+          `${firstTinyHistoricalFetchProviderDryExecute.execution_status} / call ${firstTinyHistoricalFetchProviderDryExecute.provider_call_executed ? "yes" : "no"} / persist no / scanner no`,
         ),
         lineValue(
           "Primary learning signal",
