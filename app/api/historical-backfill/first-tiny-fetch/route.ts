@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { firstTinyFetchRouteExpectedMarker } from "@/lib/environment-boundary-audit";
 import {
   executeFirstTinyHistoricalFetchApprovedNoPersistAttempt,
 } from "@/lib/first-tiny-historical-fetch-approved-no-persist-attempt";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 type FirstTinyFetchRouteBody = {
   execute_provider_call?: unknown;
   auth_check_only?: unknown;
+  route_ping?: unknown;
   ticker?: unknown;
   provider?: unknown;
   endpoint?: unknown;
@@ -82,6 +84,17 @@ function hasArbitraryScopeOverride(body: FirstTinyFetchRouteBody) {
 }
 
 export async function POST(request: Request) {
+  const body = await parseBody(request);
+
+  if (body.route_ping === true) {
+    return NextResponse.json({
+      ok: true,
+      route_ping: true,
+      route_version: firstTinyFetchRouteExpectedMarker,
+      route_build_marker: firstTinyFetchRouteExpectedMarker,
+    });
+  }
+
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
   const authDiagnostics = buildAuthDiagnostics({
@@ -100,8 +113,6 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
-
-  const body = await parseBody(request);
 
   if (body.auth_check_only === true) {
     return NextResponse.json({

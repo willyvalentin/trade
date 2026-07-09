@@ -6,6 +6,7 @@ import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discove
 import { buildDynamicMoversReadiness } from "@/lib/dynamic-movers-readiness";
 import { buildDynamicMoversShadowAudit } from "@/lib/dynamic-movers-shadow-fixture";
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
+import { buildEnvironmentBoundaryAudit } from "@/lib/environment-boundary-audit";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
 import type { ProviderPlanProfile } from "@/lib/provider-plan-profile";
@@ -2778,6 +2779,7 @@ function buildSections(
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
+  const environmentBoundaryAudit = buildEnvironmentBoundaryAudit();
   const scannerUniverseAny = input.scanner_universe as unknown as {
     selected_ticker_symbols?: string[] | null;
     context_ticker_symbols?: string[] | null;
@@ -5575,6 +5577,189 @@ function buildSections(
           historicalBackfillExecutionReadiness.caution_flags.join(","),
         metadata_gaps:
           historicalBackfillExecutionReadiness.metadata_gaps.join(","),
+      },
+    }),
+    section({
+      section_id: "environment_boundary_audit",
+      title: "Environment Boundary Audit",
+      severity:
+        environmentBoundaryAudit.blockers.length > 0
+          ? "critical"
+          : environmentBoundaryAudit.warnings.length > 0
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Advisory mode", "yes"),
+        lineValue("Environment audit only", "yes"),
+        lineValue("Node env", environmentBoundaryAudit.app_runtime.node_env),
+        lineValue(
+          "Vercel env",
+          environmentBoundaryAudit.app_runtime.vercel_env,
+        ),
+        lineValue(
+          "Netlify context",
+          environmentBoundaryAudit.app_runtime.netlify_context,
+        ),
+        lineValue(
+          "Deploy URL present",
+          environmentBoundaryAudit.app_runtime.deploy_url_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Site URL present",
+          environmentBoundaryAudit.app_runtime.site_url_present ? "yes" : "no",
+        ),
+        lineValue(
+          "Production URL expected",
+          environmentBoundaryAudit.app_runtime.production_url_expected,
+        ),
+        lineValue(
+          "Public Supabase URL present",
+          environmentBoundaryAudit.supabase_refs.public_supabase_url_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Public Supabase project ref",
+          environmentBoundaryAudit.supabase_refs.public_supabase_project_ref,
+        ),
+        lineValue(
+          "Expected production ref",
+          environmentBoundaryAudit.supabase_refs.expected_production_ref,
+        ),
+        lineValue(
+          "Known staging ref",
+          environmentBoundaryAudit.supabase_refs.known_staging_ref,
+        ),
+        lineValue(
+          "Points to production",
+          yesNoUnknown(
+            environmentBoundaryAudit.supabase_refs.points_to_production,
+          ),
+        ),
+        lineValue(
+          "Points to staging",
+          yesNoUnknown(environmentBoundaryAudit.supabase_refs.points_to_staging),
+        ),
+        lineValue(
+          "AUTOMATION_SECRET present",
+          environmentBoundaryAudit.secrets_presence.automation_secret_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "AUTOMATION_SECRET length",
+          environmentBoundaryAudit.secrets_presence.automation_secret_length,
+        ),
+        lineValue(
+          "TWELVE_DATA_API_KEY present",
+          environmentBoundaryAudit.secrets_presence.twelve_data_api_key_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "TWELVE_DATA_API_KEY length",
+          environmentBoundaryAudit.secrets_presence.twelve_data_api_key_length,
+        ),
+        lineValue(
+          "SUPABASE_SERVICE_ROLE_KEY present",
+          environmentBoundaryAudit.secrets_presence
+            .supabase_service_role_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "SUPABASE_SERVICE_ROLE_KEY length",
+          environmentBoundaryAudit.secrets_presence
+            .supabase_service_role_length,
+        ),
+        lineValue(
+          "App build marker",
+          environmentBoundaryAudit.route_versions.app_build_marker,
+        ),
+        lineValue(
+          "First tiny route expected marker",
+          environmentBoundaryAudit.route_versions
+            .first_tiny_fetch_route_expected_marker,
+        ),
+        lineValue(
+          "Diagnostics route marker present",
+          yesNoUnknown(
+            environmentBoundaryAudit.route_versions
+              .diagnostics_route_marker_present,
+          ),
+        ),
+        lineValue("No secret values returned", "yes"),
+        lineValue("No secret hashes returned", "yes"),
+        lineValue("Provider fetch added", "no"),
+        lineValue("Provider call executed", "no"),
+        lineValue("Candles persisted", "no"),
+        lineValue("Fetch run persisted", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Warnings", compactListText(environmentBoundaryAudit.warnings)),
+        lineValue(
+          "Recommended next steps",
+          compactListText(environmentBoundaryAudit.recommended_next_steps),
+        ),
+      ],
+      metrics: {
+        advisory_mode: true,
+        environment_audit_only: true,
+        app_runtime: JSON.stringify(environmentBoundaryAudit.app_runtime),
+        supabase_refs: JSON.stringify(environmentBoundaryAudit.supabase_refs),
+        secrets_presence: JSON.stringify(
+          environmentBoundaryAudit.secrets_presence,
+        ),
+        route_versions: JSON.stringify(environmentBoundaryAudit.route_versions),
+        node_env: environmentBoundaryAudit.app_runtime.node_env,
+        vercel_env: environmentBoundaryAudit.app_runtime.vercel_env,
+        netlify_context: environmentBoundaryAudit.app_runtime.netlify_context,
+        deploy_url_present:
+          environmentBoundaryAudit.app_runtime.deploy_url_present,
+        site_url_present: environmentBoundaryAudit.app_runtime.site_url_present,
+        public_supabase_project_ref:
+          environmentBoundaryAudit.supabase_refs.public_supabase_project_ref,
+        expected_production_ref:
+          environmentBoundaryAudit.supabase_refs.expected_production_ref,
+        known_staging_ref:
+          environmentBoundaryAudit.supabase_refs.known_staging_ref,
+        points_to_production:
+          environmentBoundaryAudit.supabase_refs.points_to_production,
+        points_to_staging:
+          environmentBoundaryAudit.supabase_refs.points_to_staging,
+        automation_secret_present:
+          environmentBoundaryAudit.secrets_presence.automation_secret_present,
+        automation_secret_length:
+          environmentBoundaryAudit.secrets_presence.automation_secret_length,
+        twelve_data_api_key_present:
+          environmentBoundaryAudit.secrets_presence.twelve_data_api_key_present,
+        twelve_data_api_key_length:
+          environmentBoundaryAudit.secrets_presence.twelve_data_api_key_length,
+        supabase_service_role_present:
+          environmentBoundaryAudit.secrets_presence
+            .supabase_service_role_present,
+        supabase_service_role_length:
+          environmentBoundaryAudit.secrets_presence.supabase_service_role_length,
+        first_tiny_fetch_route_expected_marker:
+          environmentBoundaryAudit.route_versions
+            .first_tiny_fetch_route_expected_marker,
+        diagnostics_route_marker_present:
+          environmentBoundaryAudit.route_versions
+            .diagnostics_route_marker_present,
+        no_secret_values_returned: true,
+        no_secret_hashes_returned: true,
+        provider_fetch_added: false,
+        provider_call_executed: false,
+        candles_persisted: false,
+        fetch_run_persisted: false,
+        replay_executed: false,
+        scanner_behavior_changed: false,
+        blockers: environmentBoundaryAudit.blockers.join(","),
+        warnings: environmentBoundaryAudit.warnings.join(","),
+        recommended_next_steps:
+          environmentBoundaryAudit.recommended_next_steps.join(","),
       },
     }),
     section({
