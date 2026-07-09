@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   executeFirstTinyReplayWithSignalPackageDryRun,
   firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
+  firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
 } from "@/lib/first-tiny-historical-replay-with-signal-package-dry-run-execute";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,8 @@ const noStoreHeaders = {
 };
 
 const noEffectResponse = {
+  route_reachability_fix_marker:
+    firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
   provider_call_executed: false,
   provider_call_attempted: false,
   candles_persisted: false,
@@ -218,7 +221,11 @@ export async function POST(request: Request) {
     preflight.execution_status === "not_approved" ||
     preflight.execution_status === "blocked_signal_package_validation_failed"
   ) {
-    return jsonNoStore(preflight as unknown as Record<string, unknown>);
+    return jsonNoStore({
+      route_reachability_fix_marker:
+        firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
+      ...preflight,
+    } as unknown as Record<string, unknown>);
   }
 
   const { getServerSupabaseClient } = await import("@/lib/supabase-server");
@@ -228,5 +235,9 @@ export async function POST(request: Request) {
     supabase_client: supabase.client,
   });
 
-  return jsonNoStore(result as unknown as Record<string, unknown>);
+  return jsonNoStore({
+    route_reachability_fix_marker:
+      firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
+    ...result,
+  } as unknown as Record<string, unknown>);
 }

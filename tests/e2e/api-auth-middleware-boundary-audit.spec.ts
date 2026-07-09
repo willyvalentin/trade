@@ -10,6 +10,7 @@ import { GET as firstTinyCandlePersistencePingGET } from "../../app/api/historic
 import { GET as firstTinyCandlePersistenceReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-candle-persistence-readback/ping/route";
 import { GET as firstTinyReplayDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-dry-run/ping/route";
 import { GET as firstTinyReplayWithSignalPackageDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping/route";
+import { GET as firstTinySignalReplayDryRunPingGET } from "../../app/api/historical-backfill/first-tiny-signal-replay-dry-run/ping/route";
 import { GET as firstTinySignalPackageDiscoveryReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
 import { proxy } from "../../proxy";
@@ -295,6 +296,43 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
         path: "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping",
       }),
   );
+  const firstTinyReplayWithSignalPackageDryRunPingSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping/",
+      }),
+  );
+  const firstTinySignalReplayDryRunResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-signal-replay-dry-run",
+        method: "POST",
+      }),
+  );
+  const firstTinySignalReplayDryRunSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-signal-replay-dry-run/",
+        method: "POST",
+      }),
+  );
+  const firstTinySignalReplayDryRunPingResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-signal-replay-dry-run/ping",
+      }),
+  );
+  const firstTinySignalReplayDryRunPingSlashResponse = await withEnv(
+    { TRADE_APP_PASSWORD: "trade-password" },
+    () =>
+      proxyRequest({
+        path: "/api/historical-backfill/first-tiny-signal-replay-dry-run/ping/",
+      }),
+  );
 
   expect(environmentResponse.status).not.toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
@@ -326,6 +364,13 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
   expect(firstTinyReplayWithSignalPackageDryRunPingResponse.status).not.toBe(
     401,
   );
+  expect(
+    firstTinyReplayWithSignalPackageDryRunPingSlashResponse.status,
+  ).not.toBe(401);
+  expect(firstTinySignalReplayDryRunResponse.status).not.toBe(401);
+  expect(firstTinySignalReplayDryRunSlashResponse.status).not.toBe(401);
+  expect(firstTinySignalReplayDryRunPingResponse.status).not.toBe(401);
+  expect(firstTinySignalReplayDryRunPingSlashResponse.status).not.toBe(401);
 });
 
 test("first tiny ping endpoint is reachable without auth and safe", async () => {
@@ -337,6 +382,8 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const replayDryRunResponse = await firstTinyReplayDryRunPingGET();
   const replayWithSignalPackageDryRunResponse =
     await firstTinyReplayWithSignalPackageDryRunPingGET();
+  const signalReplayDryRunResponse =
+    await firstTinySignalReplayDryRunPingGET();
   const signalPackageDiscoveryReadbackResponse =
     await firstTinySignalPackageDiscoveryReadbackPingGET();
   const body = await response.json();
@@ -347,6 +394,7 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
   const replayDryRunBody = await replayDryRunResponse.json();
   const replayWithSignalPackageDryRunBody =
     await replayWithSignalPackageDryRunResponse.json();
+  const signalReplayDryRunBody = await signalReplayDryRunResponse.json();
   const signalPackageDiscoveryReadbackBody =
     await signalPackageDiscoveryReadbackResponse.json();
 
@@ -429,6 +477,20 @@ test("first tiny ping endpoint is reachable without auth and safe", async () => 
     false,
   );
   expect(replayWithSignalPackageDryRunBody.supabase_write_executed).toBe(false);
+  expect(signalReplayDryRunResponse.status).toBe(200);
+  expect(signalReplayDryRunResponse.headers.get("Cache-Control")).toBe(
+    "no-store",
+  );
+  expect(signalReplayDryRunBody.ok).toBe(true);
+  expect(signalReplayDryRunBody.route_ping).toBe(true);
+  expect(signalReplayDryRunBody.provider_call_executed).toBe(false);
+  expect(signalReplayDryRunBody.provider_call_attempted).toBe(false);
+  expect(signalReplayDryRunBody.synthetic_outcomes_persisted).toBe(false);
+  expect(signalReplayDryRunBody.replay_executed).toBe(false);
+  expect(signalReplayDryRunBody.scanner_behavior_changed).toBe(false);
+  expect(signalReplayDryRunBody.live_ranking_changed).toBe(false);
+  expect(signalReplayDryRunBody.recommendation_rows_mutated).toBe(false);
+  expect(signalReplayDryRunBody.supabase_write_executed).toBe(false);
   expect(signalPackageDiscoveryReadbackResponse.status).toBe(200);
   expect(signalPackageDiscoveryReadbackResponse.headers.get("Cache-Control")).toBe(
     "no-store",

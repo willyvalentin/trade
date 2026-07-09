@@ -18,6 +18,8 @@ import {
 
 export const firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker =
   "action_307_first_tiny_replay_with_signal_package_dry_run_execute_attempt";
+export const firstTinyReplayWithSignalPackageRouteReachabilityFixMarker =
+  "action_307b_route_reachability_fix";
 
 export type FirstTinyReplayWithSignalPackageExecutionStatus =
   | "replay_with_signal_package_completed"
