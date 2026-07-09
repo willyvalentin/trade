@@ -56,6 +56,12 @@ function isPublicPath(pathname: string) {
     pathname === "/api/historical-backfill/first-tiny-replay-dry-run/" ||
     pathname === "/api/historical-backfill/first-tiny-replay-dry-run/ping" ||
     pathname ===
+      "/api/historical-backfill/first-tiny-signal-package-discovery-readback" ||
+    pathname ===
+      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/" ||
+    pathname ===
+      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping" ||
+    pathname ===
       "/api/historical-backfill/first-tiny-candle-payload-refetch/ping"
   );
 }
