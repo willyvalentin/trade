@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "audit:api-publication": "node scripts/action-307f-netlify-api-publication-forensic-audit.mjs",
     "bridge:localhost": "node scripts/avanza-localhost-bridge-server.mjs",
     "bridge:localhost:smoke": "node scripts/avanza-localhost-bridge-server-smoke.mjs",
     "mock-agent:run": "node scripts/mock-order-page-agent-runner.mjs",
