@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const expectedBranch = "dev/safe-post-recovery-work";
+const expectedStaticBatchCommit = "9b55e5a";
 
 const requiredFiles = [
   "docs/action-309-post-recovery-safe-development-protocol.md",
@@ -45,6 +46,13 @@ const requiredFiles = [
   "tests/fixtures/replay-with-signal-package-static-preview.json.golden.json",
 ];
 
+const allowedAction319ImplementationFiles = [
+  "docs/action-319-static-replay-batch-post-commit-verification.md",
+  "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
+  "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
+  "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
+];
+
 const forbiddenRuntimePaths = [
   "app/api/hb307c",
   "app/api/ping307h",
@@ -61,8 +69,21 @@ const forbiddenRuntimePaths = [
 const markerRootPaths = ["app", "public"];
 const markerFilePaths = ["proxy.ts", "middleware.ts", "middleware.js", "netlify.toml"];
 
-function runGit(args) {
-  return execFileSync("git", args, { cwd: repoRoot, encoding: "utf8" }).trim();
+function runGit(args, options = {}) {
+  return execFileSync("git", args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: options.silent ? ["ignore", "pipe", "ignore"] : ["ignore", "pipe", "pipe"],
+  }).trim();
+}
+
+function gitCommandSucceeds(args) {
+  try {
+    runGit(args, { silent: true });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function exists(relativePath) {
@@ -96,37 +117,17 @@ function statusFiles() {
     .sort();
 }
 
-function isAllowedChangedFile(relativePath) {
-  if (relativePath.startsWith("docs/")) return true;
-  if (/^lib\/replay-with-signal-package-.*\.ts$/.test(relativePath)) return true;
-  if (
-    [
-      "scripts/action-309-post-recovery-safety-guard.mjs",
-      "scripts/replay-with-signal-package-static-preview.mjs",
-      "scripts/replay-with-signal-package-static-preview-verify-golden.mjs",
-      "scripts/action-317-static-release-manifest-verify.mjs",
-      "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
-      "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
-    ].includes(relativePath)
-  ) {
-    return true;
-  }
-  if (/^tests\/e2e\/replay-with-signal-package-.*\.spec\.ts$/.test(relativePath)) {
-    return true;
-  }
-  if (
-    [
-      "tests/e2e/action-309-post-recovery-safe-development-protocol.spec.ts",
-      "tests/e2e/action-317-post-recovery-static-replay-release-manifest.spec.ts",
-      "tests/e2e/action-318-static-replay-batch-commit-readiness-checklist.spec.ts",
-      "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
-    ].includes(relativePath)
-  ) {
-    return true;
-  }
-  return /^tests\/fixtures\/replay-with-signal-package-static-preview\./.test(
-    relativePath,
-  );
+function markerFound(marker) {
+  const files = [
+    ...markerFilePaths,
+    ...markerRootPaths.flatMap((relativePath) => collectFiles(relativePath)),
+  ];
+
+  return files.some((relativePath) => {
+    const absolutePath = join(repoRoot, relativePath);
+    if (!existsSync(absolutePath)) return false;
+    return readFileSync(absolutePath, "utf8").includes(marker);
+  });
 }
 
 function isForbiddenChangedFile(relativePath) {
@@ -143,55 +144,66 @@ function isForbiddenChangedFile(relativePath) {
   return forbiddenRuntimePaths.includes(relativePath);
 }
 
-function markerFound(marker) {
-  const files = [
-    ...markerFilePaths,
-    ...markerRootPaths.flatMap((relativePath) => collectFiles(relativePath)),
-  ];
-
-  return files.some((relativePath) => {
-    const absolutePath = join(repoRoot, relativePath);
-    if (!existsSync(absolutePath)) return false;
-    return readFileSync(absolutePath, "utf8").includes(marker);
-  });
-}
-
 const currentBranch = runGit(["branch", "--show-current"]);
 const changedFiles = statusFiles();
-const allowedChangedFiles = changedFiles.filter(isAllowedChangedFile);
-const unexpectedChangedFiles = changedFiles.filter(
-  (relativePath) => !isAllowedChangedFile(relativePath),
+const workingTreeClean = changedFiles.length === 0;
+const uncommittedAction319Only =
+  changedFiles.length > 0 &&
+  changedFiles.every((relativePath) =>
+    allowedAction319ImplementationFiles.includes(relativePath),
+  );
+const unexpectedUncommittedFiles = changedFiles.filter(
+  (relativePath) => !allowedAction319ImplementationFiles.includes(relativePath),
 );
 const requiredFilesMissing = requiredFiles.filter((relativePath) => !exists(relativePath));
 const forbiddenRuntimeChanges = changedFiles.filter(isForbiddenChangedFile);
+const forbiddenRuntimeArtifacts = forbiddenRuntimePaths.filter(exists);
 const forbiddenMarkersFound = [
   "action_307k_proxy_runtime_crash_isolation",
 ].filter(markerFound);
+const staticBatchCommitFound = gitCommandSucceeds([
+  "merge-base",
+  "--is-ancestor",
+  expectedStaticBatchCommit,
+  "HEAD",
+]);
 
 const passed =
   currentBranch === expectedBranch &&
+  staticBatchCommitFound &&
+  (workingTreeClean || uncommittedAction319Only) &&
+  unexpectedUncommittedFiles.length === 0 &&
   requiredFilesMissing.length === 0 &&
-  unexpectedChangedFiles.length === 0 &&
   forbiddenRuntimeChanges.length === 0 &&
+  forbiddenRuntimeArtifacts.length === 0 &&
   forbiddenMarkersFound.length === 0;
 
 const result = {
   verification_status: passed ? "passed" : "failed",
   current_branch: currentBranch,
   expected_branch: expectedBranch,
-  commit_readiness_only: true,
+  static_batch_commit_found: staticBatchCommitFound,
+  expected_static_batch_commit: expectedStaticBatchCommit,
+  working_tree_clean: workingTreeClean,
+  uncommitted_action_319_files_allowed: uncommittedAction319Only,
+  uncommitted_files: changedFiles,
+  unexpected_uncommitted_files: unexpectedUncommittedFiles,
+  post_commit_verification_only: true,
   deploy_readiness: false,
   main_push_allowed: false,
-  allowed_changed_files: allowedChangedFiles,
-  unexpected_changed_files: unexpectedChangedFiles,
+  runtime_route_changes_allowed: false,
+  proxy_changes_allowed: false,
   required_files_found: requiredFilesMissing.length === 0,
   required_files_missing: requiredFilesMissing,
-  forbidden_runtime_changes_detected: forbiddenRuntimeChanges.length > 0,
+  forbidden_runtime_changes_detected:
+    forbiddenRuntimeChanges.length > 0 || forbiddenRuntimeArtifacts.length > 0,
   forbidden_runtime_changed_files: forbiddenRuntimeChanges,
+  forbidden_runtime_artifacts_found: forbiddenRuntimeArtifacts,
   forbidden_markers_found: forbiddenMarkersFound,
   no_effect_flags: {
     provider_call_executed: false,
     provider_call_attempted: false,
+    supabase_read_executed: false,
     supabase_write_executed: false,
     candles_persisted: false,
     raw_response_persisted: false,
@@ -203,8 +215,8 @@ const result = {
     recommendation_rows_mutated: false,
   },
   recommended_next_step: passed
-    ? "commit_static_batch_with_explicit_paths_only"
-    : "fix_unexpected_or_runtime_changes_before_commit",
+    ? "continue_static_local_development_do_not_deploy_or_push_main"
+    : "restore_clean_static_batch_state_before_continuing",
 };
 
 process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
