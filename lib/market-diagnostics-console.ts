@@ -15,6 +15,8 @@ import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memo
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
 import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
 import type { DailyLearningReviewSummary } from "@/lib/daily-learning-review";
+import { buildAction307nProductionApiBoundaryRecoveryVerification } from "@/lib/action-307n-production-api-boundary-recovery-verification";
+import { buildAction308MinimalReplayWithSignalPackagePing } from "@/lib/action-308-minimal-replay-with-signal-package-ping";
 import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill-dry-run-pipeline";
 import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
 import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
@@ -3497,6 +3499,10 @@ function buildSections(
     closedMarketWaitState,
     shadowTrialState,
   });
+  const productionApiBoundaryRecovery =
+    buildAction307nProductionApiBoundaryRecoveryVerification();
+  const minimalReplayWithSignalPackagePing =
+    buildAction308MinimalReplayWithSignalPackagePing();
 
   return [
     section({
@@ -3580,6 +3586,151 @@ function buildSections(
         monday_live_trial_items_ready_count: mondayChecklist.readyCount,
         monday_live_trial_items_total_count: mondayChecklist.totalCount,
         monday_live_trial_items_json: JSON.stringify(mondayChecklist.items),
+      },
+    }),
+    section({
+      section_id: "production_api_boundary_recovery",
+      title: "Production API Boundary Recovery",
+      severity: "info",
+      lines: [
+        lineValue("Status", "recovered after rollback"),
+        lineValue(
+          "Known good routes healthy",
+          statusMark(productionApiBoundaryRecovery.known_good_routes_healthy),
+        ),
+        lineValue(
+          "Action 303 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_303_ping_healthy),
+        ),
+        lineValue(
+          "Action 300 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_300_ping_healthy),
+        ),
+        lineValue(
+          "Action 296 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_296_ping_healthy),
+        ),
+        lineValue(
+          "Replay with signal package route deployed",
+          statusMark(
+            productionApiBoundaryRecovery
+              .replay_with_signal_package_route_deployed,
+          ),
+        ),
+        lineValue(
+          "Replay allowed now",
+          statusMark(productionApiBoundaryRecovery.replay_execute_allowed_now),
+        ),
+        lineValue(
+          "Recommended next steps",
+          productionApiBoundaryRecovery.recommended_next_steps.join("; "),
+        ),
+      ],
+      metrics: {
+        recovery_status: productionApiBoundaryRecovery.recovery_status,
+        rollback_verified: productionApiBoundaryRecovery.rollback_verified,
+        known_good_routes_healthy:
+          productionApiBoundaryRecovery.known_good_routes_healthy,
+        next_runtime_routes_healthy_again:
+          productionApiBoundaryRecovery.next_runtime_routes_healthy_again,
+        action_303_ping_healthy:
+          productionApiBoundaryRecovery.action_303_ping_healthy,
+        action_300_ping_healthy:
+          productionApiBoundaryRecovery.action_300_ping_healthy,
+        action_296_ping_healthy:
+          productionApiBoundaryRecovery.action_296_ping_healthy,
+        replay_with_signal_package_route_deployed:
+          productionApiBoundaryRecovery
+            .replay_with_signal_package_route_deployed,
+        replay_execute_allowed_now:
+          productionApiBoundaryRecovery.replay_execute_allowed_now,
+        provider_call_executed:
+          productionApiBoundaryRecovery.provider_call_executed,
+        replay_executed: productionApiBoundaryRecovery.replay_executed,
+        synthetic_outcomes_persisted:
+          productionApiBoundaryRecovery.synthetic_outcomes_persisted,
+        supabase_write_executed:
+          productionApiBoundaryRecovery.supabase_write_executed,
+        scanner_behavior_changed:
+          productionApiBoundaryRecovery.scanner_behavior_changed,
+        live_ranking_changed:
+          productionApiBoundaryRecovery.live_ranking_changed,
+        recommended_next_step:
+          productionApiBoundaryRecovery.recommended_next_step,
+        healthy_route_markers:
+          productionApiBoundaryRecovery.healthy_route_markers.join(", "),
+      },
+    }),
+    section({
+      section_id: "minimal_replay_with_signal_package_ping",
+      title: "Minimal Replay With Signal Package Ping",
+      severity: "info",
+      lines: [
+        lineValue("Status", "ping-only"),
+        lineValue(
+          "Route marker",
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        ),
+        lineValue(
+          "Execute route present",
+          statusMark(
+            minimalReplayWithSignalPackagePing
+              .replay_with_signal_package_execute_route_present,
+          ),
+        ),
+        lineValue(
+          "Replay executed",
+          statusMark(minimalReplayWithSignalPackagePing.replay_executed),
+        ),
+        lineValue(
+          "Synthetic outcomes persisted",
+          statusMark(
+            minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted,
+          ),
+        ),
+        lineValue(
+          "Scanner behavior changed",
+          statusMark(minimalReplayWithSignalPackagePing.scanner_behavior_changed),
+        ),
+        lineValue(
+          "Live ranking changed",
+          statusMark(minimalReplayWithSignalPackagePing.live_ranking_changed),
+        ),
+        lineValue(
+          "Recommended next steps",
+          minimalReplayWithSignalPackagePing.recommended_next_steps.join("; "),
+        ),
+      ],
+      metrics: {
+        status: "ping_only",
+        route_build_marker:
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        purpose: minimalReplayWithSignalPackagePing.purpose,
+        replay_with_signal_package_execute_route_present:
+          minimalReplayWithSignalPackagePing
+            .replay_with_signal_package_execute_route_present,
+        provider_call_executed:
+          minimalReplayWithSignalPackagePing.provider_call_executed,
+        provider_call_attempted:
+          minimalReplayWithSignalPackagePing.provider_call_attempted,
+        candles_persisted: minimalReplayWithSignalPackagePing.candles_persisted,
+        raw_response_persisted:
+          minimalReplayWithSignalPackagePing.raw_response_persisted,
+        fetch_run_persisted:
+          minimalReplayWithSignalPackagePing.fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted,
+        replay_executed: minimalReplayWithSignalPackagePing.replay_executed,
+        scanner_behavior_changed:
+          minimalReplayWithSignalPackagePing.scanner_behavior_changed,
+        live_ranking_changed:
+          minimalReplayWithSignalPackagePing.live_ranking_changed,
+        recommendation_rows_mutated:
+          minimalReplayWithSignalPackagePing.recommendation_rows_mutated,
+        supabase_write_executed:
+          minimalReplayWithSignalPackagePing.supabase_write_executed,
+        recommended_next_steps:
+          minimalReplayWithSignalPackagePing.recommended_next_steps.join(", "),
       },
     }),
     section({
