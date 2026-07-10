@@ -112,6 +112,7 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-322-ture-product-roadmap-index-verify.mjs",
       "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
       "scripts/action-324-recommendation-engine-code-surface-inventory-verify.mjs",
+      "scripts/action-325-recommendation-quality-gates-audit-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -130,6 +131,7 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-322-ture-product-roadmap-index.spec.ts",
       "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
       "tests/e2e/action-324-recommendation-engine-code-surface-inventory.spec.ts",
+      "tests/e2e/action-325-recommendation-quality-gates-audit.spec.ts",
     ].includes(relativePath)
   ) {
     return true;

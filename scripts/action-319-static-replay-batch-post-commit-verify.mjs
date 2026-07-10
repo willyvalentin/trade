@@ -53,6 +53,7 @@ const allowedAction319ImplementationFiles = [
   "docs/action-322-ture-product-roadmap-index.md",
   "docs/action-323-recommendation-engine-readiness-map.md",
   "docs/action-324-recommendation-engine-code-surface-inventory.md",
+  "docs/action-325-recommendation-quality-gates-audit.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
@@ -60,12 +61,14 @@ const allowedAction319ImplementationFiles = [
   "scripts/action-322-ture-product-roadmap-index-verify.mjs",
   "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
   "scripts/action-324-recommendation-engine-code-surface-inventory-verify.mjs",
+  "scripts/action-325-recommendation-quality-gates-audit-verify.mjs",
   "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
   "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
   "tests/e2e/action-322-ture-product-roadmap-index.spec.ts",
   "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
   "tests/e2e/action-324-recommendation-engine-code-surface-inventory.spec.ts",
+  "tests/e2e/action-325-recommendation-quality-gates-audit.spec.ts",
 ];
 
 const forbiddenRuntimePaths = [
