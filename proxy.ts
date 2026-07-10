@@ -11,6 +11,11 @@ const noStoreHeaders = {
   "Cache-Control": "no-store",
 };
 
+function publicDiagnosticsEnabled() {
+  const raw = process.env.TURE_PUBLIC_DIAGNOSTIC_ROUTES_ENABLED;
+  return raw === undefined || raw.trim().toLowerCase() !== "false";
+}
+
 async function getTradeAuthToken(password: string) {
   const data = new TextEncoder().encode(`trade-auth:${password}`);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -28,8 +33,10 @@ function isApiRouteHandlerPassThrough(pathname: string) {
     matchesPathOrChild(pathname, "/api/auth") ||
     matchesPathOrChild(pathname, "/api/environment-boundary-audit") ||
     matchesPathOrChild(pathname, "/api/historical-backfill") ||
-    matchesPathOrChild(pathname, "/api/hb307c") ||
-    matchesPathOrChild(pathname, "/api/route-publication-diagnostic") ||
+    (publicDiagnosticsEnabled() &&
+      (matchesPathOrChild(pathname, "/api/hb307c") ||
+        matchesPathOrChild(pathname, "/api/ping307h") ||
+        matchesPathOrChild(pathname, "/api/route-publication-diagnostic"))) ||
     pathname === "/api/automation/run-scan" ||
     pathname === "/api/diagnostics/run-scan" ||
     pathname === "/api/recommendations/evaluate-outcomes"
@@ -37,11 +44,13 @@ function isApiRouteHandlerPassThrough(pathname: string) {
 }
 
 function isPublicDiagnosticPage(pathname: string) {
-  return (
+  return publicDiagnosticsEnabled() && (
     pathname === "/route-publication-probe" ||
     pathname === "/route-publication-probe/" ||
     pathname === "/public-probe-307g" ||
-    pathname === "/public-probe-307g/"
+    pathname === "/public-probe-307g/" ||
+    pathname === "/ping307h" ||
+    pathname === "/ping307h/"
   );
 }
 
@@ -50,6 +59,33 @@ function isPublicPath(pathname: string) {
     pathname === "/login" ||
     isPublicDiagnosticPage(pathname) ||
     isApiRouteHandlerPassThrough(pathname)
+  );
+}
+
+function isEmergencyDiagnosticBypass(pathname: string) {
+  if (matchesPathOrChild(pathname, "/api/historical-backfill")) {
+    return true;
+  }
+
+  if (!publicDiagnosticsEnabled()) {
+    return false;
+  }
+
+  return (
+    pathname === "/route-publication-probe" ||
+    pathname === "/route-publication-probe/" ||
+    pathname === "/public-probe-307g" ||
+    pathname === "/public-probe-307g/" ||
+    pathname === "/ping307h" ||
+    pathname === "/ping307h/" ||
+    pathname === "/api/hb307c" ||
+    pathname === "/api/hb307c/" ||
+    pathname === "/api/hb307c/ping" ||
+    pathname === "/api/hb307c/ping/" ||
+    pathname === "/api/ping307h" ||
+    pathname === "/api/ping307h/" ||
+    pathname === "/api/route-publication-diagnostic" ||
+    pathname === "/api/route-publication-diagnostic/"
   );
 }
 
@@ -85,6 +121,10 @@ function unauthorized(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (isEmergencyDiagnosticBypass(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   if (isPublicPath(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
