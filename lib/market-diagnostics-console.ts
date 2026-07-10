@@ -47,6 +47,7 @@ import { buildFirstTinyHistoricalReplayDryRunPlan } from "@/lib/first-tiny-histo
 import { buildFirstTinyHistoricalReplayDryRunResultVerification } from "@/lib/first-tiny-historical-replay-dry-run-result-verification";
 import { buildFirstTinyHistoricalReplaySignalPackageDiscoveryPlan } from "@/lib/first-tiny-historical-replay-signal-package-discovery-plan";
 import { buildFirstTinyHistoricalReplaySignalPackageDiscoveryReadback } from "@/lib/first-tiny-historical-replay-signal-package-discovery-readback";
+import { buildAction308MinimalReplayWithSignalPackagePing } from "@/lib/action-308-minimal-replay-with-signal-package-ping";
 import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
 import { buildFirstTinyFetchRunAuditWriteExecuteReadiness } from "@/lib/first-tiny-historical-fetch-run-audit-write-execute";
 import { buildFirstTinyHistoricalFetchRunAuditWritePlan } from "@/lib/first-tiny-historical-fetch-run-audit-write-plan";
@@ -3048,6 +3049,8 @@ function buildSections(
         firstTinyHistoricalReplayDryRunResultVerification,
       discovery_plan: firstTinyHistoricalReplaySignalPackageDiscoveryPlan,
     });
+  const minimalReplayWithSignalPackagePing =
+    buildAction308MinimalReplayWithSignalPackagePing();
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -12196,6 +12199,83 @@ function buildSections(
           firstTinyHistoricalReplaySignalPackageDiscoveryReadback.recommended_next_steps.join(
             ",",
           ),
+      },
+    }),
+    section({
+      section_id: "minimal_replay_with_signal_package_ping",
+      title: "Minimal Replay With Signal Package Ping",
+      severity: "info",
+      lines: [
+        lineValue("Status", "ping-only"),
+        lineValue(
+          "Route marker",
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        ),
+        lineValue(
+          "Execute route present",
+          minimalReplayWithSignalPackagePing
+            .replay_with_signal_package_execute_route_present
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Replay executed",
+          minimalReplayWithSignalPackagePing.replay_executed ? "yes" : "no",
+        ),
+        lineValue(
+          "Synthetic outcomes persisted",
+          minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Scanner behavior changed",
+          minimalReplayWithSignalPackagePing.scanner_behavior_changed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Live ranking changed",
+          minimalReplayWithSignalPackagePing.live_ranking_changed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            [...minimalReplayWithSignalPackagePing.recommended_next_steps],
+          ),
+        ),
+      ],
+      metrics: {
+        route_build_marker:
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        purpose: minimalReplayWithSignalPackagePing.purpose,
+        replay_with_signal_package_execute_route_present:
+          minimalReplayWithSignalPackagePing
+            .replay_with_signal_package_execute_route_present,
+        provider_call_executed:
+          minimalReplayWithSignalPackagePing.provider_call_executed,
+        provider_call_attempted:
+          minimalReplayWithSignalPackagePing.provider_call_attempted,
+        candles_persisted: minimalReplayWithSignalPackagePing.candles_persisted,
+        raw_response_persisted:
+          minimalReplayWithSignalPackagePing.raw_response_persisted,
+        fetch_run_persisted:
+          minimalReplayWithSignalPackagePing.fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted,
+        replay_executed: minimalReplayWithSignalPackagePing.replay_executed,
+        scanner_behavior_changed:
+          minimalReplayWithSignalPackagePing.scanner_behavior_changed,
+        live_ranking_changed:
+          minimalReplayWithSignalPackagePing.live_ranking_changed,
+        recommendation_rows_mutated:
+          minimalReplayWithSignalPackagePing.recommendation_rows_mutated,
+        supabase_write_executed:
+          minimalReplayWithSignalPackagePing.supabase_write_executed,
+        recommended_next_steps:
+          minimalReplayWithSignalPackagePing.recommended_next_steps.join(","),
       },
     }),
     section({
