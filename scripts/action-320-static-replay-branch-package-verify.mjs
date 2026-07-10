@@ -58,6 +58,9 @@ const allowedAction320ImplementationFiles = [
   "docs/action-323-recommendation-engine-readiness-map.md",
   "docs/action-324-recommendation-engine-code-surface-inventory.md",
   "docs/action-325-recommendation-quality-gates-audit.md",
+  "docs/action-326-setup-taxonomy-and-confidence-calibration-map.md",
+  "docs/action-327-learning-backfill-runtime-rollout-plan.md",
+  "docs/action-328-product-ux-surface-map.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
@@ -66,12 +69,18 @@ const allowedAction320ImplementationFiles = [
   "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
   "scripts/action-324-recommendation-engine-code-surface-inventory-verify.mjs",
   "scripts/action-325-recommendation-quality-gates-audit-verify.mjs",
+  "scripts/action-326-setup-taxonomy-and-confidence-calibration-map-verify.mjs",
+  "scripts/action-327-learning-backfill-runtime-rollout-plan-verify.mjs",
+  "scripts/action-328-product-ux-surface-map-verify.mjs",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
   "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
   "tests/e2e/action-322-ture-product-roadmap-index.spec.ts",
   "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
   "tests/e2e/action-324-recommendation-engine-code-surface-inventory.spec.ts",
   "tests/e2e/action-325-recommendation-quality-gates-audit.spec.ts",
+  "tests/e2e/action-326-setup-taxonomy-and-confidence-calibration-map.spec.ts",
+  "tests/e2e/action-327-learning-backfill-runtime-rollout-plan.spec.ts",
+  "tests/e2e/action-328-product-ux-surface-map.spec.ts",
 ];
 
 const forbiddenRuntimePaths = [

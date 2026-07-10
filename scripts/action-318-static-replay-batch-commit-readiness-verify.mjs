@@ -113,6 +113,9 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
       "scripts/action-324-recommendation-engine-code-surface-inventory-verify.mjs",
       "scripts/action-325-recommendation-quality-gates-audit-verify.mjs",
+      "scripts/action-326-setup-taxonomy-and-confidence-calibration-map-verify.mjs",
+      "scripts/action-327-learning-backfill-runtime-rollout-plan-verify.mjs",
+      "scripts/action-328-product-ux-surface-map-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -132,6 +135,9 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
       "tests/e2e/action-324-recommendation-engine-code-surface-inventory.spec.ts",
       "tests/e2e/action-325-recommendation-quality-gates-audit.spec.ts",
+      "tests/e2e/action-326-setup-taxonomy-and-confidence-calibration-map.spec.ts",
+      "tests/e2e/action-327-learning-backfill-runtime-rollout-plan.spec.ts",
+      "tests/e2e/action-328-product-ux-surface-map.spec.ts",
     ].includes(relativePath)
   ) {
     return true;
