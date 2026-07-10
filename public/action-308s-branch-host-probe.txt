@@ -1,0 +1,8 @@
+action_308s_branch_host_probe
+static public asset reachable
+branch deploy artifact reachable
+no provider call
+no replay
+no write
+no synthetic outcomes
+no scanner/ranking effects

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "marker": "action_308s_branch_host_probe",
+  "purpose": "branch_deploy_static_host_probe",
+  "provider_call_executed": false,
+  "provider_call_attempted": false,
+  "supabase_write_executed": false,
+  "candles_persisted": false,
+  "raw_response_persisted": false,
+  "fetch_run_persisted": false,
+  "synthetic_outcomes_persisted": false,
+  "replay_executed": false,
+  "scanner_behavior_changed": false,
+  "live_ranking_changed": false
+}
