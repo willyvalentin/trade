@@ -16,6 +16,13 @@ function publicDiagnosticsEnabled() {
   return raw === undefined || raw.trim().toLowerCase() !== "false";
 }
 
+function proxyMinimalDiagnosticMode() {
+  return (
+    process.env.TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE?.trim().toLowerCase() ===
+    "true"
+  );
+}
+
 async function getTradeAuthToken(password: string) {
   const data = new TextEncoder().encode(`trade-auth:${password}`);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -89,6 +96,30 @@ function isEmergencyDiagnosticBypass(pathname: string) {
   );
 }
 
+function minimalModeApiBoundary(request: NextRequest) {
+  if (!request.nextUrl.pathname.startsWith("/api")) {
+    return null;
+  }
+
+  return NextResponse.json(
+    {
+      ok: false,
+      boundary: "proxy",
+      boundary_marker: GLOBAL_API_BOUNDARY_MARKER,
+      reason: "minimal_diagnostic_mode_api_route_not_in_bypass",
+      pathname: request.nextUrl.pathname,
+      provider_call_executed: false,
+      replay_executed: false,
+      synthetic_outcomes_persisted: false,
+      scanner_behavior_changed: false,
+      live_ranking_changed: false,
+      recommendation_rows_mutated: false,
+      supabase_write_executed: false,
+    },
+    { status: 401, headers: noStoreHeaders },
+  );
+}
+
 function unauthorized(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api")) {
     return NextResponse.json(
@@ -123,6 +154,11 @@ function unauthorized(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   if (isEmergencyDiagnosticBypass(request.nextUrl.pathname)) {
     return NextResponse.next();
+  }
+
+  if (proxyMinimalDiagnosticMode()) {
+    const apiBoundary = minimalModeApiBoundary(request);
+    if (apiBoundary) return apiBoundary;
   }
 
   if (isPublicPath(request.nextUrl.pathname)) {
