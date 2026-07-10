@@ -107,6 +107,7 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-317-static-release-manifest-verify.mjs",
       "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
       "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
+      "scripts/action-320-static-replay-branch-package-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -120,6 +121,7 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-317-post-recovery-static-replay-release-manifest.spec.ts",
       "tests/e2e/action-318-static-replay-batch-commit-readiness-checklist.spec.ts",
       "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
+      "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
     ].includes(relativePath)
   ) {
     return true;

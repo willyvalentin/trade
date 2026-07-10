@@ -8,7 +8,9 @@ import { fileURLToPath } from "url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const expectedBranch = "dev/safe-post-recovery-work";
+const expectedCleanBaseCommit = "512a0c5";
 const expectedStaticBatchCommit = "9b55e5a";
+const expectedPostCommitVerificationCommit = "f8775dd";
 
 const requiredFiles = [
   "docs/action-309-post-recovery-safe-development-protocol.md",
@@ -21,6 +23,7 @@ const requiredFiles = [
   "docs/replay-with-signal-package-static-preview-golden-snapshots.md",
   "docs/action-317-post-recovery-static-replay-release-manifest.md",
   "docs/action-318-static-replay-batch-commit-readiness-checklist.md",
+  "docs/action-319-static-replay-batch-post-commit-verification.md",
   "lib/replay-with-signal-package-result-model.ts",
   "lib/replay-with-signal-package-static-simulation.ts",
   "lib/replay-with-signal-package-static-fixtures.ts",
@@ -32,6 +35,7 @@ const requiredFiles = [
   "scripts/replay-with-signal-package-static-preview-verify-golden.mjs",
   "scripts/action-317-static-release-manifest-verify.mjs",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
+  "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "tests/e2e/action-309-post-recovery-safe-development-protocol.spec.ts",
   "tests/e2e/replay-with-signal-package-result-model.spec.ts",
   "tests/e2e/replay-with-signal-package-static-simulation.spec.ts",
@@ -42,17 +46,16 @@ const requiredFiles = [
   "tests/e2e/replay-with-signal-package-static-preview-golden.spec.ts",
   "tests/e2e/action-317-post-recovery-static-replay-release-manifest.spec.ts",
   "tests/e2e/action-318-static-replay-batch-commit-readiness-checklist.spec.ts",
+  "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/fixtures/replay-with-signal-package-static-preview.markdown.golden.md",
   "tests/fixtures/replay-with-signal-package-static-preview.json.golden.json",
 ];
 
-const allowedAction319ImplementationFiles = [
-  "docs/action-319-static-replay-batch-post-commit-verification.md",
+const allowedAction320ImplementationFiles = [
   "docs/action-320-static-replay-branch-package-manifest.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
-  "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
 ];
 
@@ -150,13 +153,13 @@ function isForbiddenChangedFile(relativePath) {
 const currentBranch = runGit(["branch", "--show-current"]);
 const changedFiles = statusFiles();
 const workingTreeClean = changedFiles.length === 0;
-const uncommittedAction319Only =
+const uncommittedAction320Only =
   changedFiles.length > 0 &&
   changedFiles.every((relativePath) =>
-    allowedAction319ImplementationFiles.includes(relativePath),
+    allowedAction320ImplementationFiles.includes(relativePath),
   );
 const unexpectedUncommittedFiles = changedFiles.filter(
-  (relativePath) => !allowedAction319ImplementationFiles.includes(relativePath),
+  (relativePath) => !allowedAction320ImplementationFiles.includes(relativePath),
 );
 const requiredFilesMissing = requiredFiles.filter((relativePath) => !exists(relativePath));
 const forbiddenRuntimeChanges = changedFiles.filter(isForbiddenChangedFile);
@@ -164,17 +167,31 @@ const forbiddenRuntimeArtifacts = forbiddenRuntimePaths.filter(exists);
 const forbiddenMarkersFound = [
   "action_307k_proxy_runtime_crash_isolation",
 ].filter(markerFound);
+const cleanBaseCommitFound = gitCommandSucceeds([
+  "merge-base",
+  "--is-ancestor",
+  expectedCleanBaseCommit,
+  "HEAD",
+]);
 const staticBatchCommitFound = gitCommandSucceeds([
   "merge-base",
   "--is-ancestor",
   expectedStaticBatchCommit,
   "HEAD",
 ]);
+const postCommitVerificationCommitFound = gitCommandSucceeds([
+  "merge-base",
+  "--is-ancestor",
+  expectedPostCommitVerificationCommit,
+  "HEAD",
+]);
 
 const passed =
   currentBranch === expectedBranch &&
+  cleanBaseCommitFound &&
   staticBatchCommitFound &&
-  (workingTreeClean || uncommittedAction319Only) &&
+  postCommitVerificationCommitFound &&
+  (workingTreeClean || uncommittedAction320Only) &&
   unexpectedUncommittedFiles.length === 0 &&
   requiredFilesMissing.length === 0 &&
   forbiddenRuntimeChanges.length === 0 &&
@@ -185,13 +202,17 @@ const result = {
   verification_status: passed ? "passed" : "failed",
   current_branch: currentBranch,
   expected_branch: expectedBranch,
+  clean_base_commit_found: cleanBaseCommitFound,
+  expected_clean_base_commit: expectedCleanBaseCommit,
   static_batch_commit_found: staticBatchCommitFound,
   expected_static_batch_commit: expectedStaticBatchCommit,
+  post_commit_verification_commit_found: postCommitVerificationCommitFound,
+  expected_post_commit_verification_commit: expectedPostCommitVerificationCommit,
   working_tree_clean: workingTreeClean,
-  uncommitted_action_319_files_allowed: uncommittedAction319Only,
+  uncommitted_action_320_files_allowed: uncommittedAction320Only,
   uncommitted_files: changedFiles,
   unexpected_uncommitted_files: unexpectedUncommittedFiles,
-  post_commit_verification_only: true,
+  branch_package_manifest_only: true,
   deploy_readiness: false,
   main_push_allowed: false,
   runtime_route_changes_allowed: false,
@@ -218,8 +239,8 @@ const result = {
     recommendation_rows_mutated: false,
   },
   recommended_next_step: passed
-    ? "continue_static_local_development_do_not_deploy_or_push_main"
-    : "restore_clean_static_batch_state_before_continuing",
+    ? "continue_static_local_development_or_prepare_separate_deploy_readiness_checklist"
+    : "restore_static_branch_package_state_before_continuing",
 };
 
 process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
