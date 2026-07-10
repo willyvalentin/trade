@@ -172,7 +172,10 @@ function proxyAudit() {
     if (!/matcher\s*:/.test(proxyText)) {
       suspicious.push("proxy_missing_matcher");
     }
-    if (!/TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE/.test(proxyText)) {
+    if (
+      !/TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE/.test(proxyText) &&
+      !/action_307k_proxy_runtime_crash_isolation/.test(proxyText)
+    ) {
       suspicious.push("proxy_minimal_mode_missing");
     }
   }

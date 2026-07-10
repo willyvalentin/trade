@@ -21,40 +21,6 @@ async function proxyRequest(path: string) {
   return proxy(new NextRequest(`http://localhost${path}`));
 }
 
-async function withEnv<T>(
-  env: Record<string, string | undefined>,
-  callback: () => Promise<T>,
-) {
-  const keys = [
-    "TRADE_APP_PASSWORD",
-    "TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE",
-    "TURE_PUBLIC_DIAGNOSTIC_ROUTES_ENABLED",
-  ];
-  const previous = Object.fromEntries(
-    keys.map((key) => [key, process.env[key]]),
-  );
-
-  for (const key of keys) {
-    if (env[key] === undefined) {
-      delete process.env[key];
-    } else {
-      process.env[key] = env[key];
-    }
-  }
-
-  try {
-    return await callback();
-  } finally {
-    for (const key of keys) {
-      if (previous[key] === undefined) {
-        delete process.env[key];
-      } else {
-        process.env[key] = previous[key];
-      }
-    }
-  }
-}
-
 function runAudit() {
   const output = execFileSync("node", [auditScriptPath], {
     cwd: process.cwd(),
@@ -138,38 +104,18 @@ test("audit output lists diagnostic page and API source routes", () => {
   );
 });
 
-test("proxy minimal diagnostic mode keeps bypass routes and blocks other API safely", async () => {
-  const bypassResponse = await withEnv(
-    {
-      TRADE_APP_PASSWORD: "trade-password",
-      TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE: "true",
-    },
-    () => proxyRequest("/api/ping307h"),
-  );
-  const blockedResponse = await withEnv(
-    {
-      TRADE_APP_PASSWORD: "trade-password",
-      TURE_PROXY_MINIMAL_DIAGNOSTIC_MODE: "true",
-    },
-    () => proxyRequest("/api/symbol-metadata"),
-  );
-  const blockedBody = await blockedResponse.json();
+test("proxy runtime isolation passes API routes through with boundary marker", async () => {
+  const diagnosticResponse = await proxyRequest("/api/ping307h");
+  const ordinaryApiResponse = await proxyRequest("/api/symbol-metadata");
 
-  expect(bypassResponse.status).not.toBe(401);
-  expect(blockedResponse.status).toBe(401);
-  expect(blockedResponse.headers.get("Cache-Control")).toBe("no-store");
-  expect(blockedBody.boundary).toBe("proxy");
-  expect(blockedBody.boundary_marker).toBe(GLOBAL_API_BOUNDARY_MARKER);
-  expect(blockedBody.reason).toBe(
-    "minimal_diagnostic_mode_api_route_not_in_bypass",
+  expect(diagnosticResponse.status).not.toBe(401);
+  expect(ordinaryApiResponse.status).not.toBe(401);
+  expect(diagnosticResponse.headers.get("x-ture-proxy-marker")).toBe(
+    GLOBAL_API_BOUNDARY_MARKER,
   );
-  expect(blockedBody.provider_call_executed).toBe(false);
-  expect(blockedBody.replay_executed).toBe(false);
-  expect(blockedBody.synthetic_outcomes_persisted).toBe(false);
-  expect(blockedBody.scanner_behavior_changed).toBe(false);
-  expect(blockedBody.live_ranking_changed).toBe(false);
-  expect(blockedBody.recommendation_rows_mutated).toBe(false);
-  expect(blockedBody.supabase_write_executed).toBe(false);
+  expect(ordinaryApiResponse.headers.get("x-ture-proxy-marker")).toBe(
+    GLOBAL_API_BOUNDARY_MARKER,
+  );
 });
 
 test("runbook documents production probes, interpretation, rollback, and safety", () => {

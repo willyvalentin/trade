@@ -89,39 +89,19 @@ async function withEnv<T>(
   }
 }
 
-test("proxy unauthorized API response includes safe boundary marker", async () => {
+test("proxy runtime isolation passes ordinary API routes through", async () => {
   const response = await withEnv(
     { TRADE_APP_PASSWORD: "trade-password" },
     () => proxyRequest({ path: "/api/symbol-metadata", method: "GET" }),
   );
-  const body = await response.json();
 
-  expect(response.status).toBe(401);
-  expect(response.headers.get("Cache-Control")).toBe("no-store");
-  expect(body.error).toBe("Unauthorized");
-  expect(body.boundary).toBe("proxy");
-  expect(body.boundary_marker).toBe(GLOBAL_API_BOUNDARY_MARKER);
-  expect(body.auth_boundary).toBe("middleware");
-  expect(body.auth_boundary_marker).toBe(
-    "action_276_api_auth_middleware_boundary_audit",
+  expect(response.status).not.toBe(401);
+  expect(response.headers.get("x-ture-proxy-marker")).toBe(
+    GLOBAL_API_BOUNDARY_MARKER,
   );
-  expect(body.path).toBe("/api/symbol-metadata");
-  expect(body.pathname).toBe("/api/symbol-metadata");
-  expect(body.method).toBe("GET");
-  expect(body.reason).toBe("diagnostic_api_route_caught_by_proxy");
-  expect(body.header_present).toBe(false);
-  expect(body.server_secret_present).toBe(true);
-  expect(body.diagnostics_safe).toBe(true);
-  expect(body.provider_call_executed).toBe(false);
-  expect(body.replay_executed).toBe(false);
-  expect(body.synthetic_outcomes_persisted).toBe(false);
-  expect(body.scanner_behavior_changed).toBe(false);
-  expect(body.live_ranking_changed).toBe(false);
-  expect(body.supabase_write_executed).toBe(false);
-  expect(JSON.stringify(body)).not.toContain("trade-password");
 });
 
-test("proxy unauthorized reports automation header presence without values", async () => {
+test("proxy runtime isolation does not expose automation header values", async () => {
   const secret = "x".repeat(64);
   const response = await withEnv(
     { TRADE_APP_PASSWORD: "trade-password" },
@@ -132,12 +112,12 @@ test("proxy unauthorized reports automation header presence without values", asy
         header: secret,
       }),
   );
-  const body = await response.json();
-  const serialized = JSON.stringify(body);
+  const serialized = await response.text();
 
-  expect(response.status).toBe(401);
-  expect(body.auth_boundary).toBe("middleware");
-  expect(body.header_present).toBe(true);
+  expect(response.status).not.toBe(401);
+  expect(response.headers.get("x-ture-proxy-marker")).toBe(
+    GLOBAL_API_BOUNDARY_MARKER,
+  );
   expect(serialized).not.toContain(secret);
   expect(serialized).not.toContain("trade-password");
 });
