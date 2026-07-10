@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { action307dKnownWorkingRouteBoundaryDiagnostic } from "@/lib/action-307d-known-working-route-boundary-diagnostic";
 import { firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker } from "@/lib/first-tiny-historical-candle-persistence-readback-verification";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export async function GET() {
       route_ping: true,
       route_build_marker:
         firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+      ...action307dKnownWorkingRouteBoundaryDiagnostic,
       provider_call_executed: false,
       provider_call_attempted: false,
       candles_persisted: false,
@@ -24,6 +26,8 @@ export async function GET() {
       replay_executed: false,
       scanner_behavior_changed: false,
       live_ranking_changed: false,
+      recommendation_rows_mutated: false,
+      supabase_write_executed: false,
     },
     { headers: noStoreHeaders },
   );

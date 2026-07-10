@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { action307dKnownWorkingRouteBoundaryDiagnostic } from "@/lib/action-307d-known-working-route-boundary-diagnostic";
 import {
   firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
   verifyFirstTinyCandlePersistenceReadback,
@@ -48,6 +49,8 @@ const noEffectResponse = {
   replay_executed: false,
   scanner_behavior_changed: false,
   live_ranking_changed: false,
+  recommendation_rows_mutated: false,
+  supabase_write_executed: false,
 } as const;
 
 function jsonNoStore(body: Record<string, unknown>, status = 200) {
@@ -153,6 +156,7 @@ export async function POST(request: Request) {
       auth_check_only: true,
       route_build_marker:
         firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+      ...action307dKnownWorkingRouteBoundaryDiagnostic,
       auth_diagnostics: authDiagnostics,
       ...noEffectResponse,
     });
