@@ -108,7 +108,7 @@ test("proxy unauthorized API response includes safe boundary marker", async () =
   expect(body.path).toBe("/api/symbol-metadata");
   expect(body.pathname).toBe("/api/symbol-metadata");
   expect(body.method).toBe("GET");
-  expect(body.reason).toBe("proxy_auth_required_for_non_public_api_route");
+  expect(body.reason).toBe("diagnostic_api_route_caught_by_proxy");
   expect(body.header_present).toBe(false);
   expect(body.server_secret_present).toBe(true);
   expect(body.diagnostics_safe).toBe(true);

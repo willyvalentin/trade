@@ -156,7 +156,7 @@ test("unexpected API boundary blocks are JSON diagnostics, not empty responses",
   expect(text.length).toBeGreaterThan(0);
   expect(body.boundary).toBe("proxy");
   expect(body.boundary_marker).toBe(GLOBAL_API_BOUNDARY_MARKER);
-  expect(body.reason).toBe("proxy_auth_required_for_non_public_api_route");
+  expect(body.reason).toBe("diagnostic_api_route_caught_by_proxy");
   expectNoEffects(body);
 });
 

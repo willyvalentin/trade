@@ -5,7 +5,7 @@ const TRADE_AUTH_COOKIE = "trade_auth";
 const AUTH_BOUNDARY_MARKER =
   "action_276_api_auth_middleware_boundary_audit";
 export const GLOBAL_API_BOUNDARY_MARKER =
-  "action_307e_global_api_boundary_regression_fix";
+  "action_307g_public_diagnostic_route_auth_boundary_fix";
 
 const noStoreHeaders = {
   "Cache-Control": "no-store",
@@ -36,8 +36,21 @@ function isApiRouteHandlerPassThrough(pathname: string) {
   );
 }
 
+function isPublicDiagnosticPage(pathname: string) {
+  return (
+    pathname === "/route-publication-probe" ||
+    pathname === "/route-publication-probe/" ||
+    pathname === "/public-probe-307g" ||
+    pathname === "/public-probe-307g/"
+  );
+}
+
 function isPublicPath(pathname: string) {
-  return pathname === "/login" || isApiRouteHandlerPassThrough(pathname);
+  return (
+    pathname === "/login" ||
+    isPublicDiagnosticPage(pathname) ||
+    isApiRouteHandlerPassThrough(pathname)
+  );
 }
 
 function unauthorized(request: NextRequest) {
@@ -52,7 +65,7 @@ function unauthorized(request: NextRequest) {
         path: request.nextUrl.pathname,
         pathname: request.nextUrl.pathname,
         method: request.method,
-        reason: "proxy_auth_required_for_non_public_api_route",
+        reason: "diagnostic_api_route_caught_by_proxy",
         header_present: request.headers.has("x-automation-secret"),
         server_secret_present: Boolean(process.env.TRADE_APP_PASSWORD),
         diagnostics_safe: true,
