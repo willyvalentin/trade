@@ -116,6 +116,7 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-326-setup-taxonomy-and-confidence-calibration-map-verify.mjs",
       "scripts/action-327-learning-backfill-runtime-rollout-plan-verify.mjs",
       "scripts/action-328-product-ux-surface-map-verify.mjs",
+      "scripts/action-329-recommendation-engine-gate-test-plan-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -138,6 +139,7 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-326-setup-taxonomy-and-confidence-calibration-map.spec.ts",
       "tests/e2e/action-327-learning-backfill-runtime-rollout-plan.spec.ts",
       "tests/e2e/action-328-product-ux-surface-map.spec.ts",
+      "tests/e2e/action-329-recommendation-engine-gate-test-plan.spec.ts",
     ].includes(relativePath)
   ) {
     return true;
