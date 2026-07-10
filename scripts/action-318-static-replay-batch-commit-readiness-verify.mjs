@@ -108,6 +108,9 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
       "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
       "scripts/action-320-static-replay-branch-package-verify.mjs",
+      "scripts/action-321-ture-roadmap-reconciliation-verify.mjs",
+      "scripts/action-322-ture-product-roadmap-index-verify.mjs",
+      "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -122,6 +125,9 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-318-static-replay-batch-commit-readiness-checklist.spec.ts",
       "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
       "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
+      "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
+      "tests/e2e/action-322-ture-product-roadmap-index.spec.ts",
+      "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
     ].includes(relativePath)
   ) {
     return true;

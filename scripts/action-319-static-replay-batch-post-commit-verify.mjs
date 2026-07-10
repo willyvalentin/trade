@@ -49,11 +49,20 @@ const requiredFiles = [
 const allowedAction319ImplementationFiles = [
   "docs/action-319-static-replay-batch-post-commit-verification.md",
   "docs/action-320-static-replay-branch-package-manifest.md",
+  "docs/action-321-ture-roadmap-reconciliation-after-recovery.md",
+  "docs/action-322-ture-product-roadmap-index.md",
+  "docs/action-323-recommendation-engine-readiness-map.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
+  "scripts/action-321-ture-roadmap-reconciliation-verify.mjs",
+  "scripts/action-322-ture-product-roadmap-index-verify.mjs",
+  "scripts/action-323-recommendation-engine-readiness-map-verify.mjs",
   "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
+  "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
+  "tests/e2e/action-322-ture-product-roadmap-index.spec.ts",
+  "tests/e2e/action-323-recommendation-engine-readiness-map.spec.ts",
 ];
 
 const forbiddenRuntimePaths = [
