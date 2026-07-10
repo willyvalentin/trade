@@ -15,7 +15,7 @@ import { GET as firstTinySignalReplayDryRunPingGET } from "../../app/api/histori
 import { GET as firstTinySignalPackageDiscoveryReadbackPingGET } from "../../app/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping/route";
 import { GET as routePublicationDiagnosticGET } from "../../app/api/route-publication-diagnostic/route";
 import { firstTinyFetchRouteExpectedMarker } from "../../lib/environment-boundary-audit";
-import { proxy } from "../../proxy";
+import { GLOBAL_API_BOUNDARY_MARKER, proxy } from "../../proxy";
 
 async function proxyRequest(input: {
   path: string;
@@ -99,15 +99,25 @@ test("proxy unauthorized API response includes safe boundary marker", async () =
   expect(response.status).toBe(401);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
   expect(body.error).toBe("Unauthorized");
+  expect(body.boundary).toBe("proxy");
+  expect(body.boundary_marker).toBe(GLOBAL_API_BOUNDARY_MARKER);
   expect(body.auth_boundary).toBe("middleware");
   expect(body.auth_boundary_marker).toBe(
     "action_276_api_auth_middleware_boundary_audit",
   );
   expect(body.path).toBe("/api/symbol-metadata");
+  expect(body.pathname).toBe("/api/symbol-metadata");
   expect(body.method).toBe("GET");
+  expect(body.reason).toBe("proxy_auth_required_for_non_public_api_route");
   expect(body.header_present).toBe(false);
   expect(body.server_secret_present).toBe(true);
   expect(body.diagnostics_safe).toBe(true);
+  expect(body.provider_call_executed).toBe(false);
+  expect(body.replay_executed).toBe(false);
+  expect(body.synthetic_outcomes_persisted).toBe(false);
+  expect(body.scanner_behavior_changed).toBe(false);
+  expect(body.live_ranking_changed).toBe(false);
+  expect(body.supabase_write_executed).toBe(false);
   expect(JSON.stringify(body)).not.toContain("trade-password");
 });
 

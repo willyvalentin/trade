@@ -4,6 +4,8 @@ import type { NextRequest } from "next/server";
 const TRADE_AUTH_COOKIE = "trade_auth";
 const AUTH_BOUNDARY_MARKER =
   "action_276_api_auth_middleware_boundary_audit";
+export const GLOBAL_API_BOUNDARY_MARKER =
+  "action_307e_global_api_boundary_regression_fix";
 
 const noStoreHeaders = {
   "Cache-Control": "no-store",
@@ -17,75 +19,25 @@ async function getTradeAuthToken(password: string) {
   return hashBytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function isPublicPath(pathname: string) {
+function matchesPathOrChild(pathname: string, basePath: string) {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
+}
+
+function isApiRouteHandlerPassThrough(pathname: string) {
   return (
-    pathname === "/login" ||
-    pathname === "/api/auth/login" ||
-    pathname === "/api/auth/logout" ||
+    matchesPathOrChild(pathname, "/api/auth") ||
+    matchesPathOrChild(pathname, "/api/environment-boundary-audit") ||
+    matchesPathOrChild(pathname, "/api/historical-backfill") ||
+    matchesPathOrChild(pathname, "/api/hb307c") ||
+    matchesPathOrChild(pathname, "/api/route-publication-diagnostic") ||
     pathname === "/api/automation/run-scan" ||
     pathname === "/api/diagnostics/run-scan" ||
-    pathname === "/api/recommendations/evaluate-outcomes" ||
-    pathname === "/api/environment-boundary-audit" ||
-    pathname === "/api/environment-boundary-audit/ping" ||
-    pathname === "/api/route-publication-diagnostic" ||
-    pathname === "/api/route-publication-diagnostic/" ||
-    pathname === "/api/hb307c" ||
-    pathname === "/api/hb307c/" ||
-    pathname === "/api/hb307c/ping" ||
-    pathname === "/api/hb307c/ping/" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch-run-audit-write" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run/" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-replay-with-signal-package-dry-run/ping/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-replay-dry-run" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-replay-dry-run/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-replay-dry-run/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-replay-dry-run/ping/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch/ping"
+    pathname === "/api/recommendations/evaluate-outcomes"
   );
+}
+
+function isPublicPath(pathname: string) {
+  return pathname === "/login" || isApiRouteHandlerPassThrough(pathname);
 }
 
 function unauthorized(request: NextRequest) {
@@ -93,13 +45,24 @@ function unauthorized(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Unauthorized",
+        boundary: "proxy",
+        boundary_marker: GLOBAL_API_BOUNDARY_MARKER,
         auth_boundary: "middleware",
         auth_boundary_marker: AUTH_BOUNDARY_MARKER,
         path: request.nextUrl.pathname,
+        pathname: request.nextUrl.pathname,
         method: request.method,
+        reason: "proxy_auth_required_for_non_public_api_route",
         header_present: request.headers.has("x-automation-secret"),
         server_secret_present: Boolean(process.env.TRADE_APP_PASSWORD),
         diagnostics_safe: true,
+        provider_call_executed: false,
+        replay_executed: false,
+        synthetic_outcomes_persisted: false,
+        scanner_behavior_changed: false,
+        live_ranking_changed: false,
+        recommendation_rows_mutated: false,
+        supabase_write_executed: false,
       },
       { status: 401, headers: noStoreHeaders },
     );
