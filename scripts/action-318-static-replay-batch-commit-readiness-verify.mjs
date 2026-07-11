@@ -125,6 +125,12 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-335-learning-outcome-dataset-design-verify.mjs",
       "scripts/action-336-intelligence-context-schema-draft-verify.mjs",
       "scripts/action-337-pattern-discovery-and-confidence-calibration-roadmap-verify.mjs",
+      "scripts/action-338-runtime-ping-only-rollout-checklist-verify.mjs",
+      "scripts/action-339-historical-backfill-cost-and-provider-capacity-plan-verify.mjs",
+      "scripts/action-340-snapshot-field-inventory-against-existing-schema-verify.mjs",
+      "scripts/action-341-learning-dataset-static-fixture-spec-verify.mjs",
+      "scripts/action-342-intelligence-context-static-fixture-spec-verify.mjs",
+      "scripts/action-343-pattern-insight-static-type-spec-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -156,6 +162,12 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-335-learning-outcome-dataset-design.spec.ts",
       "tests/e2e/action-336-intelligence-context-schema-draft.spec.ts",
       "tests/e2e/action-337-pattern-discovery-and-confidence-calibration-roadmap.spec.ts",
+      "tests/e2e/action-338-runtime-ping-only-rollout-checklist.spec.ts",
+      "tests/e2e/action-339-historical-backfill-cost-and-provider-capacity-plan.spec.ts",
+      "tests/e2e/action-340-snapshot-field-inventory-against-existing-schema.spec.ts",
+      "tests/e2e/action-341-learning-dataset-static-fixture-spec.spec.ts",
+      "tests/e2e/action-342-intelligence-context-static-fixture-spec.spec.ts",
+      "tests/e2e/action-343-pattern-insight-static-type-spec.spec.ts",
     ].includes(relativePath)
   ) {
     return true;
@@ -166,6 +178,7 @@ function isAllowedChangedFile(relativePath) {
 }
 
 function isForbiddenChangedFile(relativePath) {
+  if (isAllowedChangedFile(relativePath)) return false;
   if (relativePath.startsWith("app/")) return true;
   if (relativePath.startsWith("supabase/")) return true;
   if (["proxy.ts", "middleware.ts", "middleware.js", "netlify.toml"].includes(relativePath)) {

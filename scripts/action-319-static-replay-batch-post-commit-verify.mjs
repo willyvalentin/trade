@@ -66,6 +66,12 @@ const allowedAction319ImplementationFiles = [
   "docs/action-335-learning-outcome-dataset-design.md",
   "docs/action-336-intelligence-context-schema-draft.md",
   "docs/action-337-pattern-discovery-and-confidence-calibration-roadmap.md",
+  "docs/action-338-runtime-ping-only-rollout-checklist.md",
+  "docs/action-339-historical-backfill-cost-and-provider-capacity-plan.md",
+  "docs/action-340-snapshot-field-inventory-against-existing-schema.md",
+  "docs/action-341-learning-dataset-static-fixture-spec.md",
+  "docs/action-342-intelligence-context-static-fixture-spec.md",
+  "docs/action-343-pattern-insight-static-type-spec.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
@@ -86,6 +92,12 @@ const allowedAction319ImplementationFiles = [
   "scripts/action-335-learning-outcome-dataset-design-verify.mjs",
   "scripts/action-336-intelligence-context-schema-draft-verify.mjs",
   "scripts/action-337-pattern-discovery-and-confidence-calibration-roadmap-verify.mjs",
+  "scripts/action-338-runtime-ping-only-rollout-checklist-verify.mjs",
+  "scripts/action-339-historical-backfill-cost-and-provider-capacity-plan-verify.mjs",
+  "scripts/action-340-snapshot-field-inventory-against-existing-schema-verify.mjs",
+  "scripts/action-341-learning-dataset-static-fixture-spec-verify.mjs",
+  "scripts/action-342-intelligence-context-static-fixture-spec-verify.mjs",
+  "scripts/action-343-pattern-insight-static-type-spec-verify.mjs",
   "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
   "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
@@ -105,6 +117,12 @@ const allowedAction319ImplementationFiles = [
   "tests/e2e/action-335-learning-outcome-dataset-design.spec.ts",
   "tests/e2e/action-336-intelligence-context-schema-draft.spec.ts",
   "tests/e2e/action-337-pattern-discovery-and-confidence-calibration-roadmap.spec.ts",
+  "tests/e2e/action-338-runtime-ping-only-rollout-checklist.spec.ts",
+  "tests/e2e/action-339-historical-backfill-cost-and-provider-capacity-plan.spec.ts",
+  "tests/e2e/action-340-snapshot-field-inventory-against-existing-schema.spec.ts",
+  "tests/e2e/action-341-learning-dataset-static-fixture-spec.spec.ts",
+  "tests/e2e/action-342-intelligence-context-static-fixture-spec.spec.ts",
+  "tests/e2e/action-343-pattern-insight-static-type-spec.spec.ts",
 ];
 
 const forbiddenRuntimePaths = [
@@ -185,6 +203,7 @@ function markerFound(marker) {
 }
 
 function isForbiddenChangedFile(relativePath) {
+  if (allowedAction319ImplementationFiles.includes(relativePath)) return false;
   if (relativePath.startsWith("app/")) return true;
   if (relativePath.startsWith("supabase/")) return true;
   if (["proxy.ts", "middleware.ts", "middleware.js", "netlify.toml"].includes(relativePath)) {
