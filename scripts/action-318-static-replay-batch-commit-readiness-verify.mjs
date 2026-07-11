@@ -117,6 +117,14 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-327-learning-backfill-runtime-rollout-plan-verify.mjs",
       "scripts/action-328-product-ux-surface-map-verify.mjs",
       "scripts/action-329-recommendation-engine-gate-test-plan-verify.mjs",
+      "scripts/action-330-confidence-calibration-static-metric-spec-verify.mjs",
+      "scripts/action-331-intelligence-first-roadmap-reprioritization-verify.mjs",
+      "scripts/action-332-intelligence-data-collection-readiness-map-verify.mjs",
+      "scripts/action-333-historical-data-backfill-existing-coverage-audit-verify.mjs",
+      "scripts/action-334-recommendation-snapshot-completeness-audit-verify.mjs",
+      "scripts/action-335-learning-outcome-dataset-design-verify.mjs",
+      "scripts/action-336-intelligence-context-schema-draft-verify.mjs",
+      "scripts/action-337-pattern-discovery-and-confidence-calibration-roadmap-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -140,6 +148,14 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-327-learning-backfill-runtime-rollout-plan.spec.ts",
       "tests/e2e/action-328-product-ux-surface-map.spec.ts",
       "tests/e2e/action-329-recommendation-engine-gate-test-plan.spec.ts",
+      "tests/e2e/action-330-confidence-calibration-static-metric-spec.spec.ts",
+      "tests/e2e/action-331-intelligence-first-roadmap-reprioritization.spec.ts",
+      "tests/e2e/action-332-intelligence-data-collection-readiness-map.spec.ts",
+      "tests/e2e/action-333-historical-data-backfill-existing-coverage-audit.spec.ts",
+      "tests/e2e/action-334-recommendation-snapshot-completeness-audit.spec.ts",
+      "tests/e2e/action-335-learning-outcome-dataset-design.spec.ts",
+      "tests/e2e/action-336-intelligence-context-schema-draft.spec.ts",
+      "tests/e2e/action-337-pattern-discovery-and-confidence-calibration-roadmap.spec.ts",
     ].includes(relativePath)
   ) {
     return true;
