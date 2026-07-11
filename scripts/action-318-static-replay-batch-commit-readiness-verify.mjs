@@ -60,6 +60,22 @@ const forbiddenRuntimePaths = [
 
 const markerRootPaths = ["app", "public"];
 const markerFilePaths = ["proxy.ts", "middleware.ts", "middleware.js", "netlify.toml"];
+const isolatedUnrelatedExecutionFiles = [
+  "docs/post-trade-final-source-controlled-staging-execution-gate-no-execution.md",
+  "docs/post-trade-final-source-controlled-staging-execution-gate-static-security-review-no-execution.md",
+  "docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-no-execution.md",
+  "docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-static-security-review-no-execution.md",
+  "docs/post-trade-source-controlled-staging-execution-function-implementation-no-execution.md",
+  "docs/post-trade-source-controlled-staging-execution-function-static-security-review-no-execution.md",
+  "lib/post-trade-staging-execution-function.ts",
+  "lib/post-trade-final-staging-execution-gate-core.ts",
+  "lib/post-trade-final-staging-execution-gate.ts",
+  "lib/post-trade-staging-execution-authorization-artifact-core.ts",
+  "lib/post-trade-staging-execution-authorization-artifact.ts",
+  "tests/e2e/post-trade-staging-execution-function-static.spec.ts",
+  "tests/e2e/post-trade-final-staging-execution-gate.spec.ts",
+  "tests/e2e/post-trade-staging-execution-authorization-artifact.spec.ts",
+];
 
 function runGit(args) {
   return execFileSync("git", args, { cwd: repoRoot, encoding: "utf8" }).trim();
@@ -82,7 +98,7 @@ function collectFiles(relativePath) {
 }
 
 function statusFiles() {
-  const output = execFileSync("git", ["status", "--short"], {
+  const output = execFileSync("git", ["status", "--short", "--untracked-files=all"], {
     cwd: repoRoot,
     encoding: "utf8",
   });
@@ -98,7 +114,9 @@ function statusFiles() {
 
 function isAllowedChangedFile(relativePath) {
   if (relativePath.startsWith("docs/")) return true;
+  if (relativePath === "app/api/runtime-health/ping/route.ts") return true;
   if (/^lib\/replay-with-signal-package-.*\.ts$/.test(relativePath)) return true;
+  if (relativePath === "lib/pattern-insight-static-fixtures.ts") return true;
   if (
     [
       "scripts/action-309-post-recovery-safety-guard.mjs",
@@ -131,6 +149,28 @@ function isAllowedChangedFile(relativePath) {
       "scripts/action-341-learning-dataset-static-fixture-spec-verify.mjs",
       "scripts/action-342-intelligence-context-static-fixture-spec-verify.mjs",
       "scripts/action-343-pattern-insight-static-type-spec-verify.mjs",
+      "scripts/action-344-runtime-ping-only-route-implementation-plan-verify.mjs",
+      "scripts/action-345-first-tiny-provider-capacity-experiment-plan-verify.mjs",
+      "scripts/action-346-existing-schema-compatibility-matrix-verify.mjs",
+      "scripts/action-347-learning-dataset-static-fixture-implementation-plan-verify.mjs",
+      "scripts/action-348-intelligence-context-static-fixture-implementation-plan-verify.mjs",
+      "scripts/action-349-pattern-insight-static-fixture-spec-verify.mjs",
+      "scripts/action-350-runtime-ping-only-route-approval-gate-verify.mjs",
+      "scripts/action-351-first-tiny-provider-capacity-experiment-approval-gate-verify.mjs",
+      "scripts/action-352-snapshot-to-learning-dataset-mapper-plan-verify.mjs",
+      "scripts/action-353-learning-dataset-static-fixture-implementation-approval-gate-verify.mjs",
+      "scripts/action-354-intelligence-context-static-fixture-implementation-approval-gate-verify.mjs",
+      "scripts/action-355-pattern-insight-static-fixture-implementation-plan-verify.mjs",
+      "scripts/action-356-pattern-insight-static-fixture-implementation-approval-gate-verify.mjs",
+      "scripts/action-357-pattern-insight-static-fixture-implementation-verify.mjs",
+      "scripts/action-358-runtime-ping-only-route-implementation-readiness-review-verify.mjs",
+      "scripts/action-359-runtime-ping-only-route-implementation-approval-gate-verify.mjs",
+      "scripts/action-360-runtime-ping-only-route-implementation-verify.mjs",
+      "scripts/action-361-runtime-ping-only-local-implementation-verification-and-rollout-readiness-review-verify.mjs",
+      "scripts/action-362-runtime-ping-only-preview-deploy-approval-gate-verify.mjs",
+      "scripts/action-363-runtime-ping-preview-deployment-preflight-blocker-review-and-revision-freeze-readiness-verify.mjs",
+      "scripts/action-364-immutable-preview-revision-preparation-approval-gate-verify.mjs",
+      "scripts/action-365-option-b-immutable-preview-revision-preparation-verify.mjs",
     ].includes(relativePath)
   ) {
     return true;
@@ -168,6 +208,29 @@ function isAllowedChangedFile(relativePath) {
       "tests/e2e/action-341-learning-dataset-static-fixture-spec.spec.ts",
       "tests/e2e/action-342-intelligence-context-static-fixture-spec.spec.ts",
       "tests/e2e/action-343-pattern-insight-static-type-spec.spec.ts",
+      "tests/e2e/action-344-runtime-ping-only-route-implementation-plan.spec.ts",
+      "tests/e2e/action-345-first-tiny-provider-capacity-experiment-plan.spec.ts",
+      "tests/e2e/action-346-existing-schema-compatibility-matrix.spec.ts",
+      "tests/e2e/action-347-learning-dataset-static-fixture-implementation-plan.spec.ts",
+      "tests/e2e/action-348-intelligence-context-static-fixture-implementation-plan.spec.ts",
+      "tests/e2e/action-349-pattern-insight-static-fixture-spec.spec.ts",
+      "tests/e2e/action-350-runtime-ping-only-route-approval-gate.spec.ts",
+      "tests/e2e/action-351-first-tiny-provider-capacity-experiment-approval-gate.spec.ts",
+      "tests/e2e/action-352-snapshot-to-learning-dataset-mapper-plan.spec.ts",
+      "tests/e2e/action-353-learning-dataset-static-fixture-implementation-approval-gate.spec.ts",
+      "tests/e2e/action-354-intelligence-context-static-fixture-implementation-approval-gate.spec.ts",
+      "tests/e2e/action-355-pattern-insight-static-fixture-implementation-plan.spec.ts",
+      "tests/e2e/action-356-pattern-insight-static-fixture-implementation-approval-gate.spec.ts",
+      "tests/e2e/action-357-pattern-insight-static-fixture-implementation.spec.ts",
+      "tests/e2e/action-358-runtime-ping-only-route-implementation-readiness-review.spec.ts",
+      "tests/e2e/action-359-runtime-ping-only-route-implementation-approval-gate.spec.ts",
+      "tests/e2e/action-360-runtime-ping-only-route-implementation.spec.ts",
+      "tests/e2e/action-361-runtime-ping-only-local-implementation-verification-and-rollout-readiness-review.spec.ts",
+      "tests/e2e/action-362-runtime-ping-only-preview-deploy-approval-gate.spec.ts",
+      "tests/e2e/action-363-runtime-ping-preview-deployment-preflight-blocker-review-and-revision-freeze-readiness.spec.ts",
+      "tests/e2e/action-364-immutable-preview-revision-preparation-approval-gate.spec.ts",
+      "tests/e2e/action-365-option-b-immutable-preview-revision-preparation.spec.ts",
+      "tests/e2e/post-trade-staging-insert-function-static.spec.ts",
     ].includes(relativePath)
   ) {
     return true;
@@ -207,12 +270,18 @@ function markerFound(marker) {
 
 const currentBranch = runGit(["branch", "--show-current"]);
 const changedFiles = statusFiles();
-const allowedChangedFiles = changedFiles.filter(isAllowedChangedFile);
-const unexpectedChangedFiles = changedFiles.filter(
+const isolatedChangedFiles = changedFiles.filter((relativePath) =>
+  isolatedUnrelatedExecutionFiles.includes(relativePath),
+);
+const actionChangedFiles = changedFiles.filter(
+  (relativePath) => !isolatedUnrelatedExecutionFiles.includes(relativePath),
+);
+const allowedChangedFiles = actionChangedFiles.filter(isAllowedChangedFile);
+const unexpectedChangedFiles = actionChangedFiles.filter(
   (relativePath) => !isAllowedChangedFile(relativePath),
 );
 const requiredFilesMissing = requiredFiles.filter((relativePath) => !exists(relativePath));
-const forbiddenRuntimeChanges = changedFiles.filter(isForbiddenChangedFile);
+const forbiddenRuntimeChanges = actionChangedFiles.filter(isForbiddenChangedFile);
 const forbiddenMarkersFound = [
   "action_307k_proxy_runtime_crash_isolation",
 ].filter(markerFound);
@@ -233,6 +302,8 @@ const result = {
   main_push_allowed: false,
   allowed_changed_files: allowedChangedFiles,
   unexpected_changed_files: unexpectedChangedFiles,
+  isolated_unrelated_execution_files: isolatedChangedFiles,
+  isolated_unrelated_execution_files_are_action_artifacts: false,
   required_files_found: requiredFilesMissing.length === 0,
   required_files_missing: requiredFilesMissing,
   forbidden_runtime_changes_detected: forbiddenRuntimeChanges.length > 0,

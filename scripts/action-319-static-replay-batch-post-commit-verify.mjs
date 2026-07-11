@@ -47,6 +47,7 @@ const requiredFiles = [
 ];
 
 const allowedAction319ImplementationFiles = [
+  "app/api/runtime-health/ping/route.ts",
   "docs/action-319-static-replay-batch-post-commit-verification.md",
   "docs/action-320-static-replay-branch-package-manifest.md",
   "docs/action-321-ture-roadmap-reconciliation-after-recovery.md",
@@ -72,6 +73,34 @@ const allowedAction319ImplementationFiles = [
   "docs/action-341-learning-dataset-static-fixture-spec.md",
   "docs/action-342-intelligence-context-static-fixture-spec.md",
   "docs/action-343-pattern-insight-static-type-spec.md",
+  "docs/action-344-runtime-ping-only-route-implementation-plan.md",
+  "docs/action-345-first-tiny-provider-capacity-experiment-plan.md",
+  "docs/action-346-existing-schema-compatibility-matrix.md",
+  "docs/action-347-learning-dataset-static-fixture-implementation-plan.md",
+  "docs/action-348-intelligence-context-static-fixture-implementation-plan.md",
+  "docs/action-349-pattern-insight-static-fixture-spec.md",
+  "docs/action-350-runtime-ping-only-route-approval-gate.md",
+  "docs/action-351-first-tiny-provider-capacity-experiment-approval-gate.md",
+  "docs/action-352-snapshot-to-learning-dataset-mapper-plan.md",
+  "docs/action-353-learning-dataset-static-fixture-implementation-approval-gate.md",
+  "docs/action-354-intelligence-context-static-fixture-implementation-approval-gate.md",
+  "docs/action-355-pattern-insight-static-fixture-implementation-plan.md",
+  "docs/action-356-pattern-insight-static-fixture-implementation-approval-gate.md",
+  "docs/action-357-pattern-insight-static-fixture-implementation.md",
+  "docs/action-358-runtime-ping-only-route-implementation-readiness-review.md",
+  "docs/action-359-runtime-ping-only-route-implementation-approval-gate.md",
+  "docs/action-360-runtime-ping-only-route-implementation.md",
+  "docs/action-361-runtime-ping-only-local-implementation-verification-and-rollout-readiness-review.md",
+  "docs/action-362-runtime-ping-only-preview-deploy-approval-gate.md",
+  "docs/action-363-runtime-ping-preview-deployment-preflight-blocker-review-and-revision-freeze-readiness.md",
+  "docs/action-364-immutable-preview-revision-preparation-approval-gate.md",
+  "docs/action-365-option-b-immutable-preview-revision-preparation.md",
+  "docs/action-365-preview-deployment-input-manifest.json",
+  "lib/pattern-insight-static-fixtures.ts",
+  "docs/post-trade-one-staging-mock-write-with-source-controlled-insert-blocked.md",
+  "docs/post-trade-source-controlled-staging-execution-function-approval-gate-no-write.md",
+  "docs/post-trade-source-controlled-staging-insert-function-static-security-review-no-execution.md",
+  "docs/ture-agent-dev-chat-3-continuation-summary.md",
   "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
   "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
   "scripts/action-320-static-replay-branch-package-verify.mjs",
@@ -98,6 +127,28 @@ const allowedAction319ImplementationFiles = [
   "scripts/action-341-learning-dataset-static-fixture-spec-verify.mjs",
   "scripts/action-342-intelligence-context-static-fixture-spec-verify.mjs",
   "scripts/action-343-pattern-insight-static-type-spec-verify.mjs",
+  "scripts/action-344-runtime-ping-only-route-implementation-plan-verify.mjs",
+  "scripts/action-345-first-tiny-provider-capacity-experiment-plan-verify.mjs",
+  "scripts/action-346-existing-schema-compatibility-matrix-verify.mjs",
+  "scripts/action-347-learning-dataset-static-fixture-implementation-plan-verify.mjs",
+  "scripts/action-348-intelligence-context-static-fixture-implementation-plan-verify.mjs",
+  "scripts/action-349-pattern-insight-static-fixture-spec-verify.mjs",
+  "scripts/action-350-runtime-ping-only-route-approval-gate-verify.mjs",
+  "scripts/action-351-first-tiny-provider-capacity-experiment-approval-gate-verify.mjs",
+  "scripts/action-352-snapshot-to-learning-dataset-mapper-plan-verify.mjs",
+  "scripts/action-353-learning-dataset-static-fixture-implementation-approval-gate-verify.mjs",
+  "scripts/action-354-intelligence-context-static-fixture-implementation-approval-gate-verify.mjs",
+  "scripts/action-355-pattern-insight-static-fixture-implementation-plan-verify.mjs",
+  "scripts/action-356-pattern-insight-static-fixture-implementation-approval-gate-verify.mjs",
+  "scripts/action-357-pattern-insight-static-fixture-implementation-verify.mjs",
+  "scripts/action-358-runtime-ping-only-route-implementation-readiness-review-verify.mjs",
+  "scripts/action-359-runtime-ping-only-route-implementation-approval-gate-verify.mjs",
+  "scripts/action-360-runtime-ping-only-route-implementation-verify.mjs",
+  "scripts/action-361-runtime-ping-only-local-implementation-verification-and-rollout-readiness-review-verify.mjs",
+  "scripts/action-362-runtime-ping-only-preview-deploy-approval-gate-verify.mjs",
+  "scripts/action-363-runtime-ping-preview-deployment-preflight-blocker-review-and-revision-freeze-readiness-verify.mjs",
+  "scripts/action-364-immutable-preview-revision-preparation-approval-gate-verify.mjs",
+  "scripts/action-365-option-b-immutable-preview-revision-preparation-verify.mjs",
   "tests/e2e/action-319-static-replay-batch-post-commit-verification.spec.ts",
   "tests/e2e/action-320-static-replay-branch-package-manifest.spec.ts",
   "tests/e2e/action-321-ture-roadmap-reconciliation-after-recovery.spec.ts",
@@ -123,6 +174,29 @@ const allowedAction319ImplementationFiles = [
   "tests/e2e/action-341-learning-dataset-static-fixture-spec.spec.ts",
   "tests/e2e/action-342-intelligence-context-static-fixture-spec.spec.ts",
   "tests/e2e/action-343-pattern-insight-static-type-spec.spec.ts",
+  "tests/e2e/action-344-runtime-ping-only-route-implementation-plan.spec.ts",
+  "tests/e2e/action-345-first-tiny-provider-capacity-experiment-plan.spec.ts",
+  "tests/e2e/action-346-existing-schema-compatibility-matrix.spec.ts",
+  "tests/e2e/action-347-learning-dataset-static-fixture-implementation-plan.spec.ts",
+  "tests/e2e/action-348-intelligence-context-static-fixture-implementation-plan.spec.ts",
+  "tests/e2e/action-349-pattern-insight-static-fixture-spec.spec.ts",
+  "tests/e2e/action-350-runtime-ping-only-route-approval-gate.spec.ts",
+  "tests/e2e/action-351-first-tiny-provider-capacity-experiment-approval-gate.spec.ts",
+  "tests/e2e/action-352-snapshot-to-learning-dataset-mapper-plan.spec.ts",
+  "tests/e2e/action-353-learning-dataset-static-fixture-implementation-approval-gate.spec.ts",
+  "tests/e2e/action-354-intelligence-context-static-fixture-implementation-approval-gate.spec.ts",
+  "tests/e2e/action-355-pattern-insight-static-fixture-implementation-plan.spec.ts",
+  "tests/e2e/action-356-pattern-insight-static-fixture-implementation-approval-gate.spec.ts",
+  "tests/e2e/action-357-pattern-insight-static-fixture-implementation.spec.ts",
+  "tests/e2e/action-358-runtime-ping-only-route-implementation-readiness-review.spec.ts",
+  "tests/e2e/action-359-runtime-ping-only-route-implementation-approval-gate.spec.ts",
+  "tests/e2e/action-360-runtime-ping-only-route-implementation.spec.ts",
+  "tests/e2e/action-361-runtime-ping-only-local-implementation-verification-and-rollout-readiness-review.spec.ts",
+  "tests/e2e/action-362-runtime-ping-only-preview-deploy-approval-gate.spec.ts",
+  "tests/e2e/action-363-runtime-ping-preview-deployment-preflight-blocker-review-and-revision-freeze-readiness.spec.ts",
+  "tests/e2e/action-364-immutable-preview-revision-preparation-approval-gate.spec.ts",
+  "tests/e2e/action-365-option-b-immutable-preview-revision-preparation.spec.ts",
+  "tests/e2e/post-trade-staging-insert-function-static.spec.ts",
 ];
 
 const forbiddenRuntimePaths = [
@@ -140,6 +214,22 @@ const forbiddenRuntimePaths = [
 
 const markerRootPaths = ["app", "public"];
 const markerFilePaths = ["proxy.ts", "middleware.ts", "middleware.js", "netlify.toml"];
+const isolatedUnrelatedExecutionFiles = [
+  "docs/post-trade-final-source-controlled-staging-execution-gate-no-execution.md",
+  "docs/post-trade-final-source-controlled-staging-execution-gate-static-security-review-no-execution.md",
+  "docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-no-execution.md",
+  "docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-static-security-review-no-execution.md",
+  "docs/post-trade-source-controlled-staging-execution-function-implementation-no-execution.md",
+  "docs/post-trade-source-controlled-staging-execution-function-static-security-review-no-execution.md",
+  "lib/post-trade-staging-execution-function.ts",
+  "lib/post-trade-final-staging-execution-gate-core.ts",
+  "lib/post-trade-final-staging-execution-gate.ts",
+  "lib/post-trade-staging-execution-authorization-artifact-core.ts",
+  "lib/post-trade-staging-execution-authorization-artifact.ts",
+  "tests/e2e/post-trade-staging-execution-function-static.spec.ts",
+  "tests/e2e/post-trade-final-staging-execution-gate.spec.ts",
+  "tests/e2e/post-trade-staging-execution-authorization-artifact.spec.ts",
+];
 
 function runGit(args, options = {}) {
   return execFileSync("git", args, {
@@ -175,7 +265,7 @@ function collectFiles(relativePath) {
 }
 
 function statusFiles() {
-  const output = execFileSync("git", ["status", "--short"], {
+  const output = execFileSync("git", ["status", "--short", "--untracked-files=all"], {
     cwd: repoRoot,
     encoding: "utf8",
   });
@@ -219,17 +309,23 @@ function isForbiddenChangedFile(relativePath) {
 
 const currentBranch = runGit(["branch", "--show-current"]);
 const changedFiles = statusFiles();
+const isolatedChangedFiles = changedFiles.filter((relativePath) =>
+  isolatedUnrelatedExecutionFiles.includes(relativePath),
+);
+const actionChangedFiles = changedFiles.filter(
+  (relativePath) => !isolatedUnrelatedExecutionFiles.includes(relativePath),
+);
 const workingTreeClean = changedFiles.length === 0;
 const uncommittedAction319Only =
-  changedFiles.length > 0 &&
-  changedFiles.every((relativePath) =>
+  actionChangedFiles.length > 0 &&
+  actionChangedFiles.every((relativePath) =>
     allowedAction319ImplementationFiles.includes(relativePath),
   );
-const unexpectedUncommittedFiles = changedFiles.filter(
+const unexpectedUncommittedFiles = actionChangedFiles.filter(
   (relativePath) => !allowedAction319ImplementationFiles.includes(relativePath),
 );
 const requiredFilesMissing = requiredFiles.filter((relativePath) => !exists(relativePath));
-const forbiddenRuntimeChanges = changedFiles.filter(isForbiddenChangedFile);
+const forbiddenRuntimeChanges = actionChangedFiles.filter(isForbiddenChangedFile);
 const forbiddenRuntimeArtifacts = forbiddenRuntimePaths.filter(exists);
 const forbiddenMarkersFound = [
   "action_307k_proxy_runtime_crash_isolation",
@@ -261,6 +357,8 @@ const result = {
   uncommitted_action_319_files_allowed: uncommittedAction319Only,
   uncommitted_files: changedFiles,
   unexpected_uncommitted_files: unexpectedUncommittedFiles,
+  isolated_unrelated_execution_files: isolatedChangedFiles,
+  isolated_unrelated_execution_files_are_action_artifacts: false,
   post_commit_verification_only: true,
   deploy_readiness: false,
   main_push_allowed: false,

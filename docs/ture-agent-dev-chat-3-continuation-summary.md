@@ -3906,6 +3906,369 @@ Decision:
 
 ## 80. Action 483 Update
 
+Action 483 resolved the unrelated TypeScript blocker in `lib/first-tiny-historical-fetch-final-preflight.ts`.
+
+Decision:
+
+`first_tiny_historical_fetch_tsc_blocker_resolved_no_write`
+
+## 81. Action 484 Update
+
+Action 484 designed the source-controlled staging insert function required before another final isolated staging mock write attempt.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-design-no-write.md`
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_design_ready_no_write`
+
+## 82. Action 485 Update
+
+Action 485 implemented the source-controlled staging insert function planner without executing writes.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-implementation-no-execution.md`
+- Implementation: `lib/post-trade-staging-insert-function.ts`
+- Static test: `tests/e2e/post-trade-staging-insert-function-static.spec.ts`
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_implementation_ready_no_execution`
+
+## 83. Action 486 Update
+
+Action 486 statically/security reviewed the source-controlled staging insert function planner.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-static-security-review-no-execution.md`
+- Static tests were strengthened to assert exactly one planned `execution_records` step and exactly one planned dependent `execution_record_audit_events` step.
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_static_security_review_ready_for_final_execution_retry`
+
+## 84. Action 487 Update
+
+Action 487 retried the final isolated staging mock/test write gate and stopped before any write because no reviewed source-controlled execution function exists that actually performs the two required staging inserts.
+
+- Checkpoint: `docs/post-trade-one-staging-mock-write-with-source-controlled-insert-blocked.md`
+- Local Supabase metadata: `pdvzyuhykomwfqyyztru`
+- Required keys were present by key name only and no env values were printed.
+
+Decision:
+
+`post_trade_one_staging_mock_write_with_source_controlled_insert_blocked_runtime_blocked`
+
+## 85. Action 488 Update
+
+Action 488 created a no-write approval gate for a future source-controlled staging execution function implementation.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-execution-function-approval-gate-no-write.md`
+- Future approval would authorize implementation only of a server-only, staging-only, one-shot execution function.
+- The future function would be limited to exactly two intended inserts:
+  - `public.execution_records`
+  - `public.execution_record_audit_events`
+- The gate does not authorize write execution, production access, migrations, API/UI/runtime activation, Avanza/browser automation, real broker data, broad writes, blind retry, or direct SQL/manual dashboard writes.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_execution_function_approval_gate_ready_no_write`
+
+## 86. Action 489 Update
+
+Action 489 implemented a source-controlled staging execution function boundary without executing it.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-execution-function-implementation-no-execution.md`
+- Implementation: `lib/post-trade-staging-execution-function.ts`
+- Static test: `tests/e2e/post-trade-staging-execution-function-static.spec.ts`
+- The function is server-only, staging-only, one-shot only, and blocked by default.
+- It models exactly two future operations:
+  - insert one sanitized mock `public.execution_records` row and return the created id
+  - insert one dependent `public.execution_record_audit_events` row using that id
+- Default metadata remains `executionEnabled: false`, `executionMode: no_execution_without_final_gate`, `executionStatus: not_executed`, `remoteExecution: false`, and `rowsCreated: 0`.
+- It requires validated mock payload, ready dry-run plan, sanitized write commands, reviewed prerequisite command result, reviewed insert planner result, one-shot approval context, audit command, and test-scoped idempotency.
+- It is not wired into API routes, Trade UI, or client code.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write execution
+- no write command execution
+- no adapter behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_execution_function_implementation_ready_no_execution`
+
+## 87. Action 490 Update
+
+Action 490 performed a static/security review of the source-controlled staging execution function.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-execution-function-static-security-review-no-execution.md`
+- Reviewed: `lib/post-trade-staging-execution-function.ts`
+- Reviewed tests: `tests/e2e/post-trade-staging-execution-function-static.spec.ts`
+- Review confirmed server-only marker, staging-only target enforcement, one-shot context requirement, prerequisite command requirement, insert planner requirement, dependent audit requirement, test-scoped idempotency requirement, production rejection, unsafe payload rejection, and default no-execution metadata.
+- The modeled future path remains exactly two operations:
+  - one mock `public.execution_records` insert operation returning an id
+  - one dependent `public.execution_record_audit_events` insert operation using that id
+- Default metadata remains `executionEnabled: false`, `executionMode: no_execution_without_final_gate`, `executionStatus: not_executed`, `remoteExecution: false`, and `rowsCreated: 0`.
+- Review confirmed no update/delete/upsert/rpc/storage, no direct SQL/manual dashboard path, no broad write helper, no blind retry path, no API route wiring, and no Trade UI/client wiring.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write execution
+- no function execution
+- no write command execution
+- no adapter behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_execution_function_static_security_review_ready_for_final_execution_gate`
+
+## 88. Action 491 Update
+
+Action 491 added the final source-controlled staging execution gate without executing it.
+
+- Checkpoint: `docs/post-trade-final-source-controlled-staging-execution-gate-no-execution.md`
+- Core evaluator: `lib/post-trade-final-staging-execution-gate-core.ts`
+- Server-only boundary: `lib/post-trade-final-staging-execution-gate.ts`
+- Tests: `tests/e2e/post-trade-final-staging-execution-gate.spec.ts`
+- Default decision remains blocked with `approved: false`, `executionEnabled: false`, `executionStatus: not_executed`, `executionMode: no_execution_without_final_gate`, `remoteExecution: false`, and `rowsCreated: 0`.
+- Approval requires a complete exact source-controlled approval object, exact staging project, exactly two operations, exactly two expected rows, exact target table order, audit dependency on the returned execution record id, one-shot unused state, retry disabled, and API/UI/browser/broker/Avanza/credential/production/migration/live mutation disabled.
+- Approval is bound by deterministic fingerprint to the reviewed `buildPostTradeStagingExecutionFunction` function identity and reviewed contract/version decisions.
+- One-shot state is modelled as `unused`, `consumed`, `invalid`, or `expired`; this action does not persist or consume approval.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no Supabase insert/update/upsert/delete/rpc/storage call
+- no source-controlled execution function invocation
+- no write-capable adapter invocation
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live mutation
+
+Decision:
+
+`post_trade_final_source_controlled_staging_execution_gate_added_no_execution`
+
+## 89. Action 492 Update
+
+Action 492 performed a static/security review of the final source-controlled staging execution gate.
+
+- Checkpoint: `docs/post-trade-final-source-controlled-staging-execution-gate-static-security-review-no-execution.md`
+- Reviewed core gate: `lib/post-trade-final-staging-execution-gate-core.ts`
+- Reviewed server-only boundary: `lib/post-trade-final-staging-execution-gate.ts`
+- Reviewed and strengthened tests: `tests/e2e/post-trade-final-staging-execution-gate.spec.ts`
+- The gate remains side-effect free, deterministic, fail-closed, and blocked by default.
+- The gate cannot be approved by environment state alone or by a broad execution boolean.
+- Approval remains bound to the reviewed `buildPostTradeStagingExecutionFunction` function identity, contract version, Action 489 implementation decision, and Action 490 static/security review decision.
+- The fingerprint binds approval id, state, freshness timestamps, scope, project id, operation count, expected row count, ordered tables, audit dependency semantics, retry prohibition, one-shot state, reviewed function identity, and capability prohibitions.
+- Unknown fields, missing reviewed-function fields, stale/expired approvals, non-unused approval states, production references, reordered tables, missing audit dependency, retry capability, API/UI/browser/broker/Avanza capability, credential/session/BankID material, migration/schema capability, and live mutation capability all fail closed.
+- Tests were strengthened from 21 to 34 adversarial cases.
+
+Safety remains locked:
+
+- no source-controlled execution function invocation
+- no write-capable adapter invocation
+- no write command execution
+- no Supabase insert/update/upsert/delete/rpc/storage call
+- no staging row creation
+- no production connection
+- no migration/schema action
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live mutation
+
+Final decision:
+
+`post_trade_final_source_controlled_staging_execution_gate_static_security_review_ready_for_execution_authorization_artifact`
+
+Result status:
+
+`post_trade_final_source_controlled_staging_execution_gate_static_security_review_completed_no_execution`
+
+## 80. Action 483 Update
+
+Action 483 resolved the unrelated TypeScript blocker in `lib/first-tiny-historical-fetch-final-preflight.ts`.
+
+- Scope was TypeScript blocker triage only.
+- No post-trade write execution function was implemented.
+- No adapter execution behavior changed.
+- No Supabase write, test row insertion, migration action, API write behavior, Trade UI/runtime activation, or Avanza/browser automation occurred.
+
+Decision:
+
+`first_tiny_historical_fetch_tsc_blocker_resolved_no_write`
+
+## 81. Action 484 Update
+
+Action 484 designed the source-controlled staging insert function required before another final isolated staging mock write attempt.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-design-no-write.md`
+- The design requires server-only, staging-only, one-shot behavior.
+- The future function must model the prerequisite `execution_records` insert before the dependent `execution_record_audit_events` insert.
+- No implementation, write execution, Supabase write, test row insertion, migration action, or adapter execution behavior change occurred.
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_design_ready_no_write`
+
+## 82. Action 485 Update
+
+Action 485 implemented the source-controlled staging insert function planner without executing writes.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-implementation-no-execution.md`
+- Implementation: `lib/post-trade-staging-insert-function.ts`
+- Static test: `tests/e2e/post-trade-staging-insert-function-static.spec.ts`
+- The planner is server-only, staging-only, one-shot gated, and no-execution by default.
+- It models exactly two future insert steps:
+  - `public.execution_records`
+  - `public.execution_record_audit_events`
+- The audit step depends on the reviewed `mock_execution_record_insert_result` placeholder/reference strategy.
+- The module does not import Supabase, does not instantiate a client, does not call insert/update/upsert/delete/rpc/storage, and is not wired into API routes or Trade UI.
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_implementation_ready_no_execution`
+
+## 83. Action 486 Update
+
+Action 486 performed a static/security review of the source-controlled staging insert function planner.
+
+- Checkpoint: `docs/post-trade-source-controlled-staging-insert-function-static-security-review-no-execution.md`
+- Reviewed: `lib/post-trade-staging-insert-function.ts`
+- Reviewed/extended: `tests/e2e/post-trade-staging-insert-function-static.spec.ts`
+- Review confirmed server-only marker, staging-only target handling, one-shot requirement, prerequisite command requirement, dependent audit command requirement, test-scoped idempotency requirement, unsafe payload rejection, and no-execution metadata.
+- Static tests were strengthened to assert exactly one planned `execution_records` step and exactly one planned dependent `execution_record_audit_events` step.
+- Review confirmed no Supabase write-call fragments, direct SQL/manual dashboard path, broad write helper, blind retry path, API route wiring, Trade UI/client wiring, runtime activation, or Avanza/browser automation.
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_source_controlled_staging_insert_function_static_security_review_ready_for_final_execution_retry`
+
+## 84. Action 487 Update
+
+Action 487 retried the final isolated staging mock/test write gate with the reviewed prerequisite command and source-controlled staging insert planner, and stopped before any write.
+
+- Checkpoint: `docs/post-trade-one-staging-mock-write-with-source-controlled-insert-blocked.md`
+- Approved staging target: `ture-staging / pdvzyuhykomwfqyyztru`
+- Verified local Supabase metadata: `pdvzyuhykomwfqyyztru`
+- Production target `ekdyopdrrkphlrsilyoo` is not selected locally.
+
+Key-name-only environment check:
+
+- `SUPABASE_STAGING_URL` key is present
+- `SUPABASE_STAGING_SERVICE_ROLE_KEY` key is present
+- no `NEXT_PUBLIC_*SERVICE*ROLE*` key is present
+- no URL value or secret value was printed, logged, stored, or documented
+
+Blocking condition:
+
+- the reviewed source-controlled insert function remains a no-execution planner
+- it returns `executionMode: no_execution_without_separate_gate`
+- it returns `executionStatus: not_executed`
+- it returns `remoteExecution: false`
+- the reviewed one-shot execution-unblock mechanism also remains no-write/next-action-only
+- no reviewed source-controlled execution function exists that actually performs the two required staging inserts
+
+No bypass was used:
+
+- no direct SQL/manual dashboard write
+- no ad hoc Supabase insert
+- no migration action
+- no broad/repeated write
+- no blind retry
+- no API route write behavior
+- no Trade UI/runtime write path
+
+Safety remains locked:
+
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration action
+- no DB/Supabase write
+- no write command execution
+- no adapter execution behavior change
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or live position mutation
+
+Decision:
+
+`post_trade_one_staging_mock_write_with_source_controlled_insert_blocked_runtime_blocked`
+
+## 80. Action 483 Update
+
 Action 483 resolved the unrelated TypeScript blocker in `lib/first-tiny-historical-fetch-final-preflight.ts` so post-trade work could return to a clean TypeScript baseline.
 
 - Scope was TypeScript blocker triage only.
@@ -4207,3 +4570,278 @@ Safety remains locked:
 Decision:
 
 `post_trade_one_staging_mock_write_with_prerequisite_and_audit_blocked_runtime_blocked`
+
+## 90. Action 493 Update
+
+Action 493 added a single-use source-controlled staging execution authorization artifact without executing anything.
+
+- Checkpoint: `docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-no-execution.md`
+- Server-only artifact boundary: `lib/post-trade-staging-execution-authorization-artifact.ts`
+- Pure core artifact/evaluator: `lib/post-trade-staging-execution-authorization-artifact-core.ts`
+- Focused tests: `tests/e2e/post-trade-staging-execution-authorization-artifact.spec.ts`
+- Artifact id: `post_trade_staging_mock_execution_authorization_001`
+- Artifact version: `post_trade_staging_execution_authorization_artifact_v1`
+- Target remains staging-only: `pdvzyuhykomwfqyyztru`
+- Production marker remains rejected-only: `ekdyopdrrkphlrsilyoo`
+
+The artifact encodes exactly one future mock/test staging attempt:
+
+- exactly two intended rows
+- ordered tables: `execution_records`, then `execution_record_audit_events`
+- audit dependency on the returned `execution_records.id`
+- mock-only, one-shot, no retry
+- execution disabled, `remoteExecution: false`, `rowsCreated: 0`
+
+The artifact is bound to:
+
+- reviewed execution function identity from Actions 489/490
+- reviewed final source-controlled staging execution gate identity from Actions 491/492
+- a deterministic artifact fingerprint over identity, target, attempt, plan, function identity, gate identity, one-shot state, expiry, execution-disabled state, and prohibited capabilities
+
+Safety remains locked:
+
+- no execution function invocation
+- no write-capable adapter invocation
+- no final gate real execution flow
+- no authorization consumption state
+- no Supabase insert/update/upsert/delete/rpc/storage call
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration/schema action
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Remaining limitation:
+
+- The artifact is source-controlled and immutable, but it does not persist durable consumption state. A later execution action must close or explicitly accept that one-shot consumption risk before any actual staging write.
+
+Decision:
+
+`post_trade_single_use_source_controlled_staging_execution_authorization_artifact_added_no_execution`
+
+## 91. Action 494 Update
+
+Action 494 performed a static/security review of the single-use source-controlled staging execution authorization artifact.
+
+- Checkpoint: `docs/post-trade-single-use-source-controlled-staging-execution-authorization-artifact-static-security-review-no-execution.md`
+- Reviewed core artifact/evaluator: `lib/post-trade-staging-execution-authorization-artifact-core.ts`
+- Reviewed server-only boundary: `lib/post-trade-staging-execution-authorization-artifact.ts`
+- Reviewed and expanded tests: `tests/e2e/post-trade-staging-execution-authorization-artifact.spec.ts`
+- Focused authorization artifact tests expanded from 14 to 18 tests.
+
+Review hardening:
+
+- recursive forbidden-field scanning now inspects nested arrays as well as nested objects
+- production-reference detection now catches nested strings containing the production project ref outside the explicit rejection marker
+- fingerprint serialization now handles `undefined` and non-finite numbers deterministically
+- timestamp validation now rejects expiry-before-issuance and excessive validity windows
+
+Review findings:
+
+- artifact remains server-only at the exported boundary
+- artifact remains source-controlled, deterministic, fail-closed, and execution-disabled
+- artifact remains scoped only to staging project `pdvzyuhykomwfqyyztru`
+- production project `ekdyopdrrkphlrsilyoo` remains rejected outside the explicit rejection marker
+- artifact remains bound to one exact mock attempt and the exact two-row plan
+- artifact remains bound to the reviewed execution function identity and reviewed final gate identity
+- fingerprint covers artifact identity, timestamps, target, attempt, plan, function identity, gate identity, one-shot state, execution-disabled state, and all capability prohibitions
+- gate compatibility mapping remains side-effect free and does not enable execution
+
+Remaining limitation:
+
+- durable one-shot consumption remains intentionally unresolved and requires a separate design before any actual staging write can rely on this artifact.
+
+Safety remains locked:
+
+- no execution function invocation
+- no write-capable adapter invocation
+- no final gate real execution flow
+- no authorization consumption state
+- no Supabase insert/update/upsert/delete/rpc/storage call
+- no production connection
+- no staging data write
+- no test row insertion
+- no migration/schema action
+- no API write behavior
+- no runtime/API/UI activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_single_use_source_controlled_staging_execution_authorization_artifact_static_security_review_ready_for_durable_one_shot_consumption_design`
+
+Result status:
+
+`post_trade_single_use_source_controlled_staging_execution_authorization_artifact_static_security_review_completed_no_execution`
+
+## 92. Action 495 Update
+
+Action 495 added a typed, side-effect-free durable one-shot authorization consumption contract without persistence or execution.
+
+- Checkpoint: `docs/post-trade-durable-one-shot-authorization-consumption-contract-no-persistence-no-execution.md`
+- Contract module: `lib/post-trade-durable-one-shot-authorization-consumption-contract.ts`
+- Focused tests: `tests/e2e/post-trade-durable-one-shot-authorization-consumption-contract.spec.ts`
+
+The contract models:
+
+- durable authorization states: `unused`, `consumption_pending`, `consumed`, `invalid`, `expired`, `ambiguous`
+- the only successful transition: `unused -> consumed`
+- strict consumption request identity and scope
+- future compare-and-set persistence operation planning
+- authoritative consumption evidence requirements
+- ambiguous result handling
+- replay classification
+- read-back verification request and classifications
+
+Recommended future persistence model:
+
+- dedicated durable authorization-consumption table
+- reviewed staging-only database function or transaction wrapper
+- final atomic unit should include authorization consumption, `execution_records` insert, returned execution record id, dependent `execution_record_audit_events` insert, and final execution evidence
+
+Review guardrails:
+
+- generic ok, HTTP 200, missing evidence, unknown affected row count, timeout, connection loss, malformed response, mismatched evidence, consumed-by-other-operation, and unresolved ambiguous outcomes do not allow execution
+- no automatic retry is allowed when commit status is uncertain
+- read-back must preserve the original operation id and attempt id
+
+Safety remains locked:
+
+- no migration/table creation
+- no SQL execution
+- no Supabase call
+- no source-controlled execution function invocation
+- no write-capable adapter invocation
+- no final gate execution
+- no authorization consumption
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_one_shot_authorization_consumption_contract_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_durable_one_shot_authorization_consumption_contract_added_no_persistence_no_execution`
+
+## 93. Action 496 Update
+
+Action 496 performed a static/security review of the durable one-shot authorization consumption contract without persistence or execution.
+
+- Checkpoint: `docs/post-trade-durable-one-shot-authorization-consumption-contract-static-security-review-no-persistence-no-execution.md`
+- Reviewed/updated contract: `lib/post-trade-durable-one-shot-authorization-consumption-contract.ts`
+- Reviewed/expanded tests: `tests/e2e/post-trade-durable-one-shot-authorization-consumption-contract.spec.ts`
+
+Review hardening:
+
+- added distinct artifact id mismatch handling
+- expanded compare-and-set planning to include execution scope, execution function identity, final gate identity, one-shot/no-retry/mock markers, operation count, row count, ordered tables, and audit dependency
+- added evidence validation for consumed-at timestamp, evidence affected-row count, persistence operation identity, and result classification
+- made identical replay detection non-authorizing; authoritative read-back must decide continuation
+- made read-back success require complete authoritative evidence
+
+Review findings:
+
+- contract remains deterministic, side-effect free, fail-closed, and staging-only
+- contract cannot consume authorization, call Supabase, execute SQL, mutate state, invoke the execution function, invoke the final gate, or invoke the write-capable adapter
+- generic ok, HTTP 200, missing evidence, unknown affected-row count, timeout, connection loss, malformed response, partial evidence, and mismatched returned identity do not authorize execution
+- ambiguous outcomes preserve original identifiers, block execution, and forbid automatic retry
+- read-back distinguishes same-operation consumption, another-operation consumption, still-unused, missing, invalid, expired, inconsistent, and ambiguous results
+- recommended future transaction boundary remains one staging-only atomic transaction/database function containing durable consumption plus both mock insert operations
+
+Safety remains locked:
+
+- no migration/table creation
+- no SQL execution
+- no Supabase call
+- no persistence
+- no authorization consumption
+- no source-controlled execution function invocation
+- no write-capable adapter invocation
+- no final gate execution
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_one_shot_authorization_consumption_contract_static_security_review_ready_for_persistence_schema_design`
+
+Result status:
+
+`post_trade_durable_one_shot_authorization_consumption_contract_static_security_review_completed_no_persistence_no_execution`
+
+## 94. Action 497 Update
+
+Action 497 added a typed, source-controlled durable authorization-consumption persistence schema design without creating a migration or executing anything.
+
+- Checkpoint: `docs/post-trade-durable-authorization-consumption-persistence-schema-design-no-migration-no-execution.md`
+- Schema design module: `lib/post-trade-durable-authorization-consumption-persistence-schema-design.ts`
+- Focused tests: `tests/e2e/post-trade-durable-authorization-consumption-persistence-schema-design.spec.ts`
+
+Selected table:
+
+- `execution_authorization_consumptions`
+
+The design models:
+
+- durable states `unused`, `consumed`, `invalid`, and `expired`
+- no persisted ambiguous state
+- immutable authorization identity and execution contract fields
+- atomic-consumption-only evidence fields
+- staging-only target binding to `pdvzyuhykomwfqyyztru`
+- explicit rejected-production marker for `ekdyopdrrkphlrsilyoo`
+- uniqueness across authorization artifact, fingerprint, attempt, plan, operation, and artifact/plan pair
+- check-constraint requirements for state, timestamps, one-shot, retry false, mock-only, exact row/operation counts, ordered tables, audit dependency, and forbidden capabilities
+- foreign-key requirements to both `execution_records` and `execution_record_audit_events`
+- RLS with no client policies
+- denied client privileges
+- future reviewed staging-only database-function boundary
+- migration and verification plans only, with zero seeded rows and production blocked
+
+Safety remains locked:
+
+- no migration file
+- no SQL text or SQL execution
+- no Supabase call
+- no table, index, constraint, RLS, or database-function creation
+- no persistence
+- no authorization consumption
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_authorization_consumption_persistence_schema_design_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_durable_authorization_consumption_persistence_schema_design_added_no_migration_no_execution`
