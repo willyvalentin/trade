@@ -1,0 +1,155 @@
+{
+  "schema_version": "action_483_full_candidate_build_rehearsal_record_v1",
+  "source_action": 482,
+  "source_action_482_record": "docs/action-482-confidence-calibration-recommendation-advisory-projection-preview-dependency-materialization-record.json",
+  "action_nature": "local_full_candidate_build_rehearsal_no_deploy_no_activation",
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "approved_change_candidate_hash": "7a11d9c6697a9d89ffb3e762dd15185fda225bc8e39c80a212cd3729d05857f6",
+  "full_candidate_inventory_hash": "cc6a97c5797a1fa76a6bebe9be1497fe88819f1b73992b271c142ff61d3bc2f0",
+  "candidate_file_count": 30,
+  "package_json_hash_before": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+  "package_lock_hash_before": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+  "next_config_hash_before": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc",
+  "typescript_config_hash_before": "83b460dca7c269a562dba8f46d08de45397869b7ddbf31101eabca1a975eaa82",
+  "eslint_config_hash_before": "53065bd014f2b6fb89dc5f1a84cd37053217cbec71be6f15c3958a3b3bc4143c",
+  "netlify_config_hash_before": "7cc579b1e99306abc9f21c0340c5b7e94309567d7b86e2757ba996d2b414b1b7",
+  "package_json_hash_after": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+  "package_lock_hash_after": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+  "next_config_hash_after": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc",
+  "typescript_config_hash_after": "83b460dca7c269a562dba8f46d08de45397869b7ddbf31101eabca1a975eaa82",
+  "eslint_config_hash_after": "53065bd014f2b6fb89dc5f1a84cd37053217cbec71be6f15c3958a3b3bc4143c",
+  "netlify_config_hash_after": "7cc579b1e99306abc9f21c0340c5b7e94309567d7b86e2757ba996d2b414b1b7",
+  "temporary_candidate_path_policy": "system_temp_ture_action_483_no_machine_path_retained",
+  "temporary_candidate_safety": {
+    "outside_repository": true,
+    "outside_home_config": true,
+    "outside_application_data": true,
+    "absent_or_empty_before_use": true,
+    "no_target_symlink": true,
+    "no_parent_chain_symlink": true,
+    "no_traversal": true,
+    "serial_exclusive_ownership": true,
+    "no_unrelated_files_before_use": true
+  },
+  "candidate_reconstruction_result": "temporary_candidate_constructed_from_clean_base_plus_approved_overlay",
+  "base_materialization_result": "git_archive_clean_base_materialized_without_broad_dirty_worktree",
+  "overlay_result": "exact_30_candidate_files_overlaid",
+  "overlaid_file_count": 30,
+  "overlay_hash_result": "passed_for_29_explicit_hashes_one_prior_inventory_null_hash_preserved",
+  "unexpected_changed_files": 0,
+  "unrelated_post_trade_files": 0,
+  "environment_files": 0,
+  "secret_files": 0,
+  "merge_conflict_markers": 0,
+  "runtime_projection_call_site_count": 1,
+  "preview_flag_state": "disabled_by_policy_not_read_from_env",
+  "dependency_materialization_method": "temporary_verified_node_modules_copy",
+  "dependency_source_classification": "verified_existing_local_installation",
+  "dependency_copy_created": true,
+  "dependency_copy_removed": true,
+  "network_used": false,
+  "install_performed": false,
+  "dependency_update_performed": false,
+  "install_lifecycle_triggered": false,
+  "registry_access_performed": false,
+  "candidate_inventory_includes_dependencies": false,
+  "node_modules_tracked": false,
+  "extraneous_local_package_count": 5,
+  "extraneous_package_names_recorded": [
+    "@emnapi/core",
+    "@emnapi/runtime",
+    "@emnapi/wasi-threads",
+    "@napi-rs/wasm-runtime",
+    "@tybys/wasm-util"
+  ],
+  "extraneous_packages_present_in_temporary_dependency_tree": false,
+  "extraneous_dependency_influence_result": "no_influence_detected_absent_from_temporary_dependency_tree",
+  "candidate_integrity_result": "failed_git_diff_check_equivalent_setup_pathspec_for_ignored_node_modules",
+  "command_results": [
+    {
+      "name": "candidate_integrity_equivalent_to_git_diff_check",
+      "status": "failed",
+      "summary": "Temp Git index setup attempted to exclude node_modules but failed on ignored node_modules pathspec before diff-check completion."
+    },
+    {
+      "name": "npx next typegen",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "npx tsc --noEmit",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "npm run build",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "npm run lint",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "node scripts/action-309-post-recovery-safety-guard.mjs",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "Action 461 preview-consumer suite",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "Action 462 independent preview-consumer suite",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "Recommendation details regression suite",
+      "status": "not_run_due_prior_failure"
+    },
+    {
+      "name": "Action 481-483 focused suites",
+      "status": "not_run_due_prior_failure"
+    }
+  ],
+  "serial_execution_result": "stopped_after_first_failed_temp_sensitive_command",
+  "same_action_retry_performed": false,
+  "package_manifest_modified": false,
+  "lockfile_modified": false,
+  "configuration_modified": false,
+  "source_dependency_tree_modified": false,
+  "candidate_source_modified": false,
+  "unexpected_generated_tracked_files": false,
+  "dependency_install_marker_detected": false,
+  "environment_file_created": false,
+  "deployment_performed": false,
+  "netlify_operation_performed": false,
+  "preview_activated": false,
+  "production_changed": false,
+  "environment_modified": false,
+  "confidence_applied": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "provider_call_executed": false,
+  "supabase_access_created": false,
+  "supabase_write_executed": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "ranking_changed": false,
+  "scanner_changed": false,
+  "publication_changed": false,
+  "execution_changed": false,
+  "add_trade_changed": false,
+  "risk_sizing_changed": false,
+  "cleanup_result": "temporary_candidate_and_dependency_copy_removed",
+  "temporary_candidate_absent_after_cleanup": true,
+  "copied_dependencies_absent_after_cleanup": true,
+  "build_output_retained": false,
+  "credentials_retained": false,
+  "environment_values_retained": false,
+  "rehearsal_decision": "full_candidate_rehearsal_failed",
+  "failure_classification": "candidate_integrity_command_setup_failed_before_build_test_commands",
+  "decision_vocabulary": [
+    "full_candidate_rehearsal_passed",
+    "full_candidate_rehearsal_failed",
+    "full_candidate_rehearsal_aborted"
+  ],
+  "current_runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_484_full_candidate_rehearsal_integrity_command_remediation_gate"
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "action_529_external_terminal_runner_precheck_result_v1",
+  "source_action": 528,
+  "execution_boundary": "operator_unrestricted_local_terminal",
+  "required_public_build_signals": [
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "presence": "present",
+      "safe_shape": "valid_shape",
+      "value_recorded": false
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "presence": "present",
+      "safe_shape": "valid_shape",
+      "value_recorded": false
+    }
+  ],
+  "child_process_spawn": "passed",
+  "loopback_binding": "passed",
+  "ephemeral_port_binding": "passed",
+  "local_ipc_capability": "passed",
+  "local_ipc_test_result": "passed",
+  "local_ipc_diagnostic": {
+    "ipc_mechanism": "unix_domain_socket",
+    "ipc_failure_phase": "none",
+    "ipc_error_classification": "none",
+    "ipc_cleanup_result": "passed",
+    "ipc_required_by_authoritative_build": false,
+    "ipc_requirement_classification": "local_ipc_not_proven_required_for_authoritative_turbopack_build",
+    "raw_socket_path_recorded": false
+  },
+  "temp_output_capability": "passed",
+  "file_descriptor_capacity": "sufficient",
+  "process_resource_capacity": "sufficient",
+  "external_network_used": false,
+  "supabase_accessed": false,
+  "provider_called": false,
+  "raw_environment_values_recorded": false,
+  "environment_values_hashed": false,
+  "environment_persisted": false,
+  "env_file_written": false,
+  "shell_profile_modified": false,
+  "operator_attempt_number": 2,
+  "prior_attempt_result": "external_terminal_runner_precheck_blocked",
+  "input_echo_suppressed": true,
+  "terminal_restoration": "raw_mode_restored_on_completion_error_and_interruption",
+  "cleanup_result": "passed",
+  "precheck_result": "external_terminal_runner_precheck_passed",
+  "build_performed": false,
+  "candidate_reconstructed": false,
+  "rehearsal_performed": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_530_external_terminal_runner_precheck_evidence_acceptance_gate"
+}

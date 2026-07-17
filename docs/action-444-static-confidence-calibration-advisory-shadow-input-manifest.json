@@ -1,0 +1,4657 @@
+{
+  "manifest_schema_version": "action_444_static_confidence_calibration_advisory_shadow_input_manifest_v1",
+  "action_443_approval_decision": "approved",
+  "action_441_package_inventory_sha256": "e6fb6b6e189feab0cf4bc1f2494522f7f2d9aa7ae0a455080156ad740f5facb8",
+  "action_441_scenario_summary_sha256": "78c349f52843451d99c405883c0d9571223616cf684928094aa0294424beec15",
+  "protected_source_hashes": {
+    "lib/confidence-calibration-advisory-adapter.ts": {
+      "expected_sha256": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b",
+      "actual_sha256": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b",
+      "matches_expected": true
+    },
+    "lib/pure-confidence-calibration.ts": {
+      "expected_sha256": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+      "actual_sha256": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+      "matches_expected": true
+    },
+    "lib/pure-pattern-discovery.ts": {
+      "expected_sha256": "48b7667c8690a1d8d56b819a3727e37ea73af7710a45131eb3debab48627191c",
+      "actual_sha256": "48b7667c8690a1d8d56b819a3727e37ea73af7710a45131eb3debab48627191c",
+      "matches_expected": true
+    },
+    "lib/snapshot-to-learning-dataset-mapper.ts": {
+      "expected_sha256": "7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d",
+      "actual_sha256": "7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d",
+      "matches_expected": true
+    },
+    "lib/learning-dataset-static-fixtures.ts": {
+      "expected_sha256": "706bd57150914862604af70e0bba7614151f53c32abc5dbde9595c53bf4b332b",
+      "actual_sha256": "706bd57150914862604af70e0bba7614151f53c32abc5dbde9595c53bf4b332b",
+      "matches_expected": true
+    },
+    "lib/intelligence-context-static-fixtures.ts": {
+      "expected_sha256": "46358cb997b4f7a431a3fee72562659da48b13219404224f4e80e08dbf8ed406",
+      "actual_sha256": "46358cb997b4f7a431a3fee72562659da48b13219404224f4e80e08dbf8ed406",
+      "matches_expected": true
+    },
+    "lib/pattern-insight-static-fixtures.ts": {
+      "expected_sha256": "db8dae9f101f710123a0a3ac6493356bd761c15f231023ab9742caefaacf8f57",
+      "actual_sha256": "db8dae9f101f710123a0a3ac6493356bd761c15f231023ab9742caefaacf8f57",
+      "matches_expected": true
+    },
+    "docs/action-426-static-confidence-calibration-hash-inventory.json": {
+      "expected_sha256": "e19e320a662ab0d18500fb1b630563fdf1f3361a592afe00ff4af0ec6e9d69fe",
+      "actual_sha256": "e19e320a662ab0d18500fb1b630563fdf1f3361a592afe00ff4af0ec6e9d69fe",
+      "matches_expected": true
+    },
+    "scripts/action-426-static-confidence-calibration-hash-freeze.mjs": {
+      "expected_sha256": "f8cf5af48f640a2158f17f92b6321340d17f334577534fc8b675969e9ff223fa",
+      "actual_sha256": "f8cf5af48f640a2158f17f92b6321340d17f334577534fc8b675969e9ff223fa",
+      "matches_expected": true
+    },
+    "scripts/action-426-static-confidence-calibration-hash-freeze-verify.mjs": {
+      "expected_sha256": "198a48376d05345d776268dd60f4042210598ac8fd731940b961261f4e806d6d",
+      "actual_sha256": "198a48376d05345d776268dd60f4042210598ac8fd731940b961261f4e806d6d",
+      "matches_expected": true
+    },
+    "docs/action-429-static-confidence-calibration-shadow-input-manifest.json": {
+      "expected_sha256": "f730d31084419985c8464e01e1daf67bea9312ac47a3ab5c291a1c394da03c59",
+      "actual_sha256": "f730d31084419985c8464e01e1daf67bea9312ac47a3ab5c291a1c394da03c59",
+      "matches_expected": true
+    },
+    "scripts/action-429-static-confidence-calibration-shadow-run.mjs": {
+      "expected_sha256": "dd073134a96583caddae345c9c84be6bc4a327198c65aa29d8d191e4ea21b882",
+      "actual_sha256": "dd073134a96583caddae345c9c84be6bc4a327198c65aa29d8d191e4ea21b882",
+      "matches_expected": true
+    },
+    "docs/action-416-expanded-static-pattern-discovery-shadow-input-manifest.json": {
+      "expected_sha256": "dbafd56a7c0f8c2eb79f22039cb9b1225e42f246e78ca278cd4344f72d39d652",
+      "actual_sha256": "dbafd56a7c0f8c2eb79f22039cb9b1225e42f246e78ca278cd4344f72d39d652",
+      "matches_expected": true
+    },
+    "scripts/action-416-expanded-static-pattern-discovery-shadow-run.mjs": {
+      "expected_sha256": "b77f018e888d736dbf696ac0acc0b5c16a826b2bab26f09db42ecc28f956d7ea",
+      "actual_sha256": "b77f018e888d736dbf696ac0acc0b5c16a826b2bab26f09db42ecc28f956d7ea",
+      "matches_expected": true
+    }
+  },
+  "advisory_adapter_sha256": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b",
+  "scenario_count": 48,
+  "exact_ordered_scenario_ids": [
+    "ca440_01",
+    "ca440_02",
+    "ca440_03",
+    "ca440_04",
+    "ca440_05",
+    "ca440_06",
+    "ca440_07",
+    "ca440_08",
+    "ca440_09",
+    "ca440_10",
+    "ca440_11",
+    "ca440_12",
+    "ca440_13",
+    "ca440_14",
+    "ca440_15",
+    "ca440_16",
+    "ca440_17",
+    "ca440_18",
+    "ca440_19",
+    "ca440_20",
+    "ca440_21",
+    "ca440_22",
+    "ca440_23",
+    "ca440_24",
+    "ca440_25",
+    "ca440_26",
+    "ca440_27",
+    "ca440_28",
+    "ca440_29",
+    "ca440_30",
+    "ca440_31",
+    "ca440_32",
+    "ca440_33",
+    "ca440_34",
+    "ca440_35",
+    "ca440_36",
+    "ca440_37",
+    "ca440_38",
+    "ca440_39",
+    "ca440_40",
+    "ca440_41",
+    "ca440_42",
+    "ca440_43",
+    "ca440_44",
+    "ca440_45",
+    "ca440_46",
+    "ca440_47",
+    "ca440_48"
+  ],
+  "advisory_configuration": {
+    "adapter_schema_version": "confidence_calibration_advisory_result_v1",
+    "configuration_version": "confidence_calibration_advisory_config_v1",
+    "advisory_id_prefix": "confidence_calibration_advisory_v1:",
+    "confidence_scale_basis_points_per_point": 100,
+    "accepted_min_confidence_basis_points": 0,
+    "accepted_max_confidence_basis_points": 10000,
+    "output_decimal_precision": 2,
+    "deterministic_sorting_policy": "action_432_sort_v1",
+    "identity_policy": "action_432_identity_v1",
+    "issue_message_key_prefix": "confidence_calibration_advisory.",
+    "eligible_calibration_statuses": [
+      "calibrated",
+      "calibrated_with_warnings",
+      "no_adjustment"
+    ],
+    "blocked_calibration_status_map": {
+      "insufficient_eligible_evidence": "advisory_insufficient_evidence",
+      "blocked_invalid_input": "blocked_invalid_input",
+      "blocked_invalid_configuration": "blocked_invalid_input",
+      "blocked_invalid_lineage": "blocked_invalid_lineage",
+      "blocked_future_leakage": "blocked_future_leakage",
+      "blocked_overlapping_evidence": "blocked_calibration_result",
+      "blocked_unsupported_insight": "blocked_unsupported_status"
+    },
+    "advisory_visibility_policy": "advisory_visible_for_eligible_statuses",
+    "application_policy": "never_apply_in_action_432",
+    "runtime_preview_status": "runtime_preview_waiting_for_operator_inputs"
+  },
+  "status_distribution": {
+    "advisory_ready": 6,
+    "advisory_ready_with_warnings": 2,
+    "advisory_no_adjustment": 1,
+    "advisory_insufficient_evidence": 1,
+    "blocked_invalid_input": 6,
+    "blocked_invalid_lineage": 12,
+    "blocked_future_leakage": 6,
+    "blocked_calibration_result": 10,
+    "blocked_unsupported_status": 1,
+    "blocked_confidence_mismatch": 3
+  },
+  "hash_classification_distribution": {
+    "complete": 39,
+    "legacy": 1,
+    "invalid_or_retained": 8
+  },
+  "warning_distribution": {
+    "none": 45,
+    "metric_value_unavailable": 3
+  },
+  "issue_distribution": {
+    "none": 9,
+    "blocked_calibration_result": 14,
+    "blocked_confidence_mismatch": 3,
+    "invalid_calibration_result": 2,
+    "invalid_original_confidence": 4,
+    "invalid_recommendation_identity": 3,
+    "invalid_snapshot_lineage": 3,
+    "blocked_invalid_lineage": 1,
+    "blocked_future_leakage": 5,
+    "blocked_feedback_reuse": 4
+  },
+  "complete_legacy_fallback_policy": {
+    "valid_complete_hash_accepted": true,
+    "valid_legacy_hash_accepted": true,
+    "malformed_hash_blocked": true,
+    "swapped_hash_blocked": true,
+    "complete_hash_mismatch_blocked": true,
+    "legacy_bypass_blocked": true,
+    "retained_hash_tamper_blocked": true
+  },
+  "confidence_binding_policy": {
+    "exact_match_ready": true,
+    "mismatch_blocks": true,
+    "invalid_confidence_blocks": true
+  },
+  "lineage_leakage_feedback_policy": {
+    "recommendation_lineage_blocks": true,
+    "pattern_insight_lineage_blocks": true,
+    "anti_leakage_blocks": true,
+    "anti_feedback_blocks": true
+  },
+  "scenarios": [
+    {
+      "id": "ca440_01",
+      "order": 1,
+      "family": "eligible_success",
+      "purpose": "calibrated complete-hash success",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:3e75b7e94e66adf119571af6",
+      "advisory_hash": "3e75b7e94e66adf119571af6d74a46f302e230fca5b1ff1d469ba2a4d0f685e7",
+      "advisory_identity_sha256": "56a298958840ecab462a54e0b9fb15423587990687faa5d326514364ad3cf5f0",
+      "canonical_advisory_result_sha256": "0ee145ec2817640e778269cb7dc224a810071188bd7c80466ac4d5fa6cbd3a48",
+      "complete_calibration_hash_sha256": "a2eca947a1a9320f4386ec1e9fc1abfaecb0c862b167b61658c26345bcbd8a82",
+      "legacy_or_input_calibration_hash_sha256": "a2eca947a1a9320f4386ec1e9fc1abfaecb0c862b167b61658c26345bcbd8a82",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 5200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "1f2228fe91a727609c0d1a2929e500bfdb93f3b72b883aa555cd771f8782a05e",
+        "decision_boundary_sha256": "0a8f614018222243bff7b38c74e4bde95e7e08f6ddfc4744047518deb96a1279",
+        "pattern_discovery_result_hashes": [
+          "03e4adf868d95ddff4f6a09e4e400d3050eb0c1f56f68b023aaa6d3b245d4358"
+        ],
+        "pattern_insight_hashes": [
+          "3582cbc01a9f64872e2e410919001285500232d838277330514311a41b01ca43"
+        ],
+        "calibration_identity_hash": "6b0cb863c926842ed346440d37fc9176344a259cfcbbaf6c2b2c8e0f5a5a1b50",
+        "calibration_result_hash": "a2eca947a1a9320f4386ec1e9fc1abfaecb0c862b167b61658c26345bcbd8a82",
+        "evidence_lineage_hash": "fb24808e404344de8724b36947804a78ce872a72aae293b10bc945d50994e71b"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_01",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_01",
+        "recommendation_snapshot_hash": "ae0849903f1b89c625359a0b0a9d7927ced60a04e42b3ada77c251c152e109dc",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "0a8f614018222243bff7b38c74e4bde95e7e08f6ddfc4744047518deb96a1279",
+        "evidence_cutoff_sha256": "96ad379936d0a782a7fbfa6eba7306d0fa95a6af40984d9e3d120a304b7381b7",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "03e4adf868d95ddff4f6a09e4e400d3050eb0c1f56f68b023aaa6d3b245d4358"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_01"
+        ],
+        "pattern_insight_hashes": [
+          "3582cbc01a9f64872e2e410919001285500232d838277330514311a41b01ca43"
+        ],
+        "source_scenario_ids": [
+          "ca440_01"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_01"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:5bb1c30340265e67d1fe68ce",
+        "calibration_status": "calibrated",
+        "calibration_hash": "a2eca947a1a9320f4386ec1e9fc1abfaecb0c862b167b61658c26345bcbd8a82",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_01"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_02",
+      "order": 2,
+      "family": "eligible_success",
+      "purpose": "calibrated_with_warnings success",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready_with_warnings",
+      "actual_status": "advisory_ready_with_warnings",
+      "calibration_status": "calibrated_with_warnings",
+      "advisory_id": "confidence_calibration_advisory_v1:8b3df050e30a0de2b4410a02",
+      "advisory_hash": "8b3df050e30a0de2b4410a02e551086c0ad6427d4baf1243683c90a0237fbd94",
+      "advisory_identity_sha256": "e9d06f798b75fa37097b5719d0ca71bd90912c60e9f27683aeef7129e6f4ab7f",
+      "canonical_advisory_result_sha256": "ddd35a288e68401cfd0983ccc08d022c581407bce685447d0d32ee70eec7c1cc",
+      "complete_calibration_hash_sha256": "7c5d434bd3f44c236e6bcd786617920a8b1a067c3c43316fb34dc2971e867181",
+      "legacy_or_input_calibration_hash_sha256": "7c5d434bd3f44c236e6bcd786617920a8b1a067c3c43316fb34dc2971e867181",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 100,
+      "proposed_calibrated_confidence_basis_points": 5100,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [
+        {
+          "code": "metric_value_unavailable",
+          "path": "/insights/0/warning_codes",
+          "severity": "warning",
+          "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+        }
+      ],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "88c4df24976c3adcb985ba1152e13e58b4d10723cc43478b9d27cf3d3434f42c",
+        "decision_boundary_sha256": "6059da2b84d7964eb6cceb8e070229389b347d9f585cbbce6e2958091be1ff68",
+        "pattern_discovery_result_hashes": [
+          "535c884510d989f79a58ec071053fcf94b65b0fd59a084c140dea69bae0267f0"
+        ],
+        "pattern_insight_hashes": [
+          "ab0784839c2df8dbd88b0b2e1dba330de3a101c20e619462ebb54a2c4861641c"
+        ],
+        "calibration_identity_hash": "4649496b84f131a0185083a3ca8c5382fc73f6f9f3cc3c56650799305c1cc989",
+        "calibration_result_hash": "7c5d434bd3f44c236e6bcd786617920a8b1a067c3c43316fb34dc2971e867181",
+        "evidence_lineage_hash": "0049c224322bdf05718b5ff09d3f39b68f6faf05869836b4773f89122ca47153"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready_with_warnings",
+        "applied_false",
+        "calibration_status:calibrated_with_warnings",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_02",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_02",
+        "recommendation_snapshot_hash": "8736ec27133e01701ed2e45649452e3a460828638916dfd93e1e0f4d2fd11177",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "6059da2b84d7964eb6cceb8e070229389b347d9f585cbbce6e2958091be1ff68",
+        "evidence_cutoff_sha256": "5c331b7b1ce24267a3a46732a07ef13d43f0ba6f3bddd86e35a2dc9af724d36c",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "535c884510d989f79a58ec071053fcf94b65b0fd59a084c140dea69bae0267f0"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_02"
+        ],
+        "pattern_insight_hashes": [
+          "ab0784839c2df8dbd88b0b2e1dba330de3a101c20e619462ebb54a2c4861641c"
+        ],
+        "source_scenario_ids": [
+          "ca440_02"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_02"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:ee12c4a9b3a8b20246488fed",
+        "calibration_status": "calibrated_with_warnings",
+        "calibration_hash": "7c5d434bd3f44c236e6bcd786617920a8b1a067c3c43316fb34dc2971e867181",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_calibrated_confidence_basis_points": 5100,
+        "included_insight_ids": [
+          "insight_ca440_02"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 1,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_03",
+      "order": 3,
+      "family": "no_adjustment",
+      "purpose": "no_adjustment exact equality",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_no_adjustment",
+      "actual_status": "advisory_no_adjustment",
+      "calibration_status": "no_adjustment",
+      "advisory_id": "confidence_calibration_advisory_v1:07d607269bf0126ab3d52f3c",
+      "advisory_hash": "07d607269bf0126ab3d52f3cbdeca1a7f88a08bc383c768e77fd3eaa61639cfe",
+      "advisory_identity_sha256": "8275c464db7abb7b84dd0dc60341000a4b70a2d6fd2a05b8624cb72228ab6c0c",
+      "canonical_advisory_result_sha256": "95978d93d59ea6dca6e8ad1942c7b8f640f302872db0f38f89f747c669030f34",
+      "complete_calibration_hash_sha256": "2a4e2c02701d4e3da061765974ea24e6322ffafb5b9c1466b559f9e0ce2c6d24",
+      "legacy_or_input_calibration_hash_sha256": "2a4e2c02701d4e3da061765974ea24e6322ffafb5b9c1466b559f9e0ce2c6d24",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 0,
+      "proposed_calibrated_confidence_basis_points": 5000,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "e7993081cbd0289a94817d53c2f78dada3e3721f038fec697d8a0f398b87a01d",
+        "decision_boundary_sha256": "89cb0482073ae7d18b950537c7f91d5f33445f9228754d0ae44447abbcadec1b",
+        "pattern_discovery_result_hashes": [
+          "34ab3bc6f73a9a2c2fd5eca3b2c30a1aa037f965a96ef08e2bc4f868d9fc1c1f"
+        ],
+        "pattern_insight_hashes": [
+          "c089b3e14520a5ba1a591cec8ba896ec9ccb7d638e84277faaecbd51391b1ebf"
+        ],
+        "calibration_identity_hash": "cad7c041fb075a914aa0f868253eb7ab23bf770d5458d76c2f55b63e4799b1e1",
+        "calibration_result_hash": "2a4e2c02701d4e3da061765974ea24e6322ffafb5b9c1466b559f9e0ce2c6d24",
+        "evidence_lineage_hash": "85807835bd3bcb0c961da8bbaf94aa090127f7564b6a5299192acdd579c3a277"
+      },
+      "reasons": [
+        "advisory_status:advisory_no_adjustment",
+        "applied_false",
+        "calibration_status:no_adjustment",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_03",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_03",
+        "recommendation_snapshot_hash": "43d8aa250b87543aea2a35b0e86ef2e291d1898e1a8e6c0eef35b0da8ef32942",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "89cb0482073ae7d18b950537c7f91d5f33445f9228754d0ae44447abbcadec1b",
+        "evidence_cutoff_sha256": "453fb637e27cac6128bc983503518d9852a6f9d63c5e8b651d084951c7c1cea2",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "34ab3bc6f73a9a2c2fd5eca3b2c30a1aa037f965a96ef08e2bc4f868d9fc1c1f"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_03"
+        ],
+        "pattern_insight_hashes": [
+          "c089b3e14520a5ba1a591cec8ba896ec9ccb7d638e84277faaecbd51391b1ebf"
+        ],
+        "source_scenario_ids": [
+          "ca440_03"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_03"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:439e0576c61c58b9c141e951",
+        "calibration_status": "no_adjustment",
+        "calibration_hash": "2a4e2c02701d4e3da061765974ea24e6322ffafb5b9c1466b559f9e0ce2c6d24",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 0,
+        "proposed_calibrated_confidence_basis_points": 5000,
+        "included_insight_ids": [
+          "insight_ca440_03"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_04",
+      "order": 4,
+      "family": "blocked_calibration_input",
+      "purpose": "insufficient evidence maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "advisory_insufficient_evidence",
+      "actual_status": "advisory_insufficient_evidence",
+      "calibration_status": "insufficient_eligible_evidence",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "dcf1b7e32e9b059ef93cf9af4c26328e83cf8f70ad0ce766f31a74e0f35830c2",
+      "canonical_advisory_result_sha256": "1e1839e57121410b9d6ad6df9633dc3d0c732d0635f710364f5745e0406bd0ea",
+      "complete_calibration_hash_sha256": "8dd36f51dfd9138e086bbdd56094e243277082c4ca3acb9bd08ad91b3bdf2b19",
+      "legacy_or_input_calibration_hash_sha256": "660cceac4b67c823f3fedab8648489a74472513ceeec2c54590f0cf7b68f7cbe",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "advisory_insufficient_evidence"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_04",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_04",
+        "recommendation_snapshot_hash": "26aca40a371dedad2cbbecf23d7d57b83149ab5f7c45543a193c5ece1e0a60e3",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "70dc6358c0633a33b973849d478351cc0c52cf9d6c70e2c48dbfdfb82db8c1a4",
+        "evidence_cutoff_sha256": "4cba7a7856ed4a3bdbeedec4b0cde86eef87dd6d9663af498cb830071a82641c",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "207f8579e81f95d221e651216e4987ed5af8d4dffd80cd287e08fd6e9da5e385"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_04"
+        ],
+        "pattern_insight_hashes": [
+          "8d4097517aa320854b7cf0033f800ac2fd0b41948c8591c34c065f791f124d65"
+        ],
+        "source_scenario_ids": [
+          "ca440_04"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_04"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:2c23be18e01f02d894aa3634",
+        "calibration_status": "insufficient_eligible_evidence",
+        "calibration_hash": "660cceac4b67c823f3fedab8648489a74472513ceeec2c54590f0cf7b68f7cbe",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_04"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_05",
+      "order": 5,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked invalid input maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": "blocked_invalid_input",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "472e8fbcce785b244d02adc279bc9625ab0c165763ea7455798d70883cb19289",
+      "canonical_advisory_result_sha256": "a55adcee5eb0105f0ecb5e819afd941ff3856b655def245f1ac98d8b018420c4",
+      "complete_calibration_hash_sha256": "7f5d797d3e08371b44721a9cb0870314618fe3def7838aef7ac1d2d46f57ce52",
+      "legacy_or_input_calibration_hash_sha256": "1184a8ea545294deab209c6f53ccbf587c19e349a2ad25c5ebb318f0bd319b63",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_05",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_05",
+        "recommendation_snapshot_hash": "89e476706efe70f50c18f7233762262f3ef0532ed5fe8f37ad01b77c03f8425e",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "e7ead2129373bb370287ae74d84de6765fbf60daa712b086d05e8d590aaee5cf",
+        "evidence_cutoff_sha256": "d58d5c0128b7e7c55fe1d114885f55f806f5da0d638a83edf96c7494cacbbe63",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "c601d3e2ac15a778756f203203718b057126ec1f7365a8f76a8e4fe0aca25d79"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_05"
+        ],
+        "pattern_insight_hashes": [
+          "0152a1b4536e7eaafa0d90ded01b5ce83f818de396df51c6b0484adbd91e39a2"
+        ],
+        "source_scenario_ids": [
+          "ca440_05"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_05"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:753b50d5e21451ccaeab878e",
+        "calibration_status": "blocked_invalid_input",
+        "calibration_hash": "1184a8ea545294deab209c6f53ccbf587c19e349a2ad25c5ebb318f0bd319b63",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_05"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_06",
+      "order": 6,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked invalid configuration maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": "blocked_invalid_configuration",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "ee5fcdc4a02d03b464430c741f7df509ecff1b8f49cc00bcde587b25798fb808",
+      "canonical_advisory_result_sha256": "ca506c0a31c6808eba1d07914a1671952b337feccbf51e7643794ac062ed98de",
+      "complete_calibration_hash_sha256": "838d519ce7a85f3369850c5ffc421fedef05aed6191603d833307a7a1799cb41",
+      "legacy_or_input_calibration_hash_sha256": "20f8d780ad2936adb9487782454ec395d28581dd9a5fd42abf77db8c0fc8e1df",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_06",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_06",
+        "recommendation_snapshot_hash": "d6117930e1be1e6f33ae6c95b470b26b3e8c8cd57b1e5cf1f3560b220f6831b6",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "017f025e8eba673d57bb290e9169bf330a432dac1819c1be68f1094f8623ab7e",
+        "evidence_cutoff_sha256": "281eacc2ce6bd2bc791757fccea75a9c1d8fbbf03dc55116b9efd7df6f6f829a",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "7d5d8bbc8da779d3bdc17ffd0cdb5c21d24d3c6fbbf2ccf3756a0aaf1c7fea27"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_06"
+        ],
+        "pattern_insight_hashes": [
+          "73f6de04bb47afc8ba525b2b8268a842db515762a73f3a9844477195f4f4a7fc"
+        ],
+        "source_scenario_ids": [
+          "ca440_06"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_06"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:1112917d01aa8baaebaa7de2",
+        "calibration_status": "blocked_invalid_configuration",
+        "calibration_hash": "20f8d780ad2936adb9487782454ec395d28581dd9a5fd42abf77db8c0fc8e1df",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_06"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_07",
+      "order": 7,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked invalid lineage maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "blocked_invalid_lineage",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "1e1ba824d410fa1d57422c59ae0e1bc258765f679397308e86afdfa15daafb05",
+      "canonical_advisory_result_sha256": "6ff1973f403d10b96f705990f30cf3408427ea8c892b1b303559660410400801",
+      "complete_calibration_hash_sha256": "91eaf5f16a7154a6126d156d0452044d07b0aee16b9b859702f14ef8c1ef613b",
+      "legacy_or_input_calibration_hash_sha256": "726be83507c8112d875b678c01b4b0babc0a03f8c4f1da8a3a68e37eca2792cc",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_07",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_07",
+        "recommendation_snapshot_hash": "4a3c0001e7e35b8e297c3ff43e4bc01efc36a21cf4a6b80fffd6deb7cab02b46",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "16a7e2e46f00127af47b3f31466d56dd6d22ecc89717c79dca01c801813d0da9",
+        "evidence_cutoff_sha256": "e58f08d7de44e6d65b5cd1ee18a54a292ace46210c5d402ce6f057b8cffc7f86",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "a73d56f1c0800aa5d97d1ab236ca8d109c9de5918e6e5d39e2980530fc18e587"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_07"
+        ],
+        "pattern_insight_hashes": [
+          "b63896f11245c87451be2d554aaa2934f64950115643078d86763d5682e88f5f"
+        ],
+        "source_scenario_ids": [
+          "ca440_07"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_07"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:2cf2c077499cd445b65e0a3e",
+        "calibration_status": "blocked_invalid_lineage",
+        "calibration_hash": "726be83507c8112d875b678c01b4b0babc0a03f8c4f1da8a3a68e37eca2792cc",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_07"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_08",
+      "order": 8,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked future leakage maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "blocked_future_leakage",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "a5814ba3c5ebf62cd1178f5ac3a305b23eb87554bcb9aac7348965dc3966164a",
+      "canonical_advisory_result_sha256": "f38dc697f4cb53d99e3bd62bf22c62370e3bf82a40e9d46447c24682d30849c5",
+      "complete_calibration_hash_sha256": "91eef68d4ac7b744154fb6bf1d774acaa560ed81209f233e9d0c5f48412761d7",
+      "legacy_or_input_calibration_hash_sha256": "88a14c8115a1a14ed7ee09c5261769fdd1e3dc2b6b118108ac9e36e18a2efd32",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_08",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_08",
+        "recommendation_snapshot_hash": "9685edab8ed41fa06be1e984048058b4c5226faf3d3fa87272d85dd9b38b2927",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "bdb85ce2bde7ed5db434ddf20da828ba9ed0cd06ae8be4bfd0f5ff2369f1d11d",
+        "evidence_cutoff_sha256": "03201a7f16986459922b7f6116a99498d62991c511179e06992c433e971b5284",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "e0df8f97a588e7143da07ee2203c2deebdbc8d1750b3f52678c1e4d78d4105a1"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_08"
+        ],
+        "pattern_insight_hashes": [
+          "07be4d67656a0d7370b83d5609ff39e4f960580345b5caf08f0738444cc9cc0f"
+        ],
+        "source_scenario_ids": [
+          "ca440_08"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_08"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:3d42f99506ac015230d97c35",
+        "calibration_status": "blocked_future_leakage",
+        "calibration_hash": "88a14c8115a1a14ed7ee09c5261769fdd1e3dc2b6b118108ac9e36e18a2efd32",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_08"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_09",
+      "order": 9,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked overlapping evidence maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "blocked_overlapping_evidence",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "78d53087a8f4ea9036d6ad0d0eab06c21b5b9f696076213ff5111d0a5a101585",
+      "canonical_advisory_result_sha256": "f7a163fd9bd44bdee8c04f91fe3db2ae49949882ebbdf2343886f6728dc35aea",
+      "complete_calibration_hash_sha256": "c2b79a8e19eb89037842277dda6d5c6a5851405f6f626dd17bdc3314bc8b5d39",
+      "legacy_or_input_calibration_hash_sha256": "efd374530f4e84d28086c828a8172bd8ab9bbed568c6397dfc332b3a5759e480",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_09",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_09",
+        "recommendation_snapshot_hash": "90c41ddd523aa4ea1bc254c70b7511bbb8fe77f5e4ef70bbe87570151c45e84c",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "050b2f79c8e90a8d176f86e528843cbbcf45916fb19372be8c5fba424370dc9f",
+        "evidence_cutoff_sha256": "b79eba1b56e8f0e303778df08a54e05993fd7679c3c62d4af2a1350591a555ed",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "4d204d5a63d51f8da3d0879620c9610e06ac9315b803ffb381362593aebfcdaf"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_09"
+        ],
+        "pattern_insight_hashes": [
+          "7946030920f806bca511d6eaec9de0c476e33f522b456f6c1aa13ffb7ce89529"
+        ],
+        "source_scenario_ids": [
+          "ca440_09"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_09"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:f50aec71a6ee11ee52c52512",
+        "calibration_status": "blocked_overlapping_evidence",
+        "calibration_hash": "efd374530f4e84d28086c828a8172bd8ab9bbed568c6397dfc332b3a5759e480",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_09"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_10",
+      "order": 10,
+      "family": "blocked_calibration_input",
+      "purpose": "blocked unsupported insight maps closed",
+      "input_hash_mode": "mapped",
+      "hash_family": "complete",
+      "expected_status": "blocked_unsupported_status",
+      "actual_status": "blocked_unsupported_status",
+      "calibration_status": "blocked_unsupported_insight",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "ecac020b50a4f6e94423e916910cd4b0213b79e1b57397bc7effb11bba40bef8",
+      "canonical_advisory_result_sha256": "1d169a5693c72a4a059cc08bf472842e88763dfedda1725cb13a77224f6d42a2",
+      "complete_calibration_hash_sha256": "6117dc4b99394a1615eb191cc747c1ee70c856ea9b910e59fec43c59ede04aba",
+      "legacy_or_input_calibration_hash_sha256": "5a463a54b93299d1216414bfb73d7528de00f11e6a8e41281338631756069352",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/status",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_unsupported_status"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_10",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_10",
+        "recommendation_snapshot_hash": "79dcd3e98de1edbc1ec9224397eda1913c0bc29149abfad8b903b7cbca0a42e5",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "e7c587a76c773480ac8a90c145eb637f28d5248e7a631e9d67f5f355b5db109f",
+        "evidence_cutoff_sha256": "00a5ab24c9e07efdf3d123a8fd495befbda31c96c90df13a376bcf45a1374e50",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "a2346a9b3bfbce2cd54648f3bf18305b5fe00667353deb56030381b94273898e"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_10"
+        ],
+        "pattern_insight_hashes": [
+          "36432225c6fd8a0dc3dbaf289d36dd0a5efaa64bf1d32c3e13e94f2c49f6f669"
+        ],
+        "source_scenario_ids": [
+          "ca440_10"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_10"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:7bd1dd40d63766bb98becc0d",
+        "calibration_status": "blocked_unsupported_insight",
+        "calibration_hash": "5a463a54b93299d1216414bfb73d7528de00f11e6a8e41281338631756069352",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_10"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_11",
+      "order": 11,
+      "family": "confidence_binding",
+      "purpose": "exact confidence match",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:f4afdb61e59f451398c728f3",
+      "advisory_hash": "f4afdb61e59f451398c728f3c8b94d4c69a5c7f555f815ae3dde7af9bd155df4",
+      "advisory_identity_sha256": "3b9cf93124d45cb0428f1a59798be2d29e781855db209af53c8aab92efca042d",
+      "canonical_advisory_result_sha256": "3e41d63bac9e11e79936d9cc55e7969110f21370f42f22c7a4ac4519edeae5c7",
+      "complete_calibration_hash_sha256": "e261b883d267cf4e3a531d2a8579b5b78a4ea5c87be30527d27d2f1afb1cccfa",
+      "legacy_or_input_calibration_hash_sha256": "e261b883d267cf4e3a531d2a8579b5b78a4ea5c87be30527d27d2f1afb1cccfa",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 5200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "cc28fa287d0ace79932f7d2ad7c8e365b0b0ce17d917d6d67e97670d939ec6c7",
+        "decision_boundary_sha256": "7cc80753152081cde5aa3fa8e33bc9afb7128b3c48319a70e072c9ae989822fb",
+        "pattern_discovery_result_hashes": [
+          "86dbdca9f001acde6d7256c695034012cd39f0f0414f898b7602be34df68a00b"
+        ],
+        "pattern_insight_hashes": [
+          "ecfe6a090fd8e644709d2527981af2b64823716a301d463e8583b57b94abe324"
+        ],
+        "calibration_identity_hash": "294965f2f01d8c1ff476c2602718f7a08f589d2f22761ebec423529ce0d08c0a",
+        "calibration_result_hash": "e261b883d267cf4e3a531d2a8579b5b78a4ea5c87be30527d27d2f1afb1cccfa",
+        "evidence_lineage_hash": "6656aeaade729dca72389128ffd029e58f43b9df38670c5cbcf1452936dc1c48"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_11",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_11",
+        "recommendation_snapshot_hash": "8a95be0c57b9d5ee64bfb9f3ac20345685af446dbf5d7903490e4bf997db74c7",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "7cc80753152081cde5aa3fa8e33bc9afb7128b3c48319a70e072c9ae989822fb",
+        "evidence_cutoff_sha256": "abea65585e44645b77f1230b865fed9d8a16329ae345d1991dde18d8ca4fa891",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "86dbdca9f001acde6d7256c695034012cd39f0f0414f898b7602be34df68a00b"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_11"
+        ],
+        "pattern_insight_hashes": [
+          "ecfe6a090fd8e644709d2527981af2b64823716a301d463e8583b57b94abe324"
+        ],
+        "source_scenario_ids": [
+          "ca440_11"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_11"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:3193cf7dfc6530f734b79eef",
+        "calibration_status": "calibrated",
+        "calibration_hash": "e261b883d267cf4e3a531d2a8579b5b78a4ea5c87be30527d27d2f1afb1cccfa",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_11"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_12",
+      "order": 12,
+      "family": "confidence_binding",
+      "purpose": "one basis point mismatch",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_confidence_mismatch",
+      "actual_status": "blocked_confidence_mismatch",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "8d549844101658f8e44f824364783f10884b2735171789f48e9472466919f16d",
+      "canonical_advisory_result_sha256": "75ddb17fae1d4f7e5d961ac6d8816be509ca00ee9e053db5cd09e058dd942406",
+      "complete_calibration_hash_sha256": "395796e93284b55963b4583ce9eb0ee2a24ad5360cd381303495c643f6e088cf",
+      "legacy_or_input_calibration_hash_sha256": "395796e93284b55963b4583ce9eb0ee2a24ad5360cd381303495c643f6e088cf",
+      "original_confidence_basis_points": 5001,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_confidence_mismatch",
+          "path": "/calibration/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_confidence_mismatch"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_confidence_mismatch"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_12",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_12",
+        "recommendation_snapshot_hash": "b167e44262fca64bfeb287d5d32403aac04b184d07fa695d3855f881849aa9f7",
+        "original_confidence_basis_points": 5001,
+        "decision_boundary_sha256": "c702d204f7a0aeabf3175cd1fe26e31aae21c89b502663bd963f6dfad87e4662",
+        "evidence_cutoff_sha256": "ceae6ebebf7c2cd2aa74ee56fd103e1144d14991a4940e7a7b7be024cb4357fe",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "a2ff0f91a0e921198ea20935554868bd5c8478a3d959d2de0daf08905340c2b6"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_12"
+        ],
+        "pattern_insight_hashes": [
+          "163ef78badac8b9a369f7e2c3732555dba7d2396bf54ad863ebb660f9453d81c"
+        ],
+        "source_scenario_ids": [
+          "ca440_12"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_12"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:20daa855f7c6837406f14345",
+        "calibration_status": "calibrated",
+        "calibration_hash": "395796e93284b55963b4583ce9eb0ee2a24ad5360cd381303495c643f6e088cf",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_12"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_13",
+      "order": 13,
+      "family": "confidence_binding",
+      "purpose": "decimal mismatch",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_confidence_mismatch",
+      "actual_status": "blocked_confidence_mismatch",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "6016b9793d5ce7c501cb10ede85385116adc4383bddb6f8dfe4b3ff5ba72ddb0",
+      "canonical_advisory_result_sha256": "5efabbea3d65ab28a10d4a567274f7bac5a117a93924f6e313338fd8ad2f34a0",
+      "complete_calibration_hash_sha256": "38f8211c9f96bba78de8bad22e224bec3ca6e50875798ddbd47e3d86f05e5516",
+      "legacy_or_input_calibration_hash_sha256": "38f8211c9f96bba78de8bad22e224bec3ca6e50875798ddbd47e3d86f05e5516",
+      "original_confidence_basis_points": 5100,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_confidence_mismatch",
+          "path": "/calibration/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_confidence_mismatch"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_confidence_mismatch"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_13",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_13",
+        "recommendation_snapshot_hash": "5b42e240f73edb343c1b631cc22fd38aea7c97b274fdaac77bbf58b4a98cad0b",
+        "original_confidence_basis_points": 5100,
+        "decision_boundary_sha256": "eaee6d283bfdba6025a81a8a0af6b40170ac42c082c771d708169982c26c5010",
+        "evidence_cutoff_sha256": "2918f103a8387d45ec9f3ca6e278762789c0127b1601a49eaec7b2be690b00cd",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "81114ad572770e91805746feb7a13a4de38fa401e9f3b895f3e73f1075398cc7"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_13"
+        ],
+        "pattern_insight_hashes": [
+          "b84d2e8fc8cc01b9061da8ab837f1a289f4c1afa8a39f2d715f5f54914bf8aeb"
+        ],
+        "source_scenario_ids": [
+          "ca440_13"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_13"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:71eedb728c0af07b7fba0a85",
+        "calibration_status": "calibrated",
+        "calibration_hash": "38f8211c9f96bba78de8bad22e224bec3ca6e50875798ddbd47e3d86f05e5516",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_13"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_14",
+      "order": 14,
+      "family": "confidence_binding",
+      "purpose": "invalid confidence precision",
+      "input_hash_mode": "complete_retained",
+      "hash_family": "complete",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "adb935c27272da6f2c006224febccfdef706e33a9205a00631ab425cb1b9ef74",
+      "canonical_advisory_result_sha256": "a48a29b41b610da85fab060194a31c90c47b5b0e29a6218068548075c6e11b4f",
+      "complete_calibration_hash_sha256": "5b069c4260f7278667778b7365d1c7d0dc50a3eebe47d534b9501f2e73d0699e",
+      "legacy_or_input_calibration_hash_sha256": "834274f8bc41d4eca1e4f0df392c4a89a936dce533e2dad0cb2e189f6c413c87",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_calibration_result",
+          "path": "/calibration",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_14",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_14",
+        "recommendation_snapshot_hash": "ffbbc376b898d464c85001eb987c871b41fc0b362d2a60efa9818642109008fc",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "9d13d98b4a5fde0b90aee2cda8705e901272a641c2db3fdc1b8d1eeca3c0e5fa",
+        "evidence_cutoff_sha256": "e8c3753f55d0ec8c69bb53ee566b8c7d8fa15dc7baf52c0e49f60d9edddb27ba",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "50ca30472622c61989080140c78d0f00e9fc4e04815f295f09935e44f855120c"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_14"
+        ],
+        "pattern_insight_hashes": [
+          "a7c096a292932dc8a5e762a3d87d7a80109406ea527008cc28fdcb0885ec0cf1"
+        ],
+        "source_scenario_ids": [
+          "ca440_14"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_14"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:86d789172bf886fde9be6f8d",
+        "calibration_status": "calibrated",
+        "calibration_hash": "834274f8bc41d4eca1e4f0df392c4a89a936dce533e2dad0cb2e189f6c413c87",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": null,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_14"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_15",
+      "order": 15,
+      "family": "confidence_binding",
+      "purpose": "below accepted confidence range",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "aa3a2e9243133569df72be5bce7565eba122d692795e3b576b25f83954201aca",
+      "canonical_advisory_result_sha256": "10be71c1d554990172406dee5ba6dc553cd77ba109b9e49e40617c0192b498e3",
+      "complete_calibration_hash_sha256": "98105311ed4292d108c36bae1c7b505a8affe347451631e0c58a112aaa33af2d",
+      "legacy_or_input_calibration_hash_sha256": "98105311ed4292d108c36bae1c7b505a8affe347451631e0c58a112aaa33af2d",
+      "original_confidence_basis_points": -100,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_original_confidence",
+          "path": "/recommendation/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_original_confidence"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_15",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_15",
+        "recommendation_snapshot_hash": "e49191b80e8d793825ccb30f42d0a0453a26e02c7f5c1fb7a5fb135b2d11ff15",
+        "original_confidence_basis_points": -100,
+        "decision_boundary_sha256": "13e455d805186f50e01cfda4582e033bdc9eaef2a5d4d46ed498661278f3b0f1",
+        "evidence_cutoff_sha256": "3629ee8d8d27de12786979069fd89372cc0d75b1257f717365cd7841556cb38e",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "d9382e537c0c1df079efa4e03d680d5f37d4983cd3392d00cbc7461c238ce7bd"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_15"
+        ],
+        "pattern_insight_hashes": [
+          "eadf2f35d87b9817acf1742297cd6c0695744ccd4c8dc4b55f90ab635277be7d"
+        ],
+        "source_scenario_ids": [
+          "ca440_15"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_15"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:1d3ea5b50289f79258b7146c",
+        "calibration_status": "calibrated",
+        "calibration_hash": "98105311ed4292d108c36bae1c7b505a8affe347451631e0c58a112aaa33af2d",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_15"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_16",
+      "order": 16,
+      "family": "confidence_binding",
+      "purpose": "above accepted confidence range",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "ca729c6c63f560b37cd14e45c82e437a3c6f88ef6ae26fa2a12178af20535168",
+      "canonical_advisory_result_sha256": "3280a6bf9fb1fb0dc06016688ffc7fcd3bd48a7f2737124ccbec81e17a026570",
+      "complete_calibration_hash_sha256": "94d9e940a63894e5fccf994b6aa7f25f32c30deed759cdd8ff1578ce63ad900d",
+      "legacy_or_input_calibration_hash_sha256": "94d9e940a63894e5fccf994b6aa7f25f32c30deed759cdd8ff1578ce63ad900d",
+      "original_confidence_basis_points": 10100,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_original_confidence",
+          "path": "/recommendation/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_original_confidence"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_16",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_16",
+        "recommendation_snapshot_hash": "fcbfa9c901dde3053ba3917281580850f9bbf636469a789c0a8a2e05a7fe04d2",
+        "original_confidence_basis_points": 10100,
+        "decision_boundary_sha256": "1e5e8aafb203e9b32ceee4c47534b48aabd125c0146052df85a2cde02c7f6943",
+        "evidence_cutoff_sha256": "6cde9ff191fe29c532bdcee331b51b059965f0d8b996d66b0ddfdd7c8d53a63c",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "5b6cc952d67ef1f7f682947e227220fbcd81d61e0d8e0aab9647243a173c6576"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_16"
+        ],
+        "pattern_insight_hashes": [
+          "3cec294d7f6627233cea8e89924b78ffe81aa31f9fd45eb04afc11346d48819b"
+        ],
+        "source_scenario_ids": [
+          "ca440_16"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_16"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:08c95d5cfcf58907cce13966",
+        "calibration_status": "calibrated",
+        "calibration_hash": "94d9e940a63894e5fccf994b6aa7f25f32c30deed759cdd8ff1578ce63ad900d",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_16"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_17",
+      "order": 17,
+      "family": "confidence_binding",
+      "purpose": "NaN confidence rejected",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "62376bb08439cc17f3012bea1f50236065c045040941d1c39dee3b278eba7ddc",
+      "canonical_advisory_result_sha256": "38da6ae54f9a3419d07a2d218b90b3fd8aec6a956442ad3d9abea1625a39ae7d",
+      "complete_calibration_hash_sha256": "1f497e55187f478f03ad6fe89da0370a512f67e90c2ec5e4616b8c4854998e85",
+      "legacy_or_input_calibration_hash_sha256": "1f497e55187f478f03ad6fe89da0370a512f67e90c2ec5e4616b8c4854998e85",
+      "original_confidence_basis_points": -1,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_original_confidence",
+          "path": "/recommendation/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_original_confidence"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_17",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_17",
+        "recommendation_snapshot_hash": "349be0a63f336bdf541457837cc1af7d1359e63f7b2dbb029b31467eddc4262b",
+        "original_confidence_basis_points": -1,
+        "decision_boundary_sha256": "9c0eb9de0835805875182f5c47a1ee240eca41277c2d8f37bd0791dcb6084f92",
+        "evidence_cutoff_sha256": "46bd1cdefcfa215130fa838b99bc23ba6ea27300dad8a30654abdacd1a6e1ec6",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "5400363016f094df0b4e84bf3d24f0447498d33e4e789b3531a2ed78b6ed5cb3"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_17"
+        ],
+        "pattern_insight_hashes": [
+          "83e02454ffd1c521cc9325c415faf0b8e50f91c2c566ed7c74ba79ece1fed65d"
+        ],
+        "source_scenario_ids": [
+          "ca440_17"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_17"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:7bd4a079b696f6069e837c3c",
+        "calibration_status": "calibrated",
+        "calibration_hash": "1f497e55187f478f03ad6fe89da0370a512f67e90c2ec5e4616b8c4854998e85",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_17"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_18",
+      "order": 18,
+      "family": "confidence_binding",
+      "purpose": "Infinity confidence rejected",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_input",
+      "actual_status": "blocked_invalid_input",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "145ba3fa595f9c5865665ff9bd8ea16926d8a471b734f161193aaaae8c8a8223",
+      "canonical_advisory_result_sha256": "32be20d5992ebb9a24633d8facc716e6203a52fcc8d3131c7fe0921467c8ca73",
+      "complete_calibration_hash_sha256": "c0dbab12f707993b89b55dc03e7983c3d0a43cffbf19f77058bb0cc586ae5144",
+      "legacy_or_input_calibration_hash_sha256": "c0dbab12f707993b89b55dc03e7983c3d0a43cffbf19f77058bb0cc586ae5144",
+      "original_confidence_basis_points": 10001,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_original_confidence",
+          "path": "/recommendation/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_original_confidence"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_input"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_18",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_18",
+        "recommendation_snapshot_hash": "ebba878b6418f1847d4902fb8051fd9f305f2bfa4f68109ad5d5070ddd024266",
+        "original_confidence_basis_points": 10001,
+        "decision_boundary_sha256": "77d18dd28b2d7d9c4e4f9214ccf95172e6eeb8e1a39a60fadb66f5e4356a34e1",
+        "evidence_cutoff_sha256": "525f60be317ee0bfe396e3ed5c01e7556eaeb463b3821afeb1e58464b88a0830",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "cdf964eb82f7492983810d7fe71d75e0f9c17933fb30ca9534240eff1cbb74ee"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_18"
+        ],
+        "pattern_insight_hashes": [
+          "1b56373894f779143a9f04dd3ce24c75841afa4faf60e79e4131ed09e5ca41e5"
+        ],
+        "source_scenario_ids": [
+          "ca440_18"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_18"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:d3222399a5dac98d2b7a8de8",
+        "calibration_status": "calibrated",
+        "calibration_hash": "c0dbab12f707993b89b55dc03e7983c3d0a43cffbf19f77058bb0cc586ae5144",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_18"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_19",
+      "order": 19,
+      "family": "confidence_binding",
+      "purpose": "signed zero confidence remains exact",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:9a64b90276c48cdd1c90fe99",
+      "advisory_hash": "9a64b90276c48cdd1c90fe99d48ae2e99261a7bad253b43a1b86930b08738935",
+      "advisory_identity_sha256": "dcdccd0afdb8a5153cca960f2d471d7fe041541ac8e612b3f004b4771d3f6923",
+      "canonical_advisory_result_sha256": "ace6f18aca3a7481cda10eacdddce33ee5b01fb47a88d63752e7bf6cbcdefb48",
+      "complete_calibration_hash_sha256": "ad24ddc3cf00686df7becdbef008d7dfeaab4f6f29b9739a279b575240d7a137",
+      "legacy_or_input_calibration_hash_sha256": "ad24ddc3cf00686df7becdbef008d7dfeaab4f6f29b9739a279b575240d7a137",
+      "original_confidence_basis_points": 0,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "4f4a26e2d64ff9503dce59a00eb4bbc1d8dc907b73c2a3eab86abc5521bee804",
+        "decision_boundary_sha256": "753672408f16645855db1e82deedcacd760fff9112428469bc5617e2809f1b85",
+        "pattern_discovery_result_hashes": [
+          "edb41688eb58e7135d1e0f546c9491ecb7377773d57bc8cf027afef80ea20a78"
+        ],
+        "pattern_insight_hashes": [
+          "a524a995d2074f5ddf3a35ee66a0aa6f755d0cc34e4ad6787b374ef8c9f7d0f9"
+        ],
+        "calibration_identity_hash": "6c7d510470500845f76633dd6d59b422ec88c984cf53196ae516df2414f2142d",
+        "calibration_result_hash": "ad24ddc3cf00686df7becdbef008d7dfeaab4f6f29b9739a279b575240d7a137",
+        "evidence_lineage_hash": "7822e6692c4d6bba5d73e54eae9ec1671abf43da8b0cf73fc5167ae4ca92e908"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_19",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_19",
+        "recommendation_snapshot_hash": "af3c7ff0bc8a71f5a290e59b89fbe8ccc0e96794f145f2fe65c8ea619b7ab43e",
+        "original_confidence_basis_points": 0,
+        "decision_boundary_sha256": "753672408f16645855db1e82deedcacd760fff9112428469bc5617e2809f1b85",
+        "evidence_cutoff_sha256": "8c790c9cf18dfa8226648236fadce7673a31f563df68d0600132e1ac8e44ddc5",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "edb41688eb58e7135d1e0f546c9491ecb7377773d57bc8cf027afef80ea20a78"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_19"
+        ],
+        "pattern_insight_hashes": [
+          "a524a995d2074f5ddf3a35ee66a0aa6f755d0cc34e4ad6787b374ef8c9f7d0f9"
+        ],
+        "source_scenario_ids": [
+          "ca440_19"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_19"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:8d4b39419f2e47496e291ff5",
+        "calibration_status": "calibrated",
+        "calibration_hash": "ad24ddc3cf00686df7becdbef008d7dfeaab4f6f29b9739a279b575240d7a137",
+        "original_confidence_basis_points": 0,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 200,
+        "included_insight_ids": [
+          "insight_ca440_19"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_20",
+      "order": 20,
+      "family": "recommendation_lineage",
+      "purpose": "missing recommendation fingerprint",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "0eb4e18c6cfc73292a4e7a0cb947d7b96b0be7c1231f93be0505f39e8fc9fe78",
+      "canonical_advisory_result_sha256": "0a9d171732097d582f02ae6ab4dc3715ca9a6266f1777a321b50a5bc9b0355f3",
+      "complete_calibration_hash_sha256": "597bc40d0270f1582bfa3763fd892dbdf97fa90a4048b1a055f20fedc48d0d39",
+      "legacy_or_input_calibration_hash_sha256": "597bc40d0270f1582bfa3763fd892dbdf97fa90a4048b1a055f20fedc48d0d39",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_recommendation_identity",
+          "path": "/recommendation/recommendation_fingerprint",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_recommendation_identity"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_20",
+        "recommendation_fingerprint": "",
+        "recommendation_snapshot_hash": "a41e7e22f884f9378671062eb21667174e7b834ab091e8a5834a3dc60c0dcc8c",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "cd63044e88d70d920584eb1bf42e79f9ebb12f4e6d7b05b225b4b03e2f687ade",
+        "evidence_cutoff_sha256": "f8ccefaf2b21ff736ad23fce1fef200105ccf9cf3bca3614d2db0bbd9ff94437",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "40c7ec10f095c8ba8f5298692e245aed46eb11cc94704ab4122714e6411d2d2a"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_20"
+        ],
+        "pattern_insight_hashes": [
+          "e0f35fe8957198f7894f734e334c766fc5bc8e9132fe7f51eea44c127e63ca3b"
+        ],
+        "source_scenario_ids": [
+          "ca440_20"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_20"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:d8f4c51a4352b3a27b2ff2f3",
+        "calibration_status": "calibrated",
+        "calibration_hash": "597bc40d0270f1582bfa3763fd892dbdf97fa90a4048b1a055f20fedc48d0d39",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_20"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_21",
+      "order": 21,
+      "family": "recommendation_lineage",
+      "purpose": "malformed recommendation fingerprint",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "e78678f4f284ca71579a078c4cfa2559a5a65ab64c74998d4daea1489296d8b5",
+      "canonical_advisory_result_sha256": "0a9d171732097d582f02ae6ab4dc3715ca9a6266f1777a321b50a5bc9b0355f3",
+      "complete_calibration_hash_sha256": "11e3a9e2d13655dc7e6c79bfa33201a4c695a4e77aacc9b1587b7ef23cc25a3c",
+      "legacy_or_input_calibration_hash_sha256": "11e3a9e2d13655dc7e6c79bfa33201a4c695a4e77aacc9b1587b7ef23cc25a3c",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_recommendation_identity",
+          "path": "/recommendation/recommendation_fingerprint",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_recommendation_identity"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_21",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_21",
+        "recommendation_snapshot_hash": "malformed_snapshot_hash",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "8bf51115cc080ac0b45a8ca7a14d592cf71e9eb65f8aa93fc3e81c94fb17690e",
+        "evidence_cutoff_sha256": "d6de1ed51568f16998b0c8f0809346be9171c5544dc8cd2be60b14710e807c4c",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "246520c640c33ea8348e94d9fd84da77696323c6bed722dda298336d2e739d52"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_21"
+        ],
+        "pattern_insight_hashes": [
+          "7c4a0cacf576244570759817ff1396e6dce148ea245afb75a2ed1c913542e93e"
+        ],
+        "source_scenario_ids": [
+          "ca440_21"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_21"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:53de46628b904d874c70f134",
+        "calibration_status": "calibrated",
+        "calibration_hash": "11e3a9e2d13655dc7e6c79bfa33201a4c695a4e77aacc9b1587b7ef23cc25a3c",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_21"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_22",
+      "order": 22,
+      "family": "recommendation_lineage",
+      "purpose": "changed recommendation fingerprint",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "a4c46bcfecf2495821c7b89bcfeb25be2ea952ef28440c37a43f456028d4f8a5",
+      "canonical_advisory_result_sha256": "0a9d171732097d582f02ae6ab4dc3715ca9a6266f1777a321b50a5bc9b0355f3",
+      "complete_calibration_hash_sha256": "aeb5b5578218da4674ad95089748969f502cea9d6169b3f70f11498a3371acc8",
+      "legacy_or_input_calibration_hash_sha256": "aeb5b5578218da4674ad95089748969f502cea9d6169b3f70f11498a3371acc8",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_recommendation_identity",
+          "path": "/recommendation/recommendation_fingerprint",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_recommendation_identity"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_22",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_22",
+        "recommendation_snapshot_hash": "277194b8550518858742075c4c329d4ed05153652d70c0318942786fe4ea183c",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "malformed_boundary_hash",
+        "evidence_cutoff_sha256": "68052bc3372ea5e3a811eaa815e294322907c0b11cb8b4d18b235c3c47dc5d18",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "522065afc526437872361ee5e26f611bcd97abbe4f4afde01939f2a2c6dcc3f6"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_22"
+        ],
+        "pattern_insight_hashes": [
+          "1a96a7bc30f39a2a246b62ece010128b7e17109832488467bbd93bc18c761beb"
+        ],
+        "source_scenario_ids": [
+          "ca440_22"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_22"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:4833e068634d6c1bc90cb903",
+        "calibration_status": "calibrated",
+        "calibration_hash": "aeb5b5578218da4674ad95089748969f502cea9d6169b3f70f11498a3371acc8",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_22"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_23",
+      "order": 23,
+      "family": "recommendation_lineage",
+      "purpose": "missing snapshot hash",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "ba37cf9b55c2011f8b56ad3710da5728540400d9c7823d13526ac51d54995dd8",
+      "canonical_advisory_result_sha256": "db406b66d696c231fcbef7225dce9c0dfd75b9e9d87cb78e922cad2f3f8d2a22",
+      "complete_calibration_hash_sha256": "f25bf686740b412be85e0693b41a84a7a7b4ac470e9719a2f94344bdb09d9e97",
+      "legacy_or_input_calibration_hash_sha256": "f25bf686740b412be85e0693b41a84a7a7b4ac470e9719a2f94344bdb09d9e97",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_snapshot_lineage",
+          "path": "/recommendation/lineage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_snapshot_lineage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_23",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_23",
+        "recommendation_snapshot_hash": "425cca08e890effdc4248e9d83eb1d798c8ee89c21a222e75e37b61fedb00ca3",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "7e60e9cfa8ebb9e234be04240f98656e92765037d41f9456607d9659cb184017",
+        "evidence_cutoff_sha256": "6622328d40213654c0253a42932b463a4380bcb48a4fcd0a030bc4101a0a1c6d",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [],
+        "pattern_insight_ids": [
+          "insight_ca440_23"
+        ],
+        "pattern_insight_hashes": [
+          "8b17d7c0e3f97b7d2fe21594477ee702d02d2883b44cde96f61ce05dc4580b48"
+        ],
+        "source_scenario_ids": [
+          "ca440_23"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_23"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:559d858ab45865ceef8f1329",
+        "calibration_status": "calibrated",
+        "calibration_hash": "f25bf686740b412be85e0693b41a84a7a7b4ac470e9719a2f94344bdb09d9e97",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_23"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_24",
+      "order": 24,
+      "family": "recommendation_lineage",
+      "purpose": "malformed snapshot hash",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "2a61e0288cefa02c5bdfea34b10e8e2d6767d3f17faf466201968d475064aa47",
+      "canonical_advisory_result_sha256": "db406b66d696c231fcbef7225dce9c0dfd75b9e9d87cb78e922cad2f3f8d2a22",
+      "complete_calibration_hash_sha256": "7f02ab1ccb2cf17d359306c86192c49eaa41481b3bb5dc144c61325facbd2304",
+      "legacy_or_input_calibration_hash_sha256": "7f02ab1ccb2cf17d359306c86192c49eaa41481b3bb5dc144c61325facbd2304",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_snapshot_lineage",
+          "path": "/recommendation/lineage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_snapshot_lineage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_24",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_24",
+        "recommendation_snapshot_hash": "0675ea28ae45f7f6c4d7c443ecbd70a5e8dbdadb42703611214645d13f57dddb",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "10f097c52ec3089c39fab9bd374700ff62eaa211a3410ecbdaea656e0452f0db",
+        "evidence_cutoff_sha256": "7544fc83dd301873e40afd508b0eafef71769ef8b432ea225197516ad2d688e2",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "malformed_pattern_result_hash"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_24"
+        ],
+        "pattern_insight_hashes": [
+          "a871b40d2515a67b83af9954c41557f352ce53427f4638efe4f4af2555548e81"
+        ],
+        "source_scenario_ids": [
+          "ca440_24"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_24"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:d554e98f8f503fdc246d9d93",
+        "calibration_status": "calibrated",
+        "calibration_hash": "7f02ab1ccb2cf17d359306c86192c49eaa41481b3bb5dc144c61325facbd2304",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_24"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_25",
+      "order": 25,
+      "family": "recommendation_lineage",
+      "purpose": "changed snapshot retained identity",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": null,
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "8e95e6d7a4e5e1025530690bb5ab423b10bd421c4bd49e4c91b88837767e3eed",
+      "canonical_advisory_result_sha256": "db406b66d696c231fcbef7225dce9c0dfd75b9e9d87cb78e922cad2f3f8d2a22",
+      "complete_calibration_hash_sha256": "40610c5a341994dbece416acdb06d06cb85caef5b971bd5f1e9c7aeb0876816e",
+      "legacy_or_input_calibration_hash_sha256": "40610c5a341994dbece416acdb06d06cb85caef5b971bd5f1e9c7aeb0876816e",
+      "original_confidence_basis_points": null,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_snapshot_lineage",
+          "path": "/recommendation/lineage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_snapshot_lineage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_25",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_25",
+        "recommendation_snapshot_hash": "3bbe33af337d0ae3bc2da941f2f0c4aaf198dd4bc96176daae3cad3ba509f80c",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "e1285d51cecf47a0255ce8f973f580db54f0826e636616678322241b6cfa304e",
+        "evidence_cutoff_sha256": "17d27fd3ce112d055b0a6a96db42cb8957012bacdca4affbd4f904262c8f45ed",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "fe8d10942b9acce737d38475982c9766a909c0c05d4df30425695208c64e0676"
+        ],
+        "pattern_insight_ids": [],
+        "pattern_insight_hashes": [
+          "d381ec471893417691e4c13c6a677fd253be163729eb25d823268bf1c5ff410f"
+        ],
+        "source_scenario_ids": [
+          "ca440_25"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_25"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:fbb999135ba00e6db81b11ac",
+        "calibration_status": "calibrated",
+        "calibration_hash": "40610c5a341994dbece416acdb06d06cb85caef5b971bd5f1e9c7aeb0876816e",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_25"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_26",
+      "order": 26,
+      "family": "recommendation_lineage",
+      "purpose": "changed original confidence retained snapshot",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_confidence_mismatch",
+      "actual_status": "blocked_confidence_mismatch",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "efeb0ba4d0c0ef75b91b0a38eeca6c08553e5805858d566e2717623167d71c78",
+      "canonical_advisory_result_sha256": "66394c6bedb4809f5268b66a737d3e3db158df325b29939c4977b8f4a8a63aa0",
+      "complete_calibration_hash_sha256": "a6bc4bd7d0cbecdf3eaf710bd7cc081a07914d9a5c231c77665aa28397a50682",
+      "legacy_or_input_calibration_hash_sha256": "a6bc4bd7d0cbecdf3eaf710bd7cc081a07914d9a5c231c77665aa28397a50682",
+      "original_confidence_basis_points": 5200,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_confidence_mismatch",
+          "path": "/calibration/original_confidence",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_confidence_mismatch"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_confidence_mismatch"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_26",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_26",
+        "recommendation_snapshot_hash": "776b629d75950f07dae3e9f5d879bec60bff24206a3f5d90f92b1d05d89773dc",
+        "original_confidence_basis_points": 5200,
+        "decision_boundary_sha256": "efcdc99973d42296b8c17d9891765857a9072d5fa9b4c3f9025a35441f13f6f6",
+        "evidence_cutoff_sha256": "0cfe5f3aba669b8cf24bc8f3d777ca1adb988752d00a8b263837e07707225a07",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "30e0b7630a58d36c6040759dc00cf21aa8d01ecd1f3bd206b066ea94ebc01253"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_26"
+        ],
+        "pattern_insight_hashes": [
+          "fe6717959a64997d49fb2a840dd231bb4d307b20f7b95c1ccc483f2191b0f647"
+        ],
+        "source_scenario_ids": [
+          "ca440_26"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_26"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:cc77d72ad44d92fcc5d0dc87",
+        "calibration_status": "calibrated",
+        "calibration_hash": "a6bc4bd7d0cbecdf3eaf710bd7cc081a07914d9a5c231c77665aa28397a50682",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_26"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_27",
+      "order": 27,
+      "family": "complete_hash",
+      "purpose": "valid complete semantic result hash",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:cd929fab55828a7ef8618083",
+      "advisory_hash": "cd929fab55828a7ef86180830ee7e19c5fa2e7de119338819b080870371e049f",
+      "advisory_identity_sha256": "06f42e3e4cba1c225d5e134bff8359e82dcd9f4f06cda494cf51930cdf17a870",
+      "canonical_advisory_result_sha256": "20dc4225fc3a55ce1e25a66e95b37165ffa4b045bdbabb323a78e92329c1cd42",
+      "complete_calibration_hash_sha256": "531d5349dec3cd8a70d878d66540dbff76c8dae87ede01687f86ed4f0962972c",
+      "legacy_or_input_calibration_hash_sha256": "531d5349dec3cd8a70d878d66540dbff76c8dae87ede01687f86ed4f0962972c",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 5200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "48d695cc324b15ab87720ee6a5276941507aa3af369f7669a4b80ed39064d585",
+        "decision_boundary_sha256": "4b13033165fac252c350592bb3769fedaff7cc73d8bcc59137df6344faff1b24",
+        "pattern_discovery_result_hashes": [
+          "0ebd93c35bcd83fe8b33ec76dc76dd3d53f2a392cb8587f17ffdc5614a504fa7"
+        ],
+        "pattern_insight_hashes": [
+          "e69e58bedb86d432e997bb3b4fb2a47e0827a6e8a605740c8ae0238d7c454386"
+        ],
+        "calibration_identity_hash": "e9a3bcf3c5911dfce9cff269b11247c9db7a6e0b91c0d1433f569356ca020a2e",
+        "calibration_result_hash": "531d5349dec3cd8a70d878d66540dbff76c8dae87ede01687f86ed4f0962972c",
+        "evidence_lineage_hash": "51c41e8cd62cc46c8200a5751600c57ac6bf46f002c997522642412160afc6b4"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_27",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_27",
+        "recommendation_snapshot_hash": "426629e459965fbfa2a62b7c5ebaf90c4cd5951b02195dc01f019889cf1feefb",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "4b13033165fac252c350592bb3769fedaff7cc73d8bcc59137df6344faff1b24",
+        "evidence_cutoff_sha256": "7341b67fce1c8278e7af5ac4f3f4145067c62180f1810b2a5b08eff942881afb",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "0ebd93c35bcd83fe8b33ec76dc76dd3d53f2a392cb8587f17ffdc5614a504fa7"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_27"
+        ],
+        "pattern_insight_hashes": [
+          "e69e58bedb86d432e997bb3b4fb2a47e0827a6e8a605740c8ae0238d7c454386"
+        ],
+        "source_scenario_ids": [
+          "ca440_27"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_27"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:c5e81103f77abebbd9cbb9aa",
+        "calibration_status": "calibrated",
+        "calibration_hash": "531d5349dec3cd8a70d878d66540dbff76c8dae87ede01687f86ed4f0962972c",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_27"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_28",
+      "order": 28,
+      "family": "legacy_hash",
+      "purpose": "explicitly supported legacy result hash",
+      "input_hash_mode": "legacy",
+      "hash_family": "legacy",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:de0fb6d8347e8738e2f38981",
+      "advisory_hash": "de0fb6d8347e8738e2f389816581de63742b26005c4e0fa68e54f820fc000a46",
+      "advisory_identity_sha256": "3778291da8f38543304b7bde3dbc4d76ddeb5637df9c0754f58461cc624669bd",
+      "canonical_advisory_result_sha256": "67b47a2eb5171429feabd398d128c50860c759962da3211e5d72e899a87338ea",
+      "complete_calibration_hash_sha256": "4292370b268ba7f91a896fa87869a601c743f444f6568156868fab1cfe31d99f",
+      "legacy_or_input_calibration_hash_sha256": "ee36fbecc931fbbeb63d9968e42ba814469c404a02b6b8c8c825a037bde3f837",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 5200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "6c653af751fdb4e966fce230518bf887b10a12ecfdff571b1495126f3b537bc7",
+        "decision_boundary_sha256": "a97b689b060f51173916091b301faef04df90b3a2d2a73a52b462fc408e3c739",
+        "pattern_discovery_result_hashes": [
+          "7f0f3f16db6638c65cf3ee9c993dbf0555a963ea4ab30608dd0273a61deef859"
+        ],
+        "pattern_insight_hashes": [
+          "5eee654abb2bf0c4db396ff2be044fe704464ee2e18e7b331613ee58138752d2"
+        ],
+        "calibration_identity_hash": "b8db8087862ba6129110370cfb4a93e0a6d8f968bb0342b44f16d37e526b08df",
+        "calibration_result_hash": "ee36fbecc931fbbeb63d9968e42ba814469c404a02b6b8c8c825a037bde3f837",
+        "evidence_lineage_hash": "20a6b9774507eac4d791fdabc044fa7ade390074792884a8ecfb419b5be40f7a"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_28",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_28",
+        "recommendation_snapshot_hash": "764eb49e9e0b1cd51d5cd6c5339ce00b1102b320e3a2af484bfb6765b04787b3",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "a97b689b060f51173916091b301faef04df90b3a2d2a73a52b462fc408e3c739",
+        "evidence_cutoff_sha256": "871970a25b80aa8348ff786f2cbda7c3aa5c20dbb9488c3711a937035f1d432f",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "7f0f3f16db6638c65cf3ee9c993dbf0555a963ea4ab30608dd0273a61deef859"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_28"
+        ],
+        "pattern_insight_hashes": [
+          "5eee654abb2bf0c4db396ff2be044fe704464ee2e18e7b331613ee58138752d2"
+        ],
+        "source_scenario_ids": [
+          "ca440_28"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_28"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:ee36fbecc931fbbeb63d9968",
+        "calibration_status": "calibrated",
+        "calibration_hash": "ee36fbecc931fbbeb63d9968e42ba814469c404a02b6b8c8c825a037bde3f837",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_28"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_29",
+      "order": 29,
+      "family": "calibration_integrity",
+      "purpose": "malformed result hash",
+      "input_hash_mode": "malformed",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "b03747ce37d50915b92ac93ef56defeacc23b4e216b5e0072c680a8a3f1fd71d",
+      "canonical_advisory_result_sha256": "e6486b032e730394c4c23b2a61bc77939b3f93dbd38a2399ecf7be5e7ad3ca20",
+      "complete_calibration_hash_sha256": "fda3aeaa921904a94c6d3b58efe08ff8184df12160c47ad1690619b94b7ce393",
+      "legacy_or_input_calibration_hash_sha256": null,
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "invalid_calibration_result",
+          "path": "/calibration/calibration_id",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.invalid_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_29",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_29",
+        "recommendation_snapshot_hash": "2f5258141d72f3529396ae98a5a3c19f98f6ed9a34c5aa6bcfeef1d495eefc30",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "d28084f81e38864aa1509e91728ec1f69cad5061110b8731ecb6277adcdbe5e9",
+        "evidence_cutoff_sha256": "3962b9aeed8815108355925763b07602bfb6a2267d31094419c54d94f2d1ca33",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "fc3532ad3ab262ee36ae9cf76ff3408e5845060ebc6af9f8af8ea62bfe2d9e7e"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_29"
+        ],
+        "pattern_insight_hashes": [
+          "8b5dad3a5b5262c909217e4b522495aa7218e340688ae92faf67dbd595d7e52f"
+        ],
+        "source_scenario_ids": [
+          "ca440_29"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_29"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:936d938b8d973a5eded3eae0",
+        "calibration_status": "calibrated",
+        "calibration_hash": "not_a_semantic_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_29"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_30",
+      "order": 30,
+      "family": "calibration_integrity",
+      "purpose": "swapped result hash",
+      "input_hash_mode": "swapped",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "9cd2a1e9fdbed0205b708587595ee290125c0926b8a923a40225fb08a565ccfd",
+      "canonical_advisory_result_sha256": "d4ec3fd87e012bfa241adfa970cfa24f08b660855a29e4ad145aebed00c69a29",
+      "complete_calibration_hash_sha256": "badc5f4179e2fea355c890426f7380b4dff8154fb9e24b97d8fdf81739fe2839",
+      "legacy_or_input_calibration_hash_sha256": "1c3c21f90f6863cb17895aa5a3e95f76511632050b2012bdc4c7f1000f9c7ddf",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_30",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_30",
+        "recommendation_snapshot_hash": "be8f53588722f5cca24dfb2c8880f22e2cc03ef906a70de961fdb0b313cc35b5",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "c0e65c0e72213a75c53129a3d94305af173c3081def5f87dd409901d1cdf71a9",
+        "evidence_cutoff_sha256": "08189ce97e0f7c3b140b431debda63f5f8fbc42d5c94203a06ea01c3bdc321dc",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "e6c99a1fb83b501399bb49a6ee7b3e6045731d4a7f1171cf58b55db5285031a2"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_30"
+        ],
+        "pattern_insight_hashes": [
+          "5379e92e8d92089e601dc1a47f7c52066a9d5b4341831b3d6500d3cf55654ae0"
+        ],
+        "source_scenario_ids": [
+          "ca440_30"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_30"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:012339dbed831e8cc044aceb",
+        "calibration_status": "calibrated",
+        "calibration_hash": "1c3c21f90f6863cb17895aa5a3e95f76511632050b2012bdc4c7f1000f9c7ddf",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_30"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_31",
+      "order": 31,
+      "family": "complete_hash",
+      "purpose": "complete hash mismatch cannot fall back",
+      "input_hash_mode": "complete_mismatch",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "651a7939a0bf756861fb6bd708c1d10810f7e59b63e294196706ec135e3e0df3",
+      "canonical_advisory_result_sha256": "334d663d33064c8f777b0088af83e421105e785476146337b16027ca63ddb4b1",
+      "complete_calibration_hash_sha256": "1da2a94a09b5ce43c9f86b3a39b202da7edbadd3eac07ac69bf267f5acec4a73",
+      "legacy_or_input_calibration_hash_sha256": "01a453b613f8328cf69ce9b492dfcf751b888d7294c6c088a45e46f17925a51f",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_31",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_31",
+        "recommendation_snapshot_hash": "b68dc0d9d90389779b6ed718f35c0f80dc1fc92dbcda3d998f7926b1c4352b33",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "5150d57b8735b5364972053aabd9e14d61e4c7bcbba5dab266a1e4d340cfc5ba",
+        "evidence_cutoff_sha256": "75810b72eccebf62eb84f9337d4ee342ed400d6a5345d17a6404265a1348fecc",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "99867e7eb2f9d668b26b14b4ca7a44ada378ee8e7b0e803f488fd4047e7f60cd"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_31"
+        ],
+        "pattern_insight_hashes": [
+          "29916782a5181f839706fd50dff594b681c2e39054dae318d445b1f875221827"
+        ],
+        "source_scenario_ids": [
+          "ca440_31"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_31"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:e93535b5d36892f008504005",
+        "calibration_status": "calibrated",
+        "calibration_hash": "01a453b613f8328cf69ce9b492dfcf751b888d7294c6c088a45e46f17925a51f",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_31"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_32",
+      "order": 32,
+      "family": "fallback_bypass",
+      "purpose": "legacy fallback bypass attempt",
+      "input_hash_mode": "legacy_bypass",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "214841fa91bd6370f2106375645f667100cf44dc496279e29dcde33da681add0",
+      "canonical_advisory_result_sha256": "7199c8a3d4691c1e34eeca06fb7a829076f10e3c611b89d756577da786d80b39",
+      "complete_calibration_hash_sha256": "d89b0cc7bcc029e264f161d6f2d77a9a67deb98190cbc995c374696b6906642c",
+      "legacy_or_input_calibration_hash_sha256": "7d166e08d9736155af5e2dbbc927c3f3705cdf58ed58752280f61e035f82c8e6",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_32",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_32",
+        "recommendation_snapshot_hash": "747db3ef9e10b10179c71ec14b99e6dcbb16be3d25bfad1f52cebd3063b4f304",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "ff6985ac0176258c475c52c616b82d2d05728354eaa4869351b8500278db9d81",
+        "evidence_cutoff_sha256": "012e26473443f6657153e8625fdbc2220139d98dee55835cab283bf25f26255c",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "b68b1f8b4859637c396a2e2c12a3dd9d71894db3955f9c566696c01da004faae"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_32",
+          "legacy_bypass_extra_insight"
+        ],
+        "pattern_insight_hashes": [
+          "fb2c2223bc757cdd38abb9cca16c20c4256f37962e9f35becfeb5cec120fa33c"
+        ],
+        "source_scenario_ids": [
+          "ca440_32"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_32"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:7d166e08d9736155af5e2dbb",
+        "calibration_status": "calibrated",
+        "calibration_hash": "7d166e08d9736155af5e2dbbc927c3f3705cdf58ed58752280f61e035f82c8e6",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_32",
+          "legacy_bypass_extra_insight"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_33",
+      "order": 33,
+      "family": "calibration_integrity",
+      "purpose": "calibration ID tampering",
+      "input_hash_mode": "retained_hash",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "7be7aecbe867a11760cb252345bbf2be80654095e842906ecebe700a5a0df379",
+      "canonical_advisory_result_sha256": "615f01b6fd2c8ce9221da3d0a097423b1363e5f4d31b28ecc49befefc2ca6c3f",
+      "complete_calibration_hash_sha256": "bf24f29d7eaa086a2fde40eae2328baaaa8f07713a1b88354d3824df1d5bda44",
+      "legacy_or_input_calibration_hash_sha256": "18dced90ac232106ee18e124916cad705503841e3eda77fb33fbb663b5df3d54",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_33",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_33",
+        "recommendation_snapshot_hash": "aa903204602fd49535cdd6f0421bf4b417e79bc6f56d75cc2b8bf6f515f78105",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "6252554f1aa5db223352025359190ead08e995c1ee450e6065c530a75548c257",
+        "evidence_cutoff_sha256": "3bb4d977e0d42d47e4dd995a3914bd371592e0ac3804cb05a62fdb39897b4122",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "a77d4563a3d31aba3ceb19a49e1b534832898181eade51b2d0839e533cc26352"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_33"
+        ],
+        "pattern_insight_hashes": [
+          "e6e2732ba5bfaac05fb6ba202fef21e4e1dc996f489b306f7037666d8798b9c6"
+        ],
+        "source_scenario_ids": [
+          "ca440_33"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_33"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:cc1bed21fc140f9dda34f038",
+        "calibration_status": "calibrated",
+        "calibration_hash": "18dced90ac232106ee18e124916cad705503841e3eda77fb33fbb663b5df3d54",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_33"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_34",
+      "order": 34,
+      "family": "warning_inventory",
+      "purpose": "warning record tampering",
+      "input_hash_mode": "retained_hash",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "8a9bd6a7493cbfd5a30d01c03600752a68dc3d6c4ea2be6bfe45e433b7946a23",
+      "canonical_advisory_result_sha256": "f80daca12af7b039903b20034d634bf8c6a0301e34bd4ba89f14c0d13942811c",
+      "complete_calibration_hash_sha256": "7d1b4b885f8a5cf403ab54995ac05b8a3dabe4076bd05f4b1b115c0531246207",
+      "legacy_or_input_calibration_hash_sha256": "ef7b137cad8ad0d8d1e2c428ea374daa4d953aff8e89210423ee682242b1b038",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [
+        {
+          "code": "metric_value_unavailable",
+          "path": "/insights/0/warning_codes/0",
+          "severity": "warning",
+          "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+        }
+      ],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_34",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_34",
+        "recommendation_snapshot_hash": "dbb39f3782e80883fd7de89a029b59b0a88062a9a678be09bf1d9e25f9f96709",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "9c23956f8b9a3edc84ba7affc7a308b3b57d09bc79ec14aa880675e856f1f350",
+        "evidence_cutoff_sha256": "26adc0aea861fba45e90ce17e460e4bde3ca6eb9104c5e5d9bac8e7a204658fc",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "5cd9fa27d0708d48fd55464d72dcb8c27d08c4ae8f4a2fce914be72cae7deb0d"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_34"
+        ],
+        "pattern_insight_hashes": [
+          "21fda2ba622e0076429ea7645ffec98dcb81b735c73adbd3e8109583ccfa1390"
+        ],
+        "source_scenario_ids": [
+          "ca440_34"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_34"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:897364ad96fd09cb7048e915",
+        "calibration_status": "calibrated",
+        "calibration_hash": "ef7b137cad8ad0d8d1e2c428ea374daa4d953aff8e89210423ee682242b1b038",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_34"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 1,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_35",
+      "order": 35,
+      "family": "issue_inventory",
+      "purpose": "issue record tampering",
+      "input_hash_mode": "retained_hash",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "5e58b9e704ca2eccb4af55e2b085e3292c2f3266a6961aba6744a31be370d38f",
+      "canonical_advisory_result_sha256": "a5e3fbffa941a9629076e913f66813714d01c9d9f3afe6e2c021ca926185d5d4",
+      "complete_calibration_hash_sha256": "91126f35df69c12684c304250babce1a90be3e49fbba637a1a95dc9aa2ca413b",
+      "legacy_or_input_calibration_hash_sha256": "39e8fae5991840d7afc3573a6de71752565b9af09ebbe60db13de00cfb901eed",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_35",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_35",
+        "recommendation_snapshot_hash": "d254351b592395de73a83c02b0eaff18ceaaf3ad8b2a3b0f2d31d266f71ef853",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "5115320ae16ce343fc444e955bda2850c1bdf78710bb699a70a1de63ee1b2851",
+        "evidence_cutoff_sha256": "6636740e0ae5c15b7236e62f9991ef91f198a2a9770ff8ebc1c7f190c91729f7",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "c92c1cdfdc6717f043633acce13fc553af2caff04df0be317b04889eccfe9a9f"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_35"
+        ],
+        "pattern_insight_hashes": [
+          "294afcb704593e3931d2d06661fbe4d3f39e8758b37be8a101339ec918db02ba"
+        ],
+        "source_scenario_ids": [
+          "ca440_35"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_35"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:28773311e4abc4ce701fbf29",
+        "calibration_status": "calibrated",
+        "calibration_hash": "39e8fae5991840d7afc3573a6de71752565b9af09ebbe60db13de00cfb901eed",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_35"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 1,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_36",
+      "order": 36,
+      "family": "pattern_discovery_lineage",
+      "purpose": "Pattern Discovery hash tampering",
+      "input_hash_mode": "retained_hash",
+      "hash_family": "invalid_or_retained",
+      "expected_status": "blocked_calibration_result",
+      "actual_status": "blocked_calibration_result",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "fb8f9df67feb070373cbe192ac3e255d9372ab2e27d292f08f2680f8e2a025ea",
+      "canonical_advisory_result_sha256": "abb980a67e5de8b888d61583e02f13b6cbfa93793a5b1f281e76f3886875ce93",
+      "complete_calibration_hash_sha256": "6a4ba76929a5c3c50ec78b1c70fe6a9c6eb96a83ae2d34cdc00a428b48933508",
+      "legacy_or_input_calibration_hash_sha256": "ad126b2d1c2dc802a9bb55c5a50a27442f53ef097a0234e6d6e7f8b3e55ec39a",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_calibration_result",
+          "path": "/calibration/calibration_hash",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_calibration_result"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_calibration_result"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_36",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_36",
+        "recommendation_snapshot_hash": "698d0a750efd19283ad73c9af3f61c7136059f7f617ad0fde6b58b1af76bc1a4",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "bfd7ea73327d9514a4ea045ccc0c8aef9c7374cba56356dfd975b097e55c70ef",
+        "evidence_cutoff_sha256": "59018957a490006e08e6dfda1644b4e7499762a7c39adb2a1296ccfef849daf4",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "5a18ab7c8951d16c5daf7c911c607034ead930e724cf2496d0c6143f799b5e61"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_36"
+        ],
+        "pattern_insight_hashes": [
+          "c17f325d3f99190d2fd7bb2045a1a1bae7ad21458837f4b7f84cca8326db0fa4"
+        ],
+        "source_scenario_ids": [
+          "ca440_36"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_36"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:abe488a4eb16e0a4544e2ed5",
+        "calibration_status": "calibrated",
+        "calibration_hash": "ad126b2d1c2dc802a9bb55c5a50a27442f53ef097a0234e6d6e7f8b3e55ec39a",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_36"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_37",
+      "order": 37,
+      "family": "pattern_insight_lineage",
+      "purpose": "Pattern Insight lineage tampering with recomputed hash",
+      "input_hash_mode": "recomputed_complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "3139e13825157e7f5b0b81ef583ed027a68d2a6dc67f0816b94dc6441e389667",
+      "canonical_advisory_result_sha256": "f8b7ebd1770c6cf67060f85237d72793dfcfb518d7602e8f5b77ca29aa059466",
+      "complete_calibration_hash_sha256": "6af131167f42b0b73e741257976f09f6e5013eec19e0e8372cc23a3fb9a31b0f",
+      "legacy_or_input_calibration_hash_sha256": "6af131167f42b0b73e741257976f09f6e5013eec19e0e8372cc23a3fb9a31b0f",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_invalid_lineage",
+          "path": "/calibration/lineage_hashes",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_invalid_lineage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_37",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_37",
+        "recommendation_snapshot_hash": "ee8880c8e292ee9372875546577053cdef0ebaab5f1d031cf1501755c2c17c90",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "d7a15aad14ac639bbaf55c5166c6d389002506c12c2213cc3f70d7102cc08546",
+        "evidence_cutoff_sha256": "127aedf88f258ccef0dd9708c396376d5d9149f00fe6ff5b66028228da1936bf",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "bdeefaee6b552ce80286d6e77eb4a0755e4cf5ce59677f849bd8201deaf7dd24"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_37"
+        ],
+        "pattern_insight_hashes": [
+          "12c8980a845e50c9c2e02dbc927fcbd4d8369eea0376d43d10e50a7ae59ed119"
+        ],
+        "source_scenario_ids": [
+          "ca440_37"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_37"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:54a52d313ec14573cd5fa209",
+        "calibration_status": "calibrated",
+        "calibration_hash": "6af131167f42b0b73e741257976f09f6e5013eec19e0e8372cc23a3fb9a31b0f",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_37"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_38",
+      "order": 38,
+      "family": "anti_leakage",
+      "purpose": "future outcome evidence",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "5ce085f3e36e9bdb39242fe70630d85c7b1160f45d62f271c5aab98ec8f87484",
+      "canonical_advisory_result_sha256": "83975e18c77c3aab652c10d9e1d2d9c06bfc1cbc9e57f5d0b12d971ed6a9ad4b",
+      "complete_calibration_hash_sha256": "7887fa92381542086867b4999a6b0d2ada433be8f0882fd9d23ee718d7aaaaa8",
+      "legacy_or_input_calibration_hash_sha256": "7887fa92381542086867b4999a6b0d2ada433be8f0882fd9d23ee718d7aaaaa8",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_future_leakage",
+          "path": "/recommendation/anti_leakage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_future_leakage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_38",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_38",
+        "recommendation_snapshot_hash": "61e5dafa7eafd5e4df2141bf06891d72c39a9ea30fcfc1b1820116b960bf29fd",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "6d82f293730479e98a05011a44b3ed97bb8add6fa0a364f8e780a3d7cc228243",
+        "evidence_cutoff_sha256": "706299c046ccbb6530aba78e968818748ca5b920a3fa0b514b4afdb7540627a2",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "f487fb6482cacbaf8d6170c25cbadbb96f03d4cd9049b59c47ba3d035a4e24d5"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_38"
+        ],
+        "pattern_insight_hashes": [
+          "1e0758bc764bf7e8495f5ca79ff03253dd84853adf819642d19e2e1572dc174f"
+        ],
+        "source_scenario_ids": [
+          "ca440_38"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_38"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:6f13070974e95b52a1bcf8e4",
+        "calibration_status": "calibrated",
+        "calibration_hash": "7887fa92381542086867b4999a6b0d2ada433be8f0882fd9d23ee718d7aaaaa8",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_38"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_39",
+      "order": 39,
+      "family": "anti_leakage",
+      "purpose": "post-entry evidence",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "d649e04cfa393199cec298893224a55b08f024bb87d64f8d8f54a6284657657b",
+      "canonical_advisory_result_sha256": "55e6e78445d57f7d01d6784e8d1a7e25f92a8d4da9dc598a791c33e90bddd68a",
+      "complete_calibration_hash_sha256": "a980a9b70dd7a85026b5e2732df177138ca90208d96d171b9d4c00e92273c10d",
+      "legacy_or_input_calibration_hash_sha256": "a980a9b70dd7a85026b5e2732df177138ca90208d96d171b9d4c00e92273c10d",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_future_leakage",
+          "path": "/recommendation/anti_leakage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_future_leakage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_39",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_39",
+        "recommendation_snapshot_hash": "2f1ff99be0e248b0ba651f17f6ea93e040912b1e86b6c0a0c1abb73111b60fe0",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "a9ae15465362ab5184b99914b7d3b79b8099dbe7cfdcee7bfd2a64f47791428e",
+        "evidence_cutoff_sha256": "72e23cf9f0f1cacd0b1239b50f3927315f9479007375a6035d339ff065e6cab6",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "aa30048bd4b0749a3d7ba8c9c16604b53c597492c14292da93760d2c49a9837e"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_39"
+        ],
+        "pattern_insight_hashes": [
+          "4d098c8dc18d2648880cbd232115c06e57d48c481046595d074d0d300f6b8d4a"
+        ],
+        "source_scenario_ids": [
+          "ca440_39"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_39"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:de49b23d5d44633ae21f7768",
+        "calibration_status": "calibrated",
+        "calibration_hash": "a980a9b70dd7a85026b5e2732df177138ca90208d96d171b9d4c00e92273c10d",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_39"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_40",
+      "order": 40,
+      "family": "anti_leakage",
+      "purpose": "post-exit evidence",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "0f128aa8e7dfa2917a6a7b9a10317e606088d23c13d3383a2fd83dc24f69446f",
+      "canonical_advisory_result_sha256": "4f281350013d7f6824da97019ec1d5afcbf87e9d28a7f8891af2c6765904a1e0",
+      "complete_calibration_hash_sha256": "320d2aac1f2645baa093499b6e03c2ba65f5917cd18d49b9c8f61eb460e116df",
+      "legacy_or_input_calibration_hash_sha256": "320d2aac1f2645baa093499b6e03c2ba65f5917cd18d49b9c8f61eb460e116df",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_future_leakage",
+          "path": "/recommendation/anti_leakage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_future_leakage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_40",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_40",
+        "recommendation_snapshot_hash": "a7e48b9b02ad895b8ca309181c7a044b6f5a948b7a46cd4b7f4f627cefbe8c0b",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "727d11413e7f9bf60b33f0c45abd17cfd25fd799d00aded8cc5b3556fcb22400",
+        "evidence_cutoff_sha256": "1744388f3dc3a94b423694dbf49ba99e2533aa0a19f3ec34c22efadc5fc2ae63",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "7f61d1685832da67de2ed2a04eccfccbd0a11abd2ea1f8f6db94743921aa32e7"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_40"
+        ],
+        "pattern_insight_hashes": [
+          "4f1f4a5c73994e9c59977a09422ce278208b4143a5d9db2af31c63fe20c61f14"
+        ],
+        "source_scenario_ids": [
+          "ca440_40"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_40"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:74ba60211d5c130981e24070",
+        "calibration_status": "calibrated",
+        "calibration_hash": "320d2aac1f2645baa093499b6e03c2ba65f5917cd18d49b9c8f61eb460e116df",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_40"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_41",
+      "order": 41,
+      "family": "anti_leakage",
+      "purpose": "same-recommendation realized result",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "f045d9ec554fa112edf5075f0d738fd2d4347942216a6f5bb18e04265aee7bc9",
+      "canonical_advisory_result_sha256": "22812f68a8de5dd77223db0fea349fcc7ded5aa694817210e52abc4f0715fc27",
+      "complete_calibration_hash_sha256": "c0b5b8e3865966e4bbc46405202d259fc216ad8d19b07466be803296fca026aa",
+      "legacy_or_input_calibration_hash_sha256": "c0b5b8e3865966e4bbc46405202d259fc216ad8d19b07466be803296fca026aa",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_future_leakage",
+          "path": "/recommendation/anti_leakage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_future_leakage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_41",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_41",
+        "recommendation_snapshot_hash": "a43290d29b266091acda5ccaa3d3866807f5a526537db6f54facf23b43609349",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "5a7732c6a11c65e61159ce47a197b4a5b84ac3dbdc97cd4377738b81cc5ca7fd",
+        "evidence_cutoff_sha256": "772c517c4cd6e286a04c6758db16432e02fe6f8253627325a5bbe90e02befe92",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "adf2e28f0ca85856f3c62a0f2904a134adf04c9aa33cb13231e253432f52ee09"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_41"
+        ],
+        "pattern_insight_hashes": [
+          "86903d9c29cd0605b44d9f0f62601958bf8c0d22c8040abe2f8e51b478bc65b3"
+        ],
+        "source_scenario_ids": [
+          "ca440_41"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_41"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:512d102c134ad14275523973",
+        "calibration_status": "calibrated",
+        "calibration_hash": "c0b5b8e3865966e4bbc46405202d259fc216ad8d19b07466be803296fca026aa",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_41"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_42",
+      "order": 42,
+      "family": "anti_leakage",
+      "purpose": "unknown leakage state",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_future_leakage",
+      "actual_status": "blocked_future_leakage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "b7ff8a22645582e56a962f349a92afb22d54364cef8be0162a820c20db614379",
+      "canonical_advisory_result_sha256": "1f7ee1038074a8b112d57d4b488c243fc6159b1a6543cff183985b7450a34875",
+      "complete_calibration_hash_sha256": "83efc3d4f45e699c94ca615ed8b9293a1bc79b2e807fecb26ae6081854109d32",
+      "legacy_or_input_calibration_hash_sha256": "83efc3d4f45e699c94ca615ed8b9293a1bc79b2e807fecb26ae6081854109d32",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_future_leakage",
+          "path": "/recommendation/anti_leakage",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_future_leakage"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_future_leakage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_42",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_42",
+        "recommendation_snapshot_hash": "cab288486f23fcf565da14c069e278c5deb0482ba91b9ebd1a2f845e62069543",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "5ad28a087ac5a40df67ef7a24b9d42512ab23e1035714c53b90ff83c6b0652c5",
+        "evidence_cutoff_sha256": "bc5181e3663e8ab406a8a2499e21a7858d0facfb92f40f70c6d862b40f4b7a61",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "e305cf05cfa171e3340e58c7f6a073b68acf455de89f7738815b6e7ceeda6b24"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_42"
+        ],
+        "pattern_insight_hashes": [
+          "e73f610ce70aec58b26f764e13c253b5661e09847b7edccd7637ea3b0dff8be2"
+        ],
+        "source_scenario_ids": [
+          "ca440_42"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_42"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:674f329e5ba3edb97364117c",
+        "calibration_status": "calibrated",
+        "calibration_hash": "83efc3d4f45e699c94ca615ed8b9293a1bc79b2e807fecb26ae6081854109d32",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_42"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_43",
+      "order": 43,
+      "family": "anti_feedback",
+      "purpose": "calibration reused as Learning Dataset input",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "70318b368c0d72555676dd1f20acf141d7db1ec862a748a87bf7bc889a8e73c3",
+      "canonical_advisory_result_sha256": "f1c46d4679f41271adccca9288ddefe0641a50dd31df6f16a45c10901ff30d70",
+      "complete_calibration_hash_sha256": "1eccee33946d346046bdb535e86c94cdd7a3603547a0043b20b72ceb798f108c",
+      "legacy_or_input_calibration_hash_sha256": "1eccee33946d346046bdb535e86c94cdd7a3603547a0043b20b72ceb798f108c",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_feedback_reuse",
+          "path": "/recommendation/anti_feedback",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_feedback_reuse"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_43",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_43",
+        "recommendation_snapshot_hash": "a2e7624faefee058363345f06a4433935d5cd483deed471189754a55f91eb674",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "be8f50780a124de11b731829030834abd9d96590d2c0342376ef16f7cec6e5b5",
+        "evidence_cutoff_sha256": "f307c9f05611a13815a77559678941f5d387b9846b2850cd361d420f21421e13",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "fb5f8f1f62966eb182cb87a0182109aecb1eb95bea8032d199fcbb8f280e5505"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_43"
+        ],
+        "pattern_insight_hashes": [
+          "36f0045eb3efa73596c7075deb42b4e85b8ed221ba3aaebf9b0aa5b4d124294e"
+        ],
+        "source_scenario_ids": [
+          "ca440_43"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_43"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:7f91dea73c04e082accc2cae",
+        "calibration_status": "calibrated",
+        "calibration_hash": "1eccee33946d346046bdb535e86c94cdd7a3603547a0043b20b72ceb798f108c",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_43"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_44",
+      "order": 44,
+      "family": "anti_feedback",
+      "purpose": "Pattern Discovery evidence reuse",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "5a28890c6c00226dd688fc5fdf9ae328961cd7079fc788d796ae3c89940aee1a",
+      "canonical_advisory_result_sha256": "c04188073df4bb12fff4482364efee3fa42e93c5b4f8ba77c9b9f238b0cf1195",
+      "complete_calibration_hash_sha256": "940d8e25330d73ae4508a415b4f4b19473aea18aecf10a44a0ce546ea96c069f",
+      "legacy_or_input_calibration_hash_sha256": "940d8e25330d73ae4508a415b4f4b19473aea18aecf10a44a0ce546ea96c069f",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_feedback_reuse",
+          "path": "/recommendation/anti_feedback",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_feedback_reuse"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_44",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_44",
+        "recommendation_snapshot_hash": "1cbebbae20e6885c7703b9ad8df9697c9740744af5dd459637afc9c0e570ce89",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "cc199ecd9c22fa0bfbb7cc6d7904f325eaa89ae821121b3d8b90cf8a36f509a8",
+        "evidence_cutoff_sha256": "ae1eb5969cd8208ce2c4d425b4a366b58175a2f42921985e4be7fb24b3c5e39b",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "371a42342e9b42078d5d9f938c96c9448ee842c10467b5bf31a699ad671b2922"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_44"
+        ],
+        "pattern_insight_hashes": [
+          "c085776b346d6dfa823429694c00096acbfac55f7dbf96f95a494b64baf9c62c"
+        ],
+        "source_scenario_ids": [
+          "ca440_44"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_44"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:484673b2d15f5367c770f33c",
+        "calibration_status": "calibrated",
+        "calibration_hash": "940d8e25330d73ae4508a415b4f4b19473aea18aecf10a44a0ce546ea96c069f",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_44"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_45",
+      "order": 45,
+      "family": "anti_feedback",
+      "purpose": "recommendation base-confidence reuse",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "f2803c177fc47a874093c9949f3f2837ad289c6f424e335ca5c5d466e0d787f8",
+      "canonical_advisory_result_sha256": "8158be40d251e4bf9aa34c7d902ba6aba60d9aaa289d1d216fddf5b14f0b0a16",
+      "complete_calibration_hash_sha256": "9d7691bc4ca6814bf8e30c403012464df5a77e97d11c536e33ff2ea2b6cd45ab",
+      "legacy_or_input_calibration_hash_sha256": "9d7691bc4ca6814bf8e30c403012464df5a77e97d11c536e33ff2ea2b6cd45ab",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_feedback_reuse",
+          "path": "/recommendation/anti_feedback",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_feedback_reuse"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_45",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_45",
+        "recommendation_snapshot_hash": "42429dddbf741ce6e87b9ed407d54d6195b0d520189b558b9d3fefc888b07485",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "ce035ae05c66699ab3b4a4f2e19900f8c46ccce7174de462ad495a3c83c49b76",
+        "evidence_cutoff_sha256": "ea7aec8e1566e86c4bf97565090a5342ea700c9550952d6ae656f415dd73ae99",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "b7fb479bf5d8a51b310219a3dcc7b72490f37c9696c30d6354079c1b206df643"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_45"
+        ],
+        "pattern_insight_hashes": [
+          "915780d218ce4efac4ca9ca7c385c3edded05038d7b6dfe05a5c26aa6d570079"
+        ],
+        "source_scenario_ids": [
+          "ca440_45"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_45"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:e604eaeadc69108fbab16ce0",
+        "calibration_status": "calibrated",
+        "calibration_hash": "9d7691bc4ca6814bf8e30c403012464df5a77e97d11c536e33ff2ea2b6cd45ab",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_45"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_46",
+      "order": 46,
+      "family": "anti_feedback",
+      "purpose": "scanner ranking publication execution reuse",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "blocked_invalid_lineage",
+      "actual_status": "blocked_invalid_lineage",
+      "calibration_status": "calibrated",
+      "advisory_id": null,
+      "advisory_hash": null,
+      "advisory_identity_sha256": "ab8b811ec7b11c27b30e9931d07a8f0a85447d30d5282f3bab75b35a1045a6b2",
+      "canonical_advisory_result_sha256": "6ee279a889a380b173036df6ecd4c1d6bcecbc489999e28f7743af57bd539fed",
+      "complete_calibration_hash_sha256": "064f591b5f42b40adbb7d077cc0856d355e565e6b4e7c0eb291de80181735458",
+      "legacy_or_input_calibration_hash_sha256": "064f591b5f42b40adbb7d077cc0856d355e565e6b4e7c0eb291de80181735458",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": null,
+      "proposed_calibrated_confidence_basis_points": null,
+      "advisory_eligible": false,
+      "advisory_visible": false,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [
+        {
+          "code": "blocked_feedback_reuse",
+          "path": "/recommendation/anti_feedback",
+          "severity": "error",
+          "messageKey": "confidence_calibration_advisory.blocked_feedback_reuse"
+        }
+      ],
+      "bounded_lineage_hashes": null,
+      "reasons": [
+        "blocked_invalid_lineage"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_46",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_46",
+        "recommendation_snapshot_hash": "841c3803fd8561b882852b90ddbae005fbdd95a5da511a23ab5ce9b7de9f6aba",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "1aa3ec8afa0b94cb640919e7ee6cdc0d2dea576046362881493c06d51b8536bc",
+        "evidence_cutoff_sha256": "12ff547e03e5aca94d73ab85b2f1774578ff840240f2ccca297b2c9e648157b5",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "bb57905945c80dc1994f34259a6e0d1e371f837497f631b108f52e48a0c69c48"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_46"
+        ],
+        "pattern_insight_hashes": [
+          "55c70da397bf90da5acc4e05e0ce86c500f06840fd437236f15b24d0954776c8"
+        ],
+        "source_scenario_ids": [
+          "ca440_46"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_46"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:80e672586d90a055ad3f5fb7",
+        "calibration_status": "calibrated",
+        "calibration_hash": "064f591b5f42b40adbb7d077cc0856d355e565e6b4e7c0eb291de80181735458",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_46"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_47",
+      "order": 47,
+      "family": "warning_inventory",
+      "purpose": "warning ordering and deduplication",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready_with_warnings",
+      "actual_status": "advisory_ready_with_warnings",
+      "calibration_status": "calibrated_with_warnings",
+      "advisory_id": "confidence_calibration_advisory_v1:010f395edf09abb8afa968d1",
+      "advisory_hash": "010f395edf09abb8afa968d1f66a00c635251bed4a1bbbe2fdff83f0277f6ef0",
+      "advisory_identity_sha256": "4097b0d43e0230e19a5dac0866e3cbc55b7042b67af4c70bc07c5a272470a2e3",
+      "canonical_advisory_result_sha256": "cb176900a680dd69c227af1ac33bda1f638fb0f258149e05abd4773d390cef37",
+      "complete_calibration_hash_sha256": "96227eeae09d61437724c49b7b0744202f037c0f84e18e51e25ca582fe5445dc",
+      "legacy_or_input_calibration_hash_sha256": "96227eeae09d61437724c49b7b0744202f037c0f84e18e51e25ca582fe5445dc",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 100,
+      "proposed_calibrated_confidence_basis_points": 5100,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [
+        {
+          "code": "metric_value_unavailable",
+          "path": "/insights/0/warning_codes",
+          "severity": "warning",
+          "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+        }
+      ],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "d747d089afa19be0023655300c3644cb03bd8da7580591f99a6f7d30ee382cef",
+        "decision_boundary_sha256": "4e5c59e4921a5aa95efb37fbfcc94742271567e3fff0df4785e7a562dbcf114e",
+        "pattern_discovery_result_hashes": [
+          "5fb6eebd7900ad82008707cbaaf5369db3e5ef538f22c6c25bdf3cd63929f5bd"
+        ],
+        "pattern_insight_hashes": [
+          "0b2871b6d7b9cfd6c8f42435577f004e9f49462ad802516f7d674e6cc35c82c4"
+        ],
+        "calibration_identity_hash": "b843db84e7c07f23a2d8e4e9e66284a76b5e248b1fa0ddcd405a5c10a8539c90",
+        "calibration_result_hash": "96227eeae09d61437724c49b7b0744202f037c0f84e18e51e25ca582fe5445dc",
+        "evidence_lineage_hash": "4c78f105b9166affdda23befa27d62ce6d41f609ad1bd7d1734468511a4671db"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready_with_warnings",
+        "applied_false",
+        "calibration_status:calibrated_with_warnings",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_47",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_47",
+        "recommendation_snapshot_hash": "97d89fda8ddd4a30851084634b414320215987e64c22fed748e7f3e5e8f6e138",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "4e5c59e4921a5aa95efb37fbfcc94742271567e3fff0df4785e7a562dbcf114e",
+        "evidence_cutoff_sha256": "c7079323b7f3059dfbf213c4347471589e6c1dd13d3ddfc61aacefda38404b3b",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "5fb6eebd7900ad82008707cbaaf5369db3e5ef538f22c6c25bdf3cd63929f5bd"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_47"
+        ],
+        "pattern_insight_hashes": [
+          "0b2871b6d7b9cfd6c8f42435577f004e9f49462ad802516f7d674e6cc35c82c4"
+        ],
+        "source_scenario_ids": [
+          "ca440_47"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_47"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:f54c5f860472e9ac7a5489b3",
+        "calibration_status": "calibrated_with_warnings",
+        "calibration_hash": "96227eeae09d61437724c49b7b0744202f037c0f84e18e51e25ca582fe5445dc",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_calibrated_confidence_basis_points": 5100,
+        "included_insight_ids": [
+          "insight_ca440_47"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 1,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    },
+    {
+      "id": "ca440_48",
+      "order": 48,
+      "family": "output_boundary",
+      "purpose": "metadata-only advisory output boundary",
+      "input_hash_mode": "complete",
+      "hash_family": "complete",
+      "expected_status": "advisory_ready",
+      "actual_status": "advisory_ready",
+      "calibration_status": "calibrated",
+      "advisory_id": "confidence_calibration_advisory_v1:e4395bf6dd6c7d41f54a5c54",
+      "advisory_hash": "e4395bf6dd6c7d41f54a5c54094db9f01ea5aae6a04e5eee123fdaeb1859aaa3",
+      "advisory_identity_sha256": "baddda62296a9ca3042a809f4ca3cf401e22ab2335d36ff2320dc8525ab02017",
+      "canonical_advisory_result_sha256": "ecacac43d354f045e22e95816ef021650f261875c32b5740df6b06b3ee007248",
+      "complete_calibration_hash_sha256": "10ca7d852cca65d95999c26a53f1383ecb27d24e2326e0c7f36f5f3c51b066c2",
+      "legacy_or_input_calibration_hash_sha256": "10ca7d852cca65d95999c26a53f1383ecb27d24e2326e0c7f36f5f3c51b066c2",
+      "original_confidence_basis_points": 5000,
+      "proposed_delta_basis_points": 200,
+      "proposed_calibrated_confidence_basis_points": 5200,
+      "advisory_eligible": true,
+      "advisory_visible": true,
+      "application_eligible": false,
+      "non_authoritative": true,
+      "applied": false,
+      "warnings": [],
+      "issues": [],
+      "bounded_lineage_hashes": {
+        "recommendation_source_hash": "dc3deb67f793f8ddbf8be4564aa68e8107d5b3f230280099999c04c8b97b7914",
+        "decision_boundary_sha256": "533eaed949ae130b15ce86524ffec10c214a3f260ff925a0f5347ef41428d65c",
+        "pattern_discovery_result_hashes": [
+          "90af88a658cfd86c4c5035204a38525742339e80b36d9efc5e6b60140238c049"
+        ],
+        "pattern_insight_hashes": [
+          "2ace9361754f01be63338ad150de3fccfcaac80c679925381df57415fe1ed34b"
+        ],
+        "calibration_identity_hash": "e3f74e107a73a6c313bad00a10e7084f07506785ab18cb55ede71f3757397659",
+        "calibration_result_hash": "10ca7d852cca65d95999c26a53f1383ecb27d24e2326e0c7f36f5f3c51b066c2",
+        "evidence_lineage_hash": "5c4c4a90a26d6c2a47b7221e7d5a1ec125c0ea9a4e61b4e7e9fb9cc2a77a94c0"
+      },
+      "reasons": [
+        "advisory_status:advisory_ready",
+        "applied_false",
+        "calibration_status:calibrated",
+        "non_authoritative"
+      ],
+      "recommendation_envelope_metadata": {
+        "recommendation_id": "rec_ca440_48",
+        "recommendation_fingerprint": "rec_fingerprint_ca440_48",
+        "recommendation_snapshot_hash": "aaf31f4f3fb94de7028a31c2481d2178bdfe7fc7c2d24b44c6106b257759305e",
+        "original_confidence_basis_points": 5000,
+        "decision_boundary_sha256": "533eaed949ae130b15ce86524ffec10c214a3f260ff925a0f5347ef41428d65c",
+        "evidence_cutoff_sha256": "cba61fb03b14dec0968889d6fd0ea072c50e1b8cd7558d4e904dd8c5e268dbe9",
+        "anti_leakage_state": "passed",
+        "pattern_discovery_result_hashes": [
+          "90af88a658cfd86c4c5035204a38525742339e80b36d9efc5e6b60140238c049"
+        ],
+        "pattern_insight_ids": [
+          "insight_ca440_48"
+        ],
+        "pattern_insight_hashes": [
+          "2ace9361754f01be63338ad150de3fccfcaac80c679925381df57415fe1ed34b"
+        ],
+        "source_scenario_ids": [
+          "ca440_48"
+        ],
+        "source_snapshot_ids": [
+          "snapshot_ca440_48"
+        ],
+        "static_only": true,
+        "non_authoritative": true,
+        "no_persistence": true,
+        "no_replay": true,
+        "no_runtime": true,
+        "no_feedback": true
+      },
+      "calibration_result_metadata": {
+        "calibration_id": "confidence_calibration_v1:7b421f76cdaeb59f15e4cc43",
+        "calibration_status": "calibrated",
+        "calibration_hash": "10ca7d852cca65d95999c26a53f1383ecb27d24e2326e0c7f36f5f3c51b066c2",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 200,
+        "proposed_calibrated_confidence_basis_points": 5200,
+        "included_insight_ids": [
+          "insight_ca440_48"
+        ],
+        "excluded_insight_count": 0,
+        "warning_count": 0,
+        "issue_count": 0,
+        "lineage_hash_count": 1,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "metadata_only_output": true,
+      "full_recommendation_retained": false,
+      "full_calibration_retained": false,
+      "recommendation_mutated": false,
+      "confidence_applied": false
+    }
+  ],
+  "static_only": true,
+  "non_production": true,
+  "non_authoritative": true,
+  "non_learning": true,
+  "no_persistence": true,
+  "no_replay": true,
+  "no_runtime": true,
+  "no_external_access": true,
+  "no_feedback": true,
+  "recommendation_mutated": false,
+  "confidence_applied": false,
+  "provider_call_executed": false,
+  "provider_call_attempted": false,
+  "supabase_read_executed": false,
+  "supabase_write_executed": false,
+  "replay_executed": false,
+  "synthetic_outcomes_persisted": false,
+  "scanner_behavior_changed": false,
+  "live_ranking_changed": false,
+  "publication_changed": false,
+  "authoritative_data_created": false,
+  "full_recommendations_included": false,
+  "full_calibration_results_included": false,
+  "full_pattern_insights_included": false,
+  "full_pattern_discovery_outputs_included": false,
+  "contexts_or_outcomes_included": false,
+  "provider_or_supabase_payloads_included": false,
+  "secrets_or_env_values_included": false,
+  "timestamps_or_random_ids_included": false,
+  "machine_paths_included": false,
+  "runtime_preview_status": "runtime_preview_waiting_for_operator_inputs",
+  "recommended_next_action": "action_444_static_confidence_calibration_advisory_shadow_execution"
+}

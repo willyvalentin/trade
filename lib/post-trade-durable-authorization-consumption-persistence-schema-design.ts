@@ -1,6 +1,5 @@
 import {
   POST_TRADE_DURABLE_CONSUMPTION_CONTRACT_VERSION,
-  POST_TRADE_DURABLE_CONSUMPTION_PERSISTENCE_OPERATION,
 } from "@/lib/post-trade-durable-one-shot-authorization-consumption-contract";
 import {
   POST_TRADE_FINAL_EXECUTION_SCOPE,
@@ -28,6 +27,16 @@ export type PostTradeColumnMutability =
 
 export type PostTradeDesignedState = "unused" | "consumed" | "invalid" | "expired";
 
+export type PostTradeStateTransitionRequirement = {
+  from: "insert" | PostTradeDesignedState;
+  to: PostTradeDesignedState;
+  allowed: true;
+  mutationBoundary:
+    | "initial_authorization_seed"
+    | "reviewed_atomic_consumption_function"
+    | "reviewed_expiry_or_invalidation_function";
+};
+
 export type PostTradeColumnSpec = {
   name: string;
   typeCategory: PostTradeSchemaTypeCategory;
@@ -52,8 +61,12 @@ export type PostTradeCheckConstraintSpec = {
     | "consumed_at_state"
     | "execution_ids_state"
     | "result_state"
+    | "affected_rows_one"
+    | "persistence_operation_required"
     | "expiry_after_issued"
     | "bounded_validity"
+    | "no_usable_reactivation"
+    | "partial_evidence_prevention"
     | "one_shot_true"
     | "retry_false"
     | "mock_only_true"
@@ -70,6 +83,8 @@ export type PostTradeForeignKeyRequirement = {
   targetTable: "execution_records" | "execution_record_audit_events";
   targetColumn: "id";
   requiredWhenState: "consumed";
+  onDelete: "restrict" | "no_action";
+  deferrable: "transaction_scoped_if_needed";
   consistencyRequirement?: "audit_event_must_reference_execution_record";
 };
 
@@ -83,6 +98,7 @@ export type PostTradePrivilegeRequirement = {
   role: "anon" | "authenticated" | "service_role" | "reviewed_database_function";
   directInsertAllowed: boolean;
   directUpdateAllowed: boolean;
+  directDeleteAllowed: boolean;
   directSelectAllowed: boolean;
   executeFunctionAllowed: boolean;
 };
@@ -90,6 +106,7 @@ export type PostTradePrivilegeRequirement = {
 export type PostTradeRlsRequirement = {
   enabled: true;
   clientPoliciesAllowed: false;
+  clientSelectPoliciesAllowed: false;
   serviceRoleBypassRiskAcceptedOnlyBehindFunction: true;
 };
 
@@ -102,6 +119,8 @@ export type PostTradeTransactionFunctionRequirement = {
   callerProvidedProductionTargetAllowed: false;
   partialCommitAllowed: false;
   retryLoopAllowed: false;
+  applicationSequentialWritesAllowed: false;
+  genericUpsertAllowed: false;
   mustAtomicallyConsumeAuthorization: true;
   mustInsertExecutionRecord: true;
   mustInsertAuditEvent: true;
@@ -118,16 +137,25 @@ export type PostTradeMigrationPlan = {
   revokeClientAccess: true;
   clientPolicyCreationAllowed: false;
   seedRows: false;
+  seedAuthorizationRows: false;
+  seedExecutionRows: false;
   createExecutionFunctionNow: false;
   productionDeploymentAllowed: false;
   rollbackRequired: true;
+  destructiveRollbackWithRowsAllowed: false;
+  cascadeRollbackAllowed: false;
+  runtimeApiOrUiWiringAllowed: false;
 };
 
 export type PostTradeVerificationRequirement = {
   id: string;
   purpose:
     | "table_exists_staging_only"
+    | "table_absent_production"
     | "columns_exact"
+    | "data_types_exact"
+    | "nullability_exact"
+    | "unknown_columns_absent"
     | "constraints_present"
     | "uniqueness_present"
     | "indexes_present"
@@ -136,8 +164,12 @@ export type PostTradeVerificationRequirement = {
     | "no_client_grants"
     | "production_unchanged"
     | "zero_rows_after_migration"
+    | "zero_authorization_rows"
+    | "no_execution_records_created"
+    | "no_audit_events_created"
     | "direct_client_insert_rejected"
-    | "direct_client_update_rejected";
+    | "direct_client_update_rejected"
+    | "direct_client_delete_rejected";
 };
 
 export type PostTradeAuthorizationConsumptionPersistenceSchemaDesign = {
@@ -150,6 +182,7 @@ export type PostTradeAuthorizationConsumptionPersistenceSchemaDesign = {
   allowedStates: readonly PostTradeDesignedState[];
   recommendedInitialState: "unused";
   persistAmbiguousState: false;
+  allowedTransitions: readonly PostTradeStateTransitionRequirement[];
   columns: readonly PostTradeColumnSpec[];
   uniqueConstraints: readonly PostTradeUniqueConstraintSpec[];
   checkConstraints: readonly PostTradeCheckConstraintSpec[];
@@ -247,6 +280,32 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
     allowedStates: ["unused", "consumed", "invalid", "expired"],
     recommendedInitialState: "unused",
     persistAmbiguousState: false,
+    allowedTransitions: [
+      {
+        from: "insert",
+        to: "unused",
+        allowed: true,
+        mutationBoundary: "initial_authorization_seed",
+      },
+      {
+        from: "unused",
+        to: "consumed",
+        allowed: true,
+        mutationBoundary: "reviewed_atomic_consumption_function",
+      },
+      {
+        from: "unused",
+        to: "invalid",
+        allowed: true,
+        mutationBoundary: "reviewed_expiry_or_invalidation_function",
+      },
+      {
+        from: "unused",
+        to: "expired",
+        allowed: true,
+        mutationBoundary: "reviewed_expiry_or_invalidation_function",
+      },
+    ],
     columns: [
       column("id", "uuid", false, "database_generated", "database_managed"),
       ...immutableIdentityColumns.map((name) =>
@@ -283,8 +342,12 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
       { id: "chk_consumed_at_matches_state", purpose: "consumed_at_state", required: true },
       { id: "chk_execution_ids_match_state", purpose: "execution_ids_state", required: true },
       { id: "chk_result_matches_state", purpose: "result_state", required: true },
+      { id: "chk_affected_rows_one", purpose: "affected_rows_one", required: true },
+      { id: "chk_persistence_operation_required", purpose: "persistence_operation_required", required: true },
       { id: "chk_expiry_after_issued", purpose: "expiry_after_issued", required: true },
       { id: "chk_validity_window_bounded", purpose: "bounded_validity", required: true },
+      { id: "chk_no_usable_reactivation", purpose: "no_usable_reactivation", required: true },
+      { id: "chk_partial_evidence_prevention", purpose: "partial_evidence_prevention", required: true },
       { id: "chk_one_shot_true", purpose: "one_shot_true", required: true },
       { id: "chk_retry_false", purpose: "retry_false", required: true },
       { id: "chk_mock_only_true", purpose: "mock_only_true", required: true },
@@ -294,8 +357,25 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
       { id: "chk_safety_capabilities_false", purpose: "safety_capability_false", required: true },
     ],
     foreignKeys: [
-      { id: "fk_consumption_execution_record", column: "execution_record_id", targetTable: "execution_records", targetColumn: "id", requiredWhenState: "consumed" },
-      { id: "fk_consumption_audit_event", column: "execution_audit_event_id", targetTable: "execution_record_audit_events", targetColumn: "id", requiredWhenState: "consumed", consistencyRequirement: "audit_event_must_reference_execution_record" },
+      {
+        id: "fk_consumption_execution_record",
+        column: "execution_record_id",
+        targetTable: "execution_records",
+        targetColumn: "id",
+        requiredWhenState: "consumed",
+        onDelete: "restrict",
+        deferrable: "transaction_scoped_if_needed",
+      },
+      {
+        id: "fk_consumption_audit_event",
+        column: "execution_audit_event_id",
+        targetTable: "execution_record_audit_events",
+        targetColumn: "id",
+        requiredWhenState: "consumed",
+        onDelete: "restrict",
+        deferrable: "transaction_scoped_if_needed",
+        consistencyRequirement: "audit_event_must_reference_execution_record",
+      },
     ],
     indexes: [
       { id: "idx_consumption_artifact_lookup", columns: ["target_project_id", "authorization_artifact_id"], purpose: "lookup" },
@@ -306,13 +386,42 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
     rls: {
       enabled: true,
       clientPoliciesAllowed: false,
+      clientSelectPoliciesAllowed: false,
       serviceRoleBypassRiskAcceptedOnlyBehindFunction: true,
     },
     privileges: [
-      { role: "anon", directInsertAllowed: false, directUpdateAllowed: false, directSelectAllowed: false, executeFunctionAllowed: false },
-      { role: "authenticated", directInsertAllowed: false, directUpdateAllowed: false, directSelectAllowed: false, executeFunctionAllowed: false },
-      { role: "service_role", directInsertAllowed: false, directUpdateAllowed: false, directSelectAllowed: true, executeFunctionAllowed: false },
-      { role: "reviewed_database_function", directInsertAllowed: true, directUpdateAllowed: true, directSelectAllowed: true, executeFunctionAllowed: true },
+      {
+        role: "anon",
+        directInsertAllowed: false,
+        directUpdateAllowed: false,
+        directDeleteAllowed: false,
+        directSelectAllowed: false,
+        executeFunctionAllowed: false,
+      },
+      {
+        role: "authenticated",
+        directInsertAllowed: false,
+        directUpdateAllowed: false,
+        directDeleteAllowed: false,
+        directSelectAllowed: false,
+        executeFunctionAllowed: false,
+      },
+      {
+        role: "service_role",
+        directInsertAllowed: false,
+        directUpdateAllowed: false,
+        directDeleteAllowed: false,
+        directSelectAllowed: true,
+        executeFunctionAllowed: false,
+      },
+      {
+        role: "reviewed_database_function",
+        directInsertAllowed: true,
+        directUpdateAllowed: true,
+        directDeleteAllowed: false,
+        directSelectAllowed: true,
+        executeFunctionAllowed: true,
+      },
     ],
     transactionFunction: {
       required: true,
@@ -323,6 +432,8 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
       callerProvidedProductionTargetAllowed: false,
       partialCommitAllowed: false,
       retryLoopAllowed: false,
+      applicationSequentialWritesAllowed: false,
+      genericUpsertAllowed: false,
       mustAtomicallyConsumeAuthorization: true,
       mustInsertExecutionRecord: true,
       mustInsertAuditEvent: true,
@@ -338,13 +449,22 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
       revokeClientAccess: true,
       clientPolicyCreationAllowed: false,
       seedRows: false,
+      seedAuthorizationRows: false,
+      seedExecutionRows: false,
       createExecutionFunctionNow: false,
       productionDeploymentAllowed: false,
       rollbackRequired: true,
+      destructiveRollbackWithRowsAllowed: false,
+      cascadeRollbackAllowed: false,
+      runtimeApiOrUiWiringAllowed: false,
     },
     verificationPlan: [
       { id: "verify_table_exists_staging_only", purpose: "table_exists_staging_only" },
+      { id: "verify_table_absent_production", purpose: "table_absent_production" },
       { id: "verify_columns_exact", purpose: "columns_exact" },
+      { id: "verify_data_types_exact", purpose: "data_types_exact" },
+      { id: "verify_nullability_exact", purpose: "nullability_exact" },
+      { id: "verify_unknown_columns_absent", purpose: "unknown_columns_absent" },
       { id: "verify_constraints_present", purpose: "constraints_present" },
       { id: "verify_uniqueness_present", purpose: "uniqueness_present" },
       { id: "verify_indexes_present", purpose: "indexes_present" },
@@ -353,8 +473,12 @@ export const POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN =
       { id: "verify_no_client_grants", purpose: "no_client_grants" },
       { id: "verify_production_unchanged", purpose: "production_unchanged" },
       { id: "verify_zero_rows_after_migration", purpose: "zero_rows_after_migration" },
+      { id: "verify_zero_authorization_rows", purpose: "zero_authorization_rows" },
+      { id: "verify_no_execution_records_created", purpose: "no_execution_records_created" },
+      { id: "verify_no_audit_events_created", purpose: "no_audit_events_created" },
       { id: "verify_direct_client_insert_rejected", purpose: "direct_client_insert_rejected" },
       { id: "verify_direct_client_update_rejected", purpose: "direct_client_update_rejected" },
+      { id: "verify_direct_client_delete_rejected", purpose: "direct_client_delete_rejected" },
     ],
     appendOnlyLedgerRecommendation: "not_initially_required",
   } as const satisfies PostTradeAuthorizationConsumptionPersistenceSchemaDesign;
@@ -369,6 +493,39 @@ const requiredColumnNames = [
   ...immutableIdentityColumns,
   ...atomicConsumptionColumns,
 ] as const;
+
+const nonNullableUniqueIdentityColumns = [
+  "target_project_id",
+  "authorization_artifact_id",
+  "authorization_fingerprint",
+  "execution_attempt_id",
+  "execution_plan_id",
+  "consumption_operation_id",
+] as const;
+
+const requiredUniqueColumns = {
+  uniq_authorization_artifact_id: ["target_project_id", "authorization_artifact_id"],
+  uniq_authorization_fingerprint: ["target_project_id", "authorization_fingerprint"],
+  uniq_execution_attempt_id: ["target_project_id", "execution_attempt_id"],
+  uniq_execution_plan_id: ["target_project_id", "execution_plan_id"],
+  uniq_consumption_operation_id: ["target_project_id", "consumption_operation_id"],
+  uniq_artifact_plan_pair: [
+    "target_project_id",
+    "authorization_artifact_id",
+    "execution_plan_id",
+  ],
+} as const;
+
+const requiredTransitionSignatures = [
+  "insert->unused:initial_authorization_seed",
+  "unused->consumed:reviewed_atomic_consumption_function",
+  "unused->invalid:reviewed_expiry_or_invalidation_function",
+  "unused->expired:reviewed_expiry_or_invalidation_function",
+] as const;
+
+function transitionSignature(transition: PostTradeStateTransitionRequirement) {
+  return `${transition.from}->${transition.to}:${transition.mutationBoundary}`;
+}
 
 function hasExactStringSet(actual: readonly string[], expected: readonly string[]) {
   const sortedActual = [...actual].sort();
@@ -405,6 +562,12 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
   if (!hasExactStringSet(candidate.allowedStates ?? [], ["unused", "consumed", "invalid", "expired"])) {
     blockingReasons.push("state:allowed_states_mismatch");
   }
+  const transitionSignatures = (candidate.allowedTransitions ?? []).map(
+    transitionSignature,
+  );
+  if (!hasExactStringSet(transitionSignatures, requiredTransitionSignatures)) {
+    blockingReasons.push("state:transition_model_mismatch");
+  }
 
   const columns = candidate.columns ?? [];
   const columnNames = columns.map((item) => item.name);
@@ -434,20 +597,33 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
   if (columnByName.get("execution_record_id")?.nullable !== true) {
     blockingReasons.push("column.execution_record_id:null_until_consumed_required");
   }
+  if (columnByName.get("execution_audit_event_id")?.nullable !== true) {
+    blockingReasons.push("column.execution_audit_event_id:null_until_consumed_required");
+  }
   if (columnByName.get("authorization_artifact_id")?.typeCategory !== "text") {
     blockingReasons.push("column.authorization_artifact_id:text_required");
   }
+  for (const name of nonNullableUniqueIdentityColumns) {
+    if (columnByName.get(name)?.nullable !== false) {
+      blockingReasons.push(`column.${name}:non_nullable_unique_identity_required`);
+    }
+  }
 
-  const uniqueIds = new Set((candidate.uniqueConstraints ?? []).map((item) => item.id));
-  for (const id of [
-    "uniq_authorization_artifact_id",
-    "uniq_authorization_fingerprint",
-    "uniq_execution_attempt_id",
-    "uniq_execution_plan_id",
-    "uniq_consumption_operation_id",
-    "uniq_artifact_plan_pair",
-  ]) {
-    if (!uniqueIds.has(id)) blockingReasons.push(`unique.${id}:required`);
+  const uniqueById = new Map(
+    (candidate.uniqueConstraints ?? []).map((item) => [item.id, item]),
+  );
+  for (const [id, columns] of Object.entries(requiredUniqueColumns)) {
+    const unique = uniqueById.get(id);
+    if (!unique) {
+      blockingReasons.push(`unique.${id}:required`);
+      continue;
+    }
+    if (unique.scope !== "within_target_project") {
+      blockingReasons.push(`unique.${id}:staging_scope_required`);
+    }
+    if (!hasExactStringSet(unique.columns, columns)) {
+      blockingReasons.push(`unique.${id}:exact_columns_required`);
+    }
   }
 
   const checkPurposes = new Set((candidate.checkConstraints ?? []).map((item) => item.purpose));
@@ -458,8 +634,12 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
     "consumed_at_state",
     "execution_ids_state",
     "result_state",
+    "affected_rows_one",
+    "persistence_operation_required",
     "expiry_after_issued",
     "bounded_validity",
+    "no_usable_reactivation",
+    "partial_evidence_prevention",
     "one_shot_true",
     "retry_false",
     "mock_only_true",
@@ -473,17 +653,40 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
     }
   }
 
-  const foreignKeyIds = new Set((candidate.foreignKeys ?? []).map((item) => item.id));
-  if (!foreignKeyIds.has("fk_consumption_execution_record")) {
+  const foreignKeysById = new Map(
+    (candidate.foreignKeys ?? []).map((item) => [item.id, item]),
+  );
+  const executionRecordFk = foreignKeysById.get("fk_consumption_execution_record");
+  const auditEventFk = foreignKeysById.get("fk_consumption_audit_event");
+  if (!executionRecordFk) {
     blockingReasons.push("foreignKey.execution_record:required");
+  } else if (
+    executionRecordFk.onDelete !== "restrict" &&
+    executionRecordFk.onDelete !== "no_action"
+  ) {
+    blockingReasons.push("foreignKey.execution_record:no_cascade_required");
   }
-  if (!foreignKeyIds.has("fk_consumption_audit_event")) {
+  if (!auditEventFk) {
     blockingReasons.push("foreignKey.audit_event:required");
+  } else if (
+    auditEventFk.onDelete !== "restrict" &&
+    auditEventFk.onDelete !== "no_action"
+  ) {
+    blockingReasons.push("foreignKey.audit_event:no_cascade_required");
+  }
+  if (
+    auditEventFk?.consistencyRequirement !==
+    "audit_event_must_reference_execution_record"
+  ) {
+    blockingReasons.push("foreignKey.audit_event:execution_record_consistency_required");
   }
 
   if (candidate.rls?.enabled !== true) blockingReasons.push("rls:enabled_required");
   if (candidate.rls?.clientPoliciesAllowed !== false) {
     blockingReasons.push("rls:no_client_policies_required");
+  }
+  if (candidate.rls?.clientSelectPoliciesAllowed !== false) {
+    blockingReasons.push("rls:no_client_select_policies_required");
   }
   if (candidate.rls?.serviceRoleBypassRiskAcceptedOnlyBehindFunction !== true) {
     blockingReasons.push("rls:service_role_function_boundary_required");
@@ -495,6 +698,7 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
       !privilege ||
       privilege.directInsertAllowed ||
       privilege.directUpdateAllowed ||
+      privilege.directDeleteAllowed ||
       privilege.directSelectAllowed ||
       privilege.executeFunctionAllowed
     ) {
@@ -504,7 +708,12 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
   const serviceRole = (candidate.privileges ?? []).find(
     (item) => item.role === "service_role",
   );
-  if (!serviceRole || serviceRole.directInsertAllowed || serviceRole.directUpdateAllowed) {
+  if (
+    !serviceRole ||
+    serviceRole.directInsertAllowed ||
+    serviceRole.directUpdateAllowed ||
+    serviceRole.directDeleteAllowed
+  ) {
     blockingReasons.push("privilege.service_role:direct_mutation_denied_required");
   }
 
@@ -516,6 +725,12 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
   if (tx?.broadJsonInputAllowed !== false) blockingReasons.push("function:no_broad_json_required");
   if (tx?.partialCommitAllowed !== false) blockingReasons.push("function:no_partial_commit_required");
   if (tx?.retryLoopAllowed !== false) blockingReasons.push("function:no_retry_loop_required");
+  if (tx?.applicationSequentialWritesAllowed !== false) {
+    blockingReasons.push("function:no_application_sequential_writes_required");
+  }
+  if (tx?.genericUpsertAllowed !== false) {
+    blockingReasons.push("function:no_generic_upsert_required");
+  }
   if (tx?.mustAtomicallyConsumeAuthorization !== true) {
     blockingReasons.push("function:atomic_consumption_required");
   }
@@ -527,17 +742,42 @@ export function validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign
   if (migration?.createsMigrationNow !== false) blockingReasons.push("migration:no_file_now_required");
   if (migration?.target !== "staging_only") blockingReasons.push("migration:staging_only_required");
   if (migration?.seedRows !== false) blockingReasons.push("migration:no_seed_rows_required");
+  if (migration?.seedAuthorizationRows !== false) {
+    blockingReasons.push("migration:no_authorization_rows_required");
+  }
+  if (migration?.seedExecutionRows !== false) {
+    blockingReasons.push("migration:no_execution_rows_required");
+  }
   if (migration?.productionDeploymentAllowed !== false) {
     blockingReasons.push("migration:production_blocked_required");
   }
   if (migration?.rollbackRequired !== true) blockingReasons.push("migration:rollback_required");
+  if (migration?.destructiveRollbackWithRowsAllowed !== false) {
+    blockingReasons.push("migration:no_destructive_rollback_with_rows_required");
+  }
+  if (migration?.cascadeRollbackAllowed !== false) {
+    blockingReasons.push("migration:no_cascade_rollback_required");
+  }
+  if (migration?.runtimeApiOrUiWiringAllowed !== false) {
+    blockingReasons.push("migration:no_runtime_wiring_required");
+  }
 
   const verificationPurposes = new Set((candidate.verificationPlan ?? []).map((item) => item.purpose));
   for (const purpose of [
+    "table_absent_production",
+    "unknown_columns_absent",
+    "data_types_exact",
+    "nullability_exact",
     "zero_rows_after_migration",
+    "zero_authorization_rows",
+    "no_execution_records_created",
+    "no_audit_events_created",
     "rls_enabled",
     "no_client_grants",
     "production_unchanged",
+    "direct_client_insert_rejected",
+    "direct_client_update_rejected",
+    "direct_client_delete_rejected",
   ]) {
     if (!verificationPurposes.has(purpose as PostTradeVerificationRequirement["purpose"])) {
       blockingReasons.push(`verification.${purpose}:required`);

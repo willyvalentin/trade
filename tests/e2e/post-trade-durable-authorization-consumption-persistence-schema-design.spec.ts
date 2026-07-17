@@ -22,6 +22,22 @@ function design(
   };
 }
 
+function expectInvalid(candidate: unknown) {
+  expect(
+    validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign(candidate)
+      .valid,
+  ).toBe(false);
+}
+
+function withColumn(
+  columnName: string,
+  patch: Record<string, unknown>,
+): PostTradeAuthorizationConsumptionPersistenceSchemaDesign["columns"] {
+  return POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.columns.map(
+    (column) => (column.name === columnName ? { ...column, ...patch } : column),
+  );
+}
+
 test.describe("post-trade durable authorization consumption persistence schema design", () => {
   test("canonical schema specification is valid and table identity is exact", () => {
     const validation =
@@ -40,6 +56,17 @@ test.describe("post-trade durable authorization consumption persistence schema d
       POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.rejectedProductionProjectRef,
     ).toBe(POST_TRADE_REJECTED_PRODUCTION_PROJECT_REF);
     expect(POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.persistAmbiguousState).toBe(false);
+    expect(
+      POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.allowedTransitions.map(
+        (transition) =>
+          `${transition.from}->${transition.to}:${transition.mutationBoundary}`,
+      ),
+    ).toEqual([
+      "insert->unused:initial_authorization_seed",
+      "unused->consumed:reviewed_atomic_consumption_function",
+      "unused->invalid:reviewed_expiry_or_invalidation_function",
+      "unused->expired:reviewed_expiry_or_invalidation_function",
+    ]);
   });
 
   test("required identity lifecycle evidence and safety columns exist with correct mutability", () => {
@@ -69,6 +96,19 @@ test.describe("post-trade durable authorization consumption persistence schema d
       "one_shot",
       "retry_allowed",
       "mock_only",
+      "production_access_allowed",
+      "api_invocation_allowed",
+      "ui_invocation_allowed",
+      "client_invocation_allowed",
+      "browser_automation_allowed",
+      "broker_interaction_allowed",
+      "avanza_interaction_allowed",
+      "credential_handling_allowed",
+      "session_handling_allowed",
+      "bankid_handling_allowed",
+      "trade_mutation_allowed",
+      "position_mutation_allowed",
+      "order_mutation_allowed",
     ]) {
       expect(columns.get(column)?.mutability).toBe("immutable_after_insert");
     }
@@ -107,6 +147,10 @@ test.describe("post-trade durable authorization consumption persistence schema d
         "uniq_artifact_plan_pair",
       ]),
     );
+    for (const constraint of POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.uniqueConstraints) {
+      expect(constraint.scope).toBe("within_target_project");
+      expect(constraint.columns[0]).toBe("target_project_id");
+    }
   });
 
   test("check constraints pin staging production state timestamps counts table order audit dependency and safety markers", () => {
@@ -123,8 +167,12 @@ test.describe("post-trade durable authorization consumption persistence schema d
       "consumed_at_state",
       "execution_ids_state",
       "result_state",
+      "affected_rows_one",
+      "persistence_operation_required",
       "expiry_after_issued",
       "bounded_validity",
+      "no_usable_reactivation",
+      "partial_evidence_prevention",
       "one_shot_true",
       "retry_false",
       "mock_only_true",
@@ -145,6 +193,8 @@ test.describe("post-trade durable authorization consumption persistence schema d
         targetTable: "execution_records",
         targetColumn: "id",
         requiredWhenState: "consumed",
+        onDelete: "restrict",
+        deferrable: "transaction_scoped_if_needed",
       },
       {
         id: "fk_consumption_audit_event",
@@ -152,6 +202,8 @@ test.describe("post-trade durable authorization consumption persistence schema d
         targetTable: "execution_record_audit_events",
         targetColumn: "id",
         requiredWhenState: "consumed",
+        onDelete: "restrict",
+        deferrable: "transaction_scoped_if_needed",
         consistencyRequirement: "audit_event_must_reference_execution_record",
       },
     ]);
@@ -169,17 +221,23 @@ test.describe("post-trade durable authorization consumption persistence schema d
 
     expect(designSpec.rls.enabled).toBe(true);
     expect(designSpec.rls.clientPoliciesAllowed).toBe(false);
+    expect(designSpec.rls.clientSelectPoliciesAllowed).toBe(false);
     expect(anon?.directInsertAllowed).toBe(false);
     expect(anon?.directUpdateAllowed).toBe(false);
+    expect(anon?.directDeleteAllowed).toBe(false);
     expect(authenticated?.directInsertAllowed).toBe(false);
     expect(authenticated?.directUpdateAllowed).toBe(false);
+    expect(authenticated?.directDeleteAllowed).toBe(false);
     expect(serviceRole?.directInsertAllowed).toBe(false);
     expect(serviceRole?.directUpdateAllowed).toBe(false);
+    expect(serviceRole?.directDeleteAllowed).toBe(false);
     expect(designSpec.transactionFunction.required).toBe(true);
     expect(designSpec.transactionFunction.stagingOnly).toBe(true);
     expect(designSpec.transactionFunction.dynamicSqlAllowed).toBe(false);
     expect(designSpec.transactionFunction.partialCommitAllowed).toBe(false);
     expect(designSpec.transactionFunction.retryLoopAllowed).toBe(false);
+    expect(designSpec.transactionFunction.applicationSequentialWritesAllowed).toBe(false);
+    expect(designSpec.transactionFunction.genericUpsertAllowed).toBe(false);
   });
 
   test("migration and verification plans are staging-only no-row no-production plans", () => {
@@ -193,12 +251,27 @@ test.describe("post-trade durable authorization consumption persistence schema d
     expect(migration.createsMigrationNow).toBe(false);
     expect(migration.target).toBe("staging_only");
     expect(migration.seedRows).toBe(false);
+    expect(migration.seedAuthorizationRows).toBe(false);
+    expect(migration.seedExecutionRows).toBe(false);
     expect(migration.productionDeploymentAllowed).toBe(false);
     expect(migration.rollbackRequired).toBe(true);
+    expect(migration.destructiveRollbackWithRowsAllowed).toBe(false);
+    expect(migration.cascadeRollbackAllowed).toBe(false);
+    expect(migration.runtimeApiOrUiWiringAllowed).toBe(false);
+    expect(verificationPurposes.has("table_absent_production")).toBe(true);
+    expect(verificationPurposes.has("unknown_columns_absent")).toBe(true);
+    expect(verificationPurposes.has("data_types_exact")).toBe(true);
+    expect(verificationPurposes.has("nullability_exact")).toBe(true);
     expect(verificationPurposes.has("zero_rows_after_migration")).toBe(true);
+    expect(verificationPurposes.has("zero_authorization_rows")).toBe(true);
+    expect(verificationPurposes.has("no_execution_records_created")).toBe(true);
+    expect(verificationPurposes.has("no_audit_events_created")).toBe(true);
     expect(verificationPurposes.has("rls_enabled")).toBe(true);
     expect(verificationPurposes.has("no_client_grants")).toBe(true);
     expect(verificationPurposes.has("production_unchanged")).toBe(true);
+    expect(verificationPurposes.has("direct_client_insert_rejected")).toBe(true);
+    expect(verificationPurposes.has("direct_client_update_rejected")).toBe(true);
+    expect(verificationPurposes.has("direct_client_delete_rejected")).toBe(true);
   });
 
   test("validator rejects unknown or missing columns altered type nullability and mutability weakening", () => {
@@ -249,10 +322,7 @@ test.describe("post-trade durable authorization consumption persistence schema d
       alteredNullability,
       alteredMutability,
     ]) {
-      expect(
-        validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign(candidate)
-          .valid,
-      ).toBe(false);
+      expectInvalid(candidate);
     }
   });
 
@@ -321,10 +391,258 @@ test.describe("post-trade durable authorization consumption persistence schema d
     ];
 
     for (const candidate of cases) {
-      expect(
-        validatePostTradeAuthorizationConsumptionPersistenceSchemaDesign(candidate)
-          .valid,
-      ).toBe(false);
+      expectInvalid(candidate);
+    }
+  });
+
+  test("validator rejects nullable critical identities and weakened unique constraint shapes", () => {
+    for (const column of [
+      "authorization_artifact_id",
+      "authorization_fingerprint",
+      "execution_attempt_id",
+      "execution_plan_id",
+      "consumption_operation_id",
+    ]) {
+      expectInvalid(design({ columns: withColumn(column, { nullable: true }) }));
+    }
+
+    expectInvalid(
+      design({
+        uniqueConstraints:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.uniqueConstraints.filter(
+            (constraint) => constraint.id !== "uniq_authorization_artifact_id",
+          ),
+      }),
+    );
+    expectInvalid(
+      design({
+        uniqueConstraints:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.uniqueConstraints.map(
+            (constraint) =>
+              constraint.id === "uniq_execution_plan_id"
+                ? { ...constraint, columns: ["execution_plan_id"] }
+                : constraint,
+          ),
+      }),
+    );
+    expectInvalid(
+      design({
+        uniqueConstraints:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.uniqueConstraints.map(
+            (constraint) =>
+              constraint.id === "uniq_consumption_operation_id"
+                ? { ...constraint, scope: "global" as const }
+                : constraint,
+          ),
+      }),
+    );
+  });
+
+  test("validator rejects unsafe state transition models and persisted ambiguous or retryable states", () => {
+    expectInvalid(design({ allowedTransitions: [] }));
+    expectInvalid(
+      design({
+        allowedTransitions: [
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.allowedTransitions,
+          {
+            from: "consumed",
+            to: "unused",
+            allowed: true,
+            mutationBoundary: "reviewed_expiry_or_invalidation_function",
+          },
+        ] as never,
+      }),
+    );
+    expectInvalid(
+      design({
+        allowedTransitions:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.allowedTransitions.filter(
+            (transition) => transition.to !== "expired",
+          ),
+      }),
+    );
+    expectInvalid(design({ allowedStates: ["unused", "pending", "consumed"] as never }));
+    expectInvalid(design({ allowedStates: ["unused", "reserved", "consumed"] as never }));
+    expectInvalid(design({ allowedStates: ["unused", "ambiguous", "consumed"] as never }));
+  });
+
+  test("validator rejects removed evidence constraints and partial evidence bypasses", () => {
+    for (const purpose of [
+      "affected_rows_one",
+      "persistence_operation_required",
+      "partial_evidence_prevention",
+      "consumed_at_state",
+      "execution_ids_state",
+      "result_state",
+      "expected_counts",
+      "ordered_tables",
+      "audit_dependency",
+      "one_shot_true",
+      "retry_false",
+      "mock_only_true",
+      "expiry_after_issued",
+      "bounded_validity",
+      "no_usable_reactivation",
+    ]) {
+      expectInvalid(
+        design({
+          checkConstraints:
+            POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.checkConstraints.filter(
+              (constraint) => constraint.purpose !== purpose,
+            ),
+        }),
+      );
+    }
+  });
+
+  test("validator rejects foreign key cascade deletion and missing audit ownership consistency", () => {
+    expectInvalid(
+      design({
+        foreignKeys:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.foreignKeys.map(
+            (foreignKey) =>
+              foreignKey.id === "fk_consumption_execution_record"
+                ? { ...foreignKey, onDelete: "cascade" as never }
+                : foreignKey,
+          ),
+      }),
+    );
+    expectInvalid(
+      design({
+        foreignKeys:
+          POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.foreignKeys.map(
+            (foreignKey) =>
+              foreignKey.id === "fk_consumption_audit_event"
+                ? {
+                    ...foreignKey,
+                    consistencyRequirement: undefined,
+                  }
+                : foreignKey,
+          ),
+      }),
+    );
+  });
+
+  test("validator rejects client policies grants direct deletes broad function behavior and rollback hazards", () => {
+    expectInvalid(
+      design({
+        rls: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.rls,
+          clientSelectPoliciesAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        privileges: POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.privileges.map(
+          (privilege) =>
+            privilege.role === "anon"
+              ? { ...privilege, directDeleteAllowed: true }
+              : privilege,
+        ),
+      }),
+    );
+    expectInvalid(
+      design({
+        privileges: POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.privileges.map(
+          (privilege) =>
+            privilege.role === "service_role"
+              ? { ...privilege, directDeleteAllowed: true }
+              : privilege,
+        ),
+      }),
+    );
+    expectInvalid(
+      design({
+        transactionFunction: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.transactionFunction,
+          broadJsonInputAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        transactionFunction: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.transactionFunction,
+          dynamicTableNamesAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        transactionFunction: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.transactionFunction,
+          applicationSequentialWritesAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        transactionFunction: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.transactionFunction,
+          genericUpsertAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        migrationPlan: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.migrationPlan,
+          seedAuthorizationRows: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        migrationPlan: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.migrationPlan,
+          seedExecutionRows: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        migrationPlan: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.migrationPlan,
+          destructiveRollbackWithRowsAllowed: true as never,
+        },
+      }),
+    );
+    expectInvalid(
+      design({
+        migrationPlan: {
+          ...POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.migrationPlan,
+          cascadeRollbackAllowed: true as never,
+        },
+      }),
+    );
+  });
+
+  test("validator rejects missing verification for production absence zero rows client writes and exact schema", () => {
+    for (const purpose of [
+      "table_absent_production",
+      "unknown_columns_absent",
+      "data_types_exact",
+      "nullability_exact",
+      "zero_rows_after_migration",
+      "zero_authorization_rows",
+      "no_execution_records_created",
+      "no_audit_events_created",
+      "rls_enabled",
+      "no_client_grants",
+      "production_unchanged",
+      "direct_client_insert_rejected",
+      "direct_client_update_rejected",
+      "direct_client_delete_rejected",
+    ]) {
+      expectInvalid(
+        design({
+          verificationPlan:
+            POST_TRADE_AUTHORIZATION_CONSUMPTION_SCHEMA_DESIGN.verificationPlan.filter(
+              (item) => item.purpose !== purpose,
+            ),
+        }),
+      );
     }
   });
 

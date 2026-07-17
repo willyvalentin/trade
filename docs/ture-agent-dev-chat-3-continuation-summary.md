@@ -1,5 +1,649 @@
 # Ture Agent Dev Chat 3 Continuation Summary
 
+## Latest Checkpoint - Action 532
+
+Action 532 performed the independent static/security review of the Action 531 credential source adapter boundary, without live credential access, Keychain access, environment value reads, credential file reads, credential helper invocation, authorization consumption, process spawning, API/UI/runtime wiring, browser automation, Avanza automation, commit, deploy, or secret printing.
+
+Created and updated files:
+
+- `lib/post-trade-credential-source-adapter-boundary-core.ts`
+- `tests/e2e/post-trade-credential-source-adapter-boundary-security-review.spec.ts`
+- `docs/credential-source-adapter-boundary-static-security-review.md`
+- `docs/credential-source-adapter-boundary-review-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review scope covered 68 exported surfaces, 2 exact policies, 3 exact purposes, 4 capability/link artifacts, 16 fingerprint domains, 340 existing focused tests, and 74 new Action 532 security-review regression tests.
+
+Findings were corrected and closed:
+
+- high: fingerprint validation and exported builder/fingerprint helpers could canonicalize or hash hostile caller input before explicit secret rejection;
+- medium: prohibited-key matching was too exact and did not normalize case, separators, or Keychain service variants;
+- medium: sensitive-value scanning did not normalize Unicode or decode percent-encoded secret indicators.
+
+The boundary is now confirmed deterministic, fixture-only, server-only at the runtime wrapper, source controlled, secret-free, capability scoped, purpose bound, operation bound, audience bound, scope bound, session bound, expiry bound, clone resistant, runtime immutable, one-shot, nonrenewable, delivery isolated, cleanup honest, revocation honest, fail closed, and unable to access, deliver, authorize, hash, log, cache, or persist live credential material.
+
+Validation completed:
+
+- Action 531 + Action 532 credential suites: 414 passed.
+- Credential/direct-spawn chain suites: 763 passed.
+- Broader post-trade suite: 2275 passed.
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- scoped ESLint for Action 531/532 files: passed.
+- static implementation searches for live credential/process/API dependencies: passed with only inert schema/review strings for Keychain.
+
+Decision:
+
+`post_trade_credential_source_adapter_boundary_first_live_staging_preflight_static_security_review_approved`
+
+Result:
+
+`post_trade_credential_source_adapter_boundary_first_live_staging_preflight_static_security_review_completed`
+
+Recommended next action:
+
+Action 533 - Perform Execution Agent Cross-Boundary Integration Readiness Review.
+
+## Previous Checkpoint - Action 531
+
+Action 531 implemented the deterministic fixture-only, server-only credential source adapter boundary for the future first live read-only staging preflight, without live credential access, Keychain access, environment value reads, credential file reads, credential helper invocation, authorization consumption, process start, runner activation, API/UI/runtime wiring, browser automation, Avanza automation, commit, deploy, or secret printing.
+
+Created and updated files:
+
+- `lib/post-trade-credential-source-adapter-boundary-core.ts`
+- `lib/post-trade-credential-source-adapter-boundary.ts`
+- `tests/e2e/post-trade-credential-source-adapter-boundary.spec.ts`
+- `docs/credential-source-adapter-boundary.md`
+- `docs/credential-source-adapter-boundary-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The boundary defines exact fixture identity `ture.execution.credential-source-adapter-boundary.fixture.v1`, exact current no-credential policy `first_live_read_only_no_credentials_required_v1`, exact future reference-only policy `future_scoped_keychain_credential_reference_fixture_v1`, credential session capability, fixture no-credential capability, fixture future credential reference capability, fixture authorization link, strict no-credential and reference fixture requests, deterministic SHA-256 fingerprints, source and secret classification, compatibility summary, and an inert future live plan.
+
+Current operation compatibility is explicit:
+
+- `collect_git_version` requires no credential;
+- `collect_supabase_cli_version` requires no credential;
+- any non-`none` credential source is rejected for current operations.
+
+Future credential reference modeling is metadata-only and opaque. It includes no lookup-sufficient Keychain identifiers, no token, no password, no API key, no private key, no cookie, no session, no BankID artifact, no authorization header, and no broker document. It cannot access Keychain, issue a live lease, deliver a credential, prove cleanup, prove revocation, consume authorization, enable process start, or enable the preflight runner.
+
+Evidence guarantees remain:
+
+- `fixtureOnly: true`
+- `authoritativeLive: false`
+- `credentialProvided: false`
+- `secretMaterialPresent: false`
+- `keychainAccessed: false`
+- `environmentRead: false`
+- `credentialFileRead: false`
+- `credentialHelperInvoked: false`
+- `browserSessionAccessed: false`
+- `networkBrokerAccessed: false`
+- `credentialLeaseIssued: false`
+- `credentialDelivered: false`
+- `authorizationConsumed: false`
+- `cleanupPerformedLive: false`
+- `revocationPerformedLive: false`
+- `processStartEnabled: false`
+- `preflightRunnerEnabled: false`
+
+Focused Action 531 validation currently reports 340 passing tests, clean TypeScript, and clean scoped ESLint for the new boundary files.
+
+Decision:
+
+`post_trade_credential_source_adapter_boundary_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_credential_source_adapter_boundary_first_live_staging_preflight_added_no_live_credential_access`
+
+Recommended next action:
+
+Action 532 - Perform Static and Security Review of Credential Source Adapter Boundary.
+
+## Previous Checkpoint - Action 530
+
+Action 530 performed the independent static/security review of the Action 529 direct-spawn driver boundary, without live process spawning, command execution, shell invocation, timers, signals, observer invocation, authorization consumption, credential access, API/UI/runtime wiring, browser automation, Avanza automation, commit, deploy, or environment value access.
+
+Created and updated files:
+
+- `lib/post-trade-direct-spawn-driver-boundary-core.ts`
+- `tests/e2e/post-trade-direct-spawn-driver-boundary-security-review.spec.ts`
+- `docs/direct-spawn-driver-boundary-static-security-review.md`
+- `docs/direct-spawn-driver-boundary-review-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review scope covered 57 exported surfaces, 1 exact policy, 2 exact operations, 4 capability/link artifacts, 12 fingerprint domains, 336 existing focused tests, and 13 new Action 530 security-review regression tests.
+
+Closed findings:
+
+- medium: generated plan/evidence blocking reasons now remain inside the closed `DirectSpawnBlockingReason` vocabulary;
+- low: recursive unknown-field scanning now rejects sensitive-looking string values;
+- low: argv validation now rejects fullwidth shell-like punctuation.
+
+The boundary remains deterministic, fixture-only, server-only at the runtime wrapper, source-controlled, capability-scoped, session-bound, expiry-bound, clone-resistant, runtime immutable, exact-operation-bound, exact-argv-bound, shell-forbidden, environment-isolated, cwd-isolated, credential-isolated, no-retry, one-shot, fail-closed, authority-isolated, and unable to initiate or authorize live process execution.
+
+Validation completed:
+
+- Action 530 security-review suite: 13 passed.
+- Action 529 direct-spawn suite: 336 passed.
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- implementation-only static searches for process primitives, timers/signals, env/cwd/fs/credential access, unsafe true execution semantics, and API/UI direct-spawn imports: passed.
+
+Decision:
+
+`post_trade_direct_spawn_driver_boundary_first_live_staging_preflight_static_security_review_approved`
+
+Result:
+
+`post_trade_direct_spawn_driver_boundary_first_live_staging_preflight_static_security_review_completed`
+
+Recommended next action:
+
+Action 531 - Implement Credential Source Adapter Boundary, Without Live Credential or Keychain Access.
+
+## Previous Checkpoint - Action 529
+
+Action 529 implemented the deterministic fixture-only, server-only direct-spawn driver boundary for the future macOS read-only staging preflight, without live process spawning or any runtime execution.
+
+Created and updated files:
+
+- `lib/post-trade-direct-spawn-driver-boundary-core.ts`
+- `lib/post-trade-direct-spawn-driver-boundary.ts`
+- `tests/e2e/post-trade-direct-spawn-driver-boundary.spec.ts`
+- `docs/direct-spawn-driver-boundary.md`
+- `docs/direct-spawn-driver-boundary-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The new boundary defines exact fixture identity `ture.execution.direct-spawn-driver-boundary.fixture.v1`, exact policy `first_live_read_only_direct_spawn_v1`, exact operations `collect_git_version` and `collect_supabase_cli_version`, immutable `["--version"]` argv contracts, spawn-session capability, fixture executable spawn authority, fixture repository spawn authority, fixture authorization link, strict direct-spawn fixture requests, no-execution plans/evidence, compatibility summary, future live-driver plan, and deterministic SHA-256 fingerprints.
+
+Capabilities and links are fixture-only, runtime-provenance checked, clone-resistant, frozen, noninterchangeable, session-bound, and expiry-bound. The fixture adapter only creates sanitized structural plans and result evidence. It does not expose `spawn`, `execute`, `run`, `exec`, `fork`, or process-start APIs.
+
+Evidence guarantees remain:
+
+- `fixtureOnly: true`
+- `authoritativeLive: false`
+- `executionAttempted: false`
+- `executionStarted: false`
+- `processSpawned: false`
+- `pidCreated: false`
+- `processGroupCreated: false`
+- `shellUsed: false`
+- `outputCapturedLive: false`
+- `timeoutScheduled: false`
+- `terminationAttempted: false`
+- `signalsSent: false`
+- `terminationVerifiedLive: false`
+- `observerInvokedLive: false`
+- `authorizationConsumed: false`
+- `enablesProcessStart: false`
+- `enablesPreflightRunner: false`
+
+Safety remains locked:
+
+- no child_process import;
+- no process spawn;
+- no shell;
+- no command execution;
+- no PID or process group;
+- no signal;
+- no timer;
+- no observer invocation;
+- no PATH/filesystem/environment/cwd inspection;
+- no credential access;
+- no Git/Supabase execution;
+- no authorization consumption;
+- no API/UI/runtime/runner wiring;
+- no Avanza/browser automation;
+- no deployment.
+
+Focused Action 529 validation currently reports 336 passing tests.
+
+Decision:
+
+`post_trade_direct_spawn_driver_boundary_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_direct_spawn_driver_boundary_first_live_staging_preflight_added_no_live_process_spawning`
+
+Recommended next action:
+
+Action 530 - Perform Static and Security Review of Direct Spawn Driver Boundary.
+
+## Previous Checkpoint - Action 528
+
+Action 528 performed the independent static/security review of the Action 527 trusted live resolver adapter boundary, without live filesystem/PATH resolution, process spawning, Git/Supabase invocation, API/UI wiring, runner activation, credential access, authorization consumption, persistence, or deployment.
+
+Created and updated files:
+
+- `lib/post-trade-trusted-live-resolver-adapter-core.ts`
+- `tests/e2e/post-trade-trusted-live-resolver-adapter-security-review.spec.ts`
+- `docs/trusted-live-resolver-adapter-boundary.md`
+- `docs/trusted-live-resolver-adapter-static-security-review.md`
+- `docs/trusted-live-resolver-adapter-review-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The review covered 77 exported surfaces, 2 exact policies, 3 capability types, 16 fingerprint domains, 479 existing focused tests, and 12 new Action 528 regression tests.
+
+Findings were corrected and closed:
+
+- high: approved-root scope now requires structural segment-boundary checks and exact root fingerprints, closing prefix-collision bypasses;
+- medium: supported `supabase_cli` executable requests now validate against the `supabase_cli` fixture identity instead of the default `git` identity;
+- medium: cyclic malformed request input now fails closed instead of throwing;
+- low: boundary documentation now explicitly states unsupported Unicode path forms fail closed and root checks use segment-boundary logic.
+
+All 50 mandatory Action 528 security assertions passed after correction. The adapter remains deterministic, fixture-only, source controlled, capability scoped, runtime-provenance checked, clone resistant, noninterchangeable, session bound, expiry bound, path/root hardened, ambiguity preserving, fail closed, authority isolated, and unable to issue live executable or repository authority.
+
+Safety remains locked:
+
+- no PATH inspection;
+- no environment value read;
+- no current-working-directory read;
+- no filesystem inspection;
+- no symlink resolution;
+- no ownership/permission/architecture/Rosetta live inspection;
+- no shell/process spawn;
+- no Git or Supabase command;
+- no credential access;
+- no persistence;
+- no authorization consumption;
+- no live executable or repository capability issuance;
+- no process start;
+- no runner/API/UI/runtime wiring;
+- no Avanza/browser automation;
+- no order behavior, settlement retrieval, or live trade/position mutation.
+
+Decision:
+
+`post_trade_trusted_live_resolver_adapter_first_live_staging_preflight_static_security_review_approved`
+
+Result:
+
+`post_trade_trusted_live_resolver_adapter_first_live_staging_preflight_static_security_review_completed`
+
+Recommended next action:
+
+Action 529 - Implement Direct Spawn Driver Boundary, Without Live Process Spawning.
+
+## Previous Checkpoint - Action 527
+
+Action 527 implemented the deterministic fixture-only trusted live resolver adapter boundary for future macOS executable and repository-root resolution, without live filesystem or PATH resolution.
+
+Created and updated files:
+
+- `lib/post-trade-trusted-live-resolver-adapter-core.ts`
+- `lib/post-trade-trusted-live-resolver-adapter.ts`
+- `tests/e2e/post-trade-trusted-live-resolver-adapter.spec.ts`
+- `docs/trusted-live-resolver-adapter-boundary.md`
+- `docs/trusted-live-resolver-adapter-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The new boundary defines the exact fixture resolver identity `ture.execution.trusted-live-resolver-adapter.fixture.v1`, the exact executable policy `first_live_read_only_executable_resolution_v1`, the exact repository policy `first_live_read_only_repository_root_resolution_v1`, resolver-session capabilities, executable-candidate capabilities, repository-candidate capabilities, exact executable/repository request types, executable/repository fixture observations, sanitized evidence, result models, compatibility summaries, deterministic SHA-256 fingerprints, and an inert future live-resolver plan.
+
+Capabilities are fixture-only, runtime-provenance-checked, clone-resistant, session-bound, expiry-bound, immutable, and noninterchangeable. The resolver adapter evaluates only injected fixture candidates. It derives authority and completeness internally, requires exactly one candidate, blocks zero/multiple candidates, rejects unsafe structural paths, rejects caller authority/completeness/trusted/resolved flags, and keeps all live proof and enablement fields false.
+
+The implementation remains no-live-resolution:
+
+- no PATH inspection;
+- no environment value read;
+- no current-working-directory read;
+- no filesystem inspection;
+- no symlink resolution;
+- no ownership inspection;
+- no architecture inspection;
+- no Rosetta inspection;
+- no shell or child process;
+- no Git or Supabase command;
+- no credential access;
+- no persistence;
+- no authorization consumption;
+- no live executable or repository capability issuance;
+- no process start;
+- no runner/API/UI wiring.
+
+Focused Action 527 validation currently reports 479 passing tests.
+
+Decision:
+
+`post_trade_trusted_live_resolver_adapter_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_trusted_live_resolver_adapter_first_live_staging_preflight_added_no_live_resolution`
+
+Recommended next action:
+
+Action 528 - Perform Static and Security Review of Trusted Live Resolver Adapter Boundary.
+
+## Previous Checkpoint - Action 526
+
+Action 526 performed a static/security review of the scoped macOS process observer boundary from Action 525, without live process observation or runtime execution.
+
+Created and updated files:
+
+- `lib/post-trade-scoped-macos-process-observer-core.ts`
+- `tests/e2e/post-trade-scoped-macos-process-observer-security-review.spec.ts`
+- `docs/scoped-macos-process-observer-static-security-review.md`
+- `docs/scoped-macos-process-observer-review-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The review covered 67 exported const/type/function surfaces, one exact no-expected-child policy, two capability types, ten fingerprint domains, 314 existing observer tests, Action 525 documentation, dependency surfaces, identity, policy, capabilities, request, fixture, graph, classification, authority, completeness, freshness, session binding, evidence, compatibility, server-only isolation, side effects, and API/UI unwired status.
+
+Three trust-semantics findings were identified and corrected:
+
+- capability provenance was cloneable from public fields;
+- prohibited process/control-key scanning was only top-level;
+- direct graph relationships could imply a child without requiring that child in the direct-child observation set.
+
+Corrections added module-private runtime provenance for process and group fixture capabilities, recursive prohibited-key scanning, direct-child edge consistency validation, and 18 focused security-review regression tests. Focused observer validation now reports 332 passing tests.
+
+All 35 required security assertions passed after correction. The observer remains fixture-only, server-only at the boundary, structurally scoped, nonauthoritative, and unable to inspect live processes, enumerate processes, accept arbitrary PIDs/PGIDs, send signals, start processes, terminate processes, read PATH/filesystem/env values, access credentials, run Git/Supabase/version commands, execute SQL, persist evidence, consume authorization, enable runner behavior, or prove live containment/termination.
+
+Decision:
+
+`post_trade_scoped_macos_process_observer_first_live_staging_preflight_static_security_review_approved`
+
+Result:
+
+`post_trade_scoped_macos_process_observer_first_live_staging_preflight_static_security_review_completed`
+
+Recommended next action:
+
+Action 527 - Implement Trusted Live Resolver Adapter Boundary, Without Live Filesystem or PATH Resolution.
+
+## Previous Checkpoint - Action 525
+
+Action 525 implemented the scoped macOS process observer boundary for the future first live staging preflight, without live process observation.
+
+Created and updated files:
+
+- `lib/post-trade-scoped-macos-process-observer-core.ts`
+- `lib/post-trade-scoped-macos-process-observer.ts`
+- `tests/e2e/post-trade-scoped-macos-process-observer.spec.ts`
+- `docs/scoped-macos-process-observer-boundary.md`
+- `docs/scoped-macos-process-observer-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The observer boundary adds a pure fixture-only core, exact observer identity, exact no-expected-child policy registry, opaque process-instance capability, opaque process-group capability, scoped observation requests, fixture snapshots, process relationship graph validation, parent/direct-child/descendant/process-group/detachment/escape/browser/GUI/opener/helper/daemon/unknown classifications, freshness and expiry checks using injected time, sanitized containment evidence, sanitized termination-verification evidence, deterministic SHA-256 fingerprints, compatibility summaries, an injected fixture adapter, and an inert future observer plan.
+
+The server-only boundary imports `server-only`, exposes no live adapter, no default observer singleton, no raw PID/PGID interface, no process-listing interface, no signal interface, no start/terminate interface, and no runner enablement.
+
+All Action 525 results remain:
+
+- `fixtureOnly: true`
+- `observedLive: false`
+- `authoritativeLive: false`
+- `provesContainment: false`
+- `provesTermination: false`
+- `enablesProcessStart: false`
+- `enablesPreflightRunner: false`
+
+The observer is structurally compatible with the surrounding process executor, live-driver design, trusted resolver, CLI-version collector, credential boundary, authorization boundary, and runner contracts. Fixture compatibility does not enable live execution, process start, direct spawn, credential cleanup, authorization consumption, CLI-version collection, or runner execution.
+
+The new observer suite contains 314 tests covering identity, policy, capabilities, requests, fixture flags, graph validation, parent/child/descendant/group/detachment/escape/semantic/daemon classifications, completeness, freshness, evidence sanitization, fingerprints, compatibility, prohibited APIs/imports, server-only boundary, immutability, and end-to-end fixture scenarios.
+
+No Action 525 live process observation, process-tree enumeration, raw PID lookup, raw process-group lookup, child-process import, shell, signal handling, process start, process termination, filesystem inspection, PATH inspection, environment read, credential access, Git command, Supabase command, version command, SQL, persistence, authorization consumption, runner wiring, API wiring, UI wiring, browser automation, Avanza automation, deployment, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_scoped_macos_process_observer_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_scoped_macos_process_observer_first_live_staging_preflight_added_no_live_observation`
+
+Recommended next action:
+
+Action 526 - Perform Static and Security Review of Scoped macOS Process Observer Boundary.
+
+## Previous Checkpoint - Action 524
+
+Action 524 performed a static/security review and hardening pass for the trusted executable and repository CWD resolver boundary, without live resolution.
+
+Created and updated files:
+
+- `lib/post-trade-first-live-read-only-preflight-trusted-resolver-core.ts`
+- `tests/e2e/post-trade-first-live-read-only-preflight-trusted-resolver.spec.ts`
+- `docs/post-trade-trusted-executable-repository-cwd-resolver-first-live-staging-preflight-static-security-review-no-live-resolution.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The review confirmed the resolver boundary remains deterministic, pure in core, server-only at the exported boundary, fixture-only, no-live-resolution, source-controlled, macOS-specific, staging-only, fail-closed, exact-object validated where required, strict about resolver identity, strict about component identity, strict about repository identity, strict about candidate count, strict about executable basename, strict about file type, strict about permissions, strict about ownership, strict about symlinks, strict about architecture, strict about Rosetta, strict about provenance, strict about capability scope, strict about freshness, strict about TOCTOU revalidation contracts, and incapable of enabling process spawn, runner execution, evidence persistence, or authorization consumption.
+
+Review hardening added explicit candidate-set rejection reasons for duplicate candidate IDs, duplicate stable identities, mixed resolver IDs, and mixed fixture sources. It also added direct validator checks so maliciously recomputed fingerprints cannot launder unsafe resolver IDs, candidate sources, candidate identities, basenames, unknown operation scopes, unsafe architecture/Rosetta/provenance/ownership/permission/symlink states, wrong repository identity, wrong repository root classification, path-bearing evidence, token/service-role text, or JWT-like values.
+
+The static review documented the difference between structural fixture validity and live resolution. Fixture evidence still does not prove executable existence, repository existence, live provenance, current unchanged state, TOCTOU elimination, spawn authorization, process-driver readiness, or runner readiness.
+
+Remaining risks are intentionally deferred: live PATH resolver, live filesystem adapter, executable stat/digest evidence, code-signing evidence, package-manager evidence, live repository-root verification, live CWD capability, live TOCTOU revalidation, scoped process observer implementation, direct-spawn implementation, credential handoff, exact observed Supabase CLI version, durable authorization consumption, and complete TOCTOU limits.
+
+No Action 524 PATH inspection, `which`, `command -v`, filesystem inspection, executable resolution, repository resolution, file stat, file read outside reviewed source/docs/tests, directory listing, Git metadata inspection, code-signing inspection, package-manager inspection, process spawn, Git command, Supabase command, version command, environment value read, credential access, remote connection, SQL, deployment, Git/database mutation, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_trusted_executable_repository_cwd_resolver_first_live_staging_preflight_static_security_review_ready_for_scoped_macos_process_observer_implementation`
+
+Result:
+
+`post_trade_trusted_executable_repository_cwd_resolver_first_live_staging_preflight_static_security_review_completed_no_live_resolution`
+
+Recommended next action:
+
+Action 525 - Implement Scoped macOS Process Observer Boundary, Without Live Process Observation.
+
+## Previous Checkpoint - Action 523
+
+Action 523 implemented the trusted executable and repository CWD resolver boundary for the future first live staging preflight, without live resolution.
+
+Created and updated files:
+
+- `lib/post-trade-first-live-read-only-preflight-trusted-resolver-core.ts`
+- `lib/post-trade-first-live-read-only-preflight-trusted-resolver.ts`
+- `tests/e2e/post-trade-first-live-read-only-preflight-trusted-resolver.spec.ts`
+- `docs/post-trade-trusted-executable-repository-cwd-resolver-first-live-staging-preflight-no-live-resolution.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The resolver core adds exact source-controlled registries and fixture-only contracts for Git CLI executable identity, Supabase CLI executable identity, and the reviewed Ture repository-root CWD identity. It models candidate observations, candidate-set evaluation, architecture/Rosetta classification, ownership and permission classification, symlink classification, provenance classification, stable-file identity, private executable capability metadata, private repository-CWD capability metadata, TOCTOU revalidation contracts, sanitized public evidence, compatibility validators, deterministic fingerprints, and an inert future resolution plan.
+
+The server-only boundary imports `server-only`, exposes no default live resolver, accepts only an injected fixture-adapter shape, performs no adapter call on import or construction, exposes no arbitrary path or filesystem object interface, and keeps live resolution disabled.
+
+The boundary remains no-live-resolution: it cannot inspect PATH, call `which` or `command -v`, inspect the filesystem, resolve executable paths, stat files, read files, list directories, inspect code signatures, inspect package-manager metadata, inspect a Git repository live, spawn a process, run Git, run Supabase, run version commands, read environment values, access credentials, connect remotely, execute SQL, deploy, persist evidence, consume authorization, or wire API/UI/runtime behavior.
+
+Remaining risks are intentionally deferred: live resolver adapter implementation, PATH-resolution implementation, filesystem metadata implementation, executable path resolution, code-signing/provenance inspection, package-manager metadata inspection, repository verification implementation, live TOCTOU revalidation, exact observed Supabase CLI version, scoped macOS process observer, direct-spawn/termination driver, and live credential source adapter.
+
+The resolver boundary is ready for Action 524 static/security review. It is not ready for live resolution or first live preflight execution.
+
+No Action 523 PATH inspection, filesystem inspection, executable path resolution, file stat, file read, directory listing, code-signature inspection, package-manager inspection, live Git repository inspection, child-process import, process spawn, Git command, Supabase command, version command, environment value read, credential access, Keychain inspection, remote connection, SQL, deployment, Git/database mutation, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_trusted_executable_repository_cwd_resolver_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_trusted_executable_repository_cwd_resolver_first_live_staging_preflight_added_no_live_resolution`
+
+Recommended next action:
+
+Action 524 - Perform Static and Security Review of Trusted Executable and Repository CWD Resolver Boundary.
+
+## Previous Checkpoint - Action 522
+
+Action 522 performed a static/security review and hardening pass for the Action 521 live read-only macOS process driver and termination implementation design, without running commands.
+
+Created and updated files:
+
+- `lib/post-trade-live-read-only-macos-process-driver-design.ts`
+- `tests/e2e/post-trade-live-read-only-macos-process-driver-design.spec.ts`
+- `docs/post-trade-live-read-only-macos-process-driver-termination-implementation-design-static-security-review-no-run.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review hardening added explicit architecture/Rosetta compatibility policy, TOCTOU revalidation policy, private process-instance metadata policy, no-live-safety-claim fields, stricter resolver and executable capability fields, stronger cwd/spawn/credential/output/decoder/observer contracts, and expanded adversarial static tests.
+
+The design remains deterministic, source-controlled, macOS-specific, staging-only, read-only, one-process-at-a-time, no-retry, fail-closed, exact-object validated, and unable to resolve executables, inspect PATH, inspect the live filesystem, spawn processes, observe process trees, send signals, access credentials, enable the runner, deploy, mutate, persist evidence, or consume authorization.
+
+The review confirmed structural design validity is still separate from live safety: the design does not claim live executable verification, live filesystem identity, process start, process containment, descendant observation, signal delivery, termination verification, credential cleanup, or command behavior proof.
+
+Remaining risks are intentionally deferred: real executable/cwd resolver implementation, real process driver implementation, scoped macOS process observer, process-group binding correctness, macOS helper-process behavior, signal delivery, descendant enumeration, live credential handoff, exact observed Supabase CLI version, durable authorization consumption, TOCTOU limitations, and JavaScript memory-zeroization limitations.
+
+The design is ready for separated no-run implementations of trusted executable/cwd resolver boundary, scoped macOS observer boundary, and direct-spawn/termination driver behind injected adapters. It is not ready for live command execution or first live preflight execution.
+
+No Action 522 live process, Git command, Supabase command, shell, version command, catalog query, SQL, migration, deployment, PATH inspection, executable-path resolution, filesystem inspection, environment value read, credential access, process-tree observation, signal delivery, remote connection, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_live_read_only_macos_process_driver_termination_implementation_design_static_security_review_ready_for_separated_resolver_observer_and_driver_implementations`
+
+Result:
+
+`post_trade_live_read_only_macos_process_driver_termination_implementation_design_static_security_review_completed_no_run`
+
+Recommended next action:
+
+Action 523 - Implement Trusted Executable and Repository CWD Resolver Boundary, Without Live Resolution.
+
+## Previous Checkpoint - Action 521
+
+Action 521 designed the future server-only live read-only macOS process driver and termination implementation without running commands.
+
+Created and updated files:
+
+- `lib/post-trade-live-read-only-macos-process-driver-design.ts`
+- `tests/e2e/post-trade-live-read-only-macos-process-driver-design.spec.ts`
+- `docs/post-trade-live-read-only-macos-process-driver-termination-implementation-design-no-run.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The design defines a concrete macOS-only driver identity for the future first live staging preflight. It covers exact Git/Supabase executable resolution contracts, short-lived executable capability evidence, reviewed repository working-directory capability, direct-spawn-only policy, minimal non-secret environment construction, opaque one-use credential handoff, bounded transient output capture, strict output decoding, scoped macOS process-tree observation, timeout monitoring, graceful and forced termination policy, descendant verification, lifecycle transitions, sanitized driver results, compatibility with Actions 519-520, deterministic fingerprints, and an inert future implementation plan.
+
+The design remains pure and no-run: it imports no process APIs, does not call spawn/exec/execFile, does not run Git or Supabase, does not inspect PATH, does not resolve executable paths, does not inspect the filesystem live, does not read environment values, does not access credentials, does not connect remotely, does not execute SQL, and does not deploy anything.
+
+Remaining gaps are intentionally deferred: live executable resolver, live executable capability evidence, live macOS process driver, live process-tree observer, authoritative containment and termination implementation, live version-command execution, exact observed Supabase CLI version, live credential handoff, TOCTOU controls, durable authorization consumption, and first live staging preflight execution.
+
+The design is ready for Action 522 static/security review. It is not ready for live command execution or first live preflight execution.
+
+No Action 521 live process, Git command, Supabase command, shell, version command, catalog query, SQL, migration, deployment, PATH inspection, executable-path resolution, environment value read, credential access, remote connection, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_live_read_only_macos_process_driver_termination_implementation_design_ready_for_static_security_review`
+
+Result:
+
+`post_trade_live_read_only_macos_process_driver_termination_implementation_design_added_no_run`
+
+Recommended next action:
+
+Action 522 - Perform static/security review of the live read-only macOS process driver and termination implementation design, without running commands.
+
+## Previous Checkpoint - Action 520
+
+Action 520 performed a static/security review and hardening pass for the Action 519 allowlisted read-only process executor and termination boundary without running target commands.
+
+Created and updated files:
+
+- `lib/post-trade-first-live-read-only-preflight-process-executor-core.ts`
+- `tests/e2e/post-trade-first-live-read-only-preflight-process-executor.spec.ts`
+- `docs/post-trade-allowlisted-read-only-process-executor-termination-boundary-first-live-staging-preflight-static-security-review-not-run.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review findings:
+
+- the executor remains deterministic, source-controlled, pure in core, server-only at the exported boundary, side-effect free before explicit fake-driver invocation, staging-only, read-only, fail-closed, exact-object validated, and unable to spawn a live process
+- structural process policy validity remains explicitly separate from actual executable resolution, actual process start, actual containment, actual termination authority, live CLI trust, and live read-only proof
+- the injected driver exposes no generic exec/spawn, command string, arbitrary executable/args/cwd/env, stdin, TTY, raw process object, unrestricted signal API, arbitrary PID lookup, global process listing, detached-process control, or raw-output logging
+- executable and operation registries remain exact allowlists for reviewed Git/Supabase observations; catalog, deployment, mutation, production, credential-resolution, wildcard, prefix-matched, and arbitrary operations remain excluded
+- requests require exact ordered args, sanitized workdir identity, empty/minimal environment policy, closed stdin, disabled TTY/shell, detached false, fixed timeouts, fixed output limits, no retry, and deterministic fingerprints
+- lifecycle, containment, macOS process-tree uncertainty, termination planning, prompt detection, secret detection, sanitized result evidence, fake-driver behavior, fingerprints, and compatibility validators were reviewed and tightened where useful
+
+Review hardening added explicit driver-contract fields for no global process listing and no generic containment/termination assertions, stricter fixture validation for sensitive unknown fields and unknown prompt labels, timeout termination-evidence checks, completed-with-termination-request rejection, and completed-read-only containment tightening.
+
+Remaining gaps are intentionally deferred: no real executable resolver, no live process driver, no macOS process-tree observer, no live process-tree verification, no credential handoff, no exact live Supabase version evidence, TOCTOU controls, and durable authorization consumption.
+
+The boundary is ready for a separate live process-driver implementation design. It is not ready for live command execution or first live preflight execution.
+
+No Action 520 live process, Git command, Supabase command, shell, version command, catalog query, SQL, migration, deployment, PATH inspection, executable-path resolution, environment value read, credential access, remote connection, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_allowlisted_read_only_process_executor_termination_boundary_first_live_staging_preflight_static_security_review_ready_for_live_process_driver_design`
+
+Result:
+
+`post_trade_allowlisted_read_only_process_executor_termination_boundary_first_live_staging_preflight_static_security_review_completed_not_run`
+
+Recommended next action:
+
+Action 521 - Design Live Read-Only Process Driver and macOS Termination Implementation, Without Running Commands.
+
+## Previous Checkpoint - Action 519
+
+Action 519 implemented the source-controlled allowlisted read-only process executor and termination boundary for the future first live staging preflight without running commands.
+
+Created and updated files:
+
+- `lib/post-trade-first-live-read-only-preflight-process-executor-core.ts`
+- `lib/post-trade-first-live-read-only-preflight-process-executor.ts`
+- `tests/e2e/post-trade-first-live-read-only-preflight-process-executor.spec.ts`
+- `docs/post-trade-allowlisted-read-only-process-executor-termination-boundary-first-live-staging-preflight-not-run.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+The new boundary adds exact executable and operation registries for reviewed Git/Supabase read-only observations, strict process requests, argument validation, working-directory and empty-environment policies, stdin/TTY/shell prohibitions, timeout and output-limit policies, lifecycle transitions, macOS-aware containment evidence, termination planning, sanitized result evidence, deterministic fingerprints, compatibility validators, and a fixture-only injected fake-driver contract.
+
+It remains inert: no default live driver exists, construction/import/planning/compatibility validation starts no process, and public evidence contains no raw stdout/stderr, executable path, personal path, PID, credential, environment value, SQL, deployment, or command string.
+
+The implementation is ready for Action 520 static/security review. It is not ready for live process execution.
+
+No real process, Git command, Supabase command, shell, version command, catalog query, SQL, migration, deployment, PATH inspection, executable-path resolution, environment read, credential access, remote connection, evidence persistence, authorization consumption, API/UI/runtime activation, Avanza/browser automation, settlement retrieval, order behavior, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_allowlisted_read_only_process_executor_termination_boundary_first_live_staging_preflight_ready_for_static_security_review`
+
+Result:
+
+`post_trade_allowlisted_read_only_process_executor_termination_boundary_first_live_staging_preflight_added_not_run`
+
+Recommended next action:
+
+Action 520 - Perform Static and Security Review of Allowlisted Read-Only Process Executor and Termination Boundary.
+
+## Previous Checkpoint - Action 518
+
+Action 518 performed a static/security review and hardening pass for the Action 517 read-only CLI-version evidence collector without running version commands.
+
+Created and updated files:
+
+- `lib/post-trade-first-live-read-only-preflight-cli-version-collector-core.ts`
+- `lib/post-trade-first-live-read-only-preflight-cli-version-collector.ts`
+- `tests/e2e/post-trade-first-live-read-only-preflight-cli-version-collector.spec.ts`
+- `docs/post-trade-read-only-cli-version-evidence-collector-first-live-staging-preflight-not-run.md`
+- `docs/post-trade-read-only-cli-version-evidence-collector-first-live-staging-preflight-static-security-review-not-run.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review hardening added stricter semver and parser controls, explicit request field allowlisting, policy bound sanity checks, duplicate evidence detection, stale/malformed/ambiguous evidence blockers, and evidence-set precedence so structural blockers override unresolved readiness.
+
+The collector remains deterministic, source-controlled, pure in core, server-only at the exported boundary, side-effect free before explicit adapter invocation, fail-closed, exact-object validated, and unable to run version commands, resolve executables, inspect PATH/environment, spawn processes, access credentials, enable the runner, deploy, persist evidence, or consume authorization.
+
+The review confirmed fixture evidence remains `observedLive: false`; external fixture evidence remains non-authoritative; internal evidence is authoritative only for exact source-controlled identity; and fixture parser success cannot prove executable existence, path identity, or live CLI compatibility.
+
+The parser hardening now rejects leading/trailing whitespace, Unicode line separators, path-like output, overlong output, leading-zero segments, invalid narrow range bounds, malformed/stale/ambiguous evidence, and duplicate component evidence. Short semver strings are not falsely classified as credentials.
+
+Supabase CLI exact live compatibility remains unresolved and intentionally blocks future readiness. No exact Supabase version was selected in this action.
+
+The collector is ready for Action 519, the allowlisted read-only process executor and termination boundary implementation without running commands. It is not ready for live version observation or first live preflight execution.
+
+The Action 510 authorization artifact fingerprint remains the bound upstream authorization fingerprint: `447b059a40e04db875e2e29a845a21d04204f5b634df18e26a0ef1aa059144dd`.
+
+The recommended next action is Action 519: implement the allowlisted read-only process executor and termination boundary without running commands.
+
+No Git/Supabase/version command was run. No `.env.local`, process environment, PATH, alias, wrapper, executable path, credential, URL, or secret value was inspected. No live provider was invoked. No production collector process-spawn behavior was added. No preflight runner was run. No Git/Supabase/catalog/SQL/deployment operation for live evidence occurred. No staging connection, production connection, remote-state inspection, migration deployment, Git mutation, schema mutation, data mutation, evidence persistence, readiness artifact consumption, authorization consumption, API/UI/runtime activation, Avanza/browser automation, credential/session/BankID handling, order behavior, settlement retrieval, live trade mutation, or live position mutation occurred.
+
+Decision:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_static_security_review_ready_for_read_only_process_executor_implementation`
+
+Result:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_static_security_review_completed_not_run`
+
 ## 1. Executive Summary
 
 Ture is a clean, focused, intelligent daytrading co-pilot. The core product should stay visually simple: recommendation cards should emphasize ticker/logo, company name, confidence, entry, stop, target, reward:risk, confidence score, and a Make Trade button. Execution logic belongs under the surface unless a separate product decision explicitly promotes it into the visible UI.
@@ -4845,3 +5489,698 @@ Decision:
 Result status:
 
 `post_trade_durable_authorization_consumption_persistence_schema_design_added_no_migration_no_execution`
+
+## 95. Action 498 Update
+
+Action 498 performed a static/security review of the durable authorization-consumption persistence schema design without creating a migration or executing anything.
+
+- Checkpoint: `docs/post-trade-durable-authorization-consumption-persistence-schema-design-static-security-review-no-migration-no-execution.md`
+- Reviewed/hardened schema design: `lib/post-trade-durable-authorization-consumption-persistence-schema-design.ts`
+- Reviewed/expanded tests: `tests/e2e/post-trade-durable-authorization-consumption-persistence-schema-design.spec.ts`
+
+Review hardening:
+
+- added typed allowed transition requirements
+- required non-null critical unique identity fields
+- required exact staging-scoped unique columns
+- added affected-row, persistence-operation, no-reactivation, and partial-evidence constraints
+- added conservative FK delete behavior and audit/execution consistency requirement
+- added client-select policy and direct-delete privilege prohibitions
+- added bans for application sequential writes and generic upsert semantics
+- added migration-plan bans for seeded authorization/execution rows, destructive rollback with rows, cascade rollback, and runtime API/UI wiring
+- expanded verification requirements for production absence, unknown-column absence, exact type/nullability, zero authorization rows, no execution/audit rows, and direct client delete rejection
+
+Review findings:
+
+- table remains exactly `execution_authorization_consumptions`
+- design remains specific, deterministic, side-effect free, SQL-free, Supabase-free, migration-free, staging-only, production-rejecting, and source-controlled
+- durable states remain `unused`, `consumed`, `invalid`, and `expired`; ambiguous/pending/reserved are not persisted
+- uniqueness, constraints, RLS, privileges, FK strategy, rollback plan, and verification plan are sufficient for a future source-controlled migration draft
+- future mutation must still happen only through a separately reviewed staging-only atomic database function
+
+Safety remains locked:
+
+- no migration file
+- no SQL text or SQL execution
+- no Supabase call
+- no schema mutation
+- no table, index, constraint, policy, RLS, or database-function creation
+- no persistence
+- no authorization consumption
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_authorization_consumption_persistence_schema_design_static_security_review_ready_for_source_controlled_migration_implementation`
+
+Result status:
+
+`post_trade_durable_authorization_consumption_persistence_schema_design_static_security_review_completed_no_migration_no_execution`
+
+## 96. Action 499 Update
+
+Action 499 created one source-controlled staging migration for the durable authorization-consumption schema without deployment or execution.
+
+- Migration: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- Static migration tests: `tests/e2e/post-trade-durable-authorization-consumption-migration-static.spec.ts`
+- Checkpoint: `docs/post-trade-durable-authorization-consumption-source-controlled-staging-migration-no-deployment-no-execution.md`
+
+Migration contents:
+
+- creates `public.execution_authorization_consumptions`
+- uses `uuid primary key default gen_random_uuid()`
+- references `public.execution_records(id)` and `public.execution_record_audit_events(id)` as UUID FKs with `on delete restrict`
+- implements reviewed identity, binding, execution-contract, lifecycle, and evidence columns
+- omits flexible capability/prohibition columns from the SQL table; safety is carried by absence of those columns, fixed constraints, RLS, revokes, and the future reviewed database-function boundary
+- fixes staging target to `pdvzyuhykomwfqyyztru`
+- keeps production `ekdyopdrrkphlrsilyoo` only as an explicitly rejected marker
+- constrains durable states to `unused`, `consumed`, `invalid`, and `expired`
+- adds evidence consistency checks for unused, consumed, invalid, and expired rows
+- adds staging-scoped uniqueness for artifact, fingerprint, attempt, plan, operation, and artifact/plan pair
+- enables RLS
+- creates no client policies
+- revokes table privileges from `anon` and `authenticated`
+- creates no database function, RPC, seed rows, authorization rows, execution rows, audit rows, or runtime wiring
+
+Static tests confirm:
+
+- exactly one intended migration file exists
+- required columns, defaults, constraints, uniqueness, FKs, RLS, and privilege posture are present
+- no cascade deletion, seed inserts, execution/audit inserts, function/RPC, dynamic SQL, generic upsert, client policies, or runtime wiring are present
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no remote schema mutation
+- no persistence
+- no authorization consumption
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_authorization_consumption_source_controlled_staging_migration_ready_for_static_sql_security_review`
+
+Result status:
+
+`post_trade_durable_authorization_consumption_source_controlled_staging_migration_added_no_deployment_no_execution`
+
+## 97. Action 500 Update
+
+Action 500 performed a static SQL/security review of the durable authorization-consumption staging migration without deployment or execution.
+
+- Reviewed/hardened migration: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- Reviewed/expanded tests: `tests/e2e/post-trade-durable-authorization-consumption-migration-static.spec.ts`
+- Checkpoint: `docs/post-trade-durable-authorization-consumption-staging-migration-static-sql-security-review-no-deployment-no-execution.md`
+
+Review fixes:
+
+- removed physical safety/prohibition capability columns from the migration table
+- kept safety posture through absence of capability columns, fixed project/state/evidence constraints, RLS, revokes, and future database-function boundary
+- added non-empty checks for critical text identity and binding fields
+- expanded static migration tests for no JSON/JSONB, no payload/metadata, no browser/broker/credential/session/BankID fields, no permissive policies/grants, no destructive SQL, no functions/triggers/RPC/procedural SQL, and no unrelated `ALTER TABLE`
+
+Review findings:
+
+- migration order is compatible with existing `execution_records` and `execution_record_audit_events` migrations
+- FK columns are UUID and match referenced UUID primary keys
+- `on delete restrict` is used for both evidence FKs
+- exact staging target and rejected production marker are constrained
+- durable states remain exactly `unused`, `consumed`, `invalid`, and `expired`
+- evidence invariants prevent partial consumed/non-consumed states
+- RLS is enabled and no client-facing policies are created
+- anon/authenticated table privileges are revoked
+- service-role bypass risk remains documented for future deployment/catalog verification and function-boundary review
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no remote schema mutation
+- no persistence
+- no authorization consumption
+- no staging data write
+- no production connection
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_durable_authorization_consumption_staging_migration_static_sql_security_review_ready_for_staging_deployment_gate`
+
+Result status:
+
+`post_trade_durable_authorization_consumption_staging_migration_static_sql_security_review_completed_no_deployment_no_execution`
+
+## 98. Action 501 Update
+
+Action 501 added an explicit source-controlled staging migration deployment gate without deployment.
+
+- Gate core: `lib/post-trade-staging-migration-deployment-gate-core.ts`
+- Server-only boundary: `lib/post-trade-staging-migration-deployment-gate.ts`
+- Tests: `tests/e2e/post-trade-staging-migration-deployment-gate.spec.ts`
+- Checkpoint: `docs/post-trade-explicit-source-controlled-staging-migration-deployment-gate-no-deployment.md`
+
+Gate identity:
+
+- migration filename: `20260710000000_create_execution_authorization_consumptions.sql`
+- migration path: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- target table: `public.execution_authorization_consumptions`
+- target staging project: `pdvzyuhykomwfqyyztru`
+- rejected production project: `ekdyopdrrkphlrsilyoo`
+- reviewed fingerprint: `4f4fbfb52a458e502441322bae873940469c89f292db464d177aa10fad9f095a`
+
+Gate behavior:
+
+- default decision is blocked
+- structurally eligible approval still performs no deployment
+- `deploymentEnabled` remains false
+- `remoteMutation` remains false
+- `sqlExecuted` remains false
+- `migrationsApplied` remains 0
+- `rowsCreated` remains 0
+- no environment variable alone can approve deployment
+
+The gate validates:
+
+- exact approval object
+- exact migration fingerprint
+- exact staging project evidence
+- exact reviewed worktree scope
+- exact zero counts for rows/functions/policies/triggers/RPCs/seeds
+- Action 499 and Action 500 decisions
+- forbidden deployment capabilities
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no staging or production connection
+- no remote schema inspection or mutation
+- no rows
+- no database function/RPC/trigger/policy creation
+- no persistence
+- no authorization consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_explicit_source_controlled_staging_migration_deployment_gate_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_explicit_source_controlled_staging_migration_deployment_gate_added_no_deployment`
+
+## 99. Action 502 Update
+
+Action 502 performed a static/security review and hardening pass for the explicit source-controlled staging migration deployment gate without deployment.
+
+- Reviewed/hardened core: `lib/post-trade-staging-migration-deployment-gate-core.ts`
+- Reviewed server-only boundary: `lib/post-trade-staging-migration-deployment-gate.ts`
+- Expanded tests: `tests/e2e/post-trade-staging-migration-deployment-gate.spec.ts`
+- Reviewed migration: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- Checkpoint: `docs/post-trade-explicit-source-controlled-staging-migration-deployment-gate-static-security-review-no-deployment.md`
+
+Review hardening:
+
+- added project and worktree evidence versions
+- added deterministic stable serialization for the SHA-256 preimage
+- strengthened the fingerprint preimage to bind the exact staging project, rejected production project, statement inventory, RLS expectation, and anon/authenticated revoke expectation
+- added exact SQL-derived statement inventory checks
+- added recursive production-reference scanning through arrays and nested objects
+- added unsupported nested-value/cycle rejection
+- added worktree inspected timestamp freshness checks and unsafe path rejection
+- added future-dated project evidence rejection and stricter approval validity checks
+- added the Action 502 checkpoint to reviewed worktree scope
+
+Gate identity:
+
+- migration filename: `20260710000000_create_execution_authorization_consumptions.sql`
+- migration path: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- target table: `public.execution_authorization_consumptions`
+- target staging project: `pdvzyuhykomwfqyyztru`
+- rejected production project: `ekdyopdrrkphlrsilyoo`
+- normalized SQL byte length: `9518`
+- reviewed fingerprint: `4f4fbfb52a458e502441322bae873940469c89f292db464d177aa10fad9f095a`
+
+Findings:
+
+- the gate remains deterministic, side-effect free, source controlled, server-only at the exported boundary, staging-only, fail closed, and blocked by default
+- structurally eligible approval remains inert and cannot deploy
+- `deploymentEnabled`, `remoteMutation`, and `sqlExecuted` remain false
+- `migrationsApplied` and `rowsCreated` remain zero
+- no environment variable alone or broad boolean can approve deployment
+- project and worktree evidence remain modeled only; future deployment-readiness must supply authoritative evidence from trusted inspection
+- durable deployment-attempt consumption remains a required future gap before actual staging deployment
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no staging or production connection
+- no live schema inspection or mutation
+- no rows
+- no database function/RPC/trigger/policy creation
+- no persistence
+- no authorization seeding or consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_explicit_source_controlled_staging_migration_deployment_gate_static_security_review_ready_for_deployment_readiness_artifact`
+
+Result status:
+
+`post_trade_explicit_source_controlled_staging_migration_deployment_gate_static_security_review_completed_no_deployment`
+
+## 100. Action 503 Update
+
+Action 503 added a single-use source-controlled staging migration deployment readiness artifact without deployment.
+
+- Core artifact module: `lib/post-trade-staging-migration-deployment-readiness-artifact-core.ts`
+- Server-only boundary: `lib/post-trade-staging-migration-deployment-readiness-artifact.ts`
+- Tests: `tests/e2e/post-trade-staging-migration-deployment-readiness-artifact.spec.ts`
+- Checkpoint: `docs/post-trade-single-use-source-controlled-staging-migration-deployment-readiness-artifact-no-deployment.md`
+
+Artifact identity:
+
+- artifact id: `post_trade_single_use_staging_migration_deployment_readiness_001`
+- artifact version: `post_trade_staging_migration_deployment_readiness_artifact_v1`
+- readiness contract version: `post_trade_staging_migration_deployment_readiness_contract_v1`
+- source action: `Action 503 - Add Single-Use Source-Controlled Staging Migration Deployment Readiness Artifact`
+- canonical artifact fingerprint: `8f22f3544c426584587a76b1bec8393ad930c4b9d5d1e0a8b2e710128443630d`
+
+Migration binding:
+
+- migration filename: `20260710000000_create_execution_authorization_consumptions.sql`
+- migration path: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`
+- target table: `public.execution_authorization_consumptions`
+- target staging project: `pdvzyuhykomwfqyyztru`
+- rejected production project: `ekdyopdrrkphlrsilyoo`
+- reviewed migration fingerprint: `4f4fbfb52a458e502441322bae873940469c89f292db464d177aa10fad9f095a`
+
+Readiness and attempt state:
+
+- `readinessState: ready_for_future_preflight`
+- `artifactState: unused`
+- `deploymentAttemptConsumed: false`
+- `deploymentAttemptStatus: not_attempted`
+- `deploymentEnabled: false`
+- `deploymentStatus: not_deployed`
+- `remoteMutation: false`
+- `sqlExecuted: false`
+- `migrationsApplied: 0`
+- `rowsCreated: 0`
+- `projectVerificationLive: false`
+- `worktreeVerificationLive: false`
+
+Artifact coverage:
+
+- binds Action 499, Action 500, Action 501, and Action 502 decisions
+- binds migration implementation, SQL review, deployment gate, and deployment gate review checkpoints
+- binds exactly one migration and exactly one created table
+- binds zero rows, functions, policies, triggers, RPCs, seeds, altered tables, dropped objects, and destructive statements
+- binds exact project/worktree evidence-version requirements
+- includes Action 366-369 and Action 318-320 denylist coverage
+- includes a pure deployment-gate compatibility mapper
+- includes an inert future preflight planner
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no staging or production connection
+- no live schema inspection or mutation
+- no rows
+- no database function/RPC/trigger/policy creation
+- no persistence
+- no authorization seeding or consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_single_use_source_controlled_staging_migration_deployment_readiness_artifact_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_single_use_source_controlled_staging_migration_deployment_readiness_artifact_added_no_deployment`
+
+## 101. Action 504 Update
+
+Action 504 performed a static/security review and hardening pass for the single-use source-controlled staging migration deployment readiness artifact without deployment.
+
+- Reviewed/hardened core: `lib/post-trade-staging-migration-deployment-readiness-artifact-core.ts`
+- Reviewed server-only boundary: `lib/post-trade-staging-migration-deployment-readiness-artifact.ts`
+- Expanded tests: `tests/e2e/post-trade-staging-migration-deployment-readiness-artifact.spec.ts`
+- Checkpoint: `docs/post-trade-single-use-source-controlled-staging-migration-deployment-readiness-artifact-static-security-review-no-deployment.md`
+
+Review hardening:
+
+- added exact validation for the Action 499 migration implementation checkpoint identity
+- added a source-controlled constant for the migration implementation checkpoint
+- hardened path validation for `./`, control characters, NUL, encoded traversal/separators, Unicode slash variants, backslashes, duplicate separators, absolute paths, traversal, whitespace variants, and case variants
+- hardened direct fingerprint serialization to reject cycles and unsupported non-plain values
+- expanded compatibility mapping to expose preserved filename, path, rejected production ref, Actions 499-502 decisions, evidence versions, schema-only scope, zero-row scope, one-shot, and no-retry state
+- expanded adversarial readiness tests for fingerprint preimage coverage, path bypasses, direct fingerprint-builder rejection, richer compatibility mapping, deterministic planning, and no-side-effect scans
+
+Reviewed identity:
+
+- artifact id: `post_trade_single_use_staging_migration_deployment_readiness_001`
+- artifact fingerprint: `8f22f3544c426584587a76b1bec8393ad930c4b9d5d1e0a8b2e710128443630d`
+- reviewed migration fingerprint: `4f4fbfb52a458e502441322bae873940469c89f292db464d177aa10fad9f095a`
+
+Findings:
+
+- artifact remains source controlled, deterministic, immutable at runtime, side-effect free, server-only at the exported boundary, staging-only, deployment-disabled, and fail-closed
+- it cannot assert live project/worktree verification
+- it cannot deploy, call Supabase, execute SQL, run shell commands from production code, read secrets, persist or consume state, or enable runtime execution
+- readiness remains structural only and is not final deployment approval
+- future read-only live staging preflight contract remains required before any deployment action
+
+Safety remains locked:
+
+- no migration deployment
+- no SQL execution
+- no Supabase CLI or remote call
+- no shell execution from production code
+- no staging or production connection
+- no live schema inspection or mutation
+- no rows
+- no database function/RPC/trigger/policy creation
+- no persistence
+- no authorization seeding or consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_single_use_source_controlled_staging_migration_deployment_readiness_artifact_static_security_review_ready_for_read_only_live_preflight_design`
+
+Result status:
+
+`post_trade_single_use_source_controlled_staging_migration_deployment_readiness_artifact_static_security_review_completed_no_deployment`
+
+## 102. Action 515 Update
+
+Action 515 added the live ephemeral staging Supabase credential-provider implementation design without credential access or live execution.
+
+- Design module: `lib/post-trade-live-ephemeral-staging-supabase-credential-provider-design.ts`
+- Tests: `tests/e2e/post-trade-live-ephemeral-staging-supabase-credential-provider-design.spec.ts`
+- Checkpoint: `docs/post-trade-live-ephemeral-staging-supabase-credential-provider-implementation-design-no-credential-access-no-run.md`
+
+Design coverage:
+
+- source registry with preferred `reviewed_macos_keychain_ephemeral_staging_supabase_source_v1`
+- OS adapter and CI adapter alternatives
+- rejected raw environment, dotenv, source-control, pasted-token, command-argument, URL-embedded, browser, device-code, interactive, shared-global, production, generic, and unknown sources
+- strict resolution request for one staging-only operation and one lease
+- opaque resolution result that cannot claim authentication success
+- private lease policy with no serialization, logging, persistence, cache, filesystem, database, or second-use behavior
+- injection policy for one future reviewed process invocation only
+- cleanup policy for success, failure, timeout, parser failure, prompt detection, secret detection, and process ambiguity
+- non-secret source availability and authentication evidence
+- exact lease lifecycle transitions
+- opaque one-operation capability handoff
+- deterministic SHA-256 fingerprints for non-secret design/evidence objects
+- compatibility validators for the opaque boundary, execution boundary, authorization artifact, and runner plan
+- inert future implementation plan with no command, SQL, deployment, credential access, provider invocation, process spawn, persistence, authorization consumption, or retry
+
+Remaining gaps:
+
+- static/security review of the new design
+- real live provider implementation
+- macOS Keychain or OS credential adapter implementation
+- live authentication-success evidence
+- real lease lifecycle and cleanup implementation
+- process executor and termination boundary
+- TOCTOU checks immediately before any live run
+- durable authorization consumption
+- separate final live-run gate
+
+Safety remains locked:
+
+- no credential access
+- no `.env.local` or environment value inspection
+- no Keychain, credential-file, CI-secret, Supabase-token, provider-output, URL, or auth-state read
+- no live provider invocation
+- no process spawn
+- no Git/Supabase/version/catalog/SQL/deployment operation for live evidence
+- no staging or production connection
+- no remote-state inspection
+- no migration deployment
+- no schema or data mutation
+- no evidence persistence
+- no readiness or authorization consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_live_ephemeral_staging_supabase_credential_provider_implementation_design_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_live_ephemeral_staging_supabase_credential_provider_implementation_design_added_no_credential_access_no_run`
+
+## 103. Action 516 Update
+
+Action 516 performed a static/security review and hardening pass for the live ephemeral staging Supabase credential-provider implementation design without credential access or live execution.
+
+- Reviewed/hardened design module: `lib/post-trade-live-ephemeral-staging-supabase-credential-provider-design.ts`
+- Reviewed/expanded tests: `tests/e2e/post-trade-live-ephemeral-staging-supabase-credential-provider-design.spec.ts`
+- Static review checkpoint: `docs/post-trade-live-ephemeral-staging-supabase-credential-provider-implementation-design-static-security-review-no-credential-access-no-run.md`
+- Original design checkpoint: `docs/post-trade-live-ephemeral-staging-supabase-credential-provider-implementation-design-no-credential-access-no-run.md`
+
+Review hardening:
+
+- expanded rejected source identities for process environment, generic/caller-selected Keychain, caller-selected OS credential, unreviewed CI secret, unproven CLI authenticated context, credential helper, GUI auth, URL opener, MFA prompt, credential prompt, token prompt, project-link prompt, confirmation prompt, and globally shared credential
+- added explicit private lease invalidation after secret detection and authentication rejection
+- added explicit no-second-lease and no-retry private lease markers
+- expanded lifecycle terminal/failure transitions and rejected rollback/reuse transitions
+- expanded injection validation for shell, config-file, catalog, and production paths
+- expanded adversarial tests for source selection, request scope, result/evidence metadata, lease invalidation, injection paths, lifecycle rollback, compatibility mutations, and inert source scans
+
+Findings:
+
+- design remains deterministic, pure, source-controlled, side-effect free, staging-only, non-interactive, one-operation-per-lease, one-session, no-retry, and fail-closed
+- structural source availability remains separate from credential existence, credential validity, project access, authentication success, remote reachability, cleanup completion, memory zeroization, provider compatibility, and live-provider readiness
+- the preferred source remains a future separately reviewed macOS Keychain or OS credential-provider adapter, not a generic lookup or caller-selected item
+- public result, availability evidence, authentication evidence, and handoff metadata remain non-secret and opaque
+- TypeScript design can express requirements but cannot prove actual non-cloneability, process API copies, cleanup completion, or memory zeroization
+
+Recommended next implementation order:
+
+1. CLI-version evidence collector contract and fixture boundary without running version commands.
+2. Read-only process executor and termination boundary.
+3. Live source adapter.
+4. Final credential-access gate only after version and process boundaries are reviewed.
+
+Safety remains locked:
+
+- no credential access
+- no `.env.local` or environment value inspection
+- no Keychain, credential-file, CI-secret, Supabase-token, provider-output, URL, or auth-state read
+- no live provider invocation
+- no process spawn
+- no Git/Supabase/version/catalog/SQL/deployment operation for live evidence
+- no staging or production connection
+- no remote-state inspection
+- no migration deployment
+- no schema or data mutation
+- no evidence persistence
+- no readiness or authorization consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_live_ephemeral_staging_supabase_credential_provider_implementation_design_static_security_review_ready_for_deferred_live_source_adapter_after_process_and_version_boundaries`
+
+Result status:
+
+`post_trade_live_ephemeral_staging_supabase_credential_provider_implementation_design_static_security_review_completed_no_credential_access_no_run`
+
+## 104. Action 517 Update
+
+Action 517 implemented the source-controlled read-only CLI-version evidence collector contract and fixture boundary for a future first live staging preflight without running version commands.
+
+- Core collector contract: `lib/post-trade-first-live-read-only-preflight-cli-version-collector-core.ts`
+- Server-only boundary: `lib/post-trade-first-live-read-only-preflight-cli-version-collector.ts`
+- Static tests: `tests/e2e/post-trade-first-live-read-only-preflight-cli-version-collector.spec.ts`
+- Checkpoint: `docs/post-trade-read-only-cli-version-evidence-collector-first-live-staging-preflight-not-run.md`
+
+Implemented coverage:
+
+- exact component registry for Git CLI, Supabase CLI, internal collector/runner/parser/command/catalog/normalization/evidence-source/process-executor components
+- exact version-policy registry with Git narrow semver range, unresolved Supabase policy, and exact internal source-controlled component versions
+- deterministic fixture-only evidence with fingerprints, parser identities, executable identity classifications, compatibility classifications, byte counts, `observedLive: false`, and `versionCommandsExecuted: 0`
+- an injected fixture adapter boundary with no default live adapter and no import/construction invocation
+- Git single-line parser for `git version X.Y.Z`
+- Supabase single-line parser for `X.Y.Z`
+- parser rejection for prompts, warnings, update banners, URLs, ANSI/control characters, prerelease/build metadata, wildcard/range formats, and lexical bypasses
+- executable identity rejection for aliases, shell functions, wrappers, script proxies, caller-selected paths, unknown symlinks, production wrappers, malformed identity, ambiguous identity, and path material
+- structural compatibility validators for the authorization artifact, execution boundary, runner plan, and credential-provider design
+- inert future collection plan that contains no command string, executable path, process callback, shell, credential, secret, SQL, deployment, retry, environment read, process spawn, Git run, Supabase run, authorization consumption, or evidence persistence
+
+Known limitations:
+
+- Supabase CLI exact compatibility remains unresolved.
+- The evidence set is structurally valid but not readiness-complete because `unresolved_external_policy` remains.
+- Live executable identity is not verified.
+- No process executor/termination boundary exists yet.
+- No live source adapter exists yet.
+- No first live preflight gate has been opened.
+
+Safety remains locked:
+
+- no Git/Supabase/version command
+- no `.env.local`, process environment, PATH, alias, wrapper, executable path, credential, URL, or secret inspection
+- no live provider invocation
+- no production collector process-spawn behavior
+- no preflight runner execution
+- no Git/Supabase/catalog/SQL/deployment operation for live evidence
+- no staging or production connection
+- no remote-state inspection
+- no migration deployment
+- no schema or data mutation
+- no evidence persistence
+- no readiness or authorization consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_added_not_run`
+
+## 105. Action 518 Update
+
+Action 518 performed a static/security review and hardening pass for the read-only CLI-version evidence collector without running version commands.
+
+- Reviewed/hardened core: `lib/post-trade-first-live-read-only-preflight-cli-version-collector-core.ts`
+- Reviewed server-only boundary: `lib/post-trade-first-live-read-only-preflight-cli-version-collector.ts`
+- Expanded tests: `tests/e2e/post-trade-first-live-read-only-preflight-cli-version-collector.spec.ts`
+- Static/security review checkpoint: `docs/post-trade-read-only-cli-version-evidence-collector-first-live-staging-preflight-static-security-review-not-run.md`
+- Original implementation checkpoint: `docs/post-trade-read-only-cli-version-evidence-collector-first-live-staging-preflight-not-run.md`
+
+Review hardening:
+
+- added stricter parser length limits
+- rejected Unicode line separators and path-like output
+- rejected leading/trailing output whitespace
+- rejected semver leading-zero segments and overlong version strings
+- added policy checks for prerelease/build flags, automatic newer acceptance, missing bounds, malformed bounds, and invalid narrow-range ordering
+- added exact request field allowlisting
+- added duplicate component evidence detection
+- added stale, malformed, and ambiguous evidence-set blockers
+- made structural evidence-set blockers take precedence over unresolved external readiness
+- expanded adversarial tests for policy, request, parser, evidence-set, fingerprint, and secret-material bypasses
+
+Findings:
+
+- collector remains deterministic, source-controlled, pure in core, server-only at the exported boundary, side-effect free before explicit adapter invocation, and fail-closed
+- fixture evidence remains structural only and cannot prove executable existence, executable path identity, live CLI compatibility, or readiness to run preflight
+- external fixture evidence remains `observedLive: false` and non-authoritative
+- internal source-controlled evidence is authoritative only for its exact static identity
+- Supabase CLI exact version remains unresolved and intentionally blocks readiness
+- the collector is ready for the next no-run step: read-only process executor and termination boundary implementation
+- the collector is not ready for live version observation or first live preflight execution
+
+Remaining risks:
+
+- exact reviewed Supabase CLI version is unresolved
+- no live executable resolver exists
+- no live version command execution exists
+- no read-only process executor exists
+- no authoritative process termination boundary exists
+- wrapper and symlink verification remain future work
+- CLI output-format drift remains possible
+- TOCTOU risk remains for any future live run
+- credential adapter remains deferred
+- durable authorization consumption remains a later gate
+
+Safety remains locked:
+
+- no Git/Supabase/version command
+- no PATH inspection
+- no executable resolution
+- no alias/wrapper/shell-function live inspection
+- no process environment or `.env.local` value read
+- no credential access
+- no process-spawn collector behavior
+- no preflight runner execution
+- no catalog query, SQL, deployment, staging connection, or production connection
+- no Git/database mutation
+- no evidence persistence
+- no authorization consumption
+- no API/UI/runtime activation
+- no Avanza/browser automation
+- no credential/session/cookie/BankID handling
+- no order behavior
+- no settlement retrieval
+- no live trade or position mutation
+
+Decision:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_static_security_review_ready_for_read_only_process_executor_implementation`
+
+Result status:
+
+`post_trade_read_only_cli_version_evidence_collector_first_live_staging_preflight_static_security_review_completed_not_run`

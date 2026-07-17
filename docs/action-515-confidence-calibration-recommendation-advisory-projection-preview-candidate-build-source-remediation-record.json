@@ -1,0 +1,103 @@
+{
+  "schema_version": "action_515_candidate_build_source_remediation_record_v1",
+  "source_action": 514,
+  "diagnostic_result": "webpack_diagnostic_failure_captured",
+  "defect_classification": "candidate_source_build_defect",
+  "candidate_defect_status": "candidate_defect_proven",
+  "candidate_hash_impact": "candidate_hash_change_required",
+  "implicated_path": "app/api/recommendations/evaluate-outcomes/route.ts",
+  "invalid_route_export": "buildOutcomeEligibility",
+  "historical_clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "historical_change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+  "historical_full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+  "historical_candidate_file_count": 31,
+  "historical_candidate_status": "historical_candidate_build_defective",
+  "helper_usage_inventory": [
+    {
+      "path": "app/api/recommendations/evaluate-outcomes/route.ts",
+      "occurrences": 2,
+      "classifications": ["route_internal_usage"],
+      "notes": "definition and internal POST route usage"
+    },
+    {
+      "path": "docs/action-514-confidence-calibration-recommendation-advisory-projection-preview-webpack-build-failure-bounded-diagnostic-retry-record.json",
+      "occurrences": 3,
+      "classifications": ["documentation_only"],
+      "notes": "bounded diagnostic evidence"
+    },
+    {
+      "path": "docs/action-514-confidence-calibration-recommendation-advisory-projection-preview-webpack-build-failure-bounded-diagnostic-retry-after-invocation-remediation.md",
+      "occurrences": 2,
+      "classifications": ["documentation_only"],
+      "notes": "bounded diagnostic summary"
+    },
+    {
+      "path": "scripts/action-514-confidence-calibration-recommendation-advisory-projection-preview-webpack-build-failure-bounded-diagnostic-retry-after-invocation-remediation-verify.mjs",
+      "occurrences": 2,
+      "classifications": ["imported_by_verifier"],
+      "notes": "diagnostic verifier string assertions only"
+    },
+    {
+      "path": "tests/e2e/action-514-confidence-calibration-recommendation-advisory-projection-preview-webpack-build-failure-bounded-diagnostic-retry-after-invocation-remediation.spec.ts",
+      "occurrences": 2,
+      "classifications": ["imported_by_test"],
+      "notes": "diagnostic test string assertions only"
+    }
+  ],
+  "external_runtime_imports_found": false,
+  "external_test_imports_requiring_export_found": false,
+  "remediation_strategy": "make_route_helper_module_private",
+  "helper_extracted": false,
+  "new_helper_path": null,
+  "helper_body_sha256_before": "8b3e4694f83003104ec764f3afa81c4f1e9b87543b3241e4785dd6bdd3d32afe",
+  "helper_body_sha256_after": "8b3e4694f83003104ec764f3afa81c4f1e9b87543b3241e4785dd6bdd3d32afe",
+  "helper_body_equivalent": true,
+  "invalid_route_export_removed": true,
+  "route_export_surface_after": ["POST"],
+  "valid_route_handler_exports_preserved": ["POST"],
+  "helper_behavior_changed": false,
+  "route_behavior_changed": false,
+  "api_request_response_semantics_changed": false,
+  "provider_behavior_changed": false,
+  "supabase_behavior_changed": false,
+  "outcome_learning_behavior_changed": false,
+  "downstream_behavior_changed": false,
+  "source_files_changed": ["app/api/recommendations/evaluate-outcomes/route.ts"],
+  "source_change_summary": "Removed only the export keyword from the route-local buildOutcomeEligibility helper.",
+  "focused_validation_results": [
+    {
+      "name": "route_export_surface_inspection",
+      "status": "passed"
+    },
+    {
+      "name": "helper_body_hash_equivalence",
+      "status": "passed"
+    },
+    {
+      "name": "action_515_verifier",
+      "status": "pending_until_validation"
+    },
+    {
+      "name": "action_515_focused_suite",
+      "status": "pending_until_validation"
+    }
+  ],
+  "candidate_hash_change_required": true,
+  "new_candidate_hash_computed": false,
+  "historical_action_492_hashes_retained_as_historical_only": true,
+  "package_or_lockfile_modified": false,
+  "configuration_modified": false,
+  "environment_modified": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "production_changed": false,
+  "provider_called": false,
+  "supabase_accessed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "feedback_created": false,
+  "confidence_applied": false,
+  "remediation_result": "candidate_build_source_remediation_completed",
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_516_remediated_runtime_complete_candidate_reconstruction_and_hash_freeze"
+}

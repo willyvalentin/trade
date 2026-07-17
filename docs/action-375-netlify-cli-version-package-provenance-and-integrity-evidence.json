@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.0.0",
+  "action": 375,
+  "resolution_vocabulary": [
+    "resolved",
+    "resolved_with_conditions",
+    "blocked"
+  ],
+  "resolution_status": "resolved_with_conditions",
+  "resolved_at": "2026-07-12T12:35:45.000Z",
+  "scope": "read_only_official_package_metadata_and_artifact_inspection",
+  "release_channels": {
+    "stable_dist_tag": "latest",
+    "stable_version": "26.2.0",
+    "prerelease_selected": false,
+    "floating_version_rejected": true,
+    "unofficial_wrapper_rejected": true
+  },
+  "candidate": {
+    "path": "/private/tmp/ture-action-370-corrected-preview-candidate",
+    "candidate_sha": "b0bb5c4686d9cab3b682b3b06fadee4cf73cab07",
+    "baseline_sha": "51aced66782ec9a37cd358238f02b6f5c0ae97bd",
+    "clean": true,
+    "route_sha256": "98c7de74c94364eed9a447469ef367f1f454b42ae17d3911b3ebfad6ed5213bb",
+    "manifest_sha256": "b7ac9ddaf40cc516bcdbdc7208dc6669f6b34a18a1810c0bde72209b25710892"
+  },
+  "upstream_state": {
+    "action_362_approval_preserved": true,
+    "action_374_decision": "approved_with_conditions",
+    "preview_attempt_consumed": false,
+    "deployment_attempt_count": 0
+  },
+  "package_identity": {
+    "name": "netlify-cli",
+    "official_registry": "https://registry.npmjs.org",
+    "repository": "https://github.com/netlify/cli",
+    "homepage": "https://github.com/netlify/cli",
+    "latest_dist_tag": "26.2.0",
+    "deprecated": false,
+    "maintainers": [
+      "netlify-bot",
+      "mikewen",
+      "youvalv",
+      "mlgualtieri-gatsby"
+    ]
+  },
+  "evaluated_versions": [
+    {
+      "version": "26.2.0",
+      "published_at": "2026-07-07T05:28:58.040Z",
+      "deprecated": false,
+      "node_engine": ">=20.12.2",
+      "release_status": "stable",
+      "tarball_available": true,
+      "preview_deploy_supported": true,
+      "explicit_site_targeting_supported": true,
+      "integrity": "sha512-3jQg9WQoa1H74478fHZisj3T8dLM67x4F4Sgi7kROBHzJD9NNCYYw99dKRYWJOtEa1dUNyZu2W4VTdPzA1kjiw==",
+      "registry_shasum_sha1": "cfb3141d80b50fbd602f76b1c8466c399664ef97"
+    },
+    {
+      "version": "26.1.0",
+      "published_at": "2026-05-31T08:12:18.606Z",
+      "deprecated": false,
+      "node_engine": ">=20.12.2",
+      "release_status": "stable",
+      "tarball_available": true,
+      "preview_deploy_supported": true,
+      "explicit_site_targeting_supported": true,
+      "integrity": "sha512-Yq+x1xc/bHENhNUXUYjYfpgVf+4MinmoaHY0zaPQAQENWO4MrqPjHjbSnJYvTDiv2BPDQCmFgtEVBhguvr8/cg==",
+      "registry_shasum_sha1": "8e42843fefa8427c6ea481ab6b9d707326ce3c25"
+    }
+  ],
+  "selected_package": {
+    "name": "netlify-cli",
+    "version": "26.2.0",
+    "selection_reason": "current_non_deprecated_stable_release_with_official_registry_and_repository_provenance",
+    "published_at": "2026-07-07T05:28:58.040Z",
+    "tarball_url": "https://registry.npmjs.org/netlify-cli/-/netlify-cli-26.2.0.tgz",
+    "registry_integrity": "sha512-3jQg9WQoa1H74478fHZisj3T8dLM67x4F4Sgi7kROBHzJD9NNCYYw99dKRYWJOtEa1dUNyZu2W4VTdPzA1kjiw==",
+    "registry_shasum_sha1": "cfb3141d80b50fbd602f76b1c8466c399664ef97",
+    "computed_tarball_sha1": "cfb3141d80b50fbd602f76b1c8466c399664ef97",
+    "computed_tarball_sha256": "741d46f0f18df96a8d3ee27614f51bfa529d2f9937a1122976358e54e40f6747",
+    "computed_tarball_sha512_integrity": "sha512-3jQg9WQoa1H74478fHZisj3T8dLM67x4F4Sgi7kROBHzJD9NNCYYw99dKRYWJOtEa1dUNyZu2W4VTdPzA1kjiw==",
+    "compressed_size_bytes": 574060,
+    "registry_unpacked_size_bytes": 2390726,
+    "registry_file_count": 1113,
+    "signature": {
+      "key_id": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+      "value": "MEUCIE38wo9WYU3AHZf+RVHnSeQALZUIwIppkQ/daIE7QnY8AiEAv/kVD1Wps4c92PgarmYJ08Aa80BbQWRSbjMEqbVH39E="
+    }
+  },
+  "registry_metadata": {
+    "retrieved_at": "2026-07-12T12:35:45.000Z",
+    "sha256": "b5aa845587af60684043c511faae332bcce526fa9e7b9b98194ff523790dae81",
+    "size_bytes": 11959140
+  },
+  "archive_inspection": {
+    "path_safety": "passed",
+    "all_paths_under_package_prefix": true,
+    "absolute_or_parent_traversal_paths": 0,
+    "tar_entry_count": 1113,
+    "regular_file_count": 1113,
+    "directory_count_after_extraction": 84,
+    "symlink_count": 0,
+    "package_manifest_sha256": "a145ebb0632b2fee19d5f1cce90812041541bfdaf59d5de6f39cb89be75b4887",
+    "inventory_sha256": "1654fff9d1c845e0b62070461e2b4575d78d5b9e0ac2eb5ae05b16cd21b1541a",
+    "inventory_algorithm": "sorted_recursive_type_path_mode_size_sha256_lines_with_terminal_newline",
+    "executable_files": [
+      {
+        "path": "bin/run.js",
+        "mode": "755",
+        "size_bytes": 2800,
+        "sha256": "e39432e46703049b6769e17c0a7a8f1748c345100a1f934d8a6c7076001d426c"
+      }
+    ],
+    "unexpected_executable_count": 0,
+    "bin_mappings": {
+      "netlify": "./bin/run.js",
+      "ntl": "./bin/run.js"
+    }
+  },
+  "compatibility": {
+    "package_type": "module",
+    "required_node": ">=20.12.2",
+    "local_node": "v26.3.1",
+    "local_npm": "11.16.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "macos_version": "15.6",
+    "node_compatible": true,
+    "package_os_restriction": null,
+    "package_cpu_restriction": null,
+    "platform_compatible_by_manifest": true,
+    "npm_compatibility": "conditional_pending_exact_lock_materialization",
+    "transitive_native_compatibility": "conditional_pending_exact_lock_materialization"
+  },
+  "dependency_surface": {
+    "direct_dependency_count": 96,
+    "direct_optional_dependency_count": 0,
+    "bundled_dependency_count": 0,
+    "peer_dependency_count": 0,
+    "exact_transitive_lock_created": false,
+    "lock_strategy": "create_in_disposable_isolated_tooling_context_with_scripts_disabled_after_separate_approval"
+  },
+  "lifecycle_scripts": {
+    "preinstall": null,
+    "install": null,
+    "postinstall": "node ./scripts/postinstall.js",
+    "prepare": null,
+    "prepublish": null,
+    "postinstall_classification": "requires_separate_approval_and_must_remain_disabled",
+    "postinstall_observed_behavior": "loads_command_tree_generates_autocompletion_and_may_write_user_config",
+    "lifecycle_scripts_executed": false,
+    "native_or_browser_download_hook_observed_in_direct_manifest": false
+  },
+  "lifecycle_classifications": {
+    "preinstall": "absent",
+    "install": "absent",
+    "postinstall": "requires_separate_approval",
+    "prepare": "absent",
+    "prepublish": "absent"
+  },
+  "optional_native_binary_behavior": {
+    "direct_optional_dependencies": "absent",
+    "direct_native_build_steps": "absent",
+    "direct_platform_binary_downloads": "absent",
+    "direct_browser_downloads": "absent",
+    "transitive_behavior": "requires_exact_lock_review"
+  },
+  "runtime_behavior": {
+    "update_check_present": true,
+    "automatic_self_replacement_observed": false,
+    "telemetry_present": true,
+    "telemetry_endpoint_class": "cli.netlify.com",
+    "telemetry_can_be_suppressed_in_ci": true,
+    "global_config_write_risk": true,
+    "project_state_write_risk": true,
+    "offline_version_help_containment_verified": false,
+    "required_containment": [
+      "network_denied_sandbox",
+      "disposable_HOME_and_XDG_CONFIG_HOME",
+      "CI_telemetry_suppression",
+      "filesystem_write_inventory",
+      "candidate_and_shared_worktree_read_only"
+    ]
+  },
+  "command_semantics": {
+    "draft_deploy_is_default": true,
+    "production_requires_explicit_prod_option": true,
+    "deploy_preview_context_supported": true,
+    "explicit_site_option_supported": true,
+    "json_output_supported": true,
+    "unique_draft_url_reported": true,
+    "deploy_id_reported": true,
+    "production_options_denylisted": [
+      "--prod",
+      "--prod-if-unlocked"
+    ],
+    "site_creation_option_denylisted": "--allow-anonymous",
+    "deploy_command_executed": false
+  },
+  "credential_and_configuration_behavior": {
+    "help_requires_authentication": false,
+    "version_requires_authentication": false,
+    "target_inspection_requires_authentication": true,
+    "deploy_requires_authentication": true,
+    "explicit_site_id_can_avoid_persistent_linkage_in_principle": true,
+    "persistent_site_linkage_required_for_explicit_site_option": false,
+    "credential_read_performed": false,
+    "automatic_config_write_surfaces_present": true
+  },
+  "production_risk": {
+    "classification": "bounded_only_by_explicit_denylist_and_future_isolated_execution_gate",
+    "production_promotion_options_exist": true,
+    "production_promotion_options_denied": true,
+    "production_aliases_avoided": true,
+    "production_blocked": true,
+    "main_blocked": true
+  },
+  "future_materialization_network": {
+    "allowed_host": "registry.npmjs.org",
+    "registry_only": true,
+    "credential_free": true,
+    "netlify_api_free": true,
+    "time_bounded": true,
+    "closed_before_cli_execution": true
+  },
+  "contacted_hosts": [
+    {
+      "host": "registry.npmjs.org",
+      "purpose": "official_public_package_metadata_and_exact_tarball",
+      "classification": "official_package_registry",
+      "read_only": true
+    },
+    {
+      "host": "www.npmjs.com",
+      "purpose": "official_public_package_page",
+      "classification": "official_package_catalog",
+      "read_only": true
+    },
+    {
+      "host": "docs.netlify.com",
+      "purpose": "official_cli_deploy_semantics",
+      "classification": "official_vendor_documentation",
+      "read_only": true
+    },
+    {
+      "host": "github.com",
+      "purpose": "official_repository_relationship",
+      "classification": "official_source_repository_host",
+      "read_only": true
+    }
+  ],
+  "official_sources": [
+    "https://www.npmjs.com/package/netlify-cli",
+    "https://registry.npmjs.org/netlify-cli",
+    "https://github.com/netlify/cli",
+    "https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/",
+    "https://docs.netlify.com/api-and-cli-guides/cli-guides/manual-deploys/"
+  ],
+  "conditions_remaining": [
+    "generate_and_verify_an_exact_transitive_lock_in_a_disposable_tooling_context",
+    "run_only_version_and_help_capability_checks_in_a_network_denied_disposable_home",
+    "prove_zero_candidate_shared_worktree_and_real_home_writes",
+    "keep_postinstall_and_all_lifecycle_scripts_disabled"
+  ],
+  "safety": {
+    "package_installed": false,
+    "cli_executed": false,
+    "lifecycle_scripts_executed": false,
+    "credential_access_performed": false,
+    "authentication_performed": false,
+    "site_linkage_created": false,
+    "netlify_account_api_called": false,
+    "netlify_site_api_called": false,
+    "netlify_deploy_api_called": false,
+    "deployment_performed": false,
+    "preview_attempt_consumed": false,
+    "candidate_mutated": false,
+    "repository_package_files_mutated": false,
+    "production_changed": false,
+    "main_pushed": false
+  },
+  "recommended_next_action": "isolated_exact_lock_materialization_and_network_denied_version_help_capability_verification"
+}

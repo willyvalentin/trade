@@ -1,0 +1,232 @@
+{
+  "schema_version": "action_495_preview_flag_rehearsal_check_remediation_approval_gate_v1",
+  "action_nature": "static_approval_gate_only_no_rehearsal_no_build_no_deploy_no_activation",
+  "source_action": 494,
+  "action_494_candidate_result": "full_candidate_rehearsal_aborted",
+  "action_494_external_evidence_result": "rehearsal_evidence_verified",
+  "action_494_overall_readiness": "blocked",
+  "action_494_rehearsal_attempt_count": 1,
+  "blocker_classification": "preview_flag_rehearsal_check_confused_parser_literal_with_resolved_flag_state",
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+  "full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+  "candidate_file_count": 31,
+  "added_runtime_path": "lib/pure-confidence-calibration.ts",
+  "added_runtime_path_hash": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+  "canonical_preview_flag": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+  "preview_flag_helper_path": "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+  "preview_flag_helper_sha256": "7fab6acdd97d3811a2f7ed1bf95be34471f10b552c42f7781e125f88770bf716",
+  "preview_flag_contract": {
+    "enabled_only_when_resolved_value_is_exact_string_true": true,
+    "production_runtime_forces_disabled": true,
+    "absent_disabled": true,
+    "undefined_disabled": true,
+    "null_or_unavailable_disabled": true,
+    "empty_string_disabled": true,
+    "false_string_disabled": true,
+    "zero_string_disabled": true,
+    "one_string_disabled": true,
+    "uppercase_true_disabled": true,
+    "whitespace_variants_disabled": true,
+    "non_exact_string_disabled": true,
+    "normalization_behavior_changed": false
+  },
+  "verification_strategy": "resolved_preview_flag_helper_evaluation",
+  "permitted_alternative_strategy": "static_helper_contract_plus_bounded_helper_test_matrix_and_canonical_key_only_lookup",
+  "source_literal_authoritative": false,
+  "parser_literal_true_required_by_contract": true,
+  "parser_literal_true_activation_evidence": false,
+  "canonical_key_only": true,
+  "canonical_key_inspected": true,
+  "raw_environment_value_recorded": false,
+  "full_environment_enumeration_allowed": false,
+  "environment_restoration_required": true,
+  "bounded_state_classifications": [
+    "absent",
+    "disabled",
+    "enabled",
+    "ambiguous",
+    "unavailable"
+  ],
+  "helper_test_matrix_required": [
+    {
+      "case": "key_absent",
+      "classification": "absent",
+      "expected_helper_result": false
+    },
+    {
+      "case": "undefined",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "null_or_unavailable",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "empty_string",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "false_string",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "zero_string",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "one_string",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "non_exact_string",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "uppercase_true",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "whitespace_true",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "exact_true",
+      "classification": "enabled",
+      "expected_helper_result": true
+    },
+    {
+      "case": "production_exact_true",
+      "classification": "disabled",
+      "expected_helper_result": false
+    },
+    {
+      "case": "parser_literal_present_with_key_absent",
+      "classification": "absent",
+      "expected_helper_result": false
+    },
+    {
+      "case": "documentation_literal_present",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "test_fixture_literal_present",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "alternate_alias_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "query_parameter_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "url_fragment_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "local_storage_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "session_storage_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    },
+    {
+      "case": "cookie_absent",
+      "classification": "not_activation_evidence",
+      "expected_helper_result": false
+    }
+  ],
+  "alternate_activation_policy": {
+    "alternate_activation_paths_checked": true,
+    "alternate_activation_path_detected": false,
+    "alternate_environment_alias_allowed": false,
+    "query_parameter_bypass_allowed": false,
+    "url_fragment_bypass_allowed": false,
+    "local_storage_bypass_allowed": false,
+    "session_storage_bypass_allowed": false,
+    "cookie_bypass_allowed": false,
+    "persisted_database_preference_allowed": false,
+    "remote_configuration_bypass_allowed": false,
+    "netlify_injected_alternate_key_allowed": false,
+    "hardcoded_forced_true_branch_allowed": false,
+    "real_user_storage_access_allowed": false
+  },
+  "future_action_496_pre_command_order": [
+    "safe_temp_path",
+    "source_reconstruction",
+    "runtime_dependency_closure",
+    "source_integrity",
+    "source_safety",
+    "semantic_preview_flag_gate",
+    "dependency_materialization",
+    "candidate_internal_commands"
+  ],
+  "future_action_496_required_flag_gate": {
+    "canonical_key_classification": "absent_or_disabled",
+    "helper_result": false,
+    "alternate_activation_path_detected": false,
+    "preview_activation": false
+  },
+  "flag_result_vocabulary": [
+    "preview_flag_disabled_verified",
+    "preview_flag_enabled_detected",
+    "preview_flag_state_ambiguous",
+    "preview_flag_verification_failed"
+  ],
+  "approval_vocabulary": [
+    "approved",
+    "approved_with_conditions",
+    "blocked"
+  ],
+  "action_496_semantics": {
+    "future_rehearsal_attempts_authorized": 1,
+    "candidate_hashes_unchanged_required": true,
+    "candidate_file_count_unchanged_required": true,
+    "candidate_expansion_allowed": false,
+    "deployment_authorized": false,
+    "activation_authorized": false,
+    "same_action_automatic_rerun_allowed": false
+  },
+  "approval_decision": "approved",
+  "unresolved_conditions": [],
+  "rehearsal_authorized": false,
+  "build_authorized": false,
+  "deployment_authorized": false,
+  "activation_authorized": false,
+  "netlify_operation_authorized": false,
+  "network_used": false,
+  "install_performed": false,
+  "candidate_modified": false,
+  "preview_helper_modified": false,
+  "package_or_lockfile_modified": false,
+  "environment_modified": false,
+  "credential_value_recorded": false,
+  "provider_call_executed": false,
+  "supabase_accessed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_496_runtime_complete_candidate_build_rehearsal_retry_after_preview_flag_check_remediation"
+}

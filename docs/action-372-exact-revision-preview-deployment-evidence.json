@@ -1,0 +1,171 @@
+{
+  "evidence_schema_version": "1.0.0",
+  "action": 372,
+  "decision_vocabulary": [
+    "preview_validated",
+    "preview_validated_with_conditions",
+    "preview_failed",
+    "preview_aborted"
+  ],
+  "final_decision": "preview_aborted",
+  "decision_reason": "non_production_target_could_not_be_independently_proven_or_safely_initiated_without_prohibited_tool_installation_or_auth_site_configuration",
+  "candidate_sha": "b0bb5c4686d9cab3b682b3b06fadee4cf73cab07",
+  "baseline_sha": "51aced66782ec9a37cd358238f02b6f5c0ae97bd",
+  "route_sha256": "98c7de74c94364eed9a447469ef367f1f454b42ae17d3911b3ebfad6ed5213bb",
+  "manifest_sha256": "b7ac9ddaf40cc516bcdbdc7208dc6669f6b34a18a1810c0bde72209b25710892",
+  "pre_deploy_verification": {
+    "timestamp_utc": "2026-07-12T11:17:01.000Z",
+    "action_371_approval_valid": true,
+    "candidate_sha_exact": true,
+    "baseline_sha_exact": true,
+    "candidate_clean": true,
+    "candidate_unamended": true,
+    "route_hash_exact": true,
+    "manifest_hash_exact": true,
+    "binding_evidence_exact": true,
+    "unresolved_blocker_count": 0,
+    "runtime_route_inventory_exact": true,
+    "migration_changes": [],
+    "schema_changes": [],
+    "proxy_middleware_netlify_changes": [],
+    "environment_file_changes": [],
+    "untracked_deploy_input_count": 0,
+    "preview_attempt_consumed_before_preflight": false,
+    "passed": true
+  },
+  "deployment_target": {
+    "classification": "unverified_no_approved_local_target_binding",
+    "non_production_proven": false,
+    "production_alias_absent_proven": false,
+    "production_promotion_disabled_proven": false,
+    "production_traffic_isolation_proven": false,
+    "preinstalled_netlify_cli_present": false,
+    "local_site_linkage_present": false,
+    "approved_auth_and_site_configuration_present": false,
+    "classification_result": "blocked_before_external_initiation"
+  },
+  "source_binding": {
+    "method": "local_immutable_git_object_plus_exact_parent_route_manifest_and_external_binding_hash_verification",
+    "source_root": "/private/tmp/ture-action-370-corrected-preview-candidate",
+    "shared_mutable_worktree_used": false,
+    "source_substitution_occurred": false
+  },
+  "attempt": {
+    "preview_attempt_consumed": false,
+    "attempt_consumption_timestamp_utc": null,
+    "external_deployment_operation_started": false,
+    "deployment_attempt_count": 0,
+    "second_attempt_occurred": false
+  },
+  "deployment": {
+    "deployment_identifier": null,
+    "preview_url_reference": null,
+    "preview_url_classification": "not_allocated_deployment_never_started",
+    "deployment_start_timestamp_utc": null,
+    "deployment_completion_timestamp_utc": null,
+    "build_status": "not_started",
+    "function_initialization_status": "not_started"
+  },
+  "validation_scope": {
+    "endpoint": "/api/runtime-health/ping",
+    "permitted_methods": [
+      "GET",
+      "GET",
+      "POST",
+      "PUT"
+    ],
+    "additional_endpoints_requested": false
+  },
+  "get_evidence": {
+    "performed": false,
+    "request_timestamp_utc": null,
+    "status": null,
+    "headers": null,
+    "body": null,
+    "additional_keys": null,
+    "contract_result": "not_performed_pre_deploy_abort"
+  },
+  "repeated_get_evidence": {
+    "performed": false,
+    "request_timestamp_utc": null,
+    "status": null,
+    "headers_identical": null,
+    "body_identical": null,
+    "dynamic_field_drift": null,
+    "contract_result": "not_performed_pre_deploy_abort"
+  },
+  "post_evidence": {
+    "performed": false,
+    "request_timestamp_utc": null,
+    "status": null,
+    "framework_managed_405": null,
+    "custom_application_body": null,
+    "contract_result": "not_performed_pre_deploy_abort"
+  },
+  "put_evidence": {
+    "performed": false,
+    "request_timestamp_utc": null,
+    "status": null,
+    "framework_managed_405": null,
+    "custom_application_body": null,
+    "contract_result": "not_performed_pre_deploy_abort"
+  },
+  "redirect_evidence": {
+    "inspection_performed": false,
+    "redirect_chain": [],
+    "unexpected_redirect_observed": false,
+    "production_redirect_observed": false,
+    "result": "not_performed_pre_deploy_abort"
+  },
+  "recovery_regression_evidence": {
+    "http_400_check": "not_performed_pre_deploy_abort",
+    "http_400_observed": false,
+    "empty_body_check": "not_performed_pre_deploy_abort",
+    "empty_body_observed": false,
+    "html_response_check": "not_performed_pre_deploy_abort",
+    "html_response_observed": false,
+    "generic_netlify_error_observed": false,
+    "route_not_found_observed": false,
+    "malformed_json_observed": false,
+    "caching_check": "not_performed_pre_deploy_abort",
+    "caching_mismatch_observed": false
+  },
+  "runtime_safety": {
+    "provider_initialization_observed": false,
+    "supabase_initialization_observed": false,
+    "persistence_observed": false,
+    "external_side_effect_observed": false,
+    "unexpected_log_classification": "no_external_deployment_or_runtime_logs_created"
+  },
+  "repository_changes_during_action": {
+    "candidate_modified": false,
+    "route_modified": false,
+    "manifest_modified": false,
+    "source_modified": false,
+    "configuration_modified": false,
+    "environment_modified": false,
+    "dependencies_installed_or_updated": false,
+    "push_performed": false,
+    "merge_performed": false
+  },
+  "safety": {
+    "netlify_call_performed": false,
+    "external_endpoint_request_performed": false,
+    "production_deployment_performed": false,
+    "production_alias_modified": false,
+    "production_traffic_modified": false,
+    "main_modified": false,
+    "replay_executed": false,
+    "scanner_behavior_changed": false,
+    "live_ranking_changed": false,
+    "recommendation_rows_mutated": false
+  },
+  "stop_condition": {
+    "triggered": true,
+    "phase": "pre_deployment_target_verification",
+    "reason": "target_isolation_and_external_preview_initiation_could_not_be_proven_with_existing_approved_local_capabilities",
+    "remediation_attempted": false,
+    "retry_attempted": false
+  },
+  "next_permitted_action": "separate_gate_to_establish_preinstalled_approved_preview_tooling_and_non_production_target_binding_without_consuming_the_attempt"
+}
