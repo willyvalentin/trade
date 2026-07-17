@@ -5,8 +5,10 @@ import type { CalibrationGuardrailResult } from "@/lib/calibration-guardrails";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import type { PreTradeRiskContextResult } from "@/lib/pre-trade-risk-context";
 import type { RecommendationDecisionStackResult } from "@/lib/recommendation-decision-stack";
+import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
 import { getSetupTypeDescription, getSetupTypeLabel } from "@/lib/setup-types";
 import type { TradeEligibilityResult } from "@/lib/trade-eligibility";
+import { ConfidenceCalibrationProjectionPreview } from "@/components/recommendations/ConfidenceCalibrationProjectionPreview";
 import {
   recommendationDetailsCurrency,
   recommendationDetailsShares,
@@ -58,6 +60,9 @@ export type RecommendationDetailsModalProps = {
   calibrationGuardrails: CalibrationGuardrailResult | null;
   confidenceBreakdownItems: Array<[string, number]>;
   confidenceLabel: string;
+  confidenceCalibrationProjectionPreview?:
+    | ConfidenceCalibrationProjectionPreviewResult
+    | null;
   confidenceTone: string;
   confirmation: RecommendationDetailsModalConfirmation;
   decisionStack: RecommendationDecisionStackResult | null;
@@ -340,6 +345,7 @@ export function RecommendationDetailsModal({
   addTradeGateMessage,
   confirmation,
   confidenceBreakdownItems,
+  confidenceCalibrationProjectionPreview,
   keyReasons,
   identity,
   sourceBadges,
@@ -546,6 +552,10 @@ export function RecommendationDetailsModal({
 
           <RecommendationDetailsSection title="Decision Details">
             <div className="trade-recommendation-details-stack trade-recommendation-details-stack--decision">
+              <ConfidenceCalibrationProjectionPreview
+                preview={confidenceCalibrationProjectionPreview}
+              />
+
               <RecommendationDetailsTextCard
                 label="Recommendation Decision Stack"
                 pill={
