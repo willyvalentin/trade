@@ -914,7 +914,7 @@ function buildOutcomeBatchCandidateAudit({
   });
 }
 
-export function buildOutcomeEligibility({
+function buildOutcomeEligibility({
   batch,
   growMaxLearningModeEnabled,
   horizons,

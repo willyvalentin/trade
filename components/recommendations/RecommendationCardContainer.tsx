@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 
 import type { CalibrationGuardrailResult } from "@/lib/calibration-guardrails";
+import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
 import type { DataModeBadge } from "@/lib/data-mode-clarity";
 import type { PreTradeRiskContextResult } from "@/lib/pre-trade-risk-context";
 import type { RecommendationDecisionStackResult } from "@/lib/recommendation-decision-stack";
@@ -35,6 +36,9 @@ export type RecommendationCardContainerProps<
 > = {
   addTradeGate: RecommendationCardDisplayAddTradeGate;
   calibrationGuardrails: CalibrationGuardrailResult | null;
+  confidenceCalibrationProjectionPreview?:
+    | ConfidenceCalibrationProjectionPreviewResult
+    | null;
   decisionStack: RecommendationDecisionStackResult | null;
   freshness: RecommendationFreshness;
   isDemoRecommendation: boolean;
@@ -56,6 +60,7 @@ export function RecommendationCardContainer<
 >({
   addTradeGate,
   calibrationGuardrails,
+  confidenceCalibrationProjectionPreview,
   decisionStack,
   freshness,
   isDemoRecommendation,
@@ -129,6 +134,9 @@ export function RecommendationCardContainer<
             addTradeGateMessage={displayProps.addTradeGateMessage}
             confirmation={displayProps.confirmation}
             confidenceBreakdownItems={displayProps.confidenceBreakdownItems}
+            confidenceCalibrationProjectionPreview={
+              confidenceCalibrationProjectionPreview
+            }
             confidenceLabel={displayProps.confidenceLabel}
             confidenceTone={displayProps.confidenceTone}
             identity={renderIdentity(recommendation)}
