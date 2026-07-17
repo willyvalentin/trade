@@ -24,6 +24,9 @@ export type ConfidenceCalibrationProjectionPreviewResult = Readonly<{
   original_recommendation_confidence_basis_points: number | null;
   proposed_preview_delta_basis_points: number | null;
   proposed_preview_confidence_basis_points: number | null;
+  explanation?: string | null;
+  historical_basis?: string | null;
+  calibration_status?: string | null;
   warnings: readonly ConfidenceCalibrationProjectionPreviewWarning[];
   preview_only: true;
   not_applied: true;
@@ -50,6 +53,9 @@ const UNAVAILABLE: ConfidenceCalibrationProjectionPreviewResult = Object.freeze(
   original_recommendation_confidence_basis_points: null,
   proposed_preview_delta_basis_points: null,
   proposed_preview_confidence_basis_points: null,
+  explanation: null,
+  historical_basis: null,
+  calibration_status: null,
   warnings: Object.freeze([]),
   preview_only: true,
   not_applied: true,
@@ -154,6 +160,9 @@ function previewFromProjection(
       projection.advisory_proposed_delta_basis_points,
     proposed_preview_confidence_basis_points:
       projection.advisory_proposed_confidence_basis_points,
+    explanation: null,
+    historical_basis: null,
+    calibration_status: projection.calibration_status,
     warnings: Object.freeze(projection.warnings.map(mapWarning)),
     preview_only: true,
     not_applied: true,

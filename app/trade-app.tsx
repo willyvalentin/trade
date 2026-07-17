@@ -20,6 +20,15 @@ import {
   getRecommendationFreshness,
   isRecommendationExpired,
 } from "@/lib/recommendation-freshness";
+import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
+import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
+import {
+  buildConfidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
+  type ConfidenceProjectionCalibrationSignal,
+  type ConfidenceProjectionOutcomeReview,
+  type ConfidenceProjectionReviewGroup,
+} from "@/lib/confidence-projection-outcome-review";
 import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
@@ -14219,6 +14228,16 @@ export function TradeApp({
     confidenceCalibrationReadinessSummaryJson(
       confidenceCalibrationReadinessSummary,
     );
+  const confidenceProjectionPreviewEnabled =
+    isConfidenceCalibrationProjectionPreviewEnabled();
+  const confidenceProjectionOutcomeReview =
+    buildConfidenceProjectionOutcomeReview({
+      snapshots: recommendationPerformanceSnapshots,
+      outcomes: recommendationPerformanceOutcomes,
+      previewEnabled: confidenceProjectionPreviewEnabled,
+    });
+  const confidenceProjectionOutcomeReviewJsonText =
+    confidenceProjectionOutcomeReviewJson(confidenceProjectionOutcomeReview);
   const recommendationEngineImprovementBacklog =
     buildRecommendationEngineImprovementBacklog({
       performance: recommendationPerformanceStatistics,
@@ -16188,6 +16207,14 @@ export function TradeApp({
                   recommendation,
                   positionSizing,
                 );
+              const confidenceCalibrationProjectionPreview =
+                buildConfidenceProjectionObservationPreview({
+                  previewEnabled: confidenceProjectionPreviewEnabled,
+                  confidenceScore: recommendation.confidenceScore,
+                  direction: recommendation.direction,
+                  setupType: recommendation.setupType,
+                  ticker: recommendation.ticker,
+                });
 
               return (
                 <Fragment key={recommendation.id}>
@@ -16196,6 +16223,9 @@ export function TradeApp({
                     calibrationGuardrails={calibrationGuardrails}
                     preTradeRiskContext={preTradeRiskContext}
                     tradeEligibility={tradeEligibility}
+                    confidenceCalibrationProjectionPreview={
+                      confidenceCalibrationProjectionPreview
+                    }
                     decisionStack={decisionStack}
                     freshness={freshness}
                     addTradeGate={addTradeGate}
@@ -16429,6 +16459,12 @@ export function TradeApp({
               }
               confidenceCalibrationReadinessJson={
                 confidenceCalibrationReadinessSummaryJsonText
+              }
+              confidenceProjectionOutcomeReview={
+                confidenceProjectionOutcomeReview
+              }
+              confidenceProjectionOutcomeReviewJson={
+                confidenceProjectionOutcomeReviewJsonText
               }
               recommendationEngineImprovementBacklog={
                 recommendationEngineImprovementBacklog
@@ -19012,6 +19048,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson,
   confidenceCalibrationReadiness,
   confidenceCalibrationReadinessJson,
+  confidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
   recommendationEngineImprovementBacklog,
   recommendationEngineImprovementBacklogJson,
   selectedRange,
@@ -19038,6 +19076,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson: string;
   confidenceCalibrationReadiness: ConfidenceCalibrationReadinessSummary;
   confidenceCalibrationReadinessJson: string;
+  confidenceProjectionOutcomeReview: ConfidenceProjectionOutcomeReview;
+  confidenceProjectionOutcomeReviewJson: string;
   recommendationEngineImprovementBacklog: RecommendationEngineImprovementBacklog;
   recommendationEngineImprovementBacklogJson: string;
   selectedRange: StatisticsTimeRange;
@@ -19225,6 +19265,17 @@ function StatisticsDashboardPanel({
                 label="Calibration"
                 value={confidenceCalibrationReadiness.status.replaceAll("_", " ")}
               />
+              <SummaryCard
+                label="Projection Review"
+                value={confidenceProjectionOutcomeReview.sample_quality.replaceAll(
+                  "_",
+                  " ",
+                )}
+              />
+              <SummaryCard
+                label="Projection Improved"
+                value={`${confidenceProjectionOutcomeReview.improved_count} / ${confidenceProjectionOutcomeReview.complete_count}`}
+              />
             </StatisticsSummaryGrid>
 
             <div className="mt-4">
@@ -19283,6 +19334,13 @@ function StatisticsDashboardPanel({
                 <ConfidenceCalibrationReadinessPanel
                   summary={confidenceCalibrationReadiness}
                   summaryJson={confidenceCalibrationReadinessJson}
+                />
+              </RecommendationAnalyticsDetails>
+
+              <RecommendationAnalyticsDetails title="Confidence Projection Review">
+                <ConfidenceProjectionOutcomeReviewPanel
+                  review={confidenceProjectionOutcomeReview}
+                  reviewJson={confidenceProjectionOutcomeReviewJson}
                 />
               </RecommendationAnalyticsDetails>
 
@@ -19372,6 +19430,328 @@ function RecommendationAnalyticsDetails({
       </summary>
       <div className="mt-4">{children}</div>
     </details>
+  );
+}
+
+function formatConfidenceReviewPoints(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)} pts`;
+}
+
+function bestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      return secondValue - firstValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function weakestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      return firstValue - secondValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function formatCalibrationSignalConfidence(
+  signal: ConfidenceProjectionCalibrationSignal,
+) {
+  return signal.confidence_in_conclusion.replaceAll("_", " ");
+}
+
+function ConfidenceProjectionOutcomeReviewPanel({
+  review,
+  reviewJson,
+}: {
+  review: ConfidenceProjectionOutcomeReview;
+  reviewJson: string;
+}) {
+  const raisedRate = formatPercent(rateFromCounts(review.raised_count, review.complete_count));
+  const loweredRate = formatPercent(
+    rateFromCounts(review.lowered_count, review.complete_count),
+  );
+  const unchangedRate = formatPercent(
+    rateFromCounts(review.unchanged_count, review.complete_count),
+  );
+  const bestBands = bestProjectionReviewGroups(review.confidence_bands);
+  const weakAreas = weakestProjectionReviewGroups([
+    ...review.confidence_bands,
+    ...review.tiers,
+    ...review.windows,
+    ...review.explanation_categories,
+  ]).filter((group) => (group.net_error_improvement ?? 0) < 0);
+  const selectedSignal = review.first_observed_calibration_signal.selected_signal;
+  const completeness = review.observation_completeness;
+  const mainBlocker =
+    completeness.most_common_blocker?.reason.replaceAll("_", " ") ?? "none";
+  const signalDirection =
+    selectedSignal.direction === "helps"
+      ? "Projection helps"
+      : selectedSignal.direction === "hurts"
+        ? "Projection hurts"
+        : selectedSignal.direction === "neutral"
+          ? "Neutral"
+          : "Insufficient evidence";
+
+  return (
+    <section
+      className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4"
+      data-confidence-projection-review-status={review.status}
+      data-confidence-projection-observation-only="true"
+      data-confidence-projection-no-writes="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+            Confidence Projection Review
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            Measures whether AI Projection better matched completed outcomes than
+            the original confidence. Evidence only; original confidence remains
+            authoritative.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {review.copy.data_source}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+          {review.sample_quality.replaceAll("_", " ")}
+        </span>
+      </div>
+
+      <StatisticsSummaryGrid className="mt-4">
+        <SummaryCard
+          label="Observed"
+          value={String(review.observed_count)}
+        />
+        <SummaryCard
+          label="Complete"
+          value={String(review.complete_count)}
+        />
+        <SummaryCard
+          label="Improved"
+          value={`${review.improved_count} / ${formatPercent(review.improved_rate)}`}
+        />
+        <SummaryCard
+          label="Worsened"
+          value={`${review.worsened_count} / ${formatPercent(review.worsened_rate)}`}
+        />
+        <SummaryCard
+          label="Original Error"
+          value={formatConfidenceReviewPoints(review.mean_original_error)}
+        />
+        <SummaryCard
+          label="Projected Error"
+          value={formatConfidenceReviewPoints(review.mean_projected_error)}
+        />
+        <SummaryCard
+          label="Net Improvement"
+          value={formatConfidenceReviewPoints(review.net_error_improvement)}
+          tone={review.net_error_improvement}
+        />
+        <SummaryCard
+          label="Avg Delta"
+          value={formatConfidenceReviewPoints(review.average_delta)}
+          tone={review.average_delta}
+        />
+      </StatisticsSummaryGrid>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete"
+            value={`${completeness.complete_observations} / ${completeness.eligible_observations}`}
+          />
+          <SummaryCard
+            label="Main Blocker"
+            value={mainBlocker}
+          />
+          <SummaryCard
+            label="Projection Derivable"
+            value={formatPercent(completeness.projection_derivable_rate)}
+          />
+          <SummaryCard
+            label="Join Success"
+            value={formatPercent(completeness.successful_join_rate)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Second blocker:{" "}
+          {completeness.second_most_common_blocker?.reason.replaceAll("_", " ") ??
+            "none"}{" "}
+          · Completed outcome rate:{" "}
+          {formatPercent(completeness.completed_outcome_rate)}
+          {" · "}Contract v1 snapshots/outcomes:{" "}
+          {
+            completeness.future_contract_coverage.snapshot_contract_count
+          } / {completeness.future_contract_coverage.outcome_contract_count}
+          {" · "}Migration required: no
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              First observed calibration signal
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {selectedSignal.subgroup_label}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              {selectedSignal.recommended_next_experiment}
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            {signalDirection}
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Subgroup"
+            value={selectedSignal.subgroup_type.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Sample Count"
+            value={String(selectedSignal.sample_count)}
+          />
+          <SummaryCard
+            label="Net Improvement"
+            value={formatConfidenceReviewPoints(
+              selectedSignal.net_error_improvement,
+            )}
+            tone={selectedSignal.net_error_improvement}
+          />
+          <SummaryCard
+            label="Conclusion"
+            value={formatCalibrationSignalConfidence(selectedSignal)}
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Recommended candidate:{" "}
+          {
+            review.first_observed_calibration_signal
+              .recommended_calibration_adjustment_candidate
+          }
+        </p>
+        <pre
+          id="confidence-projection-selected-calibration-signal-json"
+          className="sr-only"
+        >
+          {JSON.stringify(selectedSignal, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Raised / Lowered
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Raised {review.raised_count} ({raisedRate}) · Lowered{" "}
+            {review.lowered_count} ({loweredRate}) · Unchanged{" "}
+            {review.unchanged_count} ({unchangedRate})
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Bias Signals
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Overestimated {review.overestimated_count} · Underestimated{" "}
+            {review.underestimated_count} · Insufficient{" "}
+            {review.insufficient_count}
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Formula
+          </p>
+          <p className="mt-2 text-sm leading-5 text-zinc-300">
+            {review.copy.formula}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <ProjectionReviewGroupList
+          title="Best Bands"
+          emptyMessage="No complete band evidence yet."
+          groups={bestBands}
+        />
+        <ProjectionReviewGroupList
+          title="Worsened Areas"
+          emptyMessage="No worsened areas observed yet."
+          groups={weakAreas}
+        />
+      </div>
+
+      <p className="mt-4 text-xs leading-5 text-zinc-500">
+        {review.copy.sample_quality} {review.copy.observation_only}
+      </p>
+      <pre id="confidence-projection-outcome-review-json" className="sr-only">
+        {reviewJson}
+      </pre>
+    </section>
+  );
+}
+
+function rateFromCounts(count: number, total: number) {
+  return total > 0 ? (count / total) * 100 : null;
+}
+
+function ProjectionReviewGroupList({
+  title,
+  groups,
+  emptyMessage,
+}: {
+  title: string;
+  groups: ConfidenceProjectionReviewGroup[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+        {title}
+      </p>
+      {groups.length === 0 ? (
+        <p className="mt-2 text-sm text-zinc-500">{emptyMessage}</p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          {groups.map((group) => (
+            <div
+              key={`${title}-${group.key}`}
+              className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2"
+            >
+              <div>
+                <p className="text-sm font-medium text-zinc-200">{group.label}</p>
+                <p className="text-xs text-zinc-500">
+                  {group.complete_count} complete · {formatPercent(group.improved_rate)} improved
+                </p>
+              </div>
+              <span className="font-mono text-xs font-bold text-zinc-200">
+                {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
