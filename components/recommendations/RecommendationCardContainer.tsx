@@ -95,6 +95,7 @@ export function RecommendationCardContainer<
       addTradeDisabled={displayProps.addTradeDisabled}
       addTradeLabel={displayProps.addTradeLabel}
       confidenceLabel={displayProps.confidenceLabel}
+      confidenceProjectionPreview={confidenceCalibrationProjectionPreview}
       confidenceTone={displayProps.confidenceTone}
       discardDisabled={displayProps.discardDisabled}
       identity={renderIdentity(recommendation)}

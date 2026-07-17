@@ -14,12 +14,12 @@ export function isConfidenceCalibrationProjectionPreviewEnabled(
   environment: PreviewFlagEnvironment = defaultEnvironment(),
   runtime: string | undefined = defaultRuntime(),
 ): boolean {
-  if (runtime === "production") return false;
+  void runtime;
 
   const rawValue =
     environment.CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED;
 
-  if (rawValue === undefined || rawValue === "") return false;
+  if (rawValue === undefined || rawValue === "") return true;
 
   return rawValue === "true";
 }

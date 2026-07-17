@@ -6,6 +6,7 @@ import {
   parseRecommendationConfidenceMetadata,
   planReferenceMetadataDiagnostics,
 } from "@/lib/recommendation-inline-metadata";
+import { buildConfidenceProjectionObservationSnapshotContract } from "@/lib/confidence-projection-observation-contract";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -591,8 +592,35 @@ export function buildRecommendationSnapshot(
       payload_json: payloadJsonRecord,
     },
   });
+  const snapshotContractBase = {
+    id: snapshotFingerprint,
+    snapshot_fingerprint: snapshotFingerprint,
+    recommendation_id: textOrNull(input.recommendation_id),
+    ticker: textOrNull(input.ticker)?.toUpperCase() ?? null,
+    side,
+    recommended_at: toIso(input.recommended_at),
+    window: normalizeWindow(input.window),
+    recommendation_tier: textOrNull(input.rating) ?? textOrNull(input.label),
+    setup_type: textOrNull(input.type),
+    entry,
+    stop,
+    target,
+    risk_per_share: riskPerShare,
+    reward_per_share: rewardPerShare,
+    planned_risk_reward: plannedRiskReward,
+    original_confidence:
+      finiteNumber(input.confidence) ??
+      finiteNumber(input.score) ??
+      textOrNull(String(input.confidence ?? "")) ??
+      textOrNull(String(input.score ?? "")),
+    captured_at: createdAt,
+  };
+  const confidenceProjectionObservationContract =
+    buildConfidenceProjectionObservationSnapshotContract(snapshotContractBase);
   const payloadJsonWithDiagnostics = {
     ...payloadJson,
+    confidence_projection_observation_contract:
+      confidenceProjectionObservationContract,
     ...entryTypeMetadata,
     entry_type_metadata: entryTypeMetadata,
     trade_plan: {

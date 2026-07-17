@@ -5,6 +5,7 @@ import {
   entryTypeMetadataForSnapshot,
   evaluateEntryTypeAwareTrigger,
 } from "@/lib/recommendation-entry-type";
+import { buildConfidenceProjectionObservationOutcomeContract } from "@/lib/confidence-projection-observation-contract";
 
 export type RecommendationOutcomeStatus =
   | "pending"
@@ -705,6 +706,26 @@ export function computeRecommendationOutcome(
     officialStatus: status,
   });
 
+  const confidenceProjectionObservationContract =
+    buildConfidenceProjectionObservationOutcomeContract({
+      snapshot_id: snapshotId,
+      snapshot_fingerprint: snapshotFingerprint,
+      recommendation_id: recommendationId,
+      ticker,
+      side,
+      recommended_at: recommendedAt,
+      evaluated_at: evaluatedAt,
+      horizon,
+      status,
+      target_hit: targetHit,
+      stop_hit: stopHit,
+      first_terminal_event: firstTerminalEvent,
+      eod_r: eodR,
+      current_r: rFromPrice(currentPrice, entry, risk, side),
+      best_r: bestR,
+      data_completeness: dataCompleteness,
+      source,
+    });
   const outcome: RecommendationOutcome = {
     id: outcomeId(snapshotFingerprint, horizon),
     snapshot_id: snapshotId,
@@ -745,6 +766,8 @@ export function computeRecommendationOutcome(
     warnings,
     blockers,
     payload_json: {
+      confidence_projection_observation_contract:
+        confidenceProjectionObservationContract,
       candle_count: candles.length,
       has_current_price: currentPrice !== null,
       has_eod_price: eodPrice !== null,

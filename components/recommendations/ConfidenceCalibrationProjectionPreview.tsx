@@ -4,15 +4,17 @@ export type ConfidenceCalibrationProjectionPreviewProps = {
   preview: ConfidenceCalibrationProjectionPreviewResult | null | undefined;
 };
 
-function formatBasisPoints(value: number | null): string {
+function formatConfidencePoints(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "—";
-  return `${(value / 100).toFixed(2)}/100`;
+  const points = value / 100;
+  return Number.isInteger(points) ? `${points}` : points.toFixed(1);
 }
 
-function formatDeltaBasisPoints(value: number | null): string {
+function formatDeltaPoints(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "—";
-  const signedValue = value >= 0 ? `+${value}` : `${value}`;
-  return `${signedValue} bp`;
+  const points = value / 100;
+  const formatted = Number.isInteger(points) ? `${points}` : points.toFixed(1);
+  return `${points >= 0 ? "+" : ""}${formatted}`;
 }
 
 export function ConfidenceCalibrationProjectionPreview({
@@ -25,11 +27,11 @@ export function ConfidenceCalibrationProjectionPreview({
       <div className="trade-recommendation-details-text-card">
         <div className="trade-recommendation-details-text-card__header">
           <span className="trade-recommendation-details-text-card__label">
-            CALIBRATION PREVIEW
+            AI PROJECTION
           </span>
         </div>
         <div className="trade-recommendation-details-text-card__content">
-          <p>Calibration preview unavailable</p>
+          <p>AI projection unavailable</p>
         </div>
       </div>
     );
@@ -39,43 +41,50 @@ export function ConfidenceCalibrationProjectionPreview({
     <div className="trade-recommendation-details-text-card">
       <div className="trade-recommendation-details-text-card__header">
         <span className="trade-recommendation-details-text-card__label">
-          CALIBRATION PREVIEW
+          AI PROJECTION
         </span>
       </div>
       <div className="trade-recommendation-details-text-card__content">
-        <p>Preview only — not applied</p>
-        <p>Original Recommendation confidence remains active</p>
+        <p>Observation only — not applied</p>
+        <p>Original confidence remains authoritative</p>
+        {preview.explanation ? <p>{preview.explanation}</p> : null}
         {preview.status === "preview_no_adjustment" ? (
           <p>No adjustment suggested</p>
         ) : null}
         <div className="trade-recommendation-details-metrics trade-recommendation-details-metrics--wide">
           <div className="trade-recommendation-details-metric">
             <div className="trade-recommendation-details-metric__label">
-              ORIGINAL CONFIDENCE
+              CONFIDENCE
             </div>
             <div className="trade-recommendation-details-metric__value">
-              {formatBasisPoints(
+              {formatConfidencePoints(
                 preview.original_recommendation_confidence_basis_points,
               )}
             </div>
           </div>
           <div className="trade-recommendation-details-metric">
             <div className="trade-recommendation-details-metric__label">
-              SUGGESTED PREVIEW ADJUSTMENT
+              CONFIDENCE DELTA
             </div>
-            <div className="trade-recommendation-details-metric__value">
-              {formatDeltaBasisPoints(preview.proposed_preview_delta_basis_points)}
+            <div className="trade-recommendation-details-metric__value trade-recommendation-details-metric__value--positive">
+              {formatDeltaPoints(preview.proposed_preview_delta_basis_points)}
             </div>
           </div>
           <div className="trade-recommendation-details-metric">
             <div className="trade-recommendation-details-metric__label">
-              SUGGESTED PREVIEW CONFIDENCE
+              PROJECTED CONFIDENCE
             </div>
             <div className="trade-recommendation-details-metric__value">
-              {formatBasisPoints(preview.proposed_preview_confidence_basis_points)}
+              {formatConfidencePoints(
+                preview.proposed_preview_confidence_basis_points,
+              )}
             </div>
           </div>
         </div>
+        {preview.historical_basis ? <p>{preview.historical_basis}</p> : null}
+        {preview.calibration_status ? (
+          <p>Calibration status: {preview.calibration_status.replaceAll("_", " ")}</p>
+        ) : null}
         {preview.status === "preview_ready_with_warnings" &&
         preview.warnings.length > 0 ? (
           <div className="trade-recommendation-details-text-stack trade-recommendation-details-text-stack--warning">
