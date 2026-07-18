@@ -198,6 +198,8 @@ function wrapperHarness(lstatImpl: (path: string, options: { bigint: true }) => 
     .replace(/import type \{ DormantFirstLiveCompositionAdapterResult \} from "@\/lib\/post-trade-dormant-server-only-first-live-staging-preflight-composition-adapter-core";\n/u, "")
     .replace(/export \* from "@\/lib\/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter-core";\n/u, "")
     .replace(/export type DormantServerOnlyImmediatePreSpawnRevalidationInput = Readonly<\{[\s\S]*?\}>;\n/u, "")
+    .replace(/export type ImmediatePreSpawnRevalidationForDormantFixedDirectSpawnConsumption = Readonly<[\s\S]*?\n>;\n/u, "")
+    .replace("export function consumeOriginalImmediatePreSpawnRevalidationForDormantFixedReadOnlyDirectSpawn", "function consumeOriginalImmediatePreSpawnRevalidationForDormantFixedReadOnlyDirectSpawn")
     .replace("export async function revalidateDormantServerOnlyImmediatePreSpawn", "async function revalidateDormantServerOnlyImmediatePreSpawn");
   const js = ts.transpileModule(`const Date = deps.Date;\n${sourceText}\nreturn { revalidateDormantServerOnlyImmediatePreSpawn };`, {
     compilerOptions: {

@@ -4,6 +4,8 @@ import { createHash } from "node:crypto";
 import { lstat } from "node:fs/promises";
 
 import {
+  DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_ADAPTER_IDENTITY,
+  DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_ADAPTER_POLICY,
   DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_FINGERPRINT_DOMAINS,
   buildImmediatePreSpawnRevalidationObservation,
   evaluateImmediatePreSpawnRevalidationCore,
@@ -22,6 +24,7 @@ export type DormantServerOnlyImmediatePreSpawnRevalidationInput = Readonly<{
 
 const PRODUCTION_REVALIDATION_RESULT_PROVENANCE = new WeakSet<object>();
 const PRODUCTION_REVALIDATION_EVIDENCE_PROVENANCE = new WeakSet<object>();
+const PRODUCTION_REVALIDATION_RESULTS_CONSUMED_FOR_DORMANT_FIXED_DIRECT_SPAWN = new WeakSet<object>();
 
 export async function revalidateDormantServerOnlyImmediatePreSpawn(input: DormantServerOnlyImmediatePreSpawnRevalidationInput): Promise<ImmediatePreSpawnRevalidationResult> {
   const claimed = consumeOriginalDormantFirstLiveCompositionForImmediatePreSpawnRevalidation(input);
@@ -35,6 +38,41 @@ export async function revalidateDormantServerOnlyImmediatePreSpawn(input: Dorman
     retryCount: 0,
     productionLiveProvenance: false,
   }));
+}
+
+export type ImmediatePreSpawnRevalidationForDormantFixedDirectSpawnConsumption = Readonly<
+  | {
+    ok: true;
+    revalidationResult: ImmediatePreSpawnRevalidationResult;
+    evaluatedAt: string;
+    approvedExecutablePath: string;
+  }
+  | {
+    ok: false;
+    evaluatedAt: string;
+    blockingReasons: readonly string[];
+  }
+>;
+
+export function consumeOriginalImmediatePreSpawnRevalidationForDormantFixedReadOnlyDirectSpawn(input: unknown): ImmediatePreSpawnRevalidationForDormantFixedDirectSpawnConsumption {
+  const evaluatedAt = new Date().toISOString();
+  const shape = validateDirectSpawnHandoffShape(input);
+  if (!shape.ok) return { ok: false, evaluatedAt, blockingReasons: ["input_shape_rejected"] };
+  if (!PRODUCTION_REVALIDATION_RESULT_PROVENANCE.has(shape.revalidationResult) || !PRODUCTION_REVALIDATION_EVIDENCE_PROVENANCE.has(shape.revalidationResult.revalidationEvidence)) {
+    return { ok: false, evaluatedAt, blockingReasons: ["production_revalidation_provenance_missing"] };
+  }
+  if (PRODUCTION_REVALIDATION_RESULTS_CONSUMED_FOR_DORMANT_FIXED_DIRECT_SPAWN.has(shape.revalidationResult)) {
+    return { ok: false, evaluatedAt, blockingReasons: ["second_attempt_rejected"] };
+  }
+  const reasons = validateProductionRevalidationForDormantFixedDirectSpawn(shape.revalidationResult);
+  if (reasons.length > 0) return { ok: false, evaluatedAt, blockingReasons: reasons };
+  PRODUCTION_REVALIDATION_RESULTS_CONSUMED_FOR_DORMANT_FIXED_DIRECT_SPAWN.add(shape.revalidationResult);
+  return {
+    ok: true,
+    revalidationResult: shape.revalidationResult,
+    evaluatedAt,
+    approvedExecutablePath: "/usr/bin/git",
+  };
 }
 
 async function observeApprovedPathWithLstat(path: string, observedAt: string) {
@@ -159,6 +197,51 @@ function markProductionProvenance(result: ImmediatePreSpawnRevalidationResult): 
   PRODUCTION_REVALIDATION_EVIDENCE_PROVENANCE.add(evidence);
   PRODUCTION_REVALIDATION_RESULT_PROVENANCE.add(marked);
   return marked;
+}
+
+function validateDirectSpawnHandoffShape(input: unknown): { ok: true; revalidationResult: ImmediatePreSpawnRevalidationResult } | { ok: false } {
+  if (!isPlainOwnDataObject(input)) return { ok: false };
+  const keys = Object.keys(input);
+  if (keys.length !== 1 || keys[0] !== "revalidationResult") return { ok: false };
+  const revalidationResult = input.revalidationResult;
+  if (typeof revalidationResult !== "object" || revalidationResult === null) return { ok: false };
+  return { ok: true, revalidationResult: revalidationResult as ImmediatePreSpawnRevalidationResult };
+}
+
+function validateProductionRevalidationForDormantFixedDirectSpawn(input: ImmediatePreSpawnRevalidationResult): readonly string[] {
+  const reasons: string[] = [];
+  const evidence = input.revalidationEvidence;
+  if (!Object.isFrozen(input) || !Object.isFrozen(evidence)) reasons.push("revalidation_result_mutated_or_cloned");
+  if (input.resultKind !== "dormant_server_only_immediate_pre_spawn_revalidation_result" || input.resultVersion !== 1) reasons.push("revalidation_result_rejected");
+  if (input.adapterId !== DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_ADAPTER_IDENTITY.adapterId) reasons.push("revalidation_result_boundary_mismatch");
+  if (input.status !== "revalidated_non_authoritative_evidence" || evidence.status !== "revalidated_non_authoritative_evidence") reasons.push("revalidation_result_not_ready");
+  if (input.serverOnly !== true || input.dormant !== true) reasons.push("revalidation_result_boundary_mismatch");
+  if (input.processSpawned !== false || input.shellUsed !== false || input.credentialAccessed !== false || input.networkAccessed !== false || input.cliVersionCollected !== false || input.observerInvoked !== false || input.authorizationConsumed !== false || input.enablesProcessStart !== false || input.enablesPreflightRunner !== false) reasons.push("revalidation_result_authority_rejected");
+  if (evidence.productionLiveRevalidationProvenance !== "server_only_private_original_object") reasons.push("production_revalidation_provenance_missing");
+  if (evidence.toolIdentity !== "git") reasons.push("revalidation_result_tool_mismatch");
+  if (evidence.platform !== "macos") reasons.push("revalidation_result_platform_mismatch");
+  if (evidence.purpose !== "first_live_read_only_staging_preflight") reasons.push("revalidation_result_purpose_mismatch");
+  if (evidence.policyId !== DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_ADAPTER_POLICY.policyId || evidence.policyVersion !== DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_ADAPTER_POLICY.policyVersion) reasons.push("revalidation_result_policy_mismatch");
+  if (evidence.expectedResolvedAbsolutePath !== "/usr/bin/git" || evidence.observedResolvedAbsolutePath !== "/usr/bin/git") reasons.push("revalidation_result_path_mismatch");
+  if (evidence.exactMetadataMatched !== true || evidence.immediateRevalidationOccurred !== true || evidence.pointInTimeOnly !== true || evidence.toctouEliminated !== false) reasons.push("revalidation_result_toctou_claim_rejected");
+  if (evidence.authoritativeLive !== false || evidence.spawnAuthority !== "none" || evidence.observerAuthority !== "none" || evidence.credentialAuthority !== "none" || evidence.cliExecutionAuthority !== "none" || evidence.runnerAuthority !== "none" || evidence.authorizationConsumptionAuthority !== "none" || evidence.networkAuthority !== "none" || evidence.apiAuthority !== "none" || evidence.uiAuthority !== "none" || evidence.tradingAuthority !== "none" || evidence.avanzaAuthority !== "none" || evidence.persistenceAuthority !== "none" || evidence.deploymentAuthority !== "none") reasons.push("revalidation_result_authority_rejected");
+  if (evidence.processSpawned !== false || evidence.shellUsed !== false || evidence.cliVersionCollected !== false || evidence.credentialAccessed !== false || evidence.networkAccessed !== false || evidence.observerInvoked !== false || evidence.authorizationConsumed !== false || evidence.retryCount !== 0 || evidence.filesystemAttemptCount !== 1) reasons.push("revalidation_result_authority_rejected");
+  if (input.resultFingerprintAlgorithm !== "sha256" || input.resultFingerprint !== fingerprint(DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_FINGERPRINT_DOMAINS.result, stripResultFingerprint(input))) reasons.push("revalidation_result_mutated_or_cloned");
+  if (evidence.evidenceFingerprintAlgorithm !== "sha256" || evidence.evidenceFingerprint !== fingerprint(DORMANT_SERVER_ONLY_IMMEDIATE_PRE_SPAWN_REVALIDATION_FINGERPRINT_DOMAINS.evidence, stripEvidenceFingerprint(evidence))) reasons.push("revalidation_result_mutated_or_cloned");
+  return [...new Set(reasons)].sort();
+}
+
+function isPlainOwnDataObject(input: unknown): input is Record<string, unknown> {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) return false;
+  const prototype = Object.getPrototypeOf(input);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  if (Object.getOwnPropertySymbols(input).length > 0) return false;
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(input))) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") return false;
+    if (descriptor.get || descriptor.set || !descriptor.enumerable) return false;
+  }
+  for (const key in input) if (!Object.prototype.hasOwnProperty.call(input, key)) return false;
+  return true;
 }
 
 function stripEvidenceFingerprint(input: ImmediatePreSpawnRevalidationEvidence): Omit<ImmediatePreSpawnRevalidationEvidence, "evidenceFingerprintAlgorithm" | "evidenceFingerprint"> {

@@ -7079,3 +7079,191 @@ Recommended next action: Action 550 - Implement Dormant Server-Only Fixed Read-O
 Decision: `post_trade_first_live_read_only_direct_spawn_boundary_plan_ready`.
 
 Result status: `post_trade_first_live_read_only_direct_spawn_action_549_planning_gate_completed`.
+
+### Action 550 - Dormant Server-Only Fixed Read-Only Direct-Spawn Adapter
+
+Implemented the smallest dormant server-only fixed read-only direct-spawn adapter for the future first-live staging preflight. The implementation is focused-test reachable only and is not wired into API, UI, runner, observer, credential, CLI-version interpretation, browser, Avanza, trading, order, position, settlement, persistence, cron, network, environment, or deployment paths.
+
+Created:
+
+- `lib/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter-core.ts`
+- `lib/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter.ts`
+- `tests/e2e/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter.spec.ts`
+- `docs/dormant-server-only-fixed-read-only-direct-spawn-adapter-action-550.md`
+- `docs/dormant-server-only-fixed-read-only-direct-spawn-action-550-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter.ts`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Architecture:
+
+- pure core imports no process, filesystem, network, environment, or server-only primitive;
+- server-only wrapper has `import "server-only";` as first effective import and owns the single `node:child_process` `spawn` import;
+- Action 543/547 revalidation wrapper now exposes a boundary-specific original-object consume bridge for this direct-spawn boundary only;
+- no generic verifier, trust oracle, token, symbol, brand, reset, or replay control was exported;
+- production API accepts only `{ revalidationResult }`.
+
+Fixed process contract:
+
+- executable path: `/usr/bin/git` from original approved revalidation evidence;
+- argv: `["--version"]`;
+- environment: `LANG=C`, `LC_ALL=C`;
+- `shell: false`;
+- `detached: false`;
+- `cwd: undefined`;
+- `stdio: ["ignore", "pipe", "pipe"]`;
+- stdout max: 16 KiB;
+- stderr max: 16 KiB;
+- combined max: 32 KiB;
+- no retry, fallback, alternate executable, caller env, caller cwd, caller args, credentials, network, observer, or CLI-version interpretation.
+
+The focused Action 550 tests use a source harness with mocked process primitive and do not execute the real Git binary. No real Git version was collected. No credentials or environment values were read. No network request occurred. No runtime/API/UI/runner/observer/credential/browser/Avanza/trading/order/position/settlement/persistence/deployment behavior was activated.
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- New Action 550 focused suite passed, 13 tests.
+- Action 543/545/547 revalidation suite passed, 30 tests.
+- Action 540 suite passed, 17 tests.
+- First-live resolver and pure composition suites passed, 25 tests.
+- Trusted resolver/security plus Action 533 cross-boundary suites passed, 672 tests.
+- Dormant observer/spawn/credential/preflight plus process/credential/CLI/authorization/execution suites passed, 1215 tests.
+- Scoped ESLint over changed TypeScript files passed.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+- Static server-only/import/export, production-API closure, provenance-consumption, fixed path/argv, environment/credential-leakage, shell/PATH, process-option, process-call-count, retry/fallback, output-bound, lifecycle, TOCTOU, reachability, and prohibited-operation reviews passed.
+
+Decision: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_ready_for_static_security_review`.
+
+Result status: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_implemented_not_activated`.
+
+Recommended next Action: Action 551 - Static Security and Contract Review of Dormant Fixed Read-Only Direct-Spawn Adapter.
+
+### Action 551 - Static Security and Contract Review of Dormant Fixed Read-Only Direct-Spawn Adapter
+
+Performed an independent static security and contract review of the uncommitted Action 550 dormant server-only fixed read-only direct-spawn adapter. No production behavior was changed. No adapter activation, runtime caller, API/UI/runner wiring, observer integration, CLI-version interpretation, credential access, network access, browser/Avanza behavior, trading/order/position/settlement behavior, persistence, deployment, commit, push, or merge occurred. No real executable was run and no real Git version was collected.
+
+Created:
+
+- `docs/dormant-server-only-fixed-read-only-direct-spawn-action-551-static-security-review.md`
+- `docs/dormant-server-only-fixed-read-only-direct-spawn-action-551-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review passed for server-only closure, production API closure, provenance consumption, fixed executable/argv, environment closure, process options, single process-call count, retry/fallback absence, authority separation, TOCTOU honesty, runtime reachability, and prohibited-operation absence. Static scans found no runtime/API/UI/runner/observer/credential/CLI collector/trading/Avanza caller and no prohibited process/env/network/credential/persistence behavior beyond the single approved server-only `spawn` import/call.
+
+The review is blocked pending remediation because the first process-creating boundary does not yet have deterministic lifecycle ownership for overflow/hang cases and does not handle stdout/stderr stream errors:
+
+- `F-551-001` High: output overflow records flags but does not terminate the child, dispose stream listeners, or settle independently of `close`.
+- `F-551-002` High: stdout/stderr stream `error` events are not handled.
+- `F-551-003` Medium: focused tests lack stream-error and never-closing child lifecycle coverage.
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 550 focused suite passed.
+- Action 543/545/547 revalidation suite passed.
+- Action 540 suite passed.
+- First-live resolver and pure composition suites passed.
+- Trusted resolver/security plus Action 533 cross-boundary suites passed.
+- Dormant observer/spawn/credential/preflight plus process/credential/CLI/authorization/execution suites passed.
+- Scoped ESLint over changed TypeScript files passed.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+
+Decision: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_action_551_review_completed_blocked`.
+
+Recommended next Action: Action 552 - Remediate Dormant Fixed Read-Only Direct-Spawn Lifecycle Termination and Stream-Error Handling.
+
+### Action 552 - Remediate Dormant Fixed Read-Only Direct-Spawn Lifecycle Termination and Stream-Error Handling
+
+Remediated the three Action 551 blocked findings in the dormant server-only fixed read-only direct-spawn adapter. The adapter remains dormant, server-only, fixed-command, one-shot, non-authoritative, and runtime-unreachable. No production behavior was activated. No real executable was run, no real Git version was collected, no credentials or environment values were read, no network request occurred, and no runtime/API/UI/runner/observer/credential/browser/Avanza/trading/order/position/settlement/persistence/deployment behavior occurred.
+
+Created:
+
+- `docs/dormant-fixed-read-only-direct-spawn-action-552-lifecycle-remediation.md`
+- `docs/dormant-fixed-read-only-direct-spawn-action-552-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter.ts`
+- `lib/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter-core.ts`
+- `tests/e2e/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter.spec.ts`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation:
+
+- `F-551-001` High: output overflow is now an internal terminal condition. It stops retaining output, requests fixed `SIGKILL` termination exactly once, cleans listeners, settles deterministically without relying indefinitely on `close`, and does not retry or spawn again.
+- `F-551-002` High: stdout/stderr stream `error` events now produce sanitized deterministic terminal evidence, request the same fixed termination path, clean listeners, ignore later events, and do not leak raw error details.
+- `F-551-003` Medium: the focused mocked-spawn suite expanded from 13 to 19 tests covering overflow, stream errors, never-closing child behavior after internal terminal conditions, kill false/throw, event ordering, listener cleanup, exact byte limits, split UTF-8, invalid UTF-8, unexpected chunks, one-shot consumption, and authority preservation.
+
+Terminal settlement model:
+
+- one private per-invocation settlement controller;
+- exactly one terminal result;
+- all handlers guard after settlement;
+- retained buffers are cleared on settlement;
+- reviewed listeners are removed;
+- private no-op error sinks remain to prevent late EventEmitter error crashes;
+- terminal results can precede confirmed child close for internal fatal conditions;
+- no child handle, settlement control, generic process manager, dependency injection, runtime caller, retry, fallback, or observer handoff was added.
+
+Decision: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_action_551_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_action_552_remediation_completed_not_activated`.
+
+Recommended next Action: Action 553 - Independent Re-Review of Dormant Fixed Read-Only Direct-Spawn Lifecycle Remediation.
+
+### Action 553 - Independent Re-Review of Dormant Fixed Read-Only Direct-Spawn Lifecycle Remediation
+
+Performed an independent re-review of the complete uncommitted Action 550-552 direct-spawn implementation and review trail. No production behavior was changed. No adapter activation, runtime caller, API/UI/runner wiring, observer integration, CLI-version interpretation, credential access, network access, browser/Avanza behavior, trading/order/position/settlement behavior, persistence, deployment, commit, push, or merge occurred. No real executable was run and no real Git version was collected.
+
+Created:
+
+- `docs/dormant-fixed-read-only-direct-spawn-action-553-final-re-review.md`
+- `docs/dormant-fixed-read-only-direct-spawn-action-553-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Prior finding verdicts:
+
+- `F-551-001`: remediated.
+- `F-551-002`: remediated.
+- `F-551-003`: remediated.
+
+Findings by severity:
+
+- Critical: 0.
+- High: 0.
+- Medium: 0.
+- Low: 0.
+- Informational: 1.
+
+Review verdicts:
+
+- terminal settlement: approved;
+- overflow remediation: approved;
+- stream-error remediation: approved;
+- listener cleanup: approved;
+- never-closing child handling for internal terminal conditions: approved;
+- event ordering/races: approved;
+- output/UTF-8 bounds: approved;
+- fixed termination model: approved;
+- server-only/API closure: approved;
+- provenance/one-shot: approved;
+- authority/TOCTOU: approved;
+- reachability/prohibited-operation closure: approved.
+
+Residual informational note: ordinary successful completion still depends on `close`; no broad timeout or observer was introduced. That remains non-blocking for retained dormant infrastructure and must be addressed by separately reviewed observer/timeout/runtime gates before activation.
+
+Decision: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_final_security_review_approved`.
+
+Result status: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_action_553_final_re_review_completed`.
+
+Recommended next Action: Action 554 - First-Live Direct-Spawn Post-Review Checkpoint and Next-Boundary Planning Gate.
