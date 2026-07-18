@@ -6759,3 +6759,279 @@ Validation:
 Decision: `post_trade_immediate_pre_spawn_revalidation_boundary_plan_ready`.
 
 Result status: `post_trade_immediate_pre_spawn_revalidation_action_542_planning_gate_completed`.
+
+### Action 543 - Dormant Server-Only Immediate Pre-Spawn Revalidation Adapter
+
+Implemented the dormant server-only immediate pre-spawn revalidation adapter for the first-live read-only staging preflight chain without spawning a process, executing any CLI, collecting CLI versions, activating observer/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/network/environment/deployment behavior, committing, pushing, merging, or deploying.
+
+Architecture added:
+
+- server-only wrapper `lib/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter.ts`
+- pure core `lib/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter-core.ts`
+- focused Action 543 suite `tests/e2e/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter.spec.ts`
+
+The production wrapper performs only one bounded `lstat` during an explicit revalidation call. The path is derived only from the approved dormant composition result. Production does not accept caller paths, path lists, policy overrides, filesystem implementations, dependency injection, arbitrary metadata, authority flags, environment input, PATH input, or external configuration.
+
+The pure core validates the approved composition result shape, frozen object state, canonical composition evidence set, fingerprints, purpose, tool, platform, session, resolver policy linkage, and authority posture. It compares current observation metadata against neutral resolver metadata for exact path, tool, platform, policy identity/version, session, purpose, `deviceId`, `inode`, `sizeBytes`, `mode`, and `modifiedTimeMs`.
+
+Successful output is immutable, deterministic, non-authoritative revalidation evidence with `toctouEliminated: false`, `processSpawned: false`, `shellUsed: false`, `cliVersionCollected: false`, `credentialAccessed: false`, `networkAccessed: false`, `observerInvoked: false`, `authorizationConsumed: false`, zero retry, and no authority grants. Failure is deterministic and fail closed.
+
+Created Action 543 docs:
+
+- `docs/dormant-server-only-immediate-pre-spawn-revalidation-adapter-action-543.md`
+- `docs/dormant-server-only-immediate-pre-spawn-revalidation-action-543-checkpoint.md`
+
+Initial validation:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Scoped ESLint over the new Action 543 TypeScript files passed.
+- Action 543 focused suite passed, 15 tests.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/API/UI/runner/cron/browser/Avanza/order/position/settlement/persistence/deployment behavior was activated, and no authority was granted.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_ready_for_static_security_review`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_implemented_not_activated`.
+
+Recommended next action: Action 544 - Static Security and Contract Review of Dormant Immediate Pre-Spawn Revalidation Adapter.
+
+### Action 544 - Static Security and Contract Review of Dormant Immediate Pre-Spawn Revalidation Adapter
+
+Performed a static security and contract review of the uncommitted Action 543 dormant server-only immediate pre-spawn revalidation adapter without implementing remediation, activating the adapter, adding callers, implementing process spawn, executing any CLI, collecting CLI versions, activating observer/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/network/environment/deployment behavior, committing, pushing, merging, or deploying.
+
+Review result: blocked pending remediation.
+
+Findings:
+
+- Critical: 0
+- High: 3
+- Medium: 3
+- Low: 0
+- Informational: 0
+
+Blocking findings:
+
+- `A544-H1`: the pure core can synthesize successful `immediateRevalidationOccurred: true` evidence from `test_synthetic_lstat`, and final output does not bind server-only provenance or observation source/fingerprint strongly enough to distinguish synthetic success from production `lstat` success.
+- `A544-H2`: production accepts caller-controlled `evaluatedAt`, allowing expired or stale evidence to be evaluated as fresh by moving time backward.
+- `A544-H3`: production `lstat` uses number-based `stats.dev` and `stats.ino` converted to strings, so large device or inode identifiers may lose precision before comparison.
+- `A544-M1`: malformed production wrapper input can throw before deterministic fail-closed result construction.
+- `A544-M2`: one-shot/replay semantics are documented but not enforced with private consumption state.
+- `A544-M3`: focused tests cover pure core and static wrapper shape but do not execute the server-only wrapper with controlled `lstat`.
+
+Positive verdicts retained:
+
+- server-only wrapper first import is correct;
+- only the wrapper imports `node:fs/promises`;
+- no route, UI, runner, observer, spawn, credential, CLI, authorization, trading, Avanza, persistence, deployment, or production runtime path imports the adapter;
+- no prohibited operation is reachable in reviewed production modules except the intentionally approved server-only `lstat`;
+- output remains non-authoritative and does not grant process, shell, credential, observer, runner, API/UI, trading, Avanza, persistence, or deployment authority;
+- TOCTOU is honestly documented as not eliminated.
+
+Created Action 544 artifacts:
+
+- `docs/dormant-server-only-immediate-pre-spawn-revalidation-action-544-static-security-review.md`
+- `docs/dormant-server-only-immediate-pre-spawn-revalidation-action-544-checkpoint.md`
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 543 focused suite passed, 15 tests.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver focused suite passed, 12 tests.
+- Pure composition focused suite passed, 13 tests.
+- Trusted resolver canonical/security plus Action 533 cross-boundary suite passed, 672 tests.
+- Dormant observer/spawn/credential/preflight suites passed, 1107 tests.
+- Process/credential/CLI/authorization/execution suites passed, 110 tests.
+- Scoped ESLint over changed TypeScript files passed.
+- Static server-only/import/export, filesystem-call-count, provenance, metadata-precision, authority, TOCTOU/replay, test-seam, reachability, and prohibited-operation reviews completed.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/API/UI/runner/cron/browser/Avanza/order/position/settlement/persistence/deployment behavior was activated, and no authority was granted.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_544_review_completed_blocked`.
+
+Recommended next action: Action 545 - Remediate Dormant Immediate Pre-Spawn Revalidation Provenance, Time, and Metadata Precision No Activation.
+
+### Action 545 - Dormant Immediate Pre-Spawn Revalidation Remediation
+
+Remediated the six Action 544 findings in the dormant server-only immediate pre-spawn revalidation adapter without activating the adapter, adding callers, implementing process spawn, executing any CLI, collecting CLI versions, activating observer/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/network/environment/deployment behavior, committing, pushing, merging, or deploying.
+
+Remediations:
+
+- `A544-H1`: pure-core output now remains explicitly non-production with `productionLiveRevalidationProvenance: "none"`, while the server-only wrapper is the only path that can reconstruct successful evidence with `server_only_private_original_object` provenance. Private provenance WeakSets are module-local and not exported.
+- `A544-H2`: production input no longer accepts `evaluatedAt`; the wrapper captures one internal timestamp.
+- `A544-H3`: production `lstat` now uses bigint stats and exact canonical decimal strings for `dev` and `ino`.
+- `A544-M1`: wrapper input is guarded before nested dereference and malformed input returns structured fail-closed output.
+- `A544-M2`: original composition objects are consumed through a private WeakSet before awaiting `lstat`, so success and failure consume the single production attempt.
+- `A544-M3`: focused suite expanded from 15 to 22 tests covering precision, production API closure, one-shot ordering, synthetic provenance separation, and test-only wrapper-source execution with controlled `lstat`.
+
+Created Action 545 artifacts:
+
+- `docs/dormant-immediate-pre-spawn-revalidation-action-545-remediation.md`
+- `docs/dormant-immediate-pre-spawn-revalidation-action-545-checkpoint.md`
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Remediated Action 543/545 focused suite passed, 22 tests.
+- Remaining required validation groups are recorded in the final Action 545 report.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/API/UI/runner/cron/browser/Avanza/order/position/settlement/persistence/deployment behavior was activated, and no authority was granted.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_544_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_545_remediation_completed_not_activated`.
+
+Recommended next action: Action 546 - Independent Re-Review of Dormant Immediate Pre-Spawn Revalidation Adapter Remediation.
+
+### Action 546 - Independent Re-Review of Dormant Immediate Pre-Spawn Revalidation Remediation
+
+Performed an independent re-review of the uncommitted Action 543 dormant server-only immediate pre-spawn revalidation adapter after Action 545 remediation. No implementation remediation was performed, no adapter activation or caller wiring was added, and no process spawn, CLI execution, CLI-version collection, observer activation, credential access, environment read, network access, authorization consumption, API/UI/runner/browser/Avanza/trading/order/position/settlement/persistence/deployment behavior, commit, push, merge, PR, or deploy occurred.
+
+Review result: blocked pending one narrow remediation.
+
+Findings:
+
+- Critical: 0
+- High: 1
+- Medium: 1
+- Low: 0
+- Informational: 0
+
+Blocking findings:
+
+- `A546-H1`: the production wrapper validates only top-level shape and presence of a string `resolvedAbsolutePath` before `lstat`, so a forged/cloned/stale/non-allowlisted composition-looking object can trigger one caller-path filesystem metadata lookup before pure-core rejection.
+- `A546-M1`: the focused wrapper-source harness lacks unsafe nested-input zero-`lstat` negative coverage for forged paths, clones, stale/expired evidence, non-allowlisted paths, and authority-bearing nested objects.
+
+Positive verdicts retained:
+
+- `server-only` remains first effective import;
+- only the wrapper imports `node:fs/promises`;
+- pure core remains filesystem-free;
+- production API no longer accepts `evaluatedAt`;
+- `lstat` uses bigint stats;
+- `dev` and `ino` are exact canonical decimal strings;
+- output remains deeply frozen, dormant, evidence-only, non-authoritative, and `toctouEliminated: false`;
+- no runtime/API/UI/runner/observer/spawn/credential/trading path imports the adapter.
+
+Created Action 546 artifacts:
+
+- `docs/dormant-immediate-pre-spawn-revalidation-action-546-final-re-review.md`
+- `docs/dormant-immediate-pre-spawn-revalidation-action-546-checkpoint.md`
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 543/545 focused suite passed, 22 tests.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver focused suite passed, 12 tests.
+- Pure composition focused suite passed, 13 tests.
+- Trusted resolver canonical/security plus Action 533 cross-boundary suite passed, 672 tests.
+- Dormant observer/spawn/credential/preflight suites passed, 1107 tests.
+- Process/credential/CLI/authorization/execution suites passed, 110 tests.
+- Scoped ESLint, `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/API/UI/runner/cron/browser/Avanza/order/position/settlement/persistence/deployment behavior was activated, and no authority was granted.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_final_security_review_blocked_pending_pre_lstat_original_object_gate`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_546_final_re_review_completed_blocked`.
+
+Recommended next action: Action 547 - Remediate Dormant Immediate Pre-Spawn Revalidation Pre-Lstat Original-Object Gate No Activation.
+
+### Action 547 - Dormant Immediate Pre-Spawn Revalidation Pre-Lstat Gate Remediation
+
+Remediated Action 546 findings `A546-H1` and `A546-M1` without activating the dormant immediate pre-spawn revalidation adapter, adding callers, implementing process spawn, executing any CLI, collecting CLI versions, activating observer/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/network/environment/deployment behavior, committing, pushing, merging, or deploying.
+
+Remediations:
+
+- `A546-H1`: added a closed Action 540-to-543 server-only provenance bridge, `consumeOriginalDormantFirstLiveCompositionForImmediatePreSpawnRevalidation`, so the bridge captures internal production time and verifies original Action 540 object provenance, one-shot state, full pre-lstat eligibility, canonical allowlisted path, freshness/expiry, authority posture, and fingerprint linkage before the wrapper derives the path and before the single approved `lstat(path, { bigint: true })`.
+- `A546-M1`: expanded the actual-wrapper source harness from 22 to 30 tests, adding zero-`lstat` coverage for reconstructions, clones, copied fingerprints/metadata, missing provenance, unsafe paths, unsupported tool/platform/policy mismatches, accessor/inherited paths, stale/expired originals, cross-session/purpose/boundary objects, mutations, duplicate/concurrent calls, authority-bearing nested objects, malformed inputs, symlink/directory cases, filesystem failure, and large bigint `dev`/`ino` preservation.
+
+Created Action 547 artifacts:
+
+- `docs/dormant-immediate-pre-spawn-revalidation-action-547-pre-lstat-gate-remediation.md`
+- `docs/dormant-immediate-pre-spawn-revalidation-action-547-checkpoint.md`
+
+Security posture:
+
+- The pure core remains filesystem-free, server-only-free, non-authoritative, and unable to verify production provenance independently.
+- The production API remains narrow: no caller path, evaluatedAt, clock, filesystem, lstat function, policy, metadata, authority flags, retry, arbitrary tool/platform, or test mode.
+- No generic WeakSet/verifier/isTrusted/token/symbol/brand/reset/mint helper was exported.
+- The adapter remains dormant and not security-approved until a separate Action 548 final independent re-review.
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed after remediation.
+- Expanded Action 543/545/547 focused suite passed, 30 tests.
+- Remaining required validation groups are recorded in the final Action 547 report.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/API/UI/runner/cron/browser/Avanza/order/position/settlement/persistence/deployment behavior was activated, and no authority was granted.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_pre_lstat_original_object_gate_remediated_ready_for_final_re_review`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_547_remediation_completed_not_activated`.
+
+Recommended next action: Action 548 - Final Independent Re-Review of Dormant Immediate Pre-Spawn Revalidation Pre-Lstat Gate Remediation.
+
+### Action 548 - Final Re-Review of Dormant Immediate Pre-Spawn Revalidation Pre-Lstat Gate Remediation
+
+Performed the final independent re-review of the uncommitted Action 543-547 dormant immediate pre-spawn revalidation implementation and review trail. No implementation behavior was changed, no adapter activation or runtime caller wiring was added, and no process spawn, CLI execution, CLI-version collection, observer activation, credential access, environment read, network access, authorization consumption, API/UI/runner/browser/Avanza/trading/order/position/settlement/persistence/deployment behavior, commit, push, merge, PR, or deploy occurred.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 0
+
+Earlier finding verdicts:
+
+- `A544-H1`: remediated.
+- `A544-H2`: remediated.
+- `A544-H3`: remediated.
+- `A544-M1`: remediated.
+- `A544-M2`: remediated.
+- `A544-M3`: remediated.
+- `A546-H1`: remediated.
+- `A546-M1`: remediated.
+
+Approved review verdicts:
+
+- server-only/import/export and runtime reachability;
+- production API closure;
+- Action 540-to-543 provenance bridge;
+- pre-lstat original-object validation order;
+- canonical path allowlist;
+- trusted internal time, stale, and expiry checks;
+- authority precheck;
+- one-shot and concurrency semantics;
+- filesystem call count and bigint metadata precision;
+- production provenance and immutable non-authoritative output;
+- wrapper-source test coverage.
+
+Created Action 548 artifacts:
+
+- `docs/dormant-immediate-pre-spawn-revalidation-action-548-final-re-review.md`
+- `docs/dormant-immediate-pre-spawn-revalidation-action-548-checkpoint.md`
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 543/545/547 focused suite passed, 30 tests.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver and pure composition focused suites passed, 25 tests.
+- Trusted resolver canonical/security plus Action 533 cross-boundary suite passed, 672 tests.
+- Dormant observer/spawn/credential/preflight plus process/credential/CLI/authorization/execution suites passed, 1244 tests.
+- Scoped ESLint over changed TypeScript files passed.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+- Static server-only/import/export, production API closure, provenance bridge, pre-lstat order, path allowlist, stale/expiry, authority, one-shot/concurrency, filesystem-call-count, bigint precision, production provenance/output, wrapper coverage, reachability, and prohibited-operation reviews passed.
+
+Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_final_security_review_approved`.
+
+Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_548_final_re_review_completed`.
+
+Recommended next action: continue only with a separately scoped and reviewed next-boundary planning action; this approval is not spawn-ready, staging-ready, execution-ready, credential-ready, Avanza-ready, deployment-ready, or production-ready.
