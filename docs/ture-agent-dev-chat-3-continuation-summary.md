@@ -6194,3 +6194,205 @@ Decision: `post_trade_execution_agent_cross_boundary_integration_readiness_revie
 Result: `post_trade_execution_agent_cross_boundary_integration_readiness_review_completed`.
 
 Approval is architectural-only and does not enable any live resolver, credential, observer, spawn, runner, or staging-preflight behavior. Recommended next action: Action 534 — Implement First Live Trusted Resolver Adapter for Read-Only Staging Preflight.
+### Action 534 - First Live Trusted Resolver Adapter
+
+Implemented a dormant server-only live trusted resolver adapter in `lib/post-trade-first-live-trusted-resolver-adapter.ts`, with focused tests in `tests/e2e/post-trade-first-live-trusted-resolver-adapter.spec.ts`.
+
+The adapter adds only bounded live filesystem metadata inspection using `lstat` against frozen, source-controlled absolute candidate paths for `git` and `supabase_cli`. It returns non-authoritative immutable evidence and does not issue spawn authority. The existing fixture resolver core remains pure and unchanged.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credentials or environment values were read, no network request was made, no Avanza interaction occurred, no API/UI/runner was activated, no order or position behavior changed, and no deployment occurred.
+
+Decision: `post_trade_first_live_trusted_resolver_adapter_ready_for_static_security_review`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_implemented_not_activated`.
+
+### Action 535 - First Live Trusted Resolver Adapter Static Security Review
+
+Performed the static security and contract review of the uncommitted Action 534 live trusted resolver adapter. The review found no process execution, no CLI version collection, no shell use, no credential access, no environment value read, no network access, no API/UI/runner activation, no observer/spawn/credential boundary activation, no Avanza interaction, no order or position behavior change, and no deployment.
+
+The review is blocked pending corrections due two high-severity contract findings:
+
+- `A535-H1`: the live filesystem core imports `node:fs` `lstat` but is directly importable without the `server-only` marker, so the wrapper does not fully enforce the server-only boundary.
+- `A535-H2`: the exported resolver accepts injected policy/filesystem inputs and the exported policy builder accepts arbitrary candidate policies while marking them source-controlled, weakening the source-controlled-only policy guarantee.
+
+Created review artifacts:
+
+- `docs/first-live-trusted-resolver-adapter-action-535-static-security-review.md`
+- `docs/first-live-trusted-resolver-adapter-action-535-checkpoint.md`
+
+Decision: `post_trade_first_live_trusted_resolver_adapter_static_security_review_blocked_pending_corrections`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_static_security_review_completed_blocked`.
+
+Recommended next action: Action 535R - Correct first live trusted resolver server-only and source-controlled policy contract blockers, without execution or activation.
+
+### Action 535R - First Live Trusted Resolver Blocker Remediation
+
+Remediated the two high-severity Action 535 blockers without activating the adapter or adding observer, spawn, credential, runner, API, UI, browser, Avanza, order, position, settlement, network, environment, or process-execution behavior.
+
+Corrections:
+
+- moved live `lstat` filesystem access into the `server-only` adapter module only
+- made `lib/post-trade-first-live-trusted-resolver-adapter-core.ts` a pure module with no filesystem/server-runtime primitive imports
+- removed production resolver policy/filesystem injection
+- removed the exported generic policy builder that could mark arbitrary candidate arrays as source-controlled
+- kept production resolution closed over the canonical frozen source-controlled policy
+- added a pure synthetic metadata seam for machine-independent tests without production trust-root injection
+- expanded focused tests from 9 to 11 tests
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no environment value was read, no credentials were read, no network request occurred, no API/UI/runner/observer/spawn/credential boundary was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created remediation artifacts:
+
+- `docs/first-live-trusted-resolver-adapter-action-535r-remediation.md`
+- `docs/first-live-trusted-resolver-adapter-action-535r-checkpoint.md`
+
+Decision: `post_trade_first_live_trusted_resolver_adapter_blockers_remediated_ready_for_re_review`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_action_535r_remediation_completed`.
+
+Recommended next action: Action 535V - Independent Re-Review of First Live Trusted Resolver Adapter Remediation.
+
+### Action 535V - Independent Re-Review of First Live Trusted Resolver Remediation
+
+Performed the independent re-review of the complete uncommitted Action 534, Action 535, and Action 535R package.
+
+Verdicts:
+
+- `A535-H1`: closed. Live `lstat` filesystem access is isolated in the `server-only` adapter module, and the pure core imports no filesystem primitive.
+- `A535-H2`: blocked pending one remaining correction. Production policy/filesystem injection is removed, but the exported pure observation seam can still synthesize `server_only_lstat` observations and produce `observedLiveFilesystem: true` evidence without passing through the server-only adapter.
+
+Findings:
+
+- Critical: 0
+- High: 1 (`A535V-H1`)
+- Medium: 0
+- Low: 0
+- Informational: 1
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credentials or environment values were read, no network request occurred, no API/UI/runner/observer/spawn/credential boundary was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created re-review artifacts:
+
+- `docs/first-live-trusted-resolver-adapter-action-535v-re-review.md`
+- `docs/first-live-trusted-resolver-adapter-action-535v-checkpoint.md`
+
+Decision: `post_trade_first_live_trusted_resolver_adapter_remediation_re_review_blocked_observation_provenance`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_action_535v_re_review_completed_blocked`.
+
+Recommended next action: Action 535W - Close first-live resolver live-observation provenance seam without execution or activation.
+
+### Action 535W - First Live Resolver Live-Observation Provenance Remediation
+
+Closed the remaining Action 535V provenance seam without activating the adapter or adding observer, spawn, CLI execution, version collection, credential, runner, API, UI, browser, Avanza, order, position, settlement, network, or environment behavior.
+
+Corrections:
+
+- removed `server_only_lstat` as a constructible pure-core observation source
+- made pure-core synthetic evaluation always emit `observedLiveFilesystem: false`
+- made the server-only adapter the only module that can upgrade successful evidence to live-observed provenance
+- added private module-local WeakSet provenance in the server-only adapter
+- recomputed evidence/result fingerprints after the server-only live-observation upgrade
+- added focused forgery tests covering plain objects, spread clones, JSON serialization, and caller-mutated synthetic results
+- expanded focused tests from 11 to 12 tests
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no environment value was read, no credential was read, no network request occurred, no API/UI/runner/observer/spawn boundary was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created remediation artifacts:
+
+- `docs/first-live-trusted-resolver-adapter-action-535w-provenance-remediation.md`
+- `docs/first-live-trusted-resolver-adapter-action-535w-checkpoint.md`
+
+Decision: `post_trade_first_live_trusted_resolver_live_observation_provenance_closed_ready_for_final_re_review`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_action_535w_remediation_completed`.
+
+Recommended next action: Action 535X - Final Independent Re-Review of First Live Trusted Resolver Adapter.
+
+### Action 535X - Final Independent Re-Review of First Live Trusted Resolver Adapter
+
+Performed the final independent re-review of the complete uncommitted Action 534, 535, 535R, 535V, and 535W first-live trusted resolver package.
+
+Verdicts:
+
+- `A535-H1`: closed. Live `lstat` access remains isolated in the `server-only` adapter module; the pure core has no filesystem import or live filesystem side effect.
+- `A535-H2`: closed. Production accepts no caller policy, filesystem implementation, candidate path, candidate list, or dependency injection object, and closes over the canonical frozen source-controlled policy.
+- Live observation provenance seam: closed. Pure-core synthetic evaluation emits `observedLiveFilesystem: false`; only the server-only adapter can upgrade successful evidence after its own `lstat` path, using private module-local WeakSet provenance.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 1 (`A535X-I1`, TOCTOU remains a future spawn-side revalidation responsibility)
+
+Validation passed:
+
+- TypeScript
+- focused first-live resolver suite, 12 tests
+- trusted resolver canonical/security plus Action 533 cross-boundary suites, 672 tests
+- neighboring dormant observer/spawn/credential/preflight suites, 1107 tests
+- supporting process/credential/CLI/authorization/execution contract suites, 110 tests
+- scoped ESLint
+- `git diff --check`
+- quiet `.env.local` diff guard
+- zero-byte docs guard
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no environment value was read, no credential was read, no network request occurred, no observer/spawn/credential/authorization/runner/API/UI path was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created re-review artifacts:
+
+- `docs/first-live-trusted-resolver-adapter-action-535x-final-re-review.md`
+- `docs/first-live-trusted-resolver-adapter-action-535x-checkpoint.md`
+
+Decision: `post_trade_first_live_trusted_resolver_adapter_final_security_review_approved`.
+
+Result status: `post_trade_first_live_trusted_resolver_adapter_action_535x_final_re_review_completed`.
+
+Recommended next action: Action 536 - First Live Resolver Post-Review Checkpoint and Next-Boundary Planning Gate.
+
+### Action 536 - First Live Resolver Post-Review Checkpoint and Next-Boundary Planning Gate
+
+Created the formal post-review checkpoint for the approved first-live trusted resolver adapter and evaluated next-boundary options without implementing any new live behavior or modifying resolver behavior.
+
+Approved resolver checkpoint:
+
+- server-only live adapter remains dormant
+- pure core remains non-live
+- live filesystem behavior remains `lstat` only
+- candidates remain fixed source-controlled absolute paths
+- supported tools remain exactly `git` and `supabase_cli`
+- no PATH discovery, environment input, caller policy injection, caller filesystem injection, or caller candidate-path injection exists
+- canonical policy remains immutable
+- live-observation provenance remains private to the server-only adapter
+- resolver evidence remains point-in-time and non-authoritative
+- no spawn, runner, credential, execution, observer, authorization-consumption, trading, order, position, API/UI, network, CLI version collection, or Avanza authority exists
+
+Candidate next-boundary comparison concluded that a live direct-spawn driver, live process observer, live credential source adapter, or live CLI-version collector would add premature authority. The safest next step is a dormant composition contract that defines how reviewed future boundaries will fit together before any new live process behavior exists.
+
+Recommended next action: Action 537 - Design Dormant First-Live Read-Only Staging Preflight Composition Contract.
+
+Validation passed:
+
+- TypeScript
+- focused first-live resolver suite, 12 tests
+- trusted resolver canonical/security plus Action 533 cross-boundary suites, 672 tests
+- dormant observer/spawn/credential/preflight suites, 1107 tests
+- scoped ESLint
+- `git diff --check`
+- quiet `.env.local` diff guard
+- zero-byte docs guard
+
+No new live boundary was implemented, resolver behavior was not modified, no executable was run, no CLI version was collected, no process was spawned, no shell was used, no environment value was read, no credential was read, no network request occurred, no observer/spawn/credential/authorization/runner/API/UI path was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created planning artifacts:
+
+- `docs/first-live-resolver-post-review-checkpoint-action-536.md`
+- `docs/first-live-resolver-next-boundary-planning-gate-action-536.md`
+- `docs/first-live-resolver-action-536-checkpoint.md`
+
+Decision: `post_trade_first_live_resolver_post_review_checkpoint_complete_next_boundary_plan_ready`.
+
+Result status: `post_trade_first_live_resolver_action_536_planning_gate_completed`.
