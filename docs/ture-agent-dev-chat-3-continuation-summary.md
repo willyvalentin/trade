@@ -6625,3 +6625,96 @@ Decision: `post_trade_first_live_staging_preflight_composition_post_review_check
 Result status: `post_trade_first_live_staging_preflight_action_539_planning_gate_completed`.
 
 Recommended next action: Action 540 - Implement Dormant Server-Only First-Live Staging Preflight Composition Adapter.
+
+### Action 540 - Dormant Server-Only First-Live Staging Preflight Composition Adapter
+
+Implemented a dormant server-only first-live staging preflight composition adapter without activating runtime execution, process spawn, observer behavior, credentials, API/UI/runner paths, browser/Avanza automation, trading/order/position/settlement behavior, persistence, deployment, commit, push, or merge.
+
+Action 540 added a server-only adapter wrapper and a pure testable core:
+
+- `lib/post-trade-dormant-server-only-first-live-staging-preflight-composition-adapter.ts`
+- `lib/post-trade-dormant-server-only-first-live-staging-preflight-composition-adapter-core.ts`
+
+The server-only wrapper supplies only the reviewed first-live trusted resolver and its private live-filesystem provenance verifier. The pure core verifies original-object provenance through that verifier, rejects cloned/serialized/mutated/cross-session/cross-tool/expired/malformed/authority-bearing inputs, neutralizes resolver metadata, and emits non-authoritative pure composition evidence.
+
+Neutralized resolver metadata is limited to exactly `deviceId`, `inode`, `sizeBytes`, `mode`, and `modifiedTimeMs`. The adapter does not emit private provenance and does not claim TOCTOU elimination. Immediate pre-spawn revalidation remains required and unimplemented.
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request was made, no observer/spawn/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/deployment path was activated, and no production execution path was enabled.
+
+Created Action 540 artifacts:
+
+- `tests/e2e/post-trade-dormant-server-only-first-live-staging-preflight-composition-adapter.spec.ts`
+- `docs/dormant-server-only-first-live-composition-adapter-action-540.md`
+- `docs/dormant-server-only-first-live-composition-adapter-action-540-checkpoint.md`
+
+Initial validation:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `./node_modules/.bin/playwright test tests/e2e/post-trade-dormant-server-only-first-live-staging-preflight-composition-adapter.spec.ts --reporter=dot` passed, 17 tests.
+- Existing first-live trusted resolver suite passed, 12 tests.
+- Existing first-live read-only staging preflight composition contract suite passed, 13 tests.
+- Trusted resolver fixture/security plus Action 533 cross-boundary integration suites passed, 672 tests.
+- Dormant observer/spawn/credential/trusted-resolver boundary suites passed, 1107 tests.
+- Process executor, credential provider, CLI-version collector, authorization artifact, and execution boundary contract suites passed, 110 tests.
+- Scoped ESLint over the changed TypeScript files passed.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+- Static reachability review found no API, UI, runner, observer, spawn, or credential boundary import.
+- Prohibited-operation scan found no filesystem, process, environment, network, credential, Supabase, browser storage, persistence, timer, signal, Avanza, BankID, or write-operation primitives in the new production modules. The only match was deterministic `JSON.stringify` for canonical fingerprint construction.
+
+Decision: `post_trade_dormant_server_only_first_live_staging_preflight_composition_adapter_ready_for_static_security_review`.
+
+Result status: `post_trade_dormant_server_only_first_live_staging_preflight_composition_adapter_implemented_not_activated`.
+
+Recommended next action: Action 541 - Static Security and Contract Review of Dormant Server-Only First-Live Composition Adapter.
+
+### Action 541 - Static Security and Contract Review of Dormant Server-Only First-Live Composition Adapter
+
+Performed an independent static security and contract review of the uncommitted Action 540 dormant server-only first-live staging preflight composition adapter without implementing new live behavior, activating the adapter, adding runtime callers, implementing immediate pre-spawn revalidation, process spawn, process observation, CLI execution, CLI-version collection, credentials, environment access, PATH discovery, network access, API/UI/runner/cron wiring, browser automation, Avanza, trading, order, position, settlement, persistence, deployment, commit, push, merge, or deploy.
+
+Review verdicts:
+
+- Server-only boundary: approved.
+- Private resolver provenance: approved.
+- Production API closure: approved.
+- Resolver invocation: approved.
+- Neutralization: approved.
+- Authority model: approved.
+- TOCTOU model: approved.
+- Test seam: approved with one informational note.
+- Export surface: approved.
+- Reachability: approved.
+- Prohibited operations: approved.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 1
+
+Informational finding `A541-I1`: the pure core exposes a dependency-injected test seam. The seam can model resolver behavior in tests, but it cannot mint production-valid private resolver provenance, grants no authority, and is not reachable from runtime paths.
+
+Created Action 541 artifacts:
+
+- `docs/dormant-server-only-first-live-composition-adapter-action-541-static-security-review.md`
+- `docs/dormant-server-only-first-live-composition-adapter-action-541-checkpoint.md`
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver focused suite passed, 12 tests.
+- Pure composition focused suite passed, 13 tests.
+- Trusted resolver canonical/static-security plus Action 533 cross-boundary suite passed, 672 tests.
+- Dormant observer/spawn/credential/preflight suites passed, 1107 tests.
+- Process/credential/CLI/authorization/execution suites passed, 110 tests.
+- Scoped ESLint over changed TypeScript files passed.
+- Static server-only/import/export, private-provenance, test-seam, reachability, and prohibited-operation reviews passed. The only prohibited-operation scan match in new production modules was deterministic `JSON.stringify` for canonical fingerprint construction.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+
+Decision: `post_trade_dormant_server_only_first_live_staging_preflight_composition_adapter_static_security_review_approved`.
+
+Result status: `post_trade_dormant_server_only_first_live_staging_preflight_composition_adapter_action_541_review_completed`.
+
+Recommended next action: Action 542 - Plan Immediate Pre-Spawn Revalidation Boundary for First-Live Read-Only Staging Preflight.
