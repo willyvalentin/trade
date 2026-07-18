@@ -7035,3 +7035,47 @@ Decision: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapt
 Result status: `post_trade_dormant_server_only_immediate_pre_spawn_revalidation_adapter_action_548_final_re_review_completed`.
 
 Recommended next action: continue only with a separately scoped and reviewed next-boundary planning action; this approval is not spawn-ready, staging-ready, execution-ready, credential-ready, Avanza-ready, deployment-ready, or production-ready.
+
+### Action 549 - First-Live Read-Only Direct-Spawn Boundary Post-Revalidation Planning Gate
+
+Created a documentation, architecture, and approval gate for the future first-live read-only direct-spawn boundary after the approved immediate pre-spawn revalidation chain. No production module was modified, no process spawn was implemented, no `child_process` import was added, no executable was run, no CLI version was collected, no live resolver/composition/revalidation adapter was invoked, and no observer, credential, authorization-consumption, runner, API, UI, cron, browser, Avanza, trading, order, position, settlement, persistence, network, environment, deployment, commit, push, merge, or deploy behavior occurred.
+
+Current approved chain preserved:
+
+```text
+server-only live resolver
+  -> original live resolver provenance
+dormant server-only live composition adapter
+  -> original Action 540 composition provenance
+closed pre-lstat eligibility bridge
+  -> one-shot consumption
+single bigint lstat
+  -> exact metadata comparison
+private production-valid revalidation evidence
+```
+
+Action 549 documents that every stage remains dormant, revalidation evidence grants no spawn authority, and `toctouEliminated` remains false. The future direct-spawn boundary must accept only the original production-valid Action 543/547 revalidation object, consume it exactly once through a boundary-specific path, reject clones/reconstructions/serialized copies, preserve exact tool/platform/policy/path/session/purpose/fingerprint/metadata linkage, use no shell/PATH/caller env/caller options, permit no retry/fallback/alternate path, and keep spawn authority separate from observer, credential, CLI-version evidence, authorization consumption, result interpretation, runner, API, and UI authority.
+
+Created Action 549 artifacts:
+
+- `docs/first-live-read-only-direct-spawn-planning-gate-action-549.md`
+- `docs/first-live-read-only-direct-spawn-architecture-action-549.md`
+- `docs/first-live-read-only-direct-spawn-action-549-checkpoint.md`
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 543/545/547 focused suite passed, 30 tests.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver and pure composition suites passed, 25 tests.
+- Trusted resolver/security plus Action 533 cross-boundary suites passed, 672 tests.
+- Dormant observer/spawn/credential/preflight plus process/credential/CLI/authorization/execution suites passed, 1215 tests.
+- Scoped ESLint on changed TypeScript/JavaScript files was not applicable because Action 549 changed no TypeScript or JavaScript files.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+- Static export-surface, runtime-reachability, and prohibited-operation reviews passed with no production runtime module changes and no new runtime caller.
+
+Recommended next action: Action 550 - Implement Dormant Server-Only Fixed Read-Only Direct-Spawn Adapter.
+
+Decision: `post_trade_first_live_read_only_direct_spawn_boundary_plan_ready`.
+
+Result status: `post_trade_first_live_read_only_direct_spawn_action_549_planning_gate_completed`.
