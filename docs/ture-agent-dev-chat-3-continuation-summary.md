@@ -6396,3 +6396,196 @@ Created planning artifacts:
 Decision: `post_trade_first_live_resolver_post_review_checkpoint_complete_next_boundary_plan_ready`.
 
 Result status: `post_trade_first_live_resolver_action_536_planning_gate_completed`.
+
+### Action 537 - Dormant First-Live Read-Only Staging Preflight Composition Contract
+
+Implemented a pure, fixture-only composition contract for the future first-live read-only staging preflight chain without activating live resolver, spawn, observer, credential, CLI execution, runner, API, UI, browser, Avanza, order, position, settlement, network, deployment, or trading behavior.
+
+The contract composes only source-controlled fixture evidence links for:
+
+- first-live trusted resolver evidence
+- immediate pre-spawn revalidation requirement
+- direct-spawn plan evidence
+- scoped macOS observer plan evidence
+- no-credential evidence
+- CLI-version evidence expectation
+- one-shot authorization lifecycle evidence
+
+Security posture:
+
+- completion produces no execution, filesystem, spawn, observer, credential, network, runner, API, UI, trading, Avanza, or deployment authority
+- supported tools remain exactly `git` and `supabase_cli`
+- supported operations remain exactly `collect_git_version` and `collect_supabase_cli_version`
+- spawn argv remains exactly `['--version']`
+- shell, retry, credential material, authorization consumption, CLI-version collection, process spawn, and runner enablement remain blocked
+- resolver evidence remains point-in-time only; immediate pre-spawn revalidation is required and TOCTOU is not claimed eliminated
+- cloned, mutated, malformed, wrong-session, expired, cross-boundary, stale, credential-bearing, shell-bearing, retry-bearing, and runtime-activation evidence fails closed
+
+No executable was run, no CLI version was collected, no process was spawned, no shell was used, no filesystem operation was added to the composition contract, no environment value was read, no credential was read, no network request occurred, no observer/spawn/credential/authorization/runner/API/UI path was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created implementation artifacts:
+
+- `lib/post-trade-first-live-read-only-staging-preflight-composition-contract-core.ts`
+- `tests/e2e/post-trade-first-live-read-only-staging-preflight-composition-contract.spec.ts`
+- `docs/first-live-read-only-staging-preflight-composition-contract-action-537.md`
+- `docs/first-live-read-only-staging-preflight-composition-checkpoint-action-537.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_contract_implemented_not_activated`.
+
+Recommended next action: Action 538 - Static Security and Contract Review of First-Live Read-Only Staging Preflight Composition Contract.
+
+### Action 538 - Static Security Review of First-Live Read-Only Staging Preflight Composition Contract
+
+Performed an independent static security, contract, authority, provenance, state-machine, TOCTOU, evidence-ordering, and reachability review of the uncommitted Action 537 composition contract.
+
+Review result:
+
+- Pure/dormant boundary passed for reachable behavior: the composition core imports no filesystem primitive, no server-only runtime adapter, no process API, no environment access, no network client, no credential reader, no Supabase client, no persistence helper, and no API/UI/runner entrypoint.
+- Static reachability found no app route, UI component, runner, live resolver adapter, observer, spawn boundary, credential boundary, browser automation, Avanza, order, position, settlement, or deployment path importing or activating the composition contract.
+- Evidence contract, authority model, and TOCTOU review are blocked pending remediation.
+
+Findings:
+
+- Critical: 0
+- High: 2
+  - `A538-H1`: evidence-level filesystem, observer, and network authority flags are not rejected by the validator.
+  - `A538-H2`: pure composition resolver evidence can claim live filesystem observation without live-adapter provenance.
+- Medium: 1
+  - `A538-M1`: focused tests miss explicit coverage for those high-severity gaps and several negative contract cases.
+- Low: 0
+- Informational: 0
+
+No live behavior was implemented, no composition activation occurred, no live resolver was called, no executable was run, no CLI version was collected, no process was spawned, no shell was used, no filesystem operation was performed, no environment value was read, no credential was read, no network request occurred, no observer/spawn/credential/authorization/runner/API/UI path was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created review artifacts:
+
+- `docs/first-live-read-only-staging-preflight-composition-action-538-static-security-review.md`
+- `docs/first-live-read-only-staging-preflight-composition-action-538-checkpoint.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_contract_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_contract_action_538_review_completed_blocked`.
+
+Recommended next action: Action 538R - Remediate first-live read-only staging preflight composition authority and live-observation evidence validation without activation.
+
+### Action 538R - First-Live Read-Only Staging Preflight Composition Remediation
+
+Remediated the Action 538 blockers without activating the composition contract or adding live resolver, filesystem, process, credential, CLI execution, version collection, runner, API, UI, cron, browser, Avanza, trading, order, position, settlement, network, environment, persistence, or deployment behavior.
+
+Remediation:
+
+- `A538-H1` closed by rejecting evidence-level authority claims with `authority_claim_rejected`, including filesystem, observer, network, spawn, runner, credential, execution, CLI execution, authorization-consumption, API/UI, trading, Avanza, order, position, settlement, persistence, and deployment authority claims.
+- `A538-H2` closed by rejecting pure resolver evidence that claims live filesystem observation or `server_only_lstat` source provenance with `live_observation_claim_rejected`.
+- `A538-M1` closed by expanding the focused suite from 8 to 11 tests with explicit authority, live-observation, identity, order, ambiguity, fixture/live, and missing negative contract coverage.
+
+The current composition remains fixture-only: synthetic/non-live resolver evidence only, `observedLiveFilesystem: false`, structural testing only, and no authority. Actual live resolver provenance remains uncomposable until a future separately reviewed server-only composition boundary can verify original live resolver provenance in-process.
+
+No live resolver call occurred, no filesystem operation occurred, no executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request occurred, no API/UI/runner/observer/spawn boundary was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created remediation artifacts:
+
+- `docs/first-live-read-only-staging-preflight-composition-action-538r-remediation.md`
+- `docs/first-live-read-only-staging-preflight-composition-action-538r-checkpoint.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_blockers_remediated_ready_for_re_review`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_action_538r_remediation_completed`.
+
+Recommended next action: Action 538V - Independent Re-Review of First-Live Read-Only Staging Preflight Composition Remediation.
+
+### Action 538V - Independent Re-Review of First-Live Read-Only Staging Preflight Composition Remediation
+
+Performed an independent re-review of the complete uncommitted Action 537, 538, and 538R package without implementing new live behavior, activating the composition contract, calling the live resolver, committing, pushing, merging, or deploying.
+
+Verdicts:
+
+- `A538-H1`: blocked, partially remediated. Top-level authority flags are rejected, but nested authority-bearing fields inside resolver metadata can still bypass `authority_claim_rejected`.
+- `A538-H2`: closed for the pure contract surface. `observedLiveFilesystem: true` and `server_only_lstat` source claims are rejected, and no live adapter provenance is imported or recreated.
+- `A538-M1`: partially closed. Focused coverage improved from 8 to 11 tests, but nested authority and strict metadata-shape negative coverage remains missing.
+
+Findings:
+
+- Critical: 0
+- High: 1 (`A538V-H1`, nested authority-bearing fields inside resolver metadata can bypass top-level authority rejection)
+- Medium: 1 (`A538V-M1`, focused tests lack nested authority and strict metadata-shape coverage)
+- Low: 0
+- Informational: 0
+
+Pure/dormant, export-surface, reachability, and prohibited-operation reviews passed for the production composition module. No application route, UI component, runner, live resolver adapter, observer, spawn boundary, credential boundary, browser automation, Avanza, order, position, settlement, or deployment path invokes the contract.
+
+No live resolver invocation occurred, no filesystem access occurred, no process spawn occurred, no CLI execution or version collection occurred, no credential or environment value was read, no network request occurred, no observer/runner/API/UI activation occurred, no Avanza interaction occurred, no order or position behavior changed, no persistence occurred, and no deployment occurred.
+
+Created re-review artifacts:
+
+- `docs/first-live-read-only-staging-preflight-composition-action-538v-re-review.md`
+- `docs/first-live-read-only-staging-preflight-composition-action-538v-checkpoint.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_remediation_re_review_blocked_nested_authority_claim`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_action_538v_re_review_completed_blocked`.
+
+Recommended next action: Action 538W - Close nested authority and resolver metadata schema validation in first-live read-only staging preflight composition without activation.
+
+### Action 538W - Nested Authority and Resolver Metadata Schema Remediation
+
+Closed the Action 538V nested authority and resolver metadata schema findings without activating the composition contract or adding live resolver, filesystem, process, credential, CLI execution, version collection, runner, API, UI, cron, browser, Avanza, trading, order, position, settlement, network, environment, persistence, or deployment behavior.
+
+Remediation:
+
+- `A538V-H1` closed by validating resolver metadata through an exact closed schema and rejecting nested authority-bearing fields with `resolver_metadata_schema_rejected`.
+- `A538V-M1` closed by expanding the focused suite from 11 to 13 tests with nested authority, unknown metadata, symbol, inherited, prototype/accessor, class-instance, malformed value, missing field, alternate alias, and fixture-builder closure coverage.
+
+Closed resolver metadata schema:
+
+- allowed keys: `deviceId`, `inode`, `sizeBytes`, `mode`, `modifiedTimeMs`
+- rejected shapes: unknown keys, nested objects, authority/permissions/grants/capabilities/access/privileges structures, symbols, inherited enumerable fields, `__proto__`/`constructor`/`prototype` injection, accessors, class instances, arrays, null, functions, non-finite numbers, malformed types, missing required fields, and alternate semantic aliases
+
+No live resolver call occurred, no filesystem operation occurred, no executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request occurred, no API/UI/runner/observer/spawn boundary was activated, no Avanza interaction occurred, no order or position behavior changed, and no deployment occurred.
+
+Created remediation artifacts:
+
+- `docs/first-live-read-only-staging-preflight-composition-action-538w-schema-remediation.md`
+- `docs/first-live-read-only-staging-preflight-composition-action-538w-checkpoint.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_nested_authority_and_schema_closed_ready_for_final_re_review`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_action_538w_remediation_completed`.
+
+Recommended next action: Action 538X - Final Independent Re-Review of First-Live Read-Only Staging Preflight Composition Contract.
+
+### Action 538X - Final Independent Re-Review of First-Live Read-Only Staging Preflight Composition Contract
+
+Performed the final independent security and contract re-review of the complete uncommitted Action 537, 538, 538R, 538V, and 538W package without implementing new behavior, activating the composition contract, calling the live resolver, committing, pushing, merging, or deploying.
+
+Review result:
+
+- `A538-H1` closed: evidence-level authority claims fail closed with `authority_claim_rejected`, and final authority `none` cannot mask authoritative evidence.
+- `A538-H2` closed: forged live-observation claims fail closed with `live_observation_claim_rejected`; the pure contract imports no live adapter or live provenance path.
+- `A538-M1` closed: focused coverage now includes authority, live observation, identity/session/tool/platform/order, stale/expired evidence, credentials, commands, retry, state, and static-security cases.
+- `A538V-H1` closed: nested resolver metadata authority-bearing fields fail closed with `resolver_metadata_schema_rejected`.
+- `A538V-M1` closed: strict resolver metadata schema coverage includes unknown fields, symbols, inherited fields, prototype/accessor attacks, class instances, functions, malformed values, missing fields, aliases, and fixture-builder closure.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 0
+
+Authority verdict: approved for dormant fixture-only composition. Live-observation verdict: approved for pure synthetic resolver evidence only. Resolver metadata schema verdict: approved for the exact keys `deviceId`, `inode`, `sizeBytes`, `mode`, and `modifiedTimeMs`. Fixture-builder, provenance, fingerprint, state, TOCTOU, credential, command, and pure/dormant verdicts all passed.
+
+No live resolver invocation occurred, no filesystem access occurred, no executable was run, no CLI version was collected, no process was spawned, no shell was used, no credential or environment value was read, no network request occurred, no observer/spawn/credential/authorization/runner/API/UI path was activated, no Avanza interaction occurred, no order or position behavior changed, no persistence occurred, and no deployment occurred.
+
+Created review artifacts:
+
+- `docs/first-live-read-only-staging-preflight-composition-action-538x-final-re-review.md`
+- `docs/first-live-read-only-staging-preflight-composition-action-538x-checkpoint.md`
+
+Decision: `post_trade_first_live_read_only_staging_preflight_composition_contract_final_security_review_approved`.
+
+Result status: `post_trade_first_live_read_only_staging_preflight_composition_action_538x_final_re_review_completed`.
+
+Recommended next action: Action 539 - First-Live Read-Only Staging Preflight Composition Post-Review Checkpoint and Live-Composition Planning Gate.
