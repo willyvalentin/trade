@@ -7319,3 +7319,54 @@ Decision: `post_trade_first_live_direct_spawn_post_review_checkpoint_complete_ne
 Result status: `post_trade_first_live_direct_spawn_action_554_planning_gate_completed`.
 
 Recommended next Action: Action 555 - Plan Dormant Scoped Process Observer Boundary.
+
+### Action 555 - Plan Dormant Scoped Process Observer Boundary
+
+Created the planning gate for a dormant scoped process observer boundary and reassessed whether a separate live observer is needed for the approved fixed `git --version` direct-spawn path. This was a documentation, architecture, and approval-gate action only. No production runtime module was modified. No observer implementation, direct-spawn adapter modification, real executable execution, Git-version collection, child-handle exposure or transfer, resolver/composition/revalidation/spawn adapter invocation, CLI parsing, runtime/API/UI/runner/cron activation, credentials, network, browser/Avanza behavior, trading/order/position/settlement behavior, persistence, deployment, commit, push, or merge occurred.
+
+Created:
+
+- `docs/scoped-process-observer-planning-gate-action-555.md`
+- `docs/scoped-process-observer-architecture-action-555.md`
+- `docs/scoped-process-observer-action-555-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Approved process checkpoint preserved:
+
+- exact original revalidation evidence consumed one-shot;
+- one fixed `/usr/bin/git ["--version"]` process attempt;
+- shell disabled;
+- fixed source-controlled environment;
+- stdin disabled;
+- stdout and stderr bounded;
+- spawn errors handled;
+- stream errors handled;
+- output overflow handled;
+- internal fatal conditions settle independently of `close`;
+- fixed SIGKILL request ownership for internal fatal conditions;
+- ordinary completion observes exit and close;
+- immutable non-authoritative lifecycle evidence;
+- no child handle returned;
+- no observer authority;
+- no CLI-version interpretation.
+
+Observer necessity verdict:
+
+A separate live observer is not currently necessary for the fixed `git --version` path because the direct-spawn boundary already owns creation, event listeners, bounded output, terminal settlement, listener cleanup, fixed internal-fatal termination request behavior, and immutable lifecycle evidence. A separate observer remains a possible future boundary for longer-running or externally supervised processes, but it should not be introduced before a pure raw completion-evidence contract.
+
+Process-handle ownership verdict:
+
+No child handle should cross a boundary for the current path. Generic child-handle APIs, exported brands/tokens/symbols/fingerprints/process identifiers, persisted tickets, and generic trust oracles remain rejected.
+
+Next-boundary recommendation:
+
+Action 556 - Define Pure Raw Process Completion Evidence Contract.
+
+Decision: `post_trade_scoped_process_observer_boundary_plan_ready`.
+
+Result status: `post_trade_scoped_process_observer_action_555_planning_gate_completed`.
+
+Recommended next Action: Action 556 - Define Pure Raw Process Completion Evidence Contract.
