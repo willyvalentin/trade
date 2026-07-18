@@ -7600,3 +7600,127 @@ Recommended next Action: Action 561 - Implement Pure Git Version Interpretation 
 Decision: `post_trade_pure_git_version_interpretation_boundary_plan_ready`.
 
 Result status: `post_trade_pure_git_version_interpretation_action_560_planning_gate_completed`.
+
+### Action 561 - Pure Git Version Interpretation Contract
+
+Implemented the pure, fixture-only Git-version interpretation contract. No server-only adapter was added. The live direct-spawn wrapper was not modified. The pure raw completion contract behavior was not modified. No executable was run, no Git version was collected from a live process, no process was observed, no live neutralization occurred, no credentials/environment/network behavior occurred, no runtime/API/UI/runner path was activated, no Avanza/trading behavior changed, and no deployment occurred.
+
+Files created:
+
+- `lib/post-trade-pure-git-version-interpretation-contract-core.ts`;
+- `tests/e2e/post-trade-pure-git-version-interpretation-contract.spec.ts`;
+- `docs/pure-git-version-interpretation-contract-action-561.md`;
+- `docs/pure-git-version-interpretation-action-561-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Contract identity:
+
+- contract id: `ture.execution.pure-git-version-interpretation-contract.fixture.v1`;
+- boundary id: `ture.execution.git-version-interpretation.fixture-boundary.v1`;
+- parser grammar id: `ture.execution.git-version-grammar.strict-three-component-ascii.v1`;
+- normalization id: `ture.execution.git-version-normalization.optional-single-final-lf.v1`.
+
+The parser consumes only accepted raw completion result objects from the approved pure raw completion contract. It extracts the embedded raw evidence input fields, rebuilds the raw completion result through the approved raw builder, and requires exact evidence/result fingerprint equality before checking completion state or parsing stdout.
+
+Input eligibility requires `/usr/bin/git`, `["--version"]`, category/reason `process_created_normal_zero_exit`, process created and started, zero exit, compatible close, empty stderr, no stream/overflow/encoding/unexpected-chunk/termination fault, no retry/fallback, no shell/PATH/inherited env/credentials/network/authorization consumption/runtime activation, `observedLiveProcess:false`, `authority:"none"`, and `toctouEliminated:false`.
+
+Stdout must be one exact UTF-8 line with prefix `git version ` and `major.minor.patch`, optionally followed by exactly one LF. The grammar accepts exactly three ASCII numeric components, no leading zero except `0`, at most five digits per component, and maximum value `65535` per component. No suffix, prerelease, build metadata, Unicode digits, CR, control character, NUL, ANSI, extra text, localization, tab, or broad trim/repair is accepted.
+
+The output evidence is deeply frozen, deterministic, SHA-256 fingerprinted, fixture-only, and authority-free. Parsed Git-version evidence does not grant compatibility, live neutralization, spawn, observer, runner, deployment, staging, execution, credential, Avanza, trading, persistence, or production authority.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 561 focused suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 13 passed;
+- resolver/pure-composition suites: 29 passed;
+- trusted resolver/security plus Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1211 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Static pure-import and prohibited-operation review found the new core imports only `node:crypto` and the approved pure raw completion core. The only prohibited-operation search matches are closed reason strings for child-process error classification, not imports or behavior. Static runtime-reachability review found no app/component/runtime import of the new contract.
+
+Recommended next Action: Action 562 - Static Security and Contract Review of Pure Git Version Interpretation Contract.
+
+Decision: `post_trade_pure_git_version_interpretation_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_git_version_interpretation_contract_action_561_implemented_fixture_only`.
+
+### Action 562 - Static Security and Contract Review of Pure Git Version Interpretation Contract
+
+Performed an independent static/security review of the uncommitted Action 561 pure Git-version interpretation contract. No new behavior was implemented. No server-only adapter was added. The live direct-spawn wrapper was not modified. The approved raw completion contract behavior was not modified. No executable was run, no Git version was collected from a live process, no process was observed, no live neutralization occurred, no credentials/environment/network behavior occurred, no runtime/API/UI/runner path was activated, no Avanza/trading behavior changed, no persistence behavior occurred, and no deployment occurred.
+
+Files created:
+
+- `docs/pure-git-version-interpretation-action-562-static-security-review.md`;
+- `docs/pure-git-version-interpretation-action-562-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 1.
+
+Informational finding `F-562-001`: several parser-specific eligibility reasons are defensive but currently unreachable for malformed raw fields because raw-completion reconstruction blocks first. This is fail-closed and non-blocking.
+
+Review verdicts:
+
+- pure boundary: approved;
+- identity/version: approved;
+- raw-input verification: approved;
+- completion eligibility: approved;
+- stderr policy: approved;
+- stdout/normalization: approved;
+- grammar: approved;
+- reason precedence: approved with informational note;
+- output schema: approved;
+- schema closure: approved;
+- fingerprinting: approved;
+- determinism/immutability: approved;
+- authority/semantic limits: approved;
+- test coverage: approved;
+- live-boundary separation: approved;
+- export surface/reachability: approved;
+- prohibited operations: approved.
+
+Approval is limited to retaining the parser as pure fixture infrastructure for future separately reviewed live neutralization. It does not authorize live neutralization, process creation or observation, live Git-version collection, compatibility decisions, credentials, network, runtime/API/UI/runner activation, Avanza/trading behavior, persistence, deployment, staging readiness, execution readiness, or production readiness.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 561 focused suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 13 passed;
+- resolver/pure-composition suites: 29 passed;
+- trusted resolver/security plus Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1211 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static pure-import/prohibited-operation review: passed, only closed reason strings matched;
+- static runtime-reachability review: passed;
+- static export-surface review: passed.
+
+Recommended next Action: Action 563 - Plan Live Spawn-to-Raw-Completion Neutralization Boundary.
+
+Decision: `post_trade_pure_git_version_interpretation_contract_static_security_review_approved`.
+
+Result status: `post_trade_pure_git_version_interpretation_contract_action_562_review_completed`.
