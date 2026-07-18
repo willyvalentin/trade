@@ -1404,6 +1404,14 @@ type RecommendationOutcomeDedupeDiagnostics = {
   strategy: "best_status_then_latest";
 };
 
+function isSnapshotOnlyUnknownHorizonOutcome(outcome: RecommendationOutcome) {
+  return (
+    outcome.horizon === "unknown" &&
+    outcome.source === "snapshot_only" &&
+    outcome.data_completeness === "none"
+  );
+}
+
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
@@ -15296,8 +15304,11 @@ export function TradeApp({
 
     async function persistVisibleOutcomes() {
       let lastResult: RecommendationOutcomePersistenceResult | null = null;
+      const persistableOutcomes = pendingOutcomes.filter(
+        (outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome),
+      );
 
-      for (const outcome of pendingOutcomes) {
+      for (const outcome of persistableOutcomes) {
         lastResult = await persistRecommendationOutcome(outcome, {
           supabaseClient: supabase,
         });
