@@ -7370,3 +7370,179 @@ Decision: `post_trade_scoped_process_observer_boundary_plan_ready`.
 Result status: `post_trade_scoped_process_observer_action_555_planning_gate_completed`.
 
 Recommended next Action: Action 556 - Define Pure Raw Process Completion Evidence Contract.
+
+### Action 556 - Pure Raw Process Completion Evidence Contract
+
+Implemented a pure, fixture-only, authority-free raw process completion evidence contract between the approved dormant fixed direct-spawn lifecycle boundary and a future separately reviewed Git-version interpretation boundary. No live direct-spawn wrapper was modified. No server-only adapter was created. No executable was run, no Git version was collected or interpreted, no process was observed, no child-process handle was created or transferred, no credentials/environment/network/filesystem/Supabase/Avanza/trading/order/position/settlement/persistence behavior occurred, and no runtime/API/UI/runner/cron path, commit, push, merge, or deployment was activated.
+
+Created:
+
+- `lib/post-trade-pure-raw-process-completion-evidence-contract-core.ts`
+- `tests/e2e/post-trade-pure-raw-process-completion-evidence-contract.spec.ts`
+- `docs/pure-raw-process-completion-evidence-contract-action-556.md`
+- `docs/pure-raw-process-completion-evidence-action-556-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Contract identity and version:
+
+- `ture.execution.pure-raw-process-completion-evidence-contract.fixture.v1`
+- contract version `1`
+- boundary id `ture.execution.raw-process-completion-evidence.fixture-boundary.v1`
+
+Schema and model:
+
+- exact closed input schema;
+- deterministic fail-closed validation;
+- deeply frozen accepted evidence/result;
+- completion categories for spawn failure, zero exit, non-zero exit, signal termination, child error, stream errors, output limits, invalid output encoding, unexpected chunks, close without exit, internal terminal/death-unconfirmed, and malformed evidence;
+- canonical UTF-8 text-only output representation;
+- reviewed 16 KiB stdout, 16 KiB stderr, and 32 KiB combined limits;
+- SHA-256 fingerprints over identity, policy, evidence, and result;
+- fixture/synthetic provenance only;
+- `observedLiveProcess:false`;
+- `authority:none`;
+- `toctouEliminated:false`;
+- no CLI-version interpretation.
+
+Focused tests covered valid fixture categories, contradiction rejection, schema closure, output bounds, UTF-8/output retention, determinism, immutability, serialization, authority posture, static inertness, and runtime/API/UI unreachability.
+
+Decision: `post_trade_pure_raw_process_completion_evidence_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_raw_process_completion_evidence_contract_action_556_implemented_fixture_only`.
+
+Recommended next Action: Action 557 - Static Security and Contract Review of Pure Raw Process Completion Evidence Contract.
+
+### Action 557 - Static Security and Contract Review of Pure Raw Process Completion Evidence Contract
+
+Performed an independent static security and contract review of the uncommitted Action 556 pure raw process completion evidence contract. No new behavior was implemented. No server-only adapter was added. No live direct-spawn wrapper was modified. No executable was run, no live process was observed, no Git version was collected or interpreted, no credentials/network/Avanza/trading/persistence behavior occurred, and no runtime/API/UI/runner/cron path, commit, push, merge, or deployment was activated.
+
+Created:
+
+- `docs/pure-raw-process-completion-evidence-action-557-static-security-review.md`
+- `docs/pure-raw-process-completion-evidence-action-557-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Findings by severity:
+
+- Critical: 0.
+- High: 0.
+- Medium: 5.
+- Low: 0.
+- Informational: 0.
+
+Blocking findings:
+
+- `F-557-001`: runtime schema validation does not enforce exact primitive types for every declared boolean, string, nullable, and numeric field.
+- `F-557-002`: nested `argv` schema is not closed; extra array properties can be ignored by validation and fingerprinting.
+- `F-557-003`: `completionReason` is not validated against the closed reason vocabulary or category-specific allowed values.
+- `F-557-004`: several jointly contradictory completion states are not rejected, including close-code/close-signal and death-confirmed/death-unconfirmed combinations.
+- `F-557-005`: focused tests do not cover the above schema and state gaps.
+
+Review verdicts:
+
+- pure boundary: pass;
+- identity/version: blocked pending clarification/remediation;
+- schema closure: blocked;
+- completion category/state consistency: blocked;
+- output/UTF-8: mostly pass, blocked by coverage gap;
+- provenance: pass;
+- authority: pass for emitted output, blocked by schema closure;
+- fingerprinting: blocked because accepted nested array extras can be omitted;
+- determinism/immutability: pass with schema-closure caveat;
+- fail-closed behavior: blocked;
+- test coverage: blocked;
+- live-boundary separation: pass;
+- export surface/reachability/prohibited operations: pass.
+
+Decision: `post_trade_pure_raw_process_completion_evidence_contract_static_security_review_blocked_pending_corrections`.
+
+Result status: `post_trade_pure_raw_process_completion_evidence_contract_action_557_review_completed_blocked`.
+
+Recommended next Action: Action 558 - Remediate Pure Raw Process Completion Evidence Contract Schema and State Closure.
+
+### Action 558 - Remediate Pure Raw Process Completion Evidence Contract Schema and State Closure
+
+Remediated all five Action 557 medium findings in the pure raw process completion evidence contract. The remediation remained pure, fixture-only, deterministic, authority-free, and runtime-unreachable. No server-only adapter was added, no live direct-spawn wrapper was modified, no executable was run, no live process was observed, no Git version was collected or interpreted, no credentials/environment/network/Supabase/Avanza/trading/order/position/settlement/persistence behavior occurred, and no runtime/API/UI/runner/cron path, commit, push, merge, or deployment was activated.
+
+Created:
+
+- `docs/pure-raw-process-completion-evidence-action-558-schema-state-remediation.md`
+- `docs/pure-raw-process-completion-evidence-action-558-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-pure-raw-process-completion-evidence-contract-core.ts`
+- `tests/e2e/post-trade-pure-raw-process-completion-evidence-contract.spec.ts`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation summary:
+
+- `F-557-001`: added exact primitive runtime schema checks for booleans, strings, numbers, nullable strings, nullable numbers, nullable booleans, nonfinite numbers, and object-shaped aliases.
+- `F-557-002`: replaced JSON-string argv comparison with exact argv tuple closure requiring a plain one-item `["--version"]` array with no symbols, accessors, extra properties, inherited entries, subclassing, sparsity, or alternate strings.
+- `F-557-003`: added closed completion-reason vocabulary and category-specific reason mapping.
+- `F-557-004`: added explicit category state matrix covering lifecycle, event order, process-created/started facts, spawn errors, exit/close/signal facts, stream errors, overflow, UTF-8 state, termination, death confirmation, and output retention.
+- `F-557-005`: expanded the focused suite from 40 to 49 tests, covering the new negative schema, argv, reason, state, malformed evidence, multibyte UTF-8, output retention, and fingerprint cases.
+
+Decision: `post_trade_pure_raw_process_completion_evidence_contract_action_557_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_pure_raw_process_completion_evidence_contract_action_558_remediation_completed_fixture_only`.
+
+Recommended next Action: Action 559 - Independent Re-Review of Pure Raw Process Completion Evidence Schema and State Remediation.
+
+### Action 559 - Independent Re-Review of Pure Raw Process Completion Evidence Schema and State Remediation
+
+Performed an independent final static/security re-review of the complete uncommitted Action 556-558 pure raw process completion evidence contract and review trail. No new behavior was implemented. No server-only adapter was added. No live direct-spawn wrapper was modified. No executable was run, no process was observed, no Git version was collected or interpreted, no credentials/environment/network/Supabase/Avanza/trading/order/position/settlement/persistence behavior occurred, and no runtime/API/UI/runner/cron path, commit, push, merge, or deployment was activated.
+
+Created:
+
+- `docs/pure-raw-process-completion-evidence-action-559-final-re-review.md`
+- `docs/pure-raw-process-completion-evidence-action-559-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Findings by severity:
+
+- Critical: 0.
+- High: 0.
+- Medium: 0.
+- Low: 0.
+- Informational: 0.
+
+Action 557 finding verdicts:
+
+- `F-557-001`: remediated.
+- `F-557-002`: remediated.
+- `F-557-003`: remediated.
+- `F-557-004`: remediated.
+- `F-557-005`: remediated.
+
+Review verdicts:
+
+- pure boundary: approved;
+- nested schema closure: approved;
+- argv closure: approved;
+- category/reason mapping: approved;
+- consistency matrix: approved;
+- malformed evidence model: approved;
+- authority posture: approved;
+- fingerprint completeness: approved;
+- output/UTF-8: approved;
+- determinism/immutability: approved;
+- focused test coverage: approved for current fixture-only scope;
+- live-boundary separation, export surface, reachability, and prohibited operations: approved.
+
+Approval is limited to retaining the contract as pure, fixture-only, authority-free, deterministic, deeply frozen, and runtime-unreachable infrastructure. It does not authorize live neutralization, process observation, process creation, Git-version interpretation, credentials, network, runtime/API/UI/runner activation, Avanza/trading behavior, persistence, deployment, staging readiness, execution readiness, or production readiness.
+
+Decision: `post_trade_pure_raw_process_completion_evidence_contract_final_security_review_approved`.
+
+Result status: `post_trade_pure_raw_process_completion_evidence_contract_action_559_final_re_review_completed`.
+
+Recommended next Action: Action 560 - Plan Pure Git Version Interpretation Contract.
