@@ -7546,3 +7546,57 @@ Decision: `post_trade_pure_raw_process_completion_evidence_contract_final_securi
 Result status: `post_trade_pure_raw_process_completion_evidence_contract_action_559_final_re_review_completed`.
 
 Recommended next Action: Action 560 - Plan Pure Git Version Interpretation Contract.
+
+### Action 560 - Plan Pure Git Version Interpretation Contract
+
+Created a documentation-only planning gate for a future pure Git-version interpretation contract. No parser was implemented. The pure raw process completion contract was not modified. No live neutralization adapter, direct-spawn wrapper change, server-only behavior, filesystem/process/environment/network/credential/API/UI/runner behavior, Avanza/trading/persistence behavior, commit, push, merge, or deployment occurred.
+
+Preconditions:
+
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- baseline HEAD: `0fa122b`, containing the Action 559 pure raw process completion evidence final approval checkpoint;
+- git status before edits: clean.
+
+Files created:
+
+- `docs/pure-git-version-interpretation-planning-gate-action-560.md`;
+- `docs/pure-git-version-interpretation-architecture-action-560.md`;
+- `docs/pure-git-version-interpretation-action-560-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+The approved future input model is accepted raw completion evidence only for `git`, canonical executable `/usr/bin/git`, argv `["--version"]`, completion category `process_created_normal_zero_exit`, zero exit, compatible close facts, no signal, no spawn/stream/encoding/overflow/termination fault, `retryCount:0`, `fallbackAttempted:false`, no shell/PATH/inherited env/credential/network use, `cliVersionInterpreted:false`, `observedLiveProcess:false`, `authority:"none"`, and `toctouEliminated:false`.
+
+The selected stdout/stderr policy is intentionally strict: stdout must be exactly one UTF-8 line with exact prefix `git version ` and one canonical `major.minor.patch` token, with at most one final LF; stderr must be empty. No CR, extra whitespace, second line, NUL, control character, ANSI escape, localization, diagnostic text, vendor suffix, prerelease, or build metadata is accepted.
+
+The selected grammar is `git version <major>.<minor>.<patch>` with ASCII digits only, exactly three components, no signs, no empty components, no exponent or decimal aliases, no Unicode digits, no suffixes, no leading zeros except exactly `0`, at most six digits per component, and component values from `0` through `999999`.
+
+The planned output evidence remains pure, fixture-only, deterministic, deeply frozen, fingerprint-linked to the raw completion evidence and raw stdout, and authority-free. A parsed version does not grant execution, compatibility, deployment, authorization, runner, credential, network, API/UI, Avanza, trading, persistence, staging, production, or runtime authority.
+
+Live neutralization remains a separate future boundary. Actual dormant spawn lifecycle evidence still cannot enter the future parser directly.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 13 passed;
+- resolver/pure-composition suites: 29 passed;
+- trusted resolver/security plus Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1211 passed;
+- scoped ESLint on changed TS/JS files: not applicable, no TS/JS files changed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Static export-surface review found no new TypeScript or JavaScript exports. Static runtime-reachability review found no app/component import of the reviewed pure raw completion, direct-spawn, or CLI collector boundaries. Static prohibited-operation review found only documentation-level forbidden-operation statements in the new Action 560 docs and no production behavior change.
+
+Recommended next Action: Action 561 - Implement Pure Git Version Interpretation Contract.
+
+Decision: `post_trade_pure_git_version_interpretation_boundary_plan_ready`.
+
+Result status: `post_trade_pure_git_version_interpretation_action_560_planning_gate_completed`.
