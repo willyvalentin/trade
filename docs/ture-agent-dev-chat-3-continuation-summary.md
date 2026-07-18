@@ -7267,3 +7267,55 @@ Decision: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_f
 Result status: `post_trade_dormant_server_only_fixed_read_only_direct_spawn_adapter_action_553_final_re_review_completed`.
 
 Recommended next Action: Action 554 - First-Live Direct-Spawn Post-Review Checkpoint and Next-Boundary Planning Gate.
+
+### Action 554 - First-Live Direct-Spawn Post-Review Checkpoint and Next-Boundary Planning Gate
+
+Created the formal post-review checkpoint for the approved dormant fixed read-only direct-spawn adapter and selected exactly one next boundary plan. This was a documentation, architecture, and approval-gate action only. No production runtime module was modified. No observer behavior, CLI-version interpretation, real executable execution, real Git version collection, live resolver invocation, composition invocation, revalidation invocation, spawn invocation, runtime/API/UI/runner/cron activation, credentials, network, browser/Avanza behavior, trading/order/position/settlement behavior, persistence, deployment, commit, push, or merge occurred.
+
+Created:
+
+- `docs/first-live-direct-spawn-post-review-checkpoint-action-554.md`
+- `docs/first-live-next-boundary-planning-gate-action-554.md`
+- `docs/first-live-direct-spawn-action-554-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Approved checkpoint preserved:
+
+- server-only closure;
+- closed production API;
+- original-object provenance;
+- one-shot consumption;
+- exact `/usr/bin/git` and `["--version"]`;
+- fixed `LANG=C` and `LC_ALL=C` environment;
+- no `PATH` or inherited `process.env`;
+- `shell:false`;
+- `detached:false`;
+- bounded stdio;
+- one spawn attempt;
+- no retry or fallback;
+- exactly-once terminal settlement;
+- stream-error handling;
+- overflow termination ownership;
+- listener cleanup;
+- internal fatal settlement without indefinite `close` waiting;
+- no false child-death claim;
+- immutable non-authoritative evidence;
+- honest `toctouEliminated:false` posture;
+- no runtime reachability.
+
+Absent capabilities remain: runtime activation, general process observer, reusable process handle exposure, CLI-version parsing or validation, Git-version evidence, Supabase CLI execution, credentials, network, API/UI/runner wiring, authorization consumption, Avanza, trading/order/position/settlement behavior, persistence, and deployment.
+
+Next-boundary comparison selected:
+
+Action 555 - Plan Dormant Scoped Process Observer Boundary.
+
+This was chosen over an embedded bounded collector, pure raw completion-evidence-only contract, CLI-version parser, observer-plus-version orchestration, and runtime activation because it addresses the post-spawn trust problem while preserving dormant server-only isolation and avoiding CLI interpretation or runtime activation.
+
+Decision: `post_trade_first_live_direct_spawn_post_review_checkpoint_complete_next_boundary_plan_ready`.
+
+Result status: `post_trade_first_live_direct_spawn_action_554_planning_gate_completed`.
+
+Recommended next Action: Action 555 - Plan Dormant Scoped Process Observer Boundary.
