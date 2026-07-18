@@ -6718,3 +6718,44 @@ Decision: `post_trade_dormant_server_only_first_live_staging_preflight_compositi
 Result status: `post_trade_dormant_server_only_first_live_staging_preflight_composition_adapter_action_541_review_completed`.
 
 Recommended next action: Action 542 - Plan Immediate Pre-Spawn Revalidation Boundary for First-Live Read-Only Staging Preflight.
+
+### Action 542 - Plan Immediate Pre-Spawn Revalidation Boundary
+
+Planned the immediate pre-spawn revalidation boundary for the first-live read-only staging preflight chain without implementing filesystem revalidation, modifying resolver or composition behavior, invoking the live resolver, invoking the live composition adapter, implementing process spawn, executing any CLI, collecting CLI versions, activating observer/credential/authorization-consumption/runner/API/UI/cron/browser/Avanza/trading/order/position/settlement/persistence/network/environment/deployment behavior, committing, pushing, merging, or deploying.
+
+Current approved chain:
+
+- server-only live resolver
+- original object with private provenance
+- dormant server-only live composition adapter
+- neutral non-authoritative metadata
+- pure fixture composition contract
+
+None of those components grants spawn authority.
+
+Action 542 documented the TOCTOU problem: resolver evidence is point-in-time; neutralization does not preserve permanent trust; file metadata can change after resolution; metadata fingerprints do not eliminate TOCTOU; future spawn must require immediate pre-spawn revalidation; and no complete TOCTOU elimination is claimed.
+
+Recommended next action: Action 543 - Implement Dormant Server-Only Immediate Pre-Spawn Revalidation Adapter.
+
+Created Action 542 artifacts:
+
+- `docs/immediate-pre-spawn-revalidation-planning-gate-action-542.md`
+- `docs/immediate-pre-spawn-revalidation-architecture-action-542.md`
+- `docs/immediate-pre-spawn-revalidation-action-542-checkpoint.md`
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- Action 540 focused suite passed, 17 tests.
+- First-live resolver suite passed, 12 tests.
+- Pure composition suite passed, 13 tests.
+- Trusted resolver canonical/security plus Action 533 cross-boundary suite passed, 672 tests.
+- Dormant observer/spawn/credential/preflight suites passed, 1107 tests.
+- Process/credential/CLI/authorization/execution suites passed, 110 tests.
+- Scoped ESLint over changed TypeScript files passed.
+- Static export-surface, reachability, and prohibited-operation reviews passed. The only prohibited-operation scan match in reviewed production modules was deterministic `JSON.stringify` for canonical fingerprint construction.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0` passed.
+
+Decision: `post_trade_immediate_pre_spawn_revalidation_boundary_plan_ready`.
+
+Result status: `post_trade_immediate_pre_spawn_revalidation_action_542_planning_gate_completed`.
