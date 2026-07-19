@@ -8083,3 +8083,74 @@ Decision: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization
 Result status: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_action_567_final_re_review_completed`.
 
 Recommended next Action: Action 568 - Plan Dormant Neutralization-to-Git-Interpretation Orchestration Boundary.
+
+### Action 568 - Plan Dormant Neutralization-to-Git-Interpretation Orchestration Boundary
+
+Planned the smallest safe dormant server-only orchestration boundary for a future separately reviewed Action that may connect the approved one-shot spawn-to-raw-completion neutralization adapter to the approved pure Git-version interpretation contract. This was a documentation, architecture, and approval-gate action only.
+
+Files created:
+
+- `docs/dormant-neutralization-to-git-interpretation-orchestration-planning-gate-action-568.md`;
+- `docs/dormant-neutralization-to-git-interpretation-orchestration-architecture-action-568.md`;
+- `docs/dormant-neutralization-to-git-interpretation-orchestration-action-568-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved current sequence:
+
+```text
+server-only live resolver
+  -> dormant live composition
+  -> immediate revalidation
+  -> fixed dormant direct spawn
+  -> original production-valid spawn result
+  -> dormant server-only neutralization
+  -> approved pure raw-completion evidence
+  -> approved pure Git-version interpretation contract
+```
+
+Planning verdict:
+
+- neutralization and interpretation remain unorchestrated today;
+- the future orchestrator must accept only the exact original production-valid direct-spawn result;
+- the future orchestrator must invoke neutralization first and exactly once;
+- interpretation may be attempted only for neutralized category `process_created_normal_zero_exit`;
+- all other accepted neutral categories must return `interpretation_not_attempted`;
+- the result model must be a closed immutable no-authority union;
+- fingerprints must preserve direct-spawn, revalidation, neutralization, raw-completion, parser, parsed-version, session, purpose, tool, platform, executable, argv, policy, contract, and timestamp linkage;
+- accepted parser output must not imply Git compatibility, staging readiness, execution readiness, deployment readiness, or TOCTOU elimination.
+
+Selected architecture: a new dormant server-only orchestrator that imports the approved neutralization adapter and pure Git parser. Rejected alternatives included parsing inside the neutralizer, parsing inside direct-spawn, pure helper accepting direct-spawn results, generic caller-supplied pipeline, and runtime runner orchestration.
+
+No orchestration was implemented. No neutralization adapter, raw-completion contract, Git-version parser, direct-spawn adapter, revalidation adapter, resolver, composition module, runtime, API, UI, runner, credential, Avanza, trading, persistence, deployment, commit, push, or merge behavior was modified.
+
+No product-chain executable was run. No Git version or preflight command was executed by production code. No process was created, observed, controlled, or terminated by production code. No raw stdout was inspected by a new orchestrator. No Git version was returned by an orchestrator. No credentials, environment values, network, Avanza, trading, order, position, settlement, persistence, API/UI/runner, deployment, staging readiness, execution readiness, or production readiness occurred.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- neutralization suite: 15 passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suites: 30 passed;
+- resolver and Action 533 suites: 205 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1243 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TS/JS files were changed;
+- `git diff --check`: passed;
+- static export-surface review: passed; no TS/JS files changed and no production export surface changed;
+- static runtime-reachability review: passed; no app, component, runtime, runner, observer, spawn, credential, or API caller imports a future orchestration boundary because it was not implemented;
+- static prohibited-operation review: passed for Action 568 scope; changes are docs only and source reachability scans found no new neutralizer/parser runtime caller;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing warnings for `[DEP0205] module.register()` and `NO_COLOR` being ignored when `FORCE_COLOR` is set.
+
+Decision: `post_trade_dormant_neutralization_to_git_interpretation_orchestration_boundary_plan_ready`.
+
+Result status: `post_trade_dormant_neutralization_to_git_interpretation_orchestration_action_568_planning_gate_completed`.
+
+Recommended next Action: Action 569 - Implement Dormant Server-Only Neutralization-to-Git-Interpretation Orchestrator.
