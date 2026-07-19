@@ -8442,3 +8442,77 @@ Decision: `post_trade_dormant_server_only_neutralization_to_git_interpretation_o
 Result status: `post_trade_dormant_server_only_neutralization_to_git_interpretation_orchestrator_action_572_final_re_review_completed`.
 
 Recommended next Action: Action 573 - Plan Pure Git Compatibility Policy Contract.
+
+### Action 573 - Pure Git Compatibility Policy Planning Gate
+
+Planned the pure Git compatibility policy contract for the first-live read-only staging-preflight chain. This was a documentation, architecture, and approval-gate action only. No compatibility evaluator was implemented, and no parser, orchestrator, raw-completion, neutralization, direct-spawn, revalidation, resolver, runtime, API, UI, runner, credential, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was modified.
+
+Files created:
+
+- `docs/pure-git-compatibility-policy-planning-gate-action-573.md`;
+- `docs/pure-git-compatibility-policy-architecture-action-573.md`;
+- `docs/pure-git-compatibility-policy-action-573-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Current approved chain remains:
+
+`server-only live resolver -> dormant live composition -> immediate pre-spawn revalidation -> fixed dormant direct spawn -> original production-valid direct-spawn result -> dormant server-only neutralization -> pure raw-completion evidence -> pure Git-version interpretation`.
+
+Action 573 records that no compatibility policy exists today, no minimum supported Git version is selected, no staging/deployment/runtime decision exists, no runtime caller exists, parser acceptance remains grammar acceptance only, `observedLiveProcess:false` and `toctouEliminated:false` remain required in upstream evidence, and authority remains `none`.
+
+Planning decisions:
+
+- recommended architecture: pure source-controlled compatibility policy module plus pure evaluator;
+- recommended policy shape: supported major set plus per-major minimum;
+- numeric policy value: unresolved until reviewed Git capability inventory derives it;
+- recommended next Action: Action 574 - Inventory Required Git Capabilities and Derive Compatibility Policy Baseline.
+
+Rejected approaches:
+
+- minimum-only policy, because it accepts unreviewed future major versions;
+- exact patch allowlist as default, because it is brittle for routine patch updates;
+- generic semver/range policy, because it adds ambiguity and dependency surface;
+- parser-embedded, orchestrator-embedded, environment-backed, runtime-backed, or runner-backed compatibility.
+
+Security posture:
+
+- no compatibility evaluator was implemented;
+- no Git compatibility decision was made;
+- no Git executable or other executable was run through production behavior;
+- no process was created, observed, controlled, or terminated;
+- no runtime/API/UI/runner path was added or activated;
+- no credential, environment, network, Avanza, trading, order, position, settlement, persistence, deployment, commit, push, merge, or production behavior was added;
+- authority remains `none`.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- orchestrator suite: 20 passed;
+- neutralization suite: 15 passed;
+- Git parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- dormant composition suite: first stale filename attempt returned "No tests found"; rerun with current `-adapter` filename passed, 17 tests;
+- pure composition suite: 13 passed;
+- resolver/security group: 515 passed;
+- Action 533 cross-boundary suite: 181 passed;
+- broad dormant/process/credential/CLI/authorization group: 1068 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- `git diff --check`: passed;
+- static export-surface review: passed, no production TS/JS files changed;
+- static runtime-reachability review: passed, with only an existing test assertion that the orchestrator core must not contain `compatibilityPolicy`;
+- static prohibited-operation review: passed by docs-only source diff and no changed production TS/JS files;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
+
+Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
+
+Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
+
+Recommended next Action: Action 574 - Inventory Required Git Capabilities and Derive Compatibility Policy Baseline.
