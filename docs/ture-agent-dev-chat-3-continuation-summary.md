@@ -1,5 +1,253 @@
 # Ture Agent Dev Chat 3 Continuation Summary
 
+## Latest Checkpoint - Action 591
+
+Action 591 independently re-reviewed the complete uncommitted Action 586-590 pure byte-oriented porcelain-status completion package.
+
+Created files:
+
+- `docs/pure-byte-oriented-porcelain-status-completion-action-591-final-re-review.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-591-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Verdict on `A589-MED-001`: remediated. Action 590's safe `rejectedInputEvidence` model now binds exact overflow/truncation flags, validated counts, safe byte fingerprints, source/capability linkage, and authority/runtime posture into rejected result fingerprints. Same-reason/different-input rejected states now differ, raw stdout/stderr hex remains absent, and early malformed inputs remain minimally represented.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 0
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused byte-completion suite: 45 passed.
+- Adjacent simple-observation, Apple Git-version parser, generic Git-version parser, dormant Git-version orchestrator, neutralization, raw-completion, and direct-spawn suites: 282 passed.
+- Revalidation, dormant composition, pure composition, trusted resolver/security, and Action 533 suites: 756 passed.
+- Broad dormant/process/credential/CLI/authorization suites excluding the known missing migration-static file: 1403 passed.
+- Scoped ESLint on changed TS/JS files: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+- Migration baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is absent.
+
+Final approval does not authorize Git status execution, repository inspection, process creation or observation, porcelain record parsing, repository-read authority, runner implementation, runtime/API/UI/runner activation, compatibility decisions, credentials, environment, network, Avanza/trading behavior, persistence, or deployment.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_contract_final_security_review_approved`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_591_final_re_review_completed`
+
+Recommended next action:
+
+Action 592 - Implement Pure Read-Only Git Porcelain Status Observation Contract.
+
+## Latest Checkpoint - Action 590
+
+Action 590 remediated only `A589-MED-001` against the uncommitted pure byte-oriented porcelain-status completion package.
+
+Created files:
+
+- `docs/pure-byte-oriented-porcelain-status-completion-action-590-rejected-fingerprint-remediation.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-590-checkpoint.md`
+
+Modified files:
+
+- `lib/post-trade-pure-byte-oriented-porcelain-status-completion-contract-core.ts`
+- `tests/e2e/post-trade-pure-byte-oriented-porcelain-status-completion-contract.spec.ts`
+- `docs/pure-byte-oriented-porcelain-status-completion-contract-action-586.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-588-review-remediation.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Previous rejected-result model: rejected results had `evidence:null` and result fingerprints over selected reasons and authority posture, so same-reason overflow/truncation states could collide.
+
+New model: safely validated output-retention rejects receive `rejectedInputEvidence`, an audit-only summary that binds exact overflow/truncation flags, validated counts, safe byte fingerprints, source linkage, capability/purpose/argv, worktree/sequence identity, and authority/runtime/live/TOCTOU posture into a domain-separated rejected-input fingerprint. Raw stdout/stderr hex payload is not retained. Early malformed inputs, malformed identity/linkage/numeric fields, or unsafe authority posture keep `rejectedInputEvidence:null`.
+
+The focused suite increased from 42 to 45 tests and now proves same-reason fingerprint differentiation, count and safe-byte-fingerprint binding, malformed input summary suppression, determinism, deep freeze, and raw-payload privacy.
+
+No Git status command was executed through production behavior. No process was created or observed. No porcelain records were interpreted. No paths or filenames were exposed. No repository-read authority was granted. No runner was implemented. No runtime/API/UI/runner path was activated. No credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_rejected_fingerprint_finding_remediated_ready_for_re_review`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_590_remediation_completed`
+
+Recommended next action:
+
+Action 591 - Independent Final Re-Review of Pure Byte-Oriented Porcelain Status Completion Rejected Fingerprint Remediation.
+
+## Latest Checkpoint - Action 589
+
+Action 589 independently re-reviewed the complete uncommitted Action 586-588 pure byte-oriented porcelain-status completion package.
+
+Created files:
+
+- `docs/pure-byte-oriented-porcelain-status-completion-action-589-final-re-review.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-589-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Verdict on `A587-MED-001`: remediated. The Action 588 code now maps `stdoutOverflow:true` to `stdout_overflow_rejected`, `stderrOverflow:true` to `stderr_overflow_rejected`, `combinedOverflow:true` to `combined_overflow_rejected`, and truncation flags to `truncated_output_rejected`, with deterministic stdout/stderr/combined/truncation precedence.
+
+New finding: `A589-MED-001` / medium. Rejected result fingerprints do not bind exact rejected overflow/truncation input flags because rejected results retain `evidence:null` and fingerprint only the result shape and selected reasons. Two different rejected inputs with the same selected reason can therefore share the same rejected result fingerprint. This blocks final approval under Action 589's fingerprint coverage requirement.
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused/adjacent Git/raw/orchestrator group: 305 passed.
+- Direct-spawn/revalidation/composition group: 428 passed.
+- Resolver/security/Action 533 group: 696 passed.
+- Broad dormant/process/credential/CLI/authorization group: 871 passed.
+- Scoped ESLint: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+- Migration baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is absent.
+
+No production behavior was changed during Action 589. No tests were added. No parser, Git runner, runtime/API/UI/runner wiring, credential, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_contract_final_security_review_blocked_pending_rejected_fingerprint_remediation`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_589_final_re_review_completed_blocked`
+
+Recommended next action:
+
+Action 590 - Remediate Pure Byte-Oriented Porcelain Status Completion Rejected-State Fingerprint Coverage.
+
+## Latest Checkpoint - Action 588
+
+Action 588 remediated only Action 587 finding `A587-MED-001` against the uncommitted Action 586 pure byte-oriented porcelain-status completion contract.
+
+Created files:
+
+- `docs/pure-byte-oriented-porcelain-status-completion-action-588-review-remediation.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-588-checkpoint.md`
+
+Modified files:
+
+- `lib/post-trade-pure-byte-oriented-porcelain-status-completion-contract-core.ts`
+- `tests/e2e/post-trade-pure-byte-oriented-porcelain-status-completion-contract.spec.ts`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Previous reason mapping collapsed `stdoutOverflow`, `stderrOverflow`, `combinedOverflow`, and truncation state flags to `stdout_overflow_rejected`. Corrected mapping is now exact:
+
+- `stdoutOverflow:true` -> `stdout_overflow_rejected`;
+- `stderrOverflow:true` -> `stderr_overflow_rejected`;
+- `combinedOverflow:true` -> `combined_overflow_rejected`;
+- any truncation flag -> `truncated_output_rejected`.
+
+The focused suite increased from 33 to 42 tests and now covers single overflow/truncation flags, mixed-flag precedence, and recomputed accepted-evidence forgeries.
+
+Validation completed during remediation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Expanded Action 586/588 focused suite: 42 passed.
+
+No contract redesign, porcelain parser, Git runner, runtime/API/UI/runner wiring, credential, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_587_finding_remediated_ready_for_re_review`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_588_remediation_completed`
+
+Recommended next action:
+
+Action 589 - Independent Final Re-Review of Pure Byte-Oriented Porcelain Status Completion Reason Remediation.
+
+## Latest Checkpoint - Action 587
+
+Action 587 performed an independent static security and contract review of the uncommitted Action 586 pure byte-oriented porcelain-status completion contract.
+
+Created files:
+
+- `docs/pure-byte-oriented-porcelain-status-completion-action-587-static-security-review.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-587-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review verdict: blocked pending narrow reason-model remediation. The contract remains pure, fixture-only, deterministic, byte-preserving, immutable, runtime-unreachable, non-authoritative, parser-free, API/UI/runner-unwired, credential-free, network-free, and deployment-free. However, finding `A587-MED-001` blocks approval because overflow/truncation state flags at `lib/post-trade-pure-byte-oriented-porcelain-status-completion-contract-core.ts:631-637` all map to `stdout_overflow_rejected`, instead of preserving distinct stderr/combined overflow reasons where applicable. Existing tests cover count-based overflow reasons but not these flag-specific cases.
+
+Validation completed:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Action 586 + adjacent Git/raw/orchestrator group: 296 passed.
+- Direct-spawn/revalidation/composition group: 428 passed.
+- Resolver/security/Action 533 group: 696 passed.
+- Broad dormant/process/credential/CLI/authorization group: 871 passed.
+- Scoped ESLint on changed TS files: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+- Migration baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is absent.
+
+No production behavior was modified during the review. No tests were added. No parser, Git runner, runtime/API/UI/runner wiring, credential, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_contract_static_security_review_blocked_pending_reason_model_remediation`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_587_review_completed_blocked`
+
+Recommended next action:
+
+Action 588 - Remediate Pure Byte-Oriented Porcelain Status Completion Review Findings.
+
+## Latest Checkpoint - Action 586
+
+Action 586 implemented the pure, fixture-only byte-oriented porcelain status completion-input contract for the exact future command `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`.
+
+Created files:
+
+- `lib/post-trade-pure-byte-oriented-porcelain-status-completion-contract-core.ts`
+- `tests/e2e/post-trade-pure-byte-oriented-porcelain-status-completion-contract.spec.ts`
+- `docs/pure-byte-oriented-porcelain-status-completion-contract-action-586.md`
+- `docs/pure-byte-oriented-porcelain-status-completion-action-586-checkpoint.md`
+
+The contract accepts explicit fixture input only, lower-case even-length hex stdout/stderr bytes only, zero stderr bytes, exact normal zero-exit lifecycle, and exact source linkage. It returns deeply frozen deterministic evidence and fingerprints while preserving `authority:"none"`, `observedLiveProcess:false`, `runtimeActivated:false`, `compatibilityAuthorityGranted:false`, and `toctouEliminated:false`.
+
+Action 586 did not implement NUL record parsing, XY interpretation, path extraction, status counts, clean/dirty classification, filename logging, invalid UTF-8 repair, aggregate status logic, compatibility evaluation, runner activation, API/UI wiring, porcelain-status Git execution, process creation/observation/control, credential/env/network access, Avanza/trading behavior, persistence, migration, commit, push, merge, or deployment. Git was used only for repository metadata checks required by the Action precondition and final status reporting.
+
+Focused implementation validation during the action:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Action 586 focused suite: 33 passed.
+
+Decision:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_contract_ready_for_static_security_review`
+
+Result:
+
+`post_trade_pure_byte_oriented_porcelain_status_completion_action_586_implemented_fixture_only`
+
+Recommended next action:
+
+Action 587 - Static Security and Contract Review of Pure Byte-Oriented Porcelain Status Completion Contract.
+
 ## Latest Checkpoint - Action 532
 
 Action 532 performed the independent static/security review of the Action 531 credential source adapter boundary, without live credential access, Keychain access, environment value reads, credential file reads, credential helper invocation, authorization consumption, process spawning, API/UI/runtime wiring, browser automation, Avanza automation, commit, deploy, or secret printing.
