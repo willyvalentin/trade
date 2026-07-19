@@ -8759,6 +8759,98 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 592 - Pure Read-Only Git Porcelain Status Observation Contract
+
+Implemented the pure, fixture-only Git porcelain status interpretation contract. The new core accepts only an accepted Action 586 byte-oriented porcelain-status completion result for exact `/usr/bin/git` argv `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`, rebuilds and validates source completion linkage, parses NUL-framed porcelain v1 records from lowercase hex bytes, and returns a closed immutable `accepted_clean`, `accepted_dirty`, or `rejected` result.
+
+Files created:
+
+- `lib/post-trade-pure-read-only-git-porcelain-status-interpretation-contract-core.ts`;
+- `tests/e2e/post-trade-pure-read-only-git-porcelain-status-interpretation-contract.spec.ts`;
+- `docs/pure-read-only-git-porcelain-status-observation-contract-action-592.md`;
+- `docs/pure-read-only-git-porcelain-status-observation-action-592-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Contract summary:
+
+- pure core only, importing `node:crypto` and the pure Action 586 byte-completion contract;
+- no `server-only`, filesystem, child process, process.env, network, credential, timer, signal, process-handle, API, UI, runner, Avanza, trading, persistence, or deployment behavior;
+- accepted empty stdout becomes `accepted_clean`;
+- accepted ordinary, untracked, and reviewed unmerged records become `accepted_dirty`;
+- rename/copy, ignored, malformed, unsupported, overflow, stale, contradictory, live, authority, runtime, and TOCTOU claims reject fail-closed;
+- path bytes are never decoded or retained, and accepted records expose only path byte counts plus fingerprints;
+- accepted evidence remains `authority:"none"`, `observedLiveProcess:false`, `runtimeActivated:false`, `compatibilityAuthorityGranted:false`, and `toctouEliminated:false`.
+
+Non-authorizations:
+
+- no Git command was executed;
+- no repository status was inspected;
+- no process was created, observed, controlled, or terminated by production behavior;
+- no live Git version or status was collected;
+- no compatibility decision, runtime activation, API/UI/runner wiring, credential/env/network access, Avanza/trading behavior, persistence, migration, deployment, commit, push, or merge occurred.
+
+Validation snapshot during implementation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 592 suite: 26 passed;
+- scoped ESLint on changed TypeScript files: passed.
+
+Decision: `post_trade_pure_read_only_git_porcelain_status_observation_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_porcelain_status_observation_action_592_implemented_fixture_only`.
+
+Recommended next Action: Action 593 - Static Security and Contract Review of Pure Read-Only Git Porcelain Status Observation Contract.
+
+### Action 593 - Pure Read-Only Git Porcelain Status Observation Static Security Review
+
+Performed an independent static security and contract review of the uncommitted Action 592 pure read-only Git porcelain-status observation interpretation contract. No implementation behavior, tests, runtime wiring, API/UI/runner path, Git execution, repository inspection, process creation/observation, credential/environment/network access, Avanza/trading behavior, persistence, migration, deployment, commit, push, or merge occurred.
+
+Files created:
+
+- `docs/pure-read-only-git-porcelain-status-observation-action-593-static-security-review.md`;
+- `docs/pure-read-only-git-porcelain-status-observation-action-593-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 0.
+
+Review verdicts:
+
+- pure boundary, identity/version, input revalidation, byte decoding, record framing, XY-table closure, classification, submodule posture, path privacy, limits, clean/dirty union, record summaries, fingerprints, reason model, schema closure, determinism/immutability, authority posture, test quality, export surface, runtime reachability, and prohibited-operation checks passed;
+- migration limitation remains the unrelated baseline absence of `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`; Action 592 did not modify migrations, authorization tests, persistence, migration imports, or test discovery.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 592 suite: 26 passed;
+- byte-completion suite: 45 passed;
+- simple-observation, Apple Git parser, and generic Git parser suites: 179 passed;
+- dormant orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suites: 163 passed;
+- resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 871 passed;
+- scoped ESLint on changed TypeScript files: passed.
+
+Non-authorizations:
+
+- approval does not authorize Git status execution, repository inspection, process creation or observation, repository-read authority, runner implementation, aggregate repository eligibility, runtime/API/UI/runner activation, compatibility decisions, credentials, environment or network access, Avanza/trading behavior, persistence, migration action, deployment, commit, push, or merge.
+
+Decision: `post_trade_pure_read_only_git_porcelain_status_observation_contract_static_security_review_approved`.
+
+Result status: `post_trade_pure_read_only_git_porcelain_status_observation_action_593_review_completed`.
+
+Recommended next Action: Action 594 - Plan Pure Aggregate Read-Only Git Repository Observation Contract.
+
 ### Action 585 - Pure Read-Only Git Porcelain Status Observation Contract Plan
 
 Planned the smallest safe pure, fixture-only read-only Git porcelain status observation contract. This was documentation, evidence, byte-format, parser-policy, and approval-gate work only. No porcelain-status parser, Git runner, production repository-inspection command, compatibility evaluation, runtime/API/UI/runner wiring, credentials, environment access, network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy behavior was introduced.
