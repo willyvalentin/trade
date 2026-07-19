@@ -8511,6 +8511,83 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 585 - Pure Read-Only Git Porcelain Status Observation Contract Plan
+
+Planned the smallest safe pure, fixture-only read-only Git porcelain status observation contract. This was documentation, evidence, byte-format, parser-policy, and approval-gate work only. No porcelain-status parser, Git runner, production repository-inspection command, compatibility evaluation, runtime/API/UI/runner wiring, credentials, environment access, network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Files created:
+
+- `docs/read-only-git-porcelain-status-contract-action-585.md`;
+- `docs/read-only-git-porcelain-status-architecture-action-585.md`;
+- `docs/read-only-git-porcelain-status-action-585-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- Action 584 checkpoint commit: `ee3ca6d Add reviewed pure read-only Git observation contracts`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Command contract:
+
+- exact argv: `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`;
+- planned capability: `git_porcelain_status_v1`;
+- planned purpose: `git_porcelain_status`;
+- no omitted flags, reordered flags, pathspecs, caller config, alternate ignored-file mode, rename mode, submodule mode, porcelain v2, human-readable output, or arbitrary status flags are approved.
+
+Architecture decision:
+
+- selected Option B: implement a separate pure byte-oriented porcelain completion-input contract first, then implement the parser separately;
+- rejected extending the Action 581 text-oriented observation-completion contract because porcelain `-z` output can contain invalid UTF-8 and NUL-oriented raw pathname bytes;
+- selected fixture representation: lowercase even-length `stdoutBytesHex` plus exact byte counts.
+
+Planned grammar and semantics:
+
+- empty stdout bytes mean clean;
+- non-empty records are byte-oriented `X Y SP PATH NUL`;
+- accepted initial categories include ordinary tracked statuses, `??` untracked records, and documented unmerged pairs;
+- `R`/`C` rename/copy records reject under `--no-renames`;
+- `!!` ignored records reject because `--ignored` is absent;
+- final interpreted evidence should retain path fingerprints, byte lengths, ordered record fingerprints, aggregate path-list fingerprint, counts, and breakdowns, but not plaintext path bytes.
+
+Limits:
+
+- raw stdout: 65536 bytes;
+- record count: 2048;
+- per-path bytes: 4096;
+- cumulative path bytes: 65536;
+- stderr: 0 bytes;
+- no truncation, repair, fallback, or count-only accepted result.
+
+Recommended next Action: Action 586 - Implement Pure Byte-Oriented Porcelain Status Completion Input Contract.
+
+Static reachability note:
+
+- pre-existing dormant migration-preflight porcelain-status references remain in `lib/post-trade-read-only-live-staging-migration-preflight-runner-core.ts` and related tests;
+- Action 585 did not modify or activate them, and they do not implement the exact planned `-z` tuple.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- simple-observation, Apple parser, generic parser, Git-version orchestrator, neutralization, and raw-completion group: 263 passed;
+- direct-spawn, revalidation, dormant composition, pure composition, resolver/security, and Action 533 group: 1124 passed;
+- broad dormant/process/credential/CLI/authorization group: 871 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TS/JS files changed;
+- static production-source diff review: passed, no production TS/JS file changed;
+- static export-surface review: passed, docs-only diff;
+- static runtime-reachability review: passed for Action 585 changes, with the pre-existing dormant references noted above;
+- static prohibited-operation review: passed, docs-only non-authorization references only;
+- migration-suite baseline limitation check: passed as unrelated baseline limitation because `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent;
+- final `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_read_only_git_porcelain_status_observation_contract_plan_ready`.
+
+Result status: `post_trade_read_only_git_porcelain_status_action_585_planning_gate_completed`.
+
 ### Action 583 - Pure Read-Only Git Simple Observation Contract Review Remediation
 
 Remediated the four Action 582 medium-severity findings against the uncommitted Action 581 pure read-only Git simple observation contracts. This was pure contract validation and test remediation only. No Git command was executed through production behavior, no process was created or observed, no repository facts were collected by the product chain, no porcelain-status parser was added, no Git runner or server-only wrapper was added, no compatibility decision was made, and no runtime/API/UI/runner, credential, environment, network, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was introduced.
