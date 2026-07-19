@@ -8798,6 +8798,65 @@ Result status: `post_trade_read_only_git_activation_capability_action_579_comple
 
 Recommended next Action: Action 580 - Plan Pure Read-Only Git Observation Output Contracts.
 
+### Action 580 - Read-Only Git Observation Output Contracts
+
+Planned the pure, deterministic, fixture-only output interpretation contracts required for the five read-only Git capabilities approved by Action 579. This was documentation, architecture, output-contract planning, and approval-gate work only. No Git runner, repository-inspection execution, output parser, compatibility evaluator, production compatibility-policy module, parser change, orchestrator change, neutralizer/raw/direct-spawn/resolver/composition/revalidation change, runtime/API/UI/runner wiring, credential/environment/network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/read-only-git-observation-output-contracts-action-580.md`;
+- `docs/read-only-git-observation-output-architecture-action-580.md`;
+- `docs/read-only-git-observation-output-action-580-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Architecture decision:
+
+- Selected separate top-level pure contract per command with small shared primitive validators only where semantics are identical.
+- Rejected a generic Git-output dispatcher.
+- Planned contracts: repository root, object format, HEAD object ID, branch/detached state, and porcelain status.
+
+Common input eligibility:
+
+- Each future output contract must accept only reviewed raw-completion evidence for its corresponding exact Git tuple, with matching source spawn, session, purpose, tool, executable, platform, argv, and no-authority/no-runtime/no-network/no-credential posture.
+- The current raw-completion contract is bound to `git --version`; future implementation needs a reviewed repository-observation raw evidence shape before these output contracts can be implemented.
+
+Contract planning:
+
+- Root output accepts one bounded absolute POSIX path line with optional one final LF, but proves no filesystem truth.
+- Object-format output accepts only `sha1` or `sha256`.
+- HEAD output requires accepted object-format evidence from the same sequence and rejects abbreviations, uppercase hex, wrong length, symbolic names, and all-zero IDs.
+- Branch output is a closed attached/detached union: exit `0` with a narrow short branch ref, or exit `1` with empty stdout/stderr for detached HEAD.
+- Porcelain status output is deferred for a separate action because NUL-delimited path bytes, invalid UTF-8, unmerged records, submodules, and privacy-preserving path fingerprints require a larger review.
+
+Sequencing:
+
+- Selected future sequence: root -> object format -> HEAD-before -> branch -> status -> HEAD-after.
+- Future aggregate must reject if HEAD changes during observation.
+- `toctouEliminated:false` remains required.
+
+Implementation-order decision:
+
+- Selected Option 2: implement root, object-format, HEAD, and branch contracts first; defer porcelain status.
+
+Decision: `post_trade_read_only_git_observation_output_contracts_plan_ready`.
+
+Result status: `post_trade_read_only_git_observation_output_action_580_planning_gate_completed`.
+
+Recommended next Action: Action 581 - Implement Pure Read-Only Git Root, Object-Format, HEAD, and Branch Observation Contracts.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused suites passed: Apple parser 64, generic Git parser 62, orchestrator 20, neutralization 15, raw completion 49, direct-spawn 19, revalidation 30, dormant composition 17, pure composition 13, resolver/security 491, Action 533 181;
+- broad dormant/process/credential/CLI/authorization group: passed, 871 tests;
+- scoped ESLint on changed TS/JS files: not applicable because no TS/JS files changed;
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0`: passed;
+- static production-source, export-surface, runtime-reachability, and prohibited-operation reviews passed with docs-only changes;
+- migration-suite baseline limitation remains the pre-existing missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` file.
+
 Validation:
 
 - `./node_modules/.bin/tsc --noEmit`: passed;
