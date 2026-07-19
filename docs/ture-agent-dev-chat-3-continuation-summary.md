@@ -8691,6 +8691,65 @@ Result status: `post_trade_pure_apple_git_version_interpretation_contract_action
 
 Recommended next Action: Action 578 - Resume Git Compatibility Baseline Derivation with Apple Git Interpretation Evidence.
 
+### Action 578 - Apple Git Compatibility Baseline
+
+Resumed Git compatibility baseline derivation using the approved pure Apple Git interpretation evidence. This was documentation, evidence, policy-baseline, and approval-gate work only. No compatibility evaluator, production compatibility-policy module, parser change, orchestrator change, neutralization/raw/direct-spawn/resolver/composition/revalidation change, production Git execution path, runtime/API/UI/runner wiring, credential/environment/network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/apple-git-compatibility-baseline-action-578.md`;
+- `docs/apple-git-compatibility-policy-options-action-578.md`;
+- `docs/apple-git-compatibility-baseline-action-578-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- Action 577 checkpoint commit: `8aafdf2 Add reviewed pure Apple Git version parser`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Current evidence:
+
+- canonical executable `/usr/bin/git`;
+- reviewed macOS / Apple Command Line Tools environment;
+- observed output `git version 2.39.5 (Apple Git-154)`;
+- upstream parsed version `2.39.5`;
+- Apple vendor identity `Apple Git`;
+- Apple build `154`;
+- CLT package receipt `com.apple.pkg.CLTools_Executables`;
+- CLT package version `16.4.0.0.1.1747106510`;
+- generic parser remains strict and unchanged;
+- Apple parser is pure, fixture-only, reviewed, and non-authoritative.
+
+Compatibility dimensions:
+
+- output-grammar compatibility is resolved for the reviewed Apple parser grammar;
+- command-capability compatibility remains unresolved for future activation;
+- Apple-packaging compatibility remains evidence, not a policy floor;
+- security compatibility remains unresolved for future repository inspection;
+- runtime/deployment readiness remains out of scope and unauthorized.
+
+Policy conclusion:
+
+- the current dormant chain requires only exact `/usr/bin/git`, exact `["--version"]`, ordinary zero-exit completion, empty stderr, bounded valid UTF-8 stdout, exact Apple output grammar, and successful pure Apple interpretation;
+- a numeric baseline for only that dormant chain would be tautological;
+- future repository-inspection commands remain structurally present in a dormant runner catalog but are not yet approved as the exact activation capability contract for this compatibility policy;
+- Apple build/package semantics remain underdocumented for a numeric minimum or exact allowlist before the future command/security requirements are known.
+
+Selected decision option:
+
+- `OPTION 2 - ACTIVATION CAPABILITY CONTRACT REQUIRED`.
+
+Decision: `post_trade_apple_git_compatibility_policy_baseline_unresolved_pending_read_only_activation_capability_contract`.
+
+Result status: `post_trade_git_compatibility_baseline_action_578_completed_unresolved`.
+
+Recommended next Action: Action 579 - Define Exact Read-Only Git Activation Capability Contract.
+
 Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
 
 Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
