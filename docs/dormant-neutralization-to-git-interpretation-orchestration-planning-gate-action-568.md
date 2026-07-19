@@ -174,7 +174,7 @@ The future orchestration result must bind:
 - direct-spawn result fingerprint;
 - direct-spawn evidence fingerprint;
 - direct-spawn observation fingerprint;
-- accepted revalidation fingerprints;
+- accepted revalidation lineage, as transitively represented through the direct-spawn result/evidence fingerprints;
 - neutralization result fingerprint;
 - pure raw-completion result and evidence fingerprints;
 - raw stdout fingerprint from the parser evidence when interpretation is attempted;
@@ -183,6 +183,8 @@ The future orchestration result must bind:
 - orchestration result fingerprint.
 
 Every stage must bind session, purpose, tool, platform, policy, executable, argv, source timestamps, contract identities, and contract versions. A changed stage fingerprint must invalidate downstream orchestration evidence or force rejection. Fingerprints remain evidence only and grant no provenance or authority by themselves.
+
+Action 572 clarification: the Action 569-571 orchestrator does not expose or independently verify a standalone revalidation fingerprint. Revalidation lineage is bound transitively through the verified direct-spawn result/evidence fingerprints and neutralizer/raw source-spawn linkage.
 
 ## Time Model
 

@@ -108,7 +108,7 @@ Unknown internal failures must map to `unexpected_internal_failure` without expo
 directSpawn.resultFingerprint
 directSpawn.evidence.evidenceFingerprint
 directSpawn.observationFingerprint
-accepted revalidation fingerprints
+accepted revalidation lineage through direct-spawn result/evidence fingerprints
   -> neutralization.resultFingerprint
   -> rawCompletion.resultFingerprint
   -> rawCompletion.evidence.evidenceFingerprint
@@ -118,6 +118,8 @@ accepted revalidation fingerprints
 ```
 
 Every edge binds session, purpose, tool `git`, platform `macos`, executable `/usr/bin/git`, argv `["--version"]`, policy ids, contract ids, and versions. Fingerprints prove deterministic linkage only; they are not authority.
+
+Action 572 clarification: the Action 569-571 orchestrator keeps `sourceRevalidationFingerprint` null and does not add a standalone revalidation-fingerprint field. Revalidation lineage is transitive through the accepted direct-spawn result/evidence fingerprints and neutralizer/raw source-spawn linkage.
 
 ## Time Model
 
