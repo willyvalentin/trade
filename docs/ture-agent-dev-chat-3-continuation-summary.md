@@ -7724,3 +7724,74 @@ Recommended next Action: Action 563 - Plan Live Spawn-to-Raw-Completion Neutrali
 Decision: `post_trade_pure_git_version_interpretation_contract_static_security_review_approved`.
 
 Result status: `post_trade_pure_git_version_interpretation_contract_action_562_review_completed`.
+
+### Action 563 - Plan Dormant Live Spawn-to-Raw-Completion Neutralization Boundary
+
+Created a documentation-only planning gate for the future dormant server-only boundary that may bridge the approved live direct-spawn lifecycle result into the approved pure raw process completion evidence contract. No implementation was added. The direct-spawn adapter, pure raw-completion contract, and pure Git-version parser were not modified. No executable was run, no process was created or observed, no Git version was collected, no live neutralization occurred, no credentials/environment/network behavior occurred, no runtime/API/UI/runner path was activated, no Avanza/trading behavior changed, no persistence behavior occurred, and no deployment occurred.
+
+Files created:
+
+- `docs/live-spawn-to-raw-completion-neutralization-planning-gate-action-563.md`;
+- `docs/live-spawn-to-raw-completion-neutralization-architecture-action-563.md`;
+- `docs/live-spawn-to-raw-completion-neutralization-action-563-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved chain checkpoint:
+
+- live chain: server-only live resolver -> dormant live composition -> immediate pre-spawn revalidation -> fixed dormant direct spawn -> original private spawn provenance -> immutable non-authoritative spawn lifecycle evidence;
+- pure chain: pure raw process completion evidence contract -> pure Git-version interpretation contract;
+- these chains remain unconnected.
+
+Trust problem:
+
+- the next boundary must consume exactly one original production-valid direct-spawn result, verify private original-object provenance, reject clones/replay/mutation/cross-session/cross-purpose/cross-tool/cross-platform/cross-policy/cross-boundary and authority-bearing evidence, and emit only neutral pure-compatible raw-completion input.
+
+Recommended source-state decision:
+
+- support complete deterministic terminal-state mapping only for live source states with exact reviewed evidence;
+- unsupported or underspecified states must fail closed in the neutralizer and must not be converted into `malformed_completion_evidence`.
+
+Recommended provenance bridge:
+
+- a boundary-specific server-only consume operation owned by the direct-spawn module for raw-completion neutralization;
+- generic verifiers, exported tokens, symbols, brands, signatures, serialized evidence, and persisted proofs remain rejected.
+
+Neutral output classification:
+
+- use the existing pure raw-completion classification `fixture_synthetic` and `fixture_only_not_live_observation`;
+- keep `observedLiveProcess:false`, `authority:"none"`, and `toctouEliminated:false`;
+- do not preserve private live provenance inside pure evidence.
+
+Parser separation:
+
+- neutralization must not parse Git output;
+- successful neutralization does not imply pure Git parser acceptance;
+- parser acceptance does not imply live provenance, runtime activation, staging readiness, deployment readiness, or execution authority.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 13 passed;
+- resolver/pure-composition suites: 29 passed;
+- trusted resolver/security plus Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1211 passed;
+- scoped ESLint on changed TS/JS files: not applicable, no TS/JS files changed;
+- `git diff --check`: passed;
+- static export-surface review: passed, no production runtime/module files changed;
+- static runtime-reachability review: passed, no Action 563 runtime hook found;
+- static prohibited-operation review: passed for this docs-only action; production modules were not modified;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Recommended next Action: Action 564 - Implement Dormant Server-Only Spawn-to-Raw-Completion Neutralization Adapter.
+
+Decision: `post_trade_live_spawn_to_raw_completion_neutralization_boundary_plan_ready`.
+
+Result status: `post_trade_live_spawn_to_raw_completion_neutralization_action_563_planning_gate_completed`.
