@@ -8605,6 +8605,92 @@ Result status: `post_trade_apple_git_version_output_action_575_completed_separat
 
 Recommended next Action: Action 576 - Implement Pure Apple Git Version Interpretation Contract.
 
+### Action 576 - Pure Apple Git Version Interpretation Contract
+
+Implemented a separate pure Apple Git version interpretation contract for the Action 575 grammar decision. This was fixture-only parser work. It did not change the generic Git parser, did not execute Git, did not collect a live CLI version, did not activate orchestration, did not evaluate compatibility, and did not wire API, UI, runner, runtime, direct-spawn, resolver, neutralization, raw-completion, revalidation, composition, credential, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior.
+
+Files created:
+
+- `lib/post-trade-pure-apple-git-version-interpretation-contract-core.ts`;
+- `tests/e2e/post-trade-pure-apple-git-version-interpretation-contract.spec.ts`;
+- `docs/pure-apple-git-version-interpretation-contract-action-576.md`;
+- `docs/pure-apple-git-version-interpretation-action-576-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Contract identity:
+
+- contract ID: `ture.execution.pure-apple-git-version-interpretation-contract.fixture.v1`;
+- boundary ID: `ture.execution.apple-git-version-interpretation.fixture-boundary.v1`;
+- grammar ID: `ture.execution.apple-git-version-grammar.exact-upstream-three-component-apple-build-integer.v1`;
+- normalization ID: `ture.execution.apple-git-version-normalization.optional-single-final-lf.v1`.
+
+The contract accepts only rebuilt and fingerprint-verified pure raw-completion evidence for macOS `/usr/bin/git --version`, zero-exit, empty-stderr completion. Accepted stdout must match exactly `git version M.m.p (Apple Git-B)` with optional exactly one final LF. The output separates upstream Git version metadata from Apple vendor/build metadata.
+
+All accepted and rejected results remain `fixtureOnly:true`, `observedLiveProcess:false`, `authoritativeLive:false`, `authority:"none"`, `runtimeActivated:false`, `compatibilityAuthorityGranted:false`, and `toctouEliminated:false`.
+
+Focused Action 576 suite: 64 tests passed.
+
+Decision: `post_trade_pure_apple_git_version_interpretation_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_apple_git_version_interpretation_contract_action_576_implemented_fixture_only`.
+
+Recommended next Action: Action 577 - Static Security and Contract Review of Pure Apple Git Version Interpretation Contract.
+
+### Action 577 - Pure Apple Git Version Interpretation Static Security Review
+
+Independently reviewed the uncommitted Action 576 pure Apple Git version interpretation contract. This was review-only. No implementation behavior, tests, parser code, raw-completion code, neutralization/orchestration/direct-spawn/resolver/composition/revalidation behavior, compatibility policy, runtime/API/UI/runner wiring, persistence, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/pure-apple-git-version-interpretation-action-577-static-security-review.md`;
+- `docs/pure-apple-git-version-interpretation-action-577-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Review verdicts:
+
+- pure boundary, identity/version, raw-input validation, platform eligibility, completion eligibility, stderr policy, Apple grammar, upstream version rules, Apple build rules, normalization, reason precedence, output schema, schema closure, fingerprinting, determinism/immutability, generic parser separation, compatibility/authority separation, test quality, export surface, runtime reachability, and prohibited-operation review: passed;
+- findings: critical 0, high 0, medium 0, low 0, informational 1;
+- `A577-INFO-001`: `apple_build_range_rejected` is currently unreachable because the eight-digit Apple build cap already limits values to the configured maximum. No approval impact.
+
+Migration-suite limitation:
+
+- `tests/e2e/post-trade-durable-authorization-consumption-migration-static.spec.ts` remains blocked before test discovery because `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is absent in this checkout;
+- classified as unrelated baseline limitation because Action 576 did not modify migrations, authorization code, test discovery, or migration tests.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- scoped ESLint on changed TS/JS files: passed;
+- Action 576 Apple parser suite: 64 passed;
+- generic Git parser suite: 62 passed;
+- orchestrator suite: 20 passed;
+- neutralization suite: 15 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- dormant composition suite: 17 passed;
+- pure composition suite: 13 passed;
+- resolver/security suites: 491 passed;
+- Action 533 cross-boundary suite: 181 passed;
+- broad dormant/process/credential/CLI/authorization group excluding the independently blocked migration-static import: 871 passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Approval does not authorize process creation, observation, control, termination, Git execution, live Apple Git-version collection, Git compatibility decisions, parser-selection orchestration, runtime/API/UI/runner activation, credentials, environment access, network access, Avanza/trading behavior, persistence, or deployment.
+
+Decision: `post_trade_pure_apple_git_version_interpretation_contract_static_security_review_approved`.
+
+Result status: `post_trade_pure_apple_git_version_interpretation_contract_action_577_review_completed`.
+
+Recommended next Action: Action 578 - Resume Git Compatibility Baseline Derivation with Apple Git Interpretation Evidence.
+
 Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
 
 Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
