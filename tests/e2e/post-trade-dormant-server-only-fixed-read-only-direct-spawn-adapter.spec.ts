@@ -233,7 +233,9 @@ function wrapperHarness(spawnImpl: (path: string, argv: readonly string[], optio
     .replace(/import type \{ ImmediatePreSpawnRevalidationResult \} from "@\/lib\/post-trade-dormant-server-only-immediate-pre-spawn-revalidation-adapter-core";\n/u, "")
     .replace(/export \* from "@\/lib\/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter-core";\n/u, "")
     .replace(/export type DormantServerOnlyFixedReadOnlyDirectSpawnInput = Readonly<\{[\s\S]*?\}>;\n/u, "")
-    .replace("export async function spawnDormantServerOnlyFixedReadOnlyGitVersion", "async function spawnDormantServerOnlyFixedReadOnlyGitVersion");
+    .replace(/export type FixedReadOnlyDirectSpawnForRawCompletionNeutralizationConsumption = Readonly<[\s\S]*?\n>;\n/u, "")
+    .replace("export async function spawnDormantServerOnlyFixedReadOnlyGitVersion", "async function spawnDormantServerOnlyFixedReadOnlyGitVersion")
+    .replace("export function consumeOriginalFixedReadOnlyDirectSpawnForRawCompletionNeutralization", "function consumeOriginalFixedReadOnlyDirectSpawnForRawCompletionNeutralization");
   const js = ts.transpileModule(`${sourceText}\nreturn { spawnDormantServerOnlyFixedReadOnlyGitVersion };`, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,

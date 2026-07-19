@@ -7795,3 +7795,291 @@ Recommended next Action: Action 564 - Implement Dormant Server-Only Spawn-to-Raw
 Decision: `post_trade_live_spawn_to_raw_completion_neutralization_boundary_plan_ready`.
 
 Result status: `post_trade_live_spawn_to_raw_completion_neutralization_action_563_planning_gate_completed`.
+
+### Action 564 - Dormant Server-Only Spawn-to-Raw-Completion Neutralization Adapter
+
+Implemented the dormant server-only spawn-to-raw-completion neutralization adapter. The direct-spawn server-only module now owns a private original-object provenance bridge for production-valid direct-spawn results and exposes only a boundary-specific one-shot consume operation for raw-completion neutralization. The new neutralizer consumes one original direct-spawn result, maps exact reviewed lifecycle/output facts into the approved pure raw-completion contract input, invokes the approved pure raw-completion builder, and returns deeply frozen neutral non-authoritative evidence.
+
+Files created:
+
+- `lib/post-trade-dormant-server-only-spawn-to-raw-completion-neutralization-adapter.ts`;
+- `lib/post-trade-dormant-server-only-spawn-to-raw-completion-neutralization-adapter-core.ts`;
+- `tests/e2e/post-trade-dormant-server-only-spawn-to-raw-completion-neutralization-adapter.spec.ts`;
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-adapter-action-564.md`;
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-564-checkpoint.md`.
+
+Files modified:
+
+- `lib/post-trade-dormant-server-only-fixed-read-only-direct-spawn-adapter.ts`;
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Production API:
+
+- `neutralizeOriginalFixedReadOnlyDirectSpawnToRawCompletion({ directSpawnResult })`;
+- accepts only the original production-valid `FixedReadOnlyDirectSpawnResult`;
+- accepts no caller lifecycle facts, output, timestamps, policy, paths, parser options, dependencies, clock, test mode, or process handle.
+
+Provenance bridge:
+
+- private direct-spawn result/evidence provenance;
+- one-shot consumption before neutralization output construction;
+- no generic verifier, token, symbol, brand, reset, minting helper, replay state, child handle, or live provenance marker is exported.
+
+Supported source states:
+
+- spawn failure before process creation;
+- normal zero exit;
+- normal non-zero exit;
+- signal termination;
+- asynchronous child-process error;
+- stdout overflow;
+- stderr overflow;
+- combined overflow.
+
+Rejected source states for Action 564:
+
+- stdout stream error;
+- stderr stream error;
+- invalid output encoding;
+- unexpected stream chunk;
+- close without exit;
+- internal terminal state with process death unconfirmed.
+
+Neutral classification:
+
+- pure output remains `fixture_synthetic` and `fixture_only_not_live_observation`;
+- `observedLiveProcess:false`;
+- `authority:"none"`;
+- `toctouEliminated:false`;
+- private live provenance is not transferred into pure evidence.
+
+No executable was run. No process was created or observed. No child handle was transferred. No process was terminated. No Git version was collected or parsed. No credentials, environment values, network, Avanza, trading, order, position, settlement, persistence, API, UI, runner, cron, deployment, commit, push, merge, or production behavior occurred.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- new Action 564 focused suite: 7 passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 13 passed;
+- resolver/pure-composition suites: 29 passed;
+- trusted resolver/security plus Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1211 passed;
+- scoped ESLint on changed TS/JS files: passed with no warnings after cleanup;
+- `git diff --check`: passed;
+- static server-only/import/export review: passed;
+- static production-API closure review: passed;
+- static provenance-bridge review: passed;
+- static one-shot/concurrency review: passed;
+- static state-mapping review: passed;
+- static raw-output/UTF-8 review: passed;
+- static timestamp/freshness review: passed;
+- static pure-builder compatibility review: passed;
+- static neutral-classification review: passed;
+- static Git-parser separation review: passed;
+- static authority review: passed;
+- static export-surface review: passed;
+- static runtime-reachability review: passed;
+- static prohibited-operation review: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Recommended next Action: Action 565 - Static Security and Contract Review of Dormant Spawn-to-Raw-Completion Neutralization Adapter.
+
+Decision: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_ready_for_static_security_review`.
+
+Result status: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_implemented_not_activated`.
+
+### Action 565 - Static Security Review of Dormant Spawn-to-Raw-Completion Neutralization Adapter
+
+Performed an independent static/security and contract review of the uncommitted Action 564 dormant server-only spawn-to-raw-completion neutralization adapter. No implementation behavior was changed, no supported source state was widened, no Git parser or parser orchestration was added, and no runtime, API, UI, runner, observer, credential, Avanza, trading, persistence, deployment, commit, push, merge, or process-execution path was activated.
+
+Files created:
+
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-565-static-security-review.md`;
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-565-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Review verdict:
+
+- server-only boundary: passed;
+- production API closure: passed;
+- private provenance-root ownership: passed;
+- neutralizer prohibited-operation review: passed;
+- runtime reachability: passed;
+- Git-parser separation: passed;
+- authority model: passed;
+- test coverage: blocked pending remediation.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 4;
+- Low: 0;
+- Informational: 0.
+
+Medium findings:
+
+- `A565-MED-001`: original-object rejection coverage incomplete;
+- `A565-MED-002`: one-shot failure and concurrency coverage incomplete;
+- `A565-MED-003`: source-state and output-limit coverage incomplete;
+- `A565-MED-004`: fingerprint/linkage/session/policy negative coverage incomplete.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 564 focused suite: 7 passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 17 passed;
+- resolver and pure-composition suites: 24 passed;
+- trusted resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 958 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static reachability/prohibited-operation scans: passed for the neutralizer, with only rejected-authority strings in production source.
+
+No executable was run by production code. No process was created, observed, controlled, or terminated. No credentials, environment values, network, Avanza, trading, order, position, settlement, persistence, API, UI, runner, cron, deployment, commit, push, merge, or production behavior occurred.
+
+Recommended next Action: Action 566 - Remediate Spawn-to-Raw-Completion Neutralization Review Findings.
+
+Decision: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_static_security_review_blocked_pending_action_566`.
+
+Result status: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_action_565_review_completed_blocked`.
+
+### Action 566 - Remediate Spawn-to-Raw-Completion Neutralization Review Findings
+
+Remediated the four Action 565 medium findings by expanding focused assurance coverage for the dormant server-only spawn-to-raw-completion neutralization adapter. Production behavior was not modified. No supported source state was widened, no Git parsing or neutralization-to-parser orchestration was added, and no runtime, API, UI, runner, observer, credential, Avanza, trading, persistence, deployment, commit, push, merge, or process-execution path was activated.
+
+Files created:
+
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-566-review-remediation.md`;
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-566-checkpoint.md`.
+
+Files modified:
+
+- `tests/e2e/post-trade-dormant-server-only-spawn-to-raw-completion-neutralization-adapter.spec.ts`;
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Production changes: none.
+
+Finding remediation verdicts:
+
+- `A565-MED-001`: remediated with original-object, reconstruction, clone, exotic object, accessor, symbol, inherited-property, copied-reference, and proxied-result rejection coverage;
+- `A565-MED-002`: remediated with one-shot success, mapping failure, builder rejection after source consumption, duplicate call, Promise-style duplicate call, and independent-original coverage;
+- `A565-MED-003`: remediated with supported-state, unsupported-state, output-limit, UTF-8, byte/text mismatch, overflow-retention, and no-output-repair coverage;
+- `A565-MED-004`: remediated with identity, policy, session, purpose, tool, platform, executable, argv, fingerprint, revalidation-linkage, authority, credential, network, runtime, and live-claim rejection coverage.
+
+Focused neutralization test count:
+
+- before Action 566: 7;
+- after Action 566: 15.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- expanded Action 564/566 focused neutralization suite: 15 passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 17 passed;
+- resolver and pure-composition suites: 24 passed;
+- trusted resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 966 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static reachability/prohibited-operation scans: passed for the neutralizer, with only rejected-authority strings in production source.
+
+No process was created, observed, controlled, or terminated. No executable or Git command was run through production behavior. No Git output was interpreted. No parser orchestration was added. No runtime/API/UI/runner path was activated. No credentials, environment, network, Avanza, trading, persistence, deployment, commit, push, merge, staging readiness, execution readiness, or production readiness was added.
+
+Decision: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_action_565_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_action_566_remediation_completed`.
+
+Recommended next Action: Action 567 - Independent Final Re-Review of Spawn-to-Raw-Completion Neutralization Remediation.
+
+### Action 567 - Independent Final Re-Review of Spawn-to-Raw-Completion Neutralization Remediation
+
+Independently re-reviewed the complete uncommitted Action 564-566 spawn-to-raw-completion neutralization package. No behavior was implemented, no tests were added, no supported source states were widened, no Git parsing or parser orchestration was added, and no runtime, API, UI, runner, observer, credential, Avanza, trading, persistence, deployment, commit, push, merge, or process-execution path was activated.
+
+Files created:
+
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-567-final-re-review.md`;
+- `docs/dormant-server-only-spawn-to-raw-completion-neutralization-action-567-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Action 565 finding verdicts:
+
+- `A565-MED-001`: remediated;
+- `A565-MED-002`: remediated;
+- `A565-MED-003`: remediated;
+- `A565-MED-004`: remediated.
+
+New findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 0.
+
+Final review verdict:
+
+- original-object provenance: approved for dormant retention;
+- mutation/immutability: approved for dormant retention;
+- one-shot success/failure: approved for dormant retention;
+- concurrency/reentrancy: approved for dormant retention;
+- supported-state mapping: approved for dormant retention;
+- unsupported-state rejection: approved for dormant retention;
+- output/UTF-8 semantics: approved for dormant retention;
+- identity/fingerprint/linkage: approved for dormant retention;
+- test quality: approved;
+- production-code integrity: approved;
+- neutral classification: approved;
+- authority model: approved for no-authority neutral output;
+- parser separation: approved;
+- export surface: approved;
+- runtime reachability: approved;
+- prohibited operations: approved for neutralizer scope.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- expanded Action 564/566 focused neutralization suite: 15 passed;
+- Git-version parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- composition suite: 17 passed;
+- resolver and pure-composition suites: 24 passed;
+- trusted resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 966 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static reachability/prohibited-operation scans: passed for the neutralizer, with only rejected-authority strings in production source.
+
+Final approval does not authorize process creation, observation, control, or termination; Git execution or live Git-version collection; Git-version interpretation orchestration; runtime/API/UI/runner activation; credentials, environment, or network; Avanza/trading behavior; persistence; deployment; staging readiness; execution readiness; or production readiness.
+
+Decision: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_final_security_review_approved`.
+
+Result status: `post_trade_dormant_server_only_spawn_to_raw_completion_neutralization_adapter_action_567_final_re_review_completed`.
+
+Recommended next Action: Action 568 - Plan Dormant Neutralization-to-Git-Interpretation Orchestration Boundary.
