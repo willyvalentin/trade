@@ -8511,6 +8511,195 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 583 - Pure Read-Only Git Simple Observation Contract Review Remediation
+
+Remediated the four Action 582 medium-severity findings against the uncommitted Action 581 pure read-only Git simple observation contracts. This was pure contract validation and test remediation only. No Git command was executed through production behavior, no process was created or observed, no repository facts were collected by the product chain, no porcelain-status parser was added, no Git runner or server-only wrapper was added, no compatibility decision was made, and no runtime/API/UI/runner, credential, environment, network, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Files created:
+
+- `docs/pure-read-only-git-simple-observation-action-583-review-remediation.md`;
+- `docs/pure-read-only-git-simple-observation-action-583-checkpoint.md`.
+
+Files modified:
+
+- `lib/post-trade-pure-read-only-git-observation-completion-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-repository-root-interpretation-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-head-object-id-interpretation-contract-core.ts`;
+- `tests/e2e/post-trade-pure-read-only-git-simple-observation-contracts.spec.ts`;
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Remediation verdicts:
+
+- `A582-MED-001`: remediated. Accepted completion-result validation now revalidates exact evidence schema, accepted status/reason, lifecycle, command metadata, authority/runtime/security posture, output consistency, detached branch stdout semantics, and fingerprints before downstream use.
+- `A582-MED-002`: remediated. HEAD object-ID interpretation now strictly validates object-format result/evidence schema, identity, linkage, parsed-value consistency, authority/runtime posture, and fingerprints before using object-format evidence.
+- `A582-MED-003`: remediated. Repository-root grammar now rejects C1 controls U+0080 through U+009F with `control_character_rejected` while preserving ordinary non-ASCII path text.
+- `A582-MED-004`: remediated. Focused suite expanded from 44 to 53 tests covering forged fingerprints, schema attacks, byte boundaries, C1 controls, object-format linkage/security, and detached branch completion semantics.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused simple-observation suite: 53 passed;
+- parser/orchestrator/neutralization/raw-completion group: 263 passed;
+- direct-spawn/revalidation/composition/resolver/security/Action 533 group: 1124 passed;
+- broad dormant/process/credential/CLI/authorization group: 871 passed;
+- scoped ESLint on changed TypeScript/test files: passed;
+- static production pure-import/prohibited-operation scan: passed;
+- static runtime-reachability scan: passed;
+- migration baseline limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains missing;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_read_only_git_simple_observation_action_582_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_pure_read_only_git_simple_observation_action_583_remediation_completed`.
+
+Recommended next Action: Action 584 - Independent Final Re-Review of Pure Read-Only Git Simple Observation Contract Remediation.
+
+### Action 584 - Pure Read-Only Git Simple Observation Final Re-Review
+
+Independently re-reviewed the complete uncommitted Action 581-583 pure read-only Git simple-observation package. This was a final static/security and contract re-review only. No production TypeScript or test behavior was changed in Action 584, and no Git repository-inspection command, process creation/observation, porcelain-status parser, runner, compatibility decision, runtime/API/UI/runner path, credentials, environment access, network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy was introduced.
+
+Files created:
+
+- `docs/pure-read-only-git-simple-observation-action-584-final-re-review.md`;
+- `docs/pure-read-only-git-simple-observation-action-584-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Action 582 finding verdicts:
+
+- `A582-MED-001`: remediated. Completion result validation now requires semantic consistency beyond recomputed fingerprints.
+- `A582-MED-002`: remediated. HEAD validates closed object-format evidence before object-ID parsing.
+- `A582-MED-003`: remediated. Repository-root C1 controls are rejected.
+- `A582-MED-004`: remediated. Focused tests materially cover the reviewed threat model.
+
+New findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 0.
+
+Review verdicts:
+
+- pure-boundary, completion-validation, completion-schema, object-format evidence, HEAD linkage, root C1, byte-limit, lifecycle/detached, reason-model, fingerprint, test-quality, determinism/immutability, authority, parser/status/runner separation, export-surface, reachability, and prohibited-operation reviews: passed;
+- migration-suite limitation result: unrelated baseline limitation because `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent and Action 581-583 did not modify migrations, authorization tests, persistence, or test discovery.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused simple-observation suite: 53 passed;
+- Apple/generic Git-version parser, dormant Git-version orchestrator, neutralization, and raw-completion group: 210 passed;
+- direct-spawn, revalidation, dormant composition, pure composition, resolver/security, and Action 533 group: 1124 passed;
+- broad dormant/process/credential/CLI/authorization group: 871 passed;
+- scoped ESLint on Action 581-583 TypeScript/test files: passed;
+- static reviews: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_read_only_git_simple_observation_contracts_final_security_review_approved`.
+
+Result status: `post_trade_pure_read_only_git_simple_observation_contracts_action_584_final_re_review_completed`.
+
+Recommended next Action: Action 585 - Plan Pure Read-Only Git Porcelain Status Observation Contract.
+
+### Action 581 - Pure Read-Only Git Simple Observation Contracts
+
+Implemented pure, deterministic, fixture-only contracts for four read-only Git observation outputs plus a closed completion-input boundary. The accepted tuples are exactly `git rev-parse --show-toplevel`, `git rev-parse --show-object-format`, `git rev-parse --verify HEAD`, and `git symbolic-ref --quiet --short HEAD`. Porcelain status remains deliberately unimplemented.
+
+Files created:
+
+- `lib/post-trade-pure-read-only-git-observation-completion-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-repository-root-interpretation-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-object-format-interpretation-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-head-object-id-interpretation-contract-core.ts`;
+- `lib/post-trade-pure-read-only-git-branch-state-interpretation-contract-core.ts`;
+- `tests/e2e/post-trade-pure-read-only-git-simple-observation-contracts.spec.ts`;
+- `docs/pure-read-only-git-simple-observation-contracts-action-581.md`;
+- `docs/pure-read-only-git-simple-observation-action-581-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+The new completion boundary accepts only synthetic fixture evidence linked to the dormant fixed read-only direct-spawn adapter, exact `/usr/bin/git`, exact macOS platform, exact purpose `first_live_read_only_staging_preflight`, exact argv metadata, empty stderr, bounded stdout, no retry/fallback, no stream errors, no signal claims, no live-observation claims, no runtime claims, and `authority:"none"`.
+
+The interpretation contracts return immutable non-authoritative evidence for repository root, object format, HEAD object ID, and branch/detached state. HEAD interpretation requires accepted object-format evidence with matching session/source linkage and recomputed object-format evidence/result fingerprints.
+
+No Git command was executed by production behavior. No repository inspection, process spawn, process observation, compatibility decision, runtime/API/UI/runner wiring, credentials, environment access, network access, Avanza/trading behavior, order/position/settlement behavior, persistence, deployment, commit, push, or merge occurred.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 581 focused suite: 44 passed;
+- parser/orchestrator/direct-spawn regression slice: 229 passed;
+- composition/revalidation/resolver/Action 533 regression slice: 731 passed;
+- broad post-trade regression excluding the two known missing-migration module-load blockers: 2773 passed;
+- full broad `post-trade-*.spec.ts` collection remains blocked before execution by the pre-existing missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`;
+- scoped ESLint on changed TypeScript and test files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static export-surface, runtime-reachability, and prohibited-operation reviews: passed.
+
+Decision: `post_trade_pure_read_only_git_simple_observation_contracts_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_simple_observation_contracts_action_581_implemented_fixture_only`.
+
+Recommended next Action: Action 582 - Static Security and Contract Review of Pure Read-Only Git Root, Object-Format, HEAD, and Branch Observation Contracts.
+
+### Action 582 - Static Security Review of Pure Read-Only Git Simple Observation Contracts
+
+Performed an independent static security and contract review of the uncommitted Action 581 package. No implementation behavior was changed, no tests were added, and no porcelain-status contract, Git runner, repository-inspection command, runtime/API/UI/runner wiring, credential/environment/network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/pure-read-only-git-simple-observation-action-582-static-security-review.md`;
+- `docs/pure-read-only-git-simple-observation-action-582-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 4;
+- Low: 0;
+- Informational: 0.
+
+Blocking findings:
+
+- `A582-MED-001`: completion-result validator does not fully revalidate security fields when fingerprints are recomputed;
+- `A582-MED-002`: HEAD object-format input validation does not fully validate object-format schema/security posture;
+- `A582-MED-003`: repository-root parser accepts C1 control characters;
+- `A582-MED-004`: focused tests miss review-required forged-fingerprint, schema, byte-limit, and C1 coverage.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 581 focused suite: 44 passed;
+- parser/orchestrator/direct-spawn regression slice: 229 passed;
+- revalidation/composition/resolver/Action 533 regression slice: 731 passed;
+- full `post-trade-*.spec.ts`: blocked by pre-existing missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`;
+- broad post-trade suite excluding the two known missing-migration blockers: 2773 passed;
+- scoped ESLint on changed TS/test files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Migration-suite verdict: unrelated baseline limitation, not an Action 581 regression. Action 581 did not modify migrations, migration tests, authorization tests, test discovery, or persistence behavior.
+
+Decision: `post_trade_pure_read_only_git_simple_observation_contracts_static_security_review_blocked_pending_corrections`.
+
+Result status: `post_trade_pure_read_only_git_simple_observation_contracts_action_582_review_completed_blocked`.
+
+Recommended next Action: Action 583 - Remediate Pure Read-Only Git Simple Observation Contract Review Findings.
+
 ### Action 575 - Apple Git Version Output Contract and Parser Eligibility
 
 Resolved the platform/output prerequisite identified by Action 574 by choosing a separate pure Apple Git version interpretation contract as the next step. This was documentation, evidence, parser-policy planning, and approval-gate work only. No parser, orchestrator, neutralization, raw-completion, direct-spawn, resolver, composition, revalidation, compatibility evaluator, policy module, runtime, API, UI, runner, credential, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was modified.
