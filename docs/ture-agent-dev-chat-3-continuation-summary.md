@@ -1,5 +1,81 @@
 # Ture Agent Dev Chat 3 Continuation Summary
 
+## Latest Checkpoint - Action 594
+
+Action 594 planned the pure aggregate read-only Git repository observation contract. This was documentation, architecture, aggregate-contract planning, and approval-gate work only.
+
+Created files:
+
+- `docs/pure-aggregate-read-only-git-repository-observation-contract-action-594.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-architecture-action-594.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-action-594-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Approved baseline:
+
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- baseline HEAD: `a1b80ca Add reviewed pure porcelain status observation contract`;
+- initial worktree: clean.
+
+Approved observation chain:
+
+1. repository-root evidence;
+2. object-format evidence;
+3. HEAD-before evidence;
+4. branch/detached evidence;
+5. porcelain-status evidence;
+6. HEAD-after evidence.
+
+Planning decisions:
+
+- selected one pure aggregate builder accepting full stage evidence objects and approved worktree linkage;
+- selected fixed stage slots plus one common observation-sequence identity;
+- planned exact per-stage schema, fingerprint, linkage, and no-authority revalidation;
+- planned root/worktree matching by one reviewed comparison only, with no filesystem access or symlink resolution;
+- planned object-format/HEAD linkage for `sha1` and `sha256`;
+- planned `head_changed_during_observation` as a closed unstable result when HEAD-before differs from HEAD-after;
+- planned detached HEAD and dirty repository as valid non-authoritative observation outcomes with no later activation eligibility;
+- planned a closed aggregate union with no `ready` state;
+- required `toctouEliminated:false` and `authority:"none"` for every aggregate result.
+
+Recommended next Action:
+
+Action 595 - Implement Pure Aggregate Read-Only Git Repository Observation Contract.
+
+No aggregate contract, Git runner, repository-inspection command execution, compatibility evaluator, production policy module, parser change, orchestrator change, neutralizer/raw/direct-spawn/resolver/composition/revalidation change, runtime/API/UI/runner wiring, credential/environment/network access, Avanza/trading behavior, persistence, migration action, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- porcelain-status suite: 26 passed after rerunning with Playwright report-file write permission;
+- byte-completion, simple-observation, Apple parser, and generic parser group: 224 passed;
+- Git-version orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition group: 163 passed;
+- resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- `git diff --check`: passed;
+- static production-source diff review: passed, no `lib`, `app`, `components`, `tests`, or `supabase` files changed;
+- static export-surface review: passed, docs-only diff;
+- static runtime-reachability review: passed, no app/lib/component/test references to the planned aggregate implementation;
+- static prohibited-operation review: passed, no production TS/JS files changed;
+- migration-suite baseline limitation check: unchanged unrelated limitation, `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+The first porcelain-status Playwright attempt hit the known sandbox `EPERM` on `test-results/.last-run.json`; the same command was rerun with permission for Playwright to write its local report file and passed.
+
+Decision:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_contract_plan_ready`
+
+Result status:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_594_planning_gate_completed`
+
 ## Latest Checkpoint - Action 591
 
 Action 591 independently re-reviewed the complete uncommitted Action 586-590 pure byte-oriented porcelain-status completion package.
