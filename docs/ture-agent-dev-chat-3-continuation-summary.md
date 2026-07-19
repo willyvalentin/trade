@@ -8511,6 +8511,100 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 575 - Apple Git Version Output Contract and Parser Eligibility
+
+Resolved the platform/output prerequisite identified by Action 574 by choosing a separate pure Apple Git version interpretation contract as the next step. This was documentation, evidence, parser-policy planning, and approval-gate work only. No parser, orchestrator, neutralization, raw-completion, direct-spawn, resolver, composition, revalidation, compatibility evaluator, policy module, runtime, API, UI, runner, credential, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was modified.
+
+Files created:
+
+- `docs/apple-git-version-output-contract-action-575.md`;
+- `docs/apple-git-parser-eligibility-options-action-575.md`;
+- `docs/apple-git-version-output-action-575-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- Action 574 checkpoint commit: `59e7fec Add Git capability inventory and compatibility baseline`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Evidence:
+
+- `/usr/bin/git --version`: `git version 2.39.5 (Apple Git-154)`;
+- active developer directory: `/Library/Developer/CommandLineTools`;
+- `/usr/bin/git` is a regular executable Mach-O universal binary;
+- code signature identifier: `com.apple.dt.xcode_select.tool-shim`;
+- Command Line Tools package receipt: `com.apple.pkg.CLTools_Executables`, version `16.4.0.0.1.1747106510`;
+- evidenced stdout with final LF is 35 bytes.
+
+Primary-source findings:
+
+- Apple documents Command Line Tools installation under `/Library/Developer/CommandLineTools`, active developer-directory selection through `xcode-select`, and package-version inspection through `pkgutil`;
+- Apple TN2339 states macOS includes command-line tool shims or wrappers;
+- Git docs state `git --version` is equivalent to `git version` and prints the Git suite version;
+- Apple public docs reviewed do not define a stable `Apple Git-N` suffix grammar.
+
+Parser incompatibility:
+
+- the current parser accepts only `git version <major>.<minor>.<patch>` plus optional final LF;
+- the Apple output suffix contains whitespace, parentheses, letters, and a hyphen;
+- current rejection is `suffix_rejected` and `version_grammar_rejected`;
+- no parser code changed.
+
+Chosen option:
+
+- add a separate pure Apple Git version interpretation contract;
+- keep the existing generic strict parser unchanged;
+- reject parser v2, canonical executable change, and silent suffix stripping for this stage.
+
+Future grammar:
+
+- exact `git version M.m.p (Apple Git-B)`;
+- exact punctuation and case-sensitive `Apple Git` label;
+- one numeric Apple build component only for the initial contract;
+- optional one final LF, empty stderr, no extra text, no localization, no ANSI/control/NUL/CR, and no broad trim or normalization.
+
+Compatibility impact:
+
+- compatibility baseline remains unresolved;
+- future policy likely needs upstream Git version plus Apple build/package provenance;
+- parser acceptance remains non-authoritative and does not imply compatibility.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- orchestrator suite: 20 passed;
+- neutralization suite: 15 passed;
+- Git parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- dormant composition suite: 17 passed;
+- pure composition suite: 13 passed;
+- resolver/security group: 515 passed;
+- Action 533 cross-boundary suite: 181 passed;
+- broad dormant/process/credential/CLI/authorization group: 1068 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- `git diff --check`: passed;
+- static production-source diff review: passed, no production TS/JS files changed;
+- static export-surface review: passed, docs-only diff;
+- static runtime-reachability review: passed, no app/lib/test Apple parser implementation path exists;
+- static prohibited-operation review: passed by docs-only diff and no changed production TS/JS files;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
+
+Decision: `post_trade_apple_git_version_output_contract_resolved_separate_parser_required`.
+
+Result status: `post_trade_apple_git_version_output_action_575_completed_separate_parser_planned`.
+
+Recommended next Action: Action 576 - Implement Pure Apple Git Version Interpretation Contract.
+
 Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
 
 Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
