@@ -8750,6 +8750,64 @@ Result status: `post_trade_git_compatibility_baseline_action_578_completed_unres
 
 Recommended next Action: Action 579 - Define Exact Read-Only Git Activation Capability Contract.
 
+### Action 579 - Read-Only Git Activation Capability Contract
+
+Defined the smallest exact read-only Git activation capability contract required before any future separately reviewed repository-inspection boundary. This was documentation, architecture, capability-definition, and approval-gate work only. No Git runner, repository inspection, compatibility evaluator, production compatibility-policy module, parser change, orchestrator change, neutralizer/raw/direct-spawn/resolver/composition/revalidation change, production Git execution path, runtime/API/UI/runner wiring, credential/environment/network access, Avanza/trading behavior, persistence, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/read-only-git-activation-capability-contract-action-579.md`;
+- `docs/read-only-git-capability-architecture-action-579.md`;
+- `docs/read-only-git-activation-capability-action-579-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- Action 578 checkpoint commit: `0a1b23d Add Apple Git compatibility baseline assessment`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Selected observation set:
+
+- narrowed Option C: repository root identity, current branch or detached state, HEAD object identity, Git object format, staged/unstaged/untracked cleanliness, unmerged/conflict state from status, and worktree identity through provenance.
+- Complete clean rebase/cherry-pick/revert/bisect control-path detection remains a future separately reviewed capability if required.
+
+Exact initial capability tuples:
+
+- `git_repository_root_v1`: `["rev-parse", "--show-toplevel"]`;
+- `git_object_format_v1`: `["rev-parse", "--show-object-format"]`;
+- `git_head_object_v1`: `["rev-parse", "--verify", "HEAD"]`;
+- `git_branch_state_v1`: `["symbolic-ref", "--quiet", "--short", "HEAD"]`;
+- `git_cleanliness_status_v1`: `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`.
+
+Posture:
+
+- working directory must come from a provenance-linked approved worktree capability, not caller cwd or ambient process cwd;
+- future environment must be fixed, minimal, non-secret, and non-inherited;
+- Git config influence, pure output contracts, active-operation detection, and feature-version evidence remain future prerequisites;
+- network, credentials, mutation, shell, external helpers, runtime activation, staging/deployment authority, API/UI/runner authority, Avanza/trading behavior, and persistence remain prohibited;
+- authority remains `none`, repository-read authority remains ungranted, and `toctouEliminated:false` remains required.
+
+Decision: `post_trade_read_only_git_activation_capability_contract_defined`.
+
+Result status: `post_trade_read_only_git_activation_capability_action_579_completed`.
+
+Recommended next Action: Action 580 - Plan Pure Read-Only Git Observation Output Contracts.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused suites passed: Apple parser 64, generic Git parser 62, orchestrator 20, neutralization 15, raw completion 49, direct-spawn 19, revalidation 30, dormant composition 17, pure composition 13, resolver/security 491, Action 533 181;
+- broad dormant/process/credential/CLI/authorization group: passed, 871 tests;
+- scoped ESLint on changed TS/JS files: not applicable because no TS/JS files changed;
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0`: passed;
+- static production-source, export-surface, runtime-reachability, and prohibited-operation reviews passed with docs-only changes;
+- migration-suite baseline limitation remains the pre-existing missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` file.
+
 Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
 
 Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
