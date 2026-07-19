@@ -8516,3 +8516,78 @@ Decision: `post_trade_pure_git_compatibility_policy_boundary_plan_ready`.
 Result status: `post_trade_pure_git_compatibility_policy_action_573_planning_gate_completed`.
 
 Recommended next Action: Action 574 - Inventory Required Git Capabilities and Derive Compatibility Policy Baseline.
+
+### Action 574 - Git Capability Inventory and Compatibility Baseline
+
+Inventoried required Git capabilities and assessed whether a numeric Git compatibility policy baseline can be justified. This was documentation, repository-inventory, and policy-baseline work only. No compatibility evaluator or production policy module was implemented, and no parser, orchestrator, raw-completion, neutralization, direct-spawn, resolver, composition, revalidation, runtime, API, UI, runner, credential, Avanza, trading, persistence, deployment, commit, push, merge, or deploy behavior was modified.
+
+Files created:
+
+- `docs/git-capability-inventory-action-574.md`;
+- `docs/git-compatibility-policy-baseline-action-574.md`;
+- `docs/git-capability-inventory-action-574-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- Action 573 checkpoint commit: `2511e0c Add pure Git compatibility policy planning gate`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Inventory results:
+
+- current dormant production chain requires only exact `/usr/bin/git`, exact argv `["--version"]`, ordinary zero-exit completion, empty stderr, bounded stdout, and strict parser grammar;
+- current dormant production chain does not require repository root, branch, HEAD, status, diff, tracked-file inventory, fetch, checkout, switch, restore, clean, commit, push, worktree management, object parsing, remote access, credentials, or mutation;
+- development/review workflow uses branch/status/log/diff/add/commit/push/worktree commands, but these are not production compatibility requirements;
+- future dormant runner catalog lists read-only repository inspection commands: `rev-parse`, `branch --show-current`, `status --porcelain=v1`, `diff --name-status`, and `ls-files --others`;
+- mutating, remote, credentialed, checkout/clean/update-index, hook/helper/network/deployment behavior remains prohibited and out of scope.
+
+Feature and platform findings:
+
+- `branch --show-current` has primary release-note evidence in Git 2.22.0;
+- official Git docs describe `status --porcelain=v1`, `diff --name-status --no-ext-diff`, `ls-files --others --exclude-standard`, and `rev-parse --show-toplevel`;
+- exact introduction versions for every future runner flag were not fully established;
+- current observed `/usr/bin/git --version` output includes an Apple suffix, while the approved strict parser rejects suffixes.
+
+Policy conclusion:
+
+- no numeric baseline was derived;
+- Action 573's supported-major/per-major-minimum shape remains a likely eventual shape;
+- Action 574 selects a platform/output prerequisite because the current approved macOS `/usr/bin/git` target and strict parser grammar are not yet reconciled.
+
+Decision option: Option 3 - platform/output prerequisite required.
+
+Decision: `post_trade_git_compatibility_policy_baseline_unresolved_platform_output_prerequisite`.
+
+Result status: `post_trade_git_capability_inventory_action_574_completed_policy_baseline_unresolved_platform_output`.
+
+Recommended next Action: Action 575 - Resolve Apple /usr/bin/git Version Output Contract and Parser Eligibility for Git Compatibility Baseline.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- orchestrator suite: 20 passed;
+- neutralization suite: 15 passed;
+- Git parser suite: 62 passed;
+- raw completion suite: 49 passed;
+- direct-spawn suite: 19 passed;
+- revalidation suite: 30 passed;
+- dormant composition suite: 17 passed;
+- pure composition suite: 13 passed;
+- resolver/security group: 515 passed;
+- Action 533 cross-boundary suite: 181 passed;
+- broad dormant/process/credential/CLI/authorization group: 1068 passed;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- `git diff --check`: passed;
+- static production-source diff review: passed, no production TS/JS files changed;
+- static export-surface review: passed, docs-only diff;
+- static runtime-reachability review: passed, no app/lib/test compatibility-policy implementation path exists;
+- static prohibited-operation review: passed by docs-only diff and no changed production TS/JS files;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
