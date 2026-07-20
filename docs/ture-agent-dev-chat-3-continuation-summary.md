@@ -11474,3 +11474,66 @@ Decision: `post_trade_pure_dormant_git_authority_consumption_transition_contract
 Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_620_final_re_review_completed`
 
 Recommended next Action: Action 621 - Plan Migration and Transactional RPC Implementation for Dormant Git Authority Consumption
+
+## Action 621 - Plan Migration and Transactional RPC Implementation for Dormant Git Authority Consumption
+
+Action 621 produced the migration-package, transactional-RPC, database-security, RLS/grant, concurrency-test, and approval-gate plan for future durable one-shot storage of the final-approved dormant Git runner authority-consumption transition contract.
+
+This was planning-only. No SQL, migration, RPC, persistence adapter, storage behavior, runtime caller, runner, Git execution, process creation or observation, repository inspection, credentials, environment access, network access, Avanza/trading behavior, staging activation, commit, push, merge, or deploy behavior was added.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-migration-rpc-plan-action-621.md`
+- `docs/git-runner-authority-consumption-database-security-action-621.md`
+- `docs/git-runner-authority-consumption-action-621-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Approved baseline:
+
+- committed Action 615-620 checkpoint `8f3a95b Add reviewed dormant Git authority consumption transitions`;
+- Action 614 three-table storage architecture;
+- Action 615-620 final-approved pure transition contract.
+
+Migration package:
+
+- selected storage migration: `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`;
+- selected RPC migration: `supabase/migrations/20260720001000_create_git_runner_authority_consumption_rpcs.sql`;
+- Action 622 should implement only the storage schema migration, leaving RPC implementation for a separate reviewed action.
+
+Schema architecture:
+
+- `public.git_runner_authority_consumption_records`;
+- `public.git_runner_authority_consumption_stages`;
+- `public.git_runner_authority_consumption_audit_events`.
+
+Key decisions:
+
+- CHECK-backed text rather than Postgres enums for closed v1 values with safer future migration flexibility;
+- RLS enabled on all three tables;
+- no anon/authenticated direct table access;
+- future SECURITY DEFINER RPCs with fixed search path;
+- package-row `select ... for update`, stage-row locks, transition-version CAS, unique constraints, and atomic audit append;
+- Action 619-620 acyclic audit fingerprint model persists `next_state_core_fingerprint`, `event_fingerprint`, and final `next_state_fingerprint`;
+- database errors map to closed reasons with no raw SQLSTATE, constraint names, table names, query text, or stack traces returned.
+
+Future RPC inventory:
+
+1. `register_git_runner_authority_package`
+2. `claim_git_runner_authority_consumer`
+3. `consume_git_runner_authority_stage`
+4. `record_git_runner_authority_stage_completion`
+5. `terminalize_git_runner_authority_failure`
+6. `terminalize_git_runner_authority_ambiguous_failure`
+7. `terminalize_git_runner_authority_expiry`
+8. `revoke_git_runner_authority_package`
+9. `finalize_git_runner_authority_aggregate`
+10. `read_git_runner_authority_consumption_state`
+
+Decision: `post_trade_git_runner_authority_consumption_migration_rpc_plan_ready`
+
+Result status: `post_trade_git_runner_authority_consumption_action_621_planning_gate_completed`
+
+Recommended next Action: Action 622 - Implement Git Runner Authority Consumption Storage Schema Migration
