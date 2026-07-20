@@ -9084,6 +9084,70 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 599 - Dormant Read-Only Git Repository Observation Runner Plan
+
+Planned the smallest safe dormant server-only read-only Git repository observation runner boundary. This was documentation, architecture, and approval-gate work only. No runner was implemented, no Git command was executed through production behavior, no repository was inspected live, no process was created or observed, no compatibility decision was made, and no runtime/API/UI/cron/worker path, credential path, environment access, network access, Avanza/trading behavior, persistence, migration, deployment, commit, push, merge, or deploy behavior was introduced.
+
+Files created:
+
+- `docs/dormant-read-only-git-repository-observation-runner-action-599.md`;
+- `docs/dormant-read-only-git-repository-observation-runner-architecture-action-599.md`;
+- `docs/dormant-read-only-git-repository-observation-runner-action-599-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved chain checkpoint:
+
+- baseline HEAD at start: `4e3a98f Add reviewed aggregate Git repository observation contract`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean.
+
+Runner plan:
+
+- future runner sequence is fixed to `rev-parse --show-toplevel`, `rev-parse --show-object-format`, `rev-parse --verify HEAD`, `symbolic-ref --quiet --short HEAD`, `status --porcelain=v1 -z --untracked-files=all --no-renames --ignore-submodules=none`, and `rev-parse --verify HEAD`;
+- stages 1, 2, 3, 4, and 6 use text completion and approved simple Git interpreters;
+- stage 5 uses byte-oriented porcelain-status completion and interpretation;
+- exact `/usr/bin/git`, exact argv, exact stage order, one-shot process authority, original-object provenance, neutralization-before-interpretation, aggregate finalization, and non-authoritative results are required;
+- detached HEAD remains an observational aggregate outcome only;
+- HEAD-before/HEAD-after narrows one mutation window but does not eliminate TOCTOU;
+- no compatibility, repository-read, runtime, staging, deployment, credential, network, Avanza, trading, persistence, or broad Git authority is granted.
+
+Architecture decision:
+
+- prefer one narrow dormant server-only six-stage runner for future implementation;
+- reject per-stage runner plus coordinator, extending the Git-version orchestrator, caller-configurable Git graphs, and runtime activation;
+- do not implement the runner in Action 599.
+
+Recommended next Action: Action 600 - Complete Read-Only Git Compatibility Baseline Decision.
+
+Decision: `post_trade_dormant_read_only_git_repository_observation_runner_plan_ready`.
+
+Result status: `post_trade_dormant_read_only_git_repository_observation_runner_action_599_planning_gate_completed`.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- aggregate suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; escalated rerun passed, 48 tests;
+- Git parser/completion group: passed, 250 tests;
+- dormant direct-spawn/revalidation/neutralization/raw-completion/composition group: passed, 163 tests;
+- resolver/security and Action 533 group: passed, 672 tests;
+- broad dormant/process/credential/CLI/authorization group: passed, 887 tests;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- static production-source diff review: passed, no TypeScript or JavaScript files changed;
+- static export-surface review: passed, no app/lib/test/package references to the planned runner;
+- static runtime-reachability review: passed, no runtime/API/UI/runner caller added;
+- static prohibited-operation review: passed, documentation-only prohibition references only and no changed production source;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
+
+No deploy is recommended for Action 599.
+
 ### Action 592 - Pure Read-Only Git Porcelain Status Observation Contract
 
 Implemented the pure, fixture-only Git porcelain status interpretation contract. The new core accepts only an accepted Action 586 byte-oriented porcelain-status completion result for exact `/usr/bin/git` argv `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`, rebuilds and validates source completion linkage, parses NUL-framed porcelain v1 records from lowercase hex bytes, and returns a closed immutable `accepted_clean`, `accepted_dirty`, or `rejected` result.
