@@ -168,6 +168,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
   provider?: string | null;
   maxSnapshots?: number;
   maxCandleRequests?: number | null;
+  snapshotOrder?: "newest_first" | "input";
   enrichCompletedOutcomes?: boolean;
   fetchCandles?: (
     request: RecommendationOutcomeCandleRequest,
@@ -717,14 +718,19 @@ export async function runRecommendationOutcomeEvaluation(
   const maxSnapshots = options.maxSnapshots ?? defaultMaxSnapshots;
   const fetchCandles = options.fetchCandles;
   const enrichmentMode = options.enrichCompletedOutcomes === true;
-  const sortedSnapshots = [...options.snapshots]
-    .filter((snapshot) => snapshot.is_visible !== false)
-    .sort((first, second) => {
-      const firstTime = toDate(first.recommended_at)?.getTime() ?? 0;
-      const secondTime = toDate(second.recommended_at)?.getTime() ?? 0;
-      return secondTime - firstTime;
-    })
-    .slice(0, maxSnapshots);
+  const visibleSnapshots = [...options.snapshots].filter(
+    (snapshot) => snapshot.is_visible !== false,
+  );
+  const sortedSnapshots =
+    options.snapshotOrder === "input"
+      ? visibleSnapshots.slice(0, maxSnapshots)
+      : visibleSnapshots
+          .sort((first, second) => {
+            const firstTime = toDate(first.recommended_at)?.getTime() ?? 0;
+            const secondTime = toDate(second.recommended_at)?.getTime() ?? 0;
+            return secondTime - firstTime;
+          })
+          .slice(0, maxSnapshots);
   const candidates: RecommendationOutcomeEvaluationCandidate[] = [];
   const outcomes: RecommendationOutcome[] = [];
   const warnings: RecommendationOutcomeEvaluationWarning[] = [];

@@ -58,6 +58,7 @@ export default async function handler() {
       body: JSON.stringify({
         mode: "official_live_today",
         horizons: officialIntradayHorizons,
+        max_batches: 5,
         max_snapshots: 10,
         scheduled_function_fired_at_utc: firedAtUtc,
         scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
