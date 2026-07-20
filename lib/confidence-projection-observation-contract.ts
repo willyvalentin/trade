@@ -110,6 +110,10 @@ export function classifyConfidenceProjectionOutcomeCompletion(
 } {
   const status = outcome.status;
   const firstTerminalEvent = outcome.first_terminal_event;
+  const hasEvaluatedMarketData =
+    (outcome.data_completeness === "complete" ||
+      outcome.data_completeness === "partial") &&
+    outcome.source !== "snapshot_only";
 
   if (
     outcome.target_hit === true ||
@@ -128,7 +132,7 @@ export function classifyConfidenceProjectionOutcomeCompletion(
     firstTerminalEvent === "stop_hit" ||
     status === "stop_hit" ||
     status === "stop_before_target" ||
-    status === "neither_hit"
+    (status === "neither_hit" && hasEvaluatedMarketData)
   ) {
     return {
       classification: "completed_failure",
@@ -138,9 +142,7 @@ export function classifyConfidenceProjectionOutcomeCompletion(
 
   if (
     status === "entry_not_triggered" &&
-    (outcome.data_completeness === "complete" ||
-      outcome.data_completeness === "partial") &&
-    outcome.source !== "snapshot_only"
+    hasEvaluatedMarketData
   ) {
     return {
       classification: "completed_failure",

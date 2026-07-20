@@ -4,6 +4,7 @@ import {
   buildConfidenceProjectionOutcomeReview,
   compareConfidenceProjectionCalibration,
   mapOutcomeToBinaryConfidenceScore,
+  normalizeConfidenceProjectionOutcomeMetadata,
 } from "../../lib/confidence-projection-outcome-review";
 import type { RecommendationOutcome } from "../../lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "../../lib/recommendation-snapshot";
@@ -147,6 +148,175 @@ test.describe("Action 545 confidence projection outcome review", () => {
     ).toBeNull();
   });
 
+  test("normalizes outcome metadata from top level, payload json, and contract v1", () => {
+    expect(normalizeConfidenceProjectionOutcomeMetadata(outcome())).toMatchObject({
+      source: "intraday_candles",
+      source_read_from: "top_level",
+      data_completeness: "complete",
+      data_completeness_read_from: "top_level",
+      conflict_reasons: [],
+    });
+
+    const payloadOnly = {
+      ...outcome(),
+      source: undefined,
+      data_completeness: undefined,
+      payload_json: {
+        source: "intraday_candles",
+        data_completeness: "complete",
+      },
+    };
+    expect(normalizeConfidenceProjectionOutcomeMetadata(payloadOnly)).toMatchObject({
+      source: "intraday_candles",
+      source_read_from: "payload_json",
+      data_completeness: "complete",
+      data_completeness_read_from: "payload_json",
+      conflict_reasons: [],
+    });
+    expect(
+      mapOutcomeToBinaryConfidenceScore({
+        ...payloadOnly,
+        status: "entry_not_triggered",
+        target_hit: false,
+        stop_hit: false,
+        first_terminal_event: "expired",
+      }),
+    ).toBe(0);
+
+    const contractOnly = {
+      ...outcome(),
+      source: undefined,
+      data_completeness: undefined,
+      payload_json: {
+        confidence_projection_observation_contract: {
+          version: "confidence_projection_observation_contract_v1",
+          outcome_semantics: {
+            source: "intraday_candles",
+            data_completeness: "complete",
+          },
+        },
+      },
+    };
+    expect(normalizeConfidenceProjectionOutcomeMetadata(contractOnly)).toMatchObject({
+      source: "intraday_candles",
+      source_read_from: "contract_v1",
+      data_completeness: "complete",
+      data_completeness_read_from: "contract_v1",
+      conflict_reasons: [],
+    });
+  });
+
+  test("keeps ambiguous or unsafe outcome metadata insufficient", () => {
+    const conflict = {
+      ...outcome(),
+      source: "snapshot_only",
+      data_completeness: "complete",
+      payload_json: {
+        source: "intraday_candles",
+        data_completeness: "complete",
+      },
+    };
+    expect(
+      normalizeConfidenceProjectionOutcomeMetadata(conflict).conflict_reasons,
+    ).toEqual(["source_conflict:top_level=snapshot_only;payload_json=intraday_candles"]);
+    expect(
+      mapOutcomeToBinaryConfidenceScore({
+        ...conflict,
+        status: "entry_not_triggered",
+        target_hit: false,
+        stop_hit: false,
+        first_terminal_event: "expired",
+      }),
+    ).toBeNull();
+
+    expect(
+      mapOutcomeToBinaryConfidenceScore({
+        ...outcome({
+          status: "entry_not_triggered",
+          horizon: "unknown",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "expired",
+        }),
+      }),
+    ).toBeNull();
+    expect(
+      mapOutcomeToBinaryConfidenceScore({
+        ...outcome({
+          status: "entry_not_triggered",
+          source: "snapshot_only",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "expired",
+        }),
+      }),
+    ).toBeNull();
+    expect(
+      mapOutcomeToBinaryConfidenceScore({
+        ...outcome({
+          status: "neither_hit",
+          data_completeness: "none",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "neither",
+        }),
+      }),
+    ).toBeNull();
+  });
+
+  test("keeps explicit terminal status mapping conservative and complete", () => {
+    expect(
+      mapOutcomeToBinaryConfidenceScore(
+        outcome({
+          status: "neither_hit",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "neither",
+        }),
+      ),
+    ).toBe(0);
+    expect(
+      mapOutcomeToBinaryConfidenceScore(
+        outcome({
+          status: "target_before_stop",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "unknown",
+        }),
+      ),
+    ).toBe(100);
+    expect(
+      mapOutcomeToBinaryConfidenceScore(
+        outcome({
+          status: "stop_before_target",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "unknown",
+        }),
+      ),
+    ).toBe(0);
+    expect(
+      mapOutcomeToBinaryConfidenceScore(
+        outcome({
+          status: "invalid",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "unknown",
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      mapOutcomeToBinaryConfidenceScore(
+        outcome({
+          status: "unknown",
+          target_hit: false,
+          stop_hit: false,
+          first_terminal_event: "unknown",
+        }),
+      ),
+    ).toBeNull();
+  });
+
   test("classifies projected confidence as closer, worse, neutral, or insufficient", () => {
     expect(
       compareConfidenceProjectionCalibration({
@@ -263,6 +433,11 @@ test.describe("Action 545 confidence projection outcome review", () => {
     expect(review.explanation_categories.map((category) => category.key)).toContain(
       "momentum_continuation",
     );
+    expect(review.outcome_metadata_resolution).toMatchObject({
+      source_from_top_level: 3,
+      data_completeness_from_top_level: 3,
+      metadata_conflicts: 0,
+    });
 
     expect(review.no_effects.ranking_affected).toBe(false);
     expect(review.no_effects.scanner_affected).toBe(false);

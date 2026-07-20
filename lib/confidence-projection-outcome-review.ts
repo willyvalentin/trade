@@ -37,7 +37,10 @@ export type ConfidenceProjectionInsufficiencyReason =
   | "ambiguous_join"
   | "invalid_confidence"
   | "missing_required_setup_metadata"
-  | "projection_not_derivable";
+  | "projection_not_derivable"
+  | "outcome_metadata_conflict"
+  | "missing_official_evaluation_metadata"
+  | "unknown_outcome_horizon";
 
 export type ConfidenceProjectionInsufficiencyCategory =
   | "join_related"
@@ -219,6 +222,7 @@ export type ConfidenceProjectionOutcomeReview = {
   explanation_categories: ConfidenceProjectionReviewGroup[];
   first_observed_calibration_signal: ConfidenceProjectionCalibrationSignalReview;
   observation_completeness: ConfidenceProjectionObservationCompleteness;
+  outcome_metadata_resolution: ConfidenceProjectionOutcomeMetadataResolutionSummary;
   observations: ConfidenceProjectionOutcomeObservation[];
   copy: {
     data_source: string;
@@ -287,6 +291,9 @@ const insufficiencyReasons: ConfidenceProjectionInsufficiencyReason[] = [
   "invalid_confidence",
   "missing_required_setup_metadata",
   "projection_not_derivable",
+  "outcome_metadata_conflict",
+  "missing_official_evaluation_metadata",
+  "unknown_outcome_horizon",
 ];
 
 const insufficiencyCategories: ConfidenceProjectionInsufficiencyCategory[] = [
@@ -312,7 +319,41 @@ const reasonCategory: Record<
   invalid_confidence: "metadata_related",
   missing_required_setup_metadata: "metadata_related",
   projection_not_derivable: "projection_related",
+  outcome_metadata_conflict: "outcome_related",
+  missing_official_evaluation_metadata: "outcome_related",
+  unknown_outcome_horizon: "outcome_related",
 };
+
+export type ConfidenceProjectionOutcomeMetadataSource =
+  | "top_level"
+  | "payload_json"
+  | "contract_v1"
+  | "unavailable";
+
+export type ConfidenceProjectionOutcomeMetadataResolution = {
+  source: string | null;
+  source_read_from: ConfidenceProjectionOutcomeMetadataSource;
+  data_completeness: string | null;
+  data_completeness_read_from: ConfidenceProjectionOutcomeMetadataSource;
+  conflict_reasons: string[];
+  unavailable_reasons: string[];
+};
+
+export type ConfidenceProjectionOutcomeMetadataResolutionSummary = {
+  source_from_top_level: number;
+  source_from_payload_json: number;
+  source_from_contract_v1: number;
+  source_unavailable: number;
+  data_completeness_from_top_level: number;
+  data_completeness_from_payload_json: number;
+  data_completeness_from_contract_v1: number;
+  data_completeness_unavailable: number;
+  metadata_conflicts: number;
+  entry_not_triggered_completed_from_normalized_metadata: number;
+};
+
+type OutcomeMetadataInput = Pick<RecommendationOutcome, "payload_json"> &
+  Partial<Pick<RecommendationOutcome, "source" | "data_completeness">>;
 
 function objectValue(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -345,6 +386,10 @@ function numberValue(value: unknown) {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+function normalizedMetadataText(value: unknown) {
+  return textValue(value)?.toLowerCase() ?? null;
 }
 
 function clampConfidence(value: number) {
@@ -495,6 +540,83 @@ function calibrationStatusFromSnapshotContract(
   return textValue(snapshotTimeConfidence?.calibration_status);
 }
 
+function outcomeSemanticsFromPayload(payload: Record<string, unknown> | null) {
+  const contract = observationContractFromPayload(payload);
+  return objectFromContract(contract, "outcome_semantics");
+}
+
+function metadataCandidate(
+  value: unknown,
+  source: ConfidenceProjectionOutcomeMetadataSource,
+) {
+  const normalized = normalizedMetadataText(value);
+  return normalized === null ? null : { value: normalized, source };
+}
+
+function resolveMetadataField(
+  label: "source" | "data_completeness",
+  candidates: Array<{
+    value: string;
+    source: ConfidenceProjectionOutcomeMetadataSource;
+  } | null>,
+) {
+  const present = candidates.filter(
+    (
+      candidate,
+    ): candidate is {
+      value: string;
+      source: ConfidenceProjectionOutcomeMetadataSource;
+    } => candidate !== null,
+  );
+  const selected = present[0] ?? null;
+  const conflict = selected
+    ? present.find((candidate) => candidate.value !== selected.value)
+    : null;
+
+  return {
+    value: selected?.value ?? null,
+    source: (selected?.source ?? "unavailable") as ConfidenceProjectionOutcomeMetadataSource,
+    conflict_reason: conflict
+      ? `${label}_conflict:${selected.source}=${selected.value};${conflict.source}=${conflict.value}`
+      : null,
+    unavailable_reason: selected === null ? `${label}_unavailable` : null,
+  };
+}
+
+export function normalizeConfidenceProjectionOutcomeMetadata(
+  outcome: OutcomeMetadataInput,
+): ConfidenceProjectionOutcomeMetadataResolution {
+  const payload = objectValue(outcome.payload_json);
+  const semantics = outcomeSemanticsFromPayload(payload);
+  const sourceResolution = resolveMetadataField("source", [
+    metadataCandidate(outcome.source, "top_level"),
+    metadataCandidate(payload?.source, "payload_json"),
+    metadataCandidate(semantics?.source, "contract_v1"),
+  ]);
+  const dataCompletenessResolution = resolveMetadataField("data_completeness", [
+    metadataCandidate(outcome.data_completeness, "top_level"),
+    metadataCandidate(payload?.data_completeness, "payload_json"),
+    metadataCandidate(semantics?.data_completeness, "contract_v1"),
+  ]);
+  const conflictReasons = [
+    sourceResolution.conflict_reason,
+    dataCompletenessResolution.conflict_reason,
+  ].filter((reason): reason is string => reason !== null);
+  const unavailableReasons = [
+    sourceResolution.unavailable_reason,
+    dataCompletenessResolution.unavailable_reason,
+  ].filter((reason): reason is string => reason !== null);
+
+  return {
+    source: sourceResolution.value,
+    source_read_from: sourceResolution.source,
+    data_completeness: dataCompletenessResolution.value,
+    data_completeness_read_from: dataCompletenessResolution.source,
+    conflict_reasons: conflictReasons,
+    unavailable_reasons: unavailableReasons,
+  };
+}
+
 function normalizedText(value: unknown) {
   return textValue(typeof value === "string" ? value : String(value ?? ""))
     ?.toLowerCase()
@@ -539,17 +661,43 @@ export function mapOutcomeToBinaryConfidenceScore(
   outcome: Pick<
     RecommendationOutcome,
     | "status"
+    | "horizon"
     | "target_hit"
     | "stop_hit"
     | "first_terminal_event"
     | "eod_r"
     | "current_r"
-    | "data_completeness"
-    | "source"
-  >,
+    | "payload_json"
+  > &
+    Partial<Pick<RecommendationOutcome, "source" | "data_completeness">>,
 ): 0 | 100 | null {
+  const metadata = normalizeConfidenceProjectionOutcomeMetadata(outcome);
+  const status = outcome.status;
+
+  if (
+    metadata.conflict_reasons.length > 0 ||
+    outcome.horizon === "unknown" ||
+    metadata.source === null ||
+    metadata.data_completeness === null
+  ) {
+    return null;
+  }
+
+  if (
+    (status === "entry_not_triggered" || status === "neither_hit") &&
+    !(
+      (metadata.data_completeness === "complete" ||
+        metadata.data_completeness === "partial") &&
+      metadata.source !== "snapshot_only"
+    )
+  ) {
+    return null;
+  }
+
   return classifyConfidenceProjectionOutcomeCompletion({
     ...outcome,
+    source: metadata.source,
+    data_completeness: metadata.data_completeness,
     best_r: null,
   }).binary_success_score;
 }
@@ -736,7 +884,20 @@ function hasRequiredSetupMetadata({
 }
 
 function unsupportedOutcomeStatus(outcome: RecommendationOutcome) {
-  const completion = classifyConfidenceProjectionOutcomeCompletion(outcome);
+  const metadata = normalizeConfidenceProjectionOutcomeMetadata(outcome);
+  if (
+    metadata.conflict_reasons.length > 0 ||
+    metadata.source === null ||
+    metadata.data_completeness === null ||
+    outcome.horizon === "unknown"
+  ) {
+    return true;
+  }
+  const completion = classifyConfidenceProjectionOutcomeCompletion({
+    ...outcome,
+    source: metadata.source,
+    data_completeness: metadata.data_completeness,
+  });
   return completion.classification === "incomplete" ||
     completion.classification === "unsupported";
 }
@@ -782,6 +943,7 @@ function observationForOutcome(
       ? projectedConfidence - originalConfidence
       : null;
   const outcomeScore = mapOutcomeToBinaryConfidenceScore(outcome);
+  const outcomeMetadata = normalizeConfidenceProjectionOutcomeMetadata(outcome);
   const comparison = compareConfidenceProjectionCalibration({
     originalConfidence,
     projectedConfidence,
@@ -817,6 +979,18 @@ function observationForOutcome(
   }
   if (unsupportedOutcomeStatus(outcome)) {
     addReason(insufficientReasons, "unsupported_outcome_status");
+  }
+  if (outcome.horizon === "unknown") {
+    addReason(insufficientReasons, "unknown_outcome_horizon");
+  }
+  if (outcomeMetadata.conflict_reasons.length > 0) {
+    addReason(insufficientReasons, "outcome_metadata_conflict");
+  }
+  if (
+    outcomeMetadata.source === null ||
+    outcomeMetadata.data_completeness === null
+  ) {
+    addReason(insufficientReasons, "missing_official_evaluation_metadata");
   }
   if (!hasRequiredSetupMetadata({ setupType, tier, window })) {
     addReason(insufficientReasons, "missing_required_setup_metadata");
@@ -1296,6 +1470,56 @@ function buildObservationCompleteness(
   };
 }
 
+function buildOutcomeMetadataResolutionSummary(
+  outcomes: RecommendationOutcome[],
+): ConfidenceProjectionOutcomeMetadataResolutionSummary {
+  const summary: ConfidenceProjectionOutcomeMetadataResolutionSummary = {
+    source_from_top_level: 0,
+    source_from_payload_json: 0,
+    source_from_contract_v1: 0,
+    source_unavailable: 0,
+    data_completeness_from_top_level: 0,
+    data_completeness_from_payload_json: 0,
+    data_completeness_from_contract_v1: 0,
+    data_completeness_unavailable: 0,
+    metadata_conflicts: 0,
+    entry_not_triggered_completed_from_normalized_metadata: 0,
+  };
+
+  for (const outcome of outcomes) {
+    const metadata = normalizeConfidenceProjectionOutcomeMetadata(outcome);
+    if (metadata.source_read_from === "top_level") summary.source_from_top_level += 1;
+    if (metadata.source_read_from === "payload_json") summary.source_from_payload_json += 1;
+    if (metadata.source_read_from === "contract_v1") summary.source_from_contract_v1 += 1;
+    if (metadata.source_read_from === "unavailable") summary.source_unavailable += 1;
+    if (metadata.data_completeness_read_from === "top_level") {
+      summary.data_completeness_from_top_level += 1;
+    }
+    if (metadata.data_completeness_read_from === "payload_json") {
+      summary.data_completeness_from_payload_json += 1;
+    }
+    if (metadata.data_completeness_read_from === "contract_v1") {
+      summary.data_completeness_from_contract_v1 += 1;
+    }
+    if (metadata.data_completeness_read_from === "unavailable") {
+      summary.data_completeness_unavailable += 1;
+    }
+    if (metadata.conflict_reasons.length > 0) summary.metadata_conflicts += 1;
+    if (
+      outcome.status === "entry_not_triggered" &&
+      mapOutcomeToBinaryConfidenceScore(outcome) === 0 &&
+      (metadata.source_read_from === "payload_json" ||
+        metadata.data_completeness_read_from === "payload_json" ||
+        metadata.source_read_from === "contract_v1" ||
+        metadata.data_completeness_read_from === "contract_v1")
+    ) {
+      summary.entry_not_triggered_completed_from_normalized_metadata += 1;
+    }
+  }
+
+  return summary;
+}
+
 export function buildConfidenceProjectionOutcomeReview(
   input: BuildInput,
 ): ConfidenceProjectionOutcomeReview {
@@ -1317,6 +1541,9 @@ export function buildConfidenceProjectionOutcomeReview(
   const firstObservedCalibrationSignal =
     buildFirstCalibrationSignalReview(observations);
   const observationCompleteness = buildObservationCompleteness(observations);
+  const outcomeMetadataResolution = buildOutcomeMetadataResolutionSummary(
+    dedupeOutcomes(input.outcomes),
+  );
 
   return {
     status: observations.length > 0 ? "ready" : "no_observations",
@@ -1378,6 +1605,7 @@ export function buildConfidenceProjectionOutcomeReview(
     ),
     first_observed_calibration_signal: firstObservedCalibrationSignal,
     observation_completeness: observationCompleteness,
+    outcome_metadata_resolution: outcomeMetadataResolution,
     observations,
     copy: {
       data_source:
