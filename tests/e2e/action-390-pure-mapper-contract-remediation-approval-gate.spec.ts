@@ -15,6 +15,7 @@ const expectedHashes = {
   [contextFixturePath]: "46358cb997b4f7a431a3fee72562659da48b13219404224f4e80e08dbf8ed406",
 };
 const remediatedMapperHash = "e6c0053b9030b342b6090816b77cd57ee878e5a703bbd5ac7b32e42b93fea47b";
+const action394MapperHash = "7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d";
 
 function read(path: string) {
   return readFileSync(path, "utf8");
@@ -151,13 +152,16 @@ test.describe.serial("Action 390 pure mapper remediation approval gate", () => {
   test("does not modify mapper fixtures or add consumers", () => {
     for (const [path, expected] of Object.entries(expectedHashes)) {
       if (path === mapperPath) {
-        expect([expected, remediatedMapperHash], path).toContain(sha256(path));
+        expect([expected, remediatedMapperHash, action394MapperHash], path).toContain(sha256(path));
       } else {
         expect(sha256(path), path).toBe(expected);
       }
     }
     if (sha256(mapperPath) === remediatedMapperHash) {
       expect(read("docs/action-391-pure-mapper-contract-remediation.md")).toContain("Action 390 returned `approval_decision: approved`");
+    }
+    if (sha256(mapperPath) === action394MapperHash) {
+      expect(read("docs/action-394-pure-mapper-literal-normalization-remediation.md")).toContain(`mapper: \`${action394MapperHash}\``);
     }
     const consumers = files("app")
       .filter((path) => /\.(?:ts|tsx|js|jsx)$/.test(path))

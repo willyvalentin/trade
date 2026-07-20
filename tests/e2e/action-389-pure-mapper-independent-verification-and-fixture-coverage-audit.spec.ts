@@ -28,6 +28,7 @@ const contextAt = "2026-07-08T13:44:30.000Z";
 const outcomeAt = "2026-07-08T14:45:00.000Z";
 const mapperHash = "05276aebf1e7c6328242949c22e489ba384c9c501574c5d170d789ba47fa00e2";
 const remediatedMapperHash = "e6c0053b9030b342b6090816b77cd57ee878e5a703bbd5ac7b32e42b93fea47b";
+const action394MapperHash = "7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d";
 
 function snapshot(overrides: Partial<RecommendationSnapshot> = {}): RecommendationSnapshot {
   return {
@@ -239,9 +240,12 @@ test.describe.serial("Action 389 independent pure mapper verification", () => {
   test("source integrity hash and public API remain unchanged", () => {
     const source = readFileSync("lib/snapshot-to-learning-dataset-mapper.ts", "utf8");
     const currentHash = createHash("sha256").update(source).digest("hex");
-    expect([mapperHash, remediatedMapperHash]).toContain(currentHash);
+    expect([mapperHash, remediatedMapperHash, action394MapperHash]).toContain(currentHash);
     if (currentHash === remediatedMapperHash) {
       expect(readFileSync("docs/action-391-pure-mapper-contract-remediation.md", "utf8")).toContain("Action 390 returned `approval_decision: approved`");
+    }
+    if (currentHash === action394MapperHash) {
+      expect(readFileSync("docs/action-394-pure-mapper-literal-normalization-remediation.md", "utf8")).toContain(`mapper: \`${action394MapperHash}\``);
     }
     expect(source.match(/export function mapSnapshotToLearningDataset\s*\(/g)).toHaveLength(1);
     expect(source.match(/export function /g)).toHaveLength(1);
@@ -552,7 +556,7 @@ test.describe.serial("Action 389 independent pure mapper verification", () => {
     const currentHash = createHash("sha256")
       .update(readFileSync("lib/snapshot-to-learning-dataset-mapper.ts"))
       .digest("hex");
-    if (currentHash === remediatedMapperHash) {
+    if ([remediatedMapperHash, action394MapperHash].includes(currentHash)) {
       for (const row of auditRows) {
         expect(row.actualStatus, row.sourceMalformedCaseId).toBe(row.expectedStatus);
         expect(row.actualIssues.some((item) => item.code === row.expectedPrimaryCode && item.path === row.expectedPath), row.sourceMalformedCaseId).toBe(true);

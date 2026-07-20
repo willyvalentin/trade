@@ -12,13 +12,14 @@ Explicit non-goals: no batch mapper, shadow consumer, replay runner, Pattern Dis
 
 - Mapper: `lib/snapshot-to-learning-dataset-mapper.ts`
 - Baseline SHA-256: `05276aebf1e7c6328242949c22e489ba384c9c501574c5d170d789ba47fa00e2`
+- Exact downstream compatibility SHA-256 values: Action 391 `e6c0053b9030b342b6090816b77cd57ee878e5a703bbd5ac7b32e42b93fea47b`; Action 394 `7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d`
 - Entry point: `mapSnapshotToLearningDataset(input)`
 - Authoritative exported mapper functions: 1
 - Mapper consumers: none
 - Action 389 mapper source changes: none
 - Action 389 fixture source changes: none
 
-The source review found no environment read, filesystem access, network call, provider/news/Supabase import, logging, persistence, runtime import, mutable global state, current-time access, randomness, UUID generation, or hidden cache.
+The source review found no environment read, filesystem access, network call, provider/news/Supabase import, logging, persistence, runtime import, mutable global state, current-time access, randomness, UUID generation, or hidden cache. Downstream compatibility hashes do not change Action 389's historical `blocked` decision; they only keep the historical verifier fail-closed in later clean checkouts.
 
 ## Frozen contracts
 

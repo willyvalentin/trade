@@ -8,6 +8,8 @@ Authoritative dependencies and upstream Actions: Action 309, Action 335, Action 
 
 Action 389 returned `readiness_decision: blocked`, with 13/13 Action 380 valid families and 15/15 Action 381 valid fixtures covered, all 10 result statuses and 14 issue codes covered, deterministic validation precedence, immutable inputs, deterministic outputs, and no mapper consumers. Runtime preview remains `runtime_preview_waiting_for_operator_inputs`.
 
+Post-remediation clean checkouts may contain only the historical baseline mapper hash, the exact Action 391 remediation hash `e6c0053b9030b342b6090816b77cd57ee878e5a703bbd5ac7b32e42b93fea47b`, or the exact Action 394 literal-normalization hash `7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d`. Any other mapper source remains blocked.
+
 ## Exact seven findings and classifications
 
 | Finding | Classification |
