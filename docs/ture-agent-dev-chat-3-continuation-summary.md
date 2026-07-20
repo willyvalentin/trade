@@ -10987,3 +10987,100 @@ Result status: `post_trade_pure_dormant_git_runner_authority_package_action_612_
 Recommended next Action: Action 613 - Plan Atomic One-Shot Consumption Record for Dormant Git Runner Authority.
 
 No deploy is recommended for Action 612. A source-control checkpoint commit may be considered only after the complete diff has been manually inspected.
+
+### Action 613 - Latest Continuation Handoff
+
+Action 613 planned the atomic one-shot consumption-record architecture for the final-approved dormant Git runner authority package. This was documentation, architecture, atomic-consumption, replay-prevention, concurrency, persistence-boundary, and approval-gate work only. No consumption contract, database migration, persistence adapter, dormant Git runner, authority consumption, Git execution, process creation or observation, repository inspection, runtime/API/UI/cron/worker/CLI reachability, credentials, environment inheritance, network, Avanza/trading behavior, deployment, retry, fallback, caching, automatic reissue, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/dormant-git-runner-atomic-authority-consumption-action-613.md`
+- `docs/dormant-git-runner-atomic-consumption-architecture-action-613.md`
+- `docs/dormant-git-runner-atomic-consumption-action-613-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Approved baseline:
+
+- final-approved pure dormant Git runner authority package;
+- six immutable stage grants for the exact read-only Git observation sequence;
+- fixed 30000 ms expiry;
+- exact `/usr/bin/git`, macOS, sequence, session, worktree, compatibility, resolver, and revalidation linkage;
+- explicit package replay/storage limitations;
+- no consumption record, atomic claim, active-consumer lock, stage CAS, replay prevention, persistence schema, storage adapter, runner, runtime caller, Git execution, or live authority consumption exists.
+
+Trust problem:
+
+- fingerprints prove integrity but not uniqueness, one-shot use, active-consumer ownership, stage ordering, or replay prevention;
+- atomic storage must become the source of truth for consumption state;
+- the future consumption layer may consume only the exact grants already present in the approved package and must mint no new capabilities.
+
+Selected architecture:
+
+- durable Postgres/Supabase current-state consumption record per package;
+- deterministic unique consumption key from package ID and package fingerprint;
+- registration required before stage use;
+- one active consumer;
+- atomic compare-and-set transitions;
+- stage consumed before process attempt;
+- stage completion recorded separately;
+- record mutation and audit append in one transaction;
+- terminal fail-closed states;
+- no retry, reset, fallback, cache, or grant replenishment;
+- dormant server-only access only.
+
+Core models:
+
+- states: `issued`, `active`, `partially_consumed`, `consumed`, `failed_consumed`, `expired`, `revoked`;
+- registration rejects duplicate package, package ID/fingerprint conflicts, and package-fingerprint reuse;
+- consumer claim uses exact consumer ID/fingerprint, claimedAt, transition version, and current stage, with numeric lease deferred;
+- stage CAS checks record identity, package fingerprint, policy fingerprint, active consumer, expected stage, unconsumed stage, unexpired/unrevoked/non-terminal state, transition version, retry 0, and fallback false;
+- process attempt linkage must bind exact stage-consumption record fingerprint, stage identity/index, direct-spawn request fingerprint, consumer fingerprint, package fingerprint, and consumedAt;
+- completion is recorded after the attempt and gates the next stage, except the approved detached-branch observational outcome;
+- expiry and revocation terminalize atomically; consumed and failed-consumed states do not later become expired;
+- crash and ambiguity posture is fail closed: consumed stages never reopen, no automatic retry, no automatic replay, no inferred success.
+
+Migration assessment:
+
+- `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent;
+- that filename and its associated table `public.execution_authorization_consumptions` belong to the older staging execution-authorization consumption path;
+- it is a useful precedent for one-shot compare-and-set, RLS, no-client access, and transactional function posture, but it is not reusable as the Git runner authority-consumption schema;
+- Action 613 created no migration and recommends a new versioned schema/transaction design.
+
+Future test strategy:
+
+- unique registration, duplicate registration, ID/fingerprint conflict, fingerprint reuse, consumer claim, concurrent claim, exact stage order, stage consumed once, stale transition version, wrong consumer, expiry, revocation, durable consumption before process attempt, crash ambiguity, stage failure terminalization, detached branch continuation, aggregate finalization, no retry/reset, replay, transaction rollback, audit atomicity, privacy, deterministic fingerprints, and no runtime caller.
+
+Future gates:
+
+- record schema, unique key, registration, consumer claim, CAS transition, stage boundary, process linkage, stage completion, expiry/revocation precedence, crash/ambiguity, replay/concurrency, audit atomicity, privacy/retention, storage authority, RLS/service-role, pure transition contract, migration/RPC, server-only storage adapter, static security review, remediation/final re-review, dormant runner implementation, staging-only trial, runtime activation, and deployment approval.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- authority-package suite: first non-escalated attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 155 tests;
+- direct-spawn, executable-revalidation, executable-resolution, and resolver-security suites: 540 passed;
+- compatibility-policy, generic Git parser, Apple Git parser, and Git-version orchestrator suites: 279 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- dormant composition adapter, pure composition, trusted resolver/security, and Action 533 suites: 702 passed;
+- broad dormant/process/credential/CLI/authorization regression excluding the known missing-migration static test: 2591 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: not applicable; Action 613 changed documentation only;
+- `git diff --check`: passed;
+- static production-source diff review passed; no production TS/JS changed;
+- static consumption-architecture, CAS/atomicity, replay/concurrency, crash/ambiguity, privacy/storage-authority, migration-baseline, export-surface, runtime-reachability, and prohibited-operation reviews completed;
+- runtime-reachability scan found no source caller for Action 613 architecture identifiers;
+- prohibited-operation scan over changed Action 613 docs found planning/non-authorization text only, not executable code;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- missing migration baseline check passed.
+
+Decision: `post_trade_dormant_git_runner_atomic_authority_consumption_plan_ready`
+
+Result status: `post_trade_dormant_git_runner_atomic_authority_consumption_action_613_planning_gate_completed`
+
+Recommended next Action: Action 614 - Design Atomic Consumption Storage Schema and Transaction Contract.
+
+No deploy is recommended for Action 613. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
