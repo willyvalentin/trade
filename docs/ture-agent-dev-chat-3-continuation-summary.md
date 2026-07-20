@@ -10546,3 +10546,57 @@ Result status: `post_trade_pure_read_only_git_compatibility_policy_action_604_fi
 Recommended next Action: Action 605 - Plan Repository-Read and Process Authority for Dormant Git Observation Runner.
 
 No deploy is recommended for Action 604. A source-control checkpoint commit may be considered only after the complete Action 601-604 diff has been manually inspected.
+### Action 605 - Latest Continuation Handoff
+
+Action 605 planned the smallest safe repository-read and process authority model required before a dormant read-only Git repository-observation runner can be implemented. This was documentation, architecture, capability-consumption, and approval-gate work only. No authority package, authority consumption, runner, Git execution, process creation, process observation, live repository inspection, runtime/API/UI/cron/worker reachability, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/dormant-git-runner-repository-read-process-authority-action-605.md`
+- `docs/dormant-git-runner-authority-architecture-action-605.md`
+- `docs/dormant-git-runner-authority-action-605-checkpoint.md`
+
+Selected architecture:
+
+- one immutable sequence-scoped authority package;
+- independent named sub-capabilities for executable-resolution linkage, executable-revalidation linkage, process creation, exact read-only Git CLI execution, approved-worktree repository read, bounded text retention, bounded byte retention, stage-evidence construction, aggregate observation, and non-authoritative result exposure;
+- runtime caller activation remains false and separately gated;
+- exact fixed six-stage sequence, session, worktree, executable, compatibility-result, policy, output-limit, and sequence linkage;
+- stage-specific one-shot consumption with no retry, fallback, caching, clone replay, stage reordering, or generic command authority.
+
+Authority trust problem:
+
+- compatibility is necessary but insufficient;
+- positive compatibility proves only accepted parser evidence, supported implementation family, baseline version, and command-set version compatibility;
+- it does not authorize the correct repository, cwd, process creation, CLI execution, repository reading, output retention, result exposure, runtime activation, staging, deployment, or production use.
+
+Expiry posture:
+
+- selected posture is fixed short expiry plus immediate executable/worktree revalidation before consumption;
+- no approved numeric duration exists in the current baseline;
+- numeric expiry remains the earliest unresolved prerequisite.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suites: 143 passed;
+- resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 887 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: not applicable; Action 605 changed documentation only;
+- `git diff --check`: passed;
+- static production-source diff review: passed; no TypeScript or JavaScript files changed;
+- static authority-architecture, capability-scope, consumption/replay, expiry-policy, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- migration-suite baseline limitation check: unrelated missing migration baseline reconfirmed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Recommended next Action: Action 606 - Decide Fixed Expiry and Freshness Policy for Dormant Git Runner Authority.
+
+Decision: `post_trade_dormant_git_runner_repository_read_process_authority_plan_ready`
+
+Result status: `post_trade_dormant_git_runner_repository_read_process_authority_action_605_planning_gate_completed`
+
+No deploy is recommended for Action 605. A source-control checkpoint commit may be considered only after the planning diff and validation are manually inspected.
