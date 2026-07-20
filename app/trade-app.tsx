@@ -19487,6 +19487,10 @@ function ConfidenceProjectionOutcomeReviewPanel({
   review: ConfidenceProjectionOutcomeReview;
   reviewJson: string;
 }) {
+  const deduplication = review.recommendation_level_deduplication;
+  const horizonGroups = review.horizon_level.horizon_groups.filter(
+    (group) => group.observed_count > 0,
+  );
   const raisedRate = formatPercent(rateFromCounts(review.raised_count, review.complete_count));
   const loweredRate = formatPercent(
     rateFromCounts(review.lowered_count, review.complete_count),
@@ -19526,6 +19530,9 @@ function ConfidenceProjectionOutcomeReviewPanel({
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
             Confidence Projection Review
           </p>
+          <h4 className="mt-2 text-base font-semibold text-white">
+            Recommendation-level calibration
+          </h4>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
             Measures whether AI Projection better matched completed outcomes than
             the original confidence. Evidence only; original confidence remains
@@ -19542,7 +19549,7 @@ function ConfidenceProjectionOutcomeReviewPanel({
 
       <StatisticsSummaryGrid className="mt-4">
         <SummaryCard
-          label="Observed"
+          label="Unique Recommendations"
           value={String(review.observed_count)}
         />
         <SummaryCard
@@ -19576,6 +19583,70 @@ function ConfidenceProjectionOutcomeReviewPanel({
           tone={review.average_delta}
         />
       </StatisticsSummaryGrid>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation-level selection
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Identities"
+            value={String(deduplication.unique_recommendation_identities)}
+          />
+          <SummaryCard
+            label="Selected 60m"
+            value={String(deduplication.selected_60m_count)}
+          />
+          <SummaryCard
+            label="Selected 30m"
+            value={String(deduplication.selected_30m_count)}
+          />
+          <SummaryCard
+            label="Selected 15m"
+            value={String(deduplication.selected_15m_count)}
+          />
+          <SummaryCard
+            label="Rows Deduped"
+            value={String(deduplication.deduplicated_outcome_row_count)}
+          />
+          <SummaryCard
+            label="Blocked Conflicts"
+            value={String(deduplication.identities_blocked_by_horizon_conflict)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {deduplication.copy.selection_policy}{" "}
+          {deduplication.copy.conflict_policy}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Calibration by horizon
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {horizonGroups.map((group) => (
+            <div
+              key={`horizon-calibration-${group.key}`}
+              className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+            >
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.12em] text-zinc-300">
+                {group.label}
+              </p>
+              <p className="mt-2 text-sm text-zinc-300">
+                {group.complete_count} complete · {group.improved_count} improved ·{" "}
+                {group.worsened_count} worsened
+              </p>
+              <p className="mt-1 font-mono text-xs text-zinc-500">
+                Net {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {review.horizon_level.copy.diagnostic_only}
+        </p>
+      </div>
 
       <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
         <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">

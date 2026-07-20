@@ -25,6 +25,10 @@ export type ConfidenceProjectionSampleQuality =
   | "usable_observation_sample"
   | "strong_observation_sample";
 
+export type ConfidenceProjectionReviewMode =
+  | "recommendation_level"
+  | "horizon_level";
+
 export type ConfidenceProjectionInsufficiencyReason =
   | "missing_snapshot_match"
   | "missing_outcome_match"
@@ -106,6 +110,33 @@ export type ConfidenceProjectionReviewGroup = {
   mean_original_error: number | null;
   mean_projected_error: number | null;
   net_error_improvement: number | null;
+};
+
+export type ConfidenceProjectionCalibrationMetrics = {
+  observed_count: number;
+  complete_count: number;
+  insufficient_count: number;
+  improved_count: number;
+  worsened_count: number;
+  neutral_count: number;
+  improved_rate: number | null;
+  worsened_rate: number | null;
+  neutral_rate: number | null;
+  mean_original_error: number | null;
+  mean_projected_error: number | null;
+  net_error_improvement: number | null;
+  average_delta: number | null;
+  raised_count: number;
+  lowered_count: number;
+  unchanged_count: number;
+  overestimated_count: number;
+  underestimated_count: number;
+  sample_quality: ConfidenceProjectionSampleQuality;
+  confidence_bands: ConfidenceProjectionReviewGroup[];
+  tiers: ConfidenceProjectionReviewGroup[];
+  windows: ConfidenceProjectionReviewGroup[];
+  setup_types: ConfidenceProjectionReviewGroup[];
+  explanation_categories: ConfidenceProjectionReviewGroup[];
 };
 
 export type ConfidenceProjectionSubgroupType =
@@ -195,8 +226,56 @@ export type ConfidenceProjectionObservationCompleteness = {
   };
 };
 
+export type ConfidenceProjectionHorizonSequenceStatus =
+  | "stable_horizon_sequence"
+  | "evolving_valid_horizon_sequence"
+  | "conflicting_horizon_sequence"
+  | "insufficient_horizon_sequence";
+
+export type ConfidenceProjectionRecommendationLevelDeduplication = {
+  review_mode: "recommendation_level";
+  selection_policy: "longest_complete_supported_horizon";
+  supported_horizon_priority: ["60m", "30m", "15m"];
+  identity_fields: {
+    primary: "recommendation_id";
+    fallback: ["snapshot_fingerprint", "snapshot_id"];
+    horizon_excluded_from_primary_identity: true;
+  };
+  unique_recommendation_identities: number;
+  identities_with_one_horizon: number;
+  identities_with_multiple_horizons: number;
+  identities_deduplicated: number;
+  identities_blocked_by_horizon_conflict: number;
+  selected_15m_count: number;
+  selected_30m_count: number;
+  selected_60m_count: number;
+  deduplicated_outcome_row_count: number;
+  excluded_horizon_observation_count: number;
+  blocked_horizon_observation_count: number;
+  stable_horizon_sequence_count: number;
+  evolving_valid_horizon_sequence_count: number;
+  conflicting_horizon_sequence_count: number;
+  insufficient_horizon_sequence_count: number;
+  selected_horizon_breakdown: Record<string, number>;
+  conflict_reasons: Record<string, number>;
+  copy: {
+    primary_calibration: string;
+    selection_policy: string;
+    conflict_policy: string;
+  };
+};
+
+export type ConfidenceProjectionHorizonLevelDiagnostics = ConfidenceProjectionCalibrationMetrics & {
+  review_mode: "horizon_level";
+  horizon_groups: ConfidenceProjectionReviewGroup[];
+  copy: {
+    diagnostic_only: string;
+  };
+};
+
 export type ConfidenceProjectionOutcomeReview = {
   status: "ready" | "no_observations";
+  review_mode: ConfidenceProjectionReviewMode;
   observed_count: number;
   complete_count: number;
   insufficient_count: number;
@@ -219,7 +298,11 @@ export type ConfidenceProjectionOutcomeReview = {
   confidence_bands: ConfidenceProjectionReviewGroup[];
   tiers: ConfidenceProjectionReviewGroup[];
   windows: ConfidenceProjectionReviewGroup[];
+  setup_types: ConfidenceProjectionReviewGroup[];
   explanation_categories: ConfidenceProjectionReviewGroup[];
+  recommendation_level: ConfidenceProjectionCalibrationMetrics;
+  horizon_level: ConfidenceProjectionHorizonLevelDiagnostics;
+  recommendation_level_deduplication: ConfidenceProjectionRecommendationLevelDeduplication;
   first_observed_calibration_signal: ConfidenceProjectionCalibrationSignalReview;
   observation_completeness: ConfidenceProjectionObservationCompleteness;
   outcome_metadata_resolution: ConfidenceProjectionOutcomeMetadataResolutionSummary;
@@ -268,6 +351,10 @@ const confidenceBandDefinitions = [
 ];
 
 const minimumSignalObservations = 5;
+const recommendationLevelHorizonPriority = ["60m", "30m", "15m"] as const;
+const supportedRecommendationLevelHorizons = new Set<string>(
+  recommendationLevelHorizonPriority,
+);
 
 const signalGroupTypePriority: ConfidenceProjectionSubgroupType[] = [
   "confidence_band",
@@ -1098,11 +1185,311 @@ function summarizeDynamicGroups(
   );
 }
 
+function summarizeCalibrationMetrics(
+  observations: ConfidenceProjectionOutcomeObservation[],
+): ConfidenceProjectionCalibrationMetrics {
+  const complete = observations.filter((item) => item.completeness === "complete");
+  const improvedCount = complete.filter((item) => item.comparison === "improved").length;
+  const worsenedCount = complete.filter((item) => item.comparison === "worsened").length;
+  const neutralCount = complete.filter((item) => item.comparison === "neutral").length;
+  const deltas = complete
+    .map((item) => item.confidence_delta)
+    .filter((value): value is number => value !== null);
+
+  return {
+    observed_count: observations.length,
+    complete_count: complete.length,
+    insufficient_count: observations.length - complete.length,
+    improved_count: improvedCount,
+    worsened_count: worsenedCount,
+    neutral_count: neutralCount,
+    improved_rate: rate(improvedCount, complete.length),
+    worsened_rate: rate(worsenedCount, complete.length),
+    neutral_rate: rate(neutralCount, complete.length),
+    mean_original_error: average(
+      complete
+        .map((item) => item.original_error)
+        .filter((value): value is number => value !== null),
+    ),
+    mean_projected_error: average(
+      complete
+        .map((item) => item.projected_error)
+        .filter((value): value is number => value !== null),
+    ),
+    net_error_improvement: average(
+      complete
+        .map((item) => item.error_improvement)
+        .filter((value): value is number => value !== null),
+    ),
+    average_delta: average(deltas),
+    raised_count: complete.filter((item) => item.delta_direction === "raised").length,
+    lowered_count: complete.filter((item) => item.delta_direction === "lowered").length,
+    unchanged_count: complete.filter((item) => item.delta_direction === "unchanged").length,
+    overestimated_count: complete.filter(
+      (item) =>
+        item.projected_confidence !== null &&
+        item.outcome_success_score !== null &&
+        item.projected_confidence > item.outcome_success_score,
+    ).length,
+    underestimated_count: complete.filter(
+      (item) =>
+        item.projected_confidence !== null &&
+        item.outcome_success_score !== null &&
+        item.projected_confidence < item.outcome_success_score,
+    ).length,
+    sample_quality: sampleQuality(complete.length),
+    confidence_bands: confidenceBandDefinitions.map((band) =>
+      summarizeGroup(
+        band.key,
+        band.label,
+        observations.filter(
+          (item) => confidenceBandFor(item.original_confidence)?.key === band.key,
+        ),
+      ),
+    ),
+    tiers: summarizeDynamicGroups(observations, (item) => item.tier || "unknown"),
+    windows: summarizeDynamicGroups(observations, (item) => item.window || "unknown"),
+    setup_types: summarizeDynamicGroups(
+      observations,
+      (item) => item.setup_type || "unknown",
+    ),
+    explanation_categories: summarizeDynamicGroups(
+      observations,
+      (item) => item.explanation_category || "unknown",
+    ),
+  };
+}
+
 function sampleQuality(completeCount: number): ConfidenceProjectionSampleQuality {
   if (completeCount >= 100) return "strong_observation_sample";
   if (completeCount >= 30) return "usable_observation_sample";
   if (completeCount >= 10) return "early_directional_signal";
   return "insufficient_sample";
+}
+
+function recommendationLevelIdentity(
+  observation: ConfidenceProjectionOutcomeObservation,
+) {
+  return (
+    observation.recommendation_id ??
+    observation.snapshot_fingerprint ??
+    observation.snapshot_id ??
+    `${observation.ticker}|${observation.timestamp ?? "missing_timestamp"}`
+  );
+}
+
+function horizonPriorityIndex(horizon: string) {
+  const index = recommendationLevelHorizonPriority.indexOf(
+    horizon as (typeof recommendationLevelHorizonPriority)[number],
+  );
+  return index === -1 ? Number.POSITIVE_INFINITY : index;
+}
+
+function isSupportedRecommendationHorizon(
+  observation: ConfidenceProjectionOutcomeObservation,
+) {
+  return supportedRecommendationLevelHorizons.has(observation.horizon);
+}
+
+function terminalCategory(observation: ConfidenceProjectionOutcomeObservation) {
+  if (
+    observation.target_reached === true ||
+    observation.outcome_status === "target_hit" ||
+    observation.outcome_status === "target_before_stop"
+  ) {
+    return "target" as const;
+  }
+  if (
+    observation.stop_reached === true ||
+    observation.outcome_status === "stop_hit" ||
+    observation.outcome_status === "stop_before_target"
+  ) {
+    return "stop" as const;
+  }
+  if (
+    observation.outcome_status === "entry_not_triggered" ||
+    observation.outcome_status === "neither_hit"
+  ) {
+    return "non_terminal_failure" as const;
+  }
+  return "other" as const;
+}
+
+function horizonSequenceStatus(
+  completeSupported: ConfidenceProjectionOutcomeObservation[],
+): {
+  status: ConfidenceProjectionHorizonSequenceStatus;
+  conflictReasons: string[];
+} {
+  if (completeSupported.length === 0) {
+    return {
+      status: "insufficient_horizon_sequence",
+      conflictReasons: ["no_complete_supported_horizon"],
+    };
+  }
+
+  const categories = new Set(completeSupported.map(terminalCategory));
+  const statuses = new Set(completeSupported.map((item) => item.outcome_status));
+  const confidencePairs = new Set(
+    completeSupported.map(
+      (item) => `${item.original_confidence ?? "missing"}:${item.projected_confidence ?? "missing"}`,
+    ),
+  );
+  const conflictReasons: string[] = [];
+
+  if (categories.has("target") && categories.has("stop")) {
+    conflictReasons.push("target_stop_conflict");
+  }
+  if (confidencePairs.size > 1) {
+    conflictReasons.push("confidence_differs_across_horizons");
+  }
+
+  if (conflictReasons.length > 0) {
+    return {
+      status: "conflicting_horizon_sequence",
+      conflictReasons,
+    };
+  }
+
+  if (statuses.size === 1) {
+    return {
+      status: "stable_horizon_sequence",
+      conflictReasons: [],
+    };
+  }
+
+  return {
+    status: "evolving_valid_horizon_sequence",
+    conflictReasons: [],
+  };
+}
+
+function representativeInsufficientObservation(
+  observations: ConfidenceProjectionOutcomeObservation[],
+) {
+  return [...observations].sort((first, second) => {
+    const firstHorizon = horizonPriorityIndex(first.horizon);
+    const secondHorizon = horizonPriorityIndex(second.horizon);
+    return (
+      firstHorizon - secondHorizon ||
+      (second.timestamp ?? "").localeCompare(first.timestamp ?? "") ||
+      first.horizon.localeCompare(second.horizon)
+    );
+  })[0];
+}
+
+function buildRecommendationLevelSelection(
+  horizonObservations: ConfidenceProjectionOutcomeObservation[],
+): {
+  observations: ConfidenceProjectionOutcomeObservation[];
+  diagnostics: ConfidenceProjectionRecommendationLevelDeduplication;
+} {
+  const byIdentity = new Map<string, ConfidenceProjectionOutcomeObservation[]>();
+  for (const observation of horizonObservations) {
+    const key = recommendationLevelIdentity(observation);
+    byIdentity.set(key, [...(byIdentity.get(key) ?? []), observation]);
+  }
+
+  const selected: ConfidenceProjectionOutcomeObservation[] = [];
+  const selectedHorizonBreakdown: Record<string, number> = {};
+  const conflictReasons: Record<string, number> = {};
+  let identitiesWithOneHorizon = 0;
+  let identitiesWithMultipleHorizons = 0;
+  let identitiesDeduplicated = 0;
+  let identitiesBlockedByHorizonConflict = 0;
+  let excludedHorizonObservationCount = 0;
+  let blockedHorizonObservationCount = 0;
+  let stableHorizonSequenceCount = 0;
+  let evolvingValidHorizonSequenceCount = 0;
+  let conflictingHorizonSequenceCount = 0;
+  let insufficientHorizonSequenceCount = 0;
+
+  for (const observations of byIdentity.values()) {
+    const uniqueHorizons = new Set(observations.map((item) => item.horizon));
+    if (uniqueHorizons.size <= 1) {
+      identitiesWithOneHorizon += 1;
+    } else {
+      identitiesWithMultipleHorizons += 1;
+    }
+
+    const completeSupported = observations
+      .filter(
+        (item) =>
+          item.completeness === "complete" &&
+          isSupportedRecommendationHorizon(item),
+      )
+      .sort(
+        (first, second) =>
+          horizonPriorityIndex(first.horizon) - horizonPriorityIndex(second.horizon),
+      );
+    const sequence = horizonSequenceStatus(completeSupported);
+    if (sequence.status === "stable_horizon_sequence") {
+      stableHorizonSequenceCount += 1;
+    }
+    if (sequence.status === "evolving_valid_horizon_sequence") {
+      evolvingValidHorizonSequenceCount += 1;
+    }
+    if (sequence.status === "conflicting_horizon_sequence") {
+      conflictingHorizonSequenceCount += 1;
+      identitiesBlockedByHorizonConflict += 1;
+      blockedHorizonObservationCount += observations.length;
+      for (const reason of sequence.conflictReasons) {
+        conflictReasons[reason] = (conflictReasons[reason] ?? 0) + 1;
+      }
+      continue;
+    }
+    if (sequence.status === "insufficient_horizon_sequence") {
+      insufficientHorizonSequenceCount += 1;
+    }
+
+    const chosen =
+      completeSupported[0] ?? representativeInsufficientObservation(observations);
+    if (!chosen) continue;
+    selected.push(chosen);
+    selectedHorizonBreakdown[chosen.horizon] =
+      (selectedHorizonBreakdown[chosen.horizon] ?? 0) + 1;
+    excludedHorizonObservationCount += Math.max(0, observations.length - 1);
+    if (observations.length > 1) identitiesDeduplicated += 1;
+  }
+
+  return {
+    observations: selected,
+    diagnostics: {
+      review_mode: "recommendation_level",
+      selection_policy: "longest_complete_supported_horizon",
+      supported_horizon_priority: ["60m", "30m", "15m"],
+      identity_fields: {
+        primary: "recommendation_id",
+        fallback: ["snapshot_fingerprint", "snapshot_id"],
+        horizon_excluded_from_primary_identity: true,
+      },
+      unique_recommendation_identities: byIdentity.size,
+      identities_with_one_horizon: identitiesWithOneHorizon,
+      identities_with_multiple_horizons: identitiesWithMultipleHorizons,
+      identities_deduplicated: identitiesDeduplicated,
+      identities_blocked_by_horizon_conflict: identitiesBlockedByHorizonConflict,
+      selected_15m_count: selectedHorizonBreakdown["15m"] ?? 0,
+      selected_30m_count: selectedHorizonBreakdown["30m"] ?? 0,
+      selected_60m_count: selectedHorizonBreakdown["60m"] ?? 0,
+      deduplicated_outcome_row_count: horizonObservations.length - selected.length,
+      excluded_horizon_observation_count: excludedHorizonObservationCount,
+      blocked_horizon_observation_count: blockedHorizonObservationCount,
+      stable_horizon_sequence_count: stableHorizonSequenceCount,
+      evolving_valid_horizon_sequence_count: evolvingValidHorizonSequenceCount,
+      conflicting_horizon_sequence_count: conflictingHorizonSequenceCount,
+      insufficient_horizon_sequence_count: insufficientHorizonSequenceCount,
+      selected_horizon_breakdown: selectedHorizonBreakdown,
+      conflict_reasons: conflictReasons,
+      copy: {
+        primary_calibration:
+          "Primary calibration counts each recommendation/snapshot identity once, because original and projected confidence are produced once per recommendation.",
+        selection_policy:
+          "Select the longest complete supported horizon in priority order: 60m, then 30m, then 15m. Do not average horizons.",
+        conflict_policy:
+          "Block recommendation-level selection when complete horizons contain target/stop conflicts or confidence differs across horizons.",
+      },
+    },
+  };
 }
 
 function signalConfidence(
@@ -1524,85 +1911,68 @@ export function buildConfidenceProjectionOutcomeReview(
   input: BuildInput,
 ): ConfidenceProjectionOutcomeReview {
   const indexes = buildSnapshotIndexes(input.snapshots);
-  const observations = dedupeOutcomes(input.outcomes).map((outcome) =>
+  const dedupedOutcomes = dedupeOutcomes(input.outcomes);
+  const horizonObservations = dedupedOutcomes.map((outcome) =>
     observationForOutcome(
       outcome,
       snapshotForOutcome(outcome, indexes),
       input.previewEnabled,
     ),
   );
-  const complete = observations.filter((item) => item.completeness === "complete");
-  const improvedCount = complete.filter((item) => item.comparison === "improved").length;
-  const worsenedCount = complete.filter((item) => item.comparison === "worsened").length;
-  const neutralCount = complete.filter((item) => item.comparison === "neutral").length;
-  const deltas = complete
-    .map((item) => item.confidence_delta)
-    .filter((value): value is number => value !== null);
+  const recommendationLevelSelection =
+    buildRecommendationLevelSelection(horizonObservations);
+  const observations = recommendationLevelSelection.observations;
+  const recommendationLevel = summarizeCalibrationMetrics(observations);
+  const horizonLevelMetrics = summarizeCalibrationMetrics(horizonObservations);
+  const horizonLevel: ConfidenceProjectionHorizonLevelDiagnostics = {
+    ...horizonLevelMetrics,
+    review_mode: "horizon_level",
+    horizon_groups: summarizeDynamicGroups(
+      horizonObservations,
+      (item) => item.horizon || "unknown",
+    ),
+    copy: {
+      diagnostic_only:
+        "Diagnostic horizon-level calibration keeps every complete 15m, 30m, and 60m row separate. It is not the primary recommendation-level calibration result.",
+    },
+  };
   const firstObservedCalibrationSignal =
     buildFirstCalibrationSignalReview(observations);
   const observationCompleteness = buildObservationCompleteness(observations);
   const outcomeMetadataResolution = buildOutcomeMetadataResolutionSummary(
-    dedupeOutcomes(input.outcomes),
+    dedupedOutcomes,
   );
 
   return {
-    status: observations.length > 0 ? "ready" : "no_observations",
-    observed_count: observations.length,
-    complete_count: complete.length,
-    insufficient_count: observations.length - complete.length,
-    improved_count: improvedCount,
-    worsened_count: worsenedCount,
-    neutral_count: neutralCount,
-    improved_rate: rate(improvedCount, complete.length),
-    worsened_rate: rate(worsenedCount, complete.length),
-    neutral_rate: rate(neutralCount, complete.length),
-    mean_original_error: average(
-      complete
-        .map((item) => item.original_error)
-        .filter((value): value is number => value !== null),
-    ),
-    mean_projected_error: average(
-      complete
-        .map((item) => item.projected_error)
-        .filter((value): value is number => value !== null),
-    ),
-    net_error_improvement: average(
-      complete
-        .map((item) => item.error_improvement)
-        .filter((value): value is number => value !== null),
-    ),
-    average_delta: average(deltas),
-    raised_count: complete.filter((item) => item.delta_direction === "raised").length,
-    lowered_count: complete.filter((item) => item.delta_direction === "lowered").length,
-    unchanged_count: complete.filter((item) => item.delta_direction === "unchanged").length,
-    overestimated_count: complete.filter(
-      (item) =>
-        item.projected_confidence !== null &&
-        item.outcome_success_score !== null &&
-        item.projected_confidence > item.outcome_success_score,
-    ).length,
-    underestimated_count: complete.filter(
-      (item) =>
-        item.projected_confidence !== null &&
-        item.outcome_success_score !== null &&
-        item.projected_confidence < item.outcome_success_score,
-    ).length,
-    sample_quality: sampleQuality(complete.length),
-    confidence_bands: confidenceBandDefinitions.map((band) =>
-      summarizeGroup(
-        band.key,
-        band.label,
-        observations.filter(
-          (item) => confidenceBandFor(item.original_confidence)?.key === band.key,
-        ),
-      ),
-    ),
-    tiers: summarizeDynamicGroups(observations, (item) => item.tier || "unknown"),
-    windows: summarizeDynamicGroups(observations, (item) => item.window || "unknown"),
-    explanation_categories: summarizeDynamicGroups(
-      observations,
-      (item) => item.explanation_category || "unknown",
-    ),
+    status: horizonObservations.length > 0 ? "ready" : "no_observations",
+    review_mode: "recommendation_level",
+    observed_count: recommendationLevel.observed_count,
+    complete_count: recommendationLevel.complete_count,
+    insufficient_count: recommendationLevel.insufficient_count,
+    improved_count: recommendationLevel.improved_count,
+    worsened_count: recommendationLevel.worsened_count,
+    neutral_count: recommendationLevel.neutral_count,
+    improved_rate: recommendationLevel.improved_rate,
+    worsened_rate: recommendationLevel.worsened_rate,
+    neutral_rate: recommendationLevel.neutral_rate,
+    mean_original_error: recommendationLevel.mean_original_error,
+    mean_projected_error: recommendationLevel.mean_projected_error,
+    net_error_improvement: recommendationLevel.net_error_improvement,
+    average_delta: recommendationLevel.average_delta,
+    raised_count: recommendationLevel.raised_count,
+    lowered_count: recommendationLevel.lowered_count,
+    unchanged_count: recommendationLevel.unchanged_count,
+    overestimated_count: recommendationLevel.overestimated_count,
+    underestimated_count: recommendationLevel.underestimated_count,
+    sample_quality: recommendationLevel.sample_quality,
+    confidence_bands: recommendationLevel.confidence_bands,
+    tiers: recommendationLevel.tiers,
+    windows: recommendationLevel.windows,
+    setup_types: recommendationLevel.setup_types,
+    explanation_categories: recommendationLevel.explanation_categories,
+    recommendation_level: recommendationLevel,
+    horizon_level: horizonLevel,
+    recommendation_level_deduplication: recommendationLevelSelection.diagnostics,
     first_observed_calibration_signal: firstObservedCalibrationSignal,
     observation_completeness: observationCompleteness,
     outcome_metadata_resolution: outcomeMetadataResolution,
