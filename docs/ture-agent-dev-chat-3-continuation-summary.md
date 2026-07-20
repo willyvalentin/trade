@@ -11156,3 +11156,184 @@ Result status: `post_trade_dormant_git_runner_atomic_consumption_storage_action_
 Recommended next Action: Action 615 - Implement Pure Atomic Dormant Git Authority Consumption Transition Contract.
 
 No deploy is recommended for Action 614. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
+
+### Action 615 - Latest Continuation Handoff
+
+Action 615 implemented the pure, fixture-only, deterministic dormant Git authority-consumption transition contract. No database operation occurred, no SQL/RPC or migration was created, no storage adapter or runner was implemented, no authority was consumed live, no atomicity or replay prevention was implemented, no Git command was executed, no process or repository was accessed, no runtime/API/UI/cron/worker/CLI path was activated, and no credentials, environment, network, Avanza/trading, persistence, staging, deployment, commit, push, merge, or deploy behavior was added.
+
+Created:
+
+- `lib/post-trade-pure-dormant-git-authority-consumption-transition-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-authority-consumption-transition-contract.spec.ts`
+- `docs/pure-dormant-git-authority-consumption-transition-contract-action-615.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-615-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Implemented identities:
+
+- contract ID `ture.execution.pure-dormant-git-authority-consumption-transition-contract.fixture.v1`;
+- boundary ID `ture.execution.dormant-git-authority-consumption-transition.fixture-boundary.v1`;
+- transition policy `ture.execution.dormant-git-authority-consumption.transition-policy.v1`;
+- state policy `ture.execution.dormant-git-runner-authority-consumption-storage.schema-family.v1`;
+- replay, concurrency, terminal-state, audit-event, and compare-and-set policy identities.
+
+Implemented state and operation model:
+
+- states: `issued`, `active`, `partially_consumed`, `consumed`, `failed_consumed`, `ambiguous_failed_consumed`, `expired`, `revoked`;
+- operations: `register_package`, `claim_consumer`, `consume_stage`, `record_stage_completion`, `terminalize_failure`, `terminalize_ambiguous_failure`, `terminalize_expiry`, `revoke_package`, `finalize_aggregate`;
+- no replay/conflict mutable states and no generic update-state operation;
+- exact current-state fixture includes package linkage, session, sequence, executable/worktree/compatibility fingerprints, transition version, active consumer, stage records, aggregate fingerprint, audit sequence, and state fingerprint.
+
+Implemented transition behavior:
+
+- registration accepts a complete fixture `authority_package_issued` result and deterministic consumption key, builds issued state with six unconsumed stage records, and emits package-registered audit evidence;
+- claim moves issued to active with exact consumer ID/fingerprint and transition version increment;
+- stage consumption records consumed-before-completion posture, increments counters, preserves current stage until completion, and emits stage-authority-consumed audit evidence;
+- completion advances accepted stages, permits exact detached observation only for stage 3, terminalizes rejected/process-failed completion as `failed_consumed`, and terminalizes ambiguous process state as `ambiguous_failed_consumed`;
+- aggregate finalization requires all six stages consumed and accepted, exact aggregate fingerprint, before-expiry observation, and active consumer match, then terminalizes as `consumed`;
+- expiry and revocation terminalize non-terminal states only;
+- every non-registration transition requires exact current-state fingerprint and expected transition version.
+
+Security posture:
+
+- pure core imports only deterministic crypto and approved pure contracts/helpers;
+- no server-only import, Supabase/database import, filesystem import, child_process import, process.env access, network/credential primitive, timer, observer, lock, process handle, or storage handle;
+- output, next state, stage records, and audit events are deeply frozen;
+- fingerprints bind identities, operation, current and next states, expected/resulting versions, consumer/stage/timestamp/evidence linkage, audit events, status/reason, and no-runtime/no-authority posture;
+- fingerprints do not create atomicity or replay prevention.
+
+Focused tests:
+
+- new Action 615 suite: 43 tests covering registration, claim, stage consumption, completion, detached posture, aggregate, expiry/revocation, explicit failure, CAS/version, state invariants, schema attacks, timestamp grammar, fingerprints, immutability, and pure import closure.
+
+Known limitations:
+
+- no database uniqueness;
+- no live atomic compare-and-set;
+- no replay prevention;
+- no durable lock or audit persistence;
+- no storage ambiguity read-back;
+- no process authority consumption;
+- no runtime reachability.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_contract_ready_for_static_security_review`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_615_implemented_fixture_only`
+
+Recommended next Action: Action 616 - Static Security and Contract Review of Pure Dormant Git Authority Consumption Transition Contract.
+
+No deploy is recommended for Action 615. A source-control checkpoint commit may be considered only after the complete diff and validation are manually inspected.
+
+### Action 616 - Latest Continuation Handoff
+
+Action 616 independently reviewed the complete uncommitted Action 615 pure dormant Git authority-consumption transition contract. It did not implement behavior, add tests, change production code, create SQL/RPC/migrations, implement storage, consume authority, add atomic replay prevention, implement a runner, execute Git, create or observe a process, inspect a repository, activate runtime/API/UI/cron/worker/CLI paths, access credentials/environment/network, touch Avanza/trading behavior, persist data, deploy, commit, push, or merge.
+
+Created:
+
+- `docs/pure-dormant-git-authority-consumption-transition-action-616-static-security-review.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-616-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Review verdict:
+
+- pure boundary, identity/policy posture, direct operation union, direct aggregate/expiry/revocation behavior, pure-only CAS modeling, determinism, immutability, runtime reachability, and prohibited-operation posture passed;
+- authority-package semantic revalidation, current-state nested-array closure, state-machine invariants, and audit event/state linkage are blocked pending remediation;
+- export surface has one non-blocking low finding for an overly broad generic test hash helper.
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 4
+  - `A616-MED-001`: incomplete semantic authority-package prerequisite validation.
+  - `A616-MED-002`: incomplete exact-array closure for `currentState.stages`.
+  - `A616-MED-003`: incomplete state-machine invariants and transition-order validation.
+  - `A616-MED-004`: inconsistent audit event and state linkage.
+- Low: 1
+  - `A616-LOW-001`: generic test hash helper is broader than necessary for the production-core export surface.
+- Informational: 0
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 615 suite: first sandbox attempt failed with Playwright `EPERM` on `test-results/.last-run.json`; escalated rerun passed, 43 tests;
+- authority-package suite: passed, 155 tests;
+- direct-spawn, executable revalidation, and resolver group: passed, 564 tests;
+- compatibility/parser/orchestrator/observation group: passed, 451 tests;
+- neutralization/raw/composition/process group: passed, 103 tests;
+- Action 533 cross-boundary suite: passed, 181 tests;
+- broad credential/CLI/authorization/persistence-design group: passed, 555 tests;
+- migration-static baseline limitation: import-time `ENOENT` for missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`; unrelated and pre-existing;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- static export-surface review: low finding;
+- static runtime-reachability review: pass;
+- static prohibited-operation review: pass;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_contract_static_security_review_blocked_pending_remediation`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_616_review_completed_blocked`
+
+Recommended next Action: Action 617 - Remediate Pure Dormant Git Authority Consumption Transition Review Findings.
+
+No deploy is recommended for Action 616. No commit is recommended until the blocking Action 616 findings are remediated and independently re-reviewed.
+
+### Action 617 - Latest Continuation Handoff
+
+Action 617 remediated all Action 616 findings against the uncommitted Action 615-616 pure dormant Git authority-consumption transition package. No database operation occurred, no SQL/RPC/migration or persistence adapter was created, no authority was consumed live, no atomicity or replay prevention was implemented, no dormant Git runner was implemented, no Git command was executed, no process or repository was accessed, no API/UI/cron/worker/CLI/runtime path was activated, and no credentials, environment, network, Avanza/trading, staging, deployment, commit, push, merge, or deploy behavior was added.
+
+Created:
+
+- `docs/pure-dormant-git-authority-consumption-transition-action-617-review-remediation.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-617-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-pure-dormant-git-authority-consumption-transition-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-authority-consumption-transition-contract.spec.ts`
+- `docs/pure-dormant-git-authority-consumption-transition-contract-action-615.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-615-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation verdicts:
+
+- `A616-MED-001`: remediated with complete semantic authority-package result/package/stage revalidation.
+- `A616-MED-002`: remediated with descriptor/prototype-chain exact-array closure for `currentState.stages`.
+- `A616-MED-003`: remediated with complete state-progression invariants and current-stage-only completion.
+- `A616-MED-004`: remediated with one audit event per permitted transition and exact returned-state linkage.
+- `A616-LOW-001`: remediated by removing the broad generic test hash helper export.
+
+Focused transition tests increased from 43 to 73.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: first non-escalated attempt hit known `tsconfig.tsbuildinfo` `EPERM`; escalated reruns passed;
+- expanded focused transition suite: passed, 73 tests;
+- authority-package suite: passed, 155 tests;
+- direct-spawn/revalidation/resolver suites: passed, 564 tests;
+- compatibility/parser/orchestrator/observation suites: passed, 451 tests;
+- neutralization/raw/composition/process suites: passed, 103 tests;
+- Action 533 cross-boundary suite: passed, 181 tests;
+- broad credential/CLI/authorization/persistence-design group excluding known missing migration-static file: passed, 555 tests;
+- migration-static baseline limitation remains an unrelated import-time `ENOENT` for missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- static authority-package, exact-array, state-invariant, stage-progression, completion-order, audit/state, result/precedence, fingerprint, determinism/immutability, atomicity/replay-limit, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_action_616_findings_remediated_ready_for_re_review`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_617_remediation_completed`
+
+Recommended next Action: Action 618 - Independent Final Re-Review of Pure Dormant Git Authority Consumption Transition Remediation.
+
+No deploy is recommended for Action 617. Do not commit until the remediation diff has been manually inspected and Action 618 independently re-reviews the package.
