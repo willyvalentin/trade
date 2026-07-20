@@ -10650,3 +10650,340 @@ Decision: `post_trade_dormant_git_runner_authority_expiry_freshness_policy_ready
 Result status: `post_trade_dormant_git_runner_authority_expiry_action_606_decision_gate_completed`
 
 No deploy is recommended for Action 606. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
+
+### Action 607 - Latest Continuation Handoff
+
+Action 607 implemented the pure, fixture-only, deterministic authority-package issuance contract for a future dormant read-only Git repository-observation runner. No server-only issuer, consumption contract, persistence adapter, runner, runtime caller, Git execution, process creation, process observation, repository inspection, credential access, environment access, network access, Avanza/trading behavior, migration, deployment, commit, push, or merge was added.
+
+Created:
+
+- `lib/post-trade-pure-dormant-git-runner-authority-package-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-runner-authority-package-contract.spec.ts`
+- `docs/pure-dormant-git-runner-authority-package-contract-action-607.md`
+- `docs/pure-dormant-git-runner-authority-package-action-607-checkpoint.md`
+
+Implemented:
+
+- contract id `ture.execution.pure-dormant-git-runner-authority-package-contract.fixture.v1`;
+- authority policy id `ture.execution.dormant-git-runner.repository-read-process-authority.policy.v1`;
+- exact 30-second fixed expiry delta validation;
+- exact prerequisite validation for executable resolution evidence, immediate pre-spawn revalidation evidence, final-approved Git compatibility result, and approved aggregate worktree linkage evidence;
+- exact session/platform/policy/executable/worktree/sequence linkage;
+- six immutable stage grants for the approved read-only Git observation sequence;
+- initial package state `issued`, no consumed grants, no active consumer, no terminal state, no retry, no fallback, no replay, no revocation, no expiry claim;
+- deterministic SHA-256 fingerprints and deeply frozen results.
+
+Authority posture:
+
+- issued packages carry only narrow dormant package evidence for future separately reviewed consumption;
+- no runtime caller activation, mutation authority, arbitrary filesystem authority, write-command authority, credential authority, network authority, staging authority, deployment authority, Avanza/trading authority, persistence authority, migration authority, or TOCTOU elimination was granted.
+
+Focused suite:
+
+- `tests/e2e/post-trade-pure-dormant-git-runner-authority-package-contract.spec.ts`: 26 tests passed during implementation.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed after the known `tsconfig.tsbuildinfo` sandbox write limitation was rerun with minimal local write permission;
+- Action 607 focused authority-package suite: 26 passed;
+- compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suites: 143 passed;
+- resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 887 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: passed;
+- `git diff --check`: passed;
+- static pure-import, policy/identity, input-schema, timestamp/expiry, prerequisite-revalidation, linkage, stage-grant, capability-scope, output-retention, package-state, result-union, reason-precedence, fingerprint, replay-limit, determinism/immutability, authority/no-runtime, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- migration-suite baseline limitation check: unrelated missing migration baseline reconfirmed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_contract_ready_for_static_security_review`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_607_implemented_fixture_only`
+
+Recommended next Action: Action 608 - Static Security and Contract Review of Pure Dormant Git Runner Authority Package Contract.
+
+No deploy is recommended for Action 607. A source-control checkpoint commit may be considered only after the implementation diff and validation are manually inspected.
+
+### Action 608 - Latest Continuation Handoff
+
+Action 608 independently reviewed the complete uncommitted Action 607 pure dormant Git runner authority-package contract. No production behavior, tests, authority consumption, replay-prevention storage, runner, runtime/API/UI/cron/worker/CLI reachability, Git execution, process creation/observation, repository inspection, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, staging, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/pure-dormant-git-runner-authority-package-action-608-static-security-review.md`
+- `docs/pure-dormant-git-runner-authority-package-action-608-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Findings:
+
+- Critical: 0;
+- High: 1 - `A608-HIGH-001`, prerequisite validators recompute fingerprints but do not semantically validate every trust and authority field from resolution, revalidation, and compatibility evidence;
+- Medium: 2 - `A608-MED-001`, incomplete exact schema closure for non-enumerable own properties and nested array-property attacks; `A608-MED-002`, complete source-controlled policy values are not fully fingerprint-bound;
+- Low: 0;
+- Informational: 0.
+
+Verdicts:
+
+- pure boundary, timestamp/expiry, fixed six-stage set, output retention, initial package state, replay/semantic limits, export surface, runtime reachability, prohibited-operation review, and migration baseline classification passed;
+- identity/policy, input schema, prerequisite evidence revalidation, fingerprint coverage, and focused test quality are blocked by the Action 608 findings.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- first focused Action 607 suite attempt hit known Playwright sandbox `EPERM` on `test-results/.last-run.json`;
+- Action 607 focused authority-package suite: minimal filesystem-escalated rerun passed, 26 tests;
+- compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- process-executor and composition focused rerun: 22 passed;
+- dormant composition adapter, trusted resolver/security, and Action 533 suites: 689 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1059 passed;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed before Action 608 docs were created;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed before Action 608 docs were created;
+- static pure-import, identity/policy, input-schema, timestamp/expiry, prerequisite-evidence, shared-linkage, fixed-stage, output-retention, sub-capability, package-state, result-union/reason, fingerprint, replay/semantic-limit, schema-closure, determinism/immutability, focused-test-quality, export-surface, runtime-reachability, prohibited-operation, and migration-baseline reviews completed.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_contract_static_security_review_blocked_pending_remediation`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_608_review_completed_blocked`
+
+Recommended next Action: Action 609 - Remediate Pure Dormant Git Runner Authority Package Review Findings.
+
+No deploy is recommended for Action 608. A source-control checkpoint commit should wait until Action 609 remediation is complete and manually inspected.
+
+### Action 609 - Latest Continuation Handoff
+
+Action 609 remediated all Action 608 findings in the uncommitted pure dormant Git runner authority-package package. No authority consumption, atomic replay-prevention storage, dormant Git runner, compatibility-policy behavior, resolver behavior, executable revalidation behavior, aggregate behavior, observation behavior, parser behavior, completion behavior, direct-spawn behavior, neutralization behavior, raw-completion behavior, composition behavior, process-executor behavior, Git execution through production behavior, process creation or observation, repository inspection, runtime/API/UI/cron/worker/CLI reachability, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, staging, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/pure-dormant-git-runner-authority-package-action-609-review-remediation.md`
+- `docs/pure-dormant-git-runner-authority-package-action-609-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-pure-dormant-git-runner-authority-package-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-runner-authority-package-contract.spec.ts`
+- `docs/pure-dormant-git-runner-authority-package-contract-action-607.md`
+- `docs/pure-dormant-git-runner-authority-package-action-607-checkpoint.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation verdicts:
+
+- `A608-HIGH-001`: remediated. Prerequisite validators now enforce complete semantic posture for resolution, revalidation, compatibility, and equivalent worktree evidence beyond fingerprint correctness;
+- `A608-MED-001`: remediated. The contract now uses descriptor-based exact object and exact array closure throughout the authority-package input tree;
+- `A608-MED-002`: remediated. `authorityPolicyFingerprint` is computed from the complete source-controlled policy model and propagated into stage, package, and final result fingerprints.
+
+Focused test count:
+
+- before Action 609: 26 tests;
+- after Action 609: 118 tests.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: initial run hit known `tsconfig.tsbuildinfo` sandbox `EPERM`; minimal filesystem-escalated reruns passed;
+- expanded Action 607/609 focused authority-package suite: 118 passed;
+- compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- dormant composition adapter, trusted resolver/security, and Action 533 suites: 689 passed;
+- broad dormant/process/credential/CLI/authorization suites: 1059 passed;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static complete prerequisite-schema comparison, prerequisite semantic-posture review, recomputed-forgery review, exact-object schema review, exact-array schema review, nested-schema coverage review, policy-canonicalization review, policy-fingerprint propagation review, stage/package/result fingerprint review, result/package consistency review, replay/semantic-limit review, determinism/immutability review, authority/no-runtime review, export-surface review, runtime-reachability review, prohibited-operation review, and migration baseline limitation check completed.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_action_608_findings_remediated_ready_for_re_review`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_609_remediation_completed`
+
+Recommended next Action: Action 610 - Independent Final Re-Review of Pure Dormant Git Runner Authority Package Remediation.
+
+No deploy is recommended for Action 609. A source-control checkpoint commit may be considered only after Action 610 independently approves the remediation and the complete diff has been manually inspected.
+
+### Action 610 - Latest Continuation Handoff
+
+Action 610 independently re-reviewed the complete uncommitted Action 607-609 pure dormant Git runner authority-package package. No implementation behavior or tests were added. No authority-package contract, compatibility policy, resolver, revalidation, aggregate observation, parser, completion, direct-spawn, neutralization, raw-completion, composition, process-executor, runtime/API/UI/cron/worker/CLI, migration, persistence, staging, deployment, Git execution, process creation, process observation, repository inspection, credential, environment, network, Avanza, or trading behavior was modified.
+
+Created:
+
+- `docs/pure-dormant-git-runner-authority-package-action-610-final-re-review.md`
+- `docs/pure-dormant-git-runner-authority-package-action-610-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Action 608 finding verdicts:
+
+- `A608-HIGH-001`: partially remediated. Recomputed semantic forgeries now reject, but the authority package still rejects the approved production-marked revalidation handoff shape required by direct spawn;
+- `A608-MED-001`: partially remediated. Descriptor-based object closure and own-property array closure exist, but inherited enumerable array properties are not rejected;
+- `A608-MED-002`: partially remediated. Policy fingerprint propagation exists, but the canonical source-controlled authority policy model is incomplete for the final gate.
+
+New findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 3 - `A610-MED-001`, production revalidation handoff shape rejected; `A610-MED-002`, incomplete explicit authority-policy fingerprint model; `A610-MED-003`, exact-array helper does not reject inherited enumerable `Array.prototype` properties;
+- Low: 0;
+- Informational: 0.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused authority-package suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 118 tests;
+- compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed across two commands;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- dormant composition adapter, trusted resolver/security, and Action 533 suites: 689 passed;
+- broad dormant/process/credential/CLI/authorization regression excluding the known missing-migration static test: 2554 passed;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- missing migration baseline check passed; `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent and unrelated.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_contract_final_security_review_blocked_pending_remediation`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_610_final_re_review_completed_blocked`
+
+Recommended next Action: Action 611 - Remediate Pure Dormant Git Runner Authority Package Final Review Findings.
+
+No deploy is recommended for Action 610. A source-control checkpoint commit should wait until the Action 610 findings are remediated, independently re-reviewed, and the complete diff has been manually inspected.
+
+### Action 611 - Latest Continuation Handoff
+
+Action 611 remediated the complete Action 610 findings against the uncommitted Action 607-610 pure dormant Git runner authority-package package. No authority consumption, atomic replay-prevention storage, dormant Git runner, compatibility-policy behavior, resolver behavior, executable-revalidation behavior, aggregate behavior, observation behavior, parser behavior, completion behavior, direct-spawn behavior, neutralization behavior, raw-completion behavior, composition behavior, process-executor behavior, Git execution through production behavior, process creation or observation, repository inspection, runtime/API/UI/cron/worker/CLI reachability, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, staging, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/pure-dormant-git-runner-authority-package-action-611-final-review-remediation.md`
+- `docs/pure-dormant-git-runner-authority-package-action-611-checkpoint.md`
+
+Modified:
+
+- `lib/post-trade-pure-dormant-git-runner-authority-package-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-runner-authority-package-contract.spec.ts`
+- `docs/pure-dormant-git-runner-authority-package-contract-action-607.md`
+- `docs/pure-dormant-git-runner-authority-package-action-609-review-remediation.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation verdicts:
+
+- `A610-MED-001`: remediated. The authority package now accepts only the exact production-marked immediate revalidation evidence posture used by dormant direct spawn;
+- `A610-MED-002`: remediated. `authorityPolicyFingerprint` now comes from a complete frozen canonical policy model and propagates through stage, package, and result fingerprints;
+- `A610-MED-003`: remediated. Exact-array validation now rejects inherited enumerable prototype-chain properties.
+
+Original Action 608 findings:
+
+- `A608-HIGH-001`: remediated;
+- `A608-MED-001`: remediated;
+- `A608-MED-002`: remediated.
+
+Focused test count:
+
+- before Action 611: 118 tests;
+- after Action 611: 155 tests.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: initial non-escalated run hit known `tsconfig.tsbuildinfo` sandbox `EPERM`; minimal filesystem-escalated reruns passed;
+- expanded Action 607-611 focused authority-package suite: first non-escalated attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated reruns passed after test expectation fixes, 155 tests;
+- direct-spawn, executable-revalidation, executable-resolution, and resolver security suites: 540 passed;
+- compatibility-policy, generic Git parser, Apple Git parser, and Git-version orchestrator suites: 279 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- dormant composition adapter, pure composition, trusted resolver/security, and Action 533 suites: 702 passed;
+- broad dormant/process/credential/CLI/authorization regression excluding the known missing-migration static test: 2591 passed;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- static production-revalidation provenance comparison, direct-spawn compatibility review, complete policy-inventory review, policy canonicalization review, policy fingerprint-propagation review, exact object/array prototype-chain review, prototype-attack test review, prerequisite-semantic regression review, package/result consistency review, replay/semantic-limit review, determinism/immutability review, authority/no-runtime review, export-surface review, runtime-reachability review, prohibited-operation review, and migration baseline limitation check completed;
+- runtime-reachability scan found no caller outside the reviewed core;
+- prohibited-operation scan found only imported module path strings containing `server-only` / `pre-spawn`, not a runtime operation import or call;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- missing migration baseline check passed; `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent and unrelated.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_action_610_findings_remediated_ready_for_re_review`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_611_remediation_completed`
+
+Recommended next Action: Action 612 - Independent Final Re-Review of Pure Dormant Git Runner Authority Package Final Remediation.
+
+No deploy is recommended for Action 611. A source-control checkpoint commit may be considered only after Action 612 independently approves the remediation and the complete diff has been manually inspected.
+
+### Action 612 - Latest Continuation Handoff
+
+Action 612 independently re-reviewed the complete uncommitted Action 607-611 pure dormant Git runner authority-package package and approved Action 611's final remediation. No new behavior, tests, authority consumption, atomic replay-prevention storage, dormant Git runner, executable resolver, revalidation, direct-spawn, compatibility, aggregate, observation, parser, completion, neutralization, raw-completion, composition, process-executor, runtime/API/UI/cron/worker/CLI wiring, Git execution, process creation or observation, repository inspection, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, staging, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/pure-dormant-git-runner-authority-package-action-612-final-re-review.md`
+- `docs/pure-dormant-git-runner-authority-package-action-612-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Action 610 finding verdicts:
+
+- `A610-MED-001`: remediated. Production-marked revalidation provenance is exact and direct-spawn compatible;
+- `A610-MED-002`: remediated. Complete canonical authority-policy inventory is fingerprint-bound and propagated;
+- `A610-MED-003`: remediated. Inherited enumerable array prototype-chain attacks fail closed.
+
+Original Action 608 finding status:
+
+- `A608-HIGH-001`: closed;
+- `A608-MED-001`: closed;
+- `A608-MED-002`: closed.
+
+New findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 0.
+
+Review verdicts:
+
+- provenance compatibility, direct-spawn linkage, prerequisite semantic completeness, policy inventory, policy canonicalization, fingerprint propagation, array/object prototype-chain closure, schema attacks, package/result consistency, contract version, regression, replay/authority limits, test quality, pure boundary, export surface, runtime reachability, and prohibited-operation posture all passed;
+- missing migration baseline remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is still absent, and Actions 607-612 did not modify migrations, persistence, authorization tests, migration imports, or test discovery.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- expanded Action 607-611 focused authority-package suite: first non-escalated attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 155 tests;
+- direct-spawn, executable-revalidation, executable-resolution, and resolver-security suites: 540 passed;
+- compatibility-policy, generic Git parser, Apple Git parser, and Git-version orchestrator suites: 279 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, composition, and process-executor suites: 135 passed;
+- dormant composition adapter, pure composition, trusted resolver/security, and Action 533 suites: 702 passed;
+- broad dormant/process/credential/CLI/authorization regression excluding the known missing-migration static test: 2591 passed;
+- scoped ESLint on changed TypeScript files: passed;
+- `git diff --check`: passed;
+- static production-provenance comparison, direct-spawn compatibility review, prerequisite-semantic review, recomputed-forgery review, complete policy-inventory review, policy canonicalization review, policy fingerprint-propagation review, array/object prototype-chain review, prototype-attack review, package/result consistency review, contract-version review, regression review, replay/semantic-limit review, determinism/immutability review, authority/no-runtime review, export-surface review, runtime-reachability review, prohibited-operation review, and migration baseline limitation check completed;
+- runtime-reachability scan found no caller outside the reviewed core;
+- prohibited-operation scan found only imported module path strings containing `server-only` / `pre-spawn`, not runtime operation imports or calls;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- missing migration baseline check: passed.
+
+Decision: `post_trade_pure_dormant_git_runner_authority_package_contract_final_security_review_approved`
+
+Result status: `post_trade_pure_dormant_git_runner_authority_package_action_612_final_re_review_completed`
+
+Recommended next Action: Action 613 - Plan Atomic One-Shot Consumption Record for Dormant Git Runner Authority.
+
+No deploy is recommended for Action 612. A source-control checkpoint commit may be considered only after the complete diff has been manually inspected.
