@@ -11084,3 +11084,75 @@ Result status: `post_trade_dormant_git_runner_atomic_authority_consumption_actio
 Recommended next Action: Action 614 - Design Atomic Consumption Storage Schema and Transaction Contract.
 
 No deploy is recommended for Action 613. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
+
+### Action 614 - Latest Continuation Handoff
+
+Action 614 designed the durable Postgres/Supabase storage schema and transactional contract for the Action 613 atomic one-shot Git runner authority-consumption record. This was documentation, database-schema design, transactional-contract design, RLS/service-boundary planning, and approval-gate work only. No migration, SQL/RPC implementation, persistence adapter, pure transition contract, dormant runner, authority consumption, Git execution, process creation or observation, repository inspection, runtime/API/UI/cron/worker/CLI reachability, credentials, environment access, network access, Avanza/trading behavior, persistence behavior, staging activation, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/dormant-git-runner-atomic-consumption-storage-schema-action-614.md`
+- `docs/dormant-git-runner-atomic-consumption-transaction-architecture-action-614.md`
+- `docs/dormant-git-runner-atomic-consumption-storage-action-614-checkpoint.md`
+
+Modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Selected schema architecture:
+
+- future package current-state table `public.git_runner_authority_consumption_records`;
+- future normalized stage table `public.git_runner_authority_consumption_stages`;
+- future append-only audit table `public.git_runner_authority_consumption_audit_events`;
+- the three-table model was selected over embedded JSON, event-only reconstruction, stage-only records, and reuse of `public.execution_authorization_consumptions`;
+- all table names and RPC names are planning identifiers only and were not implemented.
+
+Planned states and invariants:
+
+- states: `issued`, `active`, `partially_consumed`, `consumed`, `failed_consumed`, `ambiguous_failed_consumed`, `expired`, `revoked`;
+- `ambiguous_failed_consumed` was selected to preserve crash/process-start ambiguity without retry, replay, reset, or inferred success;
+- `next_consumable_stage_index` and `in_flight_stage_index` separate the next eligible stage from a consumed stage awaiting completion;
+- package row owns active consumer, terminal state, counters, transition version, aggregate fingerprint, and current-state fingerprint;
+- stage rows own per-stage grant, consumption, process-attempt, direct-spawn, completion, and interpretation fingerprints;
+- audit rows are sanitized append-only transition evidence and must commit in the same transaction as state mutation.
+
+Planned transaction operations:
+
+- `register_git_runner_authority_package`;
+- `claim_git_runner_authority_consumer`;
+- `consume_git_runner_authority_stage`;
+- `record_git_runner_authority_stage_completion`;
+- `terminalize_git_runner_authority_failure`;
+- `terminalize_git_runner_authority_expiry`;
+- `revoke_git_runner_authority_package`;
+- `finalize_git_runner_authority_aggregate`;
+- `read_git_runner_authority_consumption_state`.
+
+Access and privacy posture:
+
+- future RLS enabled on all three tables;
+- no anon/authenticated client policies or direct table privileges;
+- future SECURITY DEFINER transactional functions with fixed search path, schema-qualified table references, no dynamic SQL, no arbitrary caller state/reason/table input, and no browser/client Supabase path;
+- permitted storage limited to identities, fingerprints, states, reasons, stage indexes, counters, platform/fixed executable identity, and timestamps;
+- forbidden storage includes raw paths, filenames, Git output, porcelain entries, credentials, environment values, process handles, PIDs, raw SQL/Node errors, stack traces, and arbitrary caller metadata;
+- retention duration remains unresolved and requires a separate future retention gate.
+
+Migration assessment:
+
+- `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent and unrelated;
+- that file targets the older staging authorization-consumption table `public.execution_authorization_consumptions`;
+- Action 614 does not create, restore, or modify migrations.
+
+Validation:
+
+- validation results are recorded in the Action 614 completion report;
+- scoped ESLint on changed TypeScript/JavaScript files is not applicable because Action 614 changed documentation only;
+- static production-source diff, runtime-reachability, prohibited-operation, migration-baseline, and `.env.local` guard checks are required before completion.
+
+Decision: `post_trade_dormant_git_runner_atomic_consumption_storage_schema_plan_ready`
+
+Result status: `post_trade_dormant_git_runner_atomic_consumption_storage_action_614_planning_gate_completed`
+
+Recommended next Action: Action 615 - Implement Pure Atomic Dormant Git Authority Consumption Transition Contract.
+
+No deploy is recommended for Action 614. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
