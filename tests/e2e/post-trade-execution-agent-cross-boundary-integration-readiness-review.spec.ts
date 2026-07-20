@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { DIRECT_SPAWN_DRIVER_BOUNDARY_IDENTITY, buildDirectSpawnFixtureDriverAdapter, buildDirectSpawnFixtureRequest, buildDirectSpawnOperationDefinition, buildFixtureExecutableSpawnAuthority, buildFixtureSpawnAuthorizationLink, buildSpawnSessionCapability } from "../../lib/post-trade-direct-spawn-driver-boundary-core";
-import { CREDENTIAL_SOURCE_ADAPTER_BOUNDARY_IDENTITY, buildCredentialSessionCapability, buildFixtureNoCredentialCapability } from "../../lib/post-trade-credential-source-adapter-boundary-core";
+import { CREDENTIAL_SOURCE_ADAPTER_BOUNDARY_IDENTITY, CREDENTIAL_SOURCE_EVALUATED_AT, buildCredentialSessionCapability, buildCredentialSourceFixtureAdapter, buildFixtureNoCredentialRequirementCapability, buildNoCredentialFixtureRequest } from "../../lib/post-trade-credential-source-adapter-boundary-core";
 import { SCOPED_MACOS_PROCESS_OBSERVER_IDENTITY } from "../../lib/post-trade-scoped-macos-process-observer-core";
 import { TRUSTED_LIVE_RESOLVER_ADAPTER_IDENTITY } from "../../lib/post-trade-trusted-live-resolver-adapter-core";
 
@@ -34,7 +34,15 @@ test("valid cross-boundary structural inputs remain fixture-only and determinist
   const request = buildDirectSpawnFixtureRequest({ operation: operation.operation, spawnSessionCapability: session, executableAuthority: executable, authorizationLink: authorization });
   const result = buildDirectSpawnFixtureDriverAdapter().createFixturePlan({ request, evaluatedAt: "2026-01-01T00:00:00.000Z" });
   expect(result.evidence).toMatchObject({ fixtureOnly: true, authoritativeLive: false, executionAttempted: false, processSpawned: false, timeoutScheduled: false, terminationAttempted: false, signalsSent: false, observerInvokedLive: false, authorizationConsumed: false, enablesProcessStart: false, enablesPreflightRunner: false });
-  expect(buildCredentialSessionCapability().authority).toBe("fixture_structural_only");
-  expect(buildFixtureNoCredentialCapability({ boundarySessionId: buildCredentialSessionCapability().boundarySessionId }).fixtureOnly).toBe(true);
-  expect(new Set([TRUSTED_LIVE_RESOLVER_ADAPTER_IDENTITY.adapterId, SCOPED_MACOS_PROCESS_OBSERVER_IDENTITY.adapterId, DIRECT_SPAWN_DRIVER_BOUNDARY_IDENTITY.adapterId, CREDENTIAL_SOURCE_ADAPTER_BOUNDARY_IDENTITY.adapterId]).size).toBe(4);
+  const credentialSession = buildCredentialSessionCapability({ intendedPurpose: "no_credential_required" });
+  const noCredential = buildFixtureNoCredentialRequirementCapability({ boundarySessionId: credentialSession.boundarySessionId, operation: operation.operation });
+  const credentialRequest = buildNoCredentialFixtureRequest({ operation: operation.operation, credentialSessionCapability: credentialSession, noCredentialRequirementCapability: noCredential });
+  const credentialResult = buildCredentialSourceFixtureAdapter().evaluateNoCredentialFixture({ request: credentialRequest, evaluatedAt: CREDENTIAL_SOURCE_EVALUATED_AT });
+  expect(credentialSession.fixtureOnly).toBe(true);
+  expect(credentialSession.intendedPurpose).toBe("no_credential_required");
+  expect(noCredential.fixtureOnly).toBe(true);
+  expect(noCredential.credentialAccessRequired).toBe(false);
+  expect(credentialResult.sourceEvidence.authority).toBe("fixture_structural_only");
+  expect(credentialResult.sourceEvidence.disposition).toBe("compatible_fixture_no_credential");
+  expect(new Set([TRUSTED_LIVE_RESOLVER_ADAPTER_IDENTITY.resolverId, SCOPED_MACOS_PROCESS_OBSERVER_IDENTITY.observerId, DIRECT_SPAWN_DRIVER_BOUNDARY_IDENTITY.driverId, CREDENTIAL_SOURCE_ADAPTER_BOUNDARY_IDENTITY.adapterId]).size).toBe(4);
 });
