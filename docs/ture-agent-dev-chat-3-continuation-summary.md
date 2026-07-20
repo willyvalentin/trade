@@ -9084,6 +9084,208 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 601 - Final Validation Addendum
+
+Completed final validation for the pure read-only Git compatibility policy contract. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static export-surface review: passed, no app/component/package import or runtime caller;
+- static runtime-reachability review: passed, no API/UI/runner/observer/credential/runtime activation path;
+- static prohibited-operation review: passed for the production core, with no filesystem, process, env, network, credential, persistence, timer, Supabase, Avanza, or trading primitive;
+- migration limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent as an unrelated baseline limitation.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_601_implemented_fixture_only`.
+
+Recommended next Action: Action 602 - Static Security and Contract Review of Pure Read-Only Git Compatibility Policy Contract.
+
+### Action 602 - Latest Continuation Handoff
+
+Completed Action 602 static security and contract review of the uncommitted Action 601 pure read-only Git compatibility policy contract. No production behavior was changed, no tests were added, no Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner/API/UI/runtime path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 2;
+- Low: 1;
+- Informational: 0.
+
+Blocking findings:
+
+- `A602-MED-001`: compatibility-policy results do not explicitly emit all authority-denial fields required by Action 602: `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: nested arrays such as `argv` and accepted-reason arrays do not reject extra own string-key properties.
+
+Non-blocking finding:
+
+- `A602-LOW-001`: `implementation_unsupported` and `implementation_family_rejected` are currently unreachable reserved states from the accepted-parser-only input union.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed after docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after docs creation;
+- static export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_602_review_completed_blocked`.
+
+Recommended next Action: Action 603 - Remediate Pure Read-Only Git Compatibility Policy Review Findings.
+
+### Action 603 - Tail Continuation Handoff
+
+Remediated the Action 602 findings against the uncommitted Action 601-602 pure read-only Git compatibility policy package. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Remediation verdicts:
+
+- `A602-MED-001`: remediated by adding explicit result fields for `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: remediated by adding exact nested-array schema closure for `argv` and accepted-reason arrays;
+- `A602-LOW-001`: resolved by removing unreachable `implementation_unsupported` status and `implementation_family_rejected` reason from the uncommitted v1 vocabulary.
+
+Focused suite count:
+
+- before Action 603: 34;
+- after Action 603: 133.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601/603 compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed after docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after docs creation;
+- static complete-authority-result, result-fingerprint coverage, exact-array schema, array-property attack, low-finding resolution, policy regression, parser-evidence revalidation, capability-scope, determinism/immutability, export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_action_602_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_603_remediation_completed`.
+
+Recommended next Action: Action 604 - Independent Final Re-Review of Pure Read-Only Git Compatibility Policy Remediation.
+
+### Action 603 - Pure Read-Only Git Compatibility Policy Review Remediation
+
+Remediated the Action 602 findings against the uncommitted Action 601-602 pure read-only Git compatibility policy package. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Files created:
+
+- `docs/pure-read-only-git-compatibility-policy-action-603-review-remediation.md`;
+- `docs/pure-read-only-git-compatibility-policy-action-603-checkpoint.md`.
+
+Files modified:
+
+- `lib/post-trade-pure-read-only-git-compatibility-policy-contract-core.ts`;
+- `tests/e2e/post-trade-pure-read-only-git-compatibility-policy-contract.spec.ts`;
+- `docs/pure-read-only-git-compatibility-policy-contract-action-601.md`;
+- `docs/pure-read-only-git-compatibility-policy-action-601-checkpoint.md`;
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Remediation verdicts:
+
+- `A602-MED-001`: remediated by adding explicit result fields for `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: remediated by adding exact nested-array schema closure for `argv` and accepted-reason arrays;
+- `A602-LOW-001`: resolved by removing unreachable `implementation_unsupported` status and `implementation_family_rejected` reason from the uncommitted v1 vocabulary.
+
+Focused suite count:
+
+- before Action 603: 34;
+- after Action 603: 133.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601/603 compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_action_602_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_603_remediation_completed`.
+
+Recommended next Action: Action 604 - Independent Final Re-Review of Pure Read-Only Git Compatibility Policy Remediation.
+
+### Action 602 - Pure Read-Only Git Compatibility Policy Static Security Review
+
+Performed an independent static security and contract review of the uncommitted Action 601 pure read-only Git compatibility policy contract. No production behavior was changed, no tests were added, no Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner/API/UI/runtime path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Files created:
+
+- `docs/pure-read-only-git-compatibility-policy-action-602-static-security-review.md`;
+- `docs/pure-read-only-git-compatibility-policy-action-602-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 2;
+- Low: 1;
+- Informational: 0.
+
+Blocking findings:
+
+- `A602-MED-001`: compatibility-policy results do not explicitly emit all authority-denial fields required by Action 602: `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: nested arrays such as `argv` and accepted-reason arrays do not reject extra own string-key properties.
+
+Non-blocking finding:
+
+- `A602-LOW-001`: `implementation_unsupported` and `implementation_family_rejected` are currently unreachable reserved states from the accepted-parser-only input union.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed before docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed before docs creation;
+- static export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_602_review_completed_blocked`.
+
+Recommended next Action: Action 603 - Remediate Pure Read-Only Git Compatibility Policy Review Findings.
+
 ### Action 599 - Dormant Read-Only Git Repository Observation Runner Plan
 
 Planned the smallest safe dormant server-only read-only Git repository observation runner boundary. This was documentation, architecture, and approval-gate work only. No runner was implemented, no Git command was executed through production behavior, no repository was inspected live, no process was created or observed, no compatibility decision was made, and no runtime/API/UI/cron/worker path, credential path, environment access, network access, Avanza/trading behavior, persistence, migration, deployment, commit, push, merge, or deploy behavior was introduced.
@@ -9242,6 +9444,91 @@ Validation:
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
 No deploy is recommended for Action 600.
+
+### Action 601 - Pure Read-Only Git Compatibility Policy Contract
+
+Implemented the smallest pure, fixture-only, deterministic compatibility policy contract for the exact approved read-only Git repository-observation capability set. The new core evaluates only accepted generic upstream Git-version evidence or accepted Apple Git-version evidence against the Action 600 baseline. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Files created:
+
+- `lib/post-trade-pure-read-only-git-compatibility-policy-contract-core.ts`;
+- `tests/e2e/post-trade-pure-read-only-git-compatibility-policy-contract.spec.ts`;
+- `docs/pure-read-only-git-compatibility-policy-contract-action-601.md`;
+- `docs/pure-read-only-git-compatibility-policy-action-601-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Contract identities:
+
+- contract ID: `ture.execution.pure-read-only-git-compatibility-policy-contract.fixture.v1`;
+- boundary ID: `ture.execution.read-only-git-compatibility-policy.fixture-boundary.v1`;
+- policy ID: `ture.execution.read-only-git-observation-compatibility-policy.v1`;
+- capability-set ID: `ture.execution.read-only-git-repository-observation-capability-set.v1`;
+- semantic baseline ID: `ture.execution.git-semantic-baseline.2-39-0.major-2.v1`;
+- implementation-family policy ID: `ture.execution.git-implementation-families.upstream-and-apple.v1`.
+
+Policy constants:
+
+- generic upstream minimum: `2.39.0`;
+- Apple upstream-equivalent minimum: `2.39.0`;
+- supported major family: `2`;
+- stable releases only;
+- future majors, unknown vendors, prerelease/development/custom builds, malformed versions, caller baselines, and caller policy overrides fail closed;
+- Apple build comparison mode: `evidence_only`.
+
+Result union:
+
+- `input_rejected`;
+- `implementation_unsupported`;
+- `version_below_baseline`;
+- `version_above_reviewed_range`;
+- `compatible_for_read_only_observation`.
+
+Authority posture:
+
+- every result keeps `authority:"none"`, `compatibilityAuthorityGranted:false`, `runtimeActivated:false`, `repositoryReadAuthorityGranted:false`, `processAuthorityGranted:false`, `cliExecutionAuthorityGranted:false`, `laterActivationEligibility:false`, and `toctouEliminated:false`;
+- positive compatibility is scoped only to the approved read-only observation capability set and does not imply general Git compatibility or write-command compatibility.
+
+Focused test coverage:
+
+- generic baseline acceptance/rejection;
+- Apple baseline and build evidence-only behavior;
+- unsupported family/parser separation;
+- rejected parser outputs;
+- stale parser fingerprints;
+- source linkage validation;
+- recomputed semantic/security forgeries;
+- result consistency;
+- fingerprint binding;
+- schema attacks;
+- determinism and immutability;
+- static runtime reachability.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static export-surface review: passed, no app/component/package import or runtime caller;
+- static runtime-reachability review: passed, no API/UI/runner/observer/credential/runtime activation path;
+- static prohibited-operation review: passed for the production core, with no filesystem, process, env, network, credential, persistence, timer, Supabase, Avanza, or trading primitive;
+- migration limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent as an unrelated baseline limitation.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_601_implemented_fixture_only`.
+
+Recommended next Action: Action 602 - Static Security and Contract Review of Pure Read-Only Git Compatibility Policy Contract.
 
 ### Action 592 - Pure Read-Only Git Porcelain Status Observation Contract
 
@@ -9689,6 +9976,86 @@ Validation:
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
 
+### Action 601 - Final Continuation Handoff
+
+Completed Action 601 implementation and validation for the pure read-only Git compatibility policy contract. The worktree remains dirty with the expected uncommitted Action 601 package only. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static export-surface review: passed, no app/component/package import or runtime caller;
+- static runtime-reachability review: passed, no API/UI/runner/observer/credential/runtime activation path;
+- static prohibited-operation review: passed for the production core, with no filesystem, process, env, network, credential, persistence, timer, Supabase, Avanza, or trading primitive;
+- migration limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent as an unrelated baseline limitation.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_601_implemented_fixture_only`.
+
+Recommended next Action: Action 602 - Static Security and Contract Review of Pure Read-Only Git Compatibility Policy Contract.
+
+### Action 602 - Final Continuation Handoff
+
+Completed Action 602 static security and contract review of the uncommitted Action 601 pure read-only Git compatibility policy contract. No production behavior was changed, no tests were added, no Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner/API/UI/runtime path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 2;
+- Low: 1;
+- Informational: 0.
+
+Blocking findings:
+
+- `A602-MED-001`: compatibility-policy results do not explicitly emit all authority-denial fields required by Action 602: `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: nested arrays such as `argv` and accepted-reason arrays do not reject extra own string-key properties.
+
+Non-blocking finding:
+
+- `A602-LOW-001`: `implementation_unsupported` and `implementation_family_rejected` are currently unreachable reserved states from the accepted-parser-only input union.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed after docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after docs creation;
+- static export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_602_review_completed_blocked`.
+
+Recommended next Action: Action 603 - Remediate Pure Read-Only Git Compatibility Policy Review Findings.
+
+### Action 601 - Final Continuation Handoff
+
+Completed Action 601 implementation and validation for the pure read-only Git compatibility policy contract. The worktree remains dirty with the expected uncommitted Action 601 package only. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_601_implemented_fixture_only`.
+
+Recommended next Action: Action 602 - Static Security and Contract Review of Pure Read-Only Git Compatibility Policy Contract.
+
 Decision: `post_trade_apple_git_version_output_contract_resolved_separate_parser_required`.
 
 Result status: `post_trade_apple_git_version_output_action_575_completed_separate_parser_planned`.
@@ -10037,3 +10404,145 @@ Validation:
 - `find docs -type f -size 0`: passed.
 
 Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
+
+### Action 601 - Final Continuation Handoff
+
+Completed Action 601 implementation and validation for the pure read-only Git compatibility policy contract. The worktree remains dirty with the expected uncommitted Action 601 package only. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed;
+- static export-surface review: passed, no app/component/package import or runtime caller;
+- static runtime-reachability review: passed, no API/UI/runner/observer/credential/runtime activation path;
+- static prohibited-operation review: passed for the production core, with no filesystem, process, env, network, credential, persistence, timer, Supabase, Avanza, or trading primitive;
+- migration limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent as an unrelated baseline limitation.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_ready_for_static_security_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_601_implemented_fixture_only`.
+
+Recommended next Action: Action 602 - Static Security and Contract Review of Pure Read-Only Git Compatibility Policy Contract.
+
+### Action 602 - Tail Continuation Handoff
+
+Completed Action 602 static security and contract review of the uncommitted Action 601 pure read-only Git compatibility policy contract. No production behavior was changed, no tests were added, no Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner/API/UI/runtime path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 2;
+- Low: 1;
+- Informational: 0.
+
+Blocking findings:
+
+- `A602-MED-001`: compatibility-policy results do not explicitly emit all authority-denial fields required by Action 602: `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: nested arrays such as `argv` and accepted-reason arrays do not reject extra own string-key properties.
+
+Non-blocking finding:
+
+- `A602-LOW-001`: `implementation_unsupported` and `implementation_family_rejected` are currently unreachable reserved states from the accepted-parser-only input union.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601 compatibility-policy suite: 34 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed after docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after docs creation;
+- static export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_static_security_review_blocked_pending_remediation`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_602_review_completed_blocked`.
+
+Recommended next Action: Action 603 - Remediate Pure Read-Only Git Compatibility Policy Review Findings.
+### Action 603 - Latest Continuation Handoff
+
+Remediated the Action 602 findings against the uncommitted Action 601-602 pure read-only Git compatibility policy package. No Git command was executed through production behavior, no process was created or observed, no repository was inspected, no runner was implemented, no repository-read/process/CLI authority was granted, no runtime/API/UI path was activated, and no credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Remediation verdicts:
+
+- `A602-MED-001`: remediated by adding explicit result fields for `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`;
+- `A602-MED-002`: remediated by adding exact nested-array schema closure for `argv` and accepted-reason arrays;
+- `A602-LOW-001`: resolved by removing unreachable `implementation_unsupported` status and `implementation_family_rejected` reason from the uncommitted v1 vocabulary.
+
+Focused suite count:
+
+- before Action 603: 34;
+- after Action 603: 133.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- focused Action 601/603 compatibility-policy suite: 133 passed;
+- generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator group: 146 passed;
+- aggregate Git observation, porcelain-status, byte-completion, and simple-observation group: 172 passed;
+- dormant neutralization/raw-completion/direct-spawn/revalidation/composition group: 143 passed;
+- trusted resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS/JS files: passed;
+- `git diff --check`: passed after docs creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after docs creation;
+- static complete-authority-result, result-fingerprint coverage, exact-array schema, array-property attack, low-finding resolution, policy regression, parser-evidence revalidation, capability-scope, determinism/immutability, export-surface, runtime-reachability, prohibited-operation, and migration-limitation reviews completed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_action_602_findings_remediated_ready_for_re_review`.
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_603_remediation_completed`.
+
+Recommended next Action: Action 604 - Independent Final Re-Review of Pure Read-Only Git Compatibility Policy Remediation.
+### Action 604 - Latest Continuation Handoff
+
+Action 604 independently re-reviewed the complete uncommitted Action 601-603 pure read-only Git compatibility policy package. No production behavior, tests, contract behavior, parser behavior, orchestration behavior, repository-observation behavior, runtime/API/UI/runner wiring, credentials, environment access, network access, Avanza/trading behavior, persistence, migrations, deployment, commit, push, or merge were added.
+
+Created:
+
+- `docs/pure-read-only-git-compatibility-policy-action-604-final-re-review.md`
+- `docs/pure-read-only-git-compatibility-policy-action-604-checkpoint.md`
+
+Review verdicts:
+
+- `A602-MED-001`: remediated. Every current result status explicitly carries the complete false authority/security posture, including `mutationAuthorityGranted:false`, `observerAuthorityGranted:false`, `credentialAuthorityGranted:false`, and `networkAuthorityGranted:false`, and those fields are result-fingerprint-bound.
+- `A602-MED-002`: remediated. Exact nested-array schema closure is applied to generic/Apple parser result accepted-reason arrays, generic/Apple parser evidence reason arrays, and generic/Apple `argv` arrays. The focused suite covers the required array-property and exotic-array attacks.
+- `A602-LOW-001`: resolved. `implementation_unsupported` and `implementation_family_rejected` are absent from the current uncommitted v1 source/test result vocabulary; historical docs mention them only as prior planning/review context.
+- New findings: Critical 0, High 0, Medium 0, Low 0, Informational 0.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused compatibility suite: first attempt hit known Playwright sandbox `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 133 tests.
+- Generic Git parser, Apple Git parser, and neutralization-to-Git orchestrator suites: 146 passed.
+- Aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed.
+- Neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suites: 143 passed.
+- Resolver/security and Action 533 suites: 672 passed.
+- Broad dormant/process/credential/CLI/authorization suites: 887 passed.
+- Scoped ESLint on changed TypeScript files: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_read_only_git_compatibility_policy_contract_final_security_review_approved`
+
+Result status: `post_trade_pure_read_only_git_compatibility_policy_action_604_final_re_review_completed`
+
+Recommended next Action: Action 605 - Plan Repository-Read and Process Authority for Dormant Git Observation Runner.
+
+No deploy is recommended for Action 604. A source-control checkpoint commit may be considered only after the complete Action 601-604 diff has been manually inspected.
