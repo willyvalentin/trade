@@ -13,7 +13,7 @@ No database operation occurred. No SQL, migration, RPC, persistence, storage ada
 | `A616-MED-001` incomplete semantic authority-package prerequisite validation | Medium | Expanded private validation for authority-package result identity, policy, status/reason, result/package linkage, expiry/freshness posture, allowed sub-capabilities, denied authorities, initial package state, exact stage grants, stage argv, limits, and fingerprints. Recomputed semantic forgeries reject with `authority_package_rejected`. | Remediated |
 | `A616-MED-002` incomplete exact-array closure for `currentState.stages` | Medium | Added descriptor/prototype-chain exact-array shape validation and applied it to `currentState.stages`; stage-grant `argv` arrays remain exact-value checked. Added stage-array attack coverage. | Remediated |
 | `A616-MED-003` incomplete state-machine invariants and transition ordering | Medium | Added a single stage-progression invariant model covering issued, active, pending consumption, accepted prefix, ready-for-aggregate, consumed, failed, ambiguous, expired, and revoked states. Completion now requires `stageIndex === currentStageIndex`. | Remediated |
-| `A616-MED-004` inconsistent audit event and state linkage | Medium | Reworked permitted transition audit construction so each permitted result emits one audit event, the event describes the returned next state, and `nextState.lastAuditEventFingerprint` equals the returned event fingerprint. Stage audit linkage is now explicit. | Remediated |
+| `A616-MED-004` inconsistent audit event and state linkage | Medium | Reworked permitted transition audit construction so each permitted result emits one audit event, the event links to returned state semantics, and `nextState.lastAuditEventFingerprint` equals the returned event fingerprint. Stage audit linkage is now explicit. Action 619 subsequently replaced the non-canonical final-next-state audit link with an acyclic `nextStateCoreFingerprint` link. | Remediated after Action 619 |
 | `A616-LOW-001` broad generic test hash export | Low | Removed `sha256ForDormantGitAuthorityTransitionTest` from the production core. Tests use a test-local SHA-256 helper only. | Remediated |
 
 ## Corrected Authority-Package Validation
@@ -42,9 +42,9 @@ Fingerprint correctness remains necessary but insufficient.
 
 ## Corrected Audit/State Linkage
 
-Every permitted transition emits one audit event. The event binds operation, stage where applicable, consumer where applicable, previous-state fingerprint, returned next-state fingerprint, transition versions, event sequence, observed timestamp, reason, and operation evidence fingerprint.
+Every permitted transition emits one audit event. As finalized by Action 619, the event binds operation, stage where applicable, consumer where applicable, previous-state fingerprint, returned next-state core fingerprint, transition versions, event sequence, observed timestamp, reason, operation evidence fingerprint, policy/package linkage, and authority/runtime false posture.
 
-The returned next state stores the same final event fingerprint in `lastAuditEventFingerprint`, and `nextAuditSequence` advances by exactly one.
+The returned next state stores the same canonical final event fingerprint in `lastAuditEventFingerprint`, and `nextAuditSequence` advances by exactly one. The audit event does not carry the final next-state fingerprint because that would create a circular dependency; the final transition result binds both the next-state core fingerprint and the final next-state fingerprint.
 
 ## Export Decision
 
@@ -58,7 +58,7 @@ The contract remains v1 because Actions 615-617 are still uncommitted, no runtim
 
 Focused transition tests increased from 43 to 73.
 
-Added coverage includes recomputed authority-package semantic forgeries, exact stage-array attack matrix, recomputed contradictory state progressions, audit next-state and last-event linkage, stage audit indexes for consumption and completion, and export-surface regression for the removed generic hash helper.
+Added coverage includes recomputed authority-package semantic forgeries, exact stage-array attack matrix, recomputed contradictory state progressions, audit state-core and last-event linkage, stage audit indexes for consumption and completion, and export-surface regression for the removed generic hash helper. Action 619 added further coverage that recomputes emitted audit event fingerprints for every permitted operation.
 
 ## Validation
 

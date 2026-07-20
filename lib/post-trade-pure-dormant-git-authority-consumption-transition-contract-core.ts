@@ -171,6 +171,7 @@ export type DormantGitAuthorityConsumptionCurrentState = Readonly<{
   stages: readonly DormantGitAuthorityConsumptionStageState[];
   aggregateFingerprint: string | null;
   nextAuditSequence: number;
+  stateCoreFingerprint: string;
   lastAuditEventFingerprint: string | null;
   stateFingerprintAlgorithm: "sha256";
   stateFingerprint: string;
@@ -180,20 +181,32 @@ export type DormantGitAuthorityConsumptionAuditEvent = Readonly<{
   eventKind: "dormant_git_authority_consumption_audit_event";
   eventVersion: 1;
   eventIdentity: "ture.execution.dormant-git-authority-consumption.audit-event.fixture.v1";
+  eventPolicyId: typeof PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_POLICY.auditEventPolicyId;
+  eventPolicyVersion: 1;
   eventSequence: number;
   operation: DormantGitAuthorityConsumptionOperation;
+  authorityPackageId: string;
   packageFingerprint: string;
+  authorityPolicyFingerprint: string;
+  consumptionKey: string;
   previousStateFingerprint: string | null;
-  nextStateFingerprint: string | null;
+  nextStateCoreFingerprint: string;
   consumerFingerprint: string | null;
   stageIndex: 0 | 1 | 2 | 3 | 4 | 5 | null;
   stageIdentity: string | null;
   transitionVersionBefore: number | null;
   transitionVersionAfter: number | null;
+  expectedTransitionVersion: number | null;
+  resultingTransitionVersion: number;
   status: "transition_permitted";
   reason: DormantGitAuthorityConsumptionReason;
   observedAt: string;
   evidenceFingerprint: string | null;
+  runtimeActivated: false;
+  toctouEliminated: false;
+  authority: "none";
+  atomicReplayProtectionPresent: false;
+  storageCommitted: false;
   eventFingerprintAlgorithm: "sha256";
   eventFingerprint: string;
 }>;
@@ -293,6 +306,7 @@ export type DormantGitAuthorityConsumptionTransitionResult = Readonly<{
   status: "transition_permitted" | "transition_rejected";
   reason: DormantGitAuthorityConsumptionReason;
   previousStateFingerprint: string | null;
+  nextStateCoreFingerprint: string | null;
   nextStateFingerprint: string | null;
   expectedTransitionVersion: number | null;
   resultingTransitionVersion: number | null;
@@ -320,7 +334,7 @@ const STATE_KEYS = [
   "compatibilityResultFingerprint", "issuedAt", "expiresAt", "state", "currentStageIndex", "consumedStageCount",
   "remainingStageCount", "transitionVersion", "activeConsumerId", "activeConsumerFingerprint", "claimedAt",
   "terminal", "terminalReason", "terminalAt", "expired", "revoked", "retryCount", "fallbackAttempted",
-  "stages", "aggregateFingerprint", "nextAuditSequence", "lastAuditEventFingerprint",
+  "stages", "aggregateFingerprint", "nextAuditSequence", "stateCoreFingerprint", "lastAuditEventFingerprint",
   "stateFingerprintAlgorithm", "stateFingerprint",
 ] as const;
 
@@ -471,6 +485,14 @@ export function buildDormantGitAuthorityConsumptionKey(packageId: string, packag
 
 export function buildDormantGitAuthorityCurrentStateFingerprint(state: Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint">): string {
   return sha256(PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_FINGERPRINT_DOMAINS.state, state);
+}
+
+export function buildDormantGitAuthorityCurrentStateCoreFingerprint(state: Omit<DormantGitAuthorityConsumptionCurrentState, "stateCoreFingerprint" | "lastAuditEventFingerprint" | "stateFingerprintAlgorithm" | "stateFingerprint">): string {
+  return sha256(PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_FINGERPRINT_DOMAINS.state, state);
+}
+
+export function buildDormantGitAuthorityAuditEventFingerprintForTest(event: Omit<DormantGitAuthorityConsumptionAuditEvent, "eventFingerprint">): string {
+  return sha256(PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_FINGERPRINT_DOMAINS.auditEvent, event);
 }
 
 export function buildFixtureDormantGitAuthorityPackageIssuedResultForTransition(input: {
@@ -656,6 +678,7 @@ function registerPackage(input: RegisterPackageTransitionInput): DormantGitAutho
     stages: packageResult.packageValue.stageGrants.map(stageFromGrant),
     aggregateFingerprint: null,
     nextAuditSequence: 1,
+    stateCoreFingerprint: "0".repeat(64),
     lastAuditEventFingerprint: null,
   });
   return permitted("register_package", "package_registered", null, state, null, input.observedAt, null);
@@ -1144,6 +1167,7 @@ function validateCurrentState(state: unknown): DormantGitAuthorityConsumptionRea
     || candidate.currentStageIndex > 6
     || candidate.stages.length !== 6
     || candidate.nextAuditSequence < 1
+    || !isSha256(candidate.stateCoreFingerprint)
     || (candidate.lastAuditEventFingerprint !== null && !isSha256(candidate.lastAuditEventFingerprint))
     || candidate.stateFingerprintAlgorithm !== "sha256"
     || !isSha256(candidate.stateFingerprint)
@@ -1156,6 +1180,8 @@ function validateCurrentState(state: unknown): DormantGitAuthorityConsumptionRea
   if (candidate.terminal && (!candidate.terminalReason || !candidate.terminalAt || candidate.activeConsumerId !== null || candidate.activeConsumerFingerprint !== null)) return "current_state_rejected";
   if (!candidate.terminal && (candidate.terminalReason !== null || candidate.terminalAt !== null)) return "current_state_rejected";
   if (!validateStageProgression(candidate)) return "current_state_rejected";
+  const stateCore = stateCoreWithoutAuditFingerprint(candidate);
+  if (candidate.stateCoreFingerprint !== buildDormantGitAuthorityCurrentStateCoreFingerprint(stateCore)) return "input_fingerprint_rejected";
   const core = stateWithoutFingerprint(candidate);
   if (candidate.stateFingerprint !== buildDormantGitAuthorityCurrentStateFingerprint(core)) return "input_fingerprint_rejected";
   if (candidate.consumptionKey !== buildDormantGitAuthorityConsumptionKey(candidate.authorityPackageId, candidate.authorityPackageFingerprint)) return "current_state_rejected";
@@ -1214,27 +1240,30 @@ function permitted(
   evidenceFingerprint: string | null,
   stageIndex: 0 | 1 | 2 | 3 | 4 | 5 | null = null,
 ): DormantGitAuthorityConsumptionTransitionResult {
-  const auditSeedState = withStateFingerprint({
+  const nextStateCore = stateCoreWithoutAuditFingerprint({
     ...stateWithoutFingerprint(nextState),
     nextAuditSequence: (previousState?.nextAuditSequence ?? 0) + 1,
     lastAuditEventFingerprint: null,
   });
-  const auditSeed = buildAuditEvent(operation, reason, previousState, auditSeedState, consumerFingerprint, observedAt, evidenceFingerprint, stageIndex);
+  const nextStateCoreFingerprint = buildDormantGitAuthorityCurrentStateCoreFingerprint(nextStateCore);
+  const audit = buildAuditEvent(operation, reason, previousState, nextState, nextStateCoreFingerprint, consumerFingerprint, observedAt, evidenceFingerprint, stageIndex);
   const state = withStateFingerprint({
-    ...stateWithoutFingerprint(auditSeedState),
-    lastAuditEventFingerprint: auditSeed.eventFingerprint,
+    ...stateWithoutFingerprint(nextState),
+    nextAuditSequence: (previousState?.nextAuditSequence ?? 0) + 1,
+    stateCoreFingerprint: nextStateCoreFingerprint,
+    lastAuditEventFingerprint: audit.eventFingerprint,
   });
-  const finalAudit = buildAuditEvent(operation, reason, previousState, state, consumerFingerprint, observedAt, evidenceFingerprint, stageIndex, auditSeed.eventFingerprint);
   return buildResult({
     operation,
     status: "transition_permitted",
     reason,
     previousStateFingerprint: previousState?.stateFingerprint ?? null,
+    nextStateCoreFingerprint,
     nextStateFingerprint: state.stateFingerprint,
     expectedTransitionVersion: previousState?.transitionVersion ?? null,
     resultingTransitionVersion: state.transitionVersion,
     nextState: state,
-    auditEvents: [finalAudit],
+    auditEvents: [audit],
   });
 }
 
@@ -1249,6 +1278,7 @@ function rejected(
     status: "transition_rejected",
     reason,
     previousStateFingerprint,
+    nextStateCoreFingerprint: null,
     nextStateFingerprint: null,
     expectedTransitionVersion,
     resultingTransitionVersion: null,
@@ -1284,36 +1314,48 @@ function buildAuditEvent(
   reason: DormantGitAuthorityConsumptionReason,
   previousState: DormantGitAuthorityConsumptionCurrentState | null,
   nextState: DormantGitAuthorityConsumptionCurrentState,
+  nextStateCoreFingerprint: string,
   consumerFingerprint: string | null,
   observedAt: string,
   evidenceFingerprint: string | null,
   explicitStageIndex: 0 | 1 | 2 | 3 | 4 | 5 | null,
-  stableEventFingerprint: string | null = null,
 ): DormantGitAuthorityConsumptionAuditEvent {
   const stageIndex = explicitStageIndex;
   const core = {
     eventKind: "dormant_git_authority_consumption_audit_event",
     eventVersion: 1,
     eventIdentity: "ture.execution.dormant-git-authority-consumption.audit-event.fixture.v1",
+    eventPolicyId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_POLICY.auditEventPolicyId,
+    eventPolicyVersion: 1,
     eventSequence: previousState?.nextAuditSequence ?? 0,
     operation,
+    authorityPackageId: nextState.authorityPackageId,
     packageFingerprint: nextState.authorityPackageFingerprint,
+    authorityPolicyFingerprint: nextState.authorityPolicyFingerprint,
+    consumptionKey: nextState.consumptionKey,
     previousStateFingerprint: previousState?.stateFingerprint ?? null,
-    nextStateFingerprint: nextState.stateFingerprint,
+    nextStateCoreFingerprint,
     consumerFingerprint,
     stageIndex,
     stageIdentity: stageIndex === null ? null : nextState.stages[stageIndex]?.stageIdentity ?? null,
     transitionVersionBefore: previousState?.transitionVersion ?? null,
     transitionVersionAfter: nextState.transitionVersion,
+    expectedTransitionVersion: previousState?.transitionVersion ?? null,
+    resultingTransitionVersion: nextState.transitionVersion,
     status: "transition_permitted",
     reason,
     observedAt,
     evidenceFingerprint,
-  } satisfies Omit<DormantGitAuthorityConsumptionAuditEvent, "eventFingerprintAlgorithm" | "eventFingerprint">;
+    runtimeActivated: false,
+    toctouEliminated: false,
+    authority: "none",
+    atomicReplayProtectionPresent: false,
+    storageCommitted: false,
+    eventFingerprintAlgorithm: "sha256",
+  } satisfies Omit<DormantGitAuthorityConsumptionAuditEvent, "eventFingerprint">;
   return deepFreeze({
     ...core,
-    eventFingerprintAlgorithm: "sha256",
-    eventFingerprint: stableEventFingerprint ?? sha256(PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_FINGERPRINT_DOMAINS.auditEvent, core),
+    eventFingerprint: buildDormantGitAuthorityAuditEventFingerprintForTest(core),
   } satisfies DormantGitAuthorityConsumptionAuditEvent);
 }
 
@@ -1517,10 +1559,15 @@ function replaceStage(stages: readonly DormantGitAuthorityConsumptionStageState[
 }
 
 function withStateFingerprint(state: Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint">): DormantGitAuthorityConsumptionCurrentState {
-  return deepFreeze({
+  const stateCoreFingerprint = buildDormantGitAuthorityCurrentStateCoreFingerprint(stateCoreWithoutAuditFingerprint(state));
+  const finalStateCore = {
     ...state,
+    stateCoreFingerprint,
+  } satisfies Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint">;
+  return deepFreeze({
+    ...finalStateCore,
     stateFingerprintAlgorithm: "sha256",
-    stateFingerprint: buildDormantGitAuthorityCurrentStateFingerprint(state),
+    stateFingerprint: buildDormantGitAuthorityCurrentStateFingerprint(finalStateCore),
   } satisfies DormantGitAuthorityConsumptionCurrentState);
 }
 
@@ -1529,6 +1576,16 @@ function stateWithoutFingerprint(state: DormantGitAuthorityConsumptionCurrentSta
   void stateFingerprintAlgorithm;
   void stateFingerprint;
   return rest;
+}
+
+function stateCoreWithoutAuditFingerprint(state: DormantGitAuthorityConsumptionCurrentState | Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint">): Omit<DormantGitAuthorityConsumptionCurrentState, "stateCoreFingerprint" | "lastAuditEventFingerprint" | "stateFingerprintAlgorithm" | "stateFingerprint"> {
+  const source = state as Record<string, unknown>;
+  const { stateCoreFingerprint, lastAuditEventFingerprint, stateFingerprintAlgorithm, stateFingerprint, ...rest } = source;
+  void stateCoreFingerprint;
+  void lastAuditEventFingerprint;
+  void stateFingerprintAlgorithm;
+  void stateFingerprint;
+  return rest as Omit<DormantGitAuthorityConsumptionCurrentState, "stateCoreFingerprint" | "lastAuditEventFingerprint" | "stateFingerprintAlgorithm" | "stateFingerprint">;
 }
 
 function isCanonicalTimestamp(value: unknown): value is string {

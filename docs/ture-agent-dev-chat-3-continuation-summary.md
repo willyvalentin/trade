@@ -11334,6 +11334,143 @@ Decision: `post_trade_pure_dormant_git_authority_consumption_transition_action_6
 
 Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_617_remediation_completed`
 
-Recommended next Action: Action 618 - Independent Final Re-Review of Pure Dormant Git Authority Consumption Transition Remediation.
+## Action 618 - Independent Final Re-Review of Pure Dormant Git Authority Consumption Transition Remediation
 
-No deploy is recommended for Action 617. Do not commit until the remediation diff has been manually inspected and Action 618 independently re-reviews the package.
+Action 618 independently re-reviewed the complete uncommitted Action 615-617 pure dormant Git authority-consumption transition package. No new behavior, tests, transition contract changes, SQL, migrations, RPCs, persistence, storage adapters, live atomicity, replay prevention, runner/runtime/API/UI/cron/worker/CLI reachability, Git execution, process creation or observation, repository inspection, credentials, environment access, network, Avanza/trading, staging, deployment, commit, push, merge, or deploy was added.
+
+Files created:
+
+- `docs/pure-dormant-git-authority-consumption-transition-action-618-final-re-review.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-618-checkpoint.md`
+
+Review verdicts:
+
+- `A616-MED-001`: remediated; authority-package result/package/stage semantic revalidation is complete.
+- `A616-MED-002`: remediated; `currentState.stages` exact-array closure is in place.
+- `A616-MED-003`: remediated; state-machine and stage-progression invariants are materially complete.
+- `A616-MED-004`: partially remediated; returned state/audit equality and stage linkage are fixed, but a new medium finding remains.
+- `A616-LOW-001`: remediated; the broad generic test hash export is gone.
+
+New finding:
+
+- `A618-MED-001`: the returned audit event `eventFingerprint` is reused from a seed event and is not canonical over the returned audit event fields after the final `nextStateFingerprint` is known. This blocks final approval.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused transition suite: first sandbox attempt hit Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 73 tests.
+- Authority-package suite: first sandbox attempt hit Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 155 tests.
+- Direct-spawn/revalidation/resolver group: passed, 564 tests.
+- Compatibility/parser/orchestrator/observation group: passed, 451 tests.
+- Neutralization/raw/composition/process group: passed, 103 tests.
+- Action 533 suite: passed, 181 tests.
+- Broad dormant/process/credential/CLI/authorization group: passed, 1540 tests.
+- Migration-static baseline check failed with the known unrelated missing migration file `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`.
+- Scoped ESLint on changed TypeScript files: passed.
+- `git diff --check`: passed.
+- Quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_contract_final_security_review_blocked_pending_remediation`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_618_final_re_review_completed_blocked`
+
+Recommended next Action: Action 619 - Remediate Pure Dormant Git Authority Consumption Transition Audit Fingerprint Canonicality
+
+## Action 619 - Remediate Pure Dormant Git Authority Consumption Transition Audit Fingerprint Canonicality
+
+Action 619 remediated only `A618-MED-001` against the uncommitted Action 615-618 pure dormant Git authority-consumption transition package.
+
+Files created:
+
+- `docs/pure-dormant-git-authority-consumption-transition-action-619-audit-fingerprint-remediation.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-619-checkpoint.md`
+
+Files modified:
+
+- `lib/post-trade-pure-dormant-git-authority-consumption-transition-contract-core.ts`
+- `tests/e2e/post-trade-pure-dormant-git-authority-consumption-transition-contract.spec.ts`
+- `docs/pure-dormant-git-authority-consumption-transition-contract-action-615.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-617-review-remediation.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation:
+
+- Replaced the non-canonical audit seed fingerprint path with an acyclic graph: semantic next-state fields produce `stateCoreFingerprint`; returned audit fields bind `nextStateCoreFingerprint` and produce `eventFingerprint`; final next state stores that event fingerprint in `lastAuditEventFingerprint` and produces `stateFingerprint`; permitted transition results bind both `nextStateCoreFingerprint` and `nextStateFingerprint`.
+- Added exact audit event policy/package/linkage/authority posture fields.
+- Current-state validation now recomputes both state core and final state fingerprints.
+- Focused transition tests increased from 73 to 77 and now recompute emitted audit event fingerprints for every permitted operation.
+
+No SQL, migration, RPC, persistence, storage adapter, live atomicity, replay prevention, runner, runtime/API/UI/cron/worker/CLI reachability, Git execution, process creation or observation, repository inspection, credentials, environment access, network, Avanza/trading, staging, deployment, commit, push, merge, or deploy behavior was added.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_audit_fingerprint_finding_remediated_ready_for_re_review`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_619_remediation_completed`
+
+Recommended next Action: Action 620 - Independent Final Re-Review of Pure Dormant Git Authority Consumption Transition Audit Fingerprint Remediation
+
+## Action 620 - Independent Final Re-Review of Pure Dormant Git Authority Consumption Transition Audit Fingerprint Remediation
+
+Action 620 independently re-reviewed the complete uncommitted Action 615-619 pure dormant Git authority-consumption transition package. This was review-only. No transition contract behavior, tests, SQL, migrations, RPCs, persistence, storage adapters, live atomicity, replay prevention, runner, runtime/API/UI/cron/worker/CLI reachability, Git execution, process creation or observation, repository inspection, credentials, environment access, network, Avanza/trading, staging, deployment, commit, push, merge, or deploy behavior was added.
+
+Files created:
+
+- `docs/pure-dormant-git-authority-consumption-transition-action-620-final-re-review.md`
+- `docs/pure-dormant-git-authority-consumption-transition-action-620-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Finding verdicts:
+
+- `A618-MED-001`: remediated.
+- `A616-MED-004`: fully remediated after Action 619.
+- `A616-MED-001`: remains remediated.
+- `A616-MED-002`: remains remediated.
+- `A616-MED-003`: remains remediated.
+- `A616-LOW-001`: remains remediated.
+
+New findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 1 nonblocking, `A620-LOW-001` because focused tests recompute audit fingerprints through the exported narrow helper rather than a fully independent test-local audit hasher.
+- Informational: 0
+
+Review verdicts:
+
+- acyclic audit/state/result fingerprint graph: pass;
+- canonical returned audit event: pass;
+- event fingerprint recomputation: pass by source review and helper-backed tests;
+- state core/final state distinction: pass;
+- event/state/result linkage: pass;
+- audit sequence/version: pass;
+- multi-event posture: pass, exactly one event per permitted transition;
+- prior finding regression: pass;
+- validator consistency: pass for current public transition-builder scope; no public result-accepting validator exists;
+- contract version: v1 retention justified;
+- pure boundary, export surface, runtime reachability, and prohibited-operation reviews: pass.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused transition suite: first sandbox attempt hit known Playwright `.last-run.json` `EPERM`; minimal filesystem-escalated rerun passed, 77 tests.
+- Authority-package suite: passed, 155 tests.
+- Direct-spawn/revalidation/resolver group: passed, 564 tests.
+- Compatibility/parser/orchestrator/observation group: passed, 451 tests.
+- Neutralization/raw/composition/process group: passed, 103 tests.
+- Action 533 suite: passed, 181 tests.
+- Broad dormant/process/credential/CLI/authorization group: passed, 1540 tests.
+- Migration-static baseline limitation check failed before test discovery with known missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`; unrelated.
+- Scoped ESLint on changed TypeScript files: passed.
+- `git diff --check`: passed.
+- Quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_pure_dormant_git_authority_consumption_transition_contract_final_security_review_approved`
+
+Result status: `post_trade_pure_dormant_git_authority_consumption_transition_action_620_final_re_review_completed`
+
+Recommended next Action: Action 621 - Plan Migration and Transactional RPC Implementation for Dormant Git Authority Consumption

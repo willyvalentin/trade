@@ -182,7 +182,7 @@ The result union is closed:
 - `transition_permitted`;
 - `transition_rejected`.
 
-Permitted results include prior/next fingerprints, expected/resulting transition versions, next state, audit events, status/reason, result fingerprint, `authority:"none"`, `runtimeActivated:false`, and `toctouEliminated:false`.
+Permitted results include the prior state fingerprint, the next-state core fingerprint, the final next-state fingerprint, expected/resulting transition versions, next state, audit events, status/reason, result fingerprint, `authority:"none"`, `runtimeActivated:false`, and `toctouEliminated:false`.
 
 Rejected results include no next state and no accepted audit event.
 
@@ -194,7 +194,9 @@ Precedence is deterministic: schema and identity failures precede package/state/
 
 ## Audit Model
 
-The contract constructs immutable audit-event fixtures containing operation, package fingerprint, previous/next state fingerprints, consumer/stage linkage where applicable, transition versions, status/reason, observed timestamp, evidence fingerprint, and audit fingerprint.
+The contract constructs immutable audit-event fixtures containing operation, package fingerprint, previous-state fingerprint, next-state core fingerprint, consumer/stage linkage where applicable, transition versions, status/reason, observed timestamp, evidence fingerprint, authority/runtime false posture, and audit fingerprint.
+
+The audit event intentionally binds `nextStateCoreFingerprint` rather than the final `nextStateFingerprint`. The final state then stores the canonical audit event fingerprint in `lastAuditEventFingerprint`, and the final state fingerprint binds that event link. This keeps the graph acyclic while preserving exact returned-state linkage.
 
 Audit events contain no raw paths, Git output, environment values, credentials, process handles, PIDs, SQL errors, Node errors, or stack traces.
 
@@ -204,7 +206,7 @@ All timestamps must use canonical UTC `YYYY-MM-DDTHH:mm:ss.sssZ`. There is no in
 
 ## Fingerprints
 
-Deterministic SHA-256 fingerprints bind contract/policy identities, operation, package/policy fingerprints, current state, expected version, consumer, stage, timestamps, process/completion/interpretation/aggregate fingerprints, previous/next state, audit events, status/reason, runtime flags, authority posture, and final result.
+Deterministic SHA-256 fingerprints bind contract/policy identities, operation, package/policy fingerprints, current state, expected version, consumer, stage, timestamps, process/completion/interpretation/aggregate fingerprints, previous state, next-state core, final next state, audit events, status/reason, runtime flags, authority posture, and final result.
 
 Fingerprints do not create atomicity or replay prevention.
 
@@ -280,7 +282,18 @@ The transition contract now:
 - exact-closes `currentState.stages` with descriptor and prototype-chain array checks;
 - enforces a complete consumed-pending-completion stage progression model;
 - requires completion of the current consumed stage only;
-- emits one audit event whose next-state fingerprint matches the returned next state and whose fingerprint is stored in `nextState.lastAuditEventFingerprint`;
+- emits one audit event whose next-state core fingerprint matches the returned next state's `stateCoreFingerprint` and whose canonical event fingerprint is stored in `nextState.lastAuditEventFingerprint`;
 - removes the generic exported test hash helper.
 
 Focused tests increased from 43 to 73. The boundary remains pure, fixture-only, storage-free, non-atomic outside future storage, replay-unprotected outside future storage, and runtime-unreachable.
+
+## Action 619 Audit Fingerprint Update
+
+Action 619 remediated `A618-MED-001` without changing the contract identity or version. The transition graph is now acyclic:
+
+1. semantic next-state fields produce `stateCoreFingerprint`;
+2. the audit event binds `nextStateCoreFingerprint` and all final audit fields, then produces `eventFingerprint`;
+3. the final next state stores `lastAuditEventFingerprint:eventFingerprint` and produces `stateFingerprint`;
+4. the transition result binds both `nextStateCoreFingerprint` and final `nextStateFingerprint`.
+
+Focused tests increased from 73 to 77 and now recompute every returned permitted audit event fingerprint from the emitted audit fields.

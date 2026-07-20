@@ -6,10 +6,13 @@ import { join } from "node:path";
 import {
   PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY,
   PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_POLICY,
+  buildDormantGitAuthorityAuditEventFingerprintForTest,
   buildDormantGitAuthorityConsumptionKey,
+  buildDormantGitAuthorityCurrentStateCoreFingerprint,
   buildDormantGitAuthorityCurrentStateFingerprint,
   buildDormantGitAuthorityConsumptionTransition,
   buildFixtureDormantGitAuthorityPackageIssuedResultForTransition,
+  type DormantGitAuthorityConsumptionAuditEvent,
   type DormantGitAuthorityConsumptionCurrentState,
   type DormantGitAuthorityConsumptionStageState,
   type DormantGitAuthorityConsumptionTransitionResult,
@@ -83,11 +86,21 @@ function registerForgedPackage(mutator: (issuedPackage: Record<string, unknown>,
 }
 
 function rehashCurrentState(state: DormantGitAuthorityConsumptionCurrentState): DormantGitAuthorityConsumptionCurrentState {
-  const core = { ...state } as Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint"> & Record<string, unknown>;
+  const stateCore = { ...state } as Omit<DormantGitAuthorityConsumptionCurrentState, "stateCoreFingerprint" | "lastAuditEventFingerprint" | "stateFingerprintAlgorithm" | "stateFingerprint"> & Record<string, unknown>;
+  delete stateCore.stateCoreFingerprint;
+  delete stateCore.lastAuditEventFingerprint;
+  delete stateCore.stateFingerprintAlgorithm;
+  delete stateCore.stateFingerprint;
+  const stateCoreFingerprint = buildDormantGitAuthorityCurrentStateCoreFingerprint(stateCore);
+  const core = {
+    ...state,
+    stateCoreFingerprint,
+  } as Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint"> & Record<string, unknown>;
   delete core.stateFingerprintAlgorithm;
   delete core.stateFingerprint;
   return {
     ...state,
+    stateCoreFingerprint,
     stateFingerprintAlgorithm: "sha256",
     stateFingerprint: buildDormantGitAuthorityCurrentStateFingerprint(core),
   };
@@ -196,6 +209,146 @@ function allAcceptedState() {
   return state;
 }
 
+function permittedResultsByOperation() {
+  const register = transition(registerInput());
+  const registered = register.nextState!;
+  const claim = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "claim_consumer",
+    observedAt: "2026-07-17T12:00:02.000Z",
+    currentState: registered,
+    currentStateFingerprint: registered.stateFingerprint,
+    expectedTransitionVersion: registered.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+  });
+  const claimed = claim.nextState!;
+  const consume = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "consume_stage",
+    observedAt: "2026-07-17T12:00:03.000Z",
+    currentState: claimed,
+    currentStateFingerprint: claimed.stateFingerprint,
+    expectedTransitionVersion: claimed.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+    stageIndex: 0,
+    stageGrantFingerprint: claimed.stages[0].stageGrantFingerprint,
+    processRequestFingerprint: "0".repeat(64),
+  });
+  const consumed = consume.nextState!;
+  const acceptedCompletion = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "record_stage_completion",
+    observedAt: "2026-07-17T12:00:04.000Z",
+    currentState: consumed,
+    currentStateFingerprint: consumed.stateFingerprint,
+    expectedTransitionVersion: consumed.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+    stageIndex: 0,
+    processRequestFingerprint: consumed.stages[0].processRequestFingerprint,
+    completionFingerprint: "1".repeat(64),
+    interpretationFingerprint: "2".repeat(64),
+    outcome: "accepted",
+  });
+  const failureBase = consumeStage(claimState(), 0);
+  const failedCompletion = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "record_stage_completion",
+    observedAt: "2026-07-17T12:00:04.000Z",
+    currentState: failureBase,
+    currentStateFingerprint: failureBase.stateFingerprint,
+    expectedTransitionVersion: failureBase.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+    stageIndex: 0,
+    processRequestFingerprint: failureBase.stages[0].processRequestFingerprint,
+    completionFingerprint: "1".repeat(64),
+    interpretationFingerprint: null,
+    outcome: "rejected",
+  });
+  const ambiguousBase = consumeStage(claimState(), 0);
+  const ambiguousFailure = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "terminalize_ambiguous_failure",
+    observedAt: "2026-07-17T12:00:05.000Z",
+    currentState: ambiguousBase,
+    currentStateFingerprint: ambiguousBase.stateFingerprint,
+    expectedTransitionVersion: ambiguousBase.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+    failureFingerprint: "c".repeat(64),
+  });
+  const expiryBase = claimState();
+  const expiry = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "terminalize_expiry",
+    observedAt: "2026-07-17T12:00:30.000Z",
+    currentState: expiryBase,
+    currentStateFingerprint: expiryBase.stateFingerprint,
+    expectedTransitionVersion: expiryBase.transitionVersion,
+  });
+  const revocationBase = claimState();
+  const revocation = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "revoke_package",
+    observedAt,
+    currentState: revocationBase,
+    currentStateFingerprint: revocationBase.stateFingerprint,
+    expectedTransitionVersion: revocationBase.transitionVersion,
+    revocationFingerprint: "b".repeat(64),
+    revocationReason: "operator_revoked",
+  });
+  const aggregateBase = allAcceptedState();
+  const aggregate = transition({
+    inputKind: "pure_dormant_git_authority_consumption_transition_input",
+    inputVersion: 1,
+    contractId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.contractId,
+    boundaryId: PURE_DORMANT_GIT_AUTHORITY_CONSUMPTION_TRANSITION_CONTRACT_IDENTITY.boundaryId,
+    operation: "finalize_aggregate",
+    observedAt: "2026-07-17T12:00:20.000Z",
+    currentState: aggregateBase,
+    currentStateFingerprint: aggregateBase.stateFingerprint,
+    expectedTransitionVersion: aggregateBase.transitionVersion,
+    consumerId,
+    consumerFingerprint,
+    aggregateFingerprint: "a".repeat(64),
+  });
+  return [
+    register,
+    claim,
+    consume,
+    acceptedCompletion,
+    failedCompletion,
+    ambiguousFailure,
+    expiry,
+    revocation,
+    aggregate,
+  ];
+}
+
 function expectRejected(result: DormantGitAuthorityConsumptionTransitionResult, reason: string) {
   expect(result.status).toBe("transition_rejected");
   expect(result.reason).toBe(reason);
@@ -213,10 +366,35 @@ function expectSingleAudit(result: DormantGitAuthorityConsumptionTransitionResul
   const audit = result.auditEvents[0];
   expect(audit.reason).toBe(reason);
   expect(audit.stageIndex).toBe(stageIndex);
-  expect(audit.nextStateFingerprint).toBe(result.nextState?.stateFingerprint);
+  expect(audit.nextStateCoreFingerprint).toBe(result.nextState?.stateCoreFingerprint);
+  expect(result.nextStateCoreFingerprint).toBe(result.nextState?.stateCoreFingerprint);
+  expect(result.nextStateFingerprint).toBe(result.nextState?.stateFingerprint);
   expect(result.nextState?.lastAuditEventFingerprint).toBe(audit.eventFingerprint);
   expect(result.nextState?.nextAuditSequence).toBe((audit.eventSequence ?? 0) + 1);
   expect(audit.transitionVersionAfter).toBe(result.nextState?.transitionVersion);
+  expect(audit.resultingTransitionVersion).toBe(result.resultingTransitionVersion);
+  expect(audit.expectedTransitionVersion).toBe(result.expectedTransitionVersion);
+  expectAuditFingerprintCanonical(audit);
+  expectFinalStateFingerprintCanonical(result.nextState!);
+}
+
+function expectAuditFingerprintCanonical(audit: DormantGitAuthorityConsumptionAuditEvent) {
+  const { eventFingerprint, ...eventWithoutFingerprint } = audit;
+  void eventFingerprint;
+  expect(buildDormantGitAuthorityAuditEventFingerprintForTest(eventWithoutFingerprint)).toBe(audit.eventFingerprint);
+}
+
+function expectFinalStateFingerprintCanonical(state: DormantGitAuthorityConsumptionCurrentState) {
+  const stateCore = { ...state } as Omit<DormantGitAuthorityConsumptionCurrentState, "stateCoreFingerprint" | "lastAuditEventFingerprint" | "stateFingerprintAlgorithm" | "stateFingerprint"> & Record<string, unknown>;
+  delete stateCore.stateCoreFingerprint;
+  delete stateCore.lastAuditEventFingerprint;
+  delete stateCore.stateFingerprintAlgorithm;
+  delete stateCore.stateFingerprint;
+  expect(buildDormantGitAuthorityCurrentStateCoreFingerprint(stateCore)).toBe(state.stateCoreFingerprint);
+  const finalCore = { ...state } as Omit<DormantGitAuthorityConsumptionCurrentState, "stateFingerprintAlgorithm" | "stateFingerprint"> & Record<string, unknown>;
+  delete finalCore.stateFingerprintAlgorithm;
+  delete finalCore.stateFingerprint;
+  expect(buildDormantGitAuthorityCurrentStateFingerprint(finalCore)).toBe(state.stateFingerprint);
 }
 
 test.describe("Action 615 pure dormant Git authority consumption transition contract", () => {
@@ -246,14 +424,76 @@ test.describe("Action 615 pure dormant Git authority consumption transition cont
     expect(result.nextState?.stages.every((stage) => !stage.consumed)).toBe(true);
     expect(result.auditEvents).toHaveLength(1);
     expect(result.auditEvents[0].reason).toBe("package_registered");
-    expect(result.auditEvents[0].nextStateFingerprint).toBe(result.nextState?.stateFingerprint);
+    expect(result.auditEvents[0].nextStateCoreFingerprint).toBe(result.nextState?.stateCoreFingerprint);
+    expect(result.nextStateCoreFingerprint).toBe(result.nextState?.stateCoreFingerprint);
+    expect(result.nextStateFingerprint).toBe(result.nextState?.stateFingerprint);
     expect(result.nextState?.lastAuditEventFingerprint).toBe(result.auditEvents[0].eventFingerprint);
+    expectAuditFingerprintCanonical(result.auditEvents[0]);
+    expectFinalStateFingerprintCanonical(result.nextState!);
   });
 
   test("registration is deterministic for the same canonical fixture", () => {
     const one = transition(registerInput());
     const two = transition(registerInput());
     expect(two).toEqual(one);
+  });
+
+  test("Action 619 canonical audit fingerprints recompute for every permitted operation", () => {
+    for (const result of permittedResultsByOperation()) {
+      expect(result.status).toBe("transition_permitted");
+      expect(result.auditEvents).toHaveLength(1);
+      const audit = result.auditEvents[0];
+      expect(audit.nextStateCoreFingerprint).toBe(result.nextStateCoreFingerprint);
+      expect(result.nextState?.stateCoreFingerprint).toBe(result.nextStateCoreFingerprint);
+      expect(result.nextState?.lastAuditEventFingerprint).toBe(audit.eventFingerprint);
+      expectAuditFingerprintCanonical(audit);
+      expectFinalStateFingerprintCanonical(result.nextState!);
+    }
+  });
+
+  test("Action 619 event fingerprint changes for every final audit field mutation", () => {
+    const result = transition(registerInput());
+    expect(result.status).toBe("transition_permitted");
+    const audit = result.auditEvents[0];
+    const mutations: Array<[string, Partial<DormantGitAuthorityConsumptionAuditEvent>]> = [
+      ["operation", { operation: "claim_consumer" }],
+      ["stage", { stageIndex: 0, stageIdentity: result.nextState!.stages[0].stageIdentity }],
+      ["consumer", { consumerFingerprint }],
+      ["reason", { reason: "consumer_claimed" }],
+      ["timestamp", { observedAt: "2026-07-17T12:00:02.000Z" }],
+      ["previous state", { previousStateFingerprint: "1".repeat(64) }],
+      ["next-state core", { nextStateCoreFingerprint: "2".repeat(64) }],
+      ["transition version before", { transitionVersionBefore: 1, expectedTransitionVersion: 1 }],
+      ["transition version after", { transitionVersionAfter: 2, resultingTransitionVersion: 2 }],
+      ["evidence", { evidenceFingerprint: "3".repeat(64) }],
+      ["status posture", { runtimeActivated: true as never }],
+    ];
+    const { eventFingerprint, ...eventWithoutFingerprint } = audit;
+    void eventFingerprint;
+    for (const [name, patch] of mutations) {
+      const mutated = { ...eventWithoutFingerprint, ...patch };
+      expect(buildDormantGitAuthorityAuditEventFingerprintForTest(mutated)).not.toBe(audit.eventFingerprint);
+      expect(name.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("Action 619 final state fingerprint binds the canonical event fingerprint", () => {
+    const result = transition(registerInput());
+    expect(result.status).toBe("transition_permitted");
+    const state = result.nextState!;
+    const mutated = rehashCurrentState({
+      ...state,
+      lastAuditEventFingerprint: "4".repeat(64),
+    });
+    expect(mutated.stateFingerprint).not.toBe(state.stateFingerprint);
+  });
+
+  test("Action 619 repeated canonical construction is finite and deterministic", () => {
+    const results = Array.from({ length: 3 }, () => transition(registerInput()));
+    expect(results[1]).toEqual(results[0]);
+    expect(results[2]).toEqual(results[0]);
+    expect(source(corePath)).not.toContain("fixed-point");
+    expect(source(corePath)).not.toContain("stableEventFingerprint");
   });
 
   test("registration rejects expired package observation", () => {
