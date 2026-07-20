@@ -248,8 +248,10 @@ test.describe("Action 547 projection observation completeness remediation", () =
         "projection_not_derivable",
         "missing_completed_outcome",
         "unsupported_outcome_status",
-        "missing_required_setup_metadata",
       ]),
+    );
+    expect(review.observations[0]?.optional_metadata_gaps).toContain(
+      "missing_setup_type",
     );
   });
 

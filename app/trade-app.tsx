@@ -19507,6 +19507,8 @@ function ConfidenceProjectionOutcomeReviewPanel({
   ]).filter((group) => (group.net_error_improvement ?? 0) < 0);
   const selectedSignal = review.first_observed_calibration_signal.selected_signal;
   const completeness = review.observation_completeness;
+  const recommendationCompleteness =
+    review.recommendation_observation_completeness;
   const mainBlocker =
     completeness.most_common_blocker?.reason.replaceAll("_", " ") ?? "none";
   const signalDirection =
@@ -19681,6 +19683,57 @@ function ConfidenceProjectionOutcomeReviewPanel({
             completeness.future_contract_coverage.snapshot_contract_count
           } / {completeness.future_contract_coverage.outcome_contract_count}
           {" · "}Migration required: no
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete Recs"
+            value={String(recommendationCompleteness.complete_recommendations)}
+          />
+          <SummaryCard
+            label="Explicit Horizons"
+            value={String(
+              recommendationCompleteness.identities_with_explicit_horizons,
+            )}
+          />
+          <SummaryCard
+            label="Missing Identity"
+            value={String(recommendationCompleteness.missing_identity_count)}
+          />
+          <SummaryCard
+            label="Missing Confidence"
+            value={String(recommendationCompleteness.missing_confidence_count)}
+          />
+          <SummaryCard
+            label="Missing Projection"
+            value={String(recommendationCompleteness.missing_projection_count)}
+          />
+          <SummaryCard
+            label="Optional Gaps"
+            value={String(recommendationCompleteness.optional_metadata_gap_count)}
+          />
+          <SummaryCard
+            label="Unrecoverable"
+            value={String(
+              recommendationCompleteness.unrecoverable_observations,
+            )}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {recommendationCompleteness.copy.summary}{" "}
+          {recommendationCompleteness.copy.optional_metadata_policy}{" "}
+          Recovered by identity/confidence/projection:{" "}
+          {recommendationCompleteness.recovered_by_identity_normalization} /{" "}
+          {recommendationCompleteness.recovered_by_confidence_lookup} /{" "}
+          {
+            recommendationCompleteness
+              .recovered_by_deterministic_projection_recomputation
+          }
         </p>
       </div>
 

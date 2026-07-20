@@ -36,6 +36,7 @@ export type ConfidenceProjectionInsufficiencyReason =
   | "missing_projected_confidence"
   | "missing_completed_outcome"
   | "unsupported_outcome_status"
+  | "missing_stable_identity"
   | "missing_recommendation_id"
   | "missing_snapshot_fingerprint"
   | "ambiguous_join"
@@ -65,7 +66,28 @@ export type ConfidenceProjectionConfidenceSource =
   | "deterministically_recomputed_projection"
   | "unavailable";
 
+export type ConfidenceProjectionOriginalConfidenceSource =
+  | "snapshot_field"
+  | "snapshot_payload"
+  | "contract_v1"
+  | "unavailable";
+
+export type ConfidenceProjectionIdentitySource =
+  | "recommendation_id"
+  | "snapshot_fingerprint"
+  | "snapshot_id"
+  | "unavailable";
+
+export type ConfidenceProjectionOptionalMetadataGap =
+  | "missing_setup_type"
+  | "missing_recommendation_tier"
+  | "missing_trading_window"
+  | "missing_explanation_category"
+  | "missing_trade_plan_metadata";
+
 export type ConfidenceProjectionOutcomeObservation = {
+  stable_identity_key: string | null;
+  stable_identity_source: ConfidenceProjectionIdentitySource;
   recommendation_id: string | null;
   snapshot_fingerprint: string | null;
   snapshot_id: string | null;
@@ -76,6 +98,7 @@ export type ConfidenceProjectionOutcomeObservation = {
   setup_type: string;
   horizon: string;
   original_confidence: number | null;
+  original_confidence_source: ConfidenceProjectionOriginalConfidenceSource;
   projected_confidence: number | null;
   projected_confidence_source: ConfidenceProjectionConfidenceSource;
   confidence_delta: number | null;
@@ -96,6 +119,7 @@ export type ConfidenceProjectionOutcomeObservation = {
   comparison: ConfidenceProjectionComparisonResult;
   completeness: "complete" | "insufficient_data";
   insufficient_reasons: ConfidenceProjectionInsufficiencyReason[];
+  optional_metadata_gaps: ConfidenceProjectionOptionalMetadataGap[];
 };
 
 export type ConfidenceProjectionReviewGroup = {
@@ -226,6 +250,26 @@ export type ConfidenceProjectionObservationCompleteness = {
   };
 };
 
+export type ConfidenceProjectionRecommendationObservationCompleteness = {
+  complete_recommendations: number;
+  identities_with_explicit_horizons: number;
+  missing_identity_count: number;
+  missing_confidence_count: number;
+  missing_projection_count: number;
+  optional_metadata_gap_count: number;
+  unrecoverable_observations: number;
+  recovered_by_identity_normalization: number;
+  recovered_by_confidence_lookup: number;
+  recovered_by_deterministic_projection_recomputation: number;
+  optional_metadata_gaps: Record<ConfidenceProjectionOptionalMetadataGap, number>;
+  core_requirements: string[];
+  optional_metadata_fields: string[];
+  copy: {
+    summary: string;
+    optional_metadata_policy: string;
+  };
+};
+
 export type ConfidenceProjectionHorizonSequenceStatus =
   | "stable_horizon_sequence"
   | "evolving_valid_horizon_sequence"
@@ -305,6 +349,7 @@ export type ConfidenceProjectionOutcomeReview = {
   recommendation_level_deduplication: ConfidenceProjectionRecommendationLevelDeduplication;
   first_observed_calibration_signal: ConfidenceProjectionCalibrationSignalReview;
   observation_completeness: ConfidenceProjectionObservationCompleteness;
+  recommendation_observation_completeness: ConfidenceProjectionRecommendationObservationCompleteness;
   outcome_metadata_resolution: ConfidenceProjectionOutcomeMetadataResolutionSummary;
   observations: ConfidenceProjectionOutcomeObservation[];
   copy: {
@@ -372,6 +417,7 @@ const insufficiencyReasons: ConfidenceProjectionInsufficiencyReason[] = [
   "missing_projected_confidence",
   "missing_completed_outcome",
   "unsupported_outcome_status",
+  "missing_stable_identity",
   "missing_recommendation_id",
   "missing_snapshot_fingerprint",
   "ambiguous_join",
@@ -400,6 +446,7 @@ const reasonCategory: Record<
   missing_projected_confidence: "projection_related",
   missing_completed_outcome: "outcome_related",
   unsupported_outcome_status: "outcome_related",
+  missing_stable_identity: "join_related",
   missing_recommendation_id: "join_related",
   missing_snapshot_fingerprint: "join_related",
   ambiguous_join: "join_related",
@@ -460,6 +507,10 @@ function objectFromContract(
   return objectValue(contract?.[key]);
 }
 
+function identityFromContract(contract: Record<string, unknown> | null) {
+  return objectFromContract(contract, "identity");
+}
+
 function textValue(value: unknown) {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
@@ -483,8 +534,13 @@ function clampConfidence(value: number) {
   return Math.min(Math.max(Math.round(value), 0), 100);
 }
 
-function confidenceFromPayload(payload: Record<string, unknown> | null): number | null {
-  if (!payload) return null;
+function confidenceFromPayloadWithSource(
+  payload: Record<string, unknown> | null,
+): {
+  value: number | null;
+  source: ConfidenceProjectionOriginalConfidenceSource;
+} {
+  if (!payload) return { value: null, source: "unavailable" };
   const contract = observationContractFromPayload(payload);
   const snapshotTimeConfidence = objectFromContract(
     contract,
@@ -493,8 +549,12 @@ function confidenceFromPayload(payload: Record<string, unknown> | null): number 
   const recommendation = objectValue(payload.recommendation);
   const metadata = objectValue(payload.metadata);
   const confidenceMetadata = objectValue(payload.confidence_metadata);
+  const contractConfidence = numberValue(snapshotTimeConfidence?.original_confidence);
+  if (contractConfidence !== null) {
+    return { value: contractConfidence, source: "contract_v1" };
+  }
 
-  return (
+  const payloadConfidence =
     numberValue(snapshotTimeConfidence?.original_confidence) ??
     numberValue(payload.confidence_score) ??
     numberValue(payload.confidence) ??
@@ -503,17 +563,30 @@ function confidenceFromPayload(payload: Record<string, unknown> | null): number 
     numberValue(recommendation?.confidence) ??
     numberValue(metadata?.confidence_score) ??
     numberValue(confidenceMetadata?.score) ??
-    null
-  );
+    null;
+
+  return payloadConfidence === null
+    ? { value: null, source: "unavailable" }
+    : { value: payloadConfidence, source: "snapshot_payload" };
 }
 
-function confidenceFromSnapshot(snapshot: RecommendationSnapshot | null) {
-  const value =
-    numberValue(snapshot?.confidence) ??
-    numberValue(snapshot?.score) ??
-    confidenceFromPayload(snapshot?.payload_json ?? null);
+function confidenceFromSnapshotWithSource(
+  snapshot: RecommendationSnapshot | null,
+): {
+  value: number | null;
+  source: ConfidenceProjectionOriginalConfidenceSource;
+} {
+  const directValue =
+    numberValue(snapshot?.confidence) ?? numberValue(snapshot?.score);
+  if (directValue !== null) {
+    return { value: clampConfidence(directValue), source: "snapshot_field" };
+  }
 
-  return value === null ? null : clampConfidence(value);
+  const payloadResult = confidenceFromPayloadWithSource(snapshot?.payload_json ?? null);
+  return {
+    value: payloadResult.value === null ? null : clampConfidence(payloadResult.value),
+    source: payloadResult.source,
+  };
 }
 
 function storedProjectedConfidenceFromPayload(
@@ -947,27 +1020,117 @@ function addReason(
   if (!reasons.includes(reason)) reasons.push(reason);
 }
 
-function hasRequiredSetupMetadata({
+function isUnknownMetadataValue(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return normalized.length === 0 || normalized === "unknown";
+}
+
+function hasTradePlanMetadata(snapshot: RecommendationSnapshot | null) {
+  const payload = snapshot?.payload_json ?? null;
+  const contract = observationContractFromPayload(payload);
+  const tradePlan = objectFromContract(contract, "trade_plan");
+
+  return (
+    numberValue(snapshot?.entry) !== null ||
+    numberValue(snapshot?.stop) !== null ||
+    numberValue(snapshot?.target) !== null ||
+    numberValue(tradePlan?.entry) !== null ||
+    numberValue(tradePlan?.stop) !== null ||
+    numberValue(tradePlan?.target) !== null
+  );
+}
+
+function optionalMetadataGaps({
   setupType,
   tier,
   window,
+  explanationCategoryValue,
+  snapshot,
 }: {
   setupType: string;
   tier: string;
   window: string;
+  explanationCategoryValue: string;
+  snapshot: RecommendationSnapshot | null;
 }) {
-  const normalizedSetupType = setupType.trim().toLowerCase();
-  const normalizedTier = tier.trim().toLowerCase();
-  const normalizedWindow = window.trim().toLowerCase();
+  const gaps: ConfidenceProjectionOptionalMetadataGap[] = [];
+  if (isUnknownMetadataValue(setupType)) gaps.push("missing_setup_type");
+  if (isUnknownMetadataValue(tier)) gaps.push("missing_recommendation_tier");
+  if (isUnknownMetadataValue(window)) gaps.push("missing_trading_window");
+  if (isUnknownMetadataValue(explanationCategoryValue)) {
+    gaps.push("missing_explanation_category");
+  }
+  if (!hasTradePlanMetadata(snapshot)) gaps.push("missing_trade_plan_metadata");
+  return gaps;
+}
 
-  return (
-    normalizedSetupType.length > 0 &&
-    normalizedSetupType !== "unknown" &&
-    normalizedTier.length > 0 &&
-    normalizedTier !== "unknown" &&
-    normalizedWindow.length > 0 &&
-    normalizedWindow !== "unknown"
+function resolveObservationIdentity(
+  outcome: RecommendationOutcome,
+  snapshot: RecommendationSnapshot | null,
+): {
+  recommendation_id: string | null;
+  snapshot_fingerprint: string | null;
+  snapshot_id: string | null;
+  stable_identity_key: string | null;
+  stable_identity_source: ConfidenceProjectionIdentitySource;
+} {
+  const snapshotContract = observationContractFromPayload(
+    snapshot?.payload_json ?? null,
   );
+  const outcomeContract = observationContractFromPayload(outcome.payload_json);
+  const snapshotIdentity = identityFromContract(snapshotContract);
+  const outcomeIdentity = identityFromContract(outcomeContract);
+  const recommendationId =
+    textValue(outcome.recommendation_id) ??
+    textValue(snapshot?.recommendation_id) ??
+    textValue(outcomeIdentity?.recommendation_id) ??
+    textValue(snapshotIdentity?.recommendation_id);
+  const snapshotFingerprint =
+    textValue(outcome.snapshot_fingerprint) ??
+    textValue(snapshot?.snapshot_fingerprint) ??
+    textValue(outcomeIdentity?.snapshot_fingerprint) ??
+    textValue(snapshotIdentity?.snapshot_fingerprint);
+  const snapshotId =
+    textValue(outcome.snapshot_id) ??
+    textValue(snapshot?.id) ??
+    textValue(outcomeIdentity?.snapshot_id) ??
+    textValue(snapshotIdentity?.snapshot_id);
+
+  if (recommendationId) {
+    return {
+      recommendation_id: recommendationId,
+      snapshot_fingerprint: snapshotFingerprint,
+      snapshot_id: snapshotId,
+      stable_identity_key: `recommendation_id:${recommendationId}`,
+      stable_identity_source: "recommendation_id",
+    };
+  }
+  if (snapshotFingerprint) {
+    return {
+      recommendation_id: recommendationId,
+      snapshot_fingerprint: snapshotFingerprint,
+      snapshot_id: snapshotId,
+      stable_identity_key: `snapshot_fingerprint:${snapshotFingerprint}`,
+      stable_identity_source: "snapshot_fingerprint",
+    };
+  }
+  if (snapshotId) {
+    return {
+      recommendation_id: recommendationId,
+      snapshot_fingerprint: snapshotFingerprint,
+      snapshot_id: snapshotId,
+      stable_identity_key: `snapshot_id:${snapshotId}`,
+      stable_identity_source: "snapshot_id",
+    };
+  }
+
+  return {
+    recommendation_id: null,
+    snapshot_fingerprint: null,
+    snapshot_id: null,
+    stable_identity_key: null,
+    stable_identity_source: "unavailable",
+  };
 }
 
 function unsupportedOutcomeStatus(outcome: RecommendationOutcome) {
@@ -999,22 +1162,36 @@ function observationForOutcome(
     snapshot?.payload_json ?? null,
   );
   const outcomeContract = observationContractFromPayload(outcome.payload_json);
-  const originalConfidence = confidenceFromSnapshot(snapshot);
+  const identity = resolveObservationIdentity(outcome, snapshot);
+  const originalConfidenceResult = confidenceFromSnapshotWithSource(snapshot);
+  const originalConfidence = originalConfidenceResult.value;
   const setupType = setupTypeFromSnapshot(snapshot);
   const tier = tierFromSnapshot(snapshot);
   const window = windowFrom(outcome, snapshot);
+  const explanationCategoryValue = explanationCategory(setupType);
+  const metadataGaps = optionalMetadataGaps({
+    setupType,
+    tier,
+    window,
+    explanationCategoryValue,
+    snapshot,
+  });
   const storedProjectedConfidence = storedProjectedConfidenceFromPayload(
     snapshot?.payload_json ?? null,
   );
-  const preview = buildConfidenceProjectionObservationPreview({
-    previewEnabled,
-    confidenceScore: originalConfidence,
-    direction: snapshot?.side ?? outcome.side,
-    setupType,
-    ticker: snapshot?.ticker ?? outcome.ticker,
-  });
+  const preview =
+    snapshot === null
+      ? null
+      : buildConfidenceProjectionObservationPreview({
+          previewEnabled,
+          confidenceScore: originalConfidence,
+          direction: snapshot.side,
+          setupType,
+          ticker: snapshot.ticker,
+        });
   const recomputedProjectedConfidence =
-    preview.proposed_preview_confidence_basis_points === null
+    preview?.proposed_preview_confidence_basis_points === null ||
+    preview?.proposed_preview_confidence_basis_points === undefined
       ? null
       : preview.proposed_preview_confidence_basis_points / 100;
   const projectedConfidence =
@@ -1041,11 +1218,8 @@ function observationForOutcome(
   ];
 
   if (!outcome) addReason(insufficientReasons, "missing_outcome_match");
-  if (!outcome.recommendation_id) {
-    addReason(insufficientReasons, "missing_recommendation_id");
-  }
-  if (!outcome.snapshot_fingerprint) {
-    addReason(insufficientReasons, "missing_snapshot_fingerprint");
+  if (identity.stable_identity_key === null) {
+    addReason(insufficientReasons, "missing_stable_identity");
   }
   if (snapshot === null) addReason(insufficientReasons, "missing_snapshot_match");
   if (originalConfidence === null) {
@@ -1079,14 +1253,13 @@ function observationForOutcome(
   ) {
     addReason(insufficientReasons, "missing_official_evaluation_metadata");
   }
-  if (!hasRequiredSetupMetadata({ setupType, tier, window })) {
-    addReason(insufficientReasons, "missing_required_setup_metadata");
-  }
 
   return {
-    recommendation_id: outcome.recommendation_id,
-    snapshot_fingerprint: outcome.snapshot_fingerprint,
-    snapshot_id: outcome.snapshot_id,
+    stable_identity_key: identity.stable_identity_key,
+    stable_identity_source: identity.stable_identity_source,
+    recommendation_id: identity.recommendation_id,
+    snapshot_fingerprint: identity.snapshot_fingerprint,
+    snapshot_id: identity.snapshot_id,
     ticker: snapshot?.ticker ?? outcome.ticker ?? "unknown",
     timestamp: snapshot?.recommended_at ?? outcome.recommended_at,
     window,
@@ -1094,14 +1267,15 @@ function observationForOutcome(
     setup_type: setupType,
     horizon: outcome.horizon,
     original_confidence: originalConfidence,
+    original_confidence_source: originalConfidenceResult.source,
     projected_confidence: projectedConfidence,
     projected_confidence_source: projectedConfidenceSource,
     confidence_delta: delta,
     delta_direction: deltaDirection(delta),
-    explanation_category: explanationCategory(setupType),
+    explanation_category: explanationCategoryValue,
     calibration_status:
       calibrationStatusFromSnapshotContract(snapshot) ??
-      preview.calibration_status ??
+      preview?.calibration_status ??
       null,
     join_source: join.source,
     snapshot_contract_version:
@@ -1119,6 +1293,7 @@ function observationForOutcome(
     comparison: comparison.comparison,
     completeness: insufficientReasons.length === 0 ? "complete" : "insufficient_data",
     insufficient_reasons: insufficientReasons,
+    optional_metadata_gaps: metadataGaps,
   };
 }
 
@@ -1271,10 +1446,8 @@ function recommendationLevelIdentity(
   observation: ConfidenceProjectionOutcomeObservation,
 ) {
   return (
-    observation.recommendation_id ??
-    observation.snapshot_fingerprint ??
-    observation.snapshot_id ??
-    `${observation.ticker}|${observation.timestamp ?? "missing_timestamp"}`
+    observation.stable_identity_key ??
+    `unresolved:${observation.join_source}:${observation.ticker}:${observation.timestamp ?? "missing_timestamp"}:${observation.horizon}`
   );
 }
 
@@ -1857,6 +2030,99 @@ function buildObservationCompleteness(
   };
 }
 
+function buildRecommendationObservationCompleteness(
+  observations: ConfidenceProjectionOutcomeObservation[],
+): ConfidenceProjectionRecommendationObservationCompleteness {
+  const completeRecommendations = observations.filter(
+    (item) => item.completeness === "complete",
+  ).length;
+  const optionalMetadataGaps: Record<
+    ConfidenceProjectionOptionalMetadataGap,
+    number
+  > = {
+    missing_setup_type: 0,
+    missing_recommendation_tier: 0,
+    missing_trading_window: 0,
+    missing_explanation_category: 0,
+    missing_trade_plan_metadata: 0,
+  };
+  let optionalMetadataGapCount = 0;
+
+  for (const observation of observations) {
+    if (observation.optional_metadata_gaps.length > 0) {
+      optionalMetadataGapCount += 1;
+    }
+    for (const gap of observation.optional_metadata_gaps) {
+      optionalMetadataGaps[gap] += 1;
+    }
+  }
+
+  return {
+    complete_recommendations: completeRecommendations,
+    identities_with_explicit_horizons: observations.filter(
+      (item) =>
+        item.stable_identity_key !== null &&
+        supportedRecommendationLevelHorizons.has(item.horizon),
+    ).length,
+    missing_identity_count: observations.filter(
+      (item) => item.stable_identity_key === null,
+    ).length,
+    missing_confidence_count: observations.filter(
+      (item) =>
+        item.original_confidence === null ||
+        item.insufficient_reasons.includes("missing_original_confidence") ||
+        item.insufficient_reasons.includes("invalid_confidence"),
+    ).length,
+    missing_projection_count: observations.filter(
+      (item) => item.projected_confidence_source === "unavailable",
+    ).length,
+    optional_metadata_gap_count: optionalMetadataGapCount,
+    unrecoverable_observations: observations.filter(
+      (item) => item.completeness === "insufficient_data",
+    ).length,
+    recovered_by_identity_normalization: observations.filter(
+      (item) =>
+        item.completeness === "complete" &&
+        item.recommendation_id === null &&
+        (item.stable_identity_source === "snapshot_fingerprint" ||
+          item.stable_identity_source === "snapshot_id"),
+    ).length,
+    recovered_by_confidence_lookup: observations.filter(
+      (item) =>
+        item.completeness === "complete" &&
+        (item.original_confidence_source === "snapshot_payload" ||
+          item.original_confidence_source === "contract_v1"),
+    ).length,
+    recovered_by_deterministic_projection_recomputation: observations.filter(
+      (item) =>
+        item.completeness === "complete" &&
+        item.projected_confidence_source ===
+          "deterministically_recomputed_projection",
+    ).length,
+    optional_metadata_gaps: optionalMetadataGaps,
+    core_requirements: [
+      "stable recommendation or snapshot identity",
+      "original snapshot-time confidence",
+      "snapshot-time projected confidence or deterministic projection inputs",
+      "complete official binary outcome",
+      "explicit supported horizon",
+    ],
+    optional_metadata_fields: [
+      "setup type",
+      "recommendation tier",
+      "trading window",
+      "projection explanation category",
+      "trade-plan metadata",
+    ],
+    copy: {
+      summary:
+        "Recommendation-level calibration only requires stable identity, confidence, projection, explicit horizon, and official completed outcome evidence.",
+      optional_metadata_policy:
+        "Missing setup, tier, window, explanation, or trade-plan metadata is retained as an optional subgroup gap and labeled unknown; it does not block core calibration.",
+    },
+  };
+}
+
 function buildOutcomeMetadataResolutionSummary(
   outcomes: RecommendationOutcome[],
 ): ConfidenceProjectionOutcomeMetadataResolutionSummary {
@@ -1939,6 +2205,8 @@ export function buildConfidenceProjectionOutcomeReview(
   const firstObservedCalibrationSignal =
     buildFirstCalibrationSignalReview(observations);
   const observationCompleteness = buildObservationCompleteness(observations);
+  const recommendationObservationCompleteness =
+    buildRecommendationObservationCompleteness(observations);
   const outcomeMetadataResolution = buildOutcomeMetadataResolutionSummary(
     dedupedOutcomes,
   );
@@ -1975,6 +2243,7 @@ export function buildConfidenceProjectionOutcomeReview(
     recommendation_level_deduplication: recommendationLevelSelection.diagnostics,
     first_observed_calibration_signal: firstObservedCalibrationSignal,
     observation_completeness: observationCompleteness,
+    recommendation_observation_completeness: recommendationObservationCompleteness,
     outcome_metadata_resolution: outcomeMetadataResolution,
     observations,
     copy: {
