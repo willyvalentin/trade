@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  action307dEmbeddedRoutePublicationDiagnostic,
+  action307dKnownWorkingRouteBoundaryDiagnostic,
+} from "@/lib/action-307d-known-working-route-boundary-diagnostic";
 import { firstTinyHistoricalReplaySignalPackageDiscoveryReadbackMarker } from "@/lib/first-tiny-historical-replay-signal-package-discovery-readback";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +19,9 @@ export async function GET() {
       route_ping: true,
       route_build_marker:
         firstTinyHistoricalReplaySignalPackageDiscoveryReadbackMarker,
+      ...action307dKnownWorkingRouteBoundaryDiagnostic,
+      route_publication_diagnostic_embedded:
+        action307dEmbeddedRoutePublicationDiagnostic,
       provider_call_executed: false,
       provider_call_attempted: false,
       candles_persisted: false,

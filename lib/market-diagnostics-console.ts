@@ -15,6 +15,8 @@ import type { RecommendationBatchSummary } from "@/lib/recommendation-batch-memo
 import type { RecommendationEngineControlCenterSummary } from "@/lib/recommendation-engine-control-center";
 import type { EntryTuningProposal } from "@/lib/entry-tuning-proposal";
 import type { DailyLearningReviewSummary } from "@/lib/daily-learning-review";
+import { buildAction307nProductionApiBoundaryRecoveryVerification } from "@/lib/action-307n-production-api-boundary-recovery-verification";
+import { buildAction308MinimalReplayWithSignalPackagePing } from "@/lib/action-308-minimal-replay-with-signal-package-ping";
 import { buildHistoricalBackfillDryRunPipeline } from "@/lib/historical-backfill-dry-run-pipeline";
 import { buildHistoricalBackfillExecutionReadiness } from "@/lib/historical-backfill-execution-readiness";
 import { buildHistoricalBackfillFetchPlan } from "@/lib/historical-backfill-fetch-planner";
@@ -47,6 +49,10 @@ import { buildFirstTinyHistoricalReplayDryRunPlan } from "@/lib/first-tiny-histo
 import { buildFirstTinyHistoricalReplayDryRunResultVerification } from "@/lib/first-tiny-historical-replay-dry-run-result-verification";
 import { buildFirstTinyHistoricalReplaySignalPackageDiscoveryPlan } from "@/lib/first-tiny-historical-replay-signal-package-discovery-plan";
 import { buildFirstTinyHistoricalReplaySignalPackageDiscoveryReadback } from "@/lib/first-tiny-historical-replay-signal-package-discovery-readback";
+import { buildFirstTinyHistoricalReplaySignalPackageDiscoveryReadbackResultVerification } from "@/lib/first-tiny-historical-replay-signal-package-discovery-readback-result-verification";
+import { buildFirstTinyHistoricalReplaySignalPackageSelectionApproval } from "@/lib/first-tiny-historical-replay-signal-package-selection-approval";
+import { buildFirstTinyHistoricalReplaySignalPackageSelectionPlan } from "@/lib/first-tiny-historical-replay-signal-package-selection-plan";
+import { buildFirstTinyReplayWithSignalPackageDryRunReadiness } from "@/lib/first-tiny-historical-replay-with-signal-package-dry-run-execute";
 import { buildFirstTinyFetchRunAuditWriteApproval } from "@/lib/first-tiny-historical-fetch-run-audit-write-approval";
 import { buildFirstTinyFetchRunAuditWriteExecuteReadiness } from "@/lib/first-tiny-historical-fetch-run-audit-write-execute";
 import { buildFirstTinyHistoricalFetchRunAuditWritePlan } from "@/lib/first-tiny-historical-fetch-run-audit-write-plan";
@@ -3048,6 +3054,23 @@ function buildSections(
         firstTinyHistoricalReplayDryRunResultVerification,
       discovery_plan: firstTinyHistoricalReplaySignalPackageDiscoveryPlan,
     });
+  const firstTinySignalPackageDiscoveryReadbackResultVerification =
+    buildFirstTinyHistoricalReplaySignalPackageDiscoveryReadbackResultVerification();
+  const firstTinySignalPackageSelectionPlan =
+    buildFirstTinyHistoricalReplaySignalPackageSelectionPlan({
+      readback_result_verification:
+        firstTinySignalPackageDiscoveryReadbackResultVerification,
+    });
+  const firstTinySignalPackageSelectionApproval =
+    buildFirstTinyHistoricalReplaySignalPackageSelectionApproval({
+      selection_plan: firstTinySignalPackageSelectionPlan,
+    });
+  const firstTinyReplayWithSignalPackageDryRunExecute =
+    buildFirstTinyReplayWithSignalPackageDryRunReadiness({
+      candle_persistence_result: firstTinyCandlePersistenceResultVerification,
+      selection_plan: firstTinySignalPackageSelectionPlan,
+      selection_approval: firstTinySignalPackageSelectionApproval,
+    });
   const hasSuccessfulLiveReadback =
     (input.scan_readback?.latest_successful_scan?.visible_recommendation_count ??
       0) > 0;
@@ -3476,6 +3499,10 @@ function buildSections(
     closedMarketWaitState,
     shadowTrialState,
   });
+  const productionApiBoundaryRecovery =
+    buildAction307nProductionApiBoundaryRecoveryVerification();
+  const minimalReplayWithSignalPackagePing =
+    buildAction308MinimalReplayWithSignalPackagePing();
 
   return [
     section({
@@ -3559,6 +3586,151 @@ function buildSections(
         monday_live_trial_items_ready_count: mondayChecklist.readyCount,
         monday_live_trial_items_total_count: mondayChecklist.totalCount,
         monday_live_trial_items_json: JSON.stringify(mondayChecklist.items),
+      },
+    }),
+    section({
+      section_id: "production_api_boundary_recovery",
+      title: "Production API Boundary Recovery",
+      severity: "info",
+      lines: [
+        lineValue("Status", "recovered after rollback"),
+        lineValue(
+          "Known good routes healthy",
+          statusMark(productionApiBoundaryRecovery.known_good_routes_healthy),
+        ),
+        lineValue(
+          "Action 303 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_303_ping_healthy),
+        ),
+        lineValue(
+          "Action 300 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_300_ping_healthy),
+        ),
+        lineValue(
+          "Action 296 ping healthy",
+          statusMark(productionApiBoundaryRecovery.action_296_ping_healthy),
+        ),
+        lineValue(
+          "Replay with signal package route deployed",
+          statusMark(
+            productionApiBoundaryRecovery
+              .replay_with_signal_package_route_deployed,
+          ),
+        ),
+        lineValue(
+          "Replay allowed now",
+          statusMark(productionApiBoundaryRecovery.replay_execute_allowed_now),
+        ),
+        lineValue(
+          "Recommended next steps",
+          productionApiBoundaryRecovery.recommended_next_steps.join("; "),
+        ),
+      ],
+      metrics: {
+        recovery_status: productionApiBoundaryRecovery.recovery_status,
+        rollback_verified: productionApiBoundaryRecovery.rollback_verified,
+        known_good_routes_healthy:
+          productionApiBoundaryRecovery.known_good_routes_healthy,
+        next_runtime_routes_healthy_again:
+          productionApiBoundaryRecovery.next_runtime_routes_healthy_again,
+        action_303_ping_healthy:
+          productionApiBoundaryRecovery.action_303_ping_healthy,
+        action_300_ping_healthy:
+          productionApiBoundaryRecovery.action_300_ping_healthy,
+        action_296_ping_healthy:
+          productionApiBoundaryRecovery.action_296_ping_healthy,
+        replay_with_signal_package_route_deployed:
+          productionApiBoundaryRecovery
+            .replay_with_signal_package_route_deployed,
+        replay_execute_allowed_now:
+          productionApiBoundaryRecovery.replay_execute_allowed_now,
+        provider_call_executed:
+          productionApiBoundaryRecovery.provider_call_executed,
+        replay_executed: productionApiBoundaryRecovery.replay_executed,
+        synthetic_outcomes_persisted:
+          productionApiBoundaryRecovery.synthetic_outcomes_persisted,
+        supabase_write_executed:
+          productionApiBoundaryRecovery.supabase_write_executed,
+        scanner_behavior_changed:
+          productionApiBoundaryRecovery.scanner_behavior_changed,
+        live_ranking_changed:
+          productionApiBoundaryRecovery.live_ranking_changed,
+        recommended_next_step:
+          productionApiBoundaryRecovery.recommended_next_step,
+        healthy_route_markers:
+          productionApiBoundaryRecovery.healthy_route_markers.join(", "),
+      },
+    }),
+    section({
+      section_id: "minimal_replay_with_signal_package_ping",
+      title: "Minimal Replay With Signal Package Ping",
+      severity: "info",
+      lines: [
+        lineValue("Status", "ping-only"),
+        lineValue(
+          "Route marker",
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        ),
+        lineValue(
+          "Execute route present",
+          statusMark(
+            minimalReplayWithSignalPackagePing
+              .replay_with_signal_package_execute_route_present,
+          ),
+        ),
+        lineValue(
+          "Replay executed",
+          statusMark(minimalReplayWithSignalPackagePing.replay_executed),
+        ),
+        lineValue(
+          "Synthetic outcomes persisted",
+          statusMark(
+            minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted,
+          ),
+        ),
+        lineValue(
+          "Scanner behavior changed",
+          statusMark(minimalReplayWithSignalPackagePing.scanner_behavior_changed),
+        ),
+        lineValue(
+          "Live ranking changed",
+          statusMark(minimalReplayWithSignalPackagePing.live_ranking_changed),
+        ),
+        lineValue(
+          "Recommended next steps",
+          minimalReplayWithSignalPackagePing.recommended_next_steps.join("; "),
+        ),
+      ],
+      metrics: {
+        status: "ping_only",
+        route_build_marker:
+          minimalReplayWithSignalPackagePing.route_build_marker,
+        purpose: minimalReplayWithSignalPackagePing.purpose,
+        replay_with_signal_package_execute_route_present:
+          minimalReplayWithSignalPackagePing
+            .replay_with_signal_package_execute_route_present,
+        provider_call_executed:
+          minimalReplayWithSignalPackagePing.provider_call_executed,
+        provider_call_attempted:
+          minimalReplayWithSignalPackagePing.provider_call_attempted,
+        candles_persisted: minimalReplayWithSignalPackagePing.candles_persisted,
+        raw_response_persisted:
+          minimalReplayWithSignalPackagePing.raw_response_persisted,
+        fetch_run_persisted:
+          minimalReplayWithSignalPackagePing.fetch_run_persisted,
+        synthetic_outcomes_persisted:
+          minimalReplayWithSignalPackagePing.synthetic_outcomes_persisted,
+        replay_executed: minimalReplayWithSignalPackagePing.replay_executed,
+        scanner_behavior_changed:
+          minimalReplayWithSignalPackagePing.scanner_behavior_changed,
+        live_ranking_changed:
+          minimalReplayWithSignalPackagePing.live_ranking_changed,
+        recommendation_rows_mutated:
+          minimalReplayWithSignalPackagePing.recommendation_rows_mutated,
+        supabase_write_executed:
+          minimalReplayWithSignalPackagePing.supabase_write_executed,
+        recommended_next_steps:
+          minimalReplayWithSignalPackagePing.recommended_next_steps.join(", "),
       },
     }),
     section({
@@ -12199,6 +12371,786 @@ function buildSections(
       },
     }),
     section({
+      section_id:
+        "first_tiny_signal_package_discovery_readback_result_verification",
+      title: "First Tiny Signal Package Discovery Readback Result Verification",
+      severity: "info",
+      lines: [
+        lineValue(
+          "Verification status",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .verification_status,
+        ),
+        lineValue(
+          "Discovery status",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .discovery_status,
+        ),
+        lineValue(
+          "Ticker",
+          firstTinySignalPackageDiscoveryReadbackResultVerification.ticker,
+        ),
+        lineValue(
+          "Interval",
+          firstTinySignalPackageDiscoveryReadbackResultVerification.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinySignalPackageDiscoveryReadbackResultVerification.trading_day,
+        ),
+        lineValue(
+          "Recommendation rows checked",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .recommendation_rows_checked,
+        ),
+        lineValue(
+          "Recommendation snapshots checked",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .recommendation_snapshots_checked,
+        ),
+        lineValue(
+          "Candidates found",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .candidates_found,
+        ),
+        lineValue(
+          "Compatible candidates",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .compatible_candidates,
+        ),
+        lineValue("Best candidate available", "yes"),
+        lineValue("Signal package available now", "yes"),
+        lineValue("Signal package created now", "no"),
+        lineValue(
+          "Candidate groups",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .candidate_group_count,
+        ),
+        lineValue(
+          "Early group cutoff",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .early_group_cutoff,
+        ),
+        lineValue(
+          "Later group cutoff",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .later_group_cutoff,
+        ),
+        lineValue("Replay executed", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue("Recommendation rows mutated", "no"),
+        lineValue(
+          "Ready for signal package selection plan",
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .ready_for_signal_package_selection_plan
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinySignalPackageDiscoveryReadbackResultVerification
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        verification_marker:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .verification_marker,
+        verification_status:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .verification_status,
+        conclusion:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.conclusion,
+        discovery_status:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .discovery_status,
+        source_verification:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .source_verification,
+        ticker:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.ticker,
+        interval:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.interval,
+        trading_day:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.trading_day,
+        recommendation_rows_checked:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .recommendation_rows_checked,
+        recommendation_snapshots_checked:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .recommendation_snapshots_checked,
+        candidates_found:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .candidates_found,
+        compatible_candidates:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .compatible_candidates,
+        best_candidate_available:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .best_candidate_available,
+        signal_package_available_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .signal_package_available_now,
+        signal_package_created_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .signal_package_created_now,
+        candidate_group_count:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .candidate_group_count,
+        early_group_cutoff:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .early_group_cutoff,
+        later_group_cutoff:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .later_group_cutoff,
+        replay_executed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .replay_executed,
+        synthetic_outcomes_persisted:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .synthetic_outcomes_persisted,
+        scanner_behavior_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .live_ranking_changed,
+        recommendation_rows_mutated:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .recommendation_rows_mutated,
+        supabase_write_executed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .supabase_write_executed,
+        scanner_universe_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .scanner_universe_changed,
+        thresholds_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .thresholds_changed,
+        outcome_evaluation_persistence_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .outcome_evaluation_persistence_changed,
+        learning_acceleration_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .learning_acceleration_changed,
+        add_trade_affected:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .add_trade_affected,
+        broker_execution_affected:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .broker_execution_affected,
+        risk_changed:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .risk_changed,
+        ready_for_signal_package_selection_plan:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .ready_for_signal_package_selection_plan,
+        replay_allowed_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .replay_allowed_now,
+        synthetic_outcome_persistence_allowed_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .synthetic_outcome_persistence_allowed_now,
+        scanner_use_allowed_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .scanner_use_allowed_now,
+        ranking_change_allowed_now:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .ranking_change_allowed_now,
+        final_candidate_selected:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .final_candidate_selected,
+        separate_selection_plan_required:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .separate_selection_plan_required,
+        candidate_ids:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.candidates
+            .map((candidate) => candidate.candidate_id)
+            .join(","),
+        group_ids:
+          firstTinySignalPackageDiscoveryReadbackResultVerification
+            .candidate_groups.map((group) => group.group_id)
+            .join(","),
+        recommended_next_steps:
+          firstTinySignalPackageDiscoveryReadbackResultVerification.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id: "first_tiny_signal_package_selection_plan",
+      title: "First Tiny Signal Package Selection Plan",
+      severity: "warning",
+      lines: [
+        lineValue(
+          "Status",
+          firstTinySignalPackageSelectionPlan.selection_plan_status,
+        ),
+        lineValue(
+          "Source verification",
+          firstTinySignalPackageSelectionPlan.source_verification,
+        ),
+        lineValue("Ticker", firstTinySignalPackageSelectionPlan.ticker),
+        lineValue("Interval", firstTinySignalPackageSelectionPlan.interval),
+        lineValue(
+          "Trading day",
+          firstTinySignalPackageSelectionPlan.trading_day,
+        ),
+        lineValue(
+          "Compatible candidates",
+          firstTinySignalPackageSelectionPlan.compatible_candidates,
+        ),
+        lineValue(
+          "Candidate groups",
+          firstTinySignalPackageSelectionPlan.candidate_groups,
+        ),
+        lineValue(
+          "Recommended candidate available",
+          firstTinySignalPackageSelectionPlan.recommended_candidate_available
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Recommended candidate id",
+          firstTinySignalPackageSelectionPlan.recommended_candidate.candidate_id,
+        ),
+        lineValue(
+          "Recommended source type",
+          firstTinySignalPackageSelectionPlan.recommended_candidate.source_type,
+        ),
+        lineValue(
+          "Recommended analysis cutoff",
+          firstTinySignalPackageSelectionPlan.recommended_candidate
+            .analysis_cutoff,
+        ),
+        lineValue(
+          "Recommended entry",
+          firstTinySignalPackageSelectionPlan.recommended_candidate.entry,
+        ),
+        lineValue(
+          "Recommended stop",
+          firstTinySignalPackageSelectionPlan.recommended_candidate.stop,
+        ),
+        lineValue(
+          "Recommended target",
+          firstTinySignalPackageSelectionPlan.recommended_candidate.target,
+        ),
+        lineValue("Selected candidate now", "no"),
+        lineValue("Replay executed", "no"),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue("Recommendation rows mutated", "no"),
+        lineValue(
+          "Ready for selection approval gate",
+          firstTinySignalPackageSelectionPlan.ready_for_selection_approval_gate
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinySignalPackageSelectionPlan.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        plan_marker: firstTinySignalPackageSelectionPlan.plan_marker,
+        selection_plan_status:
+          firstTinySignalPackageSelectionPlan.selection_plan_status,
+        source_verification:
+          firstTinySignalPackageSelectionPlan.source_verification,
+        ticker: firstTinySignalPackageSelectionPlan.ticker,
+        interval: firstTinySignalPackageSelectionPlan.interval,
+        trading_day: firstTinySignalPackageSelectionPlan.trading_day,
+        compatible_candidates:
+          firstTinySignalPackageSelectionPlan.compatible_candidates,
+        candidate_groups: firstTinySignalPackageSelectionPlan.candidate_groups,
+        selected_candidate_now:
+          firstTinySignalPackageSelectionPlan.selected_candidate_now,
+        recommended_candidate_available:
+          firstTinySignalPackageSelectionPlan.recommended_candidate_available,
+        recommended_candidate_id:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.candidate_id,
+        recommended_source_type:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.source_type,
+        recommended_source_row_id:
+          firstTinySignalPackageSelectionPlan.recommended_candidate
+            .source_row_id,
+        recommended_analysis_cutoff:
+          firstTinySignalPackageSelectionPlan.recommended_candidate
+            .analysis_cutoff,
+        recommended_direction:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.direction,
+        recommended_entry:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.entry,
+        recommended_stop:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.stop,
+        recommended_target:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.target,
+        recommended_confidence_or_tier:
+          firstTinySignalPackageSelectionPlan.recommended_candidate
+            .confidence_or_tier,
+        recommended_setup_label:
+          firstTinySignalPackageSelectionPlan.recommended_candidate.setup_label,
+        deterministic_selection_rules:
+          firstTinySignalPackageSelectionPlan.deterministic_selection_rules.join(
+            ",",
+          ),
+        recommendation_reasoning:
+          firstTinySignalPackageSelectionPlan.recommendation_reasoning.join(
+            ",",
+          ),
+        candidate_selection_summaries: JSON.stringify(
+          firstTinySignalPackageSelectionPlan.candidate_selection_summaries,
+        ),
+        candidate_group_summaries: JSON.stringify(
+          firstTinySignalPackageSelectionPlan.candidate_group_summaries,
+        ),
+        replay_executed: firstTinySignalPackageSelectionPlan.replay_executed,
+        synthetic_outcomes_persisted:
+          firstTinySignalPackageSelectionPlan.synthetic_outcomes_persisted,
+        scanner_behavior_changed:
+          firstTinySignalPackageSelectionPlan.scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinySignalPackageSelectionPlan.live_ranking_changed,
+        recommendation_rows_mutated:
+          firstTinySignalPackageSelectionPlan.recommendation_rows_mutated,
+        supabase_write_executed:
+          firstTinySignalPackageSelectionPlan.supabase_write_executed,
+        scanner_universe_changed:
+          firstTinySignalPackageSelectionPlan.scanner_universe_changed,
+        thresholds_changed:
+          firstTinySignalPackageSelectionPlan.thresholds_changed,
+        outcome_evaluation_persistence_changed:
+          firstTinySignalPackageSelectionPlan
+            .outcome_evaluation_persistence_changed,
+        learning_acceleration_changed:
+          firstTinySignalPackageSelectionPlan.learning_acceleration_changed,
+        add_trade_affected:
+          firstTinySignalPackageSelectionPlan.add_trade_affected,
+        broker_execution_affected:
+          firstTinySignalPackageSelectionPlan.broker_execution_affected,
+        risk_changed: firstTinySignalPackageSelectionPlan.risk_changed,
+        ready_for_selection_approval_gate:
+          firstTinySignalPackageSelectionPlan.ready_for_selection_approval_gate,
+        replay_allowed_now:
+          firstTinySignalPackageSelectionPlan.replay_allowed_now,
+        synthetic_outcome_persistence_allowed_now:
+          firstTinySignalPackageSelectionPlan
+            .synthetic_outcome_persistence_allowed_now,
+        scanner_use_allowed_now:
+          firstTinySignalPackageSelectionPlan.scanner_use_allowed_now,
+        ranking_change_allowed_now:
+          firstTinySignalPackageSelectionPlan.ranking_change_allowed_now,
+        recommended_next_steps:
+          firstTinySignalPackageSelectionPlan.recommended_next_steps.join(","),
+      },
+    }),
+    section({
+      section_id: "first_tiny_signal_package_selection_approval",
+      title: "First Tiny Signal Package Selection Approval",
+      severity:
+        firstTinySignalPackageSelectionApproval.approval_status === "invalid"
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Approval status",
+          firstTinySignalPackageSelectionApproval.approval_status,
+        ),
+        lineValue(
+          "Signal active",
+          firstTinySignalPackageSelectionApproval.signal.signal_active
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Recommended candidate id",
+          firstTinySignalPackageSelectionApproval.recommended_candidate_id,
+        ),
+        lineValue(
+          "Source type",
+          firstTinySignalPackageSelectionApproval.source_type,
+        ),
+        lineValue(
+          "Source row id",
+          firstTinySignalPackageSelectionApproval.source_row_id,
+        ),
+        lineValue("Ticker", firstTinySignalPackageSelectionApproval.ticker),
+        lineValue("Interval", firstTinySignalPackageSelectionApproval.interval),
+        lineValue(
+          "Trading day",
+          firstTinySignalPackageSelectionApproval.trading_day,
+        ),
+        lineValue(
+          "Analysis cutoff",
+          firstTinySignalPackageSelectionApproval.analysis_cutoff,
+        ),
+        lineValue(
+          "Direction",
+          firstTinySignalPackageSelectionApproval.direction,
+        ),
+        lineValue("Entry", firstTinySignalPackageSelectionApproval.entry),
+        lineValue("Stop", firstTinySignalPackageSelectionApproval.stop),
+        lineValue("Target", firstTinySignalPackageSelectionApproval.target),
+        lineValue(
+          "Selected candidate authorized now",
+          firstTinySignalPackageSelectionApproval
+            .selected_candidate_authorized_now
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to accept future signal",
+          firstTinySignalPackageSelectionApproval.ready_to_accept_future_signal
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Ready to propose replay with signal package",
+          firstTinySignalPackageSelectionApproval
+            .ready_to_propose_replay_with_signal_package
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Replay allowed now", "no"),
+        lineValue("Synthetic outcome persistence allowed", "no"),
+        lineValue("Scanner use allowed", "no"),
+        lineValue("Ranking change allowed", "no"),
+        lineValue(
+          "Blockers",
+          compactListText(firstTinySignalPackageSelectionApproval.blockers),
+        ),
+        lineValue(
+          "Warnings",
+          compactListText(firstTinySignalPackageSelectionApproval.warnings),
+        ),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinySignalPackageSelectionApproval.recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        approval_marker:
+          firstTinySignalPackageSelectionApproval.approval_marker,
+        approval_status:
+          firstTinySignalPackageSelectionApproval.approval_status,
+        approval_gate_only:
+          firstTinySignalPackageSelectionApproval.approval_gate_only,
+        advisory_only: firstTinySignalPackageSelectionApproval.advisory_only,
+        signal_active:
+          firstTinySignalPackageSelectionApproval.signal.signal_active,
+        signal_source_type:
+          firstTinySignalPackageSelectionApproval.signal.source_type,
+        signal_source_present:
+          firstTinySignalPackageSelectionApproval.signal.source_present,
+        operator_label_present:
+          firstTinySignalPackageSelectionApproval.signal.operator_label_present,
+        reference_present:
+          firstTinySignalPackageSelectionApproval.signal.reference_present,
+        source_verification:
+          firstTinySignalPackageSelectionApproval.source_verification,
+        recommended_candidate_id:
+          firstTinySignalPackageSelectionApproval.recommended_candidate_id,
+        source_type: firstTinySignalPackageSelectionApproval.source_type,
+        source_row_id: firstTinySignalPackageSelectionApproval.source_row_id,
+        ticker: firstTinySignalPackageSelectionApproval.ticker,
+        interval: firstTinySignalPackageSelectionApproval.interval,
+        trading_day: firstTinySignalPackageSelectionApproval.trading_day,
+        analysis_cutoff: firstTinySignalPackageSelectionApproval.analysis_cutoff,
+        direction: firstTinySignalPackageSelectionApproval.direction,
+        entry: firstTinySignalPackageSelectionApproval.entry,
+        stop: firstTinySignalPackageSelectionApproval.stop,
+        target: firstTinySignalPackageSelectionApproval.target,
+        selected_candidate_authorized_now:
+          firstTinySignalPackageSelectionApproval
+            .selected_candidate_authorized_now,
+        ready_to_accept_future_signal:
+          firstTinySignalPackageSelectionApproval.ready_to_accept_future_signal,
+        ready_to_propose_replay_with_signal_package:
+          firstTinySignalPackageSelectionApproval
+            .ready_to_propose_replay_with_signal_package,
+        replay_allowed_now:
+          firstTinySignalPackageSelectionApproval.replay_allowed_now,
+        synthetic_outcome_persistence_allowed_now:
+          firstTinySignalPackageSelectionApproval
+            .synthetic_outcome_persistence_allowed_now,
+        scanner_use_allowed_now:
+          firstTinySignalPackageSelectionApproval.scanner_use_allowed_now,
+        ranking_change_allowed_now:
+          firstTinySignalPackageSelectionApproval.ranking_change_allowed_now,
+        replay_executed:
+          firstTinySignalPackageSelectionApproval.replay_executed,
+        synthetic_outcomes_persisted:
+          firstTinySignalPackageSelectionApproval.synthetic_outcomes_persisted,
+        scanner_behavior_changed:
+          firstTinySignalPackageSelectionApproval.scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinySignalPackageSelectionApproval.live_ranking_changed,
+        provider_call_executed:
+          firstTinySignalPackageSelectionApproval.provider_call_executed,
+        provider_call_attempted:
+          firstTinySignalPackageSelectionApproval.provider_call_attempted,
+        candles_persisted:
+          firstTinySignalPackageSelectionApproval.candles_persisted,
+        raw_response_persisted:
+          firstTinySignalPackageSelectionApproval.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinySignalPackageSelectionApproval.fetch_run_persisted,
+        recommendation_rows_mutated:
+          firstTinySignalPackageSelectionApproval.recommendation_rows_mutated,
+        supabase_read_executed:
+          firstTinySignalPackageSelectionApproval.supabase_read_executed,
+        supabase_write_executed:
+          firstTinySignalPackageSelectionApproval.supabase_write_executed,
+        scanner_universe_changed:
+          firstTinySignalPackageSelectionApproval.scanner_universe_changed,
+        thresholds_changed:
+          firstTinySignalPackageSelectionApproval.thresholds_changed,
+        outcome_evaluation_persistence_changed:
+          firstTinySignalPackageSelectionApproval
+            .outcome_evaluation_persistence_changed,
+        learning_acceleration_changed:
+          firstTinySignalPackageSelectionApproval.learning_acceleration_changed,
+        add_trade_affected:
+          firstTinySignalPackageSelectionApproval.add_trade_affected,
+        broker_execution_affected:
+          firstTinySignalPackageSelectionApproval.broker_execution_affected,
+        risk_changed: firstTinySignalPackageSelectionApproval.risk_changed,
+        expected_contract: JSON.stringify(
+          firstTinySignalPackageSelectionApproval.expected_contract,
+        ),
+        blockers: firstTinySignalPackageSelectionApproval.blockers.join(","),
+        warnings: firstTinySignalPackageSelectionApproval.warnings.join(","),
+        recommended_next_steps:
+          firstTinySignalPackageSelectionApproval.recommended_next_steps.join(
+            ",",
+          ),
+      },
+    }),
+    section({
+      section_id:
+        "first_tiny_replay_with_signal_package_dry_run_execute",
+      title: "First Tiny Replay With Signal Package Dry-Run Execute",
+      severity:
+        firstTinyReplayWithSignalPackageDryRunExecute.execution_status ===
+          "failed" ||
+        firstTinyReplayWithSignalPackageDryRunExecute.execution_status.startsWith(
+          "blocked",
+        )
+          ? "critical"
+          : "warning",
+      lines: [
+        lineValue(
+          "Status",
+          firstTinyReplayWithSignalPackageDryRunExecute.execution_status,
+        ),
+        lineValue(
+          "Selected candidate id",
+          firstTinyReplayWithSignalPackageDryRunExecute.selected_candidate_id,
+        ),
+        lineValue(
+          "Source row id",
+          firstTinyReplayWithSignalPackageDryRunExecute.source_row_id,
+        ),
+        lineValue("Ticker", firstTinyReplayWithSignalPackageDryRunExecute.ticker),
+        lineValue(
+          "Interval",
+          firstTinyReplayWithSignalPackageDryRunExecute.interval,
+        ),
+        lineValue(
+          "Trading day",
+          firstTinyReplayWithSignalPackageDryRunExecute.trading_day,
+        ),
+        lineValue(
+          "Analysis cutoff",
+          firstTinyReplayWithSignalPackageDryRunExecute.analysis_cutoff,
+        ),
+        lineValue(
+          "Direction",
+          firstTinyReplayWithSignalPackageDryRunExecute.direction,
+        ),
+        lineValue("Entry", firstTinyReplayWithSignalPackageDryRunExecute.planned_entry),
+        lineValue("Stop", firstTinyReplayWithSignalPackageDryRunExecute.planned_stop),
+        lineValue(
+          "Target",
+          firstTinyReplayWithSignalPackageDryRunExecute.planned_target,
+        ),
+        lineValue(
+          "Candles read",
+          `${firstTinyReplayWithSignalPackageDryRunExecute.candles_read}/${firstTinyReplayWithSignalPackageDryRunExecute.expected_candle_rows}`,
+        ),
+        lineValue(
+          "Candles verified",
+          `${firstTinyReplayWithSignalPackageDryRunExecute.candles_verified}/${firstTinyReplayWithSignalPackageDryRunExecute.expected_candle_rows}`,
+        ),
+        lineValue(
+          "Lookahead safety passed",
+          firstTinyReplayWithSignalPackageDryRunExecute.lookahead_safety_passed
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Counterfactual result available",
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .counterfactual_result_available
+            ? "yes"
+            : "no",
+        ),
+        lineValue(
+          "Replay outcome status",
+          firstTinyReplayWithSignalPackageDryRunExecute.replay_outcome_status,
+        ),
+        lineValue(
+          "Replay executed",
+          firstTinyReplayWithSignalPackageDryRunExecute.replay_executed
+            ? "yes"
+            : "no",
+        ),
+        lineValue("Synthetic outcomes persisted", "no"),
+        lineValue("Scanner behavior changed", "no"),
+        lineValue("Live ranking changed", "no"),
+        lineValue("Recommendation rows mutated", "no"),
+        lineValue(
+          "Recommended next steps",
+          compactListText(
+            firstTinyReplayWithSignalPackageDryRunExecute
+              .recommended_next_steps,
+          ),
+        ),
+      ],
+      metrics: {
+        route_build_marker:
+          firstTinyReplayWithSignalPackageDryRunExecute.route_build_marker,
+        execution_status:
+          firstTinyReplayWithSignalPackageDryRunExecute.execution_status,
+        approval_status:
+          firstTinyReplayWithSignalPackageDryRunExecute.approval_status,
+        selected_candidate_id:
+          firstTinyReplayWithSignalPackageDryRunExecute.selected_candidate_id,
+        source_type: firstTinyReplayWithSignalPackageDryRunExecute.source_type,
+        source_row_id:
+          firstTinyReplayWithSignalPackageDryRunExecute.source_row_id,
+        source_table:
+          firstTinyReplayWithSignalPackageDryRunExecute.source_table,
+        provider: firstTinyReplayWithSignalPackageDryRunExecute.provider,
+        ticker: firstTinyReplayWithSignalPackageDryRunExecute.ticker,
+        interval: firstTinyReplayWithSignalPackageDryRunExecute.interval,
+        trading_day: firstTinyReplayWithSignalPackageDryRunExecute.trading_day,
+        fetch_run_id:
+          firstTinyReplayWithSignalPackageDryRunExecute.fetch_run_id,
+        expected_candle_rows:
+          firstTinyReplayWithSignalPackageDryRunExecute.expected_candle_rows,
+        candle_window_start:
+          firstTinyReplayWithSignalPackageDryRunExecute.candle_window_start,
+        candle_window_end:
+          firstTinyReplayWithSignalPackageDryRunExecute.candle_window_end,
+        analysis_cutoff:
+          firstTinyReplayWithSignalPackageDryRunExecute.analysis_cutoff,
+        direction: firstTinyReplayWithSignalPackageDryRunExecute.direction,
+        planned_entry:
+          firstTinyReplayWithSignalPackageDryRunExecute.planned_entry,
+        planned_stop:
+          firstTinyReplayWithSignalPackageDryRunExecute.planned_stop,
+        planned_target:
+          firstTinyReplayWithSignalPackageDryRunExecute.planned_target,
+        candles_read:
+          firstTinyReplayWithSignalPackageDryRunExecute.candles_read,
+        candles_verified:
+          firstTinyReplayWithSignalPackageDryRunExecute.candles_verified,
+        lookahead_safety_passed:
+          firstTinyReplayWithSignalPackageDryRunExecute.lookahead_safety_passed,
+        counterfactual_result_available:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .counterfactual_result_available,
+        replay_outcome_status:
+          firstTinyReplayWithSignalPackageDryRunExecute.replay_outcome_status,
+        entry_touched:
+          firstTinyReplayWithSignalPackageDryRunExecute.entry_touched,
+        stop_touched:
+          firstTinyReplayWithSignalPackageDryRunExecute.stop_touched,
+        target_touched:
+          firstTinyReplayWithSignalPackageDryRunExecute.target_touched,
+        entry_timestamp:
+          firstTinyReplayWithSignalPackageDryRunExecute.entry_timestamp,
+        exit_timestamp:
+          firstTinyReplayWithSignalPackageDryRunExecute.exit_timestamp,
+        exit_reason: firstTinyReplayWithSignalPackageDryRunExecute.exit_reason,
+        gross_r_multiple:
+          firstTinyReplayWithSignalPackageDryRunExecute.gross_r_multiple,
+        gross_price_move:
+          firstTinyReplayWithSignalPackageDryRunExecute.gross_price_move,
+        replay_executed:
+          firstTinyReplayWithSignalPackageDryRunExecute.replay_executed,
+        replay_allowed_now:
+          firstTinyReplayWithSignalPackageDryRunExecute.replay_allowed_now,
+        synthetic_outcomes_persisted:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .synthetic_outcomes_persisted,
+        scanner_behavior_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .scanner_behavior_changed,
+        live_ranking_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute.live_ranking_changed,
+        provider_call_executed:
+          firstTinyReplayWithSignalPackageDryRunExecute.provider_call_executed,
+        provider_call_attempted:
+          firstTinyReplayWithSignalPackageDryRunExecute.provider_call_attempted,
+        candles_persisted:
+          firstTinyReplayWithSignalPackageDryRunExecute.candles_persisted,
+        raw_response_persisted:
+          firstTinyReplayWithSignalPackageDryRunExecute.raw_response_persisted,
+        fetch_run_persisted:
+          firstTinyReplayWithSignalPackageDryRunExecute.fetch_run_persisted,
+        recommendation_rows_mutated:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .recommendation_rows_mutated,
+        supabase_read_executed:
+          firstTinyReplayWithSignalPackageDryRunExecute.supabase_read_executed,
+        supabase_write_executed:
+          firstTinyReplayWithSignalPackageDryRunExecute.supabase_write_executed,
+        scanner_universe_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .scanner_universe_changed,
+        thresholds_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute.thresholds_changed,
+        outcome_evaluation_persistence_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .outcome_evaluation_persistence_changed,
+        learning_acceleration_changed:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .learning_acceleration_changed,
+        add_trade_affected:
+          firstTinyReplayWithSignalPackageDryRunExecute.add_trade_affected,
+        broker_execution_affected:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .broker_execution_affected,
+        risk_changed: firstTinyReplayWithSignalPackageDryRunExecute.risk_changed,
+        synthetic_outcome_persistence_allowed_now:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .synthetic_outcome_persistence_allowed_now,
+        scanner_use_allowed_now:
+          firstTinyReplayWithSignalPackageDryRunExecute.scanner_use_allowed_now,
+        ranking_change_allowed_now:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .ranking_change_allowed_now,
+        blockers:
+          firstTinyReplayWithSignalPackageDryRunExecute.blockers.join(","),
+        warnings:
+          firstTinyReplayWithSignalPackageDryRunExecute.warnings.join(","),
+        recommended_next_steps:
+          firstTinyReplayWithSignalPackageDryRunExecute
+            .recommended_next_steps.join(","),
+      },
+    }),
+    section({
       section_id: "metadata_coverage",
       title: "Metadata Coverage",
       severity: explicitGapCount > 0 ? "warning" : "info",
@@ -15258,6 +16210,18 @@ function buildSections(
           JSON.stringify(
             firstTinyHistoricalReplaySignalPackageDiscoveryReadback,
           ),
+        first_tiny_signal_package_discovery_readback_result_verification:
+          JSON.stringify(
+            firstTinySignalPackageDiscoveryReadbackResultVerification,
+          ),
+        first_tiny_signal_package_selection_plan: JSON.stringify(
+          firstTinySignalPackageSelectionPlan,
+        ),
+        first_tiny_signal_package_selection_approval: JSON.stringify(
+          firstTinySignalPackageSelectionApproval,
+        ),
+        first_tiny_replay_with_signal_package_dry_run_execute:
+          JSON.stringify(firstTinyReplayWithSignalPackageDryRunExecute),
         intelligence_overview: JSON.stringify(
           input.daily_learning_review?.intelligence_overview ?? null,
         ),
@@ -15542,6 +16506,22 @@ function buildSections(
         lineValue(
           "First tiny signal package discovery readback",
           `${firstTinyHistoricalReplaySignalPackageDiscoveryReadback.discovery_status} / compatible ${firstTinyHistoricalReplaySignalPackageDiscoveryReadback.best_candidate_available ? "yes" : "no"} / replay no / persistence no`,
+        ),
+        lineValue(
+          "First tiny signal package discovery result",
+          `verified / ${firstTinySignalPackageDiscoveryReadbackResultVerification.compatible_candidates} compatible / selection next / replay no`,
+        ),
+        lineValue(
+          "First tiny signal package selection",
+          `${firstTinySignalPackageSelectionPlan.selection_plan_status} / recommended early recommendation_row / approval next / replay no`,
+        ),
+        lineValue(
+          "First tiny signal package selection approval",
+          `${firstTinySignalPackageSelectionApproval.approval_status} / candidate authorized ${firstTinySignalPackageSelectionApproval.selected_candidate_authorized_now ? "yes" : "no"} / replay no`,
+        ),
+        lineValue(
+          "First tiny replay with signal package",
+          `${firstTinyReplayWithSignalPackageDryRunExecute.execution_status} / outcome ${firstTinyReplayWithSignalPackageDryRunExecute.replay_outcome_status} / replay ${firstTinyReplayWithSignalPackageDryRunExecute.replay_executed ? "yes" : "no"} / synthetic no / scanner no`,
         ),
         lineValue(
           "Primary learning signal",

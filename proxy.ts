@@ -1,110 +1,72 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const TRADE_AUTH_COOKIE = "trade_auth";
-const AUTH_BOUNDARY_MARKER =
-  "action_276_api_auth_middleware_boundary_audit";
+export const GLOBAL_API_BOUNDARY_MARKER =
+  "action_307k_proxy_runtime_crash_isolation";
 
 const noStoreHeaders = {
   "Cache-Control": "no-store",
 };
 
-async function getTradeAuthToken(password: string) {
-  const data = new TextEncoder().encode(`trade-auth:${password}`);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashBytes = Array.from(new Uint8Array(hashBuffer));
-
-  return hashBytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+function withProxyMarker(response: NextResponse) {
+  response.headers.set("x-ture-proxy-marker", GLOBAL_API_BOUNDARY_MARKER);
+  return response;
 }
 
-function isPublicPath(pathname: string) {
+function nextWithProxyMarker() {
+  return withProxyMarker(NextResponse.next());
+}
+
+function isDiagnosticPage(pathname: string) {
   return (
-    pathname === "/login" ||
-    pathname === "/api/auth/login" ||
-    pathname === "/api/auth/logout" ||
-    pathname === "/api/automation/run-scan" ||
-    pathname === "/api/diagnostics/run-scan" ||
-    pathname === "/api/recommendations/evaluate-outcomes" ||
-    pathname === "/api/environment-boundary-audit" ||
-    pathname === "/api/environment-boundary-audit/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-fetch-run-audit-write" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-corrected-candle-payload-refetch/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-persistence-readback/ping" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run/" ||
-    pathname === "/api/historical-backfill/first-tiny-replay-dry-run/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping" ||
-    pathname ===
-      "/api/historical-backfill/first-tiny-candle-payload-refetch/ping"
+    pathname === "/ping307h" ||
+    pathname === "/ping307h/" ||
+    pathname === "/route-publication-probe" ||
+    pathname === "/route-publication-probe/" ||
+    pathname === "/public-probe-307g" ||
+    pathname === "/public-probe-307g/"
   );
 }
 
-function unauthorized(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/api")) {
-    return NextResponse.json(
-      {
-        error: "Unauthorized",
-        auth_boundary: "middleware",
-        auth_boundary_marker: AUTH_BOUNDARY_MARKER,
-        path: request.nextUrl.pathname,
-        method: request.method,
-        header_present: request.headers.has("x-automation-secret"),
-        server_secret_present: Boolean(process.env.TRADE_APP_PASSWORD),
-        diagnostics_safe: true,
-      },
-      { status: 401, headers: noStoreHeaders },
-    );
-  }
-
-  return NextResponse.redirect(new URL("/login", request.url));
+function isApiRoute(pathname: string) {
+  return pathname === "/api" || pathname.startsWith("/api/");
 }
 
-export async function proxy(request: NextRequest) {
-  if (isPublicPath(request.nextUrl.pathname)) {
-    return NextResponse.next();
+function proxyBlockedApiRoute(pathname: string) {
+  return NextResponse.json(
+    {
+      ok: false,
+      boundary: "proxy",
+      boundary_marker: GLOBAL_API_BOUNDARY_MARKER,
+      reason: "proxy_blocked_api_route",
+      pathname,
+      provider_call_executed: false,
+      replay_executed: false,
+      synthetic_outcomes_persisted: false,
+      supabase_write_executed: false,
+      scanner_behavior_changed: false,
+      live_ranking_changed: false,
+    },
+    { status: 401, headers: noStoreHeaders },
+  );
+}
+
+export function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  if (isDiagnosticPage(pathname)) {
+    return nextWithProxyMarker();
   }
 
-  const appPassword = process.env.TRADE_APP_PASSWORD;
-
-  if (!appPassword) {
-    return unauthorized(request);
+  if (isApiRoute(pathname)) {
+    return nextWithProxyMarker();
   }
 
-  const authCookie = request.cookies.get(TRADE_AUTH_COOKIE)?.value;
-  const validAuthCookie = await getTradeAuthToken(appPassword);
-
-  if (authCookie !== validAuthCookie) {
-    return unauthorized(request);
+  if (pathname.startsWith("/api")) {
+    return withProxyMarker(proxyBlockedApiRoute(pathname));
   }
 
-  return NextResponse.next();
+  return nextWithProxyMarker();
 }
 
 export const config = {

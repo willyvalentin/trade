@@ -1,31 +1,16 @@
 import { NextResponse } from "next/server";
 
-import { action307dKnownWorkingRouteBoundaryDiagnostic } from "@/lib/action-307d-known-working-route-boundary-diagnostic";
 import {
-  firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
-  verifyFirstTinyCandlePersistenceReadback,
-} from "@/lib/first-tiny-historical-candle-persistence-readback-verification";
+  executeFirstTinyReplayWithSignalPackageDryRun,
+  firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
+  firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
+} from "@/lib/first-tiny-historical-replay-with-signal-package-dry-run-execute";
 
 export const dynamic = "force-dynamic";
 
-type FirstTinyCandlePersistenceReadbackRouteBody = {
-  verify_candle_persistence_readback?: unknown;
+type FirstTinyReplayWithSignalPackageRouteBody = {
+  execute_replay_with_signal_package_dry_run?: unknown;
   auth_check_only?: unknown;
-  execute_candle_persistence?: unknown;
-  execute_provider_call?: unknown;
-  execute_payload_refetch?: unknown;
-  execute_corrected_payload_refetch?: unknown;
-  execute_fetch_run_audit_write?: unknown;
-  persist_candles?: unknown;
-  candles_persisted?: unknown;
-  persist_raw_response?: unknown;
-  raw_response_persisted?: unknown;
-  persist_fetch_run?: unknown;
-  fetch_run_persisted?: unknown;
-  execute_replay?: unknown;
-  replay_allowed?: unknown;
-  scanner_effect_allowed?: unknown;
-  scanner_behavior_changed?: unknown;
   ticker?: unknown;
   provider?: unknown;
   interval?: unknown;
@@ -33,6 +18,35 @@ type FirstTinyCandlePersistenceReadbackRouteBody = {
   date?: unknown;
   start_date?: unknown;
   end_date?: unknown;
+  fetch_run_id?: unknown;
+  candidate_id?: unknown;
+  source_type?: unknown;
+  source_row_id?: unknown;
+  analysis_cutoff?: unknown;
+  direction?: unknown;
+  entry?: unknown;
+  stop?: unknown;
+  target?: unknown;
+  execute_provider_call?: unknown;
+  execute_payload_refetch?: unknown;
+  execute_corrected_payload_refetch?: unknown;
+  execute_fetch_run_audit_write?: unknown;
+  execute_candle_persistence?: unknown;
+  execute_replay_dry_run?: unknown;
+  persist_candles?: unknown;
+  candles_persisted?: unknown;
+  persist_raw_response?: unknown;
+  raw_response_persisted?: unknown;
+  persist_fetch_run?: unknown;
+  fetch_run_persisted?: unknown;
+  persist_synthetic_outcomes?: unknown;
+  synthetic_outcomes_persisted?: unknown;
+  execute_replay?: unknown;
+  replay_allowed?: unknown;
+  scanner_effect_allowed?: unknown;
+  scanner_behavior_changed?: unknown;
+  ranking_effect_allowed?: unknown;
+  live_ranking_changed?: unknown;
 };
 
 const noStoreHeaders = {
@@ -40,6 +54,8 @@ const noStoreHeaders = {
 };
 
 const noEffectResponse = {
+  route_reachability_fix_marker:
+    firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
   provider_call_executed: false,
   provider_call_attempted: false,
   candles_persisted: false,
@@ -85,38 +101,21 @@ function buildAuthDiagnostics(input: {
 
 async function parseBody(
   request: Request,
-): Promise<FirstTinyCandlePersistenceReadbackRouteBody> {
+): Promise<FirstTinyReplayWithSignalPackageRouteBody> {
   try {
     const text = await request.text();
     if (!text.trim()) return {};
     const parsed = JSON.parse(text);
     return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as FirstTinyCandlePersistenceReadbackRouteBody)
+      ? (parsed as FirstTinyReplayWithSignalPackageRouteBody)
       : {};
   } catch {
     return {};
   }
 }
 
-function hasRejectedOverride(
-  body: FirstTinyCandlePersistenceReadbackRouteBody,
-) {
+function hasRejectedOverride(body: FirstTinyReplayWithSignalPackageRouteBody) {
   return [
-    body.execute_candle_persistence,
-    body.execute_provider_call,
-    body.execute_payload_refetch,
-    body.execute_corrected_payload_refetch,
-    body.execute_fetch_run_audit_write,
-    body.persist_candles,
-    body.candles_persisted,
-    body.persist_raw_response,
-    body.raw_response_persisted,
-    body.persist_fetch_run,
-    body.fetch_run_persisted,
-    body.execute_replay,
-    body.replay_allowed,
-    body.scanner_effect_allowed,
-    body.scanner_behavior_changed,
     body.ticker,
     body.provider,
     body.interval,
@@ -124,6 +123,35 @@ function hasRejectedOverride(
     body.date,
     body.start_date,
     body.end_date,
+    body.fetch_run_id,
+    body.candidate_id,
+    body.source_type,
+    body.source_row_id,
+    body.analysis_cutoff,
+    body.direction,
+    body.entry,
+    body.stop,
+    body.target,
+    body.execute_provider_call,
+    body.execute_payload_refetch,
+    body.execute_corrected_payload_refetch,
+    body.execute_fetch_run_audit_write,
+    body.execute_candle_persistence,
+    body.execute_replay_dry_run,
+    body.persist_candles,
+    body.candles_persisted,
+    body.persist_raw_response,
+    body.raw_response_persisted,
+    body.persist_fetch_run,
+    body.fetch_run_persisted,
+    body.persist_synthetic_outcomes,
+    body.synthetic_outcomes_persisted,
+    body.execute_replay,
+    body.replay_allowed,
+    body.scanner_effect_allowed,
+    body.scanner_behavior_changed,
+    body.ranking_effect_allowed,
+    body.live_ranking_changed,
   ].some((value) => value !== undefined);
 }
 
@@ -142,7 +170,7 @@ export async function POST(request: Request) {
         error: "Unauthorized.",
         auth_boundary: "route_handler",
         route_build_marker:
-          firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+          firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
         auth_diagnostics: authDiagnostics,
         ...noEffectResponse,
       },
@@ -155,19 +183,18 @@ export async function POST(request: Request) {
       ok: true,
       auth_check_only: true,
       route_build_marker:
-        firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
-      ...action307dKnownWorkingRouteBoundaryDiagnostic,
+        firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
       auth_diagnostics: authDiagnostics,
       ...noEffectResponse,
     });
   }
 
-  if (body.verify_candle_persistence_readback !== true) {
+  if (body.execute_replay_with_signal_package_dry_run !== true) {
     return jsonNoStore(
       {
-        error: "verify_candle_persistence_readback_true_required",
+        error: "execute_replay_with_signal_package_dry_run_true_required",
         route_build_marker:
-          firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+          firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
         ...noEffectResponse,
       },
       400,
@@ -177,20 +204,40 @@ export async function POST(request: Request) {
   if (hasRejectedOverride(body)) {
     return jsonNoStore(
       {
-        error: "write_execute_or_scope_override_rejected",
+        error: "arbitrary_scope_candidate_or_effect_override_rejected",
         route_build_marker:
-          firstTinyCandlePersistenceReadbackVerificationRouteBuildMarker,
+          firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker,
         ...noEffectResponse,
       },
       400,
     );
   }
 
+  const preflight = await executeFirstTinyReplayWithSignalPackageDryRun({
+    execute_replay_with_signal_package_dry_run: true,
+  });
+
+  if (
+    preflight.execution_status === "not_approved" ||
+    preflight.execution_status === "blocked_signal_package_validation_failed"
+  ) {
+    return jsonNoStore({
+      route_reachability_fix_marker:
+        firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
+      ...preflight,
+    } as unknown as Record<string, unknown>);
+  }
+
   const { getServerSupabaseClient } = await import("@/lib/supabase-server");
   const supabase = getServerSupabaseClient();
-  const result = await verifyFirstTinyCandlePersistenceReadback({
+  const result = await executeFirstTinyReplayWithSignalPackageDryRun({
+    execute_replay_with_signal_package_dry_run: true,
     supabase_client: supabase.client,
   });
 
-  return jsonNoStore(result as unknown as Record<string, unknown>);
+  return jsonNoStore({
+    route_reachability_fix_marker:
+      firstTinyReplayWithSignalPackageRouteReachabilityFixMarker,
+    ...result,
+  } as unknown as Record<string, unknown>);
 }

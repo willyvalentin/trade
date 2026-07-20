@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { action307dKnownWorkingRouteBoundaryDiagnostic } from "@/lib/action-307d-known-working-route-boundary-diagnostic";
 import {
   firstTinyHistoricalReplaySignalPackageDiscoveryReadbackMarker,
   runFirstTinyHistoricalReplaySignalPackageDiscoveryReadback,
@@ -171,6 +172,7 @@ export async function POST(request: Request) {
       auth_check_only: true,
       route_build_marker:
         firstTinyHistoricalReplaySignalPackageDiscoveryReadbackMarker,
+      ...action307dKnownWorkingRouteBoundaryDiagnostic,
       auth_diagnostics: authDiagnostics,
       ...noEffectResponse,
     });

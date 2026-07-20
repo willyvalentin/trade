@@ -25,9 +25,14 @@ export default async function Home() {
     historicalCandleStorageReadbackToDetection(historicalCandleStorageReadback);
 
   return (
-    <TradeApp
-      learningAccelerationServerConfig={learningAccelerationConfig}
-      historicalCandleStorageDetection={historicalCandleStorageDetection}
-    />
+    <>
+      <div data-deploy-marker="action_307f_deploy_marker" hidden>
+        action_307f_deploy_marker
+      </div>
+      <TradeApp
+        learningAccelerationServerConfig={learningAccelerationConfig}
+        historicalCandleStorageDetection={historicalCandleStorageDetection}
+      />
+    </>
   );
 }

@@ -96,7 +96,9 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
       "(outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome)",
     );
     expect(source).toContain("for (const outcome of persistableOutcomes)");
-    expect(source).not.toContain("for (const outcome of pendingOutcomes) {\n        lastResult = await persistRecommendationOutcome(outcome");
+    expect(source).not.toContain(
+      "for (const outcome of pendingOutcomes) {\n        lastResult = await persistRecommendationOutcome(outcome",
+    );
   });
 
   test("reproduces the production placeholder signature without candle evaluation", () => {
