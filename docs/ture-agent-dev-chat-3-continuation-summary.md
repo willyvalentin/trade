@@ -9148,6 +9148,101 @@ Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_
 
 No deploy is recommended for Action 599.
 
+### Action 600 - Read-Only Git Compatibility Baseline Decision
+
+Completed the source-controlled compatibility-baseline decision for the exact read-only Git repository-observation capability set. This was documentation, evidence review, compatibility-policy decision, and approval-gate work only. No compatibility evaluator, repository-observation runner, Git execution path, live repository inspection, process creation/observation, runtime/API/UI/cron/worker reachability, credential path, environment inheritance, network access, Avanza/trading behavior, persistence, migration, deployment, retry, fallback, commit, push, merge, or deploy behavior was introduced.
+
+Files created:
+
+- `docs/read-only-git-compatibility-baseline-decision-action-600.md`;
+- `docs/read-only-git-compatibility-policy-architecture-action-600.md`;
+- `docs/read-only-git-compatibility-action-600-checkpoint.md`.
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`.
+
+Approved baseline:
+
+- baseline HEAD at start: `9ebcace Add dormant Git repository observation runner planning`;
+- workspace: `/Users/willysimonsson/Dev/trade-action-534`;
+- branch: `codex/action-534-live-resolver`;
+- initial worktree: clean;
+- generic Git parser, Apple Git parser, exact read-only Git capability tuples, pure simple observation contracts, byte-oriented porcelain-status completion, porcelain-status interpretation, pure aggregate repository observation, and dormant repository-observation runner planning are complete and reviewed.
+
+Previous unresolved issue:
+
+- earlier actions could not decide a baseline because Apple `/usr/bin/git` emitted a vendor suffix and because the repository-observation capability set had not yet been exact or fully interpreted;
+- those blockers are now resolved sufficiently for a source-controlled baseline decision.
+
+Capability matrix:
+
+- `rev-parse --show-toplevel`: covered by official Git `rev-parse` documentation at or before `2.29.0`;
+- `rev-parse --show-object-format`: covered by official Git `rev-parse` documentation at `2.29.0`;
+- `rev-parse --verify HEAD`: covered by official Git `rev-parse` documentation before the selected floor;
+- `symbolic-ref --quiet --short HEAD`: covered by official Git `symbolic-ref` documentation before the selected floor;
+- `status --porcelain=v1 -z`: covered by official Git `status` documentation before the selected floor;
+- `status --untracked-files=all`: covered by official Git `status` documentation before the selected floor;
+- `status --no-renames`: covered by official Git `status` documentation at `2.39.0`;
+- `status --ignore-submodules=none`: covered by official Git `status` documentation before the selected floor.
+
+Selected decision:
+
+- Option B - separate generic upstream and Apple Git policies with a shared semantic capability floor;
+- generic upstream Git minimum: `2.39.0`;
+- generic supported major family: `2`;
+- Apple Git minimum upstream-equivalent version: `2.39.0`;
+- Apple build posture: fingerprint-bound evidence only, not primary comparator;
+- unknown vendor suffixes, prerelease/development/custom versions, and future major versions fail closed.
+
+Policy model:
+
+- future compatibility policy ID: `ture.execution.read-only-git-compatibility-policy.v1`;
+- capability-set ID: `ture.execution.read-only-git-repository-observation-capability-set.root-object-format-head-branch-status.v1`;
+- future evaluator must be pure, immutable, source-controlled, and parser-evidence-driven;
+- future closed statuses are `input_rejected`, `implementation_unsupported`, `version_below_baseline`, `version_above_reviewed_range`, `capability_baseline_unresolved`, and `compatible_for_read_only_observation`.
+
+Authority posture:
+
+- compatibility remains an observational policy result only;
+- all future compatibility results must retain `authority:"none"`, `compatibilityAuthorityGranted:false`, `runtimeActivated:false`, `repositoryReadAuthorityGranted:false`, `laterActivationEligibility:false`, and `toctouEliminated:false`.
+
+Evidence gaps:
+
+- no blocking evidence gap remains for the initial baseline decision;
+- non-blocking limitations remain for historically earliest flag versions, Apple build monotonicity, future Git major versions, unknown vendors, evaluator implementation, and runner implementation.
+
+Recommended next Action: Action 601 - Implement Pure Read-Only Git Compatibility Policy Contract.
+
+Decision: `post_trade_read_only_git_compatibility_baseline_decision_ready`.
+
+Result status: `post_trade_read_only_git_compatibility_action_600_decision_gate_completed`.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suite: passed, 146 tests;
+- aggregate, porcelain-status, byte-completion, and simple-observation suite: passed, 172 tests;
+- neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suite: passed, 143 tests;
+- resolver/security and Action 533 suite: passed, 672 tests;
+- broad dormant/process/credential/CLI/authorization suite: passed, 887 tests;
+- scoped ESLint on changed TS/JS files: not applicable because no TypeScript or JavaScript files changed;
+- static production-source diff review: passed, no TypeScript or JavaScript files changed;
+- static capability-evidence review: passed, Action 600 matrix records exact reviewed capability evidence;
+- static baseline-decision review: passed, selected Option B with `2.39.0` semantic floor;
+- static policy-identity review: passed, future immutable policy IDs are documented;
+- static export-surface review: passed, no app/lib/test/package references to Action 600 policy module;
+- static runtime-reachability review: passed, no runtime/API/UI/runner caller added;
+- static prohibited-operation review: passed, documentation-only prohibition references only and no changed production source;
+- migration-suite baseline limitation check: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent; unrelated baseline limitation only;
+- `git diff --check`: passed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Playwright emitted existing `[DEP0205] module.register()` and `NO_COLOR`/`FORCE_COLOR` warnings during suites; these were not failures.
+
+No deploy is recommended for Action 600.
+
 ### Action 592 - Pure Read-Only Git Porcelain Status Observation Contract
 
 Implemented the pure, fixture-only Git porcelain status interpretation contract. The new core accepts only an accepted Action 586 byte-oriented porcelain-status completion result for exact `/usr/bin/git` argv `["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--ignore-submodules=none"]`, rebuilds and validates source completion linkage, parses NUL-framed porcelain v1 records from lowercase hex bytes, and returns a closed immutable `accepted_clean`, `accepted_dirty`, or `rejected` result.
