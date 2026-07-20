@@ -1,5 +1,254 @@
 # Ture Agent Dev Chat 3 Continuation Summary
 
+## Latest Checkpoint - Action 598
+
+Action 598 independently re-reviewed the complete uncommitted Action 595-597 pure aggregate read-only Git repository observation package. This was final static/security re-review only; no aggregate contract, individual Git observation contract, parser, orchestrator, runner, live capture, runtime/API/UI path, credential path, migration, persistence, deployment, or test behavior was modified.
+
+Created files:
+
+- `docs/pure-aggregate-read-only-git-repository-observation-action-598-final-re-review.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-action-598-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+`A596-MED-001` verdict:
+
+- remediated;
+- `rootSecurityPostureValid` is private and called during root-stage revalidation;
+- every authority/security field present in approved root evidence is exact-checked false or `"none"`;
+- recomputed root fingerprints cannot bypass semantic root security validation;
+- unsupported root security fields absent from the root schema remain rejected by exact schema closure.
+
+New findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 0;
+- Low: 0;
+- Informational: 0.
+
+Review verdicts:
+
+- root-security completeness, forged-fingerprint resistance, valid-root regression, reason precedence, implementation scope, aggregate regression, authority/TOCTOU posture, pure boundary, export surface, runtime reachability, prohibited-operation review, and migration baseline classification passed;
+- migration-suite baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is still absent and Action 595-598 did not modify migrations or related tests.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- scoped ESLint on changed TS files: passed;
+- expanded aggregate suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; escalated rerun passed, 48 tests;
+- porcelain-status, byte-completion, simple-observation, Apple Git-version parser, and generic Git-version parser group: 250 passed;
+- Git-version orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition group: 163 passed;
+- resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- static root-schema, complete-security-posture, forged-fingerprint, valid-root regression, reason-precedence, aggregate regression, TOCTOU, authority, determinism/immutability, path-privacy, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- `git diff --check`: passed after Action 598 docs were created;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed after Action 598 docs were created.
+
+No Git command was executed through production behavior. No repository was inspected live. No process was created or observed. No repository-read authority was granted. No compatibility decision was made. No runner or runtime path was added. No credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior occurred.
+
+Decision:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_contract_final_security_review_approved`
+
+Result status:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_598_final_re_review_completed`
+
+Recommended next Action:
+
+Action 599 - Plan Dormant Read-Only Git Repository Observation Runner.
+
+## Latest Checkpoint - Action 597
+
+Action 597 remediated only `A596-MED-001` against the uncommitted Action 595-596 pure aggregate read-only Git repository observation package.
+
+Created files:
+
+- `docs/pure-aggregate-read-only-git-repository-observation-action-597-review-remediation.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-action-597-checkpoint.md`
+
+Modified files:
+
+- `lib/post-trade-pure-aggregate-read-only-git-repository-observation-contract-core.ts`
+- `tests/e2e/post-trade-pure-aggregate-read-only-git-repository-observation-contract.spec.ts`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation:
+
+- added private `rootSecurityPostureValid` in the aggregate core;
+- root-stage validation now rejects accepted root evidence unless all approved root authority/security fields are exact false/none values;
+- contradictory root security posture still returns `input_rejected` with reason `root_evidence_rejected`;
+- recomputed root evidence/result fingerprints no longer bypass semantic authority validation;
+- unsupported root security fields not present in the root schema, including `shellUsed`, `pathLookupUsed`, `inheritedEnvironmentUsed`, `credentialsUsed`, and `networkUsed`, remain rejected by exact schema closure rather than defaulted or aliased.
+
+Tests:
+
+- focused aggregate suite before remediation: 27 tests;
+- focused aggregate suite after remediation: 48 tests;
+- added 21 remediation tests covering recomputed-fingerprint root forgeries and unsupported root security field schema extensions.
+
+Validation:
+
+- initial `./node_modules/.bin/tsc --noEmit`: sandbox `EPERM` on `tsconfig.tsbuildinfo`;
+- rerun `./node_modules/.bin/tsc --noEmit` with local build-info write permission: passed;
+- scoped ESLint on changed TS files: passed;
+- expanded focused aggregate suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; escalated rerun passed, 48 tests;
+- porcelain-status, byte-completion, simple-observation, Apple Git-version parser, and generic Git-version parser group: 250 passed;
+- Git-version orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition group: 163 passed;
+- resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- static root-schema, complete root-security-posture, semantic-forgery, reason-precedence, result-union regression, fingerprint, TOCTOU, authority/no-runtime, path-privacy, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- migration-suite baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is still absent and Action 597 did not modify migrations or related tests;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed before and after Action 597 docs were created.
+
+No Git command was executed through production behavior. No repository was inspected live. No process was created or observed. No repository-read authority was granted. No runner or runtime path was added. No credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior occurred.
+
+Decision:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_596_finding_remediated_ready_for_re_review`
+
+Result status:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_597_remediation_completed`
+
+Recommended next Action:
+
+Action 598 - Independent Final Re-Review of Pure Aggregate Read-Only Git Repository Observation Root Security Remediation.
+
+## Latest Checkpoint - Action 596
+
+Action 596 performed an independent static security and contract review of the uncommitted Action 595 pure aggregate read-only Git repository observation package. This was review-only; no aggregate contract, individual Git observation contract, parser, orchestrator, neutralizer, direct-spawn, resolver, composition, revalidation, runtime/API/UI/runner path, credential path, migration, persistence, deployment, or test behavior was modified.
+
+Created files:
+
+- `docs/pure-aggregate-read-only-git-repository-observation-action-596-static-security-review.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-action-596-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Findings:
+
+- Critical: 0;
+- High: 0;
+- Medium: 1;
+- Low: 0;
+- Informational: 1.
+
+Blocking finding:
+
+- `A596-MED-001`: repository-root stage revalidation does not check every root evidence authority/security flag. A recomputed forged accepted root result can carry contradictory root authority flags and still pass aggregate validation.
+
+Review verdicts:
+
+- pure-boundary, identity/version, aggregate schema, shared linkage, fixed sequence, root/worktree comparison, object-format/HEAD linkage, HEAD stability, branch/detached policy, status policy, result union, reason model, fingerprints, TOCTOU posture, privacy, schema closure, determinism/immutability, export surface, runtime reachability, prohibited-operation review, and migration baseline classification passed;
+- stage revalidation, authority posture, and focused test quality are blocked by `A596-MED-001`;
+- `unsupported_object_format` is defensive/unreachable under the current object-format stage, which only emits accepted `sha1` or `sha256` evidence.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- Action 595 focused aggregate suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; escalated rerun passed, 27 tests;
+- porcelain-status, byte-completion, simple-observation, Apple Git-version parser, and generic Git-version parser group: 250 passed;
+- Git-version orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition group: 163 passed;
+- resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS files: passed;
+- `git diff --check`: passed before and after review-doc creation;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed before and after review-doc creation;
+- static export-surface and runtime-reachability reviews found no production caller;
+- static prohibited-operation review found no operation primitive in the aggregate core;
+- migration-suite baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is still absent and Action 595 did not modify migrations or related tests.
+
+No Git command was executed through production behavior. No repository was inspected live. No process was created or observed. No repository-read authority was granted. No runner was implemented. No runtime/API/UI path was activated. No TOCTOU guarantee was created. No credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior occurred.
+
+Decision:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_contract_static_security_review_blocked_pending_remediation`
+
+Result status:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_596_review_completed_blocked`
+
+Recommended next Action:
+
+Action 597 - Remediate Pure Aggregate Read-Only Git Repository Observation Review Findings.
+
+## Latest Checkpoint - Action 595
+
+Action 595 implemented the pure aggregate read-only Git repository observation contract. This was pure fixture-only contract work only.
+
+Created files:
+
+- `lib/post-trade-pure-aggregate-read-only-git-repository-observation-contract-core.ts`
+- `tests/e2e/post-trade-pure-aggregate-read-only-git-repository-observation-contract.spec.ts`
+- `docs/pure-aggregate-read-only-git-repository-observation-contract-action-595.md`
+- `docs/pure-aggregate-read-only-git-repository-observation-action-595-checkpoint.md`
+
+Modified files:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Contract identities:
+
+- contract ID: `ture.execution.pure-aggregate-read-only-git-repository-observation-contract.fixture.v1`;
+- boundary ID: `ture.execution.aggregate-read-only-git-repository-observation.fixture-boundary.v1`;
+- policy ID: `ture.execution.aggregate-read-only-git-repository-observation.policy.v1`;
+- sequence identity: `ture.execution.read-only-git-repository-observation.sequence.root-object-format-head-branch-status-head.v1`.
+
+Implemented model:
+
+- one pure builder accepts six approved stage results plus fingerprint-only approved worktree linkage;
+- stage schemas, fingerprints, source linkage, shared session/platform/executable/worktree/sequence, authority posture, and TOCTOU posture are revalidated;
+- simple text observations keep their reviewed text completion policy while porcelain status keeps its reviewed byte-oriented policy;
+- root/worktree comparison uses fingerprints only and exposes no plaintext path in aggregate output;
+- object-format/HEAD linkage supports `sha1` and `sha256`;
+- changed HEAD, detached HEAD, dirty repository, root mismatch, and clean stable observation are closed non-authoritative outcomes;
+- every result keeps `authority:"none"`, `laterActivationEligibility:false`, `compatibilityDecision:null`, and `toctouEliminated:false`.
+
+Focused suite:
+
+- Action 595 focused aggregate suite: 27 passed.
+
+No Git command was executed through production behavior. No repository was inspected live. No process was created or observed. No repository-read authority was granted. No runner was implemented. No runtime/API/UI path was activated. No TOCTOU guarantee was created. No credentials, environment, network, Avanza, trading, persistence, migration, deployment, commit, push, merge, or deploy behavior was added.
+
+Validation:
+
+- initial `./node_modules/.bin/tsc --noEmit`: sandbox `EPERM` on `tsconfig.tsbuildinfo`;
+- rerun `./node_modules/.bin/tsc --noEmit` with local build-info write permission: passed;
+- first focused aggregate suite attempt: sandbox `EPERM` on `test-results/.last-run.json`;
+- focused aggregate suite rerun with Playwright report-file write permission: initial implementation failures found and corrected;
+- final focused aggregate suite: 27 passed;
+- porcelain-status, byte-completion, simple-observation, Apple parser, and generic parser group: 250 passed;
+- Git-version orchestrator, neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition group: 163 passed;
+- resolver/security and Action 533 group: 672 passed;
+- broad dormant/process/credential/CLI/authorization group: 887 passed;
+- scoped ESLint on changed TS files: passed;
+- `git diff --check`: passed;
+- static pure-import, aggregate-input schema, per-stage revalidation, shared-linkage, sequence, root/worktree, object-format/HEAD, HEAD-stability, branch/detached, clean/dirty, result-union, reason-precedence, fingerprint, TOCTOU, determinism/immutability, authority/no-runtime, path-privacy, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- migration-suite baseline limitation check: unchanged unrelated limitation, `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` remains absent;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_contract_ready_for_static_security_review`
+
+Result status:
+
+`post_trade_pure_aggregate_read_only_git_repository_observation_action_595_implemented_fixture_only`
+
+Recommended next Action:
+
+Action 596 - Static Security and Contract Review of Pure Aggregate Read-Only Git Repository Observation Contract.
+
 ## Latest Checkpoint - Action 594
 
 Action 594 planned the pure aggregate read-only Git repository observation contract. This was documentation, architecture, aggregate-contract planning, and approval-gate work only.
