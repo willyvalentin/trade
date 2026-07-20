@@ -10600,3 +10600,53 @@ Decision: `post_trade_dormant_git_runner_repository_read_process_authority_plan_
 Result status: `post_trade_dormant_git_runner_repository_read_process_authority_action_605_planning_gate_completed`
 
 No deploy is recommended for Action 605. A source-control checkpoint commit may be considered only after the planning diff and validation are manually inspected.
+
+### Action 606 - Latest Continuation Handoff
+
+Action 606 decided the fixed expiry and freshness policy for a future dormant read-only Git runner authority package. This was documentation, policy-decision, threat-model, and approval-gate work only. No expiry checker, authority package, authority consumption, runner, Git execution, process creation, process observation, live repository inspection, runtime/API/UI/cron/worker reachability, credentials, environment inheritance, network, Avanza/trading behavior, persistence, migrations, deployment, commit, push, merge, or deploy was added.
+
+Created:
+
+- `docs/dormant-git-runner-authority-expiry-freshness-action-606.md`
+- `docs/dormant-git-runner-authority-expiry-architecture-action-606.md`
+- `docs/dormant-git-runner-authority-expiry-action-606-checkpoint.md`
+
+Selected policy:
+
+- future authority package lifetime is exactly `30000` milliseconds, or 30 seconds;
+- `expiresAt` must equal `issuedAt + 30000 ms`;
+- timestamps must use exact UTC ISO-8601 millisecond form;
+- caller-provided time, expiry, duration, refresh, grace period, fallback, cache extension, and environment overrides are rejected;
+- issuance requires fresh executable and worktree evidence in the same session;
+- consumption must check expiry before every stage process attempt, after each stage before continuing, before aggregate construction, and before result exposure;
+- all six stages and aggregate construction must complete before expiry;
+- expiry does not schedule timers, send signals, observe processes, terminate processes, refresh authority, or grant runtime readiness.
+
+Authority posture:
+
+- the policy grants no repository-read, process, CLI execution, observer, termination, credential, network, compatibility, runtime/API/UI/cron/worker, Avanza/trading, persistence, migration, staging, deployment, or production authority;
+- `toctouEliminated:false` and `runtimeActivated:false` remain required.
+
+Recommended next Action: Action 607 - Implement Pure Repository-Read and Process Authority Package Contract.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed;
+- compatibility-policy suite: first sandbox attempt hit known Playwright `EPERM` on `test-results/.last-run.json`; minimal filesystem-escalated rerun passed, 133 tests;
+- generic Git parser, Apple Git parser, and Git-version orchestrator suites: 146 passed;
+- aggregate, porcelain-status, byte-completion, and simple-observation suites: 172 passed;
+- neutralization, raw-completion, direct-spawn, revalidation, dormant composition, and pure composition suites: 143 passed;
+- resolver/security and Action 533 suites: 672 passed;
+- broad dormant/process/credential/CLI/authorization suites: 887 passed;
+- scoped ESLint on changed TypeScript/JavaScript files: not applicable; Action 606 changed documentation only;
+- `git diff --check`: passed;
+- static source diff, threat-model, expiry-policy, clock-boundary, per-stage, replay/concurrency, export-surface, runtime-reachability, and prohibited-operation reviews: passed;
+- migration-suite baseline limitation check: unrelated missing migration baseline reconfirmed;
+- quiet `.env.local` diff guard: passed;
+- `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_dormant_git_runner_authority_expiry_freshness_policy_ready`
+
+Result status: `post_trade_dormant_git_runner_authority_expiry_action_606_decision_gate_completed`
+
+No deploy is recommended for Action 606. A source-control checkpoint commit may be considered only after the documentation diff and validation are manually inspected.
