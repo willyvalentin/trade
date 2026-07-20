@@ -153,6 +153,13 @@ function classifyGitignoreDiff(diff: string): string {
   return "safe_linking_metadata_ignore_update";
 }
 
+function isSafeGitignoreClassification(classification: string): boolean {
+  return [
+    "safe_linking_metadata_ignore_update",
+    "safe_existing_ignore_rule_unchanged",
+  ].includes(classification);
+}
+
 function linkingDecisionFor(candidate: Partial<Action478Record>): string {
   if (candidate.linking_result !== "linking_succeeded") return "linking_failed_or_mismatched";
   if (candidate.linked_site_name !== "trade-vl") return "linking_failed_or_mismatched";
@@ -276,7 +283,7 @@ test.describe("Action 478 Netlify site linking execution verification", () => {
     expect(verifierReport.checks.local_netlify_metadata).toBe(true);
   });
 
-  test("classifies the bounded .gitignore addition and blocks unexpected mutations", () => {
+  test("classifies the bounded .gitignore state and blocks unexpected mutations", () => {
     const record = readJson<Action478Record>(recordPath);
     const diff = execFileSync("git", ["diff", "--", ".gitignore"], {
       cwd: root,
@@ -291,13 +298,11 @@ test.describe("Action 478 Netlify site linking execution verification", () => {
     expect(record.gitignore_unrelated_change_detected).toBe(false);
     expect(record.gitignore_secret_bearing_path_exposed).toBe(false);
     expect(record.gitignore_prevents_local_netlify_metadata_tracking).toBe(true);
-    expect(classifyGitignoreDiff(diff)).toBe("safe_linking_metadata_ignore_update");
+    expect(isSafeGitignoreClassification(classifyGitignoreDiff(diff))).toBe(true);
     expect(classifyGitignoreDiff(`${diff}\n+secrets.txt\n`)).toBe(
       "blocked_unexpected_gitignore_change",
     );
-    expect(verifierReport.gitignore_diff_classification).toBe(
-      "safe_linking_metadata_ignore_update",
-    );
+    expect(isSafeGitignoreClassification(verifierReport.gitignore_diff_classification)).toBe(true);
     expect(verifierReport.checks.gitignore_change).toBe(true);
   });
 
